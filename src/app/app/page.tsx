@@ -33,6 +33,7 @@ export default async function DashboardPage({
     initialForm={context.website ? {
       firstName: context.profile?.first_name ?? "",
       lastName: context.profile?.last_name ?? "",
+      businessName: context.website.business_name,
       email: context.profile?.contact_email ?? "",
       website: context.website.url,
       business: context.website.products_services,

@@ -18,6 +18,12 @@ type LogicExports = {
   main: () => void;
 };
 
+function normalizeWeeklyQuest(value: string) {
+  return value === "Publish the highest-opportunity local page"
+    ? "Publish the highest-opportunity page"
+    : value;
+}
+
 // Compiled from destiny-logic-engine/src/main.lg with LOGICAFFEINE v0.10.1.
 // Keeping the small module beside the worker guarantees that the saved quest is
 // chosen by the same deterministic rules as the browser preview.
@@ -107,7 +113,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   if (output.length < 2) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
-  return { growthStage: output[0], weeklyQuest: output[1] };
+  return { growthStage: output[0], weeklyQuest: normalizeWeeklyQuest(output[1]) };
 }
 
 export function questCategory(weeklyQuest: string) {

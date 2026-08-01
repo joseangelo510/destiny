@@ -71,6 +71,22 @@ describe("DataForSeoProvider", () => {
     ], 3).map((item) => item.keyword)).toEqual(["Alpha", "Delta", "Beta"]);
   });
 
+  it("collapses punctuation and plural variants and excludes address-only noise", () => {
+    const keyword = (name: string): SeoKeyword => ({
+      keyword: name, rank: 1, searchVolume: 40, url: "", intent: "informational", difficulty: 0, cpc: 0, opportunity: "existing_rank",
+    });
+    expect(mergeKeywordStrategy([[
+      keyword("0 3 month nike shoes"),
+      keyword("0-3 months nike shoes"),
+      keyword("0-3 month nike outfit"),
+      keyword("0-3 months nike outfits"),
+      keyword("1 Bowerman Drive Beaverton Oregon 97005 United States"),
+    ]]).map((item) => item.keyword)).toEqual([
+      "0 3 month nike shoes",
+      "0-3 month nike outfit",
+    ]);
+  });
+
   it("prioritizes keywords that match the saved business context", () => {
     const keyword = (name: string, opportunity: SeoKeyword["opportunity"]): SeoKeyword => ({
       keyword: name, rank: 0, searchVolume: 10, url: "", intent: "informational", difficulty: 20, cpc: 1, opportunity,

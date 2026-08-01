@@ -25,4 +25,10 @@ describe("Destiny LOGOS parity", () => {
     expect(browser.growthStage).toBe(growthStage);
     expect(browser.weeklyQuest.length).toBeGreaterThan(10);
   });
+
+  it("uses a market-neutral content quest for non-local websites", async () => {
+    const { browser, worker } = await runBoth({ auditComplete: 1, criticalIssues: 0, rankingKeywords: 804516, contentGaps: 24, reviewCount: 0 });
+    expect(browser).toEqual(worker);
+    expect(browser.weeklyQuest).toBe("Publish the highest-opportunity page");
+  });
 });

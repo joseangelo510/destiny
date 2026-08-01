@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 type OnboardingPayload = {
   business?: unknown;
+  businessName?: unknown;
   competitors?: unknown;
   customer?: unknown;
   email?: unknown;
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     const body = await request.json() as OnboardingPayload;
     const firstName = text(body.firstName, 80);
     const lastName = text(body.lastName, 80);
+    const businessName = text(body.businessName, 160);
     const email = text(body.email, 320).toLowerCase();
     const business = text(body.business, 4000);
     const customer = text(body.customer, 4000);
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
     const country = text(body.country, 120) || "United States";
     const website = normalizeWebsite(text(body.website, 2048));
 
-    if (!firstName || !lastName || !/^\S+@\S+\.\S+$/.test(email) || !business || !customer || !standout) {
+    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !business || !customer || !standout) {
       return NextResponse.json({ error: "Complete every onboarding field." }, { status: 400 });
     }
 
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     let organizationId = existingMembership?.organization_id;
     if (!organizationId) {
       const { data, error } = await supabase.rpc("create_organization", {
-        organization_name: `${firstName} ${lastName}'s Business`,
+        organization_name: businessName,
       });
       if (error) throw error;
       organizationId = data;
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
     const websiteValues = {
       url: website.url,
       normalized_domain: website.domain,
-      business_name: `${firstName} ${lastName}`,
+      business_name: businessName,
       products_services: business,
       ideal_customer: customer,
       differentiation: standout,

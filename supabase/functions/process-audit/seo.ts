@@ -258,6 +258,22 @@ function parseGapKeywords(result: JsonRecord): StrategyKeyword[] {
   }).filter((keyword) => keyword.keyword);
 }
 
+function keywordIdentity(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase()
+    .replace(/\bmonths\b/g, "month")
+    .replace(/\boutfits\b/g, "outfit")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function looksLikeAddressKeyword(value: string) {
+  const normalized = keywordIdentity(value);
+  return /\b\d{5}(?:\s+\d{4})?\b/.test(normalized)
+    && /\b(?:avenue|ave|boulevard|blvd|drive|dr|lane|ln|road|rd|street|st|way)\b/.test(normalized);
+}
+
 export function mergeKeywordStrategy(groups: StrategyKeyword[][], limit = 24) {
   const queues = groups.map((group) => [...group]);
   const seen = new Set<string>();
@@ -266,8 +282,8 @@ export function mergeKeywordStrategy(groups: StrategyKeyword[][], limit = 24) {
     for (const queue of queues) {
       const candidate = queue.shift();
       if (!candidate) continue;
-      const key = candidate.keyword.trim().toLocaleLowerCase();
-      if (!key || seen.has(key)) continue;
+      const key = keywordIdentity(candidate.keyword);
+      if (!key || looksLikeAddressKeyword(candidate.keyword) || seen.has(key)) continue;
       seen.add(key);
       strategy.push(candidate);
       if (strategy.length === limit) break;
@@ -289,11 +305,11 @@ function buildKeywordStrategy(groups: StrategyKeyword[][], context: BusinessCont
     return [...tokens].some((token) => phrase.includes(token));
   }));
   const strategy = mergeKeywordStrategy(relevantGroups, limit);
-  const seen = new Set(strategy.map((keyword) => keyword.keyword.trim().toLowerCase()));
+  const seen = new Set(strategy.map((keyword) => keywordIdentity(keyword.keyword)));
   if (strategy.length < limit) {
     const fallback = mergeKeywordStrategy(groups, groups.reduce((total, group) => total + group.length, 0));
     for (const keyword of fallback) {
-      const key = keyword.keyword.trim().toLowerCase();
+      const key = keywordIdentity(keyword.keyword);
       if (seen.has(key)) continue;
       seen.add(key);
       strategy.push(keyword);

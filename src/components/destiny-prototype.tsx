@@ -43,6 +43,7 @@ declare global {
 const initialForm = {
   firstName: "",
   lastName: "",
+  businessName: "",
   email: "",
   website: "",
   business: "",
@@ -299,6 +300,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <label>First name<input autoComplete="given-name" placeholder="Maya" required value={form.firstName} onChange={(event) => updateField("firstName", event.target.value)} /></label>
             <label>Last name<input autoComplete="family-name" placeholder="Torres" required value={form.lastName} onChange={(event) => updateField("lastName", event.target.value)} /></label>
           </div>
+          <label>Business name<input autoComplete="organization" placeholder="Maya Torres Realty" required value={form.businessName} onChange={(event) => updateField("businessName", event.target.value)} /></label>
           <div className="form-grid two-column">
             <label>Contact email<input autoComplete="email" placeholder="maya@yourbusiness.com" required type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} /></label>
             <label>Website<input autoComplete="url" placeholder="https://yourbusiness.com" required type="url" value={form.website} onChange={(event) => updateField("website", event.target.value)} /></label>

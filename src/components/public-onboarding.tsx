@@ -30,6 +30,7 @@ declare global {
 
 const emptyForm = {
   website: "",
+  businessName: "",
   business: "",
   customer: "",
   localMarket: "",
@@ -68,7 +69,7 @@ export function PublicOnboarding() {
   };
 
   const stepReady = useMemo(() => {
-    if (step === 1) return /^https?:\/\//i.test(form.website.trim()) && form.business.trim().length > 0;
+    if (step === 1) return form.businessName.trim().length > 0 && /^https?:\/\//i.test(form.website.trim()) && form.business.trim().length > 0;
     if (step === 2) return form.customer.trim().length > 0 && form.country.length > 0;
     if (step === 3) return form.standout.trim().length > 0;
     return form.firstName.trim().length > 0 && form.lastName.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email.trim());
@@ -211,6 +212,7 @@ export function PublicOnboarding() {
           {step === 1 && <>
             <h2>Tell us about your business</h2>
             <p className="lede">Use a public website and describe the products or services you provide.</p>
+            <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Website URL<input aria-describedby="website-help" autoComplete="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://yourwebsite.com" required type="url" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
             <VoiceTextarea field="business" label="Products and services" listening={listening} onChange={(value) => updateField("business", value)} onDictate={dictate} placeholder="Tell us what the business offers, where it operates, and what customers hire it to do." value={form.business} />
           </>}
@@ -239,6 +241,7 @@ export function PublicOnboarding() {
             </div>
             <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>We’ll use this for your welcome and audit-ready updates. It is not an email verification gate.</small></label>
             <div className="guided-review-grid">
+              <div><span>Business name</span><strong>{form.businessName}</strong></div>
               <div><span>Website</span><strong>{form.website}</strong></div>
               <div><span>Search database</span><strong>{form.country}</strong></div>
               <div><span>Business</span><p>{form.business}</p></div>

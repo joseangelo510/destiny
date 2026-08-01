@@ -16,6 +16,12 @@ type LogicExports = {
   main: () => void;
 };
 
+function normalizeWeeklyQuest(value: string) {
+  return value === "Publish the highest-opportunity local page"
+    ? "Publish the highest-opportunity page"
+    : value;
+}
+
 export async function runDestinyLogic(
   input: DestinyLogicInput,
 ): Promise<DestinyLogicResult> {
@@ -107,6 +113,6 @@ export async function runDestinyLogic(
 
   return {
     growthStage: output[0],
-    weeklyQuest: output[1],
+    weeklyQuest: normalizeWeeklyQuest(output[1]),
   };
 }
