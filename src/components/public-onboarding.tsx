@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { stepOneValidation } from "@/lib/onboarding/validation";
 
 type VoiceField = "business" | "customer" | "competitors" | "standout";
 
@@ -68,12 +69,14 @@ export function PublicOnboarding() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const stepOne = useMemo(() => stepOneValidation(form), [form]);
+
   const stepReady = useMemo(() => {
-    if (step === 1) return form.businessName.trim().length > 0 && /^https?:\/\//i.test(form.website.trim()) && form.business.trim().length > 0;
+    if (step === 1) return stepOne.ready;
     if (step === 2) return form.customer.trim().length > 0 && form.country.length > 0;
     if (step === 3) return form.standout.trim().length > 0;
     return form.firstName.trim().length > 0 && form.lastName.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email.trim());
-  }, [form, step]);
+  }, [form, step, stepOne.ready]);
 
   useEffect(() => {
     if (auditStatus !== "running" || !auditId) return;
@@ -119,6 +122,9 @@ export function PublicOnboarding() {
   const nextStep = () => {
     if (!stepReady) return;
     setError("");
+    if (step === 1 && stepOne.normalizedWebsite) {
+      setForm((current) => ({ ...current, website: stepOne.normalizedWebsite ?? current.website }));
+    }
     setStep((current) => Math.min(4, current + 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -213,7 +219,7 @@ export function PublicOnboarding() {
             <h2>Tell us about your business</h2>
             <p className="lede">Use a public website and describe the products or services you provide.</p>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
-            <label>Website URL<input aria-describedby="website-help" autoComplete="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://yourwebsite.com" required type="url" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
+            <label>Website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="yourwebsite.com or https://yourwebsite.com" required type="text" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
             <VoiceTextarea field="business" label="Products and services" listening={listening} onChange={(value) => updateField("business", value)} onDictate={dictate} placeholder="Tell us what the business offers, where it operates, and what customers hire it to do." value={form.business} />
           </>}
 

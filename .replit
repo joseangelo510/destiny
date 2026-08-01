@@ -1,9 +1,9 @@
-run = "npm run dev -- --hostname 0.0.0.0 --port 3000"
-modules = ["nodejs-22"]
+run = "npm run dev -- -H 0.0.0.0 -p 3000"
+modules = ["nodejs-20"]
 
 [deployment]
-build = "npm install --no-audit --no-fund && npm run build"
-run = "npm run start -- --hostname 0.0.0.0 --port 3000"
+build = "npm install --include=dev && npm run build"
+run = "npm run start -- -H 0.0.0.0 -p 3000"
 
 [[ports]]
 localPort = 3000

@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "logos:embed": "node scripts/embed-logos-wasm.mjs",
     "test": "vitest run"
   },
   "dependencies": {

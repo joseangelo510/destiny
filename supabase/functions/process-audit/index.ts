@@ -1,6 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { sendAuditReadyEmail } from "./email.ts";
-import { questCategory, runDestinyLogic } from "./logic.ts";
+import { runDestinyLogic } from "./logic.ts";
 import { runSeoAudit } from "./seo.ts";
 
 declare const EdgeRuntime: { waitUntil(task: Promise<unknown>): void };
@@ -92,7 +92,10 @@ export default {
         const logic = await runDestinyLogic({
           auditComplete: 1,
           criticalIssues: result.metrics.criticalIssues,
+          warnings: result.metrics.warnings,
           rankingKeywords: result.metrics.rankingKeywords,
+          newKeywords: result.metrics.newKeywords,
+          lostKeywords: result.metrics.lostKeywords,
           contentGaps: result.metrics.contentGaps,
           reviewCount: result.metrics.reviewCount,
         });
@@ -103,10 +106,10 @@ export default {
             p_audit_id: auditId,
             p_user_id: userId,
             p_metrics: { ...result.metrics, referringDomains: 0 },
-            p_provider_result: result,
+            p_provider_result: { ...result, destinyDecision: logic },
             p_growth_stage: logic.growthStage,
             p_quest_title: logic.weeklyQuest,
-            p_quest_category: questCategory(logic.weeklyQuest),
+            p_quest_category: logic.questCategory,
           },
         );
         if (finalizeError) throw new Error(finalizeError.message);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { DestinyLogicResult, runDestinyLogic } from "@/lib/logicaffeine";
+import { DestinyLogicInput, DestinyLogicResult, runDestinyLogic } from "@/lib/logicaffeine";
 import type { SeoAuditResult } from "@/lib/seo/types";
 
 type OnboardingField = "business" | "customer" | "competitors" | "standout";
@@ -54,7 +54,11 @@ const initialForm = {
 
 const seededLogic: DestinyLogicResult = {
   growthStage: "fix_foundations",
+  decisionCode: "fix_technical",
   weeklyQuest: "Fix the highest-impact technical issue",
+  questCategory: "technical",
+  urgency: "urgent",
+  explanation: "Critical technical issues can block crawling ranking and conversions so the highest-impact issue comes first",
 };
 
 const seededAudit: SeoAuditResult = {
@@ -146,17 +150,21 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       if (!response.ok) return;
       const payload = await response.json() as {
         audit?: { status?: string; failure_message?: string | null };
-        verification?: { input: { auditComplete: number; criticalIssues: number; rankingKeywords: number; contentGaps: number; reviewCount: number }; growthStage: string | null; weeklyQuest: string } | null;
+        verification?: { input: DestinyLogicInput; result: DestinyLogicResult | null; savedQuest: { title: string; category: string } } | null;
       };
       if (payload.audit?.status === "complete") {
         window.clearInterval(poll);
-        if (!payload.verification?.growthStage) {
+        if (!payload.verification?.result) {
           setAuditStatus("failed");
           setError("The audit finished without a complete LOGOS verification record.");
           return;
         }
         const browserLogic = await runDestinyLogic(payload.verification.input);
-        if (browserLogic.growthStage !== payload.verification.growthStage || browserLogic.weeklyQuest !== payload.verification.weeklyQuest) {
+        const expected = payload.verification.result;
+        const sameDecision = Object.entries(browserLogic).every(([key, value]) => expected[key as keyof DestinyLogicResult] === value);
+        const savedQuestMatches = browserLogic.weeklyQuest === payload.verification.savedQuest.title
+          && browserLogic.questCategory === payload.verification.savedQuest.category;
+        if (!sameDecision || !savedQuestMatches) {
           setAuditStatus("failed");
           setError("Destiny’s browser and server rules did not agree. No inconsistent recommendation was shown.");
           return;
@@ -384,7 +392,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <div className="quest-topline"><span>Week 1 quest</span><span>+{initialQuestXp ?? 40} XP</span></div>
             <div className="quest-icon">↗</div>
             <h2>{logic.weeklyQuest}</h2>
-            <p>{audit.issues[0]?.label ?? "Complete the highest-impact action Destiny found for your website."} Destiny will walk you through the fix.</p>
+            <p>{logic.explanation}</p>
             <div className="quest-meta"><span>About 20 minutes</span><span>Destiny will guide you</span></div>
             <Link className="quest-link" href={auditId ? `/audits/${auditId}` : "/growth-plan"}>{auditId ? "View saved results →" : "Start this quest →"}</Link>
           </article>
@@ -394,7 +402,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <div className="momentum-score"><strong>{initialMomentum?.streak ?? 0}</strong><span>week streak</span></div>
             <div className="week-row">{["M", "T", "W", "T", "F", "S", "S"].map((day, index) => <span className={index === 0 ? "today" : ""} key={`${day}-${index}`}>{day}</span>)}</div>
             <div className="momentum-stats"><span><strong>{initialMomentum?.completed ?? 0}</strong> tasks done</span><span><strong>{initialMomentum?.xp ?? 0}</strong> XP earned</span></div>
-            <div className="rule-result"><span>Current growth stage</span><strong>{stageLabels[logic.growthStage] ?? logic.growthStage}</strong><small>Selected by the live LOGOS rules engine</small></div>
+            <div className="rule-result"><span>Current growth stage</span><strong>{stageLabels[logic.growthStage] ?? logic.growthStage}</strong><small>{logic.urgency} priority · {logic.questCategory} · selected by LOGOS</small></div>
           </article>
         </section>
 

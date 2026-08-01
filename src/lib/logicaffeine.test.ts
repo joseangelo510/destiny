@@ -15,19 +15,23 @@ async function runBoth(input: Parameters<typeof runBrowserLogic>[0]) {
 
 describe("Destiny LOGOS parity", () => {
   it.each([
-    [{ auditComplete: 0, criticalIssues: 0, rankingKeywords: 0, contentGaps: 0, reviewCount: 0 }, "audit_in_progress"],
-    [{ auditComplete: 1, criticalIssues: 2, rankingKeywords: 40, contentGaps: 0, reviewCount: 30 }, "fix_foundations"],
-    [{ auditComplete: 1, criticalIssues: 0, rankingKeywords: 7, contentGaps: 8, reviewCount: 20 }, "build_search_coverage"],
-    [{ auditComplete: 1, criticalIssues: 0, rankingKeywords: 22, contentGaps: 0, reviewCount: 20 }, "compound_distribution"],
+    [{ auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0 }, { growthStage: "audit_in_progress", decisionCode: "audit_waiting", questCategory: "measurement", urgency: "waiting" }],
+    [{ auditComplete: 1, criticalIssues: 3, warnings: 7, rankingKeywords: 40, newKeywords: 4, lostKeywords: 0, contentGaps: 0, reviewCount: 30 }, { growthStage: "fix_foundations", decisionCode: "fix_technical", questCategory: "technical", urgency: "urgent" }],
+    [{ auditComplete: 1, criticalIssues: 0, warnings: 2, rankingKeywords: 40, newKeywords: 1, lostKeywords: 5, contentGaps: 0, reviewCount: 30 }, { growthStage: "build_search_coverage", decisionCode: "refresh_declining", questCategory: "content", urgency: "high" }],
+    [{ auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 7, newKeywords: 2, lostKeywords: 0, contentGaps: 8, reviewCount: 20 }, { growthStage: "build_search_coverage", decisionCode: "publish_gap", questCategory: "content", urgency: "focused" }],
+    [{ auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 22, newKeywords: 2, lostKeywords: 0, contentGaps: 0, reviewCount: 6 }, { growthStage: "compound_distribution", decisionCode: "request_reviews", questCategory: "reviews", urgency: "focused" }],
+    [{ auditComplete: 1, criticalIssues: 0, warnings: 4, rankingKeywords: 22, newKeywords: 2, lostKeywords: 0, contentGaps: 0, reviewCount: 20 }, { growthStage: "compound_distribution", decisionCode: "fix_warning", questCategory: "technical", urgency: "routine" }],
+    [{ auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 22, newKeywords: 2, lostKeywords: 0, contentGaps: 0, reviewCount: 20 }, { growthStage: "compound_distribution", decisionCode: "distribute_expertise", questCategory: "distribution", urgency: "routine" }],
   ] as const)("returns %s consistently", async (input, growthStage) => {
     const { browser, worker } = await runBoth(input);
     expect(browser).toEqual(worker);
-    expect(browser.growthStage).toBe(growthStage);
+    expect(browser).toMatchObject(growthStage);
     expect(browser.weeklyQuest.length).toBeGreaterThan(10);
+    expect(browser.explanation.length).toBeGreaterThan(20);
   });
 
   it("uses a market-neutral content quest for non-local websites", async () => {
-    const { browser, worker } = await runBoth({ auditComplete: 1, criticalIssues: 0, rankingKeywords: 804516, contentGaps: 24, reviewCount: 0 });
+    const { browser, worker } = await runBoth({ auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 804516, newKeywords: 32, lostKeywords: 0, contentGaps: 24, reviewCount: 0 });
     expect(browser).toEqual(worker);
     expect(browser.weeklyQuest).toBe("Publish the highest-opportunity page");
   });

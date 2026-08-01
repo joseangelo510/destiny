@@ -20,6 +20,9 @@ export async function sendWelcomeEmail(input: {
   recipient: string;
   domain: string;
 }): Promise<EmailDelivery> {
+  if (input.recipient.toLowerCase().endsWith("@example.invalid")) {
+    return { status: "skipped", reason: "Non-deliverable QA address." };
+  }
   const apiKey = Deno.env.get("RESEND_API_KEY")?.trim();
   const from = Deno.env.get("DESTINY_FROM_EMAIL")?.trim();
   if (!apiKey || !from) {

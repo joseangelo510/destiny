@@ -1,0 +1,128 @@
+# Destiny Logic Engine
+
+Deterministic rules for turning a completed SEO audit into the next clear
+customer action. This is intentionally small: LOGOS validates business rules;
+the customer-facing Destiny application, accounts, integrations, and hosting
+live in the web platform.
+
+## To native args () -> Seq of Text
+
+## To native parseInt (value: Text) -> Int
+
+## To ChooseDecisionCode (audit_complete: Int) and (critical_issues: Int) and (warnings: Int) and (new_keywords: Int) and (lost_keywords: Int) and (content_gaps: Int) and (review_count: Int) -> Text:
+
+    If audit_complete equals 0:
+        Return "audit_waiting".
+    If critical_issues is greater than 0:
+        Return "fix_technical".
+    If lost_keywords is greater than new_keywords:
+        Return "refresh_declining".
+    If content_gaps is greater than 0:
+        Return "publish_gap".
+    If review_count is less than 10:
+        Return "request_reviews".
+    If warnings is greater than 0:
+        Return "fix_warning".
+    Return "distribute_expertise".
+
+## To ChooseGrowthStage (audit_complete: Int) and (critical_issues: Int) and (ranking_keywords: Int) and (new_keywords: Int) and (lost_keywords: Int) and (content_gaps: Int) -> Text:
+
+    If audit_complete equals 0:
+        Return "audit_in_progress".
+    If critical_issues is greater than 0:
+        Return "fix_foundations".
+    If ranking_keywords is less than 10:
+        Return "build_search_coverage".
+    If lost_keywords is greater than new_keywords:
+        Return "build_search_coverage".
+    If content_gaps is greater than 0:
+        Return "build_search_coverage".
+    Return "compound_distribution".
+
+## To ChooseWeeklyQuest (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "Wait for the website audit to finish".
+    If decision_code equals "fix_technical":
+        Return "Fix the highest-impact technical issue".
+    If decision_code equals "refresh_declining":
+        Return "Refresh the page losing the most search visibility".
+    If decision_code equals "publish_gap":
+        Return "Publish the highest-opportunity page".
+    If decision_code equals "request_reviews":
+        Return "Ask three recent customers for a Google review".
+    If decision_code equals "fix_warning":
+        Return "Resolve the highest-impact on-page warning".
+    Return "Answer one relevant question on Reddit or Quora".
+
+## To ChooseQuestCategory (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "measurement".
+    If decision_code equals "fix_technical":
+        Return "technical".
+    If decision_code equals "fix_warning":
+        Return "technical".
+    If decision_code equals "refresh_declining":
+        Return "content".
+    If decision_code equals "publish_gap":
+        Return "content".
+    If decision_code equals "request_reviews":
+        Return "reviews".
+    Return "distribution".
+
+## To ChooseUrgency (decision_code: Text) and (critical_issues: Int) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "waiting".
+    If critical_issues is greater than 2:
+        Return "urgent".
+    If decision_code equals "fix_technical":
+        Return "high".
+    If decision_code equals "refresh_declining":
+        Return "high".
+    If decision_code equals "publish_gap":
+        Return "focused".
+    If decision_code equals "request_reviews":
+        Return "focused".
+    Return "routine".
+
+## To ChooseExplanation (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "Destiny is collecting live search and website evidence before choosing your first task".
+    If decision_code equals "fix_technical":
+        Return "Critical technical issues can block crawling ranking and conversions so the highest-impact issue comes first".
+    If decision_code equals "refresh_declining":
+        Return "More keywords were lost than gained so refreshing the page with the largest decline is the clearest recovery move".
+    If decision_code equals "publish_gap":
+        Return "The audit found unanswered search demand so publishing the strongest content gap is the best next growth move".
+    If decision_code equals "request_reviews":
+        Return "The review base is still small so recent customer proof is the strongest local trust and conversion opportunity".
+    If decision_code equals "fix_warning":
+        Return "No critical blocker remains but an on-page warning is the clearest low-risk improvement to complete next".
+    Return "The foundation is healthy so distributing expertise on a relevant community question can compound visibility".
+
+## Main
+
+    Let arguments be args().
+    Let audit_complete be parseInt(item 2 of arguments).
+    Let critical_issues be parseInt(item 3 of arguments).
+    Let warnings be parseInt(item 4 of arguments).
+    Let ranking_keywords be parseInt(item 5 of arguments).
+    Let new_keywords be parseInt(item 6 of arguments).
+    Let lost_keywords be parseInt(item 7 of arguments).
+    Let content_gaps be parseInt(item 8 of arguments).
+    Let review_count be parseInt(item 9 of arguments).
+    Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
+    Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
+    Let weekly_quest be ChooseWeeklyQuest(decision_code).
+    Let quest_category be ChooseQuestCategory(decision_code).
+    Let urgency be ChooseUrgency(decision_code, critical_issues).
+    Let explanation be ChooseExplanation(decision_code).
+    Show growth_stage.
+    Show decision_code.
+    Show weekly_quest.
+    Show quest_category.
+    Show urgency.
+    Show explanation.

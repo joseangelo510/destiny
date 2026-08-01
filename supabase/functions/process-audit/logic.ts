@@ -3,26 +3,27 @@ import { COMPILED_LOGOS_WASM_BASE64 } from "./wasm.ts";
 export type DestinyLogicInput = {
   auditComplete: number;
   criticalIssues: number;
+  warnings: number;
   rankingKeywords: number;
+  newKeywords: number;
+  lostKeywords: number;
   contentGaps: number;
   reviewCount: number;
 };
 
 export type DestinyLogicResult = {
   growthStage: string;
+  decisionCode: string;
   weeklyQuest: string;
+  questCategory: "technical" | "content" | "reviews" | "distribution" | "measurement";
+  urgency: "waiting" | "urgent" | "high" | "focused" | "routine";
+  explanation: string;
 };
 
 type LogicExports = {
   memory: WebAssembly.Memory;
   main: () => void;
 };
-
-function normalizeWeeklyQuest(value: string) {
-  return value === "Publish the highest-opportunity local page"
-    ? "Publish the highest-opportunity page"
-    : value;
-}
 
 // Compiled from destiny-logic-engine/src/main.lg with LOGICAFFEINE v0.10.1.
 // Keeping the small module beside the worker guarantees that the saved quest is
@@ -62,7 +63,10 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     "destiny-logic-engine",
     String(input.auditComplete),
     String(input.criticalIssues),
+    String(input.warnings),
     String(input.rankingKeywords),
+    String(input.newKeywords),
+    String(input.lostKeywords),
     String(input.contentGaps),
     String(input.reviewCount),
   ];
@@ -110,17 +114,15 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 2) {
+  if (output.length < 6) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
-  return { growthStage: output[0], weeklyQuest: normalizeWeeklyQuest(output[1]) };
-}
-
-export function questCategory(weeklyQuest: string) {
-  const normalized = weeklyQuest.toLowerCase();
-  if (normalized.includes("technical")) return "technical";
-  if (normalized.includes("review")) return "reviews";
-  if (normalized.includes("reddit") || normalized.includes("quora") || normalized.includes("distribut")) return "distribution";
-  if (normalized.includes("content") || normalized.includes("keyword") || normalized.includes("page")) return "content";
-  return "measurement";
+  return {
+    growthStage: output[0],
+    decisionCode: output[1],
+    weeklyQuest: output[2],
+    questCategory: output[3] as DestinyLogicResult["questCategory"],
+    urgency: output[4] as DestinyLogicResult["urgency"],
+    explanation: output[5],
+  };
 }
