@@ -373,7 +373,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
                 )) : <p className="empty-state notification-empty">Your audit updates will appear here.</p>}
               </div>
             )}
-            <button className="primary-button" onClick={() => setView("onboarding")} type="button">Audit a new website</button>
+            <Link className="primary-button" href="/onboarding">Audit a new website</Link>
           </div>
         </header>
 

@@ -1,4 +1,5 @@
 import { DestinyPrototype } from "@/components/destiny-prototype";
+import { redirect } from "next/navigation";
 import { calculateWeeklyStreak } from "@/lib/quests/streak";
 import type { SeoAuditResult } from "@/lib/seo/types";
 import { getWorkspaceContext, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -16,6 +17,7 @@ export default async function DashboardPage({
 }) {
   const params = await searchParams;
   const context = await getWorkspaceContext();
+  if (params.start === "1" || !context.website) redirect("/onboarding");
   const raw = record(context.metrics?.raw_provider_payload);
   const providerResult = savedSeoAudit(providerResultFromMetrics(context.metrics));
   const growthStage = typeof raw.growthStage === "string" ? raw.growthStage : undefined;
@@ -45,6 +47,6 @@ export default async function DashboardPage({
       xp: completedQuests.reduce((total, quest) => total + quest.xp, 0),
     }}
     initialQuestXp={latestQuest?.xp}
-    startOnboarding={params.start === "1"}
+    startOnboarding={false}
   />;
 }

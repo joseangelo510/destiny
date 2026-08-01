@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-const startPath = "/login?next=%2Fapp%3Fstart%3D1";
+const startPath = "/onboarding";
 
 export const metadata: Metadata = {
   title: "Destiny — SEO momentum for founders",

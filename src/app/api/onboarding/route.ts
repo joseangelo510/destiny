@@ -9,6 +9,8 @@ type OnboardingPayload = {
   email?: unknown;
   firstName?: unknown;
   lastName?: unknown;
+  localMarket?: unknown;
+  country?: unknown;
   standout?: unknown;
   website?: unknown;
 };
@@ -27,6 +29,8 @@ export async function POST(request: Request) {
     const customer = text(body.customer, 4000);
     const standout = text(body.standout, 4000);
     const competitors = text(body.competitors, 4000);
+    const localMarket = text(body.localMarket, 240);
+    const country = text(body.country, 120) || "United States";
     const website = normalizeWebsite(text(body.website, 2048));
 
     if (!firstName || !lastName || !/^\S+@\S+\.\S+$/.test(email) || !business || !customer || !standout) {
@@ -69,7 +73,7 @@ export async function POST(request: Request) {
       products_services: business,
       ideal_customer: customer,
       differentiation: standout,
-      market: "United States",
+      market: localMarket ? `${localMarket} · ${country}` : country,
       onboarding_completed_at: new Date().toISOString(),
     };
     const { data: existingWebsite, error: existingWebsiteError } = await supabase
@@ -86,7 +90,7 @@ export async function POST(request: Request) {
     const { data: savedWebsite, error: websiteError } = await websiteQuery.select("id").single();
     if (websiteError) throw websiteError;
 
-    const competitorNames = competitors.split(/,|\band\b/i).map((name) => name.trim()).filter(Boolean).slice(0, 10);
+    const competitorNames = competitors.split(/\r?\n|,|\band\b/i).map((name) => name.trim()).filter(Boolean).slice(0, 10);
     const { error: deleteError } = await supabase.from("competitors").delete().eq("website_id", savedWebsite.id);
     if (deleteError) throw deleteError;
     if (competitorNames.length) {

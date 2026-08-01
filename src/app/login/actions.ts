@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeInternalPath } from "@/lib/auth/redirect";
+import { siteOrigin } from "@/lib/auth/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 export async function sendMagicLink(formData: FormData) {
@@ -13,7 +14,7 @@ export async function sendMagicLink(formData: FormData) {
   }
 
   const headerStore = await headers();
-  const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const origin = siteOrigin(process.env.NEXT_PUBLIC_SITE_URL, headerStore.get("origin"));
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
