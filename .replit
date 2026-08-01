@@ -1,0 +1,9 @@
+run = "pnpm exec next dev -H 0.0.0.0 -p 3000"
+
+[deployment]
+build = "pnpm install --frozen-lockfile && pnpm build"
+run = "pnpm exec next start -H 0.0.0.0 -p 3000"
+
+[[ports]]
+localPort = 3000
+externalPort = 80

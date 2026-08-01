@@ -1,0 +1,12 @@
+import Link from "next/link";
+
+export function WorkspaceEmpty({ title, description }: { title: string; description: string }) {
+  return (
+    <section className="workspace-empty">
+      <span className="quest-icon">↗</span>
+      <h2>{title}</h2>
+      <p>{description}</p>
+      <Link className="primary-button workspace-action" href="/">Go to the dashboard</Link>
+    </section>
+  );
+}
