@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 const navigation = [
   { label: "Home", href: "/" },
-  { label: "Overview", href: "/" },
+  { label: "Overview", href: "/app" },
   { label: "Audits", href: "/audits" },
   { label: "Growth plan", href: "/growth-plan" },
   { label: "Content", href: "/content" },
@@ -29,13 +29,14 @@ export function WorkspaceShell({
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <Link className="brand sidebar-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link className="brand sidebar-brand" href="/app"><span className="brand-mark">D</span><span>Destiny</span></Link>
         <nav>
           {navigation.map((item) => (
             <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
           ))}
         </nav>
         <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
+        <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
       <section className="dashboard workspace-page">
         <header className="workspace-header">

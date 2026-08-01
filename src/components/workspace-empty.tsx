@@ -6,7 +6,7 @@ export function WorkspaceEmpty({ title, description }: { title: string; descript
       <span className="quest-icon">↗</span>
       <h2>{title}</h2>
       <p>{description}</p>
-      <Link className="primary-button workspace-action" href="/">Go to the dashboard</Link>
+      <Link className="primary-button workspace-action" href="/app">Go to the dashboard</Link>
     </section>
   );
 }

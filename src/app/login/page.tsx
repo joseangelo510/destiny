@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { sendMagicLink } from "./actions";
 
 type LoginPageProps = {
@@ -9,7 +10,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="login-shell">
       <section className="login-card">
-        <div className="brand"><span className="brand-mark">D</span><span>Destiny</span></div>
+        <Link className="brand login-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
         {params.sent === "1" ? (
           <>
             <div className="eyebrow">Check your inbox</div>
@@ -23,7 +24,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <h1>Make SEO a habit that compounds.</h1>
             <p>Enter your email. No password required—we’ll send you a secure sign-in link.</p>
             <form action={sendMagicLink}>
-              <input name="next" type="hidden" value={params.next ?? "/"} />
+              <input name="next" type="hidden" value={params.next ?? "/app"} />
               <label>Email address<input autoComplete="email" name="email" required type="email" /></label>
               {params.error && <div className="error-banner">{params.error}</div>}
               <button className="primary-button" type="submit">Email me a sign-in link</button>
@@ -34,4 +35,3 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     </main>
   );
 }
-

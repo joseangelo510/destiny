@@ -14,10 +14,10 @@ describe("safeInternalPath", () => {
     "javascript:alert(1)",
     "not-a-path",
   ])("rejects an external or malformed destination: %s", (value) => {
-    expect(safeInternalPath(value)).toBe("/");
+    expect(safeInternalPath(value)).toBe("/app");
   });
 
   it("falls back for missing values", () => {
-    expect(safeInternalPath(undefined)).toBe("/");
+    expect(safeInternalPath(undefined)).toBe("/app");
   });
 });

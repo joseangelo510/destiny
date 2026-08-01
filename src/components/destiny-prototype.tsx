@@ -41,17 +41,14 @@ declare global {
 }
 
 const initialForm = {
-  firstName: "Maya",
-  lastName: "Torres",
-  email: "maya@example.com",
-  website: "https://example.com",
-  business:
-    "I help people buy and sell homes across San Francisco, especially families moving between neighborhoods.",
-  customer:
-    "Young families and professionals who want a trusted local guide for buying a home in San Francisco.",
-  competitors: "Ruth Krishnan, Kevin + Jonathan, and Nina Hatvany",
-  standout:
-    "I have lived in San Francisco for 30 years and in six different neighborhoods. I have a lot of experience helping young families move.",
+  firstName: "",
+  lastName: "",
+  email: "",
+  website: "",
+  business: "",
+  customer: "",
+  competitors: "",
+  standout: "",
 };
 
 const seededLogic: DestinyLogicResult = {
@@ -88,7 +85,7 @@ const seededAudit: SeoAuditResult = {
 
 const navigation = [
   { label: "Home", href: "/" },
-  { label: "Overview", href: "/" },
+  { label: "Overview", href: "/app" },
   { label: "Audits", href: "/audits" },
   { label: "Growth plan", href: "/growth-plan" },
   { label: "Content", href: "/content" },
@@ -106,6 +103,7 @@ const stageLabels: Record<string, string> = {
 };
 
 type DestinyPrototypeProps = {
+  hasWorkspace?: boolean;
   initialAudit?: SeoAuditResult;
   initialAuditFailure?: string;
   initialAuditId?: string;
@@ -114,10 +112,17 @@ type DestinyPrototypeProps = {
   initialLogic?: DestinyLogicResult;
   initialMomentum?: { completed: number; streak: number; xp: number };
   initialQuestXp?: number;
+  startOnboarding?: boolean;
 };
 
-export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAuditId, initialAuditStatus, initialForm: savedForm, initialLogic, initialMomentum, initialQuestXp }: DestinyPrototypeProps) {
-  const [view, setView] = useState<"audit" | "onboarding" | "processing">(initialAuditStatus === "running" || initialAuditStatus === "failed" ? "processing" : "audit");
+export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAuditFailure, initialAuditId, initialAuditStatus, initialForm: savedForm, initialLogic, initialMomentum, initialQuestXp, startOnboarding = false }: DestinyPrototypeProps) {
+  const [view, setView] = useState<"audit" | "onboarding" | "processing">(
+    initialAuditStatus === "running" || initialAuditStatus === "failed"
+      ? "processing"
+      : startOnboarding || !hasWorkspace || !initialAudit
+        ? "onboarding"
+        : "audit",
+  );
   const [form, setForm] = useState({ ...initialForm, ...savedForm });
   const [logic] = useState(initialLogic ?? seededLogic);
   const [audit] = useState(initialAudit ?? seededAudit);
@@ -155,7 +160,7 @@ export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAud
           setError("Destiny’s browser and server rules did not agree. No inconsistent recommendation was shown.");
           return;
         }
-        window.location.assign("/");
+        window.location.assign("/app");
       }
       if (payload.audit?.status === "failed") {
         setAuditStatus("failed");
@@ -276,7 +281,7 @@ export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAud
     return (
       <main className="onboarding-shell">
         <header className="onboarding-header">
-          <button className="brand" onClick={() => setView("audit")} type="button">
+          <button className="brand" onClick={() => { if (hasWorkspace && initialAudit) setView("audit"); else window.location.assign("/"); }} type="button">
             <span className="brand-mark">D</span><span>Destiny</span>
           </button>
           <span className="step-label">Business profile · Step 1 of 3</span>
@@ -291,12 +296,12 @@ export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAud
           </p>
 
           <div className="form-grid two-column">
-            <label>First name<input required value={form.firstName} onChange={(event) => updateField("firstName", event.target.value)} /></label>
-            <label>Last name<input required value={form.lastName} onChange={(event) => updateField("lastName", event.target.value)} /></label>
+            <label>First name<input autoComplete="given-name" placeholder="Maya" required value={form.firstName} onChange={(event) => updateField("firstName", event.target.value)} /></label>
+            <label>Last name<input autoComplete="family-name" placeholder="Torres" required value={form.lastName} onChange={(event) => updateField("lastName", event.target.value)} /></label>
           </div>
           <div className="form-grid two-column">
-            <label>Contact email<input required type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} /></label>
-            <label>Website<input required type="url" value={form.website} onChange={(event) => updateField("website", event.target.value)} /></label>
+            <label>Contact email<input autoComplete="email" placeholder="maya@yourbusiness.com" required type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} /></label>
+            <label>Website<input autoComplete="url" placeholder="https://yourbusiness.com" required type="url" value={form.website} onChange={(event) => updateField("website", event.target.value)} /></label>
           </div>
 
           {([
@@ -312,13 +317,19 @@ export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAud
                   {listening === field ? "Listening…" : "◉ Talk instead"}
                 </button>
               </span>
-              <textarea required rows={3} value={form[field]} onChange={(event) => updateField(field, event.target.value)} />
+              <textarea
+                placeholder={field === "business" ? "What do you sell, where do you work, and what problems do you solve?" : field === "customer" ? "Who do you most want to reach and what are they trying to accomplish?" : field === "competitors" ? "Add local competitor names or website URLs." : "Share your experience, point of view, proof, and what customers value about working with you."}
+                required
+                rows={3}
+                value={form[field]}
+                onChange={(event) => updateField(field, event.target.value)}
+              />
             </label>
           ))}
 
           {error && <div className="error-banner">{error}</div>}
           <div className="form-actions">
-            <button className="secondary-button" onClick={() => setView("audit")} type="button">Back to dashboard</button>
+            <button className="secondary-button" onClick={() => { if (hasWorkspace && initialAudit) setView("audit"); else window.location.assign("/"); }} type="button">{hasWorkspace && initialAudit ? "Back to dashboard" : "Back to home"}</button>
             <button className="primary-button" disabled={loading} type="submit">{loading ? "Creating your plan…" : "Start my audit"}</button>
           </div>
         </form>
@@ -336,6 +347,7 @@ export function DestinyPrototype({ initialAudit, initialAuditFailure, initialAud
           ))}
         </nav>
         <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
+        <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
 
       <section className="dashboard">

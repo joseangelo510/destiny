@@ -44,8 +44,8 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   return (
     <main className="results-shell">
       <header className="results-topbar">
-        <Link className="brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
-        <Link className="secondary-button results-back" href="/">← Back to dashboard</Link>
+        <Link className="brand" href="/app"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link className="secondary-button results-back" href="/app">← Back to dashboard</Link>
       </header>
 
       <section className="results-hero">
