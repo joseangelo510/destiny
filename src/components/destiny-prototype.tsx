@@ -355,7 +355,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       <section className="dashboard">
         <header className="dashboard-header">
           <div>
-            <span className="eyebrow">{form.firstName} {form.lastName} · {audit.domain}</span>
+            <span className="eyebrow">{form.businessName || `${form.firstName} ${form.lastName}`} · {audit.domain}</span>
             <h1>Your audit is ready.</h1>
             <p>We found the clearest place to begin. You only need to focus on one quest this week.</p>
             <div className={audit.source === "demo" ? "data-source demo" : "data-source live"}>
