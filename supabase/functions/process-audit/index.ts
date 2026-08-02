@@ -1,6 +1,7 @@
 import { withSupabase } from "@supabase/server";
 import { sendAuditReadyEmail } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
+import { auditReadyNotificationCopy } from "./notifications.ts";
 import { runSeoAudit } from "./seo.ts";
 
 declare const EdgeRuntime: { waitUntil(task: Promise<unknown>): void };
@@ -168,11 +169,12 @@ export default {
         );
         if (finalizeError) throw new Error(finalizeError.message);
 
+        const readyNotification = auditReadyNotificationCopy(result.domain);
         await context.supabaseAdmin
           .from("notifications")
           .update({
-            title: "Your Destiny results are ready",
-            body: "Review the clearest opportunity, approve your initial keyword strategy, and start the categorized weekly plan.",
+            title: readyNotification.title,
+            body: readyNotification.body,
             destination_path: `/audits/${auditId}`,
           })
           .eq("user_id", userId)

@@ -8,6 +8,7 @@ export const PRIMARY_NAVIGATION = [
 ] as const;
 
 export const FEATURE_NAVIGATION = [
+  { label: "Home", href: "/" },
   { label: "Website audits", href: "/audits" },
   { label: "Six-month plan", href: "/growth-plan" },
   { label: "Content studio", href: "/content" },

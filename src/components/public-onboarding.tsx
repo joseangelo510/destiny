@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { stepOneValidation, stepTwoValidation } from "@/lib/onboarding/validation";
 import { validateCompetitorEntries } from "@/lib/onboarding/competitors";
 
-type VoiceField = "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
+type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
 type SpeechRecognitionEventLike = {
   results: { 0: { 0: { transcript: string } } };
@@ -33,6 +33,7 @@ declare global {
 const emptyForm = {
   website: "",
   businessName: "",
+  productsServices: "",
   problem: "",
   customer: "",
   audienceGoals: "",
@@ -221,9 +222,10 @@ export function PublicOnboarding() {
 
           {step === 1 && <>
             <h2>Tell us about your business</h2>
-            <p className="lede">Start with a public website and the customer problem your business solves.</p>
+            <p className="lede">Start with a public website, what you provide, and the customer problem your business solves.</p>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="yourwebsite.com or https://yourwebsite.com" required type="text" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
+            <VoiceTextarea field="productsServices" label="Tell us about your business and the products or services you provide" listening={listening} onChange={(value) => updateField("productsServices", value)} onDictate={dictate} placeholder="Describe your main products or services in clear, everyday language." value={form.productsServices} />
             <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
           </>}
 
@@ -256,6 +258,7 @@ export function PublicOnboarding() {
               <div><span>Business name</span><strong>{form.businessName}</strong></div>
               <div><span>Website</span><strong>{form.website}</strong></div>
               <div><span>Search database</span><strong>{form.country}</strong></div>
+              <div><span>Products and services</span><p>{form.productsServices}</p></div>
               <div><span>Problem being solved</span><p>{form.problem}</p></div>
               <div><span>Ideal customer</span><p>{form.customer}</p></div>
               <div><span>Audience challenges and goals</span><p>{form.audienceGoals}</p></div>

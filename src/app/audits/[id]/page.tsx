@@ -31,7 +31,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const [{ data: audit }, { data: metrics }, { data: tasks }] = await Promise.all([
     supabase
       .from("audits")
-      .select("id,status,progress,provider,failure_message,created_at,completed_at,website_id,websites(business_name,url,normalized_domain,problem_solved,ideal_customer,audience_challenges_goals,differentiation)")
+      .select("id,status,progress,provider,failure_message,created_at,completed_at,website_id,websites(business_name,url,normalized_domain,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("audit_metrics").select("*").eq("audit_id", id).maybeSingle(),
@@ -64,6 +64,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     : audit.provider === "dataforseo" ? "Live DataForSEO audit" : "Demo audit data";
   const businessUnderstanding = {
     businessName,
+    productsServices: String(website.products_services || "Not provided"),
     problemSolved: String(website.problem_solved || "Not provided"),
     idealCustomer: String(website.ideal_customer || "Not provided"),
     audienceGoals: String(website.audience_challenges_goals || "Not provided"),
@@ -101,6 +102,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
           <p>Destiny used your onboarding answers to interpret the search data and tailor this plan. Start a new analysis only if these details need to change.</p>
           <div className="business-understanding-grid">
             <div><span>Business</span><strong>{businessUnderstanding.businessName}</strong></div>
+            <div><span>Products and services</span><p>{businessUnderstanding.productsServices}</p></div>
             <div><span>Problem you solve</span><p>{businessUnderstanding.problemSolved}</p></div>
             <div><span>Ideal customer</span><p>{businessUnderstanding.idealCustomer}</p></div>
             <div><span>Audience goals and challenges</span><p>{businessUnderstanding.audienceGoals}</p></div>

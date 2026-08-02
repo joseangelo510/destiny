@@ -19,7 +19,7 @@ export function WorkspaceShell({
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <Link className="brand sidebar-brand" href="/this-week"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link aria-label="Destiny homepage" className="brand sidebar-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
         <nav aria-label="Destiny workspace">
           <span className="nav-section-label">Your coaching</span>
           {PRIMARY_NAVIGATION.map((item) => (

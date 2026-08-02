@@ -4,7 +4,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
-import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar } from "@/lib/content/editorial-calendar";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel } from "@/lib/content/editorial-calendar";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage() {
@@ -19,7 +19,8 @@ export default async function ContentPage() {
     searchVolume: Number(keyword.searchVolume ?? 0),
     difficulty: Number(keyword.difficulty ?? 0),
     rank: Number(keyword.rank ?? 0),
-  })));
+    cpc: Number(keyword.cpc ?? 0),
+  })), 24, inferBusinessModel(context.website?.products_services ?? ""));
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
@@ -73,17 +74,17 @@ export default async function ContentPage() {
             </div>
           </div>
           <div className="content-table">
-            <div className="content-row content-head"><span>Schedule</span><span>Content type</span><span>Title</span><span>Search intent</span><span>Focus keyword</span><span>SEO evidence</span><span>Status</span></div>
+            <div className="content-row content-head"><span>Schedule</span><span>Content type</span><span>Focus keyword</span><span>Monthly Searches</span><span>Title</span><span>Search intent</span><span>Status</span></div>
             {calendar.map((item, index) => {
               const intentDefinition = SEARCH_INTENT_DEFINITIONS[item.searchIntent];
               return (
                 <div className="content-row" key={`${item.focusKeyword}-${index}`}>
-                  <span data-label="Schedule"><strong>Month {item.month}</strong><small>Week {item.week}</small></span>
+                  <span className="editorial-schedule" data-label="Schedule"><small>Month {item.month}</small><strong>Week {item.week}</strong></span>
                   <span data-label="Content type"><strong>{item.contentType}</strong></span>
+                  <span data-label="Focus keyword"><strong>{item.focusKeyword}</strong></span>
+                  <span data-label="Monthly Searches"><strong>{item.searchVolume.toLocaleString()}</strong><small>{item.priorityReason} · Difficulty {item.difficulty}</small></span>
                   <span data-label="Title"><strong>{item.title}</strong></span>
                   <span data-label="Search intent"><strong className={`intent-chip ${item.searchIntent}`}>{intentDefinition.label}</strong><small>{intentDefinition.summary}</small></span>
-                  <span data-label="Focus keyword"><strong>{item.focusKeyword}</strong></span>
-                  <span data-label="SEO evidence"><strong>{item.searchVolume.toLocaleString()} searches</strong><small>{item.evidence} · Difficulty {item.difficulty}</small></span>
                   <span data-label="Status"><span className={`status-chip ${index < 3 ? "" : "amber"}`}>{index < 3 && approvalQuest?.status === "complete" ? "Approved for delivery" : item.status}</span></span>
                 </div>
               );
