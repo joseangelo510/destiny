@@ -2,6 +2,7 @@ export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
 export const PRIMARY_NAVIGATION = [
   { label: "This week", href: "/this-week" },
+  { label: "Roadmap", href: "/roadmap" },
   { label: "Strategy", href: "/results" },
   { label: "Results", href: "/analytics" },
 ] as const;
@@ -86,7 +87,7 @@ export function getCoachTaskWindow<T extends CoachTask>(tasks: T[], expanded: bo
   return expanded ? ordered : ordered.slice(0, DEFAULT_WEEKLY_TASK_LIMIT);
 }
 
-export function firstOpenTaskIndex<T extends { status: string }>(tasks: T[]): number {
+export function firstOpenTaskIndex(tasks: Array<Pick<CoachTask, "status">>): number {
   return tasks.findIndex((task) => task.status === "todo" || task.status === "in_progress");
 }
 
@@ -101,6 +102,23 @@ export function groupCoachTasks<T extends CoachTask>(tasks: T[]) {
 export function guidedTaskPath(task: { task_type: string; action_path: string }) {
   if (task.task_type !== "primary_quest" || task.action_path.includes("#")) return task.action_path;
   return `${task.action_path.replace(/\/$/, "")}#recommended-fix`;
+}
+
+const TASK_ROADMAP_TARGETS: Record<string, string> = {
+  keyword_review: "First content published",
+  content_review: "First content published",
+  primary_quest: "First pages indexed",
+  community_distribution: "First clicks",
+  distribution: "First clicks",
+  social_distribution: "First clicks",
+  publisher_outreach: "Compounding authority",
+  directory_growth: "Compounding authority",
+  reviews: "Compounding authority",
+  measurement: "Verified search growth",
+};
+
+export function taskRoadmapTarget(taskType: string) {
+  return TASK_ROADMAP_TARGETS[taskType] ?? "Verified search growth";
 }
 
 export function completionPresentation(task: Pick<CoachTask, "status" | "verification_status">) {

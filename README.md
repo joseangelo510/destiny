@@ -24,8 +24,15 @@ AI Studio hackathon prototype.
 - A database-hydrated homepage: refreshing after an audit keeps the saved
   metrics, website, profile, and LOGOS recommendation instead of resetting to
   seeded demo content.
-- Quest completion and reopening with real completed-task, earned-XP, and
-  consecutive-week streak calculations.
+- A truthful coaching journey with This Week, Roadmap, Strategy, and Results.
+  Effort milestones can unlock from completed work, while outcome milestones
+  unlock only from connected Search Console or Analytics evidence.
+- Quest completion and reopening with current and best weekly streaks, Perfect
+  Weeks, lifetime active weeks, and milestone-linked next steps. Legacy XP
+  fields remain in storage for compatibility but are not shown as a reward.
+- An original evolving compass, four synthesized completion sounds, mute and
+  reduced-celebration controls, and no copied character, audio, or interface
+  assets from another product.
 - Deployed welcome-email and audit-ready-email workers. They remain safely
   disabled until Resend and public-site secrets are configured.
 - Generated TypeScript database types from the connected Supabase project.
@@ -39,6 +46,10 @@ AI Studio hackathon prototype.
   in the Connections, Analytics, and Reviews screens.
 - Automated coverage for URL safety, provider parsing, deterministic demo data,
   email behavior, and browser/worker LOGOS parity.
+- A content workspace with user-selected voice, format, reading ease, special
+  instructions, Claude Opus 4.8 web research, private editorial quality gates,
+  two meta-description options, source review, and downloadable original SVG
+  infographics. Starter outlines cannot be approved as completed articles.
 
 The default dashboard and unconfigured worker use demonstration data. The UI
 labels that source directly. Live DataForSEO results turn on only when its two
@@ -61,6 +72,7 @@ Supabase
 
 Configured integration layer
   -> Google OAuth: Search Console, GA4, Business Profile, YouTube
+  -> Anthropic API: researched, human-reviewed long-form article generation
   -> Stripe: subscriptions after the core audit workflow is production-ready
 ```
 
@@ -117,6 +129,13 @@ interleaves existing rankings, competitor gaps, and relevant site ideas into up
 to 24 weekly topics. Credentials stay in Supabase and are never returned to the
 browser.
 
+Add `ANTHROPIC_API_KEY` to the **Next.js or Replit server environment** to
+activate full article generation. `ANTHROPIC_COPY_MODEL` defaults to
+`claude-opus-4-8`. The API key remains server-only; article generation returns
+an explicit unavailable message when it is not configured. The default SEO
+article workflow targets 2,000–3,000 words, uses live web research, and still
+requires human source and business-claim review before approval.
+
 Add `RESEND_API_KEY`, `DESTINY_FROM_EMAIL`, and `DESTINY_SITE_URL` to Supabase
 Edge Function Secrets to activate welcome and audit-ready emails. The sender
 must be a verified Resend sender. `DESTINY_SITE_URL` must be the public HTTPS
@@ -163,6 +182,8 @@ automatically carry into the published app):
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 NEXT_PUBLIC_SITE_URL
+ANTHROPIC_API_KEY
+ANTHROPIC_COPY_MODEL
 ```
 
 Keep DataForSEO and Resend secrets in Supabase rather than duplicating them in
@@ -192,10 +213,20 @@ The browser test should cover:
 9. The notification center links to `/audits/<audit-id>`.
 10. The saved results page shows the provider label, metrics, findings,
    competitors, keyword preview, and first weekly quest.
-11. Completing a quest persists its completion date, XP, task count, and weekly
-    streak; reopening it removes that completion.
+11. Completing a quest persists its completion date and truthful weekly
+    progress; reopening it removes that completion.
 12. Refreshing `/` retains the latest saved audit instead of restoring the
     seeded dashboard.
 13. No browser console errors appear.
 14. Each authorized Google connection can be synced and its saved, source-
     labeled snapshot appears on Analytics or Reviews without exposing tokens.
+15. Content preferences persist per draft; changing them requires regeneration.
+16. A starter outline cannot be approved, and a generated article must pass the
+    private quality gate before approval.
+17. Generated source links open, and each original infographic downloads as an
+    editable SVG with a visible source label.
+18. Roadmap effort nodes reflect completed work, but indexed pages, impressions,
+    clicks, rankings, and conversions remain locked until connected data verifies
+    them.
+19. Sound and reduced-celebration preferences persist locally, and the Results
+    ledger remains free of companion imagery.

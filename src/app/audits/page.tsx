@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext } from "@/lib/workspace-context";
@@ -11,6 +12,7 @@ export default async function AuditsPage() {
 
   return (
     <WorkspaceShell active="/audits" eyebrow={website?.normalized_domain ?? "Destiny workspace"} title="Website audits" description="Every audit is saved with its source, status, results, and LOGOS-selected next action.">
+      <FeatureJourneyCallout milestone="Stronger foundations" description="Audits uncover the route. Fixing the recommended issue completes the effort; subsequent crawl and search data verify the result." />
       {!website ? <WorkspaceEmpty title="Complete onboarding first" description="Add your business and website before Destiny can create an audit." /> : !audits?.length ? <WorkspaceEmpty title="No audits yet" description="Return to the dashboard and start your first website audit." /> : (
         <section className="workspace-card">
           <div className="workspace-card-heading"><strong>Audit history</strong><span>{audits.length} total</span></div>

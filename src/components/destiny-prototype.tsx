@@ -125,12 +125,11 @@ type DestinyPrototypeProps = {
   initialAuditStatus?: string;
   initialForm?: Partial<typeof initialForm>;
   initialLogic?: DestinyLogicResult;
-  initialMomentum?: { completed: number; streak: number; xp: number };
-  initialQuestXp?: number;
+  initialMomentum?: { completed: number; streak: number; perfectWeeks?: number };
   startOnboarding?: boolean;
 };
 
-export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAuditFailure, initialAuditId, initialAuditStatus, initialForm: savedForm, initialLogic, initialMomentum, initialQuestXp, startOnboarding = false }: DestinyPrototypeProps) {
+export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAuditFailure, initialAuditId, initialAuditStatus, initialForm: savedForm, initialLogic, initialMomentum, startOnboarding = false }: DestinyPrototypeProps) {
   const [view, setView] = useState<"audit" | "onboarding" | "processing">(
     initialAuditStatus === "running" || initialAuditStatus === "failed"
       ? "processing"
@@ -399,7 +398,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
 
         <section className="hero-grid">
           <article className="quest-card">
-            <div className="quest-topline"><span>Week 1 quest</span><span>+{initialQuestXp ?? 40} XP</span></div>
+            <div className="quest-topline"><span>Week 1 quest</span><span>Guided action</span></div>
             <div className="quest-icon">↗</div>
             <h2>{logic.weeklyQuest}</h2>
             <p>{logic.explanation}</p>
@@ -411,7 +410,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <div className="card-heading"><span>Your momentum</span><span className="status-chip">Audit complete</span></div>
             <div className="momentum-score"><strong>{initialMomentum?.streak ?? 0}</strong><span>week streak</span></div>
             <div className="week-row">{["M", "T", "W", "T", "F", "S", "S"].map((day, index) => <span className={index === 0 ? "today" : ""} key={`${day}-${index}`}>{day}</span>)}</div>
-            <div className="momentum-stats"><span><strong>{initialMomentum?.completed ?? 0}</strong> tasks done</span><span><strong>{initialMomentum?.xp ?? 0}</strong> XP earned</span></div>
+            <div className="momentum-stats"><span><strong>{initialMomentum?.completed ?? 0}</strong> tasks done</span><span><strong>{initialMomentum?.perfectWeeks ?? 0}</strong> Perfect Weeks</span></div>
             <div className="rule-result"><span>Current growth stage</span><strong>{stageLabels[logic.growthStage] ?? logic.growthStage}</strong><small>{logic.urgency} priority · {logic.questCategory} · selected by LOGOS</small></div>
           </article>
         </section>

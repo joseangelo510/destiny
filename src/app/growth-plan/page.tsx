@@ -1,3 +1,4 @@
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -20,6 +21,7 @@ export default async function GrowthPlanPage() {
 
   return (
     <WorkspaceShell active="/growth-plan" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Six-month growth plan" description="Monthly outcomes and weekly goals turn the audit into a sequence your team can actually follow.">
+      <FeatureJourneyCallout milestone="A complete weekly route" description="The six-month plan organizes the work. Roadmap milestones show which efforts are complete and which outcomes have been independently verified." />
       {!context.audit ? <WorkspaceEmpty title="Your plan begins with an audit" description="Complete onboarding and run an audit so LOGOS can select the correct starting stage." /> : (
         <>
           <section className="workspace-summary-strip"><span>Current stage</span><strong>{growthStage}</strong><span>Data source</span><strong>{String(providerResult.sourceLabel ?? context.audit.provider)}</strong><span>First quest</span><strong>{latestQuest?.title ?? "Preparing"}</strong></section>

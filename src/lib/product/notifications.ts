@@ -9,11 +9,9 @@ export type WorkspaceNotification = {
 };
 
 export function unreadNotificationCount(notifications: WorkspaceNotification[]): number {
-  return notifications.filter((n) => n.read_at === null).length;
+  return notifications.filter((notification) => !notification.read_at).length;
 }
 
-export function notificationButtonLabel(notifications: WorkspaceNotification[]): string {
-  const count = unreadNotificationCount(notifications);
-  if (count === 0) return "Open notifications";
-  return `Open notifications, ${count} unread`;
+export function notificationButtonLabel(unread: number): string {
+  return unread > 0 ? `Open notifications, ${unread} unread` : "Open notifications";
 }

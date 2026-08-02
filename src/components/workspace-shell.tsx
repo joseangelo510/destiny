@@ -30,15 +30,16 @@ export function WorkspaceShell({
             <Link className={`feature-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
           ))}
         </nav>
+        <details className="mobile-feature-menu">
+          <summary>Explore features</summary>
+          <div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}</div>
+        </details>
         <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
       <section className="dashboard workspace-page">
         <header className="workspace-header">
-          <div className="workspace-header-top">
-            <div className="eyebrow">{eyebrow}</div>
-            <WorkspaceNotifications />
-          </div>
+          <div className="workspace-header-top"><div className="eyebrow">{eyebrow}</div><WorkspaceNotifications /></div>
           <h1>{title}</h1>
           <p>{description}</p>
         </header>

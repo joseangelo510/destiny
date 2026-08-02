@@ -1,4 +1,5 @@
 import { KeywordStrategyReview } from "@/components/keyword-strategy-review";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -16,6 +17,7 @@ export default async function KeywordsPage() {
     keyword: String(keyword.keyword), searchVolume: Number(keyword.searchVolume ?? 0), difficulty: Number(keyword.difficulty ?? 0), competitorRankers: Number(keyword.competitorRankers ?? 0), opportunity: String(keyword.opportunity ?? "site_idea"), reason: String(keyword.reason ?? "Supported by the saved audit evidence."), essential: Boolean(keyword.essential),
   }));
   return <WorkspaceShell active="/keywords" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Keyword strategy" description="Choose the customer searches Destiny should use for your content plan. Each recommendation is checked against your website, onboarding answers, and competitor rankings.">
+    <FeatureJourneyCallout milestone="First content published" description="Approving a focused keyword sets the route for the next content task; rankings unlock only after connected data confirms them." />
     {!vocabulary.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run a live audit so Destiny can inspect up to five important pages and build the initial recommendations." /> : <>
       {context.audit && <KeywordStrategyReview auditId={context.audit.id} initialDecisions={initialDecisions} keywords={usableKeywords} questId={keywordQuest?.id} questStatus={keywordQuest?.status} />}
       <section className="workspace-card"><div className="workspace-card-heading"><div><strong>Pages inspected</strong><small>DataForSEO Content Parsing Live</small></div><span>{pages.length} of 5</span></div><div className="evidence-page-list">{pages.map((page, index) => <a href={String(page.url)} key={`${String(page.url)}-${index}`} rel="noreferrer" target="_blank"><span>{String(page.role).replaceAll("_", " ")}</span><strong>{String(page.title || page.url)}</strong><small>{String(page.url)}</small></a>)}</div></section>

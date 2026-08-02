@@ -12,6 +12,7 @@ import {
   orderCoachTasks,
   PRIMARY_NAVIGATION,
   FEATURE_NAVIGATION,
+  taskRoadmapTarget,
 } from "./coach-experience";
 
 const tasks = [
@@ -25,9 +26,10 @@ const tasks = [
 ];
 
 describe("Destiny SEO coach experience", () => {
-  it("visually separates the three coaching destinations from visible feature pages", () => {
+  it("visually separates the four coaching destinations from visible feature pages", () => {
     expect(PRIMARY_NAVIGATION.map((item) => item.label)).toEqual([
       "This week",
+      "Roadmap",
       "Strategy",
       "Results",
     ]);
@@ -41,6 +43,14 @@ describe("Destiny SEO coach experience", () => {
       "Connections",
       "LLM visibility",
     ]);
+  });
+
+  it("shows the truthful roadmap destination each coaching task advances", () => {
+    expect(taskRoadmapTarget("primary_quest")).toBe("First pages indexed");
+    expect(taskRoadmapTarget("content_review")).toBe("First content published");
+    expect(taskRoadmapTarget("community_distribution")).toBe("First clicks");
+    expect(taskRoadmapTarget("directory_growth")).toBe("Compounding authority");
+    expect(taskRoadmapTarget("measurement")).toBe("Verified search growth");
   });
 
   it("removes the redundant business confirmation and groups all actionable work", () => {
@@ -93,19 +103,6 @@ describe("Destiny SEO coach experience", () => {
     expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
   });
 
-  it("opens the first incomplete task without reopening task one on a completed plan", () => {
-    const mixed = [
-      { id: "a", task_type: "keyword_review", status: "complete", verification_status: "verified", priority: 1 },
-      { id: "b", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
-    ];
-    expect(firstOpenTaskIndex(mixed)).toBe(1);
-    const allDone = [
-      { id: "a", task_type: "keyword_review", status: "complete", verification_status: "verified", priority: 1 },
-      { id: "b", task_type: "primary_quest", status: "complete", verification_status: "verified", priority: 1 },
-    ];
-    expect(firstOpenTaskIndex(allDone)).toBe(-1);
-  });
-
   it("distinguishes self-reported completion from Destiny verification", () => {
     expect(completionPresentation({ status: "complete", verification_status: "unverified" })).toEqual({
       label: "Marked done by you",
@@ -117,5 +114,10 @@ describe("Destiny SEO coach experience", () => {
       tone: "verified",
       detail: "Destiny checked the available site or connected data and confirmed this change.",
     });
+  });
+
+  it("opens the next actionable task without reopening a completed plan", () => {
+    expect(firstOpenTaskIndex([{ status: "complete" }, { status: "todo" }])).toBe(1);
+    expect(firstOpenTaskIndex([{ status: "complete" }, { status: "complete" }])).toBe(-1);
   });
 });

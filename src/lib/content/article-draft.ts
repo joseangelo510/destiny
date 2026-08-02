@@ -1,3 +1,13 @@
+import {
+  DEFAULT_ARTICLE_PREFERENCES,
+  type ArticleGenerationPreferences,
+  type ArticleQualityIssue,
+  type BucketBrigade,
+  type GeneratedArticleSource,
+  type InfographicSpec,
+  validateGeneratedArticle,
+} from "./article-generation";
+
 export type ArticleDraftInput = {
   keyword: string;
   businessName: string;
@@ -10,7 +20,15 @@ export type ArticleDraft = {
   keyword: string;
   title: string;
   metaDescription: string;
+  metaDescriptions: string[];
   body: string;
+  sources: GeneratedArticleSource[];
+  infographics: InfographicSpec[];
+  bucketBrigades: BucketBrigade[];
+  preferences: ArticleGenerationPreferences;
+  generationStatus: "starter" | "needs_generation" | "generated";
+  generatedBy?: string;
+  qualityIssues: ArticleQualityIssue[];
   optimization: Array<{ label: string; detail: string }>;
 };
 
@@ -31,12 +49,26 @@ function titleCase(value: string) {
   }).join("");
 }
 
+export function fitMetaDescription(value: string) {
+  if (value.length <= 150) return value;
+  const clipped = value.slice(0, 149).replace(/\s+\S*$/, "").replace(/[,:;\s]+$/, "");
+  return `${clipped}…`;
+}
+
+export function normalizeArticleBody(value: string) {
+  return value.replace(/\.{2,}(\s+That matters\b)/g, ".$1");
+}
+
 export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const keyword = input.keyword.trim() || "your customer’s search question";
   const titleKeyword = titleCase(keyword);
   const audience = input.idealCustomer.trim() || "the people you serve";
   const problem = input.problemSolved.trim() || "a costly problem they want to solve";
-  const difference = input.differentiation.trim() || "practical experience and a clear point of view";
+  const difference = (input.differentiation.trim() || "practical experience and a clear point of view").replace(/[.!?]+$/, "");
+  const metaDescriptions = [
+    fitMetaDescription(`A practical ${keyword} guide for ${audience}, with key questions, tradeoffs, useful proof, and a clear next step.`),
+    fitMetaDescription(`Learn how to approach ${keyword} with credible evidence, a worked example, and practical advice for ${audience}.`),
+  ];
   const body = `# ${titleKeyword}: A Practical Guide
 
 When ${audience} search for ${keyword}, they are rarely looking for more generic information. They are trying to make a confident decision, avoid an expensive mistake, or understand what a useful next step looks like.
@@ -79,14 +111,45 @@ Review this draft for accuracy, add a real example from your experience, and rep
   return {
     keyword,
     title: `${titleKeyword}: A Practical Guide`,
-    metaDescription: `A practical guide to ${keyword} for ${audience}, including key questions, tradeoffs, and the next step.`,
-    body,
+    metaDescription: metaDescriptions[0],
+    metaDescriptions,
+    body: normalizeArticleBody(body),
+    sources: [],
+    infographics: [],
+    bucketBrigades: [],
+    preferences: { ...DEFAULT_ARTICLE_PREFERENCES },
+    generationStatus: "starter",
+    qualityIssues: [{ code: "generation_required", message: "This is a starter outline. Generate the full SEO article before approval." }],
     optimization: [
-      { label: "Focus keyword", detail: `Use “${keyword}” naturally in the title, introduction, and one subheading.` },
+      { label: "Starter outline", detail: "Generate the evidence-backed 2,000–3,000-word article before approval." },
+      { label: "Focus keyword", detail: `Use “${keyword}” naturally in the title, introduction, and varied subheadings.` },
       { label: "Human proof", detail: "Add one customer example, firsthand lesson, or result before publishing." },
       { label: "Conversion", detail: "End with one clear next step that matches the reader’s intent." },
     ],
   };
+}
+
+export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQualityIssue[] {
+  if (draft.generationStatus !== "generated") {
+    return [{
+      code: "generation_required",
+      message: draft.generationStatus === "needs_generation"
+        ? "The writing preferences changed. Generate the article again before approval."
+        : "Generate the full article before approval.",
+    }];
+  }
+  return validateGeneratedArticle({
+    title: draft.title,
+    metaDescriptions: draft.metaDescriptions,
+    bodyMarkdown: draft.body,
+    bucketBrigades: draft.bucketBrigades,
+    sources: draft.sources,
+    infographics: draft.infographics,
+  }, draft.keyword, draft.preferences.format);
+}
+
+export function articleCanBeApproved(draft: ArticleDraft) {
+  return draft.generationStatus === "generated" && currentArticleQualityIssues(draft).length === 0;
 }
 
 function escapeHtml(value: string) {
@@ -102,5 +165,8 @@ export function buildWordDocument(draft: ArticleDraft) {
       : line.startsWith("### ") ? `<h3>${line.slice(4)}</h3>`
       : `<p>${line}</p>`)
     .join("\n");
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.title)}</title></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p><p><strong>Meta description:</strong> ${escapeHtml(draft.metaDescription)}</p>${paragraphs}</body></html>`;
+  const metaDescriptions = draft.metaDescriptions.map((description, index) => `<p><strong>Meta description ${index + 1}:</strong> ${escapeHtml(description)}</p>`).join("");
+  const sources = draft.sources.length ? `<h2>Sources used</h2><ul>${draft.sources.map((source) => `<li><a href="${escapeHtml(source.url)}">${escapeHtml(source.title)}</a>${source.publisher ? ` — ${escapeHtml(source.publisher)}` : ""}</li>`).join("")}</ul>` : "";
+  const infographics = draft.infographics.length ? `<h2>Original infographic specifications</h2>${draft.infographics.map((graphic) => `<h3>${escapeHtml(graphic.title)}</h3><p>${escapeHtml(graphic.insight)}</p><p><strong>Alt text:</strong> ${escapeHtml(graphic.altText)}</p><p>${escapeHtml(graphic.sourceLabel)}</p>`).join("")}` : "";
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.title)}</title></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p>${metaDescriptions}${paragraphs}${sources}${infographics}</body></html>`;
 }
