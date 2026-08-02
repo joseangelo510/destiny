@@ -27,14 +27,16 @@ describe("keyword opportunity ranking", () => {
 
   it("keeps semantically related admissions terms without an exact vocabulary-string gate", () => {
     const ranked = rankKeywordOpportunities([
-      { keyword: "admissions counseling", intent: "commercial", searchVolume: 2_400, difficulty: 37, cpc: 22, opportunity: "existing_rank", rank: 14 },
+      { keyword: "admissions counseling", intent: "", searchVolume: 2_400, difficulty: 37, cpc: 22, opportunity: "existing_rank", rank: 14 },
       { keyword: "college counselor", intent: "commercial", searchVolume: 6_600, difficulty: 42, cpc: 67, opportunity: "site_idea" },
+      { keyword: "admissions software for colleges", intent: "commercial", searchVolume: 1_300, difficulty: 20, cpc: 18, opportunity: "site_idea" },
       { keyword: "11 out of 12", intent: "informational", searchVolume: 900, difficulty: 10, cpc: 0, opportunity: "existing_rank" },
       { keyword: "empowerly login", intent: "navigational", searchVolume: 1_000, difficulty: 10, cpc: 0, opportunity: "existing_rank" },
     ], EMPOWERLY_CONTEXT);
 
     expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining(["admissions counseling", "college counselor"]));
-    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining(["11 out of 12", "empowerly login"]));
+    expect(ranked.find((item) => item.keyword === "admissions counseling")).toMatchObject({ providerIntent: "commercial", searchIntent: "consideration" });
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining(["11 out of 12", "empowerly login", "admissions software for colleges"]));
   });
 
   it("can retain a six-month-sized approval pool without padding it with noise", () => {

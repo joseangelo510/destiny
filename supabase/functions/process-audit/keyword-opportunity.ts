@@ -47,9 +47,11 @@ const TOKEN_FAMILIES: Record<string, string> = {
 };
 
 const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hire|near me|order|price|prices|pricing|promo code|quote|schedule|sign up|subscribe)\b/i;
-const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|compare|comparison|consultant|consultants|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
+const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
+const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
+const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|tools)\b/i;
 
 function canonicalToken(token: string) {
   const explicit = TOKEN_FAMILIES[token];
@@ -137,10 +139,14 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
   limit = 50,
 ): Array<RankedKeywordOpportunity<T>> {
   const business = contextTokens(context);
+  const businessDescription = [context.productsServices, context.problemSolved, context.idealCustomer, context.audienceChallengesGoals].filter(Boolean).join(" ");
+  const serviceBusiness = SERVICE_BUSINESS.test(businessDescription);
+  const businessOffersSoftware = SOFTWARE_PRODUCT.test(businessDescription);
   const seen = new Set<string>();
   const ranked = candidates.flatMap((candidate) => {
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
+    if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
     seen.add(identity);
     const keywordTokens = new Set(canonicalTokens(candidate.keyword));
     const overlap = [...keywordTokens].filter((token) => business.has(token)).length;
