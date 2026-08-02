@@ -1,0 +1,16 @@
+Apply the attached destiny-keyword-v2 archive over ~/workspace. Preserve every Replit Secret, Supabase setting, credential, deployment variable, database record, and unrelated file. Extract only the 13 listed source, test, and documentation files to their matching paths. Do not inspect, print, replace, or expose any secret or .env value.
+
+This release fixes the LogicCaffeine keyword-strategy incident by synthesizing every onboarding answer, separating what the company sells from what its product enables, rejecting generic build-software drift, balancing distinct keyword themes and intent bands, preserving DataForSEO as the only source of search metrics, and showing theme coverage in the keyword review UI. Claude Opus 4.8 is called only server-side by the Supabase process-audit Edge Function, with a deterministic full-context fallback.
+
+Run these gates before any publication:
+1. npm test (expected current baseline: 43 test files and 165 tests, unless the current workspace already has additional tests; all must pass)
+2. npx eslint src scripts
+3. npm run build
+4. a secret scan of the attached archive and changed files without printing any .env or secret content
+5. verify TypeScript is clean
+
+If a test fails, fix only the implementation or tests in this release, rerun every gate, and do not publish until all pass.
+
+Then deploy the updated Supabase Edge Function with the existing linked project only: process-audit for project ref etkksjebqgtkkdqznnxa. First verify Supabase CLI authentication and list secret NAMES only, never values. Confirm DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD exist. Confirm ANTHROPIC_API_KEY exists; if that Supabase secret name is absent and the same nonempty Replit environment variable is available, set it into Supabase without echoing or printing its value. Set ANTHROPIC_KEYWORD_MODEL=claude-opus-4-8 in Supabase without exposing any secret. If Supabase authentication or the required Anthropic key is unavailable, stop before republishing and report the exact blocker without exposing values.
+
+After all tests pass and the process-audit Edge Function deployment succeeds, republish the existing public Reserved VM at https://destiny-seo.replit.app. Do not change the deployment type, domain, database, auth, secrets, or any unrelated setting. Report the full test counts, build route count, Edge Function deployment success/version if shown, and the new Replit deployment ID.

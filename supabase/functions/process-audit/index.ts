@@ -11,7 +11,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-02.3";
+const LOGOS_RULES_VERSION = "2026-08-02.4";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -71,7 +71,7 @@ export default {
     const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }] = await Promise.all([
       context.supabase
         .from("websites")
-        .select("id,url,normalized_domain,products_services,problem_solved,ideal_customer,audience_challenges_goals,market")
+        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market")
         .eq("id", body.websiteId)
         .maybeSingle(),
       context.supabase
@@ -91,6 +91,8 @@ export default {
 
     const login = Deno.env.get("DATAFORSEO_LOGIN")?.trim();
     const password = Deno.env.get("DATAFORSEO_PASSWORD")?.trim();
+    const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY")?.trim();
+    const keywordModel = Deno.env.get("ANTHROPIC_KEYWORD_MODEL")?.trim() || "claude-opus-4-8";
     const provider = login && password ? "dataforseo" : "demo";
     let auditId: string;
     try {
@@ -121,13 +123,20 @@ export default {
           login,
           password,
           businessContext: {
+            businessName: website.business_name,
             productsServices: website.products_services,
             problemSolved: website.problem_solved,
             idealCustomer: website.ideal_customer,
             audienceChallengesGoals: website.audience_challenges_goals,
+            differentiation: website.differentiation,
             market: website.market,
           },
           knownCompetitors: knownCompetitors ?? [],
+          strategyModel: {
+            apiKey: anthropicApiKey,
+            model: keywordModel,
+            timeoutMs: 45_000,
+          },
           onProgress: async (progress) => {
             await context.supabaseAdmin.from("audits").update({ progress }).eq("id", auditId).eq("status", "running");
           },

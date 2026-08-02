@@ -129,6 +129,13 @@ interleaves existing rankings, competitor gaps, and relevant site ideas into up
 to 24 weekly topics. Credentials stay in Supabase and are never returned to the
 browser.
 
+Add `ANTHROPIC_API_KEY` and optionally `ANTHROPIC_KEYWORD_MODEL` to **Supabase
+Edge Function Secrets** to synthesize every onboarding answer into distinct,
+evidence-backed search themes before DataForSEO keyword expansion. The keyword
+model defaults to `claude-opus-4-8`. If Anthropic is unavailable, the audit uses
+a deterministic full-context fallback; search volume, CPC, difficulty, rank,
+and intent always come from DataForSEO rather than the language model.
+
 Add `ANTHROPIC_API_KEY` to the **Next.js or Replit server environment** to
 activate full article generation. `ANTHROPIC_COPY_MODEL` defaults to
 `claude-opus-4-8`. The API key remains server-only; article generation returns

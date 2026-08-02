@@ -1,10 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { rankKeywordOpportunities } from "./keyword-opportunity";
+import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
 
 const EMPOWERLY_CONTEXT = {
   productsServices: "College admissions counseling, application strategy, essay coaching, and college planning for high school students",
   problemSolved: "Families need expert guidance to improve college applications and admissions outcomes",
   idealCustomer: "Parents and high school students applying to selective colleges",
+};
+
+const LOGICAFFEINE_CONTEXT = {
+  productsServices: "We build software and firmware for datacenters. Our core product is a general purpose programming language called Logos that is the fastest in the world. It is based on English syntax to make programming accessible to anyone that knows English.",
+  problemSolved: "Datacenter power constraints, processing speeds, code is unreadable by anyone that doesn't know the specific coding language.",
+  idealCustomer: "data center developers, software developers, vibe coders",
+  audienceChallengesGoals: "Use English and reduce power consumption of datacenter high-performance compute processing.",
+  differentiation: "The programming language has a SAT solver and super compiler and transpiles hardware specifications into System Verilog Assertions for provably bug-free chip architecture.",
+};
+
+const LOGICAFFEINE_BRIEF = {
+  source: "claude-opus-4-8" as const,
+  model: "claude-opus-4-8",
+  businessSummary: "Logos is an English-syntax programming language for high-performance software, datacenter, and hardware development.",
+  offerVsEnablement: {
+    whatCompanySells: ["Logos programming language", "datacenter software and firmware"],
+    whatProductEnables: ["software development", "hardware verification"],
+    notTheOffer: ["project management software", "CRM software", "house design software", "deck design software"],
+  },
+  audiences: ["datacenter developers", "software developers", "vibe coders"],
+  problems: ["datacenter power consumption", "unreadable code", "hardware bugs"],
+  differentiators: ["English syntax", "SAT solver", "super compiler", "System Verilog Assertions"],
+  themes: [
+    { id: "language", label: "Programming language", funnelRole: "consideration" as const, priority: "primary" as const, seedKeywords: ["general purpose programming language", "programming language for developers"], requiredTerms: ["programming language", "logos"], negativeTerms: ["project management", "house", "deck", "bridge", "crm", "human resources"], evidence: [{ field: "productsServices" as const, quote: "general purpose programming language" }] },
+    { id: "datacenter", label: "Datacenter efficiency", funnelRole: "awareness" as const, priority: "primary" as const, seedKeywords: ["datacenter power consumption", "high performance compute language"], requiredTerms: ["datacenter", "high performance compute"], negativeTerms: [], evidence: [{ field: "audienceChallengesGoals" as const, quote: "datacenter high-performance compute" }] },
+    { id: "accessibility", label: "English syntax", funnelRole: "awareness" as const, priority: "supporting" as const, seedKeywords: ["English syntax programming language", "programming language for vibe coders"], requiredTerms: ["English syntax", "vibe coders"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "English syntax" }] },
+    { id: "compiler", label: "Compiler performance", funnelRole: "consideration" as const, priority: "primary" as const, seedKeywords: ["fastest programming language", "super compiler"], requiredTerms: ["programming language", "super compiler"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "super compiler" }] },
+    { id: "hardware", label: "Hardware verification", funnelRole: "technical_authority" as const, priority: "primary" as const, seedKeywords: ["System Verilog Assertions", "SAT solver hardware verification", "provably bug free chip architecture"], requiredTerms: ["System Verilog", "SAT solver", "chip architecture"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "System Verilog Assertions" }] },
+  ],
 };
 
 describe("keyword opportunity ranking", () => {
@@ -200,5 +229,59 @@ describe("keyword opportunity ranking", () => {
     expect(ranked).toHaveLength(50);
     expect(ranked.every((item) => item.priorityScore >= 0 && item.priorityScore <= 100)).toBe(true);
     expect(ranked.every((item) => item.providerIntent && item.searchIntent && item.priorityReason)).toBe(true);
+  });
+
+  it("uses the full semantic brief to reject generic build categories from LogicCaffeine", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "build project management software", intent: "transactional", searchVolume: 8_100, difficulty: 34, cpc: 116, opportunity: "site_idea" },
+      { keyword: "build a house software", intent: "transactional", searchVolume: 480, difficulty: 58, cpc: 7, opportunity: "site_idea" },
+      { keyword: "cloud based HR software", intent: "commercial", searchVolume: 9_900, difficulty: 42, cpc: 12, opportunity: "site_idea" },
+      { keyword: "general purpose programming language", intent: "commercial", searchVolume: 1_300, difficulty: 34, cpc: 8, opportunity: "site_idea" },
+      { keyword: "English syntax programming language", intent: "informational", searchVolume: 170, difficulty: 22, cpc: 2, opportunity: "site_idea" },
+      { keyword: "reduce datacenter power consumption", intent: "informational", searchVolume: 390, difficulty: 30, cpc: 4, opportunity: "site_idea" },
+      { keyword: "SAT solver hardware verification", intent: "commercial", searchVolume: 110, difficulty: 28, cpc: 6, opportunity: "site_idea" },
+      { keyword: "System Verilog Assertions", intent: "informational", searchVolume: 720, difficulty: 31, cpc: 3, opportunity: "existing_rank", rank: 18 },
+    ], LOGICAFFEINE_CONTEXT, 50, LOGICAFFEINE_BRIEF);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "general purpose programming language",
+      "English syntax programming language",
+      "reduce datacenter power consumption",
+      "SAT solver hardware verification",
+      "System Verilog Assertions",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "build project management software",
+      "build a house software",
+      "cloud based HR software",
+    ]));
+    expect(new Set(ranked.map((item) => item.themeId)).size).toBeGreaterThanOrEqual(4);
+  });
+
+  it("caps one keyword theme and near-duplicate wording instead of letting it dominate all 50", () => {
+    const languageModifiers = ["best", "fastest", "modern", "general purpose", "high performance", "developer friendly", "plain english", "new", "efficient", "compiled", "systems", "accessible", "enterprise", "comparison", "alternatives", "reviews", "features", "benchmarks", "syntax", "tools"];
+    const datacenterModifiers = ["reduce", "optimize", "measure", "lower", "manage", "improve", "cut", "monitor"];
+    const accessibilityModifiers = ["accessible", "easy", "plain", "natural", "readable", "beginner", "developer", "vibe coder"];
+    const hardwareModifiers = ["chip", "formal", "automated", "provable", "computer", "digital", "fpga", "asic"];
+    const compilerModifiers = ["fast", "optimizing", "advanced", "modern", "efficient", "systems", "parallel", "high performance"];
+    const ranked = rankKeywordOpportunities([
+      ...languageModifiers.flatMap((modifier, index) => [
+        { keyword: `${modifier} programming language`, intent: "commercial", searchVolume: 1_000 - index, difficulty: 30, cpc: 9, opportunity: "site_idea" },
+        { keyword: `programming language ${modifier} guide`, intent: "commercial", searchVolume: 900 - index, difficulty: 30, cpc: 9, opportunity: "site_idea" },
+      ]),
+      ...datacenterModifiers.map((modifier, index) => ({ keyword: `${modifier} datacenter power consumption`, intent: "informational", searchVolume: 500 - index, difficulty: 28, cpc: 4, opportunity: "site_idea" })),
+      ...accessibilityModifiers.map((modifier, index) => ({ keyword: `${modifier} English syntax programming language`, intent: "informational", searchVolume: 400 - index, difficulty: 24, cpc: 3, opportunity: "site_idea" })),
+      ...hardwareModifiers.map((modifier, index) => ({ keyword: `SAT solver ${modifier} hardware verification`, intent: "commercial", searchVolume: 300 - index, difficulty: 26, cpc: 5, opportunity: "site_idea" })),
+      ...compilerModifiers.map((modifier, index) => ({ keyword: `${modifier} super compiler performance`, intent: "commercial", searchVolume: 200 - index, difficulty: 20, cpc: 6, opportunity: "site_idea" })),
+    ], LOGICAFFEINE_CONTEXT, 100, LOGICAFFEINE_BRIEF);
+    const diversified = selectDiversifiedKeywordOpportunities(ranked, 50);
+    const counts = diversified.reduce<Record<string, number>>((totals, keyword) => {
+      totals[keyword.themeId] = (totals[keyword.themeId] ?? 0) + 1;
+      return totals;
+    }, {});
+
+    expect(diversified.length).toBeGreaterThanOrEqual(30);
+    expect(Math.max(...Object.values(counts))).toBeLessThanOrEqual(15);
+    expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
   });
 });

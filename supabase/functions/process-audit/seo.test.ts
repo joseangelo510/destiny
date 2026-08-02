@@ -35,6 +35,7 @@ describe("live audit orchestration", () => {
       "social media graphics",
       "video editing tools",
       "brand templates",
+      "small marketing teams",
     ]);
   });
 

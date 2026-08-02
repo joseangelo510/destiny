@@ -5,6 +5,16 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
+const providerIntent = (value: unknown): "transactional" | "commercial" | "navigational" | "informational" => {
+  const intent = String(value || "informational");
+  return intent === "transactional" || intent === "commercial" || intent === "navigational" ? intent : "informational";
+};
+
+const customerIntent = (value: unknown): "conversion" | "consideration" | "awareness" => {
+  const intent = String(value || "awareness");
+  return intent === "conversion" || intent === "consideration" ? intent : "awareness";
+};
+
 export default async function KeywordsPage() {
   const context = await getWorkspaceContext();
   const provider = providerResultFromMetrics(context.metrics);
@@ -14,7 +24,7 @@ export default async function KeywordsPage() {
   const keywordQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "keyword_review");
   const { data: savedDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
   const initialDecisions = Object.fromEntries((savedDecisions ?? []).map((decision) => [decision.keyword, decision.decision])) as Record<string, "approved" | "declined">;
-  const usableKeywords = rankKeywordOpportunities(keywords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
+  const keywordCandidates = keywords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
     keyword: keyword.keyword,
     searchVolume: Number(keyword.searchVolume ?? 0),
     difficulty: Number(keyword.difficulty ?? 0),
@@ -24,16 +34,36 @@ export default async function KeywordsPage() {
     rank: Number(keyword.rank ?? 0),
     cpc: Number(keyword.cpc ?? 0),
     intent: String(keyword.intent ?? keyword.providerIntent ?? "informational"),
-  }] : []), {
-    productsServices: context.website?.products_services ?? "",
-    problemSolved: context.website?.problem_solved ?? "",
-    idealCustomer: context.website?.ideal_customer ?? "",
-    audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
-    market: context.website?.market ?? "",
-  }, 50).map((keyword) => ({
-    ...keyword,
-    essential: keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational",
-  }));
+    essential: Boolean(keyword.essential),
+    priorityScore: Number(keyword.priorityScore ?? 0),
+    priorityReason: String(keyword.priorityReason ?? keyword.reason ?? ""),
+    providerIntent: providerIntent(keyword.providerIntent ?? keyword.intent),
+    searchIntent: customerIntent(keyword.searchIntent),
+    themeId: String(keyword.themeId ?? ""),
+    themeLabel: String(keyword.themeLabel ?? ""),
+    themeRole: String(keyword.themeRole ?? ""),
+  }] : []);
+  const hasPersistedSemanticStrategy = keywordCandidates.length > 0
+    && keywordCandidates.every((keyword) => keyword.priorityScore > 0 && keyword.priorityReason && keyword.themeId && keyword.themeLabel);
+  const usableKeywords = hasPersistedSemanticStrategy
+    ? keywordCandidates.map((keyword) => ({
+      ...keyword,
+      competitorRankers: Number(keyword.competitorRankers ?? 0),
+      essential: Boolean(keyword.essential),
+    }))
+    : rankKeywordOpportunities(keywordCandidates, {
+      businessName: context.website?.business_name ?? "",
+      productsServices: context.website?.products_services ?? "",
+      problemSolved: context.website?.problem_solved ?? "",
+      idealCustomer: context.website?.ideal_customer ?? "",
+      audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
+      differentiation: context.website?.differentiation ?? "",
+      market: context.website?.market ?? "",
+    }, 50).map((keyword) => ({
+      ...keyword,
+      competitorRankers: Number(keyword.competitorRankers ?? 0),
+      essential: keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational",
+    }));
   return <WorkspaceShell active="/keywords" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Keyword strategy" description="Approve the customer searches that should guide the six-month plan. Commercial and transactional opportunities with credible demand appear first, while useful learning topics remain visible for supporting authority.">
     <FeatureJourneyCallout milestone="First content published" description="Approving a focused keyword sets the route for the next content task; rankings unlock only after connected data confirms them." />
     {!vocabulary.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run a live audit so Destiny can inspect up to five important pages and build the initial recommendations." /> : <>

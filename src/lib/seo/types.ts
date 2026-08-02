@@ -4,10 +4,12 @@ export type SeoAuditRequest = {
   website: string;
   locationName?: string;
   businessContext?: {
+    businessName?: string;
     productsServices?: string;
     problemSolved?: string;
     idealCustomer?: string;
     audienceChallengesGoals?: string;
+    differentiation?: string;
     market?: string;
   };
 };
@@ -35,6 +37,18 @@ export type SeoKeyword = {
   normalizedKeyword?: string;
   matchedTerms?: string[];
   competitorRankers?: number;
+  directCompetitorRankers?: number;
+  providerIntent?: "transactional" | "commercial" | "navigational" | "informational";
+  searchIntent?: "conversion" | "consideration" | "awareness";
+  businessFit?: number;
+  revenueFit?: number;
+  relevanceTier?: "core" | "adjacent";
+  priorityTier?: 1 | 2 | 3 | 4;
+  priorityScore?: number;
+  priorityReason?: string;
+  themeId?: string;
+  themeLabel?: string;
+  themeRole?: "conversion" | "consideration" | "awareness" | "technical_authority";
   verdict?: "accept" | "review" | "reject";
   ruleId?: string;
   reason?: string;
@@ -82,6 +96,34 @@ export type SeoLlmVisibility = {
   reason?: string;
 };
 
+export type SeoBusinessSearchBrief = {
+  source: "claude-opus-4-8" | "deterministic";
+  model: string | null;
+  businessSummary: string;
+  offerVsEnablement: {
+    whatCompanySells: string[];
+    whatProductEnables: string[];
+    notTheOffer: string[];
+  };
+  audiences: string[];
+  problems: string[];
+  differentiators: string[];
+  themes: Array<{
+    id: string;
+    label: string;
+    funnelRole: "conversion" | "consideration" | "awareness" | "technical_authority";
+    priority: "primary" | "secondary" | "supporting";
+    seedKeywords: string[];
+    requiredTerms: string[];
+    negativeTerms: string[];
+    evidence: Array<{
+      field: "productsServices" | "problemSolved" | "idealCustomer" | "audienceChallengesGoals" | "differentiation" | "market";
+      quote: string;
+    }>;
+  }>;
+  warning?: string;
+};
+
 export type SeoAuditMetrics = {
   criticalIssues: number;
   warnings: number;
@@ -120,6 +162,7 @@ export type SeoAuditResult = {
   distributionOpportunities?: SeoDistributionOpportunity[];
   publisherOpportunities?: SeoPublisherOpportunity[];
   llmVisibility?: SeoLlmVisibility;
+  businessSearchBrief?: SeoBusinessSearchBrief;
   notices: string[];
 };
 

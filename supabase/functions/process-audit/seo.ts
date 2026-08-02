@@ -1,4 +1,11 @@
-import { rankKeywordOpportunities } from "./keyword-opportunity.ts";
+import {
+  createBusinessSearchBrief,
+  themeSeeds,
+  type BusinessSearchBrief,
+  type BusinessSearchBriefConfig,
+  type BusinessSearchContext,
+} from "./business-search-brief.ts";
+import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity.ts";
 import {
   extractSiteVocabulary,
   parseContentPage,
@@ -64,6 +71,9 @@ export type SeoAuditResult = {
     priorityTier?: 1 | 2 | 3 | 4;
     priorityScore?: number;
     priorityReason?: string;
+    themeId?: string;
+    themeLabel?: string;
+    themeRole?: "conversion" | "consideration" | "awareness" | "technical_authority";
     verdict?: "accept" | "review" | "reject";
     ruleId?: string;
     reason?: string;
@@ -74,6 +84,7 @@ export type SeoAuditResult = {
   distributionOpportunities?: DistributionOpportunity[];
   publisherOpportunities?: PublisherOpportunity[];
   llmVisibility?: LlmVisibility;
+  businessSearchBrief?: BusinessSearchBrief;
   notices: string[];
 };
 
@@ -146,7 +157,7 @@ function stableNumber(value: string) {
   return [...value].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 2166136261);
 }
 
-type BusinessContext = { productsServices?: string; problemSolved?: string; idealCustomer?: string; audienceChallengesGoals?: string; market?: string };
+type BusinessContext = BusinessSearchContext;
 
 const realEstateTopics = [
   "san francisco homes for sale", "best san francisco neighborhoods for families", "first-time home buyer san francisco", "how to buy a home in san francisco",
@@ -436,7 +447,7 @@ export function buildBuyerSeedKeywords(context: BusinessContext | undefined, lim
 export function buildContextSeedKeywords(context: BusinessContext | undefined, limit = 12): StrategyKeyword[] {
   const seen = new Set<string>();
   const candidates: StrategyKeyword[] = [];
-  const segments = [context?.productsServices, context?.problemSolved, context?.audienceChallengesGoals]
+  const segments = [context?.productsServices, context?.problemSolved, context?.idealCustomer, context?.audienceChallengesGoals, context?.differentiation]
     .filter((value): value is string => Boolean(value?.trim()))
     .flatMap((value) => value.split(/\s*(?:[,;\n.]|\band\b)\s*/i));
   for (const segment of segments) {
@@ -510,12 +521,24 @@ export async function runDataForSeoAudit(
   businessContext?: BusinessContext,
   knownCompetitors: Array<{ name: string; url?: string | null }> = [],
   onProgress: (progress: number) => Promise<void> | void = () => undefined,
+  strategyModel: BusinessSearchBriefConfig = {},
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
-  const contextSeeds = buildContextSeedKeywords(businessContext, 12);
-  const buyerSeeds = buildBuyerSeedKeywords(businessContext, 4);
-  const categorySeeds = contextSeeds.slice(0, 8).map((item) => item.keyword);
+  const businessSearchBrief = await createBusinessSearchBrief(businessContext ?? {}, knownCompetitors, strategyModel);
+  const categorySeeds = themeSeeds(businessSearchBrief, 16);
+  const contextSeeds = categorySeeds.map((keyword) => ({
+    keyword,
+    rank: 0,
+    searchVolume: 0,
+    url: "",
+    intent: "commercial",
+    difficulty: 0,
+    cpc: 0,
+    opportunity: "site_idea" as const,
+  }));
+  const buyerSeedThemes = businessSearchBrief.themes.filter((theme) => theme.funnelRole === "conversion" || theme.funnelRole === "consideration");
+  const buyerSeeds = themeSeeds({ ...businessSearchBrief, themes: buyerSeedThemes.length ? buyerSeedThemes : businessSearchBrief.themes }, 8);
   // LLM target metrics can be the slowest live endpoint. Start it alongside
   // the baseline audit and contain failure so it never blocks core SEO results.
   const llmPromise = dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
@@ -605,7 +628,7 @@ export async function runDataForSeoAudit(
   const pages = [parsedHomepage, ...remainingPageResults.flatMap((result) => result.status === "fulfilled" ? [result.value] : [])]
     .filter((page) => page.text.trim())
     .slice(0, 5);
-  const businessEvidence = [businessContext?.productsServices, businessContext?.problemSolved, businessContext?.idealCustomer, businessContext?.audienceChallengesGoals, businessContext?.market]
+  const businessEvidence = [businessContext?.productsServices, businessContext?.problemSolved, businessContext?.idealCustomer, businessContext?.audienceChallengesGoals, businessContext?.differentiation, businessContext?.market]
     .filter((value): value is string => Boolean(value?.trim())).join(". ");
   const siteVocabulary = extractSiteVocabulary(pages, businessEvidence);
   await onProgress(45);
@@ -703,7 +726,8 @@ export async function runDataForSeoAudit(
     ...keyword,
     intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
   }));
-  const keywords = rankKeywordOpportunities(intentEnrichedCandidates, businessContext ?? {}, 50).map((keyword) => ({
+  const rankedKeywordsForStrategy = rankKeywordOpportunities(intentEnrichedCandidates, businessContext ?? {}, 300, businessSearchBrief);
+  const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 50).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),
     matchedTerms: [],
@@ -764,6 +788,7 @@ export async function runDataForSeoAudit(
     distributionOpportunities,
     publisherOpportunities,
     llmVisibility,
+    businessSearchBrief,
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
       `Destiny inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
@@ -771,8 +796,10 @@ export async function runDataForSeoAudit(
       directCompetitorDomains.size
         ? `${directCompetitorDomains.size} business competitor${directCompetitorDomains.size === 1 ? " is" : "s are"} weighted more strongly than discovered publishers and other search-landscape domains.`
         : "Discovered domains are treated as search-landscape evidence until the user identifies direct business competitors.",
-      buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} service seed${buyerSeeds.length === 1 ? "" : "s"} and reclassified with DataForSEO Search Intent.` : "No short service seed could be derived from onboarding evidence.",
-      contextSeeds.length ? "Site and category ideas are seeded from onboarding evidence, while LOGOS remains responsible for coaching orchestration rather than keyword language judgments." : "No usable category seed could be derived from the onboarding description.",
+      `${businessSearchBrief.source === "claude-opus-4-8" ? "Claude Opus 4.8" : "Destiny's deterministic fallback"} synthesized every onboarding answer into ${businessSearchBrief.themes.length} evidence-backed search themes before keyword expansion.`,
+      businessSearchBrief.warning ?? "The semantic brief separates what the company sells from what its product enables customers to build.",
+      buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} theme-balanced seed${buyerSeeds.length === 1 ? "" : "s"} and reclassified with DataForSEO Search Intent.` : "No evidence-backed buyer seed could be derived from onboarding.",
+      contextSeeds.length ? "Site and category ideas are seeded across distinct onboarding themes; measured DataForSEO volume and intent remain authoritative." : "No usable category seed could be derived from the complete onboarding record.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],
@@ -787,9 +814,10 @@ export async function runSeoAudit(input: {
   businessContext?: BusinessContext;
   knownCompetitors?: Array<{ name: string; url?: string | null }>;
   onProgress?: (progress: number) => Promise<void> | void;
+  strategyModel?: BusinessSearchBriefConfig;
 }) {
   if (input.login && input.password) {
-    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress);
+    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress, input.strategyModel);
   }
   await input.onProgress?.(90);
   return runDemoAudit(input.website, input.businessContext);

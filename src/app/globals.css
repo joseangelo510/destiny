@@ -1019,6 +1019,14 @@ body { font-size: 17px; }
 .business-context-body > p { color: var(--muted); font-size: 16px; line-height: 1.6; }
 
 .keyword-strategy-review { margin-bottom: 24px; }
+.strategy-theme-coverage { background: #f4f8f5; border: 1px solid #d7e5dc; border-radius: 16px; display: grid; gap: 14px; margin: 20px 0; padding: 18px; }
+.strategy-theme-coverage > div:first-child { display: grid; gap: 3px; }
+.strategy-theme-coverage > div:first-child strong { color: var(--ink); font-size: 18px; }
+.strategy-theme-coverage > div:first-child span { color: var(--muted); font-size: 14px; }
+.strategy-theme-coverage > div:last-child { display: flex; flex-wrap: wrap; gap: 8px; }
+.strategy-theme-coverage > div:last-child > span { background: white; border: 1px solid var(--line); border-radius: 999px; display: inline-flex; gap: 7px; padding: 7px 10px; }
+.strategy-theme-coverage > div:last-child b { color: var(--forest); font-size: 13px; }
+.strategy-theme-coverage > div:last-child small { color: var(--muted); font-size: 12px; }
 .strategy-review-heading { align-items: flex-start; display: flex; gap: 28px; justify-content: space-between; }
 .strategy-review-heading h2 { font-family: Georgia, serif; font-size: clamp(28px, 3.5vw, 42px); font-weight: 500; letter-spacing: -.04em; margin: 10px 0; }
 .strategy-review-heading p, .strategy-review-finish p { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 0; max-width: 800px; }
@@ -1035,6 +1043,7 @@ body { font-size: 17px; }
 .strategy-keyword-list article small { color: var(--muted); font-size: 13px; }
 .strategy-keyword-list article > div:last-child { display: flex; gap: 8px; }
 .strategy-keyword-label { color: var(--forest); font-size: 13px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.strategy-keyword-source { color: var(--muted); font-size: 12px; font-weight: 750; text-transform: capitalize; }
 .strategy-keyword-topline { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
 .strategy-keyword-topline > b { color: var(--muted); font-size: 13px; }
 .strategy-keyword-topline .intent-chip { border-radius: 999px; font-size: 12px; padding: 5px 8px; text-transform: capitalize; }
