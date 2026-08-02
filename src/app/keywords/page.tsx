@@ -19,6 +19,7 @@ export default async function KeywordsPage() {
     searchVolume: Number(keyword.searchVolume ?? 0),
     difficulty: Number(keyword.difficulty ?? 0),
     competitorRankers: Number(keyword.competitorRankers ?? 0),
+    directCompetitorRankers: Number(keyword.directCompetitorRankers ?? 0),
     opportunity: String(keyword.opportunity ?? "site_idea"),
     rank: Number(keyword.rank ?? 0),
     cpc: Number(keyword.cpc ?? 0),
