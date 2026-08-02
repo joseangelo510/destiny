@@ -390,6 +390,9 @@ export type Database = {
           title: string
           task_type: string
           updated_at: string
+          verification_method: string | null
+          verification_status: string
+          verified_at: string | null
           website_id: string
           week_number: number
           xp: number
@@ -412,6 +415,9 @@ export type Database = {
           title: string
           task_type?: string
           updated_at?: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
           website_id: string
           week_number?: number
           xp?: number
@@ -434,6 +440,9 @@ export type Database = {
           title?: string
           task_type?: string
           updated_at?: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
           website_id?: string
           week_number?: number
           xp?: number

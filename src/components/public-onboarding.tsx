@@ -91,7 +91,7 @@ export function PublicOnboarding() {
       const payload = await response.json() as { audit?: { status?: string; failure_message?: string | null } };
       if (payload.audit?.status === "complete") {
         window.clearInterval(poll);
-        window.location.assign("/this-week");
+        window.location.assign(`/audits/${encodeURIComponent(auditId)}`);
       }
       if (payload.audit?.status === "failed") {
         window.clearInterval(poll);

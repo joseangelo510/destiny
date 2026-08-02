@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildQuestCompletionUpdate, type QuestStatus } from "@/lib/quests/completion";
 import { createClient } from "@/lib/supabase/server";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,10 +15,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   }
 
-  const { data: quest, error } = await supabase.from("quests").update({
-    status: body.status,
-    completed_at: body.status === "complete" ? new Date().toISOString() : null,
-  }).eq("id", id).select("id,status,completed_at,xp").maybeSingle();
+  const { data: existingQuest, error: lookupError } = await supabase
+    .from("quests")
+    .select("id,task_type")
+    .eq("id", id)
+    .maybeSingle();
+  if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
+  if (!existingQuest) return NextResponse.json({ error: "Quest not found." }, { status: 404 });
+
+  const update = buildQuestCompletionUpdate(existingQuest.task_type, body.status as QuestStatus, new Date().toISOString());
+  const { data: quest, error } = await supabase.from("quests").update(update)
+    .eq("id", id)
+    .select("id,status,completed_at,xp,verification_status,verified_at,verification_method")
+    .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!quest) return NextResponse.json({ error: "Quest not found." }, { status: 404 });

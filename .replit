@@ -1,5 +1,5 @@
 run = "npm run dev -- -H 0.0.0.0 -p 3000"
-modules = ["nodejs-20"]
+modules = ["nodejs-22"]
 
 [deployment]
 build = "npm install --include=dev && npm run build"

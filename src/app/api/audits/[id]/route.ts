@@ -37,9 +37,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         lostKeywords: metrics.lost_keywords,
         contentGaps: metrics.content_gaps,
         reviewCount: metrics.google_reviews,
-        // The worker evaluates the full eight-task Super Growth plan, then the
-        // user's selected pace controls how many of those tasks are displayed.
-        // Keep browser/server LOGOS verification on that same worker input.
+        // The worker evaluates the full contextual task pool. The coach shows
+        // three core tasks first and reveals the remaining opportunities only
+        // when the user asks for them.
         planTier: 3,
       },
       result: storedDecision,

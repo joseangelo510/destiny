@@ -1,20 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-
-const navigation = [
-  { label: "Home", href: "/" },
-  { label: "This week", href: "/this-week" },
-  { label: "Overview", href: "/app" },
-  { label: "Audits", href: "/audits" },
-  { label: "Growth plan", href: "/growth-plan" },
-  { label: "Content", href: "/content" },
-  { label: "Keywords", href: "/keywords" },
-  { label: "Distribution", href: "/distribution" },
-  { label: "Reviews", href: "/reviews" },
-  { label: "Analytics", href: "/analytics" },
-  { label: "LLM visibility", href: "/llm-visibility" },
-  { label: "Connections", href: "/integrations" },
-];
+import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "@/lib/product/coach-experience";
 
 export function WorkspaceShell({
   active,
@@ -33,9 +19,14 @@ export function WorkspaceShell({
     <main className="app-shell">
       <aside className="sidebar">
         <Link className="brand sidebar-brand" href="/this-week"><span className="brand-mark">D</span><span>Destiny</span></Link>
-        <nav>
-          {navigation.map((item) => (
-            <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
+        <nav aria-label="Destiny workspace">
+          <span className="nav-section-label">Your coaching</span>
+          {PRIMARY_NAVIGATION.map((item) => (
+            <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
+          ))}
+          <span className="nav-section-label feature-label">Explore features</span>
+          {FEATURE_NAVIGATION.map((item) => (
+            <Link className={`feature-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
           ))}
         </nav>
         <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
@@ -49,6 +40,9 @@ export function WorkspaceShell({
         </header>
         {children}
       </section>
+      <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">
+        {PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}
+      </nav>
     </main>
   );
 }
