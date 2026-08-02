@@ -64,6 +64,13 @@ export default async function DashboardPage({
       questCategory: latestQuest.category as DestinyLogicResult["questCategory"],
       urgency: "routine",
       explanation: "This recommendation was saved by an earlier Destiny rules version and remains available for continuity.",
+      keywordVerdict: "reject",
+      keywordRuleId: "no_vocabulary_match",
+      keywordReason: "No keyword candidate was evaluated in the legacy recommendation.",
+      essentialKeyword: false,
+      weeklyTaskCount: 3,
+      contentTaskCount: 1,
+      distributionTaskCount: 0,
     } : undefined)}
     initialMomentum={{
       completed: completedQuests.length,

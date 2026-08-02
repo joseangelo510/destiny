@@ -1,3 +1,17 @@
+import { runDestinyLogic } from "./logic.ts";
+import {
+  buildKeywordFacts,
+  extractSiteVocabulary,
+  parseContentPage,
+  parseDistributionSerp,
+  parseLlmVisibility,
+  selectImportantPageLinks,
+  type DistributionOpportunity,
+  type LlmVisibility,
+  type SitePageEvidence,
+  type SiteVocabularyTerm,
+} from "./intelligence.ts";
+
 export type AuditSource = "demo" | "dataforseo";
 
 export type SeoAuditResult = {
@@ -27,7 +41,18 @@ export type SeoAuditResult = {
     difficulty: number;
     cpc: number;
     opportunity: "existing_rank" | "competitor_gap" | "site_idea";
+    normalizedKeyword?: string;
+    matchedTerms?: string[];
+    competitorRankers?: number;
+    verdict?: "accept" | "review" | "reject";
+    ruleId?: string;
+    reason?: string;
+    essential?: boolean;
   }>;
+  pages?: SitePageEvidence[];
+  siteVocabulary?: SiteVocabularyTerm[];
+  distributionOpportunities?: DistributionOpportunity[];
+  llmVisibility?: LlmVisibility;
   notices: string[];
 };
 
@@ -190,12 +215,12 @@ function authorization(login: string, password: string) {
   return `Basic ${btoa(binary)}`;
 }
 
-async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string) {
+async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 45_000) {
   const response = await fetch(`https://api.dataforseo.com${path}`, {
     method: "POST",
     headers: { Authorization: authorization(login, password), "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(timeout),
   });
   if (!response.ok) throw new Error(`DataForSEO returned HTTP ${response.status}.`);
   return response.json() as Promise<unknown>;
@@ -325,10 +350,11 @@ export async function runDataForSeoAudit(
   login: string,
   password: string,
   businessContext?: BusinessContext,
+  knownCompetitors: Array<{ name: string; url?: string | null }> = [],
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
-  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload] = await Promise.all([
+  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, homepageContent] = await Promise.all([
     dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
       target: website.domain, location_name: location, language_name: "English",
@@ -346,6 +372,7 @@ export async function runDataForSeoAudit(
       order_by: ["relevance,desc", "keyword_info.search_volume,desc"],
       limit: 24,
     }], login, password),
+    dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: website.url, markdown_view: true }], login, password),
   ]);
 
   const pageResult = firstResult(pagePayload);
@@ -360,6 +387,25 @@ export async function runDataForSeoAudit(
   const rankedKeywords = parseRankedKeywords(rankings);
   const keywordIdeas = parseKeywordIdeas(firstResult(ideasPayload));
 
+  const homepageResult = firstResult(homepageContent);
+  const homepageItem = record(array(homepageResult.items)[0]);
+  const parsedHomepage = parseContentPage(homepageItem, "homepage");
+  parsedHomepage.url = website.url;
+  const selectedPages = selectImportantPageLinks(website.url, parsedHomepage.links ?? []);
+  const remainingPageResults = await Promise.allSettled(selectedPages.slice(1).map(async (selected) => {
+    const payload = await dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: selected.url, markdown_view: true }], login, password);
+    const result = firstResult(payload);
+    const item = record(array(result.items)[0]);
+    const pageEvidence = parseContentPage(item, selected.role);
+    pageEvidence.url = selected.url;
+    return pageEvidence;
+  }));
+  const pages = [parsedHomepage, ...remainingPageResults.flatMap((result) => result.status === "fulfilled" ? [result.value] : [])]
+    .filter((page) => page.text.trim())
+    .slice(0, 5);
+  const businessEvidence = `${businessContext?.productsServices ?? ""} ${businessContext?.idealCustomer ?? ""} ${businessContext?.market ?? ""}`.trim();
+  const siteVocabulary = extractSiteVocabulary(pages, businessEvidence);
+
   const checks = record(page.checks);
   const issues: SeoAuditResult["issues"] = Object.entries(checks)
     .filter(([code, active]) => active === true && code in CHECK_LABELS)
@@ -372,11 +418,21 @@ export async function runDataForSeoAudit(
     issues.unshift({ code: "broken_links", label: "Page contains broken links", severity: "critical" });
   }
 
-  let contentGaps = 0;
-  let gapKeywords: StrategyKeyword[] = [];
-  if (competitors[0]?.domain) {
-    const gapsPayload = await dataForSeoPost("/v3/dataforseo_labs/google/domain_intersection/live", [{
-      target1: competitors[0].domain,
+  const providedDomains = knownCompetitors.flatMap((competitor) => {
+    if (!competitor.url) return [];
+    try { return [normalizeWebsite(competitor.url).domain]; } catch { return []; }
+  });
+  const competitorDomains = [...new Set([...providedDomains, ...competitors.map((competitor) => competitor.domain)])]
+    .filter((domain) => domain && domain !== website.domain)
+    .slice(0, 5);
+  if (competitorDomains.length < 2) {
+    throw new Error("Destiny needs at least two resolvable competitor domains. Add competitor website URLs and retry.");
+  }
+
+  const gapPayloads = await Promise.all(competitorDomains.map((domain) => dataForSeoPost(
+    "/v3/dataforseo_labs/google/domain_intersection/live",
+    [{
+      target1: domain,
       target2: website.domain,
       location_name: location,
       language_name: "English",
@@ -384,12 +440,83 @@ export async function runDataForSeoAudit(
       item_types: ["organic", "local_pack"],
       filters: ["keyword_data.keyword_info.search_volume", ">", 0],
       order_by: ["keyword_data.keyword_info.search_volume,desc"],
-      limit: 24,
-    }], login, password);
-    const gapResult = firstResult(gapsPayload);
-    gapKeywords = parseGapKeywords(gapResult);
-    contentGaps = gapKeywords.length;
+      limit: 50,
+    }],
+    login,
+    password,
+  )));
+  const gapGroups = gapPayloads.map((payload) => parseGapKeywords(firstResult(payload)));
+  const competitorRankCounts = new Map<string, number>();
+  const gapByKeyword = new Map<string, StrategyKeyword>();
+  for (const group of gapGroups) {
+    const seenInCompetitor = new Set<string>();
+    for (const keyword of group) {
+      const key = keywordIdentity(keyword.keyword);
+      if (!key || seenInCompetitor.has(key)) continue;
+      seenInCompetitor.add(key);
+      competitorRankCounts.set(key, (competitorRankCounts.get(key) ?? 0) + 1);
+      const existing = gapByKeyword.get(key);
+      if (!existing || keyword.searchVolume > existing.searchVolume) gapByKeyword.set(key, keyword);
+    }
   }
+  const gapKeywords = [...gapByKeyword.values()];
+  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], 36);
+  const keywords = await Promise.all(strategyCandidates.map(async (keyword) => {
+    const competitorRankers = competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0;
+    const facts = buildKeywordFacts(keyword.keyword, siteVocabulary, competitorRankers);
+    const decision = await runDestinyLogic({
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: rankedKeywords.length,
+      newKeywords: 0,
+      lostKeywords: 0,
+      contentGaps: gapKeywords.length,
+      reviewCount: 0,
+      keywordCoreMatches: facts.coreMatches,
+      keywordSupportMatches: facts.supportMatches,
+      competitorRankers: facts.competitorRankers,
+      keywordBlocklisted: facts.blocklisted ? 1 : 0,
+      planTier: 1,
+    });
+    return {
+      ...keyword,
+      normalizedKeyword: facts.normalizedKeyword,
+      matchedTerms: facts.matchedTerms,
+      competitorRankers,
+      verdict: decision.keywordVerdict,
+      ruleId: decision.keywordRuleId,
+      reason: decision.keywordReason,
+      essential: decision.essentialKeyword,
+    };
+  }));
+
+  const firstAcceptedKeyword = keywords.find((keyword) => keyword.essential)
+    ?? keywords.find((keyword) => keyword.verdict === "accept")
+    ?? keywords.find((keyword) => keyword.verdict === "review");
+  const distributionTopic = firstAcceptedKeyword?.keyword ?? siteVocabulary.find((term) => term.term.includes(" "))?.term ?? website.domain;
+  const [redditResult, quoraResult, llmResult] = await Promise.allSettled([
+    dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `reddit ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
+    dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `quora ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
+    dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
+      target: [{ domain: website.domain, search_filter: "include" }],
+      location_code: 2840,
+      language_code: "en",
+      internal_list_limit: 10,
+    }], login, password, 125_000),
+  ]);
+  const distributionOpportunities = [redditResult, quoraResult].flatMap((result) => result.status === "fulfilled"
+    ? parseDistributionSerp(result.value, distributionTopic)
+    : []).filter((item, index, all) => all.findIndex((candidate) => candidate.url === item.url) === index).slice(0, 8);
+  const llmVisibility = llmResult.status === "fulfilled"
+    ? parseLlmVisibility(llmResult.value, llmResult.value)
+    : { status: "unavailable" as const, totalMentions: 0, aiSearchVolume: 0, platforms: [], topCitedDomains: [], reason: "DataForSEO LLM visibility did not finish within this audit window." };
+
+  const analyzedCompetitors = competitorDomains.map((domain) => ({
+    domain,
+    sharedKeywords: competitors.find((competitor) => competitor.domain === domain)?.sharedKeywords ?? 0,
+  }));
+  const acceptedGapCount = keywords.filter((keyword) => keyword.opportunity === "competitor_gap" && keyword.verdict === "accept").length;
 
   return {
     source: "dataforseo",
@@ -403,16 +530,22 @@ export async function runDataForSeoAudit(
       newKeywords: number(organicMetrics.is_new),
       lostKeywords: number(organicMetrics.is_lost),
       estimatedOrganicTraffic: number(organicMetrics.etv),
-      contentGaps,
+      contentGaps: acceptedGapCount,
       reviewCount: 0,
       onPageScore: typeof page.onpage_score === "number" ? page.onpage_score : null,
     },
     issues: issues.slice(0, 10),
-    competitors,
-    keywords: buildKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], businessContext),
+    competitors: analyzedCompetitors,
+    keywords,
+    pages,
+    siteVocabulary,
+    distributionOpportunities,
+    llmVisibility,
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
-      "The content strategy combines current rankings, competitor gaps, and domain-relevant keyword ideas.",
+      `Destiny inspected ${pages.length} important page${pages.length === 1 ? "" : "s"} and LOGOS accepted, routed for review, or rejected each keyword with a traceable rule.`,
+      `Competitor gaps were checked across ${competitorDomains.length} competitor domains; essential gaps require support from at least two.`,
+      distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],
   };
@@ -424,9 +557,10 @@ export async function runSeoAudit(input: {
   login?: string;
   password?: string;
   businessContext?: BusinessContext;
+  knownCompetitors?: Array<{ name: string; url?: string | null }>;
 }) {
   if (input.login && input.password) {
-    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext);
+    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors);
   }
   return runDemoAudit(input.website, input.businessContext);
 }

@@ -59,6 +59,13 @@ const seededLogic: DestinyLogicResult = {
   questCategory: "technical",
   urgency: "urgent",
   explanation: "Critical technical issues can block crawling ranking and conversions so the highest-impact issue comes first",
+  keywordVerdict: "reject",
+  keywordRuleId: "no_vocabulary_match",
+  keywordReason: "No keyword candidate is being evaluated in this overview.",
+  essentialKeyword: false,
+  weeklyTaskCount: 3,
+  contentTaskCount: 1,
+  distributionTaskCount: 1,
 };
 
 const seededAudit: SeoAuditResult = {
@@ -90,6 +97,7 @@ const seededAudit: SeoAuditResult = {
 
 const navigation = [
   { label: "Home", href: "/" },
+  { label: "This week", href: "/this-week" },
   { label: "Overview", href: "/app" },
   { label: "Audits", href: "/audits" },
   { label: "Growth plan", href: "/growth-plan" },
@@ -97,6 +105,7 @@ const navigation = [
   { label: "Distribution", href: "/distribution" },
   { label: "Reviews", href: "/reviews" },
   { label: "Analytics", href: "/analytics" },
+  { label: "LLM visibility", href: "/llm-visibility" },
   { label: "Connections", href: "/integrations" },
 ];
 
@@ -169,7 +178,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           setError("Destiny’s browser and server rules did not agree. No inconsistent recommendation was shown.");
           return;
         }
-        window.location.assign("/app");
+        window.location.assign("/this-week");
       }
       if (payload.audit?.status === "failed") {
         setAuditStatus("failed");
@@ -365,7 +374,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           <div>
             <span className="eyebrow">{form.businessName || `${form.firstName} ${form.lastName}`} · {audit.domain}</span>
             <h1>Your audit is ready.</h1>
-            <p>We found the clearest place to begin. You only need to focus on one quest this week.</p>
+            <p>Your evidence is ready. Go to This week for the exact checklist, time, and next action.</p>
             <div className={audit.source === "demo" ? "data-source demo" : "data-source live"}>
               <span />{audit.sourceLabel} · {audit.domain}
             </div>
@@ -394,7 +403,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <h2>{logic.weeklyQuest}</h2>
             <p>{logic.explanation}</p>
             <div className="quest-meta"><span>About 20 minutes</span><span>Destiny will guide you</span></div>
-            <Link className="quest-link" href={auditId ? `/audits/${auditId}` : "/growth-plan"}>{auditId ? "View saved results →" : "Start this quest →"}</Link>
+            <Link className="quest-link" href="/this-week">Start this week’s guided plan →</Link>
           </article>
 
           <article className="momentum-card">

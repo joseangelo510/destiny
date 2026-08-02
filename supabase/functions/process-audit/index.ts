@@ -10,6 +10,33 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
+const LOGOS_RULES_VERSION = "2026-08-01.2";
+
+async function sha256(value: unknown) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, primaryQuest: string, primaryCategory: string) {
+  const contentKeyword = result.keywords.find((keyword) => keyword.essential)?.keyword
+    ?? result.keywords.find((keyword) => keyword.verdict === "accept")?.keyword
+    ?? result.keywords.find((keyword) => keyword.verdict === "review")?.keyword
+    ?? "your strongest search opportunity";
+  const reddit = result.distributionOpportunities?.find((item) => item.platform === "Reddit");
+  const quora = result.distributionOpportunities?.find((item) => item.platform === "Quora");
+  return [
+    { title: "Review and approve your site vocabulary", why: "This inspectable vocabulary keeps every recommendation tied to the words already supported by your business and website.", category: "measurement", taskType: "vocabulary_review", actionPath: "/keywords", estimatedMinutes: 5, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 20 },
+    { title: `Review and approve the “${contentKeyword}” article`, why: "A human approval gate keeps the article accurate before it can move to a connected CMS.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 30 },
+    { title: primaryQuest, why: "LOGOS selected this as the highest-impact action from the latest audit.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}`, estimatedMinutes: 10, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
+    { title: reddit ? `Contribute to: ${reddit.title}` : "Review this week's Reddit opportunity", why: "A useful answer in a current thread can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: reddit?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
+    { title: "Review your essential competitor keyword gaps", why: "These phrases match your site vocabulary and are covered by at least two competitors.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
+    { title: quora ? `Answer: ${quora.title}` : "Review this week's Quora opportunity", why: "Answering a real question makes your expertise visible where people are already researching.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: quora?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 25 },
+    { title: "Ask three recent customers for a review", why: "Fresh first-party proof improves trust and supports local search conversion.", category: "reviews", taskType: "reviews", actionPath: "/reviews", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+    { title: "Review your LLM visibility and cited-domain gap", why: "See whether AI answers mention your company and which sources they cite instead.", category: "measurement", taskType: "measurement", actionPath: "/llm-visibility", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+  ];
+}
+
 function json(data: unknown, status = 200) {
   return Response.json(data, {
     status,
@@ -35,7 +62,7 @@ export default {
     const userId = context.userClaims?.id;
     if (!userId) return json({ error: "Sign in again to continue." }, 401);
 
-    const [{ data: website, error: websiteError }, { data: profile }] = await Promise.all([
+    const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }] = await Promise.all([
       context.supabase
         .from("websites")
         .select("id,url,normalized_domain,products_services,ideal_customer,market")
@@ -46,6 +73,10 @@ export default {
         .select("first_name,contact_email")
         .eq("id", userId)
         .maybeSingle(),
+      context.supabase
+        .from("competitors")
+        .select("name,url")
+        .eq("website_id", body.websiteId),
     ]);
 
     if (websiteError || !website) {
@@ -88,8 +119,9 @@ export default {
             idealCustomer: website.ideal_customer,
             market: website.market,
           },
+          knownCompetitors: knownCompetitors ?? [],
         });
-        const logic = await runDestinyLogic({
+        const logicInput = {
           auditComplete: 1,
           criticalIssues: result.metrics.criticalIssues,
           warnings: result.metrics.warnings,
@@ -98,18 +130,30 @@ export default {
           lostKeywords: result.metrics.lostKeywords,
           contentGaps: result.metrics.contentGaps,
           reviewCount: result.metrics.reviewCount,
-        });
+          planTier: 3 as const,
+        };
+        const logic = await runDestinyLogic(logicInput);
+        const weeklyTasks = buildWeeklyTasks(result, auditId, logic.weeklyQuest, logic.questCategory);
+        if (weeklyTasks.length !== logic.weeklyTaskCount) {
+          throw new Error("LOGOS task quota did not match the generated weekly plan.");
+        }
+        const logicInputHash = await sha256(logicInput);
 
         const { error: finalizeError } = await context.supabaseAdmin.rpc(
-          "finalize_destiny_audit",
+          "finalize_destiny_audit_v2",
           {
             p_audit_id: auditId,
             p_user_id: userId,
             p_metrics: { ...result.metrics, referringDomains: 0 },
-            p_provider_result: { ...result, destinyDecision: logic },
+            p_provider_result: {
+              ...result,
+              destinyDecision: logic,
+              logosTrace: { rulesVersion: LOGOS_RULES_VERSION, inputHash: logicInputHash, input: logicInput, output: logic },
+            },
             p_growth_stage: logic.growthStage,
-            p_quest_title: logic.weeklyQuest,
-            p_quest_category: logic.questCategory,
+            p_tasks: weeklyTasks,
+            p_rules_version: LOGOS_RULES_VERSION,
+            p_logic_input_hash: logicInputHash,
           },
         );
         if (finalizeError) throw new Error(finalizeError.message);

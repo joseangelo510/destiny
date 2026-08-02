@@ -30,6 +30,46 @@ export type SeoKeyword = {
   difficulty: number;
   cpc: number;
   opportunity: "existing_rank" | "competitor_gap" | "site_idea";
+  normalizedKeyword?: string;
+  matchedTerms?: string[];
+  competitorRankers?: number;
+  verdict?: "accept" | "review" | "reject";
+  ruleId?: string;
+  reason?: string;
+  essential?: boolean;
+};
+
+export type SeoSitePage = {
+  url: string;
+  role: "homepage" | "product" | "how_it_works" | "about" | "contact" | "other";
+  title?: string;
+  text: string;
+};
+
+export type SeoSiteVocabularyTerm = {
+  term: string;
+  normalized: string;
+  weight: number;
+  sourcePages: string[];
+  evidence: string;
+};
+
+export type SeoDistributionOpportunity = {
+  platform: "Reddit" | "Quora";
+  topic: string;
+  title: string;
+  url: string;
+  snippet: string;
+  checkedAt: string;
+};
+
+export type SeoLlmVisibility = {
+  status: "available" | "unavailable";
+  totalMentions: number;
+  aiSearchVolume: number;
+  platforms: Array<{ platform: string; mentions: number; aiSearchVolume: number }>;
+  topCitedDomains: Array<{ company: string; domain: string; website: string; mentions: number; aiSearchVolume: number }>;
+  reason?: string;
 };
 
 export type SeoAuditMetrics = {
@@ -53,6 +93,10 @@ export type SeoAuditResult = {
   issues: SeoIssue[];
   competitors: SeoCompetitor[];
   keywords: SeoKeyword[];
+  pages?: SeoSitePage[];
+  siteVocabulary?: SeoSiteVocabularyTerm[];
+  distributionOpportunities?: SeoDistributionOpportunity[];
+  llmVisibility?: SeoLlmVisibility;
   notices: string[];
 };
 

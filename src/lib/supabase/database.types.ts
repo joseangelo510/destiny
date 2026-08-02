@@ -73,6 +73,8 @@ export type Database = {
           created_at: string
           failure_message: string | null
           id: string
+          logic_input_hash: string | null
+          logic_rules_version: string | null
           progress: number
           provider: string
           requested_by: string
@@ -86,6 +88,8 @@ export type Database = {
           created_at?: string
           failure_message?: string | null
           id?: string
+          logic_input_hash?: string | null
+          logic_rules_version?: string | null
           progress?: number
           provider?: string
           requested_by: string
@@ -99,6 +103,8 @@ export type Database = {
           created_at?: string
           failure_message?: string | null
           id?: string
+          logic_input_hash?: string | null
+          logic_rules_version?: string | null
           progress?: number
           provider?: string
           requested_by?: string
@@ -367,48 +373,69 @@ export type Database = {
       }
       quests: {
         Row: {
+          action_path: string
           audit_id: string | null
           category: string
           completed_at: string | null
           created_at: string
           description: string
           due_at: string | null
+          estimated_minutes: number
+          external_url: string | null
           id: string
+          min_plan_tier: number
           priority: number
+          requires_approval: boolean
           status: string
           title: string
+          task_type: string
           updated_at: string
           website_id: string
+          week_number: number
           xp: number
         }
         Insert: {
+          action_path?: string
           audit_id?: string | null
           category: string
           completed_at?: string | null
           created_at?: string
           description?: string
           due_at?: string | null
+          estimated_minutes?: number
+          external_url?: string | null
           id?: string
+          min_plan_tier?: number
           priority?: number
+          requires_approval?: boolean
           status?: string
           title: string
+          task_type?: string
           updated_at?: string
           website_id: string
+          week_number?: number
           xp?: number
         }
         Update: {
+          action_path?: string
           audit_id?: string | null
           category?: string
           completed_at?: string | null
           created_at?: string
           description?: string
           due_at?: string | null
+          estimated_minutes?: number
+          external_url?: string | null
           id?: string
+          min_plan_tier?: number
           priority?: number
+          requires_approval?: boolean
           status?: string
           title?: string
+          task_type?: string
           updated_at?: string
           website_id?: string
+          week_number?: number
           xp?: number
         }
         Relationships: [
@@ -439,6 +466,8 @@ export type Database = {
           normalized_domain: string
           onboarding_completed_at: string | null
           organization_id: string
+          plan_selected_at: string | null
+          plan_tier: string | null
           products_services: string
           updated_at: string
           url: string
@@ -453,6 +482,8 @@ export type Database = {
           normalized_domain: string
           onboarding_completed_at?: string | null
           organization_id: string
+          plan_selected_at?: string | null
+          plan_tier?: string | null
           products_services?: string
           updated_at?: string
           url: string
@@ -467,6 +498,8 @@ export type Database = {
           normalized_domain?: string
           onboarding_completed_at?: string | null
           organization_id?: string
+          plan_selected_at?: string | null
+          plan_tier?: string | null
           products_services?: string
           updated_at?: string
           url?: string
@@ -622,4 +655,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

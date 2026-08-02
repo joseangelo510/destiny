@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { stepOneValidation } from "@/lib/onboarding/validation";
+import { validateCompetitorEntries } from "@/lib/onboarding/competitors";
 
 type VoiceField = "business" | "customer" | "competitors" | "standout";
 
@@ -70,13 +71,14 @@ export function PublicOnboarding() {
   };
 
   const stepOne = useMemo(() => stepOneValidation(form), [form]);
+  const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
 
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready;
     if (step === 2) return form.customer.trim().length > 0 && form.country.length > 0;
-    if (step === 3) return form.standout.trim().length > 0;
+    if (step === 3) return form.standout.trim().length > 0 && competitorValidation.ready;
     return form.firstName.trim().length > 0 && form.lastName.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email.trim());
-  }, [form, step, stepOne.ready]);
+  }, [competitorValidation.ready, form, step, stepOne.ready]);
 
   useEffect(() => {
     if (auditStatus !== "running" || !auditId) return;
@@ -86,7 +88,7 @@ export function PublicOnboarding() {
       const payload = await response.json() as { audit?: { status?: string; failure_message?: string | null } };
       if (payload.audit?.status === "complete") {
         window.clearInterval(poll);
-        window.location.assign("/app");
+        window.location.assign("/this-week");
       }
       if (payload.audit?.status === "failed") {
         window.clearInterval(poll);
@@ -233,8 +235,9 @@ export function PublicOnboarding() {
 
           {step === 3 && <>
             <h2>Who are your competitors?</h2>
-            <p className="lede">Add names or website URLs if you know them. Destiny will also discover competitors from search overlap.</p>
-            <VoiceTextarea field="competitors" label="Known competitors" listening={listening} onChange={(value) => updateField("competitors", value)} onDictate={dictate} optional placeholder={"One name or website per line\ncompetitor.com\nAnother local business"} value={form.competitors} />
+            <p className="lede">Add at least two real competitors. Website URLs produce the strongest gap analysis; Destiny can still research names.</p>
+            <VoiceTextarea field="competitors" label="Known competitors" listening={listening} onChange={(value) => updateField("competitors", value)} onDictate={dictate} placeholder={"One competitor per line\nIvyWise — ivywise.com\nCollegewise — collegewise.com"} value={form.competitors} />
+            {form.competitors.trim() && !competitorValidation.ready && <small className="field-error">{competitorValidation.error}</small>}
             <VoiceTextarea field="standout" label="What makes you stand out from competitors?" listening={listening} onChange={(value) => updateField("standout", value)} onDictate={dictate} placeholder="Share your experience, point of view, proof, and what customers value about working with you." value={form.standout} />
           </>}
 

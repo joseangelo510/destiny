@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function QuestCompletion({ questId, status, xp }: { questId: string; status: string; xp: number }) {
+export function QuestCompletion({ questId, status, xp, completeLabel, completedLabel }: { questId: string; status: string; xp: number; completeLabel?: string; completedLabel?: string }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -28,5 +28,5 @@ export function QuestCompletion({ questId, status, xp }: { questId: string; stat
     }
   };
 
-  return <div className="quest-completion"><button className={complete ? "secondary-button" : "primary-button"} disabled={saving} onClick={() => void update()} type="button">{saving ? "Saving…" : complete ? "Reopen quest" : `Mark complete · +${xp} XP`}</button>{error && <span>{error}</span>}</div>;
+  return <div className="quest-completion"><button className={complete ? "secondary-button" : "primary-button"} disabled={saving} onClick={() => void update()} type="button">{saving ? "Saving…" : complete ? (completedLabel ?? "Reopen quest") : (completeLabel ?? `Mark complete · +${xp} XP`)}</button>{error && <span>{error}</span>}</div>;
 }

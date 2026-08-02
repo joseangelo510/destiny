@@ -3,13 +3,16 @@ import type { ReactNode } from "react";
 
 const navigation = [
   { label: "Home", href: "/" },
+  { label: "This week", href: "/this-week" },
   { label: "Overview", href: "/app" },
   { label: "Audits", href: "/audits" },
   { label: "Growth plan", href: "/growth-plan" },
   { label: "Content", href: "/content" },
+  { label: "Keywords", href: "/keywords" },
   { label: "Distribution", href: "/distribution" },
   { label: "Reviews", href: "/reviews" },
   { label: "Analytics", href: "/analytics" },
+  { label: "LLM visibility", href: "/llm-visibility" },
   { label: "Connections", href: "/integrations" },
 ];
 
@@ -29,7 +32,7 @@ export function WorkspaceShell({
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <Link className="brand sidebar-brand" href="/app"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link className="brand sidebar-brand" href="/this-week"><span className="brand-mark">D</span><span>Destiny</span></Link>
         <nav>
           {navigation.map((item) => (
             <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>

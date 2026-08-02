@@ -35,4 +35,54 @@ describe("Destiny LOGOS parity", () => {
     expect(browser).toEqual(worker);
     expect(browser.weeklyQuest).toBe("Publish the highest-opportunity page");
   });
+
+  it("accepts an essential competitor-backed keyword and returns moderate-plan quotas", async () => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: 20,
+      newKeywords: 2,
+      lostKeywords: 0,
+      contentGaps: 4,
+      reviewCount: 20,
+      keywordCoreMatches: 1,
+      keywordSupportMatches: 2,
+      competitorRankers: 2,
+      keywordBlocklisted: 0,
+      planTier: 2,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject({
+      keywordVerdict: "accept",
+      keywordRuleId: "essential_gap",
+      essentialKeyword: true,
+      weeklyTaskCount: 5,
+      contentTaskCount: 2,
+      distributionTaskCount: 1,
+    });
+  });
+
+  it("routes borderline vocabulary matches to review and blocks explicit noise", async () => {
+    const borderline = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 10, newKeywords: 1, lostKeywords: 0, contentGaps: 1, reviewCount: 20,
+      keywordCoreMatches: 0, keywordSupportMatches: 2, competitorRankers: 1, keywordBlocklisted: 0, planTier: 1,
+    });
+    expect(borderline.browser.keywordVerdict).toBe("review");
+    const blocked = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 10, newKeywords: 1, lostKeywords: 0, contentGaps: 1, reviewCount: 20,
+      keywordCoreMatches: 3, keywordSupportMatches: 3, competitorRankers: 2, keywordBlocklisted: 1, planTier: 3,
+    });
+    expect(blocked.browser).toMatchObject({ keywordVerdict: "reject", keywordRuleId: "blocked_noise", weeklyTaskCount: 8 });
+  });
+
+  it("returns the exact Beginner, Moderate, and Super Growth task mix", async () => {
+    const base = { auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20 };
+    const beginner = await runBoth({ ...base, planTier: 1 });
+    const moderate = await runBoth({ ...base, planTier: 2 });
+    const superGrowth = await runBoth({ ...base, planTier: 3 });
+    expect([beginner.browser.weeklyTaskCount, beginner.browser.contentTaskCount, beginner.browser.distributionTaskCount]).toEqual([3, 1, 0]);
+    expect([moderate.browser.weeklyTaskCount, moderate.browser.contentTaskCount, moderate.browser.distributionTaskCount]).toEqual([5, 2, 1]);
+    expect([superGrowth.browser.weeklyTaskCount, superGrowth.browser.contentTaskCount, superGrowth.browser.distributionTaskCount]).toEqual([8, 3, 2]);
+  });
 });

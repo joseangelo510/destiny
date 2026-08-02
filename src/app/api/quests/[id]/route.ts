@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json().catch(() => ({})) as { status?: unknown };
-  if (body.status !== "complete" && body.status !== "todo") {
+  if (body.status !== "complete" && body.status !== "todo" && body.status !== "skipped") {
     return NextResponse.json({ error: "Choose a valid quest status." }, { status: 400 });
   }
 

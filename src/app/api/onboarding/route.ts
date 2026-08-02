@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
+import { parseCompetitorEntries, validateCompetitorEntries } from "@/lib/onboarding/competitors";
 import { createClient } from "@/lib/supabase/server";
 
 type OnboardingPayload = {
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
 
     if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !business || !customer || !standout) {
       return NextResponse.json({ error: "Complete every onboarding field." }, { status: 400 });
+    }
+    const competitorValidation = validateCompetitorEntries(competitors);
+    if (!competitorValidation.ready) {
+      return NextResponse.json({ error: competitorValidation.error }, { status: 400 });
     }
 
     const supabase = await createClient();
@@ -92,12 +97,12 @@ export async function POST(request: Request) {
     const { data: savedWebsite, error: websiteError } = await websiteQuery.select("id").single();
     if (websiteError) throw websiteError;
 
-    const competitorNames = competitors.split(/\r?\n|,|\band\b/i).map((name) => name.trim()).filter(Boolean).slice(0, 10);
+    const competitorEntries = parseCompetitorEntries(competitors);
     const { error: deleteError } = await supabase.from("competitors").delete().eq("website_id", savedWebsite.id);
     if (deleteError) throw deleteError;
-    if (competitorNames.length) {
+    if (competitorEntries.length) {
       const { error: competitorError } = await supabase.from("competitors").insert(
-        competitorNames.map((name) => ({ website_id: savedWebsite.id, name })),
+        competitorEntries.map((competitor) => ({ website_id: savedWebsite.id, name: competitor.name, url: competitor.url })),
       );
       if (competitorError) throw competitorError;
     }

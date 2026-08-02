@@ -9,6 +9,11 @@ export type DestinyLogicInput = {
   lostKeywords: number;
   contentGaps: number;
   reviewCount: number;
+  keywordCoreMatches?: number;
+  keywordSupportMatches?: number;
+  competitorRankers?: number;
+  keywordBlocklisted?: number;
+  planTier?: 1 | 2 | 3;
 };
 
 export type DestinyLogicResult = {
@@ -18,6 +23,13 @@ export type DestinyLogicResult = {
   questCategory: "technical" | "content" | "reviews" | "distribution" | "measurement";
   urgency: "waiting" | "urgent" | "high" | "focused" | "routine";
   explanation: string;
+  keywordVerdict: "accept" | "review" | "reject";
+  keywordRuleId: "blocked_noise" | "essential_gap" | "site_vocabulary_match" | "borderline_gap" | "no_vocabulary_match";
+  keywordReason: string;
+  essentialKeyword: boolean;
+  weeklyTaskCount: number;
+  contentTaskCount: number;
+  distributionTaskCount: number;
 };
 
 type LogicExports = {
@@ -69,6 +81,11 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.lostKeywords),
     String(input.contentGaps),
     String(input.reviewCount),
+    String(input.keywordCoreMatches ?? 0),
+    String(input.keywordSupportMatches ?? 0),
+    String(input.competitorRankers ?? 0),
+    String(input.keywordBlocklisted ?? 0),
+    String(input.planTier ?? 1),
   ];
 
   const imports = {
@@ -114,7 +131,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 6) {
+  if (output.length < 13) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -124,5 +141,12 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     questCategory: output[3] as DestinyLogicResult["questCategory"],
     urgency: output[4] as DestinyLogicResult["urgency"],
     explanation: output[5],
+    keywordVerdict: output[6] as DestinyLogicResult["keywordVerdict"],
+    keywordRuleId: output[7] as DestinyLogicResult["keywordRuleId"],
+    keywordReason: output[8],
+    essentialKeyword: output[9] === "true",
+    weeklyTaskCount: Number.parseInt(output[10], 10),
+    contentTaskCount: Number.parseInt(output[11], 10),
+    distributionTaskCount: Number.parseInt(output[12], 10),
   };
 }
