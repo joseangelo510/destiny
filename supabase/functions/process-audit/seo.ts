@@ -215,15 +215,30 @@ function authorization(login: string, password: string) {
   return `Basic ${btoa(binary)}`;
 }
 
-async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 25_000) {
-  const response = await fetch(`https://api.dataforseo.com${path}`, {
-    method: "POST",
-    headers: { Authorization: authorization(login, password), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(timeout),
+export async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 15_000) {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const request = (async () => {
+    const response = await fetch(`https://api.dataforseo.com${path}`, {
+      method: "POST",
+      headers: { Authorization: authorization(login, password), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`DataForSEO returned HTTP ${response.status}.`);
+    return response.json() as Promise<unknown>;
+  })();
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error(`DataForSEO request timed out after ${timeout}ms.`));
+    }, timeout);
   });
-  if (!response.ok) throw new Error(`DataForSEO returned HTTP ${response.status}.`);
-  return response.json() as Promise<unknown>;
+  try {
+    return await Promise.race([request, deadline]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
 }
 
 type StrategyKeyword = SeoAuditResult["keywords"][number];
@@ -362,7 +377,7 @@ export async function runDataForSeoAudit(
     location_code: 2840,
     language_code: "en",
     internal_list_limit: 10,
-  }], login, password, 60_000)
+  }], login, password, 30_000)
     .then((value) => ({ status: "fulfilled" as const, value }))
     .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
   const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, homepageContent] = await Promise.all([

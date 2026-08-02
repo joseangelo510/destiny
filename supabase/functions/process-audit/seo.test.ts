@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runDataForSeoAudit } from "./seo";
+import { dataForSeoPost, runDataForSeoAudit } from "./seo";
 
 function payload(result: unknown) {
   return { status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] };
@@ -11,6 +11,19 @@ function keywordRow(keyword: string) {
 
 describe("live audit orchestration", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("settles a provider request even when fetch ignores abort signals", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)));
+
+    const pending = dataForSeoPost("/v3/example", [{}], "login", "password", 50)
+      .then(() => "resolved", (cause: unknown) => cause instanceof Error ? cause.message : "rejected");
+    await vi.advanceTimersByTimeAsync(51);
+    const outcome = await Promise.race([pending, Promise.resolve("still pending")]);
+
+    expect(outcome).toContain("timed out");
+    vi.useRealTimers();
+  });
 
   it("uses five-page evidence, two competitor gaps, real threads, and LLM citations", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
