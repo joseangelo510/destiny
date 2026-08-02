@@ -10,7 +10,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-01.5";
+const LOGOS_RULES_VERSION = "2026-08-01.6";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -66,7 +66,7 @@ export default {
     const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }] = await Promise.all([
       context.supabase
         .from("websites")
-        .select("id,url,normalized_domain,products_services,ideal_customer,market")
+        .select("id,url,normalized_domain,products_services,problem_solved,ideal_customer,audience_challenges_goals,market")
         .eq("id", body.websiteId)
         .maybeSingle(),
       context.supabase
@@ -117,7 +117,9 @@ export default {
           password,
           businessContext: {
             productsServices: website.products_services,
+            problemSolved: website.problem_solved,
             idealCustomer: website.ideal_customer,
+            audienceChallengesGoals: website.audience_challenges_goals,
             market: website.market,
           },
           knownCompetitors: knownCompetitors ?? [],

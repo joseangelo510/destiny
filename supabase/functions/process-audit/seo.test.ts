@@ -78,6 +78,7 @@ describe("live audit orchestration", () => {
     const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
     expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
     expect(gapRequests.every(([, init]) => JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword"))).toBe(true);
+    expect(gapRequests.every(([, init]) => JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("%college admission%"))).toBe(true);
     expect(progress).toEqual([30, 45, 65, 80, 90]);
     const calledUrls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/llm_mentions/target_metrics/live")) ?? "missing"))
@@ -116,6 +117,8 @@ describe("live audit orchestration", () => {
       essential: false,
     });
     expect(result.keywords.find((keyword) => keyword.keyword === "chevrons")?.verdict).toBe("reject");
+    expect(result.keywords.findIndex((keyword) => keyword.keyword === "online graphic design"))
+      .toBeLessThan(result.keywords.findIndex((keyword) => keyword.keyword === "map of globe"));
     expect(result.keywords.some((keyword) => keyword.essential)).toBe(false);
   });
 });

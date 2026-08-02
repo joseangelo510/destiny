@@ -5,7 +5,9 @@ export type SeoAuditRequest = {
   locationName?: string;
   businessContext?: {
     productsServices?: string;
+    problemSolved?: string;
     idealCustomer?: string;
+    audienceChallengesGoals?: string;
     market?: string;
   };
 };

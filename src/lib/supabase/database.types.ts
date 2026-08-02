@@ -457,6 +457,7 @@ export type Database = {
       }
       websites: {
         Row: {
+          audience_challenges_goals: string
           business_name: string
           created_at: string
           differentiation: string
@@ -468,11 +469,13 @@ export type Database = {
           organization_id: string
           plan_selected_at: string | null
           plan_tier: string | null
+          problem_solved: string
           products_services: string
           updated_at: string
           url: string
         }
         Insert: {
+          audience_challenges_goals?: string
           business_name: string
           created_at?: string
           differentiation?: string
@@ -484,11 +487,13 @@ export type Database = {
           organization_id: string
           plan_selected_at?: string | null
           plan_tier?: string | null
+          problem_solved?: string
           products_services?: string
           updated_at?: string
           url: string
         }
         Update: {
+          audience_challenges_goals?: string
           business_name?: string
           created_at?: string
           differentiation?: string
@@ -500,6 +505,7 @@ export type Database = {
           organization_id?: string
           plan_selected_at?: string | null
           plan_tier?: string | null
+          problem_solved?: string
           products_services?: string
           updated_at?: string
           url?: string

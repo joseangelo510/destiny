@@ -24,7 +24,7 @@ const professionalTopics = [
 ];
 
 function demoKeywords(input: SeoAuditRequest, domain: string, url: string, seed: number) {
-  const context = `${input.businessContext?.productsServices ?? ""} ${input.businessContext?.idealCustomer ?? ""}`.toLowerCase();
+  const context = `${input.businessContext?.productsServices ?? ""} ${input.businessContext?.problemSolved ?? ""} ${input.businessContext?.idealCustomer ?? ""} ${input.businessContext?.audienceChallengesGoals ?? ""}`.toLowerCase();
   const isRealEstate = /real estate|realtor|buy and sell homes|home buyer|home selling|property/.test(context);
   const topics = isRealEstate ? realEstateTopics : professionalTopics.map((topic, index) => index === 0 ? `${domain} services` : topic);
   return topics.map((keyword, index) => ({

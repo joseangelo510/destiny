@@ -8,12 +8,14 @@ type OnboardingPayload = {
   businessName?: unknown;
   competitors?: unknown;
   customer?: unknown;
+  audienceGoals?: unknown;
   email?: unknown;
   firstName?: unknown;
   lastName?: unknown;
   localMarket?: unknown;
   country?: unknown;
   standout?: unknown;
+  problem?: unknown;
   website?: unknown;
 };
 
@@ -30,13 +32,15 @@ export async function POST(request: Request) {
     const email = text(body.email, 320).toLowerCase();
     const business = text(body.business, 4000);
     const customer = text(body.customer, 4000);
+    const problem = text(body.problem, 4000);
+    const audienceGoals = text(body.audienceGoals, 4000);
     const standout = text(body.standout, 4000);
     const competitors = text(body.competitors, 4000);
     const localMarket = text(body.localMarket, 240);
     const country = text(body.country, 120) || "United States";
     const website = normalizeWebsite(text(body.website, 2048));
 
-    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !business || !customer || !standout) {
+    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !business || !problem || !customer || !audienceGoals || !standout) {
       return NextResponse.json({ error: "Complete every onboarding field." }, { status: 400 });
     }
     const competitorValidation = validateCompetitorEntries(competitors);
@@ -78,7 +82,9 @@ export async function POST(request: Request) {
       normalized_domain: website.domain,
       business_name: businessName,
       products_services: business,
+      problem_solved: problem,
       ideal_customer: customer,
+      audience_challenges_goals: audienceGoals,
       differentiation: standout,
       market: localMarket ? `${localMarket} · ${country}` : country,
       onboarding_completed_at: new Date().toISOString(),

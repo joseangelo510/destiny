@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { stepOneValidation } from "@/lib/onboarding/validation";
+import { stepOneValidation, stepTwoValidation } from "@/lib/onboarding/validation";
 import { validateCompetitorEntries } from "@/lib/onboarding/competitors";
 
-type VoiceField = "business" | "customer" | "competitors" | "standout";
+type VoiceField = "business" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
 type SpeechRecognitionEventLike = {
   results: { 0: { 0: { transcript: string } } };
@@ -34,7 +34,9 @@ const emptyForm = {
   website: "",
   businessName: "",
   business: "",
+  problem: "",
   customer: "",
+  audienceGoals: "",
   localMarket: "",
   country: "United States",
   competitors: "",
@@ -71,14 +73,15 @@ export function PublicOnboarding() {
   };
 
   const stepOne = useMemo(() => stepOneValidation(form), [form]);
+  const stepTwo = useMemo(() => stepTwoValidation(form), [form]);
   const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
 
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready;
-    if (step === 2) return form.customer.trim().length > 0 && form.country.length > 0;
+    if (step === 2) return stepTwo.ready;
     if (step === 3) return form.standout.trim().length > 0 && competitorValidation.ready;
     return form.firstName.trim().length > 0 && form.lastName.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email.trim());
-  }, [competitorValidation.ready, form, step, stepOne.ready]);
+  }, [competitorValidation.ready, form, step, stepOne.ready, stepTwo.ready]);
 
   useEffect(() => {
     if (auditStatus !== "running" || !auditId) return;
@@ -223,12 +226,14 @@ export function PublicOnboarding() {
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="yourwebsite.com or https://yourwebsite.com" required type="text" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
             <VoiceTextarea field="business" label="Products and services" listening={listening} onChange={(value) => updateField("business", value)} onDictate={dictate} placeholder="Tell us what the business offers, where it operates, and what customers hire it to do." value={form.business} />
+            <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
           </>}
 
           {step === 2 && <>
             <h2>Who is your ideal customer?</h2>
             <p className="lede">Local context shapes the strategy; the country selects the supported keyword database.</p>
             <VoiceTextarea field="customer" label="Ideal customer" listening={listening} onChange={(value) => updateField("customer", value)} onDictate={dictate} placeholder="Describe who they are, what they need, and what makes them ready to buy." value={form.customer} />
+            <VoiceTextarea field="audienceGoals" label="What challenges and goals do you want to help your audience with?" listening={listening} onChange={(value) => updateField("audienceGoals", value)} onDictate={dictate} placeholder="Share what they are struggling with today and the outcome they want to achieve." value={form.audienceGoals} />
             <label>Local market <em>Optional</em><input onChange={(event) => updateField("localMarket", event.target.value)} placeholder="San Francisco, California" value={form.localMarket} /><small>Used as strategy context; not sent as a DataForSEO country.</small></label>
             <label>Search database country<select onChange={(event) => updateField("country", event.target.value)} value={form.country}>{countries.map((country) => <option key={country}>{country}</option>)}</select><small>DataForSEO Labs uses a supported country-level search database.</small></label>
           </>}
@@ -254,7 +259,9 @@ export function PublicOnboarding() {
               <div><span>Website</span><strong>{form.website}</strong></div>
               <div><span>Search database</span><strong>{form.country}</strong></div>
               <div><span>Business</span><p>{form.business}</p></div>
+              <div><span>Problem being solved</span><p>{form.problem}</p></div>
               <div><span>Ideal customer</span><p>{form.customer}</p></div>
+              <div><span>Audience challenges and goals</span><p>{form.audienceGoals}</p></div>
               <div><span>Local market</span><strong>{form.localMarket || "Not specified"}</strong></div>
               <div><span>Known competitors</span><p>{form.competitors || "Let Destiny discover them from organic search overlap"}</p></div>
               <div className="wide"><span>What makes you stand out</span><p>{form.standout}</p></div>

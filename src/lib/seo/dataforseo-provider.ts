@@ -208,7 +208,7 @@ const CONTEXT_STOP_WORDS = new Set([
 ]);
 
 function contextTokens(input: SeoAuditRequest["businessContext"]) {
-  const value = `${input?.productsServices ?? ""} ${input?.idealCustomer ?? ""} ${input?.market ?? ""}`.toLowerCase();
+  const value = `${input?.productsServices ?? ""} ${input?.problemSolved ?? ""} ${input?.idealCustomer ?? ""} ${input?.audienceChallengesGoals ?? ""} ${input?.market ?? ""}`.toLowerCase();
   return new Set(value.split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token)));
 }
 

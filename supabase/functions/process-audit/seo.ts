@@ -2,6 +2,7 @@ import { runDestinyLogic } from "./logic.ts";
 import {
   buildKeywordFacts,
   extractSiteVocabulary,
+  normalizeTerm,
   parseContentPage,
   parseDistributionSerp,
   parseLlmVisibility,
@@ -125,7 +126,7 @@ function stableNumber(value: string) {
   return [...value].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 2166136261);
 }
 
-type BusinessContext = { productsServices?: string; idealCustomer?: string; market?: string };
+type BusinessContext = { productsServices?: string; problemSolved?: string; idealCustomer?: string; audienceChallengesGoals?: string; market?: string };
 
 const realEstateTopics = [
   "san francisco homes for sale", "best san francisco neighborhoods for families", "first-time home buyer san francisco", "how to buy a home in san francisco",
@@ -146,7 +147,7 @@ const professionalTopics = [
 ];
 
 function demoKeywords(context: BusinessContext | undefined, domain: string, url: string, seed: number): SeoAuditResult["keywords"] {
-  const description = `${context?.productsServices ?? ""} ${context?.idealCustomer ?? ""}`.toLowerCase();
+  const description = `${context?.productsServices ?? ""} ${context?.problemSolved ?? ""} ${context?.idealCustomer ?? ""} ${context?.audienceChallengesGoals ?? ""}`.toLowerCase();
   const isRealEstate = /real estate|realtor|buy and sell homes|home buyer|home selling|property/.test(description);
   const topics = isRealEstate ? realEstateTopics : professionalTopics.map((topic, index) => index === 0 ? `${domain} services` : topic);
   return topics.map((keyword, index) => ({
@@ -336,14 +337,12 @@ const CONTEXT_STOP_WORDS = new Set([
   "about", "across", "after", "also", "and", "are", "been", "business", "customer", "for", "from", "help", "into", "more", "people", "provide", "services", "that", "the", "their", "them", "they", "this", "through", "want", "who", "with", "you", "your",
 ]);
 
-const GENERIC_CONTEXT_TOKENS = new Set([
-  "best", "company", "expert", "online", "platform", "professional", "service", "solution", "tool",
-]);
-
 export function buildContextSeedKeywords(context: BusinessContext | undefined, limit = 12): StrategyKeyword[] {
   const seen = new Set<string>();
   const candidates: StrategyKeyword[] = [];
-  const segments = (context?.productsServices ?? "").split(/\s*(?:[,;\n]|\band\b)\s*/i);
+  const segments = [context?.productsServices, context?.problemSolved, context?.audienceChallengesGoals]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .flatMap((value) => value.split(/\s*(?:[,;\n.]|\band\b)\s*/i));
   for (const segment of segments) {
     const tokens = keywordIdentity(segment).split(/\s+/)
       .filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token));
@@ -368,22 +367,24 @@ export function buildContextSeedKeywords(context: BusinessContext | undefined, l
 }
 
 function buildCompetitorGapFilters(context: BusinessContext | undefined) {
-  const relevanceTokens = [...new Set(buildContextSeedKeywords(context, 12)
-    .flatMap((keyword) => keywordIdentity(keyword.keyword).split(/\s+/))
-    .filter((token) => token.length >= 4 && !GENERIC_CONTEXT_TOKENS.has(token)))]
-    .slice(0, 5);
+  const relevancePhrases = [...new Set(buildContextSeedKeywords(context, 12).flatMap((keyword) => {
+    const tokens = normalizeTerm(keyword.keyword).split(/\s+/).filter(Boolean);
+    return tokens.length === 2
+      ? [tokens.join(" ")]
+      : tokens.slice(0, -1).map((token, index) => `${token} ${tokens[index + 1]}`);
+  }))].slice(0, 5);
   const volumeFilter: unknown[] = ["keyword_data.keyword_info.search_volume", ">", 0];
-  if (!relevanceTokens.length) return volumeFilter;
+  if (!relevancePhrases.length) return volumeFilter;
   const relevanceFilter: unknown[] = [];
-  relevanceTokens.forEach((token, index) => {
+  relevancePhrases.forEach((phrase, index) => {
     if (index) relevanceFilter.push("or");
-    relevanceFilter.push(["keyword_data.keyword", "like", `%${token}%`]);
+    relevanceFilter.push(["keyword_data.keyword", "like", `%${phrase}%`]);
   });
   return [volumeFilter, "and", relevanceFilter];
 }
 
 function buildKeywordStrategy(groups: StrategyKeyword[][], context: BusinessContext | undefined, limit = 24) {
-  const contextValue = `${context?.productsServices ?? ""} ${context?.idealCustomer ?? ""} ${context?.market ?? ""}`.toLowerCase();
+  const contextValue = `${context?.productsServices ?? ""} ${context?.problemSolved ?? ""} ${context?.idealCustomer ?? ""} ${context?.audienceChallengesGoals ?? ""} ${context?.market ?? ""}`.toLowerCase();
   const tokens = new Set(contextValue.split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token)));
   if (!tokens.size) return mergeKeywordStrategy(groups, limit);
   const relevantGroups = groups.map((group) => group.filter((keyword) => {
@@ -464,7 +465,7 @@ export async function runDataForSeoAudit(
   const homepageItem = record(array(homepageResult.items)[0]);
   const parsedHomepage = parseContentPage(homepageItem, "homepage");
   parsedHomepage.url = website.url;
-  const selectedPages = selectImportantPageLinks(website.url, parsedHomepage.links ?? []);
+  const selectedPages = selectImportantPageLinks(website.url, parsedHomepage.links ?? [], 8);
   const remainingPageResults = await Promise.allSettled(selectedPages.slice(1).map(async (selected) => {
     const payload = await dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: selected.url, markdown_view: true }], login, password);
     const result = firstResult(payload);
@@ -476,7 +477,8 @@ export async function runDataForSeoAudit(
   const pages = [parsedHomepage, ...remainingPageResults.flatMap((result) => result.status === "fulfilled" ? [result.value] : [])]
     .filter((page) => page.text.trim())
     .slice(0, 5);
-  const businessEvidence = `${businessContext?.productsServices ?? ""} ${businessContext?.idealCustomer ?? ""} ${businessContext?.market ?? ""}`.trim();
+  const businessEvidence = [businessContext?.productsServices, businessContext?.problemSolved, businessContext?.idealCustomer, businessContext?.audienceChallengesGoals, businessContext?.market]
+    .filter((value): value is string => Boolean(value?.trim())).join(". ");
   const siteVocabulary = extractSiteVocabulary(pages, businessEvidence);
   await onProgress(45);
 
