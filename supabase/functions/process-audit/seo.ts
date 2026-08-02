@@ -280,7 +280,7 @@ function authorization(login: string, password: string) {
   return `Basic ${btoa(binary)}`;
 }
 
-export async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 15_000) {
+export async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 60_000) {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const request = (async () => {

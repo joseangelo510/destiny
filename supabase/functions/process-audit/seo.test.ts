@@ -25,6 +25,23 @@ describe("live audit orchestration", () => {
     vi.useRealTimers();
   });
 
+  it("allows slow live DataForSEO jobs up to the production request budget", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)));
+
+    let settled = false;
+    const pending = dataForSeoPost("/v3/example", [{}], "login", "password")
+      .then(() => "resolved", (cause: unknown) => cause instanceof Error ? cause.message : "rejected")
+      .finally(() => { settled = true; });
+
+    await vi.advanceTimersByTimeAsync(15_001);
+    expect(settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(45_000);
+    await expect(pending).resolves.toContain("timed out after 60000ms");
+    vi.useRealTimers();
+  });
+
   it("turns onboarding evidence into deterministic site-foundation keyword candidates", () => {
     expect(buildContextSeedKeywords({
       productsServices: "Online graphic design, presentations, social media graphics, video editing tools, and brand templates",
