@@ -28,6 +28,7 @@ export type DestinyLogicResult = {
   weeklyTaskCount: number;
   contentTaskCount: number;
   distributionTaskCount: number;
+  weeklyTaskManifest: string[];
 };
 
 type LogicExports = {
@@ -128,7 +129,7 @@ export async function runDestinyLogic(
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 13) {
+  if (output.length < 14) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
 
@@ -146,5 +147,6 @@ export async function runDestinyLogic(
     weeklyTaskCount: Number.parseInt(output[10], 10),
     contentTaskCount: Number.parseInt(output[11], 10),
     distributionTaskCount: Number.parseInt(output[12], 10),
+    weeklyTaskManifest: output[13].split(",").filter(Boolean),
   };
 }

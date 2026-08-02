@@ -21,7 +21,14 @@ function savedDestinyLogic(providerResult: Record<string, unknown>): DestinyLogi
     || typeof value.urgency !== "string"
     || typeof value.explanation !== "string"
   ) return undefined;
-  return value as DestinyLogicResult;
+  const fallbackManifest = ["vocabulary_review", "content_review", "primary_quest", "reddit_distribution", "keyword_review", "quora_distribution", "reviews", "llm_visibility"];
+  const taskCount = typeof value.weeklyTaskCount === "number" ? value.weeklyTaskCount : 3;
+  return {
+    ...(value as unknown as DestinyLogicResult),
+    weeklyTaskManifest: Array.isArray(value.weeklyTaskManifest)
+      ? value.weeklyTaskManifest.filter((item): item is string => typeof item === "string")
+      : fallbackManifest.slice(0, taskCount),
+  };
 }
 
 export default async function DashboardPage({
@@ -71,6 +78,7 @@ export default async function DashboardPage({
       weeklyTaskCount: 3,
       contentTaskCount: 1,
       distributionTaskCount: 0,
+      weeklyTaskManifest: ["vocabulary_review", "content_review", "primary_quest"],
     } : undefined)}
     initialMomentum={{
       completed: completedQuests.length,

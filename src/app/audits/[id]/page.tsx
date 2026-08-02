@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { QuestCompletion } from "@/components/quest-completion";
+import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
 import { createClient } from "@/lib/supabase/server";
 
 type JsonRecord = Record<string, unknown>;
@@ -35,7 +36,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const providerResult = record(raw.providerResult);
   const issues = list(providerResult.issues).map(record);
   const competitors = list(providerResult.competitors).map(record);
-  const keywords = list(providerResult.keywords).map(record).filter((item) => typeof item.keyword === "string");
+  const keywords = selectUsableAuditKeywords(providerResult.keywords);
   const website = Array.isArray(audit.websites) ? audit.websites[0] : audit.websites;
   const sourceLabel = typeof providerResult.sourceLabel === "string"
     ? providerResult.sourceLabel

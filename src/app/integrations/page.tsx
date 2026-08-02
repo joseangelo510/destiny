@@ -1,6 +1,7 @@
 import { GoogleIntegrationAction } from "@/components/google-integration-action";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import { WordPressIntegrationAction } from "@/components/wordpress-integration-action";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 const providers = [
@@ -30,8 +31,9 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
   const context = await getWorkspaceContext();
   const connectedProvider = params.provider ? providerNames[params.provider] : undefined;
   return (
-    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Bring first-party Google data into Destiny. OAuth tokens will remain server-side and never be exposed to the browser.">
+    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Bring first-party Google data into Destiny and connect an approved content workflow to your CMS. Credentials remain server-side.">
       {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Destiny needs a saved website before an external account can be connected to it." /> : (
+        <>
         <section className="integration-list" id="google-setup">
           {params.google === "connected" && <div className="integration-banner success"><strong>{connectedProvider ?? "Google"} connected</strong><p>Destiny securely saved the connection. The account will be used only for the website you selected.</p></div>}
           {params.google === "cancelled" && <div className="integration-banner"><strong>Connection cancelled</strong><p>No Google account was connected and no credentials were saved.</p></div>}
@@ -45,6 +47,17 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
           })}
           <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Destiny never reports a connection as live until Google completes authorization.</p></div>
         </section>
+        <section className="integration-list" id="cms-setup">
+          <div className="workspace-card-heading"><div><strong>Content management system</strong><small>Approved drafts only</small></div><span>WordPress</span></div>
+          {(() => {
+            const wordpress = context.integrations.find((item) => item.provider === "wordpress");
+            const connected = wordpress?.status === "connected";
+            const metadata = record(wordpress?.metadata);
+            return <article className="integration-row"><span className="integration-logo">W</span><div><strong>WordPress</strong><p>Verify a revocable Application Password, then hand approved drafts to WordPress without exposing credentials in the browser.</p><p className="integration-summary">{connected ? `${String(metadata.display_name || "WordPress editor")} · ${String(metadata.site_url || "Connected site")}` : "Connect after reviewing the first SEO draft."}</p></div><span className={`status-chip ${connected ? "" : "amber"}`}>{connected ? "Connected" : "Not connected"}</span><WordPressIntegrationAction connected={connected} savedSiteUrl={typeof metadata.site_url === "string" ? metadata.site_url : undefined} websiteId={context.website.id} /></article>;
+          })()}
+          <div className="configuration-note"><strong>Human approval stays required</strong><p>Connecting WordPress does not auto-publish. Destiny keeps Draft → Review & approve → CMS as separate steps.</p></div>
+        </section>
+        </>
       )}
     </WorkspaceShell>
   );

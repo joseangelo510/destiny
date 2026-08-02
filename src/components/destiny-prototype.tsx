@@ -66,6 +66,7 @@ const seededLogic: DestinyLogicResult = {
   weeklyTaskCount: 3,
   contentTaskCount: 1,
   distributionTaskCount: 1,
+  weeklyTaskManifest: ["vocabulary_review", "content_review", "primary_quest"],
 };
 
 const seededAudit: SeoAuditResult = {

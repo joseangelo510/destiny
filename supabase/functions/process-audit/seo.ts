@@ -215,7 +215,7 @@ function authorization(login: string, password: string) {
   return `Basic ${btoa(binary)}`;
 }
 
-async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 45_000) {
+async function dataForSeoPost(path: string, body: JsonRecord[], login: string, password: string, timeout = 25_000) {
   const response = await fetch(`https://api.dataforseo.com${path}`, {
     method: "POST",
     headers: { Authorization: authorization(login, password), "Content-Type": "application/json" },
@@ -351,9 +351,20 @@ export async function runDataForSeoAudit(
   password: string,
   businessContext?: BusinessContext,
   knownCompetitors: Array<{ name: string; url?: string | null }> = [],
+  onProgress: (progress: number) => Promise<void> | void = () => undefined,
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
+  // LLM target metrics can be the slowest live endpoint. Start it alongside
+  // the baseline audit and contain failure so it never blocks core SEO results.
+  const llmPromise = dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
+    target: [{ domain: website.domain, search_filter: "include" }],
+    location_code: 2840,
+    language_code: "en",
+    internal_list_limit: 10,
+  }], login, password, 60_000)
+    .then((value) => ({ status: "fulfilled" as const, value }))
+    .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
   const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, homepageContent] = await Promise.all([
     dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
@@ -374,6 +385,7 @@ export async function runDataForSeoAudit(
     }], login, password),
     dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: website.url, markdown_view: true }], login, password),
   ]);
+  await onProgress(30);
 
   const pageResult = firstResult(pagePayload);
   const page = record(array(pageResult.items)[0]);
@@ -405,6 +417,7 @@ export async function runDataForSeoAudit(
     .slice(0, 5);
   const businessEvidence = `${businessContext?.productsServices ?? ""} ${businessContext?.idealCustomer ?? ""} ${businessContext?.market ?? ""}`.trim();
   const siteVocabulary = extractSiteVocabulary(pages, businessEvidence);
+  await onProgress(45);
 
   const checks = record(page.checks);
   const issues: SeoAuditResult["issues"] = Object.entries(checks)
@@ -429,7 +442,7 @@ export async function runDataForSeoAudit(
     throw new Error("Destiny needs at least two resolvable competitor domains. Add competitor website URLs and retry.");
   }
 
-  const gapPayloads = await Promise.all(competitorDomains.map((domain) => dataForSeoPost(
+  const gapResults = await Promise.allSettled(competitorDomains.map((domain) => dataForSeoPost(
     "/v3/dataforseo_labs/google/domain_intersection/live",
     [{
       target1: domain,
@@ -445,6 +458,11 @@ export async function runDataForSeoAudit(
     login,
     password,
   )));
+  const gapPayloads = gapResults.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+  if (gapPayloads.length < 2) {
+    throw new Error("Destiny could not retrieve enough live competitor evidence. Retry the audit in a moment.");
+  }
+  await onProgress(65);
   const gapGroups = gapPayloads.map((payload) => parseGapKeywords(firstResult(payload)));
   const competitorRankCounts = new Map<string, number>();
   const gapByKeyword = new Map<string, StrategyKeyword>();
@@ -493,27 +511,24 @@ export async function runDataForSeoAudit(
       essential: decision.essentialKeyword,
     };
   }));
+  await onProgress(80);
 
   const firstAcceptedKeyword = keywords.find((keyword) => keyword.essential)
     ?? keywords.find((keyword) => keyword.verdict === "accept")
     ?? keywords.find((keyword) => keyword.verdict === "review");
   const distributionTopic = firstAcceptedKeyword?.keyword ?? siteVocabulary.find((term) => term.term.includes(" "))?.term ?? website.domain;
-  const [redditResult, quoraResult, llmResult] = await Promise.allSettled([
+  const [redditResult, quoraResult] = await Promise.allSettled([
     dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `reddit ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
     dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `quora ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
-    dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
-      target: [{ domain: website.domain, search_filter: "include" }],
-      location_code: 2840,
-      language_code: "en",
-      internal_list_limit: 10,
-    }], login, password, 125_000),
   ]);
+  const llmResult = await llmPromise;
   const distributionOpportunities = [redditResult, quoraResult].flatMap((result) => result.status === "fulfilled"
     ? parseDistributionSerp(result.value, distributionTopic)
     : []).filter((item, index, all) => all.findIndex((candidate) => candidate.url === item.url) === index).slice(0, 8);
   const llmVisibility = llmResult.status === "fulfilled"
     ? parseLlmVisibility(llmResult.value, llmResult.value)
     : { status: "unavailable" as const, totalMentions: 0, aiSearchVolume: 0, platforms: [], topCitedDomains: [], reason: "DataForSEO LLM visibility did not finish within this audit window." };
+  await onProgress(90);
 
   const analyzedCompetitors = competitorDomains.map((domain) => ({
     domain,
@@ -561,9 +576,11 @@ export async function runSeoAudit(input: {
   password?: string;
   businessContext?: BusinessContext;
   knownCompetitors?: Array<{ name: string; url?: string | null }>;
+  onProgress?: (progress: number) => Promise<void> | void;
 }) {
   if (input.login && input.password) {
-    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors);
+    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress);
   }
+  await input.onProgress?.(90);
   return runDemoAudit(input.website, input.businessContext);
 }

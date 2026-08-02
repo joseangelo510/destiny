@@ -37,10 +37,11 @@ describe("live audit orchestration", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
+    const progress: number[] = [];
     const result = await runDataForSeoAudit("https://example.com", "United States", "login", "password", {
       productsServices: "College admissions counseling and application coaching",
       idealCustomer: "Families with high school students",
-    });
+    }, [], async (value) => { progress.push(value); });
 
     expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product", "how_it_works", "about", "contact"]);
     expect(result.siteVocabulary?.some((term) => term.normalized === "college admission")).toBe(true);
@@ -49,5 +50,9 @@ describe("live audit orchestration", () => {
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live")).every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 150)).toBe(true);
+    expect(progress).toEqual([30, 45, 65, 80, 90]);
+    const calledUrls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/llm_mentions/target_metrics/live")) ?? "missing"))
+      .toBeLessThan(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/domain_intersection/live")) ?? "missing"));
   });
 });

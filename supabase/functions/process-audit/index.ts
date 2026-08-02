@@ -10,7 +10,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-01.2";
+const LOGOS_RULES_VERSION = "2026-08-01.3";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -18,23 +18,24 @@ async function sha256(value: unknown) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, primaryQuest: string, primaryCategory: string) {
+function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, primaryQuest: string, primaryCategory: string, manifest: string[]) {
   const contentKeyword = result.keywords.find((keyword) => keyword.essential)?.keyword
     ?? result.keywords.find((keyword) => keyword.verdict === "accept")?.keyword
     ?? result.keywords.find((keyword) => keyword.verdict === "review")?.keyword
     ?? "your strongest search opportunity";
   const reddit = result.distributionOpportunities?.find((item) => item.platform === "Reddit");
   const quora = result.distributionOpportunities?.find((item) => item.platform === "Quora");
-  return [
-    { title: "Review and approve your site vocabulary", why: "This inspectable vocabulary keeps every recommendation tied to the words already supported by your business and website.", category: "measurement", taskType: "vocabulary_review", actionPath: "/keywords", estimatedMinutes: 5, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 20 },
-    { title: `Review and approve the “${contentKeyword}” article`, why: "A human approval gate keeps the article accurate before it can move to a connected CMS.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 30 },
-    { title: primaryQuest, why: "LOGOS selected this as the highest-impact action from the latest audit.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}`, estimatedMinutes: 10, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
-    { title: reddit ? `Contribute to: ${reddit.title}` : "Review this week's Reddit opportunity", why: "A useful answer in a current thread can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: reddit?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
-    { title: "Review your essential competitor keyword gaps", why: "These phrases match your site vocabulary and are covered by at least two competitors.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
-    { title: quora ? `Answer: ${quora.title}` : "Review this week's Quora opportunity", why: "Answering a real question makes your expertise visible where people are already researching.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: quora?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 25 },
-    { title: "Ask three recent customers for a review", why: "Fresh first-party proof improves trust and supports local search conversion.", category: "reviews", taskType: "reviews", actionPath: "/reviews", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
-    { title: "Review your LLM visibility and cited-domain gap", why: "See whether AI answers mention your company and which sources they cite instead.", category: "measurement", taskType: "measurement", actionPath: "/llm-visibility", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
-  ];
+  const tasks = {
+    vocabulary_review: { title: "Review and approve your site vocabulary", why: "This inspectable vocabulary keeps every recommendation tied to the words already supported by your business and website.", category: "measurement", taskType: "vocabulary_review", actionPath: "/keywords", estimatedMinutes: 5, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 20 },
+    content_review: { title: `Review and approve the “${contentKeyword}” article`, why: "A human approval gate keeps the article accurate before it can move to a connected CMS.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 30 },
+    primary_quest: { title: primaryQuest, why: "LOGOS selected this as the highest-impact action from the latest audit.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}`, estimatedMinutes: 10, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
+    reddit_distribution: { title: reddit ? `Contribute to: ${reddit.title}` : "Review this week's Reddit opportunity", why: "A useful answer in a current thread can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: reddit?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
+    keyword_review: { title: "Review your essential competitor keyword gaps", why: "These phrases match your site vocabulary and are covered by at least two competitors.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
+    quora_distribution: { title: quora ? `Answer: ${quora.title}` : "Review this week's Quora opportunity", why: "Answering a real question makes your expertise visible where people are already researching.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: quora?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 25 },
+    reviews: { title: "Ask three recent customers for a review", why: "Fresh first-party proof improves trust and supports local search conversion.", category: "reviews", taskType: "reviews", actionPath: "/reviews", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+    llm_visibility: { title: "Review your LLM visibility and cited-domain gap", why: "See whether AI answers mention your company and which sources they cite instead.", category: "measurement", taskType: "measurement", actionPath: "/llm-visibility", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+  };
+  return manifest.map((code) => tasks[code as keyof typeof tasks]).filter(Boolean);
 }
 
 function json(data: unknown, status = 200) {
@@ -120,6 +121,9 @@ export default {
             market: website.market,
           },
           knownCompetitors: knownCompetitors ?? [],
+          onProgress: async (progress) => {
+            await context.supabaseAdmin.from("audits").update({ progress }).eq("id", auditId).eq("status", "running");
+          },
         });
         const logicInput = {
           auditComplete: 1,
@@ -133,7 +137,7 @@ export default {
           planTier: 3 as const,
         };
         const logic = await runDestinyLogic(logicInput);
-        const weeklyTasks = buildWeeklyTasks(result, auditId, logic.weeklyQuest, logic.questCategory);
+        const weeklyTasks = buildWeeklyTasks(result, auditId, logic.weeklyQuest, logic.questCategory, logic.weeklyTaskManifest);
         if (weeklyTasks.length !== logic.weeklyTaskCount) {
           throw new Error("LOGOS task quota did not match the generated weekly plan.");
         }
