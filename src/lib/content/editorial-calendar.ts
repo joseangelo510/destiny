@@ -1,3 +1,29 @@
+export type SearchIntent = "awareness" | "consideration" | "conversion";
+
+export type SearchIntentDefinition = {
+  label: string;
+  summary: string;
+  description: string;
+};
+
+export const SEARCH_INTENT_DEFINITIONS: Record<SearchIntent, SearchIntentDefinition> = {
+  awareness: {
+    label: "Awareness",
+    summary: "Learning and early research",
+    description: "Educational searches from people learning about a topic, problem, or possible purchase.",
+  },
+  consideration: {
+    label: "Consideration",
+    summary: "Evaluating the best solution",
+    description: "Evaluation searches from people comparing competitors, options, or the best solution for their needs.",
+  },
+  conversion: {
+    label: "Conversion",
+    summary: "Ready to take action",
+    description: "Action-ready searches for pricing, where to buy or hire, where to sign up, availability, or promo codes.",
+  },
+};
+
 export type EditorialKeyword = {
   keyword: string;
   intent?: string;
@@ -10,42 +36,70 @@ export type EditorialKeyword = {
 export type EditorialCalendarItem = {
   month: number;
   week: number;
-  type: string;
+  contentType: string;
+  searchIntent: SearchIntent;
   title: string;
   focusKeyword: string;
-  intent: string;
   evidence: string;
   searchVolume: number;
   difficulty: number;
   status: "Review draft" | "Planned";
 };
 
-const ANGLES = [
-  { type: "Cornerstone guide", title: (keyword: string) => `The complete guide to ${keyword}` },
-  { type: "FAQ article", title: (keyword: string) => `${keyword}: the questions customers ask first` },
-  { type: "Decision checklist", title: (keyword: string) => `A practical ${keyword} checklist` },
-  { type: "Comparison page", title: (keyword: string) => `${keyword}: options, tradeoffs, and who each is for` },
-  { type: "Expert guide", title: (keyword: string) => `The most common ${keyword} mistakes and how to avoid them` },
-  { type: "Case study", title: (keyword: string) => `How a customer approached ${keyword}` },
-  { type: "Buyer guide", title: (keyword: string) => `How to evaluate ${keyword} before you decide` },
-  { type: "Implementation plan", title: (keyword: string) => `A step-by-step plan for ${keyword}` },
-  { type: "Cost guide", title: (keyword: string) => `${keyword}: costs, effort, and expected value` },
-  { type: "Timeline guide", title: (keyword: string) => `How long ${keyword} takes and what happens next` },
-  { type: "Examples article", title: (keyword: string) => `${keyword}: real examples and useful patterns` },
-  { type: "Strategy article", title: (keyword: string) => `A focused strategy for ${keyword}` },
-  { type: "Evaluation guide", title: (keyword: string) => `The criteria that matter most for ${keyword}` },
-  { type: "Alternatives page", title: (keyword: string) => `${keyword}: alternatives worth considering` },
-  { type: "Framework article", title: (keyword: string) => `A simple framework for ${keyword}` },
-  { type: "Benchmark report", title: (keyword: string) => `${keyword}: benchmarks and signals to watch` },
-  { type: "Toolkit", title: (keyword: string) => `The ${keyword} planning toolkit` },
-  { type: "FAQ refresh", title: (keyword: string) => `More answers to common ${keyword} questions` },
-  { type: "Expert interview", title: (keyword: string) => `An expert perspective on ${keyword}` },
-  { type: "Glossary", title: (keyword: string) => `${keyword}: terms and concepts explained plainly` },
-  { type: "Myth-busting article", title: (keyword: string) => `${keyword}: myths, facts, and better decisions` },
-  { type: "Market guide", title: (keyword: string) => `${keyword}: what changes by market or customer` },
-  { type: "Trend analysis", title: (keyword: string) => `What is changing in ${keyword}` },
-  { type: "Content refresh", title: (keyword: string) => `${keyword}: the six-month update` },
-] as const;
+const ANGLES: Array<{
+  contentType: string;
+  searchIntent: SearchIntent;
+  title: (keyword: string) => string;
+}> = [
+  // 0 — Blog guide · awareness
+  { contentType: "Blog guide",          searchIntent: "awareness",     title: (k) => `The complete guide to ${k}` },
+  // 1 — FAQ article · awareness
+  { contentType: "FAQ article",         searchIntent: "awareness",     title: (k) => `${k}: the questions customers ask first` },
+  // 2 — Checklist · consideration
+  { contentType: "Checklist",           searchIntent: "consideration", title: (k) => `A practical ${k} checklist` },
+  // 3 — Comparison page · consideration
+  { contentType: "Comparison page",     searchIntent: "consideration", title: (k) => `${k}: options, tradeoffs, and who each is for` },
+  // 4 — Blog article · awareness (educational expert advice)
+  { contentType: "Blog article",        searchIntent: "awareness",     title: (k) => `The most common ${k} mistakes and how to avoid them` },
+  // 5 — Case study · consideration (evaluating real-world solutions)
+  { contentType: "Case study",          searchIntent: "consideration", title: (k) => `How a customer approached ${k}` },
+  // 6 — Buyer guide · consideration
+  { contentType: "Buyer guide",         searchIntent: "consideration", title: (k) => `How to evaluate ${k} before you decide` },
+  // 7 — How-to guide · awareness (learning process)
+  { contentType: "How-to guide",        searchIntent: "awareness",     title: (k) => `A step-by-step plan for ${k}` },
+  // 8 — Pricing guide · conversion (title mentions pricing)
+  { contentType: "Pricing guide",       searchIntent: "conversion",    title: (k) => `${k}: pricing, costs, and what to expect` },
+  // 9 — Blog article · awareness (learning about timelines)
+  { contentType: "Blog article",        searchIntent: "awareness",     title: (k) => `How long ${k} takes and what happens next` },
+  // 10 — Examples article · awareness
+  { contentType: "Examples article",    searchIntent: "awareness",     title: (k) => `${k}: real examples and useful patterns` },
+  // 11 — Blog article · awareness (strategy is educational)
+  { contentType: "Blog article",        searchIntent: "awareness",     title: (k) => `A focused strategy for ${k}` },
+  // 12 — Evaluation guide · consideration
+  { contentType: "Evaluation guide",    searchIntent: "consideration", title: (k) => `The criteria that matter most for ${k}` },
+  // 13 — Alternatives page · consideration
+  { contentType: "Alternatives page",   searchIntent: "consideration", title: (k) => `${k}: alternatives worth considering` },
+  // 14 — Blog article · awareness (framework = educational)
+  { contentType: "Blog article",        searchIntent: "awareness",     title: (k) => `A simple framework for ${k}` },
+  // 15 — Research report · awareness (benchmark/research)
+  { contentType: "Research report",     searchIntent: "awareness",     title: (k) => `${k}: benchmarks and signals to watch` },
+  // 16 — Downloadable toolkit · consideration (people evaluating which resources to use)
+  { contentType: "Downloadable toolkit", searchIntent: "consideration", title: (k) => `The ${k} planning toolkit` },
+  // 17 — FAQ article · awareness
+  { contentType: "FAQ article",         searchIntent: "awareness",     title: (k) => `More answers to common ${k} questions` },
+  // 18 — Interview article · awareness (educational perspective)
+  { contentType: "Interview article",   searchIntent: "awareness",     title: (k) => `An expert perspective on ${k}` },
+  // 19 — Glossary · awareness
+  { contentType: "Glossary",            searchIntent: "awareness",     title: (k) => `${k}: terms and concepts explained plainly` },
+  // 20 — Blog article · awareness (myth-busting = educational)
+  { contentType: "Blog article",        searchIntent: "awareness",     title: (k) => `${k}: myths, facts, and better decisions` },
+  // 21 — Service page · conversion, title "Where to hire help for <keyword>"
+  { contentType: "Service page",        searchIntent: "conversion",    title: (k) => `Where to hire help for ${k}` },
+  // 22 — Trend report · awareness (research/trends)
+  { contentType: "Trend report",        searchIntent: "awareness",     title: (k) => `What is changing in ${k}` },
+  // 23 — Landing page · conversion, title with options/pricing/next steps
+  { contentType: "Landing page",        searchIntent: "conversion",    title: (k) => `Get started with ${k}: options, pricing, and next steps` },
+];
 
 export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24): EditorialCalendarItem[] {
   if (!keywords.length) return [];
@@ -61,10 +115,10 @@ export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24)
     return {
       month: Math.floor(index / 4) + 1,
       week: (index % 4) + 1,
-      type: angle.type,
+      contentType: angle.contentType,
+      searchIntent: angle.searchIntent,
       title: angle.title(keyword.keyword),
       focusKeyword: keyword.keyword,
-      intent: keyword.intent || "informational",
       evidence,
       searchVolume: Number(keyword.searchVolume ?? 0),
       difficulty: Number(keyword.difficulty ?? 0),

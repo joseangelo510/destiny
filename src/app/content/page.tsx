@@ -3,7 +3,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
-import { buildEditorialCalendar } from "@/lib/content/editorial-calendar";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar } from "@/lib/content/editorial-calendar";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage() {
@@ -34,20 +34,58 @@ export default async function ContentPage() {
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three drafts ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Review & approve</strong><small>Edit in a Surfer-style workspace</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace auditId={context.audit?.id ?? "latest"} initialDrafts={articleDrafts} questId={approvalQuest?.id} questStatus={approvalQuest?.status} />
         <section className="workspace-card">
-          <div className="workspace-card-heading"><div><strong>Editorial calendar</strong><small>{String(providerResult.sourceLabel ?? "Saved audit data")}</small></div><span>{calendar.length} weeks · 6 months</span></div>
-          <div className="content-table">
-            <div className="content-row content-head"><span>Schedule</span><span>Type and title</span><span>Focus keyword</span><span>SEO evidence</span><span>Status</span></div>
-            {calendar.map((item, index) => {
-              return (
-                <div className="content-row" key={`${item.focusKeyword}-${index}`}>
-                  <span><strong>Month {item.month}</strong><small>Week {item.week}</small></span>
-                  <span><small>{item.type}</small><strong>{item.title}</strong></span>
-                  <span><strong>{item.focusKeyword}</strong><small>{item.intent} intent</small></span>
-                  <span><strong>{item.searchVolume.toLocaleString()} searches</strong><small>{item.evidence} · Difficulty {item.difficulty}</small></span>
-                  <span className={`status-chip ${index < 3 ? "" : "amber"}`}>{index < 3 && approvalQuest?.status === "complete" ? "Approved for delivery" : item.status}</span>
+          <div className="workspace-card-heading">
+            <div><strong>Editorial calendar</strong><small>{String(providerResult.sourceLabel ?? "Saved audit data")}</small></div>
+            <div className="calendar-meta">
+              <span>{calendar.length} weeks · 6 months</span>
+              <div className="intent-info">
+                <button
+                  aria-describedby="intent-definitions"
+                  aria-label="Search intent"
+                  className="intent-info-button"
+                  type="button"
+                >
+                  <span aria-hidden="true">?</span>
+                </button>
+                <div className="intent-tooltip" id="intent-definitions" role="tooltip">
+                  <strong className="intent-tooltip-title">Search intent</strong>
+                  {(["awareness", "consideration", "conversion"] as const).map((key) => {
+                    const def = SEARCH_INTENT_DEFINITIONS[key];
+                    return (
+                      <div className="intent-tooltip-item" key={key}>
+                        <strong>{def.label} — {def.summary}</strong>
+                        <p>{def.description}</p>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            </div>
+          </div>
+          <div className="content-table">
+            <div className="content-row content-head">
+              <span>Schedule</span>
+              <span>Content type</span>
+              <span>Title</span>
+              <span>Search intent</span>
+              <span>Focus keyword</span>
+              <span>SEO evidence</span>
+              <span>Status</span>
+            </div>
+            {calendar.map((item, index) => (
+              <div className="content-row" key={`${item.focusKeyword}-${index}`}>
+                <span data-label="Schedule"><strong>Month {item.month}</strong><small>Week {item.week}</small></span>
+                <span data-label="Content type"><strong>{item.contentType}</strong></span>
+                <span data-label="Title"><strong>{item.title}</strong></span>
+                <span data-label="Search intent">
+                  <span className={`intent-badge ${item.searchIntent}`}>{SEARCH_INTENT_DEFINITIONS[item.searchIntent].label}</span>
+                  <small>{SEARCH_INTENT_DEFINITIONS[item.searchIntent].summary}</small>
+                </span>
+                <span data-label="Focus keyword"><strong>{item.focusKeyword}</strong></span>
+                <span data-label="SEO evidence"><strong>{item.searchVolume.toLocaleString()} searches</strong><small>{item.evidence} · Difficulty {item.difficulty}</small></span>
+                <span className={`status-chip ${index < 3 ? "" : "amber"}`} data-label="Status">{index < 3 && approvalQuest?.status === "complete" ? "Approved for delivery" : item.status}</span>
+              </div>
+            ))}
           </div>
         </section>
         </>

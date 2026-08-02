@@ -298,11 +298,26 @@ button { cursor: pointer; }
 .month-card li, .checklist li { align-items: flex-start; border-top: 1px solid #e8eeeb; display: flex; font-size: 14px; gap: 10px; line-height: 1.4; padding: 11px 0; }
 .month-card li span, .checklist li span { align-items: center; background: #e6ede9; border-radius: 50%; color: var(--forest); display: flex; flex: 0 0 auto; font-size: 9px; height: 21px; justify-content: center; width: 21px; }
 .content-table { overflow-x: auto; }
-.content-row { align-items: center; border-top: 1px solid #edf1ef; display: grid; gap: 18px; grid-template-columns: 90px minmax(260px, 1.4fr) minmax(190px, 1fr) minmax(165px, .8fr) 95px; min-width: 950px; padding: 14px 5px; }
+.content-row { align-items: center; border-top: 1px solid #edf1ef; display: grid; gap: 14px; grid-template-columns: 90px minmax(110px, 0.6fr) minmax(180px, 1.4fr) minmax(140px, 0.8fr) minmax(130px, 0.7fr) minmax(140px, 0.8fr) 95px; min-width: 1050px; padding: 14px 5px; }
 .content-row > span strong, .content-row > span small { display: block; }
 .content-row > span strong { font-size: 14px; line-height: 1.4; }
-.content-row > span small { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 3px 0; text-transform: capitalize; }
+.content-row > span small { color: var(--muted); font-size: 12px; line-height: 1.4; margin: 3px 0; }
 .content-head { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.intent-badge { border-radius: 999px; display: inline-block; font-size: 12px; font-weight: 700; margin-bottom: 5px; padding: 4px 10px; }
+.intent-badge.awareness { background: #dff0fb; color: #1a5e8f; }
+.intent-badge.consideration { background: #fdf3e0; color: #8a5a00; }
+.intent-badge.conversion { background: #def0e7; color: #1a5735; }
+.calendar-meta { align-items: center; color: var(--muted); display: flex; font-size: 13px; gap: 10px; }
+.intent-info { display: inline-flex; position: relative; }
+.intent-info-button { align-items: center; background: #f1f4f2; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); cursor: default; display: flex; font-size: 11px; font-weight: 800; height: 22px; justify-content: center; width: 22px; }
+.intent-info-button:focus-visible { box-shadow: 0 0 0 2px var(--forest); outline: none; }
+.intent-tooltip { background: #1c3028; border-radius: 14px; bottom: calc(100% + 10px); color: white; min-width: 300px; opacity: 0; padding: 16px 18px; position: absolute; right: 0; transition: opacity .15s, visibility .15s; visibility: hidden; z-index: 40; }
+.intent-info:hover .intent-tooltip, .intent-info:focus-within .intent-tooltip { opacity: 1; visibility: visible; }
+.intent-tooltip-title { display: block; font-size: 11px; font-weight: 800; letter-spacing: .07em; margin-bottom: 10px; opacity: .55; text-transform: uppercase; }
+.intent-tooltip-item { margin-top: 10px; }
+.intent-tooltip-item:first-of-type { margin-top: 0; }
+.intent-tooltip-item strong { color: white; display: block; font-size: 14px; margin-bottom: 3px; }
+.intent-tooltip-item p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.5; margin: 0; }
 .opportunity-grid, .review-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
 .opportunity-item { min-height: 290px; }
 .opportunity-item > .status-chip { float: right; }
@@ -900,4 +915,8 @@ body { font-size: 17px; }
   .directory-grid { grid-template-columns: 1fr; }
   .publisher-list article { align-items: flex-start; flex-direction: column; }
   .business-context-review summary { align-items: flex-start; gap: 16px; }
+  .content-table { overflow: visible; }
+  .content-head { display: none; }
+  .content-row { border: 1px solid var(--line); border-radius: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; min-width: 0; padding: 16px; }
+  .content-row > [data-label]::before { color: var(--muted); content: attr(data-label); display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em; margin-bottom: 3px; text-transform: uppercase; }
 }
