@@ -273,6 +273,63 @@ export type Database = {
           },
         ]
       }
+      llm_visibility_tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          proof_attached_at: string | null
+          proof_url: string | null
+          source_key: string
+          status: string
+          task_key: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          proof_attached_at?: string | null
+          proof_url?: string | null
+          source_key: string
+          status?: string
+          task_key: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          proof_attached_at?: string | null
+          proof_url?: string | null
+          source_key?: string
+          status?: string
+          task_key?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "llm_visibility_tasks_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "llm_visibility_tasks_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string
