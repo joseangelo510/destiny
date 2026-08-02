@@ -2,8 +2,21 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { stepOneValidation, stepTwoValidation } from "@/lib/onboarding/validation";
-import { validateCompetitorEntries } from "@/lib/onboarding/competitors";
+import { AuditMomentumProcessing } from "./audit-momentum-processing";
+import { CompassCompanion } from "./compass-companion";
+import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
+import { validateCompetitorEntries } from "../lib/onboarding/competitors";
+import {
+  DEFAULT_CELEBRATION_PREFERENCES,
+  playDestinySound,
+  readCelebrationPreferences,
+  saveCelebrationPreferences,
+  type CelebrationPreferences,
+} from "../lib/product/celebrations";
+import {
+  ONBOARDING_MOMENTUM_STAGES,
+  onboardingMomentumJourney,
+} from "../lib/product/momentum-journey";
 
 type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
@@ -52,21 +65,17 @@ const countries = [
   "Denmark", "Finland", "Singapore", "India", "Japan", "Brazil", "Mexico",
 ];
 
-const onboardingStages = [
-  ["Business & website", "What you offer"],
-  ["Customer & market", "Who and where"],
-  ["Known competitors", "Your competitive edge"],
-  ["Review & analyze", "Launch live research"],
-];
-
 export function PublicOnboarding() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [listening, setListening] = useState<VoiceField | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [auditId, setAuditId] = useState<string | null>(null);
   const [auditStatus, setAuditStatus] = useState<"idle" | "running" | "failed">("idle");
+  const [auditProgress, setAuditProgress] = useState(0);
+  const [celebration, setCelebration] = useState("");
+  const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
+  const [celebrationsReady, setCelebrationsReady] = useState(false);
 
   const updateField = (field: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -75,6 +84,7 @@ export function PublicOnboarding() {
   const stepOne = useMemo(() => stepOneValidation(form), [form]);
   const stepTwo = useMemo(() => stepTwoValidation(form), [form]);
   const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
+  const onboardingJourney = useMemo(() => onboardingMomentumJourney(step), [step]);
 
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready;
@@ -84,23 +94,20 @@ export function PublicOnboarding() {
   }, [competitorValidation.ready, form, step, stepOne.ready, stepTwo.ready]);
 
   useEffect(() => {
-    if (auditStatus !== "running" || !auditId) return;
-    const poll = window.setInterval(async () => {
-      const response = await fetch(`/api/audits/${encodeURIComponent(auditId)}`, { cache: "no-store" });
-      if (!response.ok) return;
-      const payload = await response.json() as { audit?: { status?: string; failure_message?: string | null } };
-      if (payload.audit?.status === "complete") {
-        window.clearInterval(poll);
-        window.location.assign(`/audits/${encodeURIComponent(auditId)}`);
-      }
-      if (payload.audit?.status === "failed") {
-        window.clearInterval(poll);
-        setAuditStatus("failed");
-        setError(payload.audit.failure_message || "Destiny could not complete this audit.");
-      }
-    }, 4000);
-    return () => window.clearInterval(poll);
-  }, [auditId, auditStatus]);
+    const saved = readCelebrationPreferences();
+    document.documentElement.dataset.reducedCelebrations = String(saved.reduced);
+    const hydrationTimer = window.setTimeout(() => {
+      setCelebrationPreferences(saved);
+      setCelebrationsReady(true);
+    }, 0);
+    return () => window.clearTimeout(hydrationTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!celebration) return;
+    const timer = window.setTimeout(() => setCelebration(""), 2100);
+    return () => window.clearTimeout(timer);
+  }, [celebration]);
 
   const dictate = (field: VoiceField) => {
     const Constructor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
@@ -130,7 +137,10 @@ export function PublicOnboarding() {
     if (step === 1 && stepOne.normalizedWebsite) {
       setForm((current) => ({ ...current, website: stepOne.normalizedWebsite ?? current.website }));
     }
+    const completedStage = ONBOARDING_MOMENTUM_STAGES[step - 1];
     setStep((current) => Math.min(4, current + 1));
+    setCelebration(completedStage.celebration);
+    void playDestinySound("task_complete");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -155,6 +165,7 @@ export function PublicOnboarding() {
       }
 
       setAuditStatus("running");
+      setAuditProgress(0);
       const auditResponse = await fetch("/api/audits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,11 +175,12 @@ export function PublicOnboarding() {
           locationName: form.country,
         }),
       });
-      const auditPayload = await auditResponse.json() as { auditId?: string; error?: string };
+      const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; progress?: number };
       if (!auditResponse.ok || !auditPayload.auditId) {
         throw new Error(auditPayload.error || "Destiny could not run your audit.");
       }
-      setAuditId(auditPayload.auditId);
+      setAuditProgress(typeof auditPayload.progress === "number" ? auditPayload.progress : 10);
+      window.location.assign(`/audits/${encodeURIComponent(auditPayload.auditId)}`);
     } catch (cause) {
       setAuditStatus("failed");
       setError(cause instanceof Error ? cause.message : "Destiny could not create your plan.");
@@ -177,22 +189,14 @@ export function PublicOnboarding() {
     }
   };
 
+  const toggleSound = () => {
+    const next = { ...celebrationPreferences, muted: !celebrationPreferences.muted };
+    setCelebrationPreferences(next);
+    saveCelebrationPreferences(next);
+  };
+
   if (auditStatus !== "idle") {
-    const failed = auditStatus === "failed";
-    return (
-      <main className="processing-shell">
-        <section className="processing-card">
-          <Link className="brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
-          <div className={failed ? "processing-orb failed" : "processing-orb"}>{failed ? "!" : "D"}</div>
-          <div className="eyebrow">{failed ? "Audit needs attention" : "Audit in progress"}</div>
-          <h1>{failed ? "We couldn’t finish this audit." : `We’re building your strategy for ${form.website}.`}</h1>
-          <p>{failed ? error : "Please stand by for about 30 seconds while Destiny analyzes your website, competitors, keyword opportunities, technical issues, and the first 24 weeks of your growth plan."}</p>
-          {!failed && <div className="processing-steps"><span className="complete">Business profile saved</span><span className="active">Website and competitor analysis</span><span>Keyword strategy</span><span>Six-month plan</span></div>}
-          {!failed && <div className="configuration-note"><strong>Most results are ready in about 30 seconds</strong><p>Stay on this screen and Destiny will take you directly to the completed strategy. You can also safely leave; the notification center saves the result link.</p></div>}
-          {failed && <div className="processing-actions"><button className="primary-button" onClick={() => { setAuditStatus("idle"); setStep(4); }} type="button">Review and try again</button><Link className="secondary-button" href="/">Back to home</Link></div>}
-        </section>
-      </main>
-    );
+    return <AuditMomentumProcessing failureMessage={error} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(4); }} website={form.website} />;
   }
 
   return (
@@ -200,21 +204,22 @@ export function PublicOnboarding() {
       <header className="guided-onboarding-header">
         <Link className="brand" href="/" aria-label="Return to Destiny home"><span className="brand-mark">D</span><span>Destiny</span></Link>
         <span className="live-connection"><i />Live SEO data connected</span>
-        <button aria-label="Open notifications" className="guided-notification" title="Notifications become available after your audit starts" type="button">◇</button>
+        <div className="guided-header-actions"><button aria-label={celebrationPreferences.muted ? "Turn Destiny sounds on" : "Mute Destiny sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button><button aria-label="Open notifications" className="guided-notification" title="Notifications become available after your audit starts" type="button">◇</button></div>
       </header>
 
       <div className="guided-onboarding-layout">
         <aside className="guided-onboarding-intro">
-          <p className="eyebrow">Live website analysis</p>
-          <h1>Start with your real search landscape.</h1>
-          <p>Destiny finds ranking keywords, organic competitors, technical issues, and mobile performance for any public website.</p>
-          <ol className="guided-stage-list">
-            {onboardingStages.map(([title, description], index) => {
+          <p className="eyebrow">Your guided SEO starting line</p>
+          <h1>Build the momentum to be found.</h1>
+          <p>You bring the business knowledge. Destiny turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
+          <div className="onboarding-momentum-summary"><CompassCompanion compact completed={onboardingJourney.completedCount} total={ONBOARDING_MOMENTUM_STAGES.length} /><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
+          <ol aria-label="Onboarding journey" className="guided-stage-list">
+            {onboardingJourney.stages.map((stage, index) => {
               const number = index + 1;
-              return <li className={number === step ? "active" : number < step ? "complete" : ""} key={title}><span>{number < step ? "✓" : number}</span><div><strong>{title}</strong><small>{description}</small></div></li>;
+              return <li aria-current={stage.state === "active" ? "step" : undefined} className={stage.state} key={stage.id}><span>{stage.state === "complete" ? "✓" : number}</span><div><strong>{stage.title}</strong><small>{stage.description}</small>{stage.state === "active" && <em>Building now</em>}</div></li>;
             })}
           </ol>
-          <div className="guided-evidence"><strong>Live evidence, clearly labeled</strong><p>API credentials remain on the server. Provider metrics, recommendations, and example data stay separate.</p></div>
+          <div className="guided-evidence"><strong>Small steps. Real evidence. No SEO team required.</strong><p>Each answer makes the strategy more useful. After this path, Destiny handles the live research and shows you exactly what it is doing.</p></div>
         </aside>
 
         <form className="guided-onboarding-card" onSubmit={submit}>
@@ -276,6 +281,7 @@ export function PublicOnboarding() {
           </div>
         </form>
       </div>
+      {celebration && <div aria-live="polite" className="destiny-celebration"><span>⌁</span><strong>{celebration}</strong></div>}
     </main>
   );
 }

@@ -1,6 +1,20 @@
 import type { CSSProperties } from "react";
 
-export function CompassCompanion({ completed, total, compact = false }: { completed: number; total: number; compact?: boolean }) {
+export function CompassCompanion({
+  ariaLabel,
+  completed,
+  description = "It brightens as work is completed and real outcomes are verified.",
+  title = "Your SEO compass",
+  total,
+  compact = false,
+}: {
+  ariaLabel?: string;
+  completed: number;
+  description?: string;
+  title?: string;
+  total: number;
+  compact?: boolean;
+}) {
   const safeTotal = Math.max(total, 1);
   const progress = Math.max(0, Math.min(100, Math.round((completed / safeTotal) * 100)));
   const style = {
@@ -8,7 +22,7 @@ export function CompassCompanion({ completed, total, compact = false }: { comple
     "--compass-opacity": String(0.18 + progress / 160),
   } as CSSProperties;
   return <figure className={`destiny-compass ${compact ? "compact" : ""}`} style={style}>
-    <svg aria-label={`Destiny compass illuminated to ${progress} percent`} role="img" viewBox="0 0 220 220">
+    <svg aria-label={ariaLabel ?? `Destiny compass illuminated to ${progress} percent`} role="img" viewBox="0 0 220 220">
       <defs>
         <radialGradient id="compass-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#d9ff75" stopOpacity=".95" />
@@ -39,6 +53,6 @@ export function CompassCompanion({ completed, total, compact = false }: { comple
         return <circle className={index < completed ? "compass-stage lit" : "compass-stage"} cx={x} cy={y} key={index} r="4.5" />;
       })}
     </svg>
-    {!compact && <figcaption><strong>Your SEO compass</strong><span>It brightens as work is completed and real outcomes are verified.</span></figcaption>}
+    {!compact && <figcaption><strong>{title}</strong><span>{description}</span></figcaption>}
   </figure>;
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AuditMomentumProcessing } from "@/components/audit-momentum-processing";
 import { WeeklyTaskList } from "@/components/weekly-task-list";
-import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   buildAuditNarrative,
@@ -48,6 +48,15 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const relatedWebsite = Array.isArray(audit.websites) ? audit.websites[0] : audit.websites;
   const website = record(relatedWebsite);
   const businessName = String(website.business_name || website.normalized_domain || "Your business");
+  if (audit.status !== "complete") {
+    return <AuditMomentumProcessing
+      auditId={audit.id}
+      failureMessage={audit.failure_message}
+      initialProgress={Number(audit.progress ?? 0)}
+      initialStatus={audit.status === "failed" ? "failed" : "running"}
+      website={String(website.normalized_domain || website.url || businessName)}
+    />;
+  }
   const coreTasks = getCoachTaskWindow(tasks ?? [], false);
   const primaryTask = coreTasks.find((task) => task.task_type === "primary_quest") ?? coreTasks[1] ?? coreTasks[0];
   const topIssue = [...issues].sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"))[0];
@@ -71,10 +80,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     differentiation: String(website.differentiation || "Not provided"),
   };
 
-  return <WorkspaceShell active="/results" eyebrow={String(website.normalized_domain || "Destiny workspace")} title={audit.status === "complete" ? "Your SEO strategy is ready" : audit.status === "failed" ? "Your audit needs attention" : "Destiny is analyzing your website"} description={audit.status === "complete" ? "Destiny translated your audit results into one clear opportunity and a short strategy checklist. Start at the top; the detailed evidence remains available below." : `${audit.progress}% complete. Destiny is preparing your evidence and weekly plan.`}>
-    {audit.status === "failed" && <div className="error-banner results-error">{audit.failure_message ?? "The audit could not be completed."}</div>}
-
-    {audit.status !== "complete" ? <WorkspaceEmpty title={audit.status === "failed" ? "Review the error and try again" : "Your audit is still running"} description={audit.status === "failed" ? "Return to onboarding to confirm the website and competitor details before starting another audit." : "You can safely leave this page. Destiny will save the completed results and notify you."} /> : <>
+  return <WorkspaceShell active="/results" eyebrow={String(website.normalized_domain || "Destiny workspace")} title="Your SEO strategy is ready" description="Destiny translated your audit results into one clear opportunity and a short strategy checklist. Start at the top; the detailed evidence remains available below.">
       <section className="audit-narrative">
         <div>
           <span className="eyebrow">{narrative.eyebrow}</span>
@@ -145,6 +151,5 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
       </details>
 
       <footer className="results-footer"><span>Audit ID: {audit.id}</span><span>{audit.completed_at ? `Completed ${new Date(audit.completed_at).toLocaleString()}` : `${audit.progress}% complete`}</span></footer>
-    </>}
   </WorkspaceShell>;
 }
