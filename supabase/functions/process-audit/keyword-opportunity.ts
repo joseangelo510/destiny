@@ -214,7 +214,8 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const hasBuyerAction = BUYER_ACTION.test(candidate.keyword);
     const isUsefulInstitutionResearch = INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword);
     const coreMatch = serviceBusiness
-      ? distinctiveOfferOverlap >= 1 && (hasServiceTerm || hasBuyerAction)
+      ? (hasServiceTerm && (distinctiveOfferOverlap >= 1 || (offerOverlap >= 1 && distinctiveTotalOverlap >= 1)))
+        || (hasBuyerAction && distinctiveOfferOverlap >= 1)
       : (offerOverlap >= 2 && distinctiveOfferOverlap >= 1) || (distinctiveOfferOverlap >= 1 && hasBuyerAction);
     const relevanceTier: "core" | "adjacent" | null = coreMatch
       ? "core"

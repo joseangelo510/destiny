@@ -161,8 +161,27 @@ describe("keyword opportunity ranking", () => {
     ], EMPOWERLY_CONTEXT);
 
     expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining(["admissions counseling", "college counselor"]));
-    expect(ranked.find((item) => item.keyword === "admissions counseling")).toMatchObject({ providerIntent: "commercial", searchIntent: "consideration" });
+    expect(ranked.find((item) => item.keyword === "admissions counseling")).toMatchObject({
+      providerIntent: "commercial",
+      searchIntent: "consideration",
+      relevanceTier: "core",
+      priorityTier: 1,
+    });
     expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining(["11 out of 12", "empowerly login", "admissions software for colleges"]));
+  });
+
+  it("treats admissions counseling as a core service when admissions appears elsewhere in the business context", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "admissions counseling", intent: "commercial", searchVolume: 2_400, difficulty: 37, cpc: 22, opportunity: "existing_rank", rank: 1 },
+      { keyword: "move forward counseling", intent: "transactional", searchVolume: 1_900, difficulty: 13, cpc: 3, opportunity: "site_idea" },
+    ], {
+      productsServices: "college counseling service for high school students",
+      problemSolved: "families need help with college applications and essays",
+      idealCustomer: "high school students who need college admissions support",
+    });
+
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0]).toMatchObject({ keyword: "admissions counseling", relevanceTier: "core", priorityTier: 1 });
   });
 
   it("can retain a six-month-sized approval pool without padding it with noise", () => {
