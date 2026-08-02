@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { dataForSeoPost, runDataForSeoAudit } from "./seo";
+import { buildContextSeedKeywords, dataForSeoPost, runDataForSeoAudit } from "./seo";
 
 function payload(result: unknown) {
   return { status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] };
@@ -23,6 +23,19 @@ describe("live audit orchestration", () => {
 
     expect(outcome).toContain("timed out");
     vi.useRealTimers();
+  });
+
+  it("turns onboarding evidence into deterministic site-foundation keyword candidates", () => {
+    expect(buildContextSeedKeywords({
+      productsServices: "Online graphic design, presentations, social media graphics, video editing tools, and brand templates",
+      idealCustomer: "Small business marketing teams",
+      market: "United States",
+    }, 8).map((keyword) => keyword.keyword)).toEqual([
+      "online graphic design",
+      "social media graphics",
+      "video editing tools",
+      "brand templates",
+    ]);
   });
 
   it("uses five-page evidence, two competitor gaps, real threads, and LLM citations", async () => {
@@ -62,10 +75,47 @@ describe("live audit orchestration", () => {
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live")).every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 150)).toBe(true);
+    const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
+    expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
+    expect(gapRequests.every(([, init]) => JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword"))).toBe(true);
     expect(progress).toEqual([30, 45, 65, 80, 90]);
     const calledUrls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/llm_mentions/target_metrics/live")) ?? "missing"))
       .toBeLessThan(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/domain_intersection/live")) ?? "missing"));
+  });
+
+  it("keeps provider noise rejected while retaining an honest site-foundation topic", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      const body = JSON.parse(String(init?.body || "[]"))[0] as Record<string, unknown>;
+      if (url.endsWith("/on_page/instant_pages")) return Response.json(payload({ items: [{ onpage_score: 79, checks: {} }] }));
+      if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 0, is_new: 0, is_lost: 0, etv: 0 } }, items: [] }));
+      if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 5 }, { domain: "competitor-two.com", intersections: 4 }] }));
+      if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "map of globe", keyword_info: { search_volume: 900 }, keyword_properties: {} }] }));
+      if (url.endsWith("/on_page/content_parsing/live")) {
+        const pageUrl = String(body.url);
+        const markdown = pageUrl.endsWith("/") ? "# Graphic design platform\nCreate presentations and social media graphics.\n[Services](https://example.com/services)" : "# Design services\nOnline graphic design and video editing tools.";
+        return Response.json(payload({ items: [{ page_as_markdown: markdown }] }));
+      }
+      if (url.endsWith("/domain_intersection/live")) return Response.json(payload({ items: [keywordRow("chevrons")] }));
+      if (url.endsWith("/serp/google/organic/live/advanced")) return Response.json(payload({ items: [] }));
+      if (url.endsWith("/llm_mentions/target_metrics/live")) return Response.json(payload({ aggregated_metrics: { platform: [], sources_domain: [] } }));
+      throw new Error(`Unexpected DataForSEO URL: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await runDataForSeoAudit("https://example.com", "United States", "login", "password", {
+      productsServices: "Online graphic design, presentations, social media graphics, video editing tools",
+      idealCustomer: "Small business marketing teams",
+    });
+
+    expect(result.keywords.find((keyword) => keyword.keyword === "online graphic design")).toMatchObject({
+      opportunity: "site_idea",
+      verdict: "accept",
+      ruleId: "site_vocabulary_match",
+      essential: false,
+    });
+    expect(result.keywords.find((keyword) => keyword.keyword === "chevrons")?.verdict).toBe("reject");
+    expect(result.keywords.some((keyword) => keyword.essential)).toBe(false);
   });
 });

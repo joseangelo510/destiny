@@ -336,6 +336,52 @@ const CONTEXT_STOP_WORDS = new Set([
   "about", "across", "after", "also", "and", "are", "been", "business", "customer", "for", "from", "help", "into", "more", "people", "provide", "services", "that", "the", "their", "them", "they", "this", "through", "want", "who", "with", "you", "your",
 ]);
 
+const GENERIC_CONTEXT_TOKENS = new Set([
+  "best", "company", "expert", "online", "platform", "professional", "service", "solution", "tool",
+]);
+
+export function buildContextSeedKeywords(context: BusinessContext | undefined, limit = 12): StrategyKeyword[] {
+  const seen = new Set<string>();
+  const candidates: StrategyKeyword[] = [];
+  const segments = (context?.productsServices ?? "").split(/\s*(?:[,;\n]|\band\b)\s*/i);
+  for (const segment of segments) {
+    const tokens = keywordIdentity(segment).split(/\s+/)
+      .filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token));
+    if (tokens.length < 2 || tokens.length > 5) continue;
+    const keyword = tokens.join(" ");
+    const key = keywordIdentity(keyword);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    candidates.push({
+      keyword,
+      rank: 0,
+      searchVolume: 0,
+      url: "",
+      intent: "commercial",
+      difficulty: 0,
+      cpc: 0,
+      opportunity: "site_idea",
+    });
+    if (candidates.length === limit) break;
+  }
+  return candidates;
+}
+
+function buildCompetitorGapFilters(context: BusinessContext | undefined) {
+  const relevanceTokens = [...new Set(buildContextSeedKeywords(context, 12)
+    .flatMap((keyword) => keywordIdentity(keyword.keyword).split(/\s+/))
+    .filter((token) => token.length >= 4 && !GENERIC_CONTEXT_TOKENS.has(token)))]
+    .slice(0, 5);
+  const volumeFilter: unknown[] = ["keyword_data.keyword_info.search_volume", ">", 0];
+  if (!relevanceTokens.length) return volumeFilter;
+  const relevanceFilter: unknown[] = [];
+  relevanceTokens.forEach((token, index) => {
+    if (index) relevanceFilter.push("or");
+    relevanceFilter.push(["keyword_data.keyword", "like", `%${token}%`]);
+  });
+  return [volumeFilter, "and", relevanceFilter];
+}
+
 function buildKeywordStrategy(groups: StrategyKeyword[][], context: BusinessContext | undefined, limit = 24) {
   const contextValue = `${context?.productsServices ?? ""} ${context?.idealCustomer ?? ""} ${context?.market ?? ""}`.toLowerCase();
   const tokens = new Set(contextValue.split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token)));
@@ -466,9 +512,9 @@ export async function runDataForSeoAudit(
       language_name: "English",
       intersections: false,
       item_types: ["organic", "local_pack"],
-      filters: ["keyword_data.keyword_info.search_volume", ">", 0],
+      filters: buildCompetitorGapFilters(businessContext),
       order_by: ["keyword_data.keyword_info.search_volume,desc"],
-      limit: 150,
+      limit: 300,
     }],
     login,
     password,
@@ -496,7 +542,8 @@ export async function runDataForSeoAudit(
     (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
       || b.searchVolume - a.searchVolume
       || a.keyword.localeCompare(b.keyword));
-  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], 36);
+  const contextSeeds = buildContextSeedKeywords(businessContext);
+  const strategyCandidates = buildKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas, contextSeeds], businessContext, 36);
   const keywords = await Promise.all(strategyCandidates.map(async (keyword) => {
     const competitorRankers = competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0;
     const facts = buildKeywordFacts(keyword.keyword, siteVocabulary, competitorRankers);
@@ -578,6 +625,7 @@ export async function runDataForSeoAudit(
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
       `Destiny inspected ${pages.length} important page${pages.length === 1 ? "" : "s"} and LOGOS accepted, routed for review, or rejected each keyword with a traceable rule.`,
       `Competitor gaps were checked across ${competitorDomains.length} competitor domains; essential gaps require support from at least two.`,
+      contextSeeds.length ? "Site-foundation topics are derived deterministically from onboarding evidence and are never labeled essential without competitor-ranking support." : "No usable site-foundation topic could be derived from the onboarding description.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],
