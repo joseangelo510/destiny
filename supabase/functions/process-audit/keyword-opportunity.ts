@@ -60,9 +60,11 @@ const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|t
 const BUYER_ACTION = /\b(?:book|buy|call|companies|company|consultation|cost|fees?|hire|near me|price|prices|pricing|quote|reviews?|schedule|sign up)\b/i;
 const COMPARISON_ACTION = /\b(?:alternative|alternatives|best|compare|comparison|reviews?|top|versus|vs\.?)\b/i;
 const INSTITUTION = /\b(?:academy|college|school|universit(?:y|ies))\b/i;
-const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|deadline|essay|how to get into|requirements?|ranking|tuition)\b/i;
+const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|best|deadline|essay|get into|requirements?|ranking|top|tuition)\b/i;
+const SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX = /\b(?:acceptance rate|admissions? requirements?|how to get into)\b/i;
 const GRADUATE_AUDIENCE = /\b(?:business school|graduate school|law school|mba|medical school|phd)\b/i;
 const HIGH_SCHOOL_AUDIENCE = /\b(?:high school|teen|undergraduate)\b/i;
+const GENERIC_OFFER_TOKENS = new Set(["advice", "application", "guidance", "management", "planning", "solution", "strategy", "support"]);
 
 function canonicalToken(token: string) {
   const explicit = TOKEN_FAMILIES[token];
@@ -197,16 +199,26 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     if (audienceConflict(candidate.keyword, businessDescription)) return [];
     seen.add(identity);
     const providerIntent = inferIntent(candidate);
-    if (providerIntent === "navigational" && INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)) return [];
+    if (INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)
+      && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return [];
     const keywordTokens = new Set(canonicalTokens(candidate.keyword));
     const offerOverlap = [...keywordTokens].filter((token) => business.offer.has(token)).length;
     const totalOverlap = [...keywordTokens].filter((token) => business.all.has(token)).length;
-    if (business.all.size && totalOverlap === 0) return [];
+    const distinctiveOfferOverlap = [...keywordTokens].filter((token) => business.offer.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
+    const distinctiveTotalOverlap = [...keywordTokens].filter((token) => business.all.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
+    const verifiedSchoolResearch = HIGH_SCHOOL_AUDIENCE.test(businessDescription)
+      && SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX.test(candidate.keyword)
+      && Number(candidate.directCompetitorRankers ?? 0) > 0;
+    if (business.all.size && totalOverlap === 0 && !verifiedSchoolResearch) return [];
     const hasServiceTerm = SERVICE_BUSINESS.test(candidate.keyword);
+    const hasBuyerAction = BUYER_ACTION.test(candidate.keyword);
     const isUsefulInstitutionResearch = INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword);
-    const relevanceTier: "core" | "adjacent" | null = offerOverlap >= 2 || (offerOverlap >= 1 && hasServiceTerm)
+    const coreMatch = serviceBusiness
+      ? distinctiveOfferOverlap >= 1 && (hasServiceTerm || hasBuyerAction)
+      : (offerOverlap >= 2 && distinctiveOfferOverlap >= 1) || (distinctiveOfferOverlap >= 1 && hasBuyerAction);
+    const relevanceTier: "core" | "adjacent" | null = coreMatch
       ? "core"
-      : totalOverlap >= 2 || (offerOverlap >= 1 && (providerIntent === "informational" || isUsefulInstitutionResearch))
+      : verifiedSchoolResearch || (totalOverlap >= 2 && distinctiveTotalOverlap >= 1) || (distinctiveOfferOverlap >= 1 && (providerIntent === "informational" || isUsefulInstitutionResearch))
         ? "adjacent"
         : null;
     if (!relevanceTier) return [];

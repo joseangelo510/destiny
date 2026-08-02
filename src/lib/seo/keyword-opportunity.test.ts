@@ -37,6 +37,8 @@ describe("keyword opportunity ranking", () => {
       .toBeGreaterThan(ranked.findIndex((item) => item.keyword === "best college counseling companies"));
     expect(ranked.find((item) => item.keyword === "where to hire a private college counselor"))
       .toMatchObject({ searchIntent: "conversion", relevanceTier: "core", priorityTier: 1 });
+    expect(ranked.find((item) => item.keyword === "best colleges for autism spectrum students"))
+      .toMatchObject({ relevanceTier: "adjacent", priorityTier: 4 });
     expect(ranked.find((item) => item.keyword === "top colleges to get into")?.priorityTier).toBe(4);
   });
 
@@ -75,6 +77,61 @@ describe("keyword opportunity ranking", () => {
     ], EMPOWERLY_CONTEXT);
 
     expect(ranked.map((item) => item.keyword)).toEqual(["college application essay counseling"]);
+  });
+
+  it("rejects ambiguous guidance queries unless a distinctive college-admissions anchor is present", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "fee waiver application guidance", intent: "transactional", searchVolume: 10, difficulty: 4, cpc: 1, opportunity: "site_idea" },
+      { keyword: "opm retirement application guidance", intent: "transactional", searchVolume: 110, difficulty: 9, cpc: 2, opportunity: "site_idea" },
+      { keyword: "move forward counseling", intent: "transactional", searchVolume: 1_900, difficulty: 13, cpc: 3, opportunity: "site_idea" },
+      { keyword: "guidance counselor application letter", intent: "transactional", searchVolume: 10, difficulty: 5, cpc: 1, opportunity: "site_idea" },
+      { keyword: "college application guidance", intent: "commercial", searchVolume: 260, difficulty: 22, cpc: 11, opportunity: "site_idea" },
+      { keyword: "college admissions counseling", intent: "commercial", searchVolume: 1_300, difficulty: 33, cpc: 18, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "college application guidance",
+      "college admissions counseling",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "fee waiver application guidance",
+      "opm retirement application guidance",
+      "move forward counseling",
+      "guidance counselor application letter",
+    ]));
+  });
+
+  it("rejects bare institution queries even when the provider misclassifies their intent", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "Cornell University in USA", intent: "informational", searchVolume: 201_000, difficulty: 64, cpc: 5, opportunity: "competitor_gap", competitorRankers: 3 },
+      { keyword: "Rice University in Texas", intent: "informational", searchVolume: 201_000, difficulty: 49, cpc: 4, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "Cornell University acceptance rate", intent: "informational", searchVolume: 18_100, difficulty: 48, cpc: 4, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "top colleges to get into", intent: "informational", searchVolume: 8_100, difficulty: 45, cpc: 1, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "Cornell University acceptance rate",
+      "top colleges to get into",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "Cornell University in USA",
+      "Rice University in Texas",
+    ]));
+  });
+
+  it("retains verified school-specific admissions research from direct competitors", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "how to get into harvard", intent: "informational", searchVolume: 27_100, difficulty: 51, cpc: 6, opportunity: "competitor_gap", competitorRankers: 3, directCompetitorRankers: 2 },
+      { keyword: "harvard acceptance rate", intent: "informational", searchVolume: 90_500, difficulty: 58, cpc: 4, opportunity: "competitor_gap", competitorRankers: 3, directCompetitorRankers: 2 },
+      { keyword: "how to get into a locked car", intent: "informational", searchVolume: 12_100, difficulty: 30, cpc: 2, opportunity: "site_idea", competitorRankers: 0, directCompetitorRankers: 0 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "how to get into harvard",
+      "harvard acceptance rate",
+    ]));
+    expect(ranked.every((item) => item.relevanceTier === "adjacent" && item.priorityTier === 4)).toBe(true);
+    expect(ranked.map((item) => item.keyword)).not.toContain("how to get into a locked car");
   });
 
   it("ranks revenue-oriented admissions searches ahead of larger awareness topics", () => {

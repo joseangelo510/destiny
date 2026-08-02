@@ -46,8 +46,25 @@ describe("live audit orchestration", () => {
     }, 4)).toEqual([
       "college counseling",
       "college counselor",
+      "college admissions counseling",
       "college admissions counselor",
     ]);
+  });
+
+  it("keeps college-admissions context in every buyer seed and drops ambiguous application guidance", () => {
+    const seeds = buildBuyerSeedKeywords({
+      productsServices: "college counseling, admissions strategy, application guidance, and essay support for high school students",
+      problemSolved: "Families need expert help navigating selective college admissions",
+      idealCustomer: "Ambitious high school students and their families",
+    }, 4);
+
+    expect(seeds).toEqual([
+      "college counseling",
+      "college counselor",
+      "college admissions counseling",
+      "college admissions counselor",
+    ]);
+    expect(seeds).not.toContain("application guidance");
   });
 
   it("parses the provider's historical traffic and ranking keyword series", () => {

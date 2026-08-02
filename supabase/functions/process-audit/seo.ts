@@ -401,6 +401,15 @@ export function buildBuyerSeedKeywords(context: BusinessContext | undefined, lim
     seen.add(keyword);
     seeds.push(keyword);
   };
+  const description = [context?.productsServices, context?.problemSolved, context?.audienceChallengesGoals]
+    .filter(Boolean).join(" ");
+  const collegeAdmissionsContext = /\bcollege\b/i.test(description) && /\badmissions?\b/i.test(description);
+  if (collegeAdmissionsContext && /\bcounsel/i.test(description)) {
+    add("college counseling");
+    add("college counselor");
+    add("college admissions counseling");
+    add("college admissions counselor");
+  }
   const segments = [context?.productsServices]
     .filter((value): value is string => Boolean(value?.trim()))
     .flatMap((value) => value.split(/\s*(?:[,;\n.]|\band\b)\s*/i));
@@ -418,9 +427,7 @@ export function buildBuyerSeedKeywords(context: BusinessContext | undefined, lim
       add(tokens.join(" "));
     }
   }
-  const description = [context?.productsServices, context?.problemSolved, context?.audienceChallengesGoals]
-    .filter(Boolean).join(" ");
-  if (/\bcollege\b/i.test(description) && /\badmissions?\b/i.test(description) && /\bcounsel/i.test(description)) {
+  if (collegeAdmissionsContext && /\bcounsel/i.test(description)) {
     add("college admissions counselor");
   }
   return seeds.slice(0, Math.max(0, limit));
