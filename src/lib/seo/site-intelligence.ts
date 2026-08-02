@@ -100,6 +100,13 @@ function cleanTokens(value: string) {
     .filter((token) => token.length >= 3 && !STOP_WORDS.has(token) && !/^\d+$/.test(token));
 }
 
+export function boundedEvidenceTokens(value: string, budget = 1_200) {
+  const tokens = cleanTokens(value);
+  if (tokens.length <= budget) return tokens;
+  const tailCount = Math.min(200, budget);
+  return [...tokens.slice(0, budget - tailCount), ...tokens.slice(-tailCount)];
+}
+
 const ROLE_WEIGHT: Record<PageRole, number> = {
   homepage: 3,
   product: 5,
@@ -113,10 +120,13 @@ export function extractSiteVocabulary(pages: SitePageEvidence[], businessContext
   const rows = businessContext.trim()
     ? [...pages, { url: "onboarding://business-context", role: "product" as const, text: businessContext }]
     : pages;
+  const preparedRows = rows.map((page) => {
+    const tokens = boundedEvidenceTokens(`${page.title ?? ""} ${page.text}`);
+    return { page, tokens, tokenSet: new Set(tokens.map(normalizeTerm)) };
+  });
   const collected = new Map<string, { term: string; normalized: string; weight: number; sourcePages: Set<PageRole>; evidence: string }>();
 
-  for (const page of rows) {
-    const tokens = cleanTokens(`${page.title ?? ""} ${page.text}`);
+  for (const { page, tokens } of preparedRows) {
     for (let index = 0; index < tokens.length; index += 1) {
       for (const size of [1, 2, 3]) {
         const phraseTokens = tokens.slice(index, index + size);
@@ -142,9 +152,8 @@ export function extractSiteVocabulary(pages: SitePageEvidence[], businessContext
   for (const candidate of collected.values()) {
     if (!candidate.normalized.includes(" ")) continue;
     const candidateTokens = candidate.normalized.split(" ");
-    for (const page of rows) {
-      const pageTokens = new Set(cleanTokens(`${page.title ?? ""} ${page.text}`).map(normalizeTerm));
-      if (candidateTokens.every((token) => pageTokens.has(token))) {
+    for (const { page, tokenSet } of preparedRows) {
+      if (candidateTokens.every((token) => tokenSet.has(token))) {
         candidate.weight += ROLE_WEIGHT[page.role];
         candidate.sourcePages.add(page.role);
       }

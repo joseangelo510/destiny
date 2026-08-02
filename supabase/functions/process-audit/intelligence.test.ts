@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildKeywordFacts as buildBrowserKeywordFacts, extractSiteVocabulary as extractBrowserVocabulary } from "../../../src/lib/seo/site-intelligence";
-import { buildKeywordFacts, extractSiteVocabulary, parseContentPage, selectImportantPageLinks } from "./intelligence";
+import { boundedEvidenceTokens as boundedBrowserTokens, buildKeywordFacts as buildBrowserKeywordFacts, extractSiteVocabulary as extractBrowserVocabulary } from "../../../src/lib/seo/site-intelligence";
+import { boundedEvidenceTokens, buildKeywordFacts, extractSiteVocabulary, parseContentPage, selectImportantPageLinks } from "./intelligence";
 
 describe("audit-worker intelligence parity", () => {
   const pages = [
@@ -30,5 +30,16 @@ describe("audit-worker intelligence parity", () => {
       { url: "https://example.com/about", role: "about" },
       { url: "https://example.com/contact", role: "contact" },
     ]);
+  });
+
+  it("bounds large page evidence while preserving the beginning and end", () => {
+    const input = Array.from({ length: 2_000 }, (_, index) => `word${index}`).join(" ");
+    const worker = boundedEvidenceTokens(input);
+    const browser = boundedBrowserTokens(input);
+
+    expect(worker).toEqual(browser);
+    expect(worker).toHaveLength(1_200);
+    expect(worker[0]).toBe("word0");
+    expect(worker.at(-1)).toBe("word1999");
   });
 });
