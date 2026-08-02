@@ -44,3 +44,11 @@ export function validateCompetitorEntries(value: string) {
     ? { ready: true, count, error: "" }
     : { ready: false, count, error: "Add at least two competitors so Destiny can find meaningful gaps." };
 }
+
+export function appendCompetitorSuggestion(value: string, domain: string) {
+  const normalizedDomain = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+  if (!normalizedDomain) return value;
+  const existing = parseCompetitorEntries(value);
+  if (existing.some((entry) => entry.domain === normalizedDomain || entry.name.toLowerCase() === normalizedDomain)) return value;
+  return [value.trim(), normalizedDomain].filter(Boolean).join("\n");
+}

@@ -7,6 +7,7 @@ export type KeywordCandidate = {
   intent?: string;
   opportunity?: string;
   competitorRankers?: number;
+  directCompetitorRankers?: number;
   [key: string]: unknown;
 };
 
@@ -25,16 +26,20 @@ export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandida
   providerIntent: ProviderIntent;
   searchIntent: CustomerIntent;
   businessFit: number;
+  revenueFit: number;
+  relevanceTier: "core" | "adjacent";
+  priorityTier: 1 | 2 | 3 | 4;
   priorityScore: number;
   priorityReason: string;
 };
 
 const STOP_WORDS = new Set([
-  "a", "about", "and", "are", "as", "at", "be", "business", "by", "customer", "customers", "for", "from", "help", "in", "into", "is", "it", "of", "on", "or", "our", "people", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "want", "we", "who", "with", "you", "your",
+  "a", "about", "and", "are", "as", "at", "be", "best", "business", "by", "customer", "customers", "expert", "for", "from", "get", "good", "help", "high", "in", "into", "is", "it", "local", "of", "on", "online", "or", "our", "people", "private", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "top", "want", "we", "who", "with", "you", "your",
 ]);
 
 const TOKEN_FAMILIES: Record<string, string> = {
   admission: "admission", admissions: "admission",
+  accept: "admission", acceptance: "admission", accepted: "admission",
   application: "application", applications: "application", applying: "application", apply: "application",
   advisor: "guidance", advisors: "guidance", advising: "guidance",
   coach: "guidance", coaches: "guidance", coaching: "guidance",
@@ -52,6 +57,12 @@ const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
 const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|tools)\b/i;
+const BUYER_ACTION = /\b(?:book|buy|call|companies|company|consultation|cost|fees?|hire|near me|price|prices|pricing|quote|reviews?|schedule|sign up)\b/i;
+const COMPARISON_ACTION = /\b(?:alternative|alternatives|best|compare|comparison|reviews?|top|versus|vs\.?)\b/i;
+const INSTITUTION = /\b(?:academy|college|school|universit(?:y|ies))\b/i;
+const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|deadline|essay|how to get into|requirements?|ranking|tuition)\b/i;
+const GRADUATE_AUDIENCE = /\b(?:business school|graduate school|law school|mba|medical school|phd)\b/i;
+const HIGH_SCHOOL_AUDIENCE = /\b(?:high school|teen|undergraduate)\b/i;
 
 function canonicalToken(token: string) {
   const explicit = TOKEN_FAMILIES[token];
@@ -68,14 +79,20 @@ function canonicalTokens(value: string) {
     .map(canonicalToken);
 }
 
-function contextTokens(context: KeywordBusinessContext) {
-  return new Set(canonicalTokens([
-    context.productsServices,
+function contextProfile(context: KeywordBusinessContext) {
+  const productsServices = context.productsServices ?? "";
+  const description = [
+    productsServices,
     context.problemSolved,
     context.idealCustomer,
     context.audienceChallengesGoals,
     context.market,
-  ].filter(Boolean).join(" ")));
+  ].filter(Boolean).join(" ");
+  return {
+    offer: new Set(canonicalTokens(productsServices)),
+    all: new Set(canonicalTokens(description)),
+    description,
+  };
 }
 
 function isNoise(keyword: string) {
@@ -105,19 +122,21 @@ function customerIntent(intent: ProviderIntent): CustomerIntent {
 }
 
 function intentPoints(intent: ProviderIntent) {
-  return 35 * ({ transactional: 1, commercial: 0.85, navigational: 0.3, informational: 0.25 }[intent]);
+  return 25 * ({ transactional: 1, commercial: 0.85, navigational: 0.25, informational: 0.3 }[intent]);
 }
 
 function opportunityPoints(candidate: KeywordCandidate) {
   const rank = Math.max(0, Number(candidate.rank ?? 0));
   const competitors = Math.max(0, Number(candidate.competitorRankers ?? 0));
-  if (candidate.opportunity === "existing_rank" && rank >= 4 && rank <= 20) return 15;
-  if (candidate.opportunity === "competitor_gap") return Math.min(15, 10 + competitors * 2);
-  if (candidate.opportunity === "existing_rank") return 10;
-  return 6;
+  const directCompetitors = Math.max(0, Number(candidate.directCompetitorRankers ?? 0));
+  if (candidate.opportunity === "existing_rank" && rank >= 4 && rank <= 20) return 5;
+  if (candidate.opportunity === "competitor_gap" && directCompetitors > 0) return Math.min(5, 3 + directCompetitors);
+  if (candidate.opportunity === "competitor_gap") return Math.min(3, 1 + competitors * 0.5);
+  if (candidate.opportunity === "existing_rank") return 4;
+  return 2;
 }
 
-function priorityReason(candidate: KeywordCandidate, intent: ProviderIntent) {
+function priorityReason(candidate: KeywordCandidate, intent: ProviderIntent, relevanceTier: "core" | "adjacent") {
   const label = intent === "transactional" ? "Buying intent"
     : intent === "commercial" ? "Comparison intent"
       : intent === "navigational" ? "Brand-finding intent"
@@ -125,12 +144,40 @@ function priorityReason(candidate: KeywordCandidate, intent: ProviderIntent) {
   const volume = Math.max(0, Number(candidate.searchVolume ?? 0)).toLocaleString();
   const rank = Math.max(0, Number(candidate.rank ?? 0));
   const competitors = Math.max(0, Number(candidate.competitorRankers ?? 0));
-  const evidence = candidate.opportunity === "competitor_gap"
+  const directCompetitors = Math.max(0, Number(candidate.directCompetitorRankers ?? 0));
+  const evidence = candidate.opportunity === "competitor_gap" && directCompetitors
+    ? `${directCompetitors} direct competitor${directCompetitors === 1 ? "" : "s"} rank, you do not`
+    : candidate.opportunity === "competitor_gap"
     ? `${competitors || "Competitors"} competitor${competitors === 1 ? "" : "s"} rank, you do not`
     : candidate.opportunity === "existing_rank" && rank
       ? `you rank #${rank}`
       : "new relevant opportunity";
-  return `${label} · ${volume} monthly searches · ${evidence}`;
+  const relevance = relevanceTier === "core" ? "Core service match" : "Supporting topic";
+  return `${label} · ${relevance} · ${volume} monthly searches · ${evidence}`;
+}
+
+function audienceConflict(keyword: string, contextDescription: string) {
+  return HIGH_SCHOOL_AUDIENCE.test(contextDescription) && GRADUATE_AUDIENCE.test(keyword);
+}
+
+function revenueFit(keyword: string, intent: ProviderIntent) {
+  const service = SERVICE_BUSINESS.test(keyword);
+  const buyerAction = BUYER_ACTION.test(keyword);
+  const comparison = COMPARISON_ACTION.test(keyword);
+  if (service && buyerAction) return 1;
+  if (service && (intent === "transactional" || intent === "commercial")) return comparison ? 1 : 0.85;
+  if (buyerAction && intent === "transactional") return 0.65;
+  if (comparison && intent === "commercial") return 0.25;
+  if (intent === "transactional") return 0.45;
+  if (intent === "commercial") return 0.2;
+  return 0.12;
+}
+
+function priorityTier(relevanceTier: "core" | "adjacent", revenue: number): 1 | 2 | 3 | 4 {
+  if (relevanceTier === "core" && revenue >= 0.85) return 1;
+  if (relevanceTier === "core" && revenue >= 0.45) return 2;
+  if (relevanceTier === "core") return 3;
+  return 4;
 }
 
 export function rankKeywordOpportunities<T extends KeywordCandidate>(
@@ -138,8 +185,8 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
   context: KeywordBusinessContext,
   limit = 50,
 ): Array<RankedKeywordOpportunity<T>> {
-  const business = contextTokens(context);
-  const businessDescription = [context.productsServices, context.problemSolved, context.idealCustomer, context.audienceChallengesGoals].filter(Boolean).join(" ");
+  const business = contextProfile(context);
+  const businessDescription = business.description;
   const serviceBusiness = SERVICE_BUSINESS.test(businessDescription);
   const businessOffersSoftware = SOFTWARE_PRODUCT.test(businessDescription);
   const seen = new Set<string>();
@@ -147,32 +194,52 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
+    if (audienceConflict(candidate.keyword, businessDescription)) return [];
     seen.add(identity);
-    const keywordTokens = new Set(canonicalTokens(candidate.keyword));
-    const overlap = [...keywordTokens].filter((token) => business.has(token)).length;
-    if (business.size && overlap === 0) return [];
-    const businessFit = business.size ? Math.min(1, overlap / Math.min(3, keywordTokens.size || 1)) : 0.5;
     const providerIntent = inferIntent(candidate);
+    if (providerIntent === "navigational" && INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)) return [];
+    const keywordTokens = new Set(canonicalTokens(candidate.keyword));
+    const offerOverlap = [...keywordTokens].filter((token) => business.offer.has(token)).length;
+    const totalOverlap = [...keywordTokens].filter((token) => business.all.has(token)).length;
+    if (business.all.size && totalOverlap === 0) return [];
+    const hasServiceTerm = SERVICE_BUSINESS.test(candidate.keyword);
+    const isUsefulInstitutionResearch = INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword);
+    const relevanceTier: "core" | "adjacent" | null = offerOverlap >= 2 || (offerOverlap >= 1 && hasServiceTerm)
+      ? "core"
+      : totalOverlap >= 2 || (offerOverlap >= 1 && (providerIntent === "informational" || isUsefulInstitutionResearch))
+        ? "adjacent"
+        : null;
+    if (!relevanceTier) return [];
+    const businessFit = relevanceTier === "core"
+      ? Math.min(1, 0.65 + offerOverlap * 0.12 + totalOverlap * 0.05)
+      : Math.min(0.74, 0.35 + offerOverlap * 0.08 + totalOverlap * 0.1);
+    const keywordRevenueFit = revenueFit(candidate.keyword, providerIntent);
+    const keywordPriorityTier = priorityTier(relevanceTier, keywordRevenueFit);
     const volume = Math.max(0, Number(candidate.searchVolume ?? 0));
     const difficulty = Math.min(100, Math.max(0, Number(candidate.difficulty ?? 0)));
     const cpc = Math.max(0, Number(candidate.cpc ?? 0));
-    const volumePoints = Math.min(20, 20 * Math.log10(volume + 1) / 4.5);
-    const attainabilityPoints = Math.max(0, 20 * (1 - difficulty / 100));
-    const valuePoints = Math.min(10, 10 * Math.log10(cpc + 1) / 1.7);
-    const demandPenalty = volume === 0 ? 12 : volume < 20 && providerIntent !== "transactional" ? 5 : 0;
+    const volumePoints = Math.min(10, 10 * Math.log10(volume + 1) / 4.5);
+    const attainabilityPoints = Math.max(0, 5 * (1 - difficulty / 100));
+    const valuePoints = Math.min(5, 5 * Math.log10(cpc + 1) / 1.7);
+    const demandPenalty = volume === 0 ? 6 : volume < 20 && providerIntent !== "transactional" ? 3 : 0;
     const priorityScore = Math.round(Math.max(0, Math.min(100,
-      intentPoints(providerIntent) + volumePoints + attainabilityPoints + valuePoints + opportunityPoints(candidate) - demandPenalty,
+      intentPoints(providerIntent) + businessFit * 30 + keywordRevenueFit * 20
+      + volumePoints + attainabilityPoints + valuePoints + opportunityPoints(candidate) - demandPenalty,
     )));
     return [{
       ...candidate,
       providerIntent,
       searchIntent: customerIntent(providerIntent),
       businessFit: Math.round(businessFit * 100) / 100,
+      revenueFit: Math.round(keywordRevenueFit * 100) / 100,
+      relevanceTier,
+      priorityTier: keywordPriorityTier,
       priorityScore,
-      priorityReason: priorityReason(candidate, providerIntent),
+      priorityReason: priorityReason(candidate, providerIntent, relevanceTier),
     } as RankedKeywordOpportunity<T>];
   });
-  return ranked.sort((left, right) => right.priorityScore - left.priorityScore
+  return ranked.sort((left, right) => left.priorityTier - right.priorityTier
+    || right.priorityScore - left.priorityScore
     || right.businessFit - left.businessFit
     || Number(right.searchVolume ?? 0) - Number(left.searchVolume ?? 0)
     || left.keyword.localeCompare(right.keyword)).slice(0, Math.max(0, limit));

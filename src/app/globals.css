@@ -979,6 +979,16 @@ body { font-size: 17px; }
 .guided-onboarding-card input, .guided-onboarding-card textarea, .guided-onboarding-card select { font-size: 17px; line-height: 1.55; }
 .guided-onboarding-card label > small { font-size: 13px; }
 .voice-button { font-size: 14px; }
+.competitor-suggestions { background: #f2f7f4; border: 1px solid #d7e5de; border-radius: 16px; margin: 24px 0 4px; padding: 18px; }
+.competitor-suggestions > div:first-child > strong, .competitor-suggestions > div:first-child > small { display: block; }
+.competitor-suggestions > div:first-child > strong { color: var(--forest-dark); font-size: 16px; }
+.competitor-suggestions > div:first-child > small, .competitor-suggestions > p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 6px 0 0; }
+.competitor-suggestion-list { display: grid; gap: 9px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 15px; }
+.competitor-suggestion-list button { background: white; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); cursor: pointer; display: grid; gap: 3px; padding: 12px; text-align: left; }
+.competitor-suggestion-list button:hover { border-color: #70a28f; box-shadow: 0 4px 14px rgba(31,74,61,.08); }
+.competitor-suggestion-list button > span { color: var(--forest); font-size: 12px; font-weight: 850; }
+.competitor-suggestion-list button > strong { font-size: 14px; overflow-wrap: anywhere; }
+.competitor-suggestion-list button > small { color: var(--muted); font-size: 11px; }
 .guided-review-grid span { font-size: 11px; }
 .guided-review-grid strong, .guided-review-grid p { font-size: 15px; }
 .guided-next strong { font-size: 15px; }

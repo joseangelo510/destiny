@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildContextSeedKeywords, dataForSeoPost, parseHistoricalRankOverview, runDataForSeoAudit } from "./seo";
+import { buildBuyerSeedKeywords, buildContextSeedKeywords, dataForSeoPost, parseHistoricalRankOverview, runDataForSeoAudit } from "./seo";
 
 function payload(result: unknown) {
   return { status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] };
@@ -38,6 +38,18 @@ describe("live audit orchestration", () => {
     ]);
   });
 
+  it("derives short service seeds for long-tail buyer keyword discovery", () => {
+    expect(buildBuyerSeedKeywords({
+      productsServices: "We provide college counseling services for high school students",
+      problemSolved: "Families need trusted college admissions and application advice",
+      idealCustomer: "High-achieving high school students",
+    }, 4)).toEqual([
+      "college counseling",
+      "college counselor",
+      "college admissions counselor",
+    ]);
+  });
+
   it("parses the provider's historical traffic and ranking keyword series", () => {
     expect(parseHistoricalRankOverview(payload({ items: [
       { year: 2026, month: 6, metrics: { organic: { etv: 140, count: 18, pos_1: 2, pos_2_3: 3, pos_4_10: 7, is_new: 4, is_lost: 1 } } },
@@ -60,6 +72,17 @@ describe("live audit orchestration", () => {
         { keyword: "college admissions consultant pricing", keyword_info: { search_volume: 1_300, cpc: 18 }, keyword_properties: { keyword_difficulty: 36 }, search_intent_info: { main_intent: "transactional" } },
         { keyword: "top colleges to get into", keyword_info: { search_volume: 8_100, cpc: 1 }, keyword_properties: { keyword_difficulty: 45 }, search_intent_info: { main_intent: "informational" } },
       ] }));
+      if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ items: [
+        { keyword: "where to hire a private college counselor", keyword_info: { search_volume: 170, cpc: 22 }, keyword_properties: { keyword_difficulty: 31 } },
+        { keyword: "best college counseling companies", keyword_info: { search_volume: 480, cpc: 19 }, keyword_properties: { keyword_difficulty: 39 } },
+      ] }));
+      if (url.endsWith("/search_intent/live")) {
+        const keywords = Array.isArray(body.keywords) ? body.keywords as string[] : [];
+        return Response.json(payload({ items: keywords.map((keyword) => ({
+          keyword,
+          keyword_intent: { label: /hire|pricing|companies/.test(keyword) ? "transactional" : /top colleges/.test(keyword) ? "informational" : "commercial", probability: 0.94 },
+        })) }));
+      }
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [
         { year: 2026, month: 5, metrics: { organic: { etv: 350, count: 9, pos_1: 1, pos_2_3: 1, pos_4_10: 3, is_new: 1, is_lost: 1 } } },
         { year: 2026, month: 6, metrics: { organic: { etv: 400, count: 10, pos_1: 1, pos_2_3: 2, pos_4_10: 4, is_new: 2, is_lost: 0 } } },
@@ -97,13 +120,19 @@ describe("live audit orchestration", () => {
     expect(result.keywords.find((keyword) => keyword.keyword === "college admissions consultant pricing")?.priorityScore).toBeGreaterThan(
       result.keywords.find((keyword) => keyword.keyword === "top colleges to get into")?.priorityScore ?? 100,
     );
+    expect(result.keywords.slice(0, 5).map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining([
+      "where to hire a private college counselor",
+      "best college counseling companies",
+    ]));
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
-    expect(result.publisherOpportunities).toEqual([{ domain: "educationpublisher.example", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", snippet: "A non-competing publisher ranking for the keyword.", keyword: "college admissions counseling" }]);
+    expect(result.publisherOpportunities).toEqual([{ domain: "educationpublisher.example", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", snippet: "A non-competing publisher ranking for the keyword.", keyword: "college admissions consultant pricing" }]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
     expect(result.historicalPerformance?.map((point) => [point.month, point.organicTraffic, point.rankingKeywords])).toEqual([
       [5, 350, 9], [6, 400, 10], [7, 440, 12],
     ]);
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/keyword_suggestions/live")).length).toBeGreaterThanOrEqual(1);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(1);
     const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
     expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
     expect(gapRequests.every(([, init]) => !JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword\""))).toBe(true);
@@ -126,6 +155,8 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 5 }, { domain: "competitor-two.com", intersections: 4 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "map of globe", keyword_info: { search_volume: 900 }, keyword_properties: {} }] }));
       if (url.endsWith("/keyword_ideas/live")) return Response.json(payload({ items: [] }));
+      if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ items: [] }));
+      if (url.endsWith("/search_intent/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/on_page/content_parsing/live")) {
         const pageUrl = String(body.url);

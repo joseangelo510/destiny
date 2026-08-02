@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
 import { CompassCompanion } from "./compass-companion";
 import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
-import { validateCompetitorEntries } from "../lib/onboarding/competitors";
+import { appendCompetitorSuggestion, validateCompetitorEntries } from "../lib/onboarding/competitors";
 import {
   DEFAULT_CELEBRATION_PREFERENCES,
   playDestinySound,
@@ -35,6 +35,12 @@ type SpeechRecognitionLike = {
 };
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+type CompetitorSuggestion = {
+  domain: string;
+  sharedKeywords: number;
+  relation: "search_landscape";
+};
 
 declare global {
   interface Window {
@@ -76,6 +82,9 @@ export function PublicOnboarding() {
   const [celebration, setCelebration] = useState("");
   const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
   const [celebrationsReady, setCelebrationsReady] = useState(false);
+  const [competitorSuggestions, setCompetitorSuggestions] = useState<CompetitorSuggestion[]>([]);
+  const [competitorSuggestionsLoading, setCompetitorSuggestionsLoading] = useState(false);
+  const [competitorSuggestionNotice, setCompetitorSuggestionNotice] = useState("");
 
   const updateField = (field: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -131,6 +140,29 @@ export function PublicOnboarding() {
     recognition.start();
   };
 
+  const discoverCompetitors = async () => {
+    setCompetitorSuggestionsLoading(true);
+    setCompetitorSuggestionNotice("");
+    try {
+      const sessionResponse = await fetch("/api/auth/anonymous", { method: "POST" });
+      if (!sessionResponse.ok) throw new Error("Destiny could not start competitor discovery.");
+      const response = await fetch("/api/onboarding/competitors/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ website: form.website, locationName: form.country }),
+      });
+      const payload = await response.json() as { suggestions?: CompetitorSuggestion[]; warning?: string };
+      setCompetitorSuggestions(payload.suggestions ?? []);
+      if (!payload.suggestions?.length) {
+        setCompetitorSuggestionNotice("No reliable search neighbors were found yet. Add two competitors you know by name or URL.");
+      }
+    } catch {
+      setCompetitorSuggestionNotice("Live competitor suggestions are unavailable right now. You can still add names or URLs yourself.");
+    } finally {
+      setCompetitorSuggestionsLoading(false);
+    }
+  };
+
   const nextStep = () => {
     if (!stepReady) return;
     setError("");
@@ -139,6 +171,7 @@ export function PublicOnboarding() {
     }
     const completedStage = ONBOARDING_MOMENTUM_STAGES[step - 1];
     setStep((current) => Math.min(4, current + 1));
+    if (step === 2) void discoverCompetitors();
     setCelebration(completedStage.celebration);
     void playDestinySound("task_complete");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -245,7 +278,18 @@ export function PublicOnboarding() {
 
           {step === 3 && <>
             <h2>Who are your competitors?</h2>
-            <p className="lede">Add at least two real competitors. Website URLs produce the strongest gap analysis; Destiny can still research names.</p>
+            <p className="lede">Add at least two real competitors. Destiny also discovers sites that compete for the same searches, so you can choose the businesses that truly belong in your analysis.</p>
+            <section aria-live="polite" className="competitor-suggestions">
+              <div><strong>Discovered in your search landscape</strong><small>These can include businesses, publishers, or marketplaces. Add only the companies you consider direct competitors.</small></div>
+              {competitorSuggestionsLoading && <p>Finding organic search neighbors for {form.website}…</p>}
+              {!competitorSuggestionsLoading && competitorSuggestions.length > 0 && <div className="competitor-suggestion-list">
+                {competitorSuggestions.map((suggestion) => <button key={suggestion.domain} onClick={() => {
+                  setForm((current) => ({ ...current, competitors: appendCompetitorSuggestion(current.competitors, suggestion.domain) }));
+                  setCompetitorSuggestions((current) => current.filter((item) => item.domain !== suggestion.domain));
+                }} type="button"><span>+ Add</span><strong>{suggestion.domain}</strong><small>{suggestion.sharedKeywords.toLocaleString()} shared keyword{suggestion.sharedKeywords === 1 ? "" : "s"}</small></button>)}
+              </div>}
+              {competitorSuggestionNotice && <p>{competitorSuggestionNotice}</p>}
+            </section>
             <VoiceTextarea field="competitors" label="Known competitors" listening={listening} onChange={(value) => updateField("competitors", value)} onDictate={dictate} placeholder={"One competitor per line\nIvyWise — ivywise.com\nCollegewise — collegewise.com"} value={form.competitors} />
             {form.competitors.trim() && !competitorValidation.ready && <div aria-live="polite" className="field-error" role="alert">{competitorValidation.error}</div>}
             <VoiceTextarea field="standout" label="What makes you stand out from competitors?" listening={listening} onChange={(value) => updateField("standout", value)} onDictate={dictate} placeholder="Share your experience, point of view, proof, and what customers value about working with you." value={form.standout} />

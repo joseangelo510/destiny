@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCompetitorEntries, validateCompetitorEntries } from "./competitors";
+import { appendCompetitorSuggestion, parseCompetitorEntries, validateCompetitorEntries } from "./competitors";
 
 describe("competitor onboarding", () => {
   it("requires at least two distinct competitors", () => {
@@ -16,5 +16,14 @@ describe("competitor onboarding", () => {
       { name: "IvyWise", url: "https://ivywise.com/", domain: "ivywise.com" },
       { name: "collegewise.com", url: "https://collegewise.com/", domain: "collegewise.com" },
     ]);
+  });
+
+  it("adds a discovered search neighbor once while preserving human-entered competitors", () => {
+    expect(appendCompetitorSuggestion("IvyWise — ivywise.com", "www.collegevine.com")).toBe(
+      "IvyWise — ivywise.com\ncollegevine.com",
+    );
+    expect(appendCompetitorSuggestion("IvyWise — ivywise.com", "https://ivywise.com/")).toBe(
+      "IvyWise — ivywise.com",
+    );
   });
 });

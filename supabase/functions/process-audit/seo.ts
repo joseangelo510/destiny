@@ -55,9 +55,13 @@ export type SeoAuditResult = {
     normalizedKeyword?: string;
     matchedTerms?: string[];
     competitorRankers?: number;
+    directCompetitorRankers?: number;
     providerIntent?: "transactional" | "commercial" | "navigational" | "informational";
     searchIntent?: "conversion" | "consideration" | "awareness";
     businessFit?: number;
+    revenueFit?: number;
+    relevanceTier?: "core" | "adjacent";
+    priorityTier?: 1 | 2 | 3 | 4;
     priorityScore?: number;
     priorityReason?: string;
     verdict?: "accept" | "review" | "reject";
@@ -383,8 +387,44 @@ export function mergeKeywordStrategy(groups: StrategyKeyword[][], limit = 24) {
 }
 
 const CONTEXT_STOP_WORDS = new Set([
-  "about", "across", "after", "also", "and", "are", "been", "business", "customer", "for", "from", "help", "into", "more", "people", "provide", "services", "that", "the", "their", "them", "they", "this", "through", "want", "who", "with", "you", "your",
+  "about", "across", "after", "also", "and", "are", "been", "business", "customer", "for", "from", "help", "into", "more", "people", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "through", "want", "we", "who", "with", "you", "your",
 ]);
+
+const SERVICE_SEED_TERMS = /^(?:agency|coach|coaching|consultant|consulting|counseling|counselor|realtor)$/i;
+
+export function buildBuyerSeedKeywords(context: BusinessContext | undefined, limit = 4): string[] {
+  const seen = new Set<string>();
+  const seeds: string[] = [];
+  const add = (value: string) => {
+    const keyword = keywordIdentity(value);
+    if (!keyword || keyword.split(/\s+/).length < 2 || seen.has(keyword) || seeds.length >= limit) return;
+    seen.add(keyword);
+    seeds.push(keyword);
+  };
+  const segments = [context?.productsServices]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .flatMap((value) => value.split(/\s*(?:[,;\n.]|\band\b)\s*/i));
+  for (const segment of segments) {
+    const tokens = keywordIdentity(segment).split(/\s+/)
+      .filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token));
+    const anchor = tokens.findIndex((token) => SERVICE_SEED_TERMS.test(token));
+    if (anchor >= 0) {
+      const seed = tokens.slice(Math.max(0, anchor - 2), anchor + 1).join(" ");
+      add(seed);
+      if (/\bcounseling$/i.test(seed)) add(seed.replace(/counseling$/i, "counselor"));
+      else if (/\bconsulting$/i.test(seed)) add(seed.replace(/consulting$/i, "consultant"));
+      else if (/\bcoaching$/i.test(seed)) add(seed.replace(/coaching$/i, "coach"));
+    } else if (tokens.length >= 2 && tokens.length <= 4) {
+      add(tokens.join(" "));
+    }
+  }
+  const description = [context?.productsServices, context?.problemSolved, context?.audienceChallengesGoals]
+    .filter(Boolean).join(" ");
+  if (/\bcollege\b/i.test(description) && /\badmissions?\b/i.test(description) && /\bcounsel/i.test(description)) {
+    add("college admissions counselor");
+  }
+  return seeds.slice(0, Math.max(0, limit));
+}
 
 export function buildContextSeedKeywords(context: BusinessContext | undefined, limit = 12): StrategyKeyword[] {
   const seen = new Set<string>();
@@ -467,6 +507,7 @@ export async function runDataForSeoAudit(
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
   const contextSeeds = buildContextSeedKeywords(businessContext, 12);
+  const buyerSeeds = buildBuyerSeedKeywords(businessContext, 4);
   const categorySeeds = contextSeeds.slice(0, 8).map((item) => item.keyword);
   // LLM target metrics can be the slowest live endpoint. Start it alongside
   // the baseline audit and contain failure so it never blocks core SEO results.
@@ -478,7 +519,7 @@ export async function runDataForSeoAudit(
   }], login, password, 30_000)
     .then((value) => ({ status: "fulfilled" as const, value }))
     .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
-  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, categoryIdeasPayload, historyPayload, homepageContent] = await Promise.all([
+  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, categoryIdeasPayload, buyerSuggestionResults, historyPayload, homepageContent] = await Promise.all([
     dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
       target: website.domain, location_name: location, language_name: "English",
@@ -504,6 +545,16 @@ export async function runDataForSeoAudit(
       order_by: ["keyword_info.search_volume,desc"],
       limit: 150,
     }], login, password) : Promise.resolve({ status_code: 20000, tasks: [{ status_code: 20000, result: [{ items: [] }] }] }),
+    Promise.allSettled(buyerSeeds.map((keyword) => dataForSeoPost("/v3/dataforseo_labs/google/keyword_suggestions/live", [{
+      keyword,
+      location_name: location,
+      language_name: "English",
+      include_seed_keyword: true,
+      ignore_synonyms: false,
+      filters: ["keyword_info.search_volume", ">", 0],
+      order_by: ["keyword_info.search_volume,desc", "keyword_info.cpc,desc"],
+      limit: 100,
+    }], login, password, 20_000))),
     dataForSeoPost("/v3/dataforseo_labs/google/historical_rank_overview/live", [{
       target: website.domain,
       location_name: location,
@@ -526,6 +577,9 @@ export async function runDataForSeoAudit(
   const rankedKeywords = parseRankedKeywords(rankings);
   const keywordIdeas = parseKeywordIdeas(firstResult(ideasPayload));
   const categoryKeywordIdeas = parseKeywordIdeas(firstResult(categoryIdeasPayload));
+  const buyerKeywordIdeas = buyerSuggestionResults.flatMap((result) => result.status === "fulfilled"
+    ? parseKeywordIdeas(firstResult(result.value))
+    : []);
   const historicalPerformance = parseHistoricalRankOverview(historyPayload);
 
   const homepageResult = firstResult(homepageContent);
@@ -566,6 +620,7 @@ export async function runDataForSeoAudit(
     try { return [normalizeWebsite(competitor.url).domain]; } catch { return []; }
   });
   const resolvedNamedDomains = await resolveNamedCompetitorDomains(knownCompetitors, website.domain, location, login, password);
+  const directCompetitorDomains = new Set([...providedDomains, ...resolvedNamedDomains]);
   const competitorDomains = [...new Set([...providedDomains, ...resolvedNamedDomains, ...competitors.map((competitor) => competitor.domain)])]
     .filter((domain) => domain && domain !== website.domain)
     .slice(0, 5);
@@ -589,21 +644,30 @@ export async function runDataForSeoAudit(
     login,
     password,
   )));
-  const gapPayloads = gapResults.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
-  if (gapPayloads.length < 2) {
+  const gapEvidence = gapResults.flatMap((result, index) => result.status === "fulfilled"
+    ? [{ domain: competitorDomains[index], payload: result.value }]
+    : []);
+  if (gapEvidence.length < 2) {
     throw new Error("Destiny could not retrieve enough live competitor evidence. Retry the audit in a moment.");
   }
   await onProgress(65);
-  const gapGroups = gapPayloads.map((payload) => parseGapKeywords(firstResult(payload)));
+  const gapGroups = gapEvidence.map((evidence) => ({
+    ...evidence,
+    keywords: parseGapKeywords(firstResult(evidence.payload)),
+  }));
   const competitorRankCounts = new Map<string, number>();
+  const directCompetitorRankCounts = new Map<string, number>();
   const gapByKeyword = new Map<string, StrategyKeyword>();
   for (const group of gapGroups) {
     const seenInCompetitor = new Set<string>();
-    for (const keyword of group) {
+    for (const keyword of group.keywords) {
       const key = keywordIdentity(keyword.keyword);
       if (!key || seenInCompetitor.has(key)) continue;
       seenInCompetitor.add(key);
       competitorRankCounts.set(key, (competitorRankCounts.get(key) ?? 0) + 1);
+      if (directCompetitorDomains.has(group.domain)) {
+        directCompetitorRankCounts.set(key, (directCompetitorRankCounts.get(key) ?? 0) + 1);
+      }
       const existing = gapByKeyword.get(key);
       if (!existing || keyword.searchVolume > existing.searchVolume) gapByKeyword.set(key, keyword);
     }
@@ -612,17 +676,34 @@ export async function runDataForSeoAudit(
     (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
       || b.searchVolume - a.searchVolume
       || a.keyword.localeCompare(b.keyword));
-  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas, categoryKeywordIdeas, contextSeeds], 500)
+  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, buyerKeywordIdeas, keywordIdeas, categoryKeywordIdeas, contextSeeds], 500)
     .map((keyword) => ({
       ...keyword,
       competitorRankers: competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
+      directCompetitorRankers: directCompetitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
     }));
-  const keywords = rankKeywordOpportunities(strategyCandidates, businessContext ?? {}, 50).map((keyword) => ({
+  const intentResult = strategyCandidates.length ? await dataForSeoPost("/v3/dataforseo_labs/google/search_intent/live", [{
+    keywords: strategyCandidates.slice(0, 500).map((keyword) => keyword.keyword),
+    language_name: "English",
+  }], login, password, 20_000).then(firstResult).catch(() => null) : null;
+  const intentByKeyword = new Map(array(intentResult?.items).flatMap((item) => {
+    const row = record(item);
+    const label = string(record(row.keyword_intent).label);
+    const key = keywordIdentity(string(row.keyword));
+    return key && label ? [[key, label] as const] : [];
+  }));
+  const intentEnrichedCandidates = strategyCandidates.map((keyword) => ({
+    ...keyword,
+    intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
+  }));
+  const keywords = rankKeywordOpportunities(intentEnrichedCandidates, businessContext ?? {}, 50).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),
     matchedTerms: [],
     reason: keyword.priorityReason,
-    essential: keyword.opportunity === "competitor_gap" && Number(keyword.competitorRankers ?? 0) >= 2 && keyword.providerIntent !== "informational",
+    essential: keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
+      && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
+        || keyword.providerIntent === "transactional"),
   }));
   await onProgress(80);
 
@@ -679,7 +760,11 @@ export async function runDataForSeoAudit(
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
       `Destiny inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
-      `The approval pool is prioritized by search intent, monthly demand, ranking difficulty, commercial value, and opportunity evidence across ${competitorDomains.length} competitor domains.`,
+      `The approval pool is prioritized by core business relevance, revenue intent, monthly demand, ranking difficulty, commercial value, and opportunity evidence across ${competitorDomains.length} competitor domains.`,
+      directCompetitorDomains.size
+        ? `${directCompetitorDomains.size} business competitor${directCompetitorDomains.size === 1 ? " is" : "s are"} weighted more strongly than discovered publishers and other search-landscape domains.`
+        : "Discovered domains are treated as search-landscape evidence until the user identifies direct business competitors.",
+      buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} service seed${buyerSeeds.length === 1 ? "" : "s"} and reclassified with DataForSEO Search Intent.` : "No short service seed could be derived from onboarding evidence.",
       contextSeeds.length ? "Site and category ideas are seeded from onboarding evidence, while LOGOS remains responsible for coaching orchestration rather than keyword language judgments." : "No usable category seed could be derived from the onboarding description.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",

@@ -8,6 +8,75 @@ const EMPOWERLY_CONTEXT = {
 };
 
 describe("keyword opportunity ranking", () => {
+  it("rejects unrelated high-volume keywords that only share generic onboarding words", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "best savings account high-yield", intent: "commercial", searchVolume: 1_000_000, difficulty: 37, cpc: 15.23, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "college counselor", intent: "commercial", searchVolume: 6_600, difficulty: 42, cpc: 67.88, opportunity: "existing_rank", rank: 1 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(["college counselor"]);
+  });
+
+  it("puts hiring, pricing, and service-comparison queries ahead of broad research", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "top colleges to get into", intent: "informational", searchVolume: 8_100, difficulty: 45, cpc: 1, opportunity: "site_idea" },
+      { keyword: "best colleges for autism spectrum students", intent: "commercial", searchVolume: 140, difficulty: 26, cpc: 2.4, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "where to hire a private college counselor", intent: "transactional", searchVolume: 170, difficulty: 31, cpc: 22, opportunity: "site_idea" },
+      { keyword: "best college counseling companies", intent: "commercial", searchVolume: 480, difficulty: 39, cpc: 19, opportunity: "competitor_gap", competitorRankers: 3, directCompetitorRankers: 2 },
+      { keyword: "college counselor", intent: "commercial", searchVolume: 6_600, difficulty: 42, cpc: 67, opportunity: "existing_rank", rank: 1 },
+      { keyword: "admissions counseling", intent: "commercial", searchVolume: 2_400, difficulty: 37, cpc: 22, opportunity: "existing_rank", rank: 1 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.slice(0, 4).map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "where to hire a private college counselor",
+      "best college counseling companies",
+      "college counselor",
+      "admissions counseling",
+    ]));
+    expect(ranked.findIndex((item) => item.keyword === "top colleges to get into"))
+      .toBeGreaterThan(ranked.findIndex((item) => item.keyword === "best college counseling companies"));
+    expect(ranked.find((item) => item.keyword === "where to hire a private college counselor"))
+      .toMatchObject({ searchIntent: "conversion", relevanceTier: "core", priorityTier: 1 });
+    expect(ranked.find((item) => item.keyword === "top colleges to get into")?.priorityTier).toBe(4);
+  });
+
+  it("rejects bare university navigation while retaining useful admissions research variants", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "University of Pennsylvania Philadelphia", intent: "navigational", searchVolume: 14_800, difficulty: 63, cpc: 3, opportunity: "competitor_gap", competitorRankers: 3 },
+      { keyword: "Vanderbilt University", intent: "navigational", searchVolume: 90_500, difficulty: 72, cpc: 2, opportunity: "competitor_gap", competitorRankers: 3 },
+      { keyword: "University of Pennsylvania acceptance rate", intent: "informational", searchVolume: 12_100, difficulty: 49, cpc: 4, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "how to get into University of Pennsylvania", intent: "informational", searchVolume: 1_300, difficulty: 36, cpc: 5, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "University of Pennsylvania acceptance rate",
+      "how to get into University of Pennsylvania",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "University of Pennsylvania Philadelphia",
+      "Vanderbilt University",
+    ]));
+  });
+
+  it("weights direct business competitors more than publisher-only search overlap", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "college admissions consultant reviews", intent: "commercial", searchVolume: 320, difficulty: 38, cpc: 13, opportunity: "competitor_gap", competitorRankers: 2, directCompetitorRankers: 2 },
+      { keyword: "college admissions consulting guide", intent: "commercial", searchVolume: 320, difficulty: 38, cpc: 13, opportunity: "competitor_gap", competitorRankers: 4, directCompetitorRankers: 0 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked[0].keyword).toBe("college admissions consultant reviews");
+    expect(ranked[0].priorityReason).toMatch(/direct competitor/i);
+  });
+
+  it("rejects an incompatible graduate-school audience even when admissions words overlap", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "writing essay for MBA admissions", intent: "commercial", searchVolume: 1_000, difficulty: 31, cpc: 11, opportunity: "site_idea" },
+      { keyword: "college application essay counseling", intent: "commercial", searchVolume: 390, difficulty: 29, cpc: 16, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(["college application essay counseling"]);
+  });
+
   it("ranks revenue-oriented admissions searches ahead of larger awareness topics", () => {
     const ranked = rankKeywordOpportunities([
       { keyword: "top colleges to get into", intent: "informational", searchVolume: 8_100, difficulty: 45, cpc: 1, opportunity: "site_idea" },
