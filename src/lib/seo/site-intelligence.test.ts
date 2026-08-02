@@ -23,13 +23,17 @@ describe("site intelligence", () => {
     ]);
   });
 
-  it("fills missing strategic roles with deterministic same-domain fallbacks", () => {
+  it("does not fabricate missing pages or fill evidence with arbitrary links", () => {
     expect(selectImportantPageLinks("https://example.com/", [])).toEqual([
       { url: "https://example.com/", role: "homepage" },
-      { url: "https://example.com/services", role: "product" },
-      { url: "https://example.com/how-it-works", role: "how_it_works" },
-      { url: "https://example.com/about", role: "about" },
-      { url: "https://example.com/contact", role: "contact" },
+    ]);
+    expect(selectImportantPageLinks("https://example.com/", [
+      "https://example.com/uncategorized/random-post",
+      "https://example.com/blog/admissions-news",
+      "https://example.com/services/college-admissions",
+    ], 8)).toEqual([
+      { url: "https://example.com/", role: "homepage" },
+      { url: "https://example.com/services/college-admissions", role: "product" },
     ]);
   });
 

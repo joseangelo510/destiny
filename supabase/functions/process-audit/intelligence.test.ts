@@ -26,9 +26,7 @@ describe("audit-worker intelligence parity", () => {
     expect(selectImportantPageLinks(parsed.url, parsed.links)).toEqual([
       { url: "https://example.com/", role: "homepage" },
       { url: "https://example.com/services", role: "product" },
-      { url: "https://example.com/how-it-works", role: "how_it_works" },
       { url: "https://example.com/about", role: "about" },
-      { url: "https://example.com/contact", role: "contact" },
     ]);
   });
 

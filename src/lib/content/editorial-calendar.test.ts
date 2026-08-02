@@ -4,6 +4,7 @@ import {
   buildEditorialCalendar,
   inferBusinessModel,
   prioritizeEditorialKeywords,
+  selectKeywordsForCalendar,
 } from "./editorial-calendar";
 
 describe("six-month editorial calendar", () => {
@@ -123,5 +124,23 @@ describe("six-month editorial calendar", () => {
 
   it("returns no invented calendar when there are no approved keywords", () => {
     expect(buildEditorialCalendar([])).toEqual([]);
+  });
+
+  it("uses approved keyword decisions and excludes every declined keyword", () => {
+    const candidates = [
+      { keyword: "college admissions consultant", intent: "commercial", searchVolume: 1_300 },
+      { keyword: "college essay tips", intent: "informational", searchVolume: 8_100 },
+      { keyword: "college counselor pricing", intent: "transactional", searchVolume: 260 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {
+      "college admissions consultant": "approved",
+      "college essay tips": "declined",
+      "college counselor pricing": "approved",
+    });
+
+    expect(selected.map((item) => item.keyword)).toEqual([
+      "college admissions consultant",
+      "college counselor pricing",
+    ]);
   });
 });

@@ -8,6 +8,15 @@ export type EditorialKeyword = {
   cpc?: number;
 };
 
+export function selectKeywordsForCalendar<T extends EditorialKeyword>(
+  keywords: T[],
+  decisions: Record<string, "approved" | "declined">,
+): T[] {
+  const reviewed = Object.keys(decisions).length > 0;
+  if (!reviewed) return keywords;
+  return keywords.filter((keyword) => decisions[keyword.keyword] === "approved");
+}
+
 export type SearchIntent = "awareness" | "consideration" | "conversion";
 export type BusinessModel = "product" | "service";
 

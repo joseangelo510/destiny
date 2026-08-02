@@ -4,23 +4,35 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
-import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel } from "@/lib/content/editorial-calendar";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage() {
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
-  const keywords = list(providerResult.keywords).map(record).filter((item) => typeof item.keyword === "string" && item.verdict !== "reject");
-  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
-  const calendar = buildEditorialCalendar(keywords.map((keyword) => ({
-    keyword: String(keyword.keyword),
-    intent: String(keyword.intent || "informational"),
+  const keywordRecords = list(providerResult.keywords).map(record);
+  const rankedKeywords = rankKeywordOpportunities(keywordRecords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
+    keyword: keyword.keyword,
+    intent: String(keyword.intent || keyword.providerIntent || "informational"),
     opportunity: String(keyword.opportunity || "site_idea"),
     searchVolume: Number(keyword.searchVolume ?? 0),
     difficulty: Number(keyword.difficulty ?? 0),
     rank: Number(keyword.rank ?? 0),
     cpc: Number(keyword.cpc ?? 0),
-  })), 24, inferBusinessModel(context.website?.products_services ?? ""));
+    competitorRankers: Number(keyword.competitorRankers ?? 0),
+  }] : []), {
+    productsServices: context.website?.products_services ?? "",
+    problemSolved: context.website?.problem_solved ?? "",
+    idealCustomer: context.website?.ideal_customer ?? "",
+    audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
+    market: context.website?.market ?? "",
+  }, 50);
+  const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
+  const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
+  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions);
+  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
+  const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), 24, inferBusinessModel(context.website?.products_services ?? ""));
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
@@ -33,7 +45,7 @@ export default async function ContentPage() {
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
       <FeatureJourneyCallout milestone="First content published" description="Reviewing and approving a useful article is an effort milestone. Destiny will separately verify when search engines begin showing it." />
-      {!keywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate ranked keywords. Live DataForSEO credentials will replace the explicitly labeled demo keyword set." /> : (
+      {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace

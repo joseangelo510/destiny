@@ -48,7 +48,7 @@ describe("live audit orchestration", () => {
     ]);
   });
 
-  it("uses five-page evidence, two competitor gaps, real threads, and LLM citations", async () => {
+  it("uses real strategic pages, broad intent-ready keyword evidence, competitor gaps, real threads, and LLM citations", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = String(input);
       const body = JSON.parse(String(init?.body || "[]"))[0] as Record<string, unknown>;
@@ -56,6 +56,10 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 12, is_new: 2, is_lost: 0, etv: 440 } }, items: [] }));
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 12 }, { domain: "competitor-two.com", intersections: 9 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "college admissions counseling", keyword_info: { search_volume: 500, cpc: 4 }, keyword_properties: { keyword_difficulty: 31 }, search_intent_info: { main_intent: "commercial" } }] }));
+      if (url.endsWith("/keyword_ideas/live")) return Response.json(payload({ items: [
+        { keyword: "college admissions consultant pricing", keyword_info: { search_volume: 1_300, cpc: 18 }, keyword_properties: { keyword_difficulty: 36 }, search_intent_info: { main_intent: "transactional" } },
+        { keyword: "top colleges to get into", keyword_info: { search_volume: 8_100, cpc: 1 }, keyword_properties: { keyword_difficulty: 45 }, search_intent_info: { main_intent: "informational" } },
+      ] }));
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [
         { year: 2026, month: 5, metrics: { organic: { etv: 350, count: 9, pos_1: 1, pos_2_3: 1, pos_4_10: 3, is_new: 1, is_lost: 1 } } },
         { year: 2026, month: 6, metrics: { organic: { etv: 400, count: 10, pos_1: 1, pos_2_3: 2, pos_4_10: 4, is_new: 2, is_lost: 0 } } },
@@ -87,9 +91,12 @@ describe("live audit orchestration", () => {
       idealCustomer: "Families with high school students",
     }, [], async (value) => { progress.push(value); });
 
-    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product", "how_it_works", "about", "contact"]);
+    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product"]);
     expect(result.siteVocabulary?.some((term) => term.normalized === "college admission")).toBe(true);
-    expect(result.keywords.find((keyword) => keyword.keyword === "college admissions counseling")).toMatchObject({ competitorRankers: 2, verdict: "accept", essential: true, ruleId: "essential_gap" });
+    expect(result.keywords.find((keyword) => keyword.keyword === "college admissions counseling")).toMatchObject({ competitorRankers: 2, providerIntent: "commercial", searchIntent: "consideration" });
+    expect(result.keywords.find((keyword) => keyword.keyword === "college admissions consultant pricing")?.priorityScore).toBeGreaterThan(
+      result.keywords.find((keyword) => keyword.keyword === "top colleges to get into")?.priorityScore ?? 100,
+    );
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
     expect(result.publisherOpportunities).toEqual([{ domain: "educationpublisher.example", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", snippet: "A non-competing publisher ranking for the keyword.", keyword: "college admissions counseling" }]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
@@ -99,8 +106,11 @@ describe("live audit orchestration", () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
     const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
     expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
-    expect(gapRequests.every(([, init]) => JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword"))).toBe(true);
-    expect(gapRequests.every(([, init]) => JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("%college admission%"))).toBe(true);
+    expect(gapRequests.every(([, init]) => !JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword\""))).toBe(true);
+    const rankedRequest = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/ranked_keywords/live"));
+    const siteIdeasRequest = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/keywords_for_site/live"));
+    expect(JSON.parse(String(rankedRequest?.[1]?.body || "[]"))[0].limit).toBeGreaterThanOrEqual(100);
+    expect(JSON.parse(String(siteIdeasRequest?.[1]?.body || "[]"))[0].limit).toBeGreaterThanOrEqual(100);
     expect(progress).toEqual([30, 45, 65, 80, 90]);
     const calledUrls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/llm_mentions/target_metrics/live")) ?? "missing"))
@@ -115,6 +125,7 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 0, is_new: 0, is_lost: 0, etv: 0 } }, items: [] }));
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 5 }, { domain: "competitor-two.com", intersections: 4 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "map of globe", keyword_info: { search_volume: 900 }, keyword_properties: {} }] }));
+      if (url.endsWith("/keyword_ideas/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/on_page/content_parsing/live")) {
         const pageUrl = String(body.url);
@@ -135,13 +146,11 @@ describe("live audit orchestration", () => {
 
     expect(result.keywords.find((keyword) => keyword.keyword === "online graphic design")).toMatchObject({
       opportunity: "site_idea",
-      verdict: "accept",
-      ruleId: "site_vocabulary_match",
-      essential: false,
+      providerIntent: "commercial",
+      searchIntent: "consideration",
     });
-    expect(result.keywords.find((keyword) => keyword.keyword === "chevrons")?.verdict).toBe("reject");
-    expect(result.keywords.findIndex((keyword) => keyword.keyword === "online graphic design"))
-      .toBeLessThan(result.keywords.findIndex((keyword) => keyword.keyword === "map of globe"));
-    expect(result.keywords.some((keyword) => keyword.essential)).toBe(false);
+    expect(result.keywords.some((keyword) => keyword.keyword === "chevrons")).toBe(false);
+    expect(result.keywords.some((keyword) => keyword.keyword === "map of globe")).toBe(false);
+    expect(result.keywords.every((keyword) => typeof keyword.priorityScore === "number")).toBe(true);
   });
 });

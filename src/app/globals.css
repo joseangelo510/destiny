@@ -952,6 +952,13 @@ body { font-size: 17px; }
 .strategy-keyword-list article small { color: var(--muted); font-size: 13px; }
 .strategy-keyword-list article > div:last-child { display: flex; gap: 8px; }
 .strategy-keyword-label { color: var(--forest); font-size: 13px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.strategy-keyword-topline { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+.strategy-keyword-topline > b { color: var(--muted); font-size: 13px; }
+.strategy-keyword-topline .intent-chip { border-radius: 999px; font-size: 12px; padding: 5px 8px; text-transform: capitalize; }
+.keyword-bulk-actions { align-items: center; background: #f3f7f5; border: 1px solid var(--line); border-radius: 16px; display: flex; gap: 10px; margin-top: 24px; padding: 16px; }
+.keyword-bulk-actions > div { flex: 1; }
+.keyword-bulk-actions strong, .keyword-bulk-actions span { display: block; }
+.keyword-bulk-actions span, .keyword-method-note { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 4px; }
 .decline-button { background: transparent; border: 1px solid #e6c7c0; border-radius: 12px; color: #914b3d; font-weight: 750; min-height: 50px; padding: 0 18px; }
 .decline-button.active { background: #f8e5e1; }
 .strategy-review-finish { align-items: center; border-top: 1px solid var(--line); display: flex; gap: 25px; justify-content: space-between; padding-top: 24px; }

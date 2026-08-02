@@ -1,8 +1,6 @@
-import { runDestinyLogic } from "./logic.ts";
+import { rankKeywordOpportunities } from "./keyword-opportunity.ts";
 import {
-  buildKeywordFacts,
   extractSiteVocabulary,
-  normalizeTerm,
   parseContentPage,
   parseDistributionSerp,
   parseLlmVisibility,
@@ -57,6 +55,11 @@ export type SeoAuditResult = {
     normalizedKeyword?: string;
     matchedTerms?: string[];
     competitorRankers?: number;
+    providerIntent?: "transactional" | "commercial" | "navigational" | "informational";
+    searchIntent?: "conversion" | "consideration" | "awareness";
+    businessFit?: number;
+    priorityScore?: number;
+    priorityReason?: string;
     verdict?: "accept" | "review" | "reject";
     ruleId?: string;
     reason?: string;
@@ -291,7 +294,7 @@ export async function dataForSeoPost(path: string, body: JsonRecord[], login: st
 type StrategyKeyword = SeoAuditResult["keywords"][number];
 
 function parseRankedKeywords(result: JsonRecord): StrategyKeyword[] {
-  return array(result.items).slice(0, 25).map((item) => {
+  return array(result.items).slice(0, 100).map((item) => {
     const row = record(item);
     const keywordData = record(row.keyword_data);
     const keywordInfo = record(keywordData.keyword_info);
@@ -311,7 +314,7 @@ function parseRankedKeywords(result: JsonRecord): StrategyKeyword[] {
 }
 
 function parseKeywordIdeas(result: JsonRecord): StrategyKeyword[] {
-  return array(result.items).slice(0, 25).map((item) => {
+  return array(result.items).slice(0, 150).map((item) => {
     const row = record(item);
     const keywordInfo = record(row.keyword_info);
     return {
@@ -328,7 +331,7 @@ function parseKeywordIdeas(result: JsonRecord): StrategyKeyword[] {
 }
 
 function parseGapKeywords(result: JsonRecord): StrategyKeyword[] {
-  return array(result.items).slice(0, 25).map((item) => {
+  return array(result.items).slice(0, 150).map((item) => {
     const keywordData = record(record(item).keyword_data);
     const keywordInfo = record(keywordData.keyword_info);
     const keywordProperties = record(keywordData.keyword_properties);
@@ -412,44 +415,44 @@ export function buildContextSeedKeywords(context: BusinessContext | undefined, l
   return candidates;
 }
 
-function buildCompetitorGapFilters(context: BusinessContext | undefined) {
-  const relevancePhrases = [...new Set(buildContextSeedKeywords(context, 12).flatMap((keyword) => {
-    const tokens = normalizeTerm(keyword.keyword).split(/\s+/).filter(Boolean);
-    return tokens.length === 2
-      ? [tokens.join(" ")]
-      : tokens.slice(0, -1).map((token, index) => `${token} ${tokens[index + 1]}`);
-  }))].slice(0, 5);
-  const volumeFilter: unknown[] = ["keyword_data.keyword_info.search_volume", ">", 0];
-  if (!relevancePhrases.length) return volumeFilter;
-  const relevanceFilter: unknown[] = [];
-  relevancePhrases.forEach((phrase, index) => {
-    if (index) relevanceFilter.push("or");
-    relevanceFilter.push(["keyword_data.keyword", "like", `%${phrase}%`]);
-  });
-  return [volumeFilter, "and", relevanceFilter];
+const COMMON_NON_COMPETITOR_DOMAINS = /(?:facebook|instagram|linkedin|reddit|wikipedia|youtube)\.com$/i;
+
+function domainFromSerpItem(item: unknown, competitorName: string, targetDomain: string) {
+  const row = record(item);
+  if (string(row.type) && string(row.type) !== "organic") return "";
+  const url = string(row.url);
+  if (!url) return "";
+  try {
+    const domain = normalizeWebsite(url).domain;
+    if (domain === targetDomain || COMMON_NON_COMPETITOR_DOMAINS.test(domain)) return "";
+    const nameTokens = keywordIdentity(competitorName).split(/\s+/).filter((token) => token.length >= 4);
+    const evidence = keywordIdentity(`${domain} ${string(row.title)}`);
+    return nameTokens.some((token) => evidence.includes(token)) ? domain : "";
+  } catch {
+    return "";
+  }
 }
 
-function buildKeywordStrategy(groups: StrategyKeyword[][], context: BusinessContext | undefined, limit = 24) {
-  const contextValue = `${context?.productsServices ?? ""} ${context?.problemSolved ?? ""} ${context?.idealCustomer ?? ""} ${context?.audienceChallengesGoals ?? ""} ${context?.market ?? ""}`.toLowerCase();
-  const tokens = new Set(contextValue.split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !CONTEXT_STOP_WORDS.has(token)));
-  if (!tokens.size) return mergeKeywordStrategy(groups, limit);
-  const relevantGroups = groups.map((group) => group.filter((keyword) => {
-    const phrase = keyword.keyword.toLowerCase();
-    return [...tokens].some((token) => phrase.includes(token));
-  }));
-  const strategy = mergeKeywordStrategy(relevantGroups, limit);
-  const seen = new Set(strategy.map((keyword) => keywordIdentity(keyword.keyword)));
-  if (strategy.length < limit) {
-    const fallback = mergeKeywordStrategy(groups, groups.reduce((total, group) => total + group.length, 0));
-    for (const keyword of fallback) {
-      const key = keywordIdentity(keyword.keyword);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      strategy.push(keyword);
-      if (strategy.length === limit) break;
-    }
-  }
-  return strategy;
+async function resolveNamedCompetitorDomains(
+  competitors: Array<{ name: string; url?: string | null }>,
+  targetDomain: string,
+  location: string,
+  login: string,
+  password: string,
+) {
+  const unresolved = competitors.filter((competitor) => competitor.name.trim() && !competitor.url);
+  const results = await Promise.allSettled(unresolved.map((competitor) => dataForSeoPost(
+    "/v3/serp/google/organic/live/advanced",
+    [{ keyword: competitor.name.trim(), location_name: location, language_code: "en", depth: 10 }],
+    login,
+    password,
+  )));
+  return results.flatMap((result, index) => {
+    if (result.status !== "fulfilled") return [];
+    const items = array(firstResult(result.value).items);
+    const domain = items.map((item) => domainFromSerpItem(item, unresolved[index].name, targetDomain)).find(Boolean);
+    return domain ? [domain] : [];
+  });
 }
 
 export async function runDataForSeoAudit(
@@ -463,6 +466,8 @@ export async function runDataForSeoAudit(
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
+  const contextSeeds = buildContextSeedKeywords(businessContext, 12);
+  const categorySeeds = contextSeeds.slice(0, 8).map((item) => item.keyword);
   // LLM target metrics can be the slowest live endpoint. Start it alongside
   // the baseline audit and contain failure so it never blocks core SEO results.
   const llmPromise = dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
@@ -473,11 +478,11 @@ export async function runDataForSeoAudit(
   }], login, password, 30_000)
     .then((value) => ({ status: "fulfilled" as const, value }))
     .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
-  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, historyPayload, homepageContent] = await Promise.all([
+  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, categoryIdeasPayload, historyPayload, homepageContent] = await Promise.all([
     dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
       target: website.domain, location_name: location, language_name: "English",
-      item_types: ["organic", "local_pack", "featured_snippet"], limit: 24,
+      item_types: ["organic", "local_pack", "featured_snippet"], limit: 100,
     }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/competitors_domain/live", [{
       target: website.domain, location_name: location, language_name: "English",
@@ -489,8 +494,16 @@ export async function runDataForSeoAudit(
       language_name: "English",
       filters: ["keyword_info.search_volume", ">", 0],
       order_by: ["relevance,desc", "keyword_info.search_volume,desc"],
-      limit: 24,
+      limit: 100,
     }], login, password),
+    categorySeeds.length ? dataForSeoPost("/v3/dataforseo_labs/google/keyword_ideas/live", [{
+      keywords: categorySeeds,
+      location_name: location,
+      language_name: "English",
+      filters: ["keyword_info.search_volume", ">", 0],
+      order_by: ["keyword_info.search_volume,desc"],
+      limit: 150,
+    }], login, password) : Promise.resolve({ status_code: 20000, tasks: [{ status_code: 20000, result: [{ items: [] }] }] }),
     dataForSeoPost("/v3/dataforseo_labs/google/historical_rank_overview/live", [{
       target: website.domain,
       location_name: location,
@@ -512,6 +525,7 @@ export async function runDataForSeoAudit(
   }).filter((competitor) => competitor.domain && competitor.domain.toLowerCase().replace(/^www\./, "") !== website.domain);
   const rankedKeywords = parseRankedKeywords(rankings);
   const keywordIdeas = parseKeywordIdeas(firstResult(ideasPayload));
+  const categoryKeywordIdeas = parseKeywordIdeas(firstResult(categoryIdeasPayload));
   const historicalPerformance = parseHistoricalRankOverview(historyPayload);
 
   const homepageResult = firstResult(homepageContent);
@@ -551,7 +565,8 @@ export async function runDataForSeoAudit(
     if (!competitor.url) return [];
     try { return [normalizeWebsite(competitor.url).domain]; } catch { return []; }
   });
-  const competitorDomains = [...new Set([...providedDomains, ...competitors.map((competitor) => competitor.domain)])]
+  const resolvedNamedDomains = await resolveNamedCompetitorDomains(knownCompetitors, website.domain, location, login, password);
+  const competitorDomains = [...new Set([...providedDomains, ...resolvedNamedDomains, ...competitors.map((competitor) => competitor.domain)])]
     .filter((domain) => domain && domain !== website.domain)
     .slice(0, 5);
   if (competitorDomains.length < 2) {
@@ -567,7 +582,7 @@ export async function runDataForSeoAudit(
       language_name: "English",
       intersections: false,
       item_types: ["organic", "local_pack"],
-      filters: buildCompetitorGapFilters(businessContext),
+      filters: ["keyword_data.keyword_info.search_volume", ">", 0],
       order_by: ["keyword_data.keyword_info.search_volume,desc"],
       limit: 300,
     }],
@@ -597,42 +612,21 @@ export async function runDataForSeoAudit(
     (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
       || b.searchVolume - a.searchVolume
       || a.keyword.localeCompare(b.keyword));
-  const contextSeeds = buildContextSeedKeywords(businessContext);
-  const strategyCandidates = buildKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas, contextSeeds], businessContext, 36);
-  const keywords = await Promise.all(strategyCandidates.map(async (keyword) => {
-    const competitorRankers = competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0;
-    const facts = buildKeywordFacts(keyword.keyword, siteVocabulary, competitorRankers);
-    const decision = await runDestinyLogic({
-      auditComplete: 1,
-      criticalIssues: 0,
-      warnings: 0,
-      rankingKeywords: rankedKeywords.length,
-      newKeywords: 0,
-      lostKeywords: 0,
-      contentGaps: gapKeywords.length,
-      reviewCount: 0,
-      keywordCoreMatches: facts.coreMatches,
-      keywordSupportMatches: facts.supportMatches,
-      competitorRankers: facts.competitorRankers,
-      keywordBlocklisted: facts.blocklisted ? 1 : 0,
-      planTier: 1,
-    });
-    return {
+  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas, categoryKeywordIdeas, contextSeeds], 500)
+    .map((keyword) => ({
       ...keyword,
-      normalizedKeyword: facts.normalizedKeyword,
-      matchedTerms: facts.matchedTerms,
-      competitorRankers,
-      verdict: decision.keywordVerdict,
-      ruleId: decision.keywordRuleId,
-      reason: decision.keywordReason,
-      essential: decision.essentialKeyword,
-    };
+      competitorRankers: competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
+    }));
+  const keywords = rankKeywordOpportunities(strategyCandidates, businessContext ?? {}, 50).map((keyword) => ({
+    ...keyword,
+    normalizedKeyword: keywordIdentity(keyword.keyword),
+    matchedTerms: [],
+    reason: keyword.priorityReason,
+    essential: keyword.opportunity === "competitor_gap" && Number(keyword.competitorRankers ?? 0) >= 2 && keyword.providerIntent !== "informational",
   }));
   await onProgress(80);
 
-  const firstAcceptedKeyword = keywords.find((keyword) => keyword.essential)
-    ?? keywords.find((keyword) => keyword.verdict === "accept")
-    ?? keywords.find((keyword) => keyword.verdict === "review");
+  const firstAcceptedKeyword = keywords.find((keyword) => keyword.essential) ?? keywords[0];
   const distributionTopic = firstAcceptedKeyword?.keyword ?? siteVocabulary.find((term) => term.term.includes(" "))?.term ?? website.domain;
   const [redditResult, quoraResult, publisherResult] = await Promise.allSettled([
     dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `reddit ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
@@ -655,7 +649,7 @@ export async function runDataForSeoAudit(
     domain,
     sharedKeywords: competitors.find((competitor) => competitor.domain === domain)?.sharedKeywords ?? 0,
   }));
-  const acceptedGapCount = keywords.filter((keyword) => keyword.opportunity === "competitor_gap" && keyword.verdict === "accept").length;
+  const acceptedGapCount = keywords.filter((keyword) => keyword.opportunity === "competitor_gap").length;
 
   return {
     source: "dataforseo",
@@ -684,9 +678,9 @@ export async function runDataForSeoAudit(
     llmVisibility,
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
-      `Destiny inspected ${pages.length} important page${pages.length === 1 ? "" : "s"} and LOGOS accepted, routed for review, or rejected each keyword with a traceable rule.`,
-      `Competitor gaps were checked across ${competitorDomains.length} competitor domains; essential gaps require support from at least two.`,
-      contextSeeds.length ? "Site-foundation topics are derived deterministically from onboarding evidence and are never labeled essential without competitor-ranking support." : "No usable site-foundation topic could be derived from the onboarding description.",
+      `Destiny inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
+      `The approval pool is prioritized by search intent, monthly demand, ranking difficulty, commercial value, and opportunity evidence across ${competitorDomains.length} competitor domains.`,
+      contextSeeds.length ? "Site and category ideas are seeded from onboarding evidence, while LOGOS remains responsible for coaching orchestration rather than keyword language judgments." : "No usable category seed could be derived from the onboarding description.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],

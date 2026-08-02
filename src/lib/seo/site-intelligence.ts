@@ -16,18 +16,11 @@ export type SiteVocabularyTerm = {
 };
 
 const ROLE_PATTERNS: Array<{ role: Exclude<PageRole, "homepage" | "other">; pattern: RegExp }> = [
-  { role: "product", pattern: /\/(?:products?|services?|solutions?|industr(?:y|ies)|programs?|platform|what-we-do)(?:\/|$)/i },
-  { role: "how_it_works", pattern: /\/(?:how-it-works|how_it_works|process|our-process|methodology|approach)(?:\/|$)/i },
+  { role: "product", pattern: /\/(?:admissions?|products?|services?|solutions?|industr(?:y|ies)|programs?|platform|what-we-do)(?:\/|$)/i },
+  { role: "how_it_works", pattern: /\/(?:how-it-works|how_it_works|process|our-process|methodology|approach|why-us|our-technology)(?:\/|$)/i },
   { role: "about", pattern: /\/(?:about|about-us|our-story|company|team)(?:\/|$)/i },
   { role: "contact", pattern: /\/(?:contact|contact-us|get-in-touch|book|consultation)(?:\/|$)/i },
 ];
-
-const ROLE_FALLBACK_PATHS: Record<Exclude<PageRole, "homepage" | "other">, string> = {
-  product: "/services",
-  how_it_works: "/how-it-works",
-  about: "/about",
-  contact: "/contact",
-};
 
 function normalizedUrl(value: string) {
   try {
@@ -63,11 +56,11 @@ export function selectImportantPageLinks(homepage: string, links: string[], limi
   for (const role of ["product", "how_it_works", "about", "contact"] as const) {
     const match = [...candidates.values()].find((candidate) => candidate.role === role);
     if (selected.length >= limit) break;
-    selected.push(match ?? { url: new URL(ROLE_FALLBACK_PATHS[role], home).toString(), role });
+    if (match) selected.push(match);
   }
   for (const candidate of candidates.values()) {
     if (selected.length >= limit) break;
-    if (!selected.some((page) => page.url === candidate.url)) selected.push(candidate);
+    if (candidate.role !== "other" && !selected.some((page) => page.url === candidate.url)) selected.push(candidate);
   }
   return selected;
 }
