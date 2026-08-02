@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "@/lib/product/coach-experience";
+import { WorkspaceNotifications } from "@/components/workspace-notifications";
 
 export function WorkspaceShell({
   active,
@@ -34,7 +35,10 @@ export function WorkspaceShell({
       </aside>
       <section className="dashboard workspace-page">
         <header className="workspace-header">
-          <div className="eyebrow">{eyebrow}</div>
+          <div className="workspace-header-top">
+            <div className="eyebrow">{eyebrow}</div>
+            <WorkspaceNotifications />
+          </div>
           <h1>{title}</h1>
           <p>{description}</p>
         </header>
