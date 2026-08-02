@@ -18,6 +18,22 @@ type LlmVisibilitySignal = {
 
 type CitationBenchmarkId = (typeof AI_ENGINE_CITATION_SNAPSHOTS)[number]["id"];
 
+const LLM_TASK_SELECT = "id,source_key,task_key,status,completed_at,proof_url,proof_attached_at,updated_at";
+export const LLM_TASK_SYNC_INTERVAL_MS = 10_000;
+
+export function llmTaskChannelName(websiteId: string) {
+  return `destiny:llm-visibility:${websiteId}`;
+}
+
+export function parseLlmTaskSyncMessage(value: unknown, websiteId: string): LlmVisibilityTaskRecord | null {
+  if (!value || typeof value !== "object") return null;
+  const message = value as { websiteId?: unknown; task?: unknown };
+  if (message.websiteId !== websiteId || !message.task || typeof message.task !== "object") return null;
+  const task = message.task as Partial<LlmVisibilityTaskRecord>;
+  if (typeof task.source_key !== "string" || typeof task.task_key !== "string" || (task.status !== "todo" && task.status !== "complete")) return null;
+  return task as LlmVisibilityTaskRecord;
+}
+
 function upsertRecord(records: LlmVisibilityTaskRecord[], record: LlmVisibilityTaskRecord) {
   const next = records.filter((candidate) => candidate.source_key !== record.source_key || candidate.task_key !== record.task_key);
   return [...next, record];
@@ -53,6 +69,22 @@ export function LlmSourceDashboard({
 
   useEffect(() => {
     const supabase = createClient();
+    let stopped = false;
+    const applySyncedTask = (next: LlmVisibilityTaskRecord, message: string) => {
+      if (!next?.source_key || !next?.task_key) return;
+      setRecords((current) => upsertRecord(current, next));
+      if (next.proof_url) setProofDrafts((current) => ({ ...current, [`${next.source_key}:${next.task_key}`]: next.proof_url! }));
+      setStatusMessage(message);
+    };
+    const reconcile = async () => {
+      const { data } = await supabase
+        .from("llm_visibility_tasks")
+        .select(LLM_TASK_SELECT)
+        .eq("website_id", websiteId)
+        .order("updated_at", { ascending: true });
+      if (stopped || !data) return;
+      setRecords(data as LlmVisibilityTaskRecord[]);
+    };
     const channel = supabase
       .channel(`llm-visibility-tasks:${websiteId}`)
       .on("postgres_changes", {
@@ -63,13 +95,31 @@ export function LlmSourceDashboard({
       }, (payload) => {
         if (payload.eventType === "DELETE") return;
         const next = payload.new as LlmVisibilityTaskRecord;
-        if (!next?.source_key || !next?.task_key) return;
-        setRecords((current) => upsertRecord(current, next));
-        if (next.proof_url) setProofDrafts((current) => ({ ...current, [`${next.source_key}:${next.task_key}`]: next.proof_url! }));
-        setStatusMessage("Progress updated across your workspace.");
+        applySyncedTask(next, "Progress updated across your workspace.");
       })
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    const browserChannel = typeof window !== "undefined" && "BroadcastChannel" in window
+      ? new window.BroadcastChannel(llmTaskChannelName(websiteId))
+      : null;
+    if (browserChannel) {
+      browserChannel.onmessage = (event) => {
+        const next = parseLlmTaskSyncMessage(event.data, websiteId);
+        if (next) applySyncedTask(next, "Progress updated in another Destiny tab.");
+      };
+    }
+    const refreshOnFocus = () => { void reconcile(); };
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") void reconcile(); };
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    const reconciliationTimer = window.setInterval(() => { void reconcile(); }, LLM_TASK_SYNC_INTERVAL_MS);
+    return () => {
+      stopped = true;
+      window.clearInterval(reconciliationTimer);
+      window.removeEventListener("focus", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      browserChannel?.close();
+      void supabase.removeChannel(channel);
+    };
   }, [websiteId]);
 
   const updateTask = async (sourceKey: LlmSourceKey, taskKey: string, status: "todo" | "complete", proofUrl: string | null = null) => {
@@ -96,6 +146,11 @@ export function LlmSourceDashboard({
       const payload = await response.json() as { error?: string; task?: LlmVisibilityTaskRecord };
       if (!response.ok || !payload.task) throw new Error(payload.error || "Destiny could not save this source task.");
       setRecords((current) => upsertRecord(current, payload.task!));
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        const browserChannel = new window.BroadcastChannel(llmTaskChannelName(websiteId));
+        browserChannel.postMessage({ websiteId, task: payload.task });
+        browserChannel.close();
+      }
       setStatusMessage(status === "complete" ? proofUrl ? "Action and public proof saved. Your progress map is up to date." : "Action saved. Your readiness map is up to date." : "Action reopened. Your readiness map is up to date.");
     } catch (cause) {
       setRecords(previous);

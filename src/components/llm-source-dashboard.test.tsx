@@ -1,8 +1,22 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { LlmSourceDashboard } from "./llm-source-dashboard";
+import {
+  llmTaskChannelName,
+  LlmSourceDashboard,
+  parseLlmTaskSyncMessage,
+} from "./llm-source-dashboard";
 
 describe("LLM source dashboard", () => {
+  it("scopes cross-tab task messages to the active website", () => {
+    const websiteId = "11111111-1111-4111-8111-111111111111";
+    const task = { source_key: "reddit", task_key: "answer-question", status: "complete" };
+
+    expect(llmTaskChannelName(websiteId)).toBe(`destiny:llm-visibility:${websiteId}`);
+    expect(parseLlmTaskSyncMessage({ websiteId, task }, websiteId)).toEqual(task);
+    expect(parseLlmTaskSyncMessage({ websiteId: "another-website", task }, websiteId)).toBeNull();
+    expect(parseLlmTaskSyncMessage({ websiteId, task: { task_key: "missing-source" } }, websiteId)).toBeNull();
+  });
+
   it("renders an interactive source map, truthful progress, and model-specific benchmark lens", () => {
     const html = renderToStaticMarkup(<LlmSourceDashboard
       initialRecords={[{ source_key: "owned-site", task_key: "clarify-entity", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" }]}
