@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { completionPresentation, guidedTaskPath } from "@/lib/product/coach-experience";
+import { completionPresentation, firstOpenTaskIndex, guidedTaskPath } from "@/lib/product/coach-experience";
 
 type WeeklyTask = {
   id: string;
@@ -25,7 +25,7 @@ export function WeeklyTaskList({ tasks }: { tasks: WeeklyTask[] }) {
   const router = useRouter();
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const firstIncomplete = Math.max(0, tasks.findIndex((task) => task.status === "todo" || task.status === "in_progress"));
+  const firstIncomplete = firstOpenTaskIndex(tasks);
   const update = async (task: WeeklyTask, status: "complete" | "skipped" | "todo") => {
     setSaving(task.id);
     setError("");
@@ -57,7 +57,7 @@ export function WeeklyTaskList({ tasks }: { tasks: WeeklyTask[] }) {
         : task.requires_approval
         ? "You review the prepared work, approve it, and mark the task complete."
         : "You make the recommended change and mark it complete; Destiny will verify it when evidence is available.";
-      return <details className={`weekly-task ${task.status}`} key={task.id} open={index === firstIncomplete}>
+      return <details className={`weekly-task ${task.status}`} key={task.id} open={firstIncomplete !== -1 && index === firstIncomplete}>
       <summary><span className="task-number">{task.status === "complete" ? "✓" : task.status === "skipped" ? "–" : index + 1}</span><span><strong>{task.title}</strong><small>{task.estimated_minutes} min · {task.requires_approval ? "Your confirmation required" : `+${task.xp} XP`}</small></span><b className={`completion-state ${completion.tone}`}>{completion.label}</b></summary>
       <div className="weekly-task-body"><p><strong>Why this matters:</strong> {task.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === "complete" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === "user_confirmation" ? "Verified by your confirmation" : "Evidence verified by Destiny"} · {new Date(task.verified_at).toLocaleDateString()}</small>}</div>}<div className="weekly-task-actions">
         <Link className="primary-button" href={guidedTaskPath(task)}>Open guided step</Link>

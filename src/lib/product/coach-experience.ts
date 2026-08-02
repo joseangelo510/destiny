@@ -86,6 +86,10 @@ export function getCoachTaskWindow<T extends CoachTask>(tasks: T[], expanded: bo
   return expanded ? ordered : ordered.slice(0, DEFAULT_WEEKLY_TASK_LIMIT);
 }
 
+export function firstOpenTaskIndex<T extends { status: string }>(tasks: T[]): number {
+  return tasks.findIndex((task) => task.status === "todo" || task.status === "in_progress");
+}
+
 export function groupCoachTasks<T extends CoachTask>(tasks: T[]) {
   const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
   return COACH_CATEGORIES.map((category) => ({

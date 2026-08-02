@@ -4,6 +4,7 @@ import {
   buildAuditNarrative,
   buildGuidedFix,
   completionPresentation,
+  firstOpenTaskIndex,
   getActionableCoachTasks,
   getCoachTaskWindow,
   groupCoachTasks,
@@ -90,6 +91,19 @@ describe("Destiny SEO coach experience", () => {
       ],
     });
     expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
+  });
+
+  it("opens the first incomplete task without reopening task one on a completed plan", () => {
+    const mixed = [
+      { id: "a", task_type: "keyword_review", status: "complete", verification_status: "verified", priority: 1 },
+      { id: "b", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
+    ];
+    expect(firstOpenTaskIndex(mixed)).toBe(1);
+    const allDone = [
+      { id: "a", task_type: "keyword_review", status: "complete", verification_status: "verified", priority: 1 },
+      { id: "b", task_type: "primary_quest", status: "complete", verification_status: "verified", priority: 1 },
+    ];
+    expect(firstOpenTaskIndex(allDone)).toBe(-1);
   });
 
   it("distinguishes self-reported completion from Destiny verification", () => {
