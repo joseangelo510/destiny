@@ -42,4 +42,27 @@ describe("audit-worker intelligence parity", () => {
     expect(worker[0]).toBe("word0");
     expect(worker.at(-1)).toBe("word1999");
   });
+
+  it("preserves explicit onboarding product phrases when crawled pages are noisy", () => {
+    const noisyPage = Array.from({ length: 90 }, (_, index) => `noise${index} signal${index}`)
+      .map((phrase) => `${phrase} ${phrase} ${phrase}`)
+      .join(" ");
+    const context = "Email marketing automation, customer journeys, landing page creation, audience segmentation";
+    const worker = extractSiteVocabulary([{ url: "https://example.com", role: "homepage", text: noisyPage }], context, 60);
+    const browser = extractBrowserVocabulary([{ url: "https://example.com", role: "homepage", text: noisyPage }], context, 60);
+
+    expect(worker).toEqual(browser);
+    expect(worker.map((term) => term.normalized)).toEqual(expect.arrayContaining([
+      "email marketing automation",
+      "customer journey",
+      "landing page creation",
+      "audience segmentation",
+    ]));
+  });
+
+  it("marks malformed connector fragments as deterministic keyword noise", () => {
+    const vocabulary = [{ term: "marketing tools", normalized: "marketing tool", weight: 20, sourcePages: ["product" as const], evidence: "Marketing tools" }];
+    expect(buildKeywordFacts("tools for e marketing", vocabulary, 2).blocklisted).toBe(true);
+    expect(buildBrowserKeywordFacts("tools for e marketing", vocabulary, 2).blocklisted).toBe(true);
+  });
 });

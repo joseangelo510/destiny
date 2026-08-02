@@ -116,6 +116,21 @@ export function boundedEvidenceTokens(value: string, budget = 1_200) {
   return [...tokens.slice(0, budget - tailCount), ...tokens.slice(-tailCount)];
 }
 
+function contextVocabularyAnchors(value: string): SiteVocabularyTerm[] {
+  const evidence = value.trim().slice(0, 180);
+  if (!evidence) return [];
+  const seen = new Set<string>();
+  return value.split(/\s*(?:[,;\n.]|\band\b)\s*/i).flatMap((segment) => {
+    const tokens = normalizeTerm(segment).split(/\s+/)
+      .filter((token) => token.length >= 2 && !/^(?:an|are|offer|offers|provide|provides|the|we)$/.test(token));
+    if (tokens.length < 2 || tokens.length > 5) return [];
+    const normalized = normalizeTerm(tokens.join(" "));
+    if (!normalized || seen.has(normalized)) return [];
+    seen.add(normalized);
+    return [{ term: tokens.join(" "), normalized, weight: 30, sourcePages: ["product" as const], evidence }];
+  });
+}
+
 const ROLE_WEIGHT: Record<PageRole, number> = { homepage: 3, product: 5, how_it_works: 3, about: 2, contact: 1, other: 2 };
 
 export function extractSiteVocabulary(pages: SitePageEvidence[], businessContext = "", limit = 60): SiteVocabularyTerm[] {
@@ -158,9 +173,12 @@ export function extractSiteVocabulary(pages: SitePageEvidence[], businessContext
     const componentWeights = candidateTokens.map((token) => singleTokenWeights.get(token) ?? 0);
     candidate.weight += Math.min(...componentWeights) * (candidateTokens.length === 2 ? 1.25 : 0.5);
   }
-  return [...collected.values()].filter((term) => term.normalized.split(" ").length > 1 || term.weight >= 5)
-    .sort((a, b) => b.weight - a.weight || b.sourcePages.size - a.sourcePages.size || a.term.localeCompare(b.term)).slice(0, limit)
+  const ranked = [...collected.values()].filter((term) => term.normalized.split(" ").length > 1 || term.weight >= 5)
+    .sort((a, b) => b.weight - a.weight || b.sourcePages.size - a.sourcePages.size || a.term.localeCompare(b.term))
     .map((term) => ({ ...term, weight: Math.round(term.weight * 10) / 10, sourcePages: [...term.sourcePages] }));
+  const anchors = contextVocabularyAnchors(businessContext);
+  const anchorKeys = new Set(anchors.map((term) => term.normalized));
+  return [...anchors, ...ranked.filter((term) => !anchorKeys.has(term.normalized))].slice(0, limit);
 }
 
 export function buildKeywordFacts(keyword: string, vocabulary: SiteVocabularyTerm[], competitorRankers = 0) {
@@ -178,7 +196,8 @@ export function buildKeywordFacts(keyword: string, vocabulary: SiteVocabularyTer
     coreMatches,
     supportMatches: matches.length,
     competitorRankers,
-    blocklisted: /\b(?:login|sign in|password|portal|torrent|download free|jobs?|careers?)\b/i.test(keyword),
+    blocklisted: /\b(?:login|sign in|password|portal|torrent|download free|jobs?|careers?)\b/i.test(keyword)
+      || /\b(?:for|of|in|on|to|with)\s+[b-hj-z]\s+/i.test(keyword),
   };
 }
 
