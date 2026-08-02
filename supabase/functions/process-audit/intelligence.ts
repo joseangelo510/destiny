@@ -29,6 +29,13 @@ const ROLE_PATTERNS: Array<{ role: Exclude<PageRole, "homepage" | "other">; patt
   { role: "contact", pattern: /\/(?:contact|contact-us|get-in-touch|book|consultation)(?:\/|$)/i },
 ];
 
+const ROLE_FALLBACK_PATHS: Record<Exclude<PageRole, "homepage" | "other">, string> = {
+  product: "/services",
+  how_it_works: "/how-it-works",
+  about: "/about",
+  contact: "/contact",
+};
+
 function normalizedUrl(value: string) {
   try {
     const url = new URL(value);
@@ -59,7 +66,8 @@ export function selectImportantPageLinks(homepage: string, links: string[], limi
   const selected: Array<{ url: string; role: PageRole }> = [{ url: home.toString(), role: "homepage" }];
   for (const role of ["product", "how_it_works", "about", "contact"] as const) {
     const match = [...candidates.values()].find((candidate) => candidate.role === role);
-    if (match && selected.length < limit) selected.push(match);
+    if (selected.length >= limit) break;
+    selected.push(match ?? { url: new URL(ROLE_FALLBACK_PATHS[role], home).toString(), role });
   }
   for (const candidate of candidates.values()) {
     if (selected.length >= limit) break;
@@ -86,12 +94,13 @@ export function parseContentPage(value: unknown, role: PageRole): SitePageEviden
 }
 
 const STOP_WORDS = new Set([
-  "about", "after", "again", "also", "and", "are", "because", "been", "before", "being", "between", "business", "can", "contact", "each", "for", "from", "get", "have", "help", "here", "into", "more", "our", "page", "people", "provide", "services", "that", "the", "their", "them", "they", "this", "through", "use", "want", "what", "when", "where", "which", "who", "will", "with", "you", "your",
+  "about", "after", "again", "also", "and", "are", "because", "been", "before", "being", "best", "between", "business", "can", "contact", "each", "for", "from", "get", "have", "help", "here", "into", "more", "our", "page", "people", "provide", "services", "that", "the", "their", "them", "they", "this", "through", "top", "use", "want", "what", "when", "where", "which", "who", "will", "with", "you", "your",
 ]);
 
 export function normalizeTerm(value: string) {
   return value.normalize("NFKC").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/)
-    .map((token) => token.length > 4 && token.endsWith("ies") ? `${token.slice(0, -3)}y`
+    .map((token) => /^(?:consulting|consultants?)$/.test(token) ? "consult"
+      : token.length > 4 && token.endsWith("ies") ? `${token.slice(0, -3)}y`
       : token.length > 4 && token.endsWith("s") && !token.endsWith("ss") ? token.slice(0, -1) : token).join(" ");
 }
 
@@ -147,9 +156,13 @@ export function extractSiteVocabulary(pages: SitePageEvidence[], businessContext
 
 export function buildKeywordFacts(keyword: string, vocabulary: SiteVocabularyTerm[], competitorRankers = 0) {
   const normalizedKeyword = normalizeTerm(keyword);
-  const keywordTokens = new Set(normalizedKeyword.split(/\s+/).filter(Boolean));
-  const matches = vocabulary.filter((term) => term.normalized.split(/\s+/).filter(Boolean).every((token) => keywordTokens.has(token)));
-  const coreMatches = matches.filter((term) => term.weight >= 5 && (term.sourcePages.includes("product") || term.sourcePages.includes("homepage"))).length;
+  const meaningfulKeywordTokens = cleanTokens(keyword).map(normalizeTerm).filter(Boolean);
+  const keywordTokens = new Set(meaningfulKeywordTokens);
+  const matches = vocabulary.filter((term) => normalizeTerm(term.normalized).split(/\s+/).filter(Boolean).every((token) => keywordTokens.has(token)));
+  const coreCandidates = matches.filter((term) => term.weight >= 5 && (term.sourcePages.includes("product") || term.sourcePages.includes("homepage")));
+  const coveredCoreTokens = new Set(coreCandidates.flatMap((term) => normalizeTerm(term.normalized).split(/\s+/).filter(Boolean)));
+  const coverage = meaningfulKeywordTokens.length ? meaningfulKeywordTokens.filter((token) => coveredCoreTokens.has(token)).length / meaningfulKeywordTokens.length : 0;
+  const coreMatches = coverage >= 0.75 ? coreCandidates.length : 0;
   return {
     normalizedKeyword,
     matchedTerms: matches.slice(0, 8).map((term) => term.term),

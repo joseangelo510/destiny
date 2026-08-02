@@ -23,6 +23,16 @@ describe("site intelligence", () => {
     ]);
   });
 
+  it("fills missing strategic roles with deterministic same-domain fallbacks", () => {
+    expect(selectImportantPageLinks("https://example.com/", [])).toEqual([
+      { url: "https://example.com/", role: "homepage" },
+      { url: "https://example.com/services", role: "product" },
+      { url: "https://example.com/how-it-works", role: "how_it_works" },
+      { url: "https://example.com/about", role: "about" },
+      { url: "https://example.com/contact", role: "contact" },
+    ]);
+  });
+
   it("extracts an inspectable weighted vocabulary from multiple pages", () => {
     const vocabulary = extractSiteVocabulary([
       { url: "https://example.com/", role: "homepage", text: "College admissions counseling and application strategy for high school students and families." },
@@ -42,5 +52,14 @@ describe("site intelligence", () => {
     expect(facts.coreMatches).toBeGreaterThanOrEqual(1);
     expect(facts.competitorRankers).toBe(2);
     expect(facts.matchedTerms).toContain("college admissions");
+  });
+
+  it("does not treat two generic one-word overlaps as strong site evidence", () => {
+    const facts = buildKeywordFacts("books about marketing and sales", [
+      { term: "marketing", normalized: "marketing", weight: 12, sourcePages: ["homepage"], evidence: "Marketing" },
+      { term: "sales", normalized: "sale", weight: 12, sourcePages: ["product"], evidence: "Sales" },
+    ], 2);
+    expect(facts.supportMatches).toBe(2);
+    expect(facts.coreMatches).toBe(0);
   });
 });

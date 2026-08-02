@@ -440,7 +440,7 @@ export async function runDataForSeoAudit(
       item_types: ["organic", "local_pack"],
       filters: ["keyword_data.keyword_info.search_volume", ">", 0],
       order_by: ["keyword_data.keyword_info.search_volume,desc"],
-      limit: 50,
+      limit: 150,
     }],
     login,
     password,
@@ -459,7 +459,10 @@ export async function runDataForSeoAudit(
       if (!existing || keyword.searchVolume > existing.searchVolume) gapByKeyword.set(key, keyword);
     }
   }
-  const gapKeywords = [...gapByKeyword.values()];
+  const gapKeywords = [...gapByKeyword.values()].sort((a, b) =>
+    (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
+      || b.searchVolume - a.searchVolume
+      || a.keyword.localeCompare(b.keyword));
   const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], 36);
   const keywords = await Promise.all(strategyCandidates.map(async (keyword) => {
     const competitorRankers = competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0;

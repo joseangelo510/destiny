@@ -42,11 +42,12 @@ describe("live audit orchestration", () => {
       idealCustomer: "Families with high school students",
     });
 
-    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product"]);
+    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product", "how_it_works", "about", "contact"]);
     expect(result.siteVocabulary?.some((term) => term.normalized === "college admission")).toBe(true);
     expect(result.keywords.find((keyword) => keyword.keyword === "college admissions counseling")).toMatchObject({ competitorRankers: 2, verdict: "accept", essential: true, ruleId: "essential_gap" });
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live")).every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 150)).toBe(true);
   });
 });
