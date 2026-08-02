@@ -6,7 +6,6 @@ describe("stepOneValidation", () => {
     expect(stepOneValidation({
       businessName: "Empowerly",
       website: "empowerly.com",
-      business: "College counseling services for high school students",
       problem: "Families need a clear path through college admissions",
     })).toEqual({ ready: true, normalizedWebsite: "https://empowerly.com/" });
   });
@@ -15,16 +14,14 @@ describe("stepOneValidation", () => {
     expect(stepOneValidation({
       businessName: "Jose Angelo Studios",
       website: "https://www.joseangelostudios.com/services",
-      business: "SEO and growth strategy",
       problem: "Growing companies need an accountable search growth system",
     })).toEqual({ ready: true, normalizedWebsite: "https://www.joseangelostudios.com/services" });
   });
 
   it("keeps the step blocked for an invalid or incomplete website", () => {
-    expect(stepOneValidation({ businessName: "Local", website: "localhost", business: "Services", problem: "A real problem" }).ready).toBe(false);
-    expect(stepOneValidation({ businessName: "", website: "example.com", business: "Services", problem: "A real problem" }).ready).toBe(false);
-    expect(stepOneValidation({ businessName: "Local", website: "example.com", business: "", problem: "A real problem" }).ready).toBe(false);
-    expect(stepOneValidation({ businessName: "Local", website: "example.com", business: "Services", problem: "" }).ready).toBe(false);
+    expect(stepOneValidation({ businessName: "Local", website: "localhost", problem: "A real problem" }).ready).toBe(false);
+    expect(stepOneValidation({ businessName: "", website: "example.com", problem: "A real problem" }).ready).toBe(false);
+    expect(stepOneValidation({ businessName: "Local", website: "example.com", problem: "" }).ready).toBe(false);
   });
 });
 

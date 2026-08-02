@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { SeoHistoryChart } from "@/components/seo-history-chart";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { getWorkspaceContext, providerResultFromMetrics, record } from "@/lib/workspace-context";
+import type { HistoricalSeoPoint } from "@/lib/analytics/history";
+import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 function syncedMetadata(integrations: Awaited<ReturnType<typeof getWorkspaceContext>>["integrations"], provider: string) {
   const integration = integrations.find((item) => item.provider === provider && item.status === "connected" && item.last_synced_at);
@@ -11,6 +13,16 @@ function syncedMetadata(integrations: Awaited<ReturnType<typeof getWorkspaceCont
 export default async function AnalyticsPage() {
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
+  const historicalPerformance = list(providerResult.historicalPerformance).map(record).map((point) => ({
+    year: Number(point.year ?? 0),
+    month: Number(point.month ?? 0),
+    organicTraffic: Number(point.organicTraffic ?? 0),
+    rankingKeywords: Number(point.rankingKeywords ?? 0),
+    top3Keywords: Number(point.top3Keywords ?? 0),
+    top10Keywords: Number(point.top10Keywords ?? 0),
+    newKeywords: Number(point.newKeywords ?? 0),
+    lostKeywords: Number(point.lostKeywords ?? 0),
+  })) satisfies HistoricalSeoPoint[];
   const connected = new Set(context.integrations.filter((item) => item.status === "connected").map((item) => item.provider));
   const metrics = context.metrics;
   const searchConsole = syncedMetadata(context.integrations, "google_search_console");
@@ -22,6 +34,11 @@ export default async function AnalyticsPage() {
     <WorkspaceShell active="/analytics" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="SEO analytics" description="Real SEO metrics with their source shown—never an unexplained composite visibility score.">
       {!metrics ? <WorkspaceEmpty title="Analytics begin after your audit" description="Run an audit to save keyword, traffic-estimate, content-gap, and technical metrics." /> : (
         <>
+          <div className="section-heading"><div><span>Search history</span><h2>How your visibility is changing</h2></div><small>DataForSEO · latest 3 available months</small></div>
+          {historicalPerformance.length ? <section className="seo-history-grid">
+            <SeoHistoryChart points={historicalPerformance} metric="organicTraffic" title="Estimated organic search traffic" description="The estimated visits your rankings could earn each month." />
+            <SeoHistoryChart points={historicalPerformance} metric="rankingKeywords" title="Organic ranking keywords" description="The number of Google searches where your domain appeared in the top 100." />
+          </section> : <section className="workspace-card history-unavailable"><strong>Search history is not available for this audit yet</strong><p>Run a fresh audit to request the latest DataForSEO historical ranking and traffic series.</p></section>}
           <section className="analytics-grid">
             {[
               [metrics.ranking_keywords, "Ranking keywords", `${metrics.new_keywords} new · ${metrics.lost_keywords} lost`],

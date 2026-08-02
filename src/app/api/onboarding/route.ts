@@ -4,7 +4,6 @@ import { parseCompetitorEntries, validateCompetitorEntries } from "@/lib/onboard
 import { createClient } from "@/lib/supabase/server";
 
 type OnboardingPayload = {
-  business?: unknown;
   businessName?: unknown;
   competitors?: unknown;
   customer?: unknown;
@@ -30,7 +29,6 @@ export async function POST(request: Request) {
     const lastName = text(body.lastName, 80);
     const businessName = text(body.businessName, 160);
     const email = text(body.email, 320).toLowerCase();
-    const business = text(body.business, 4000);
     const customer = text(body.customer, 4000);
     const problem = text(body.problem, 4000);
     const audienceGoals = text(body.audienceGoals, 4000);
@@ -40,7 +38,7 @@ export async function POST(request: Request) {
     const country = text(body.country, 120) || "United States";
     const website = normalizeWebsite(text(body.website, 2048));
 
-    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !business || !problem || !customer || !audienceGoals || !standout) {
+    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !problem || !customer || !audienceGoals || !standout) {
       return NextResponse.json({ error: "Complete every onboarding field." }, { status: 400 });
     }
     const competitorValidation = validateCompetitorEntries(competitors);
@@ -81,7 +79,7 @@ export async function POST(request: Request) {
       url: website.url,
       normalized_domain: website.domain,
       business_name: businessName,
-      products_services: business,
+      products_services: "",
       problem_solved: problem,
       ideal_customer: customer,
       audience_challenges_goals: audienceGoals,

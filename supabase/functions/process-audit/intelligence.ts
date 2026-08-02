@@ -235,6 +235,41 @@ export function parseDistributionSerp(payload: unknown, topic: string): Distribu
   });
 }
 
+export type PublisherOpportunity = {
+  domain: string;
+  title: string;
+  url: string;
+  snippet: string;
+  keyword: string;
+};
+
+const NON_PUBLISHER_DOMAINS = new Set([
+  "facebook.com", "instagram.com", "linkedin.com", "quora.com", "reddit.com", "tiktok.com",
+  "twitter.com", "x.com", "youtube.com",
+]);
+
+export function parsePublisherSerp(payload: unknown, keyword: string, excludedDomains: string[] = []): PublisherOpportunity[] {
+  const root = record(payload);
+  const task = record(list(root.tasks)[0]);
+  if (root.status_code !== 20000 || task.status_code !== 20000) return [];
+  const excluded = new Set(excludedDomains.map((domain) => domain.toLocaleLowerCase().replace(/^www\./, "")));
+  const result = record(list(task.result)[0]);
+  return list(result.items).map(record).flatMap((item) => {
+    if (item.type !== "organic") return [];
+    let url: URL;
+    try { url = new URL(text(item.url)); } catch { return []; }
+    const domain = url.hostname.toLocaleLowerCase().replace(/^www\./, "");
+    if (!domain || excluded.has(domain) || NON_PUBLISHER_DOMAINS.has(domain)) return [];
+    return [{
+      domain,
+      title: text(item.title) || domain,
+      url: url.toString(),
+      snippet: text(item.description).slice(0, 300),
+      keyword,
+    }];
+  }).filter((item, index, all) => all.findIndex((candidate) => candidate.domain === item.domain) === index).slice(0, 6);
+}
+
 function firstResult(payload: unknown) {
   const root = record(payload);
   const task = record(list(root.tasks)[0]);

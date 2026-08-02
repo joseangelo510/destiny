@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildContextSeedKeywords, dataForSeoPost, runDataForSeoAudit } from "./seo";
+import { buildContextSeedKeywords, dataForSeoPost, parseHistoricalRankOverview, runDataForSeoAudit } from "./seo";
 
 function payload(result: unknown) {
   return { status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] };
@@ -38,6 +38,16 @@ describe("live audit orchestration", () => {
     ]);
   });
 
+  it("parses the provider's historical traffic and ranking keyword series", () => {
+    expect(parseHistoricalRankOverview(payload({ items: [
+      { year: 2026, month: 6, metrics: { organic: { etv: 140, count: 18, pos_1: 2, pos_2_3: 3, pos_4_10: 7, is_new: 4, is_lost: 1 } } },
+      { year: 2026, month: 5, metrics: { organic: { etv: 120, count: 15, pos_1: 1, pos_2_3: 2, pos_4_10: 6, is_new: 3, is_lost: 2 } } },
+    ] }))).toEqual([
+      { year: 2026, month: 5, organicTraffic: 120, rankingKeywords: 15, top3Keywords: 3, top10Keywords: 9, newKeywords: 3, lostKeywords: 2 },
+      { year: 2026, month: 6, organicTraffic: 140, rankingKeywords: 18, top3Keywords: 5, top10Keywords: 12, newKeywords: 4, lostKeywords: 1 },
+    ]);
+  });
+
   it("uses five-page evidence, two competitor gaps, real threads, and LLM citations", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = String(input);
@@ -46,6 +56,11 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 12, is_new: 2, is_lost: 0, etv: 440 } }, items: [] }));
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 12 }, { domain: "competitor-two.com", intersections: 9 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "college admissions counseling", keyword_info: { search_volume: 500, cpc: 4 }, keyword_properties: { keyword_difficulty: 31 }, search_intent_info: { main_intent: "commercial" } }] }));
+      if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [
+        { year: 2026, month: 5, metrics: { organic: { etv: 350, count: 9, pos_1: 1, pos_2_3: 1, pos_4_10: 3, is_new: 1, is_lost: 1 } } },
+        { year: 2026, month: 6, metrics: { organic: { etv: 400, count: 10, pos_1: 1, pos_2_3: 2, pos_4_10: 4, is_new: 2, is_lost: 0 } } },
+        { year: 2026, month: 7, metrics: { organic: { etv: 440, count: 12, pos_1: 2, pos_2_3: 2, pos_4_10: 5, is_new: 2, is_lost: 0 } } },
+      ] }));
       if (url.endsWith("/on_page/content_parsing/live")) {
         const pageUrl = String(body.url);
         const markdown = pageUrl.endsWith("/services")
@@ -55,7 +70,10 @@ describe("live audit orchestration", () => {
       }
       if (url.endsWith("/domain_intersection/live")) return Response.json(payload({ items: [keywordRow("college admissions counseling")] }));
       if (url.endsWith("/serp/google/organic/live/advanced")) {
-        const reddit = String(body.keyword).startsWith("reddit");
+        const query = String(body.keyword);
+        const reddit = query.startsWith("reddit");
+        const quora = query.startsWith("quora");
+        if (!reddit && !quora) return Response.json(payload({ items: [{ type: "organic", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", description: "A non-competing publisher ranking for the keyword." }] }));
         return Response.json(payload({ items: [{ type: "organic", title: reddit ? "How did you choose a counselor?" : "What does an admissions counselor do?", url: reddit ? "https://www.reddit.com/r/ApplyingToCollege/comments/abc123/example/" : "https://www.quora.com/What-does-an-admissions-counselor-do", description: "A current community question." }] }));
       }
       if (url.endsWith("/llm_mentions/target_metrics/live")) return Response.json(payload({ aggregated_metrics: { platform: [{ key: "chat_gpt", mentions: 3, ai_search_volume: 90 }], sources_domain: [{ key: "example.edu", mentions: 7, ai_search_volume: 140 }] } }));
@@ -73,7 +91,11 @@ describe("live audit orchestration", () => {
     expect(result.siteVocabulary?.some((term) => term.normalized === "college admission")).toBe(true);
     expect(result.keywords.find((keyword) => keyword.keyword === "college admissions counseling")).toMatchObject({ competitorRankers: 2, verdict: "accept", essential: true, ruleId: "essential_gap" });
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
+    expect(result.publisherOpportunities).toEqual([{ domain: "educationpublisher.example", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", snippet: "A non-competing publisher ranking for the keyword.", keyword: "college admissions counseling" }]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
+    expect(result.historicalPerformance?.map((point) => [point.month, point.organicTraffic, point.rankingKeywords])).toEqual([
+      [5, 350, 9], [6, 400, 10], [7, 440, 12],
+    ]);
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
     const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
     expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
@@ -93,6 +115,7 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 0, is_new: 0, is_lost: 0, etv: 0 } }, items: [] }));
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 5 }, { domain: "competitor-two.com", intersections: 4 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "map of globe", keyword_info: { search_volume: 900 }, keyword_properties: {} }] }));
+      if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/on_page/content_parsing/live")) {
         const pageUrl = String(body.url);
         const markdown = pageUrl.endsWith("/") ? "# Graphic design platform\nCreate presentations and social media graphics.\n[Services](https://example.com/services)" : "# Design services\nOnline graphic design and video editing tools.";

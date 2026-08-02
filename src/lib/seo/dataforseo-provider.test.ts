@@ -22,6 +22,11 @@ describe("DataForSeoProvider", () => {
       }),
       payload({ items: [{ domain: "example.com", intersections: 33 }, { domain: "competitor.example", intersections: 17 }] }),
       payload({ items: [{ keyword: "san francisco family realtor", keyword_info: { search_volume: 260, cpc: 5.1 }, keyword_properties: { keyword_difficulty: 31 }, search_intent_info: { main_intent: "commercial" } }] }),
+      payload({ items: [
+        { year: 2026, month: 5, metrics: { organic: { etv: 600, count: 29, pos_1: 2, pos_2_3: 3, pos_4_10: 8, is_new: 3, is_lost: 1 } } },
+        { year: 2026, month: 6, metrics: { organic: { etv: 680, count: 31, pos_1: 2, pos_2_3: 4, pos_4_10: 9, is_new: 4, is_lost: 1 } } },
+        { year: 2026, month: 7, metrics: { organic: { etv: 712.5, count: 33, pos_1: 3, pos_2_3: 5, pos_4_10: 10, is_new: 5, is_lost: 2 } } },
+      ] }),
       payload({ total_count: 24, items: [{ keyword_data: { keyword: "best neighborhoods for families", keyword_info: { search_volume: 590, cpc: 3.4 }, keyword_properties: { keyword_difficulty: 36 }, search_intent_info: { main_intent: "informational" } } }] }),
     ];
     const fetchMock = vi.fn(async () => Response.json(responses.shift()));
@@ -30,12 +35,13 @@ describe("DataForSeoProvider", () => {
     const result = await new DataForSeoProvider("account@example.com", "api-password")
       .runAudit({ website: "https://example.com", locationName: "San Francisco,California,United States" });
 
-    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
       "https://api.dataforseo.com/v3/on_page/instant_pages",
       "https://api.dataforseo.com/v3/dataforseo_labs/google/ranked_keywords/live",
       "https://api.dataforseo.com/v3/dataforseo_labs/google/competitors_domain/live",
       "https://api.dataforseo.com/v3/dataforseo_labs/google/keywords_for_site/live",
+      "https://api.dataforseo.com/v3/dataforseo_labs/google/historical_rank_overview/live",
       "https://api.dataforseo.com/v3/dataforseo_labs/google/domain_intersection/live",
     ]);
     expect(result.source).toBe("dataforseo");
@@ -49,6 +55,9 @@ describe("DataForSeoProvider", () => {
       onPageScore: 81,
     });
     expect(result.competitors).toEqual([{ domain: "competitor.example", sharedKeywords: 17 }]);
+    expect(result.historicalPerformance?.map((point) => [point.month, point.organicTraffic, point.rankingKeywords])).toEqual([
+      [5, 600, 29], [6, 680, 31], [7, 712.5, 33],
+    ]);
     expect(result.issues).toEqual([
       { code: "no_title", label: "Page title is missing", severity: "critical" },
       { code: "small_page_size", label: "Page contains very little HTML content", severity: "warning" },

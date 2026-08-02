@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_WEEKLY_TASK_LIMIT,
   buildAuditNarrative,
+  buildGuidedFix,
   completionPresentation,
+  getActionableCoachTasks,
   getCoachTaskWindow,
+  groupCoachTasks,
+  guidedTaskPath,
   orderCoachTasks,
   PRIMARY_NAVIGATION,
   FEATURE_NAVIGATION,
@@ -13,7 +17,9 @@ const tasks = [
   { id: "content", task_type: "content_review", status: "todo", verification_status: "unverified", priority: 1 },
   { id: "llm", task_type: "measurement", status: "todo", verification_status: "unverified", priority: 3 },
   { id: "business", task_type: "business_confirmation", status: "todo", verification_status: "unverified", priority: 1 },
-  { id: "distribution", task_type: "distribution", status: "todo", verification_status: "unverified", priority: 2 },
+  { id: "keywords", task_type: "keyword_review", status: "todo", verification_status: "unverified", priority: 1 },
+  { id: "community", task_type: "community_distribution", status: "todo", verification_status: "unverified", priority: 2 },
+  { id: "social", task_type: "social_distribution", status: "todo", verification_status: "unverified", priority: 2 },
   { id: "fix", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
 ];
 
@@ -21,60 +27,81 @@ describe("Destiny SEO coach experience", () => {
   it("visually separates the three coaching destinations from visible feature pages", () => {
     expect(PRIMARY_NAVIGATION.map((item) => item.label)).toEqual([
       "This week",
+      "Strategy",
       "Results",
-      "Settings & connections",
     ]);
     expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
       "Website audits",
       "Six-month plan",
       "Content studio",
-      "Keyword evidence",
+      "Keyword strategy",
       "Distribution",
       "Reviews",
-      "Analytics",
+      "Connections",
       "LLM visibility",
     ]);
   });
 
-  it("starts everyone with three ordered coach tasks and keeps contextual work available", () => {
-    expect(DEFAULT_WEEKLY_TASK_LIMIT).toBe(3);
+  it("removes the redundant business confirmation and groups all actionable work", () => {
+    expect(DEFAULT_WEEKLY_TASK_LIMIT).toBe(8);
+    expect(getActionableCoachTasks(tasks).map((task) => task.id)).not.toContain("business");
     expect(orderCoachTasks(tasks).map((task) => task.id)).toEqual([
-      "business",
+      "keywords",
       "fix",
       "content",
-      "distribution",
+      "community",
+      "social",
       "llm",
+      "business",
     ]);
-    expect(getCoachTaskWindow(tasks, false).map((task) => task.id)).toEqual(["business", "fix", "content"]);
-    expect(getCoachTaskWindow(tasks, true)).toHaveLength(5);
+    expect(getCoachTaskWindow(tasks, false).map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "llm"]);
+    expect(groupCoachTasks(tasks).map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
+      ["research-strategy", ["keywords", "fix"]],
+      ["content-creation", ["content"]],
+      ["distribution", ["community", "social"]],
+      ["data-analysis", ["llm"]],
+    ]);
   });
 
   it("opens results with a plain-language narrative instead of a score", () => {
     expect(buildAuditNarrative({
       businessName: "Maya Torres Realty",
       issues: [
-        { code: "missing_title", label: "important pages are missing clear search titles", severity: "critical" },
+        { code: "has_render_blocking_resources", label: "Page has render-blocking resources", severity: "critical" },
         { code: "slow_mobile", label: "mobile pages load slowly", severity: "warning" },
       ],
       primaryTaskTitle: "Rewrite the homepage title",
     })).toEqual({
       eyebrow: "Your clearest next move",
-      title: "Important pages are missing clear search titles.",
-      explanation: "Fix this first so Maya Torres Realty has a stronger foundation for every content and visibility task that follows.",
-      actionLabel: "Review your first task",
+      title: "Make your homepage load faster for visitors.",
+      explanation: "Some behind-the-scenes website files make people wait before they can see your page. Loading the most important parts first helps visitors get there sooner. This can make people leave and can weaken search performance for Maya Torres Realty.",
+      actionLabel: "Show me how to fix this",
     });
+  });
+
+  it("turns technical findings into a guided, non-technical fix", () => {
+    expect(buildGuidedFix({ code: "has_render_blocking_resources", label: "Page has render-blocking resources" })).toEqual({
+      title: "Make your homepage load faster for visitors",
+      explanation: "Some behind-the-scenes website files make people wait before they can see your page. Loading the most important parts first helps visitors get there sooner.",
+      steps: [
+        "Open your homepage in Google PageSpeed Insights and find the section about files delaying the first view of the page.",
+        "Ask your website developer or site builder to load the visible page first and delay any files that are not needed right away.",
+        "Run a fresh Destiny audit after the change so Destiny can verify the improvement.",
+      ],
+    });
+    expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
   });
 
   it("distinguishes self-reported completion from Destiny verification", () => {
     expect(completionPresentation({ status: "complete", verification_status: "unverified" })).toEqual({
-      label: "Marked complete",
+      label: "Marked done by you",
       tone: "reported",
-      detail: "You marked this task complete. Destiny has not verified the change yet.",
+      detail: "You marked this done. Destiny will check it when automatic verification is available.",
     });
     expect(completionPresentation({ status: "complete", verification_status: "verified" })).toEqual({
-      label: "Destiny verified",
+      label: "Verified by Destiny",
       tone: "verified",
-      detail: "Destiny verified this change using connected or crawl evidence.",
+      detail: "Destiny checked the available site or connected data and confirmed this change.",
     });
   });
 });

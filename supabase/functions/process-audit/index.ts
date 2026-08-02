@@ -10,7 +10,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-01.7";
+const LOGOS_RULES_VERSION = "2026-08-02.1";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -19,21 +19,25 @@ async function sha256(value: unknown) {
 }
 
 function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, primaryQuest: string, primaryCategory: string, manifest: string[]) {
-  const contentKeyword = result.keywords.find((keyword) => keyword.essential)?.keyword
-    ?? result.keywords.find((keyword) => keyword.verdict === "accept")?.keyword
-    ?? result.keywords.find((keyword) => keyword.verdict === "review")?.keyword
-    ?? "your strongest search opportunity";
-  const reddit = result.distributionOpportunities?.find((item) => item.platform === "Reddit");
-  const quora = result.distributionOpportunities?.find((item) => item.platform === "Quora");
+  const highestIssue = result.issues.find((issue) => issue.severity === "critical") ?? result.issues[0];
+  const issueTitles: Record<string, string> = {
+    has_render_blocking_resources: "Make your homepage load faster for visitors",
+    high_loading_time: "Reduce the time visitors wait for your homepage",
+    no_title: "Give your homepage a clear search title",
+    no_description: "Add a clear search description to your homepage",
+    no_h1_tag: "Add one clear main heading to your homepage",
+    no_image_alt: "Describe important images for search and accessibility",
+  };
+  const plainPrimaryQuest = highestIssue ? issueTitles[highestIssue.code] ?? primaryQuest : primaryQuest;
   const tasks = {
-    vocabulary_review: { title: "Confirm Destiny understands your business", why: "Check the business, audience, problem, goals, and differentiator Destiny will use to guide every recommendation.", category: "measurement", taskType: "business_confirmation", actionPath: `/audits/${auditId}#business-understanding`, estimatedMinutes: 2, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 20 },
-    content_review: { title: `Review and approve the “${contentKeyword}” article`, why: "A human approval gate keeps the article accurate before it can move to a connected CMS.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 30 },
-    primary_quest: { title: primaryQuest, why: "LOGOS selected this as the highest-impact action from the latest audit.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}`, estimatedMinutes: 10, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
-    reddit_distribution: { title: reddit ? `Contribute to: ${reddit.title}` : "Review this week's Reddit opportunity", why: "A useful answer in a current thread can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: reddit?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
-    keyword_review: { title: "Review your essential competitor keyword gaps", why: "These phrases match your site vocabulary and are covered by at least two competitors.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 15, requiresApproval: true, minPlanTier: 2, priority: 2, xp: 25 },
-    quora_distribution: { title: quora ? `Answer: ${quora.title}` : "Review this week's Quora opportunity", why: "Answering a real question makes your expertise visible where people are already researching.", category: "distribution", taskType: "distribution", actionPath: "/distribution", externalUrl: quora?.url, estimatedMinutes: 15, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 25 },
-    reviews: { title: "Ask three recent customers for a review", why: "Fresh first-party proof improves trust and supports local search conversion.", category: "reviews", taskType: "reviews", actionPath: "/reviews", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
-    llm_visibility: { title: "Review your LLM visibility and cited-domain gap", why: "See whether AI answers mention your company and which sources they cite instead.", category: "measurement", taskType: "measurement", actionPath: "/llm-visibility", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+    keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Destiny completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 25 },
+    primary_quest: { title: plainPrimaryQuest, why: "Destiny translated the highest-impact audit finding into a guided, non-technical action.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
+    content_review: { title: "Review and approve three articles for this week", why: "Each article is editable, connected to an approved keyword, and stays behind a human accuracy gate before CMS or document delivery.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 35, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 45 },
+    community_distribution: { title: "Reply to three relevant Reddit or Quora discussions", why: "Helpful answers in live conversations can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "community_distribution", actionPath: "/distribution#community", estimatedMinutes: 35, requiresApproval: false, minPlanTier: 2, priority: 2, xp: 35 },
+    social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 2, priority: 2, xp: 25 },
+    publisher_outreach: { title: "Contact three non-competing publishers ranking for your keyword", why: "A relevant reference, contribution, or relationship can earn qualified referral traffic and future authority.", category: "distribution", taskType: "publisher_outreach", actionPath: "/distribution#outreach", estimatedMinutes: 30, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 35 },
+    directory_growth: { title: "Complete one directory profile or request three reviews", why: "Product Hunt, G2, Capterra, and Google Business Profile help buyers compare options; established profiles should build fresh proof.", category: "distribution", taskType: "directory_growth", actionPath: "/distribution#directories", estimatedMinutes: 25, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 30 },
+    measurement: { title: "Review keyword, traffic, and conversion movement", why: "Monthly DataForSEO trends and connected Search Console, Analytics, and CMS data show whether completed work is producing results.", category: "measurement", taskType: "measurement", actionPath: "/analytics", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
   };
   return manifest.map((code) => tasks[code as keyof typeof tasks]).filter(Boolean);
 }
@@ -168,7 +172,7 @@ export default {
           .from("notifications")
           .update({
             title: "Your Destiny results are ready",
-            body: "Review the clearest opportunity, confirm Destiny understands your business, and start your first guided task.",
+            body: "Review the clearest opportunity, approve your initial keyword strategy, and start the categorized weekly plan.",
             destination_path: `/audits/${auditId}`,
           })
           .eq("user_id", userId)

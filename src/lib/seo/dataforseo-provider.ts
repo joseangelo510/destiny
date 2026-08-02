@@ -83,6 +83,24 @@ function firstResult(payload: unknown) {
   return record(array(task.result)[0]);
 }
 
+export function parseHistoricalRankOverview(payload: unknown) {
+  const result = firstResult(payload);
+  return array(result.items).map(record).map((item) => {
+    const organic = record(record(item.metrics).organic);
+    return {
+      year: number(item.year),
+      month: number(item.month),
+      organicTraffic: number(organic.etv),
+      rankingKeywords: number(organic.count),
+      top3Keywords: number(organic.pos_1) + number(organic.pos_2_3),
+      top10Keywords: number(organic.pos_1) + number(organic.pos_2_3) + number(organic.pos_4_10),
+      newKeywords: number(organic.is_new),
+      lostKeywords: number(organic.is_lost),
+    };
+  }).filter((point) => point.year > 2000 && point.month >= 1 && point.month <= 12)
+    .sort((left, right) => (left.year * 12 + left.month) - (right.year * 12 + right.month));
+}
+
 function pageIssues(page: JsonRecord) {
   const checks = record(page.checks);
   const issues: SeoIssue[] = Object.entries(checks)
@@ -259,7 +277,7 @@ export class DataForSeoProvider implements SeoProvider {
     const website = normalizeWebsite(input.website);
     const locationName = input.locationName?.trim() || "United States";
 
-    const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload] = await Promise.all([
+    const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, historyPayload] = await Promise.all([
       this.post("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }]),
       this.post("/v3/dataforseo_labs/google/ranked_keywords/live", [{
         target: website.domain,
@@ -284,6 +302,12 @@ export class DataForSeoProvider implements SeoProvider {
         order_by: ["relevance,desc", "keyword_info.search_volume,desc"],
         limit: 24,
       }]),
+      this.post("/v3/dataforseo_labs/google/historical_rank_overview/live", [{
+        target: website.domain,
+        location_name: locationName,
+        language_name: "English",
+        correlate: true,
+      }]),
     ]);
 
     const pageResult = firstResult(pagePayload);
@@ -294,6 +318,7 @@ export class DataForSeoProvider implements SeoProvider {
     const competitors = parseCompetitors(competitorResult, website.domain);
     const rankedKeywords = parseRankedKeywords(rankings);
     const keywordIdeas = parseKeywordIdeas(firstResult(ideasPayload));
+    const historicalPerformance = parseHistoricalRankOverview(historyPayload);
     const issues = pageIssues(page);
 
     let contentGaps = 0;
@@ -331,6 +356,7 @@ export class DataForSeoProvider implements SeoProvider {
         reviewCount: 0,
         onPageScore: typeof page.onpage_score === "number" ? page.onpage_score : null,
       },
+      historicalPerformance,
       issues: issues.slice(0, 10),
       competitors,
       keywords: buildKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], input.businessContext),

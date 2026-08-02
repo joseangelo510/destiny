@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { stepOneValidation, stepTwoValidation } from "@/lib/onboarding/validation";
 import { validateCompetitorEntries } from "@/lib/onboarding/competitors";
 
-type VoiceField = "business" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
+type VoiceField = "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
 type SpeechRecognitionEventLike = {
   results: { 0: { 0: { transcript: string } } };
@@ -33,7 +33,6 @@ declare global {
 const emptyForm = {
   website: "",
   businessName: "",
-  business: "",
   problem: "",
   customer: "",
   audienceGoals: "",
@@ -186,9 +185,9 @@ export function PublicOnboarding() {
           <div className={failed ? "processing-orb failed" : "processing-orb"}>{failed ? "!" : "D"}</div>
           <div className="eyebrow">{failed ? "Audit needs attention" : "Audit in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : `We’re building your strategy for ${form.website}.`}</h1>
-          <p>{failed ? error : "Destiny is analyzing your website, competitors, keyword opportunities, technical issues, and the first 24 weeks of your growth plan."}</p>
+          <p>{failed ? error : "Please stand by for about 30 seconds while Destiny analyzes your website, competitors, keyword opportunities, technical issues, and the first 24 weeks of your growth plan."}</p>
           {!failed && <div className="processing-steps"><span className="complete">Business profile saved</span><span className="active">Website and competitor analysis</span><span>Keyword strategy</span><span>Six-month plan</span></div>}
-          {!failed && <div className="configuration-note"><strong>You can safely leave this page</strong><p>Your notification center will save the progress and a link to the completed results.</p></div>}
+          {!failed && <div className="configuration-note"><strong>Most results are ready in about 30 seconds</strong><p>Stay on this screen and Destiny will take you directly to the completed strategy. You can also safely leave; the notification center saves the result link.</p></div>}
           {failed && <div className="processing-actions"><button className="primary-button" onClick={() => { setAuditStatus("idle"); setStep(4); }} type="button">Review and try again</button><Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </main>
@@ -222,10 +221,9 @@ export function PublicOnboarding() {
 
           {step === 1 && <>
             <h2>Tell us about your business</h2>
-            <p className="lede">Use a public website and describe the products or services you provide.</p>
+            <p className="lede">Start with a public website and the customer problem your business solves.</p>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="yourwebsite.com or https://yourwebsite.com" required type="text" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
-            <VoiceTextarea field="business" label="Products and services" listening={listening} onChange={(value) => updateField("business", value)} onDictate={dictate} placeholder="Tell us what the business offers, where it operates, and what customers hire it to do." value={form.business} />
             <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
           </>}
 
@@ -242,7 +240,7 @@ export function PublicOnboarding() {
             <h2>Who are your competitors?</h2>
             <p className="lede">Add at least two real competitors. Website URLs produce the strongest gap analysis; Destiny can still research names.</p>
             <VoiceTextarea field="competitors" label="Known competitors" listening={listening} onChange={(value) => updateField("competitors", value)} onDictate={dictate} placeholder={"One competitor per line\nIvyWise — ivywise.com\nCollegewise — collegewise.com"} value={form.competitors} />
-            {form.competitors.trim() && !competitorValidation.ready && <small className="field-error">{competitorValidation.error}</small>}
+            {form.competitors.trim() && !competitorValidation.ready && <div aria-live="polite" className="field-error" role="alert">{competitorValidation.error}</div>}
             <VoiceTextarea field="standout" label="What makes you stand out from competitors?" listening={listening} onChange={(value) => updateField("standout", value)} onDictate={dictate} placeholder="Share your experience, point of view, proof, and what customers value about working with you." value={form.standout} />
           </>}
 
@@ -258,7 +256,6 @@ export function PublicOnboarding() {
               <div><span>Business name</span><strong>{form.businessName}</strong></div>
               <div><span>Website</span><strong>{form.website}</strong></div>
               <div><span>Search database</span><strong>{form.country}</strong></div>
-              <div><span>Business</span><p>{form.business}</p></div>
               <div><span>Problem being solved</span><p>{form.problem}</p></div>
               <div><span>Ideal customer</span><p>{form.customer}</p></div>
               <div><span>Audience challenges and goals</span><p>{form.audienceGoals}</p></div>

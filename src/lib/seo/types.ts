@@ -65,6 +65,14 @@ export type SeoDistributionOpportunity = {
   checkedAt: string;
 };
 
+export type SeoPublisherOpportunity = {
+  domain: string;
+  title: string;
+  url: string;
+  snippet: string;
+  keyword: string;
+};
+
 export type SeoLlmVisibility = {
   status: "available" | "unavailable";
   totalMentions: number;
@@ -86,18 +94,31 @@ export type SeoAuditMetrics = {
   onPageScore: number | null;
 };
 
+export type SeoHistoricalPerformancePoint = {
+  year: number;
+  month: number;
+  organicTraffic: number;
+  rankingKeywords: number;
+  top3Keywords: number;
+  top10Keywords: number;
+  newKeywords: number;
+  lostKeywords: number;
+};
+
 export type SeoAuditResult = {
   source: AuditSource;
   sourceLabel: string;
   domain: string;
   fetchedAt: string;
   metrics: SeoAuditMetrics;
+  historicalPerformance?: SeoHistoricalPerformancePoint[];
   issues: SeoIssue[];
   competitors: SeoCompetitor[];
   keywords: SeoKeyword[];
   pages?: SeoSitePage[];
   siteVocabulary?: SeoSiteVocabularyTerm[];
   distributionOpportunities?: SeoDistributionOpportunity[];
+  publisherOpportunities?: SeoPublisherOpportunity[];
   llmVisibility?: SeoLlmVisibility;
   notices: string[];
 };

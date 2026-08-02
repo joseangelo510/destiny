@@ -130,6 +130,54 @@ export type Database = {
           },
         ]
       }
+      keyword_decisions: {
+        Row: {
+          audit_id: string
+          created_at: string
+          decision: string
+          id: string
+          keyword: string
+          updated_at: string
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          audit_id: string
+          created_at?: string
+          decision: string
+          id?: string
+          keyword: string
+          updated_at?: string
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          audit_id?: string
+          created_at?: string
+          decision?: string
+          id?: string
+          keyword?: string
+          updated_at?: string
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keyword_decisions_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keyword_decisions_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competitors: {
         Row: {
           created_at: string

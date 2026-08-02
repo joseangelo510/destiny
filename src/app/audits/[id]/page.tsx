@@ -3,7 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { WeeklyTaskList } from "@/components/weekly-task-list";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { buildAuditNarrative, getCoachTaskWindow } from "@/lib/product/coach-experience";
+import {
+  buildAuditNarrative,
+  buildGuidedFix,
+  getCoachTaskWindow,
+  groupCoachTasks,
+} from "@/lib/product/coach-experience";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
 import { createClient } from "@/lib/supabase/server";
 
@@ -26,7 +31,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const [{ data: audit }, { data: metrics }, { data: tasks }] = await Promise.all([
     supabase
       .from("audits")
-      .select("id,status,progress,provider,failure_message,created_at,completed_at,website_id,websites(business_name,url,normalized_domain,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation)")
+      .select("id,status,progress,provider,failure_message,created_at,completed_at,website_id,websites(business_name,url,normalized_domain,problem_solved,ideal_customer,audience_challenges_goals,differentiation)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("audit_metrics").select("*").eq("audit_id", id).maybeSingle(),
@@ -45,17 +50,19 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const businessName = String(website.business_name || website.normalized_domain || "Your business");
   const coreTasks = getCoachTaskWindow(tasks ?? [], false);
   const primaryTask = coreTasks.find((task) => task.task_type === "primary_quest") ?? coreTasks[1] ?? coreTasks[0];
+  const topIssue = [...issues].sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"))[0];
   const narrative = buildAuditNarrative({
     businessName,
     issues,
     primaryTaskTitle: primaryTask?.title,
   });
+  const guidedFix = buildGuidedFix(topIssue);
+  const taskGroups = groupCoachTasks(coreTasks);
   const sourceLabel = typeof providerResult.sourceLabel === "string"
     ? providerResult.sourceLabel
     : audit.provider === "dataforseo" ? "Live DataForSEO audit" : "Demo audit data";
   const businessUnderstanding = {
     businessName,
-    productsServices: String(website.products_services || "Not provided"),
     problemSolved: String(website.problem_solved || "Not provided"),
     idealCustomer: String(website.ideal_customer || "Not provided"),
     audienceGoals: String(website.audience_challenges_goals || "Not provided"),
@@ -71,15 +78,36 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
           <span className="eyebrow">{narrative.eyebrow}</span>
           <h2>{narrative.title}</h2>
           <p>{narrative.explanation}</p>
-          <a className="primary-button" href="#business-understanding">{narrative.actionLabel}</a>
+          <a className="primary-button" href="#recommended-fix">{narrative.actionLabel}</a>
         </div>
         <div className={`data-source ${audit.provider === "dataforseo" ? "live" : "demo"}`}><span />{sourceLabel}</div>
       </section>
 
-      <section className="results-checklist" id="business-understanding">
-        <div className="results-checklist-heading"><div><span className="eyebrow">Your first week</span><h2>Start with these three guided tasks</h2><p>First confirm Destiny understands your business. Then complete the most important website action and review the SEO content prepared for you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
-        <WeeklyTaskList businessUnderstanding={businessUnderstanding} tasks={coreTasks} />
+      <section className="guided-fix-card" id="recommended-fix">
+        <div className="guided-fix-heading"><span className="eyebrow">Your first guided step</span><h2>{guidedFix.title}</h2><p>{guidedFix.explanation}</p></div>
+        <ol>{guidedFix.steps.map((step, index) => <li key={step}><span>{index + 1}</span><p>{step}</p></li>)}</ol>
+        <div className="results-actions"><Link className="primary-button" href="/this-week">Start this task</Link><Link className="secondary-button" href="/audits">View audit history</Link></div>
       </section>
+
+      <section className="results-checklist">
+        <div className="results-checklist-heading"><div><span className="eyebrow">Your coaching plan</span><h2>See what to do next</h2><p>Destiny completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
+        <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList tasks={group.tasks} /></section>)}</div>
+      </section>
+
+      <details className="business-context-review">
+        <summary><span><strong>Review the business context Destiny used</strong><small>This is optional. Your strategy is already ready.</small></span><b>Review details</b></summary>
+        <div className="business-context-body">
+          <p>Destiny used your onboarding answers to interpret the search data and tailor this plan. Start a new analysis only if these details need to change.</p>
+          <div className="business-understanding-grid">
+            <div><span>Business</span><strong>{businessUnderstanding.businessName}</strong></div>
+            <div><span>Problem you solve</span><p>{businessUnderstanding.problemSolved}</p></div>
+            <div><span>Ideal customer</span><p>{businessUnderstanding.idealCustomer}</p></div>
+            <div><span>Audience goals and challenges</span><p>{businessUnderstanding.audienceGoals}</p></div>
+            <div className="wide"><span>What makes you stand out</span><p>{businessUnderstanding.differentiation}</p></div>
+          </div>
+          <Link className="secondary-button" href="/onboarding">Update these details and run a new analysis</Link>
+        </div>
+      </details>
 
       <details className="audit-evidence-drawer">
         <summary><span><strong>Explore the detailed audit evidence</strong><small>Technical findings, keywords, competitors, and measured SEO data</small></span><b>Open results</b></summary>

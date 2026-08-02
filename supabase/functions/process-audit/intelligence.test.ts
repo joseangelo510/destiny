@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { boundedEvidenceTokens as boundedBrowserTokens, buildKeywordFacts as buildBrowserKeywordFacts, extractSiteVocabulary as extractBrowserVocabulary } from "../../../src/lib/seo/site-intelligence";
-import { boundedEvidenceTokens, buildKeywordFacts, extractSiteVocabulary, parseContentPage, selectImportantPageLinks } from "./intelligence";
+import { boundedEvidenceTokens, buildKeywordFacts, extractSiteVocabulary, parseContentPage, parsePublisherSerp, selectImportantPageLinks } from "./intelligence";
 
 describe("audit-worker intelligence parity", () => {
   const pages = [
@@ -64,5 +64,16 @@ describe("audit-worker intelligence parity", () => {
     const vocabulary = [{ term: "marketing tools", normalized: "marketing tool", weight: 20, sourcePages: ["product" as const], evidence: "Marketing tools" }];
     expect(buildKeywordFacts("tools for e marketing", vocabulary, 2).blocklisted).toBe(true);
     expect(buildBrowserKeywordFacts("tools for e marketing", vocabulary, 2).blocklisted).toBe(true);
+  });
+
+  it("keeps non-competing publishers from the live keyword SERP", () => {
+    const payload = { status_code: 20000, tasks: [{ status_code: 20000, result: [{ items: [
+      { type: "organic", title: "Industry guide", url: "https://searchenginejournal.com/guide", description: "Publisher coverage" },
+      { type: "organic", title: "Known competitor", url: "https://competitor.example/guide", description: "Competitor" },
+      { type: "organic", title: "Reddit", url: "https://reddit.com/r/seo/comments/abc/guide", description: "Community" },
+    ] }] }] };
+    expect(parsePublisherSerp(payload, "seo strategy", ["example.com", "competitor.example"])).toEqual([
+      { domain: "searchenginejournal.com", title: "Industry guide", url: "https://searchenginejournal.com/guide", snippet: "Publisher coverage", keyword: "seo strategy" },
+    ]);
   });
 });

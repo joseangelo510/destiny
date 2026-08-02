@@ -59,7 +59,7 @@ describe("Destiny LOGOS parity", () => {
       essentialKeyword: true,
       weeklyTaskCount: 5,
       contentTaskCount: 2,
-      distributionTaskCount: 1,
+      distributionTaskCount: 2,
     });
   });
 
@@ -76,16 +76,16 @@ describe("Destiny LOGOS parity", () => {
     expect(blocked.browser).toMatchObject({ keywordVerdict: "reject", keywordRuleId: "blocked_noise", weeklyTaskCount: 8 });
   });
 
-  it("returns the exact Beginner, Moderate, and Super Growth task mix", async () => {
+  it("returns the exact categorized execution mix without a second business confirmation", async () => {
     const base = { auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20 };
     const beginner = await runBoth({ ...base, planTier: 1 });
     const moderate = await runBoth({ ...base, planTier: 2 });
     const superGrowth = await runBoth({ ...base, planTier: 3 });
     expect([beginner.browser.weeklyTaskCount, beginner.browser.contentTaskCount, beginner.browser.distributionTaskCount]).toEqual([3, 1, 0]);
-    expect([moderate.browser.weeklyTaskCount, moderate.browser.contentTaskCount, moderate.browser.distributionTaskCount]).toEqual([5, 2, 1]);
-    expect([superGrowth.browser.weeklyTaskCount, superGrowth.browser.contentTaskCount, superGrowth.browser.distributionTaskCount]).toEqual([8, 3, 2]);
-    expect(beginner.browser.weeklyTaskManifest).toEqual(["vocabulary_review", "content_review", "primary_quest"]);
-    expect(moderate.browser.weeklyTaskManifest).toEqual(["vocabulary_review", "content_review", "primary_quest", "reddit_distribution", "keyword_review"]);
-    expect(superGrowth.browser.weeklyTaskManifest).toEqual(["vocabulary_review", "content_review", "primary_quest", "reddit_distribution", "keyword_review", "quora_distribution", "reviews", "llm_visibility"]);
+    expect([moderate.browser.weeklyTaskCount, moderate.browser.contentTaskCount, moderate.browser.distributionTaskCount]).toEqual([5, 2, 2]);
+    expect([superGrowth.browser.weeklyTaskCount, superGrowth.browser.contentTaskCount, superGrowth.browser.distributionTaskCount]).toEqual([8, 3, 4]);
+    expect(beginner.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
+    expect(moderate.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution"]);
+    expect(superGrowth.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution", "publisher_outreach", "directory_growth", "measurement"]);
   });
 });

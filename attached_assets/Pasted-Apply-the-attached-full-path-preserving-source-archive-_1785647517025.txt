@@ -1,0 +1,27 @@
+Apply the attached full path-preserving source archive over the workspace root. This supersedes the earlier v26 patch and is the approved Destiny SEO coach implementation.
+
+Do not inspect, print, change, or duplicate any Secrets. Do not apply Supabase migrations or redeploy Edge Functions: the keyword_strategy_and_categorized_tasks migration is already applied and process-audit version 27 is already ACTIVE.
+
+Required product behavior in this archive:
+- Preserve the existing founder-led onboarding questions and voice controls, including the problem-solved and audience challenges/goals questions. The only removed field is the redundant Products and services field.
+- Step 3 competitor validation must render as a readable error block, not broken red text.
+- After submission, tell the user to stand by about 30 seconds while results load.
+- Destiny is an SEO coach. The three visually prominent destinations are This week, Strategy, and Results. All specialized tools remain visible in a quieter Explore features group.
+- No Beginner/Moderate/Super Growth selector.
+- Business confirmation and vocabulary confirmation are not initial tasks. Business context is only an optional review after the strategy is presented.
+- Completed-audit Strategy is narrative-first, then a working guided fix, then a categorized checklist. The guided action anchor must work.
+- Plain-language guidance must replace technical jargon such as render-blocking resources in the narrative and task instructions.
+- Task completion copy distinguishes only Marked done by you from Verified by Destiny.
+- Keyword Strategy explains the benefit and persists approve/decline decisions.
+- Content Creation provides three editable article drafts, optimization guidance, approval, CMS connection, Word download, and the six-month editorial calendar.
+- Distribution provides Reddit/Quora replies, LinkedIn/X sharing, non-competing publisher outreach drafts, and directories/reviews.
+- Results/Analytics provides live-source-labeled three-month estimated traffic and ranking-keyword charts from DataForSEO numeric history.
+- Text must use the larger accessible desktop/mobile type scale included in globals.css.
+
+Extract/overwrite while preserving paths. Do not copy .env files from the archive. Then run:
+1. npm test
+2. npx eslint src scripts
+3. npm run build
+Expected local baseline: 24 test files, 87 tests, zero lint findings, and a successful Next.js production build.
+
+If and only if every check passes, republish the existing Reserved VM deployment to https://destiny-seo.replit.app. Report exact test, lint, build, and publish results, including the new deployment identifier. Do not change billing, deployment type, domains, or Secrets.

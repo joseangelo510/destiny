@@ -6,9 +6,11 @@ import {
   parseContentPage,
   parseDistributionSerp,
   parseLlmVisibility,
+  parsePublisherSerp,
   selectImportantPageLinks,
   type DistributionOpportunity,
   type LlmVisibility,
+  type PublisherOpportunity,
   type SitePageEvidence,
   type SiteVocabularyTerm,
 } from "./intelligence.ts";
@@ -31,6 +33,16 @@ export type SeoAuditResult = {
     reviewCount: number;
     onPageScore: number | null;
   };
+  historicalPerformance?: Array<{
+    year: number;
+    month: number;
+    organicTraffic: number;
+    rankingKeywords: number;
+    top3Keywords: number;
+    top10Keywords: number;
+    newKeywords: number;
+    lostKeywords: number;
+  }>;
   issues: Array<{ code: string; label: string; severity: "critical" | "warning" }>;
   competitors: Array<{ domain: string; sharedKeywords: number }>;
   keywords: Array<{
@@ -53,6 +65,7 @@ export type SeoAuditResult = {
   pages?: SitePageEvidence[];
   siteVocabulary?: SiteVocabularyTerm[];
   distributionOpportunities?: DistributionOpportunity[];
+  publisherOpportunities?: PublisherOpportunity[];
   llmVisibility?: LlmVisibility;
   notices: string[];
 };
@@ -166,6 +179,20 @@ export function runDemoAudit(websiteValue: string, businessContext?: BusinessCon
   const website = normalizeWebsite(websiteValue);
   const seed = stableNumber(website.domain);
   const criticalIssues = 1 + (seed % 5);
+  const now = new Date();
+  const historicalPerformance = [2, 1, 0].map((monthsAgo, index) => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthsAgo, 1));
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      organicTraffic: 120 + (seed % 150) + index * 35,
+      rankingKeywords: 12 + (seed % 18) + index * 4,
+      top3Keywords: 1 + index,
+      top10Keywords: 4 + index * 2,
+      newKeywords: 2 + index,
+      lostKeywords: index === 0 ? 2 : 1,
+    };
+  });
   const issues: SeoAuditResult["issues"] = [
     { code: "missing_title", label: "Missing or weak page titles", severity: "critical" },
     { code: "broken_links", label: "Broken internal links", severity: "critical" },
@@ -187,6 +214,7 @@ export function runDemoAudit(websiteValue: string, businessContext?: BusinessCon
       reviewCount: seed % 19,
       onPageScore: 62 + (seed % 28),
     },
+    historicalPerformance,
     issues: issues.slice(0, Math.min(3, criticalIssues + 1)),
     competitors: [
       { domain: "local-search-competitor.example", sharedKeywords: 12 + (seed % 30) },
@@ -207,6 +235,24 @@ function firstResult(payload: unknown) {
     throw new Error(`DataForSEO rejected the audit: ${string(task.status_message) || string(root.status_message) || "Unknown API error"}`);
   }
   return record(array(task.result)[0]);
+}
+
+export function parseHistoricalRankOverview(payload: unknown) {
+  const result = firstResult(payload);
+  return array(result.items).map(record).map((item) => {
+    const organic = record(record(item.metrics).organic);
+    return {
+      year: number(item.year),
+      month: number(item.month),
+      organicTraffic: number(organic.etv),
+      rankingKeywords: number(organic.count),
+      top3Keywords: number(organic.pos_1) + number(organic.pos_2_3),
+      top10Keywords: number(organic.pos_1) + number(organic.pos_2_3) + number(organic.pos_4_10),
+      newKeywords: number(organic.is_new),
+      lostKeywords: number(organic.is_lost),
+    };
+  }).filter((point) => point.year > 2000 && point.month >= 1 && point.month <= 12)
+    .sort((left, right) => (left.year * 12 + left.month) - (right.year * 12 + right.month));
 }
 
 function authorization(login: string, password: string) {
@@ -427,7 +473,7 @@ export async function runDataForSeoAudit(
   }], login, password, 30_000)
     .then((value) => ({ status: "fulfilled" as const, value }))
     .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
-  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, homepageContent] = await Promise.all([
+  const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, historyPayload, homepageContent] = await Promise.all([
     dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
       target: website.domain, location_name: location, language_name: "English",
@@ -445,6 +491,12 @@ export async function runDataForSeoAudit(
       order_by: ["relevance,desc", "keyword_info.search_volume,desc"],
       limit: 24,
     }], login, password),
+    dataForSeoPost("/v3/dataforseo_labs/google/historical_rank_overview/live", [{
+      target: website.domain,
+      location_name: location,
+      language_name: "English",
+      correlate: true,
+    }], login, password),
     dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: website.url, markdown_view: true }], login, password),
   ]);
   await onProgress(30);
@@ -460,6 +512,7 @@ export async function runDataForSeoAudit(
   }).filter((competitor) => competitor.domain && competitor.domain.toLowerCase().replace(/^www\./, "") !== website.domain);
   const rankedKeywords = parseRankedKeywords(rankings);
   const keywordIdeas = parseKeywordIdeas(firstResult(ideasPayload));
+  const historicalPerformance = parseHistoricalRankOverview(historyPayload);
 
   const homepageResult = firstResult(homepageContent);
   const homepageItem = record(array(homepageResult.items)[0]);
@@ -581,14 +634,18 @@ export async function runDataForSeoAudit(
     ?? keywords.find((keyword) => keyword.verdict === "accept")
     ?? keywords.find((keyword) => keyword.verdict === "review");
   const distributionTopic = firstAcceptedKeyword?.keyword ?? siteVocabulary.find((term) => term.term.includes(" "))?.term ?? website.domain;
-  const [redditResult, quoraResult] = await Promise.allSettled([
+  const [redditResult, quoraResult, publisherResult] = await Promise.allSettled([
     dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `reddit ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
     dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: `quora ${distributionTopic}`, location_name: location, language_code: "en", depth: 10 }], login, password),
+    dataForSeoPost("/v3/serp/google/organic/live/advanced", [{ keyword: distributionTopic, location_name: location, language_code: "en", depth: 20 }], login, password),
   ]);
   const llmResult = await llmPromise;
   const distributionOpportunities = [redditResult, quoraResult].flatMap((result) => result.status === "fulfilled"
     ? parseDistributionSerp(result.value, distributionTopic)
     : []).filter((item, index, all) => all.findIndex((candidate) => candidate.url === item.url) === index).slice(0, 8);
+  const publisherOpportunities = publisherResult.status === "fulfilled"
+    ? parsePublisherSerp(publisherResult.value, distributionTopic, [website.domain, ...competitorDomains])
+    : [];
   const llmVisibility = llmResult.status === "fulfilled"
     ? parseLlmVisibility(llmResult.value, llmResult.value)
     : { status: "unavailable" as const, totalMentions: 0, aiSearchVolume: 0, platforms: [], topCitedDomains: [], reason: "DataForSEO LLM visibility did not finish within this audit window." };
@@ -616,12 +673,14 @@ export async function runDataForSeoAudit(
       reviewCount: 0,
       onPageScore: typeof page.onpage_score === "number" ? page.onpage_score : null,
     },
+    historicalPerformance,
     issues: issues.slice(0, 10),
     competitors: analyzedCompetitors,
     keywords,
     pages,
     siteVocabulary,
     distributionOpportunities,
+    publisherOpportunities,
     llmVisibility,
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
