@@ -88,6 +88,13 @@ export function getCoachTaskWindow<T extends CoachTask>(tasks: T[], expanded: bo
   return expanded ? ordered : ordered.slice(0, DEFAULT_WEEKLY_TASK_LIMIT);
 }
 
+export function getCurrentCoachTask<T extends CoachTask>(tasks: T[]): T | null {
+  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
+  return ordered.find((task) => task.status === "in_progress")
+    ?? ordered.find((task) => task.status === "todo")
+    ?? null;
+}
+
 export function firstOpenTaskIndex(tasks: Array<Pick<CoachTask, "status">>): number {
   return tasks.findIndex((task) => task.status === "todo" || task.status === "in_progress");
 }

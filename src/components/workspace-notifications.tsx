@@ -5,7 +5,7 @@ import {
   notificationButtonLabel,
   unreadNotificationCount,
   type WorkspaceNotification,
-} from "@/lib/product/notifications";
+} from "../lib/product/notifications";
 
 export function WorkspaceNotifications() {
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);

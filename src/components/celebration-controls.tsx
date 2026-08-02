@@ -9,7 +9,7 @@ import {
   saveCelebrationPreferences,
   type CelebrationKind,
   type CelebrationPreferences,
-} from "@/lib/product/celebrations";
+} from "../lib/product/celebrations";
 
 const SOUND_LABELS: Record<CelebrationKind, string> = {
   task_complete: "Task tick",

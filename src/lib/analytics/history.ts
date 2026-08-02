@@ -35,3 +35,8 @@ export function historyMonthLabel(point: Pick<HistoricalSeoPoint, "year" | "mont
   return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" })
     .format(new Date(Date.UTC(point.year, point.month - 1, 1)));
 }
+
+export function formatHistoricalCount(value: number) {
+  if (!Number.isFinite(value)) return "—";
+  return Math.round(value).toLocaleString("en-US");
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLinePath, latestHistoryPoints } from "./history";
+import { buildLinePath, formatHistoricalCount, latestHistoryPoints } from "./history";
 
 const history = [
   { year: 2026, month: 4, organicTraffic: 90, rankingKeywords: 11 },
@@ -17,5 +17,10 @@ describe("historical SEO charts", () => {
 
   it("builds a stable SVG line even when values are equal", () => {
     expect(buildLinePath([10, 10, 10], 300, 120)).toBe("M 12 60 L 150 60 L 288 60");
+  });
+
+  it("formats estimated visits and keyword counts as whole human quantities", () => {
+    expect(formatHistoricalCount(736359.319)).toBe("736,359");
+    expect(formatHistoricalCount(Number.NaN)).toBe("—");
   });
 });

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CelebrationControls } from "@/components/celebration-controls";
-import { CompassCompanion } from "@/components/compass-companion";
-import type { buildSeoRoadmap } from "@/lib/product/roadmap";
-import type { buildWeeklyProgressSummary } from "@/lib/quests/streak";
+import { CelebrationControls } from "./celebration-controls";
+import { CompassCompanion } from "./compass-companion";
+import type { buildSeoRoadmap } from "../lib/product/roadmap";
+import type { buildWeeklyProgressSummary } from "../lib/quests/streak";
 
 type RoadmapExperienceProps = {
   roadmap: ReturnType<typeof buildSeoRoadmap>;
@@ -12,19 +12,26 @@ type RoadmapExperienceProps = {
 export function RoadmapExperience({ roadmap, weekly }: RoadmapExperienceProps) {
   return <>
     <section className="roadmap-hero">
-      <CompassCompanion completed={roadmap.completedCount} total={roadmap.nodes.length} />
       <div className="roadmap-hero-copy"><span className="eyebrow">{roadmap.progress}% of the route verified or completed</span><h2>{roadmap.currentNode ? `Next landmark: ${roadmap.currentNode.label}` : "Every current landmark is complete"}</h2><p>{roadmap.currentNode?.description ?? "Destiny will keep monitoring connected data for the next useful growth loop."}</p>{roadmap.currentNode && <Link className="primary-button" href={roadmap.currentNode.actionHref}>{roadmap.currentNode.actionLabel}</Link>}</div>
-      <div className="roadmap-truth-key"><div><span className="effort-dot" /><strong>Effort node</strong><p>Unlocks when you complete the work. It may be self-reported until verification is available.</p></div><div><span className="outcome-dot" /><strong>Outcome node</strong><p>Unlocks only from connected Search Console or Analytics evidence.</p></div></div>
+      <CompassCompanion completed={roadmap.completedCount} total={roadmap.nodes.length} />
     </section>
 
-    <section className="roadmap-momentum-grid" aria-label="Weekly momentum">
-      {[
-        [weekly.currentStreak, "Current streak", "Consecutive active weeks"],
-        [weekly.bestStreak, "Best streak", "Longest saved weekly run"],
-        [weekly.perfectWeeks, "Perfect Weeks", "Every assigned task completed"],
-        [weekly.lifetimeActiveWeeks, "Lifetime active weeks", "Weeks with completed work"],
-      ].map(([value, label, detail]) => <article key={String(label)}><strong>{Number(value)}</strong><span>{label}</span><small>{detail}</small></article>)}
-    </section>
+    <details className="roadmap-explanation">
+      <summary><span><strong>How Destiny verifies progress</strong><small>Effort and measured outcomes stay separate</small></span><b>View method</b></summary>
+      <div className="roadmap-truth-key"><div><span className="effort-dot" /><strong>Effort node</strong><p>Unlocks when you complete the work. It may be self-reported until verification is available.</p></div><div><span className="outcome-dot" /><strong>Outcome node</strong><p>Unlocks only from connected Search Console or Analytics evidence.</p></div></div>
+    </details>
+
+    <details className="roadmap-momentum-drawer">
+      <summary><span><strong>Your momentum history</strong><small>{weekly.currentStreak}-week streak · {weekly.perfectWeeks} Perfect Weeks</small></span><b>View history</b></summary>
+      <section className="roadmap-momentum-grid" aria-label="Weekly momentum">
+        {[
+          [weekly.currentStreak, "Current streak", "Consecutive active weeks"],
+          [weekly.bestStreak, "Best streak", "Longest saved weekly run"],
+          [weekly.perfectWeeks, "Perfect Weeks", "Every assigned task completed"],
+          [weekly.lifetimeActiveWeeks, "Lifetime active weeks", "Weeks with completed work"],
+        ].map(([value, label, detail]) => <article key={String(label)}><strong>{Number(value)}</strong><span>{label}</span><small>{detail}</small></article>)}
+      </section>
+    </details>
 
     <section className="seo-treasure-map" aria-label="SEO journey landmarks">
       <div className="treasure-route" />

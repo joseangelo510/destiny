@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
-import { CompassCompanion } from "./compass-companion";
 import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
 import { appendCompetitorSuggestion, validateCompetitorEntries } from "../lib/onboarding/competitors";
 import {
@@ -245,7 +244,7 @@ export function PublicOnboarding() {
           <p className="eyebrow">Your guided SEO starting line</p>
           <h1>Build the momentum to be found.</h1>
           <p>You bring the business knowledge. Destiny turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
-          <div className="onboarding-momentum-summary"><CompassCompanion compact completed={onboardingJourney.completedCount} total={ONBOARDING_MOMENTUM_STAGES.length} /><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
+          <div className="onboarding-momentum-summary"><div className="onboarding-path-number"><strong>{onboardingJourney.currentNumber}</strong><span>of {ONBOARDING_MOMENTUM_STAGES.length}</span></div><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
           <ol aria-label="Onboarding journey" className="guided-stage-list">
             {onboardingJourney.stages.map((stage, index) => {
               const number = index + 1;

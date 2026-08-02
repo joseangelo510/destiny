@@ -13,5 +13,6 @@ describe("PublicOnboarding momentum experience", () => {
     expect(html).toContain("What problem are you solving with your products or services?");
     expect(html).toContain('aria-current="step"');
     expect(html).toContain("Sound on");
+    expect(html).not.toContain("destiny-compass");
   });
 });

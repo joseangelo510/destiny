@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "@/lib/product/coach-experience";
-import { WorkspaceNotifications } from "@/components/workspace-notifications";
+import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "../lib/product/coach-experience";
+import { WorkspaceNotifications } from "./workspace-notifications";
 
 export function WorkspaceShell({
   active,
@@ -16,6 +16,7 @@ export function WorkspaceShell({
   description: string;
   children: ReactNode;
 }) {
+  const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -25,19 +26,18 @@ export function WorkspaceShell({
           {PRIMARY_NAVIGATION.map((item) => (
             <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
           ))}
-          <span className="nav-section-label feature-label">Explore features</span>
-          {FEATURE_NAVIGATION.map((item) => (
-            <Link className={`feature-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
-          ))}
         </nav>
-        <details className="mobile-feature-menu">
-          <summary>Explore features</summary>
+        <details className="desktop-feature-menu" open={Boolean(activeFeature)}>
+          <summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary>
           <div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}</div>
         </details>
-        <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
+        <details className="mobile-feature-menu">
+          <summary>Tools & reports</summary>
+          <div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}</div>
+        </details>
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
-      <section className="dashboard workspace-page">
+      <section className="dashboard workspace-page" data-active={active}>
         <header className="workspace-header">
           <div className="workspace-header-top"><div className="eyebrow">{eyebrow}</div><WorkspaceNotifications /></div>
           <h1>{title}</h1>

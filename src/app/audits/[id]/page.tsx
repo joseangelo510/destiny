@@ -7,6 +7,7 @@ import {
   buildAuditNarrative,
   buildGuidedFix,
   getCoachTaskWindow,
+  getCurrentCoachTask,
   groupCoachTasks,
 } from "@/lib/product/coach-experience";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
@@ -58,6 +59,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     />;
   }
   const coreTasks = getCoachTaskWindow(tasks ?? [], false);
+  const currentCoachTask = getCurrentCoachTask(coreTasks);
   const primaryTask = coreTasks.find((task) => task.task_type === "primary_quest") ?? coreTasks[1] ?? coreTasks[0];
   const topIssue = [...issues].sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"))[0];
   const narrative = buildAuditNarrative({
@@ -99,7 +101,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
 
       <section className="results-checklist">
         <div className="results-checklist-heading"><div><span className="eyebrow">Your coaching plan</span><h2>See what to do next</h2><p>Destiny completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
-        <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
+        <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList openTaskId={currentCoachTask?.id ?? null} remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
       </section>
 
       <details className="business-context-review">

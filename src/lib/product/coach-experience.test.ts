@@ -6,6 +6,7 @@ import {
   completionPresentation,
   firstOpenTaskIndex,
   getActionableCoachTasks,
+  getCurrentCoachTask,
   getCoachTaskWindow,
   groupCoachTasks,
   guidedTaskPath,
@@ -120,5 +121,15 @@ describe("Destiny SEO coach experience", () => {
   it("opens the next actionable task without reopening a completed plan", () => {
     expect(firstOpenTaskIndex([{ status: "complete" }, { status: "todo" }])).toBe(1);
     expect(firstOpenTaskIndex([{ status: "complete" }, { status: "complete" }])).toBe(-1);
+  });
+
+  it("keeps one current task in focus and preserves work already in progress", () => {
+    expect(getCurrentCoachTask([
+      { id: "keywords", task_type: "keyword_review", status: "todo", verification_status: "unverified", priority: 1 },
+      { id: "content", task_type: "content_review", status: "in_progress", verification_status: "unverified", priority: 1 },
+      { id: "fix", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
+    ])?.id).toBe("content");
+    expect(getCurrentCoachTask(tasks)?.id).toBe("keywords");
+    expect(getCurrentCoachTask(tasks.map((task) => ({ ...task, status: "complete" })))).toBeNull();
   });
 });
