@@ -12,6 +12,8 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Analytics");
     expect(html).toContain("Tools &amp; reports");
     expect(html).toContain("Content studio");
+    expect(html).toContain("Keyword research");
+    expect(html).toContain("Backlink analytics");
     expect(html).toContain('data-active="/this-week"');
     expect(html).not.toContain("LOGOS rules active");
     expect(html).not.toMatch(/<details[^>]*class="desktop-feature-menu"[^>]*open/);

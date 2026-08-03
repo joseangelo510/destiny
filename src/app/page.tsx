@@ -5,12 +5,12 @@ const startPath = "/onboarding";
 
 export const metadata: Metadata = {
   title: "Destiny — SEO momentum for founders",
-  description: "Turn an expert SEO playbook into a focused six-month plan and one clear weekly action.",
+  description: "Turn an expert SEO playbook into a focused three-month plan and one clear weekly action.",
 };
 
 const stages = [
   ["01", "Learn your business", "A guided interview captures your products, customers, competitors, goals, constraints, opinions, and proof."],
-  ["02", "Build the plan", "Destiny turns your business inputs and live search evidence into a focused six-month roadmap."],
+  ["02", "Build the plan", "Destiny turns your business inputs and live search evidence into a focused three-month roadmap."],
   ["03", "Create in your voice", "Short interviews become useful pages, articles, FAQs, and conversion copy that sound like you."],
   ["04", "Distribute thoughtfully", "Review Reddit and Quora answers, outreach, review requests, and social snippets before they go live."],
   ["05", "Measure and repeat", "See what is moving, refresh winners, fix issues, and receive the next best action every week."],
@@ -23,6 +23,7 @@ export default function MarketingHome() {
         <Link className="marketing-brand" href="/" aria-label="Destiny homepage"><span>✦</span>Destiny</Link>
         <nav aria-label="Homepage navigation">
           <a href="#how">How it works</a>
+          <a href="#features">Features</a>
           <a href="#proof">Why Destiny</a>
           <a href="#pricing">Pricing</a>
         </nav>
@@ -36,7 +37,7 @@ export default function MarketingHome() {
         <div className="marketing-hero-copy">
           <p className="marketing-kicker">The SEO operating system for founders</p>
           <h1>Get found online, <em>20 minutes</em> at a time.</h1>
-          <p className="marketing-lede">Destiny turns an expert SEO playbook into a focused six-month plan, founder-led content, thoughtful distribution, and a weekly habit you can actually keep.</p>
+          <p className="marketing-lede">Destiny turns an expert SEO playbook into a focused three-month plan, founder-led content, thoughtful distribution, and a weekly habit you can actually keep.</p>
           <div className="marketing-cta-row">
             <Link className="marketing-button gold" href={startPath}>Analyze my website</Link>
             <Link className="marketing-button outline" href="/login?next=%2Fapp">Open my dashboard <span aria-hidden="true">→</span></Link>
@@ -77,6 +78,17 @@ export default function MarketingHome() {
         </div>
       </section>
 
+      <section className="marketing-section marketing-features" id="features">
+        <p className="marketing-kicker">Professional research · coached execution</p>
+        <h2>The depth of an SEO toolkit. The direction of an experienced coach.</h2>
+        <div className="marketing-feature-grid">
+          <article><span>⌕</span><small>Research</small><h3>Keyword research</h3><p>Enter a domain or phrase to explore live demand, search intent, difficulty, CPC, rankings, and estimated traffic.</p></article>
+          <article><span>↗</span><small>Authority</small><h3>Backlink analytics</h3><p>Inspect referring domains, individual links, anchors, attributes, authority signals, and broken-link opportunities.</p></article>
+          <article><span>✓</span><small>Technical</small><h3>Website audits</h3><p>Find crawlability, indexing, page structure, and performance issues, then turn the clearest fix into a guided task.</p></article>
+          <article><span>✦</span><small>Execution</small><h3>Three-month growth system</h3><p>Move approved keywords into content, distribution, technical work, and a weekly plan that keeps momentum visible.</p></article>
+        </div>
+      </section>
+
       <section className="marketing-proof" id="proof">
         <div>
           <p className="marketing-kicker">The important difference</p>
@@ -91,7 +103,7 @@ export default function MarketingHome() {
 
       <section className="marketing-pricing" id="pricing">
         <div><small>Founding plan</small><strong>$39.99<span>/month</span></strong></div>
-        <p>A complete weekly workflow for one business. Start with a live website audit, then build search visibility one focused action at a time.</p>
+        <p>A complete weekly workflow for one business, including your first three-month strategy. When you finish it, upgrade to the Growth tier to unlock another three-month planning cycle.</p>
         <Link className="marketing-button gold" href={startPath}>Claim your destiny</Link>
       </section>
 
