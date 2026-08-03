@@ -392,6 +392,12 @@ describe("keywordHasGeographicConflict", () => {
     expect(keywordHasGeographicConflict("junk removal seattle", fremonEvidence)).toBe(true);
     expect(keywordHasGeographicConflict("junk removal chicago", fremonEvidence)).toBe(true);
     expect(keywordHasGeographicConflict("junk removal philadelphia", fremonEvidence)).toBe(true);
+    // Extended local-market regression — unsupported secondary US cities.
+    expect(keywordHasGeographicConflict("junk removal services tucson", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal services york pa", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("roswell junk removal", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal columbus", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal madison", fremonEvidence)).toBe(true);
   });
 
   it("passes keywords whose city appears in the page-text evidence", () => {

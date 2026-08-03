@@ -185,6 +185,7 @@ const US_CITY_PHRASES: readonly string[] = [
   "dallas", "austin", "denver", "miami", "atlanta", "phoenix",
   "minneapolis", "portland", "las vegas", "detroit", "baltimore",
   "washington dc",
+  "columbus", "madison", "roswell", "tucson", "york pa",
 ];
 
 /**
