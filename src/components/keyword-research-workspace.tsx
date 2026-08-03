@@ -104,7 +104,7 @@ export function PerformanceChart({ points, metric, onMetricChange }: { points: P
   </section>;
 }
 
-export function KeywordResearchWorkspace({ initialQuery = "" }: { initialQuery?: string }) {
+export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "" }: { initialQuery?: string; websiteId?: string }) {
   const [mode, setMode] = useState<"keyword" | "domain">("domain");
   const [query, setQuery] = useState(initialQuery);
   const [result, setResult] = useState<KeywordResearchResult | null>(null);
@@ -114,6 +114,8 @@ export function KeywordResearchWorkspace({ initialQuery = "" }: { initialQuery?:
   const [intent, setIntent] = useState<SearchIntent | "all">("all");
   const [sort, setSort] = useState<KeywordSort>({ key: "volume", direction: "desc" });
   const [performanceMetric, setPerformanceMetric] = useState<"traffic" | "keywords">("traffic");
+  const [tracked, setTracked] = useState<Set<string>>(() => new Set());
+  const [tracking, setTracking] = useState("");
 
   const rows = useMemo(() => sortKeywordRows((result?.rows ?? [])
     .filter((row) => !search || row.keyword.toLowerCase().includes(search.toLowerCase()))
@@ -142,6 +144,26 @@ export function KeywordResearchWorkspace({ initialQuery = "" }: { initialQuery?:
       setError(cause instanceof Error ? cause.message : "Keyword research failed.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function trackKeyword(value: string) {
+    if (!websiteId || tracked.has(value)) return;
+    setTracking(value);
+    setError("");
+    try {
+      const response = await fetch("/api/rank-tracker/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId, keyword: value, source: "research" }),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Destiny could not start tracking this keyword.");
+      setTracked((current) => new Set([...current, value]));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not start tracking this keyword.");
+    } finally {
+      setTracking("");
     }
   }
 
@@ -186,7 +208,7 @@ export function KeywordResearchWorkspace({ initialQuery = "" }: { initialQuery?:
           <input aria-label="Filter keywords" onChange={(event) => setSearch(event.target.value)} placeholder="Filter keywords" value={search} />
           <select aria-label="Filter by intent" onChange={(event) => setIntent(event.target.value as SearchIntent | "all")} value={intent}><option value="all">All intent</option><option value="transactional">Transactional</option><option value="commercial">Commercial</option><option value="informational">Informational</option><option value="navigational">Navigational</option><option value="unknown">Unknown</option></select>
         </div>
-        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}</tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}</tr>)}</tbody></table></div>
+        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}<th>Rank tracker</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
         {!rows.length ? <p className="research-no-rows">No keywords match these filters.</p> : null}
       </section>
       <aside className="research-notices">{result.notices.map((notice) => <p key={notice}>ⓘ {notice}</p>)}</aside>

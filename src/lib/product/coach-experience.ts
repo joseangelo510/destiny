@@ -13,6 +13,7 @@ export const FEATURE_NAVIGATION = [
   { label: "Content studio", href: "/content" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Keyword research", href: "/keyword-research" },
+  { label: "Rank tracker", href: "/rank-tracker" },
   { label: "Backlink analytics", href: "/backlinks" },
   { label: "Distribution", href: "/distribution" },
   { label: "Reviews", href: "/reviews" },

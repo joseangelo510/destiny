@@ -178,6 +178,138 @@ export type Database = {
           },
         ]
       }
+      rank_observations: {
+        Row: {
+          check_url: string | null
+          created_at: string
+          evidence: Json
+          found: boolean
+          id: string
+          observed_at: string
+          position: number | null
+          provider: string
+          provider_cost: number | null
+          provider_task_id: string | null
+          result_title: string | null
+          result_url: string | null
+          search_depth: number
+          tracked_keyword_id: string
+          website_id: string
+        }
+        Insert: {
+          check_url?: string | null
+          created_at?: string
+          evidence?: Json
+          found: boolean
+          id?: string
+          observed_at: string
+          position?: number | null
+          provider?: string
+          provider_cost?: number | null
+          provider_task_id?: string | null
+          result_title?: string | null
+          result_url?: string | null
+          search_depth: number
+          tracked_keyword_id: string
+          website_id: string
+        }
+        Update: {
+          check_url?: string | null
+          evidence?: Json
+          found?: boolean
+          observed_at?: string
+          position?: number | null
+          provider_cost?: number | null
+          provider_task_id?: string | null
+          result_title?: string | null
+          result_url?: string | null
+          search_depth?: number
+        }
+        Relationships: [
+          { foreignKeyName: "rank_observations_tracked_keyword_id_fkey"; columns: ["tracked_keyword_id"]; isOneToOne: false; referencedRelation: "tracked_keywords"; referencedColumns: ["id"] },
+          { foreignKeyName: "rank_observations_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      rank_tracker_lists: {
+        Row: { created_at: string; created_by: string; id: string; name: string; updated_at: string; website_id: string }
+        Insert: { created_at?: string; created_by: string; id?: string; name: string; updated_at?: string; website_id: string }
+        Update: { name?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "rank_tracker_lists_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      rank_tracker_runs: {
+        Row: { completed_at: string | null; completed_count: number; created_at: string; failed_count: number; id: string; provider_cost: number; requested_count: number; started_at: string | null; status: string; website_id: string }
+        Insert: { completed_at?: string | null; completed_count?: number; created_at?: string; failed_count?: number; id?: string; provider_cost?: number; requested_count?: number; started_at?: string | null; status?: string; website_id: string }
+        Update: { completed_at?: string | null; completed_count?: number; failed_count?: number; provider_cost?: number; requested_count?: number; started_at?: string | null; status?: string }
+        Relationships: [
+          { foreignKeyName: "rank_tracker_runs_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      tracked_keywords: {
+        Row: {
+          created_at: string
+          created_by: string
+          device: string
+          first_reading_due_at: string
+          id: string
+          keyword: string
+          language_code: string
+          last_checked_at: string | null
+          last_error: string | null
+          list_id: string | null
+          location_code: number
+          location_name: string
+          next_check_at: string
+          normalized_keyword: string
+          search_depth: number
+          source: string
+          status: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          device?: string
+          first_reading_due_at?: string
+          id?: string
+          keyword: string
+          language_code?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          list_id?: string | null
+          location_code?: number
+          location_name?: string
+          next_check_at?: string
+          normalized_keyword: string
+          search_depth?: number
+          source?: string
+          status?: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          device?: string
+          keyword?: string
+          language_code?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          list_id?: string | null
+          location_code?: number
+          location_name?: string
+          next_check_at?: string
+          normalized_keyword?: string
+          search_depth?: number
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "tracked_keywords_list_id_fkey"; columns: ["list_id"]; isOneToOne: false; referencedRelation: "rank_tracker_lists"; referencedColumns: ["id"] },
+          { foreignKeyName: "tracked_keywords_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
       competitors: {
         Row: {
           created_at: string

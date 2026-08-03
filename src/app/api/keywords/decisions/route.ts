@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -33,5 +34,33 @@ export async function POST(request: Request) {
   }));
   const { data, error } = await supabase.from("keyword_decisions").upsert(rows, { onConflict: "audit_id,keyword" }).select("keyword,decision");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ decisions: data });
+  const approved = requestedDecisions.filter((item) => item.decision === "approved");
+  const declined = requestedDecisions.filter((item) => item.decision === "declined");
+  if (approved.length) {
+    const { error: trackerError } = await supabase.from("tracked_keywords").upsert(approved.map((item) => ({
+      website_id: audit.website_id,
+      created_by: userId,
+      keyword: item.keyword,
+      normalized_keyword: normalizeTrackedKeyword(item.keyword),
+      source: "strategy",
+    })), {
+      onConflict: "website_id,normalized_keyword,location_code,language_code,device",
+      ignoreDuplicates: true,
+    });
+    if (trackerError) return NextResponse.json({ error: `Keyword decisions were saved, but rank tracking could not start: ${trackerError.message}` }, { status: 500 });
+    const { error: resumeError } = await supabase.from("tracked_keywords").update({ status: "pending", next_check_at: new Date().toISOString(), last_error: null })
+      .eq("website_id", audit.website_id)
+      .eq("source", "strategy")
+      .eq("status", "paused")
+      .in("normalized_keyword", approved.map((item) => normalizeTrackedKeyword(item.keyword)));
+    if (resumeError) return NextResponse.json({ error: `Keyword decisions were saved, but paused tracking could not resume: ${resumeError.message}` }, { status: 500 });
+  }
+  if (declined.length) {
+    const { error: pauseError } = await supabase.from("tracked_keywords").update({ status: "paused" })
+      .eq("website_id", audit.website_id)
+      .eq("source", "strategy")
+      .in("normalized_keyword", declined.map((item) => normalizeTrackedKeyword(item.keyword)));
+    if (pauseError) return NextResponse.json({ error: `Keyword decisions were saved, but strategy-only tracking could not pause: ${pauseError.message}` }, { status: 500 });
+  }
+  return NextResponse.json({ decisions: data, trackingStarted: approved.map((item) => item.keyword) });
 }

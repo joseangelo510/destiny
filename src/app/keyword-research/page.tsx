@@ -12,6 +12,6 @@ export default async function KeywordResearchPage() {
     title="Keyword research"
     description="Explore a domain or keyword phrase with live demand, intent, difficulty, CPC, ranking, and traffic estimates—then bring the best opportunities into your coached strategy."
   >
-    <KeywordResearchWorkspace initialQuery={website?.normalized_domain ?? ""} />
+    <KeywordResearchWorkspace initialQuery={website?.normalized_domain ?? ""} websiteId={website?.id ?? ""} />
   </WorkspaceShell>;
 }
