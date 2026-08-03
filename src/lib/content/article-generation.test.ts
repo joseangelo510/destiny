@@ -5,6 +5,7 @@ import {
   buildAnthropicArticleRequest,
   buildArticleGenerationPrompt,
   renderInfographicSvg,
+  resolveArticleGenerationCapability,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
 } from "./article-generation";
@@ -114,5 +115,27 @@ describe("Destiny article generation policy", () => {
     expect(svg).toContain("A Better Content Workflow");
     expect(svg).toContain("Source: Destiny article research");
     expect(svg).not.toContain("<image");
+  });
+});
+
+describe("resolveArticleGenerationCapability", () => {
+  it("reports unavailable with an honest label when the Anthropic key is absent", () => {
+    for (const anthropicApiKey of [undefined, null, "", "   "]) {
+      const capability = resolveArticleGenerationCapability({ anthropicApiKey, copyModel: "claude-opus-4-8" });
+      expect(capability.available).toBe(false);
+      expect(capability.modelLabel).toBe("Article model unavailable");
+    }
+  });
+
+  it("reports the configured copy model when the key is present", () => {
+    const capability = resolveArticleGenerationCapability({ anthropicApiKey: "sk-ant-test", copyModel: "claude-opus-4-9" });
+    expect(capability).toEqual({ available: true, modelLabel: "claude-opus-4-9" });
+  });
+
+  it("falls back to the default copy model when no model override is set", () => {
+    for (const copyModel of [undefined, null, "", "  "]) {
+      const capability = resolveArticleGenerationCapability({ anthropicApiKey: "sk-ant-test", copyModel });
+      expect(capability).toEqual({ available: true, modelLabel: DEFAULT_COPY_MODEL });
+    }
   });
 });

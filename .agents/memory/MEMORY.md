@@ -1,0 +1,1 @@
+- [Editorial keyword safeguards](editorial-keyword-safeguards.md) — automatic exclusion rules need decisive signals (intent, competitor list, evidence); unknown-token heuristics over-filter.

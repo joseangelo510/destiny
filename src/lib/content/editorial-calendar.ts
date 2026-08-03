@@ -12,22 +12,111 @@ export type EditorialKeyword = {
   themeLabel?: string;
 };
 
+export type CalendarSelectionContext = {
+  /** Business products/services text used to anchor offer tokens. */
+  productsServices?: string;
+  /** Strategic-page text evidencing the business's real service locations. */
+  locationEvidence?: string;
+  /** Known competitor names from onboarding (excluded from automatic selection). */
+  competitorNames?: string[];
+};
+
+// Generic service/commercial qualifiers that never indicate a competitor brand.
+const GENERIC_QUALIFIER_TOKENS = new Set([
+  "best", "top", "cheap", "cheapest", "affordable", "local", "near", "me",
+  "same", "day", "fast", "quick", "emergency", "licensed", "insured",
+  "professional", "reliable", "commercial", "residential", "small", "large",
+  "full", "eco", "friendly", "green", "service", "services", "company",
+  "companies", "cost", "costs", "price", "prices", "pricing", "quote",
+  "quotes", "hire", "book", "and", "the", "for", "with", "from", "that",
+  "this", "how", "what", "why", "when", "your", "our",
+]);
+
+const NATIONAL_SCOPE_RE = /\b(usa|u\.s\.a\.|us|u\.s\.|united states|america|american|nationwide|national)\b/i;
+const FREE_SERVICE_RE = /\bfree\b/i;
+
+function normalizeForMatch(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+/**
+ * Returns a reason string when a keyword should be excluded in automatic mode,
+ * or null when it is safe to keep. Explicit user approvals never pass through
+ * this function.
+ */
+export function automaticCalendarExclusionReason(
+  keyword: EditorialKeyword,
+  context: CalendarSelectionContext,
+): string | null {
+  const phrase = normalizeForMatch(keyword.keyword);
+  if (!phrase) return null;
+  const evidence = normalizeForMatch(context.locationEvidence ?? "");
+  const offerText = normalizeForMatch(context.productsServices ?? "");
+  const offerTokens = new Set(offerText.split(/\s+/).filter((t) => t.length >= 3));
+
+  // 1. Known onboarding competitor names.
+  for (const name of context.competitorNames ?? []) {
+    const normalized = normalizeForMatch(name);
+    if (normalized && phrase.includes(normalized)) return "competitor name";
+  }
+
+  // 2. "Free" service phrases unless the business evidences a free offer.
+  if (FREE_SERVICE_RE.test(phrase)) {
+    const freeEvidenced = /\bfree\b/.test(offerText) || /\bfree\b/.test(evidence);
+    if (!freeEvidenced) return "free service not offered";
+  }
+
+  // 3. National/USA scope for an evidenced local business.
+  if (evidence && NATIONAL_SCOPE_RE.test(keyword.keyword) && !NATIONAL_SCOPE_RE.test(evidence)) {
+    return "national scope for local business";
+  }
+
+  // 4. Likely competitor-branded modifiers. Only brand-finding (navigational)
+  // searches are candidates for this rule — a navigational query whose
+  // modifier is not a generic qualifier, not part of the stated offer, and
+  // not evidenced on the site's strategic pages is someone else's brand.
+  // Non-navigational keywords with unfamiliar modifiers (e.g. niche service
+  // qualifiers) are legitimate and must not be excluded here.
+  const isNavigational = String(keyword.intent || "").toLowerCase().includes("navigation");
+  if (isNavigational && offerTokens.size) {
+    const tokens = phrase.split(/\s+/);
+    const hasOfferToken = tokens.some((t) => offerTokens.has(t));
+    if (hasOfferToken) {
+      const unknown = tokens.filter((t) =>
+        !GENERIC_QUALIFIER_TOKENS.has(t)
+        && !offerTokens.has(t)
+        && !(evidence && evidence.includes(t)));
+      if (unknown.length > 0) return "likely branded modifier";
+    }
+  }
+
+  return null;
+}
+
 export function selectKeywordsForCalendar<T extends EditorialKeyword>(
   keywords: T[],
   decisions: Record<string, "approved" | "declined">,
+  context?: CalendarSelectionContext,
 ): T[] {
   const reviewed = Object.keys(decisions).length > 0;
   if (!reviewed) {
-    // Automatic mode (no user decisions yet): suppress zero-volume noise when at
-    // least one demand-backed candidate exists. Hallucinated or incidental phrases
-    // with no measurable search demand are excluded so they cannot reach the
-    // editorial calendar. When every candidate has zero volume (e.g. volume data
-    // has not yet arrived), preserve the full list rather than returning nothing.
-    const demandBacked = keywords.filter((kw) => Number(kw.searchVolume ?? 0) > 0);
-    return demandBacked.length > 0 ? demandBacked : keywords;
+    // Automatic mode (no user decisions yet): apply safety exclusions first —
+    // competitor brands, unoffered "free" terms, and out-of-scope national
+    // phrases cannot reach the calendar without an explicit approval.
+    const safe = context
+      ? keywords.filter((kw) => automaticCalendarExclusionReason(kw, context) === null)
+      : keywords;
+    // If the safeguards excluded everything, fall back to the raw list rather
+    // than emptying the calendar.
+    const pool = safe.length > 0 ? safe : keywords;
+    // Suppress zero-volume noise when at least one demand-backed candidate
+    // exists. When every candidate has zero volume (e.g. volume data has not
+    // yet arrived), preserve the full list rather than returning nothing.
+    const demandBacked = pool.filter((kw) => Number(kw.searchVolume ?? 0) > 0);
+    return demandBacked.length > 0 ? demandBacked : pool;
   }
-  // Explicit decisions: honour approved keywords regardless of volume — the user
-  // may have approved a niche phrase before volume data was available.
+  // Explicit decisions: honour approved keywords regardless of volume or
+  // automatic safeguards — the user's judgement overrides every filter.
   return keywords.filter((keyword) => decisions[keyword.keyword] === "approved");
 }
 

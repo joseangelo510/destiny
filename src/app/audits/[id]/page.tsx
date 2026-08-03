@@ -44,6 +44,14 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
 
   const raw = record(metrics?.raw_provider_payload);
   const providerResult = record(raw.providerResult);
+  // Email-delivery truthfulness: only warn when the audit pipeline explicitly
+  // recorded that the audit-ready email was skipped or failed. Never claim
+  // delivery from the web UI.
+  const emailDeliveryRecord = record(raw.emailDelivery);
+  const emailDeliveryStatus = typeof raw.emailDelivery === "string"
+    ? raw.emailDelivery
+    : String(emailDeliveryRecord.status || "");
+  const emailDeliveryFailed = emailDeliveryStatus === "skipped" || emailDeliveryStatus === "failed";
   const issues = list(providerResult.issues).map(record);
   const competitors = list(providerResult.competitors).map(record);
   const keywords = selectUsableAuditKeywords(providerResult.keywords);
@@ -98,6 +106,11 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
         </div>
         <div className={`data-source ${audit.provider === "dataforseo" ? "live" : "demo"}`}><span />{sourceLabel}</div>
       </section>
+
+      {emailDeliveryFailed && <section className="workspace-card email-delivery-warning" role="status">
+        <strong>Your results are saved here</strong>
+        <p>The email update for this audit could not be sent. Everything is available in this workspace and in your notification center — nothing was lost.</p>
+      </section>}
 
       <section className="guided-fix-card" id="recommended-fix">
         <div className="guided-fix-heading"><span className="eyebrow">Your first guided step</span><h2>{guidedFix.title}</h2><p>{guidedFix.explanation}</p></div>

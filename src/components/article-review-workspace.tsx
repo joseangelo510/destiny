@@ -18,6 +18,7 @@ import {
   READING_EASE_OPTIONS,
   markdownWordCount,
   renderInfographicSvg,
+  type ArticleGenerationCapability,
   type ArticleGenerationPreferences,
   type ArticleInternalPage,
 } from "@/lib/content/article-generation";
@@ -68,17 +69,20 @@ function issueCategory(code: string) {
 
 export function ArticleReviewWorkspace({
   auditId,
+  generationCapability,
   initialDrafts,
   generationContext,
   questId,
   questStatus,
 }: {
   auditId: string;
+  generationCapability?: ArticleGenerationCapability;
   initialDrafts: ArticleDraft[];
   generationContext: ArticleGenerationContext;
   questId?: string;
   questStatus?: string;
 }) {
+  const capability = generationCapability ?? { available: true, modelLabel: DEFAULT_COPY_MODEL };
   const router = useRouter();
   const storageKey = `destiny-article-drafts-${auditId}`;
   const [drafts, setDrafts] = useState<EditableDraft[]>(initialDrafts.map((draft) => ({ ...draft, approved: false })));
@@ -219,7 +223,7 @@ export function ArticleReviewWorkspace({
 
     <div className="article-editor workspace-card">
       <section className="article-generation-controls" aria-labelledby="article-generation-heading">
-        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–3,000 useful words.</p></div><span className="model-chip">Claude Opus 4.8</span></div>
+        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–3,000 useful words.</p></div><span className="model-chip">{capability.modelLabel}</span></div>
         <div className="article-preference-grid">
           <label>Voice<select value={draft.preferences.voice} onChange={(event) => updatePreference("voice", event.target.value as ArticleGenerationPreferences["voice"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label>
           <label>Format<select value={draft.preferences.format} onChange={(event) => updatePreference("format", event.target.value as ArticleGenerationPreferences["format"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label>
@@ -227,7 +231,8 @@ export function ArticleReviewWorkspace({
         </div>
         <label>Special instructions<textarea rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
         <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <button className="primary-button article-generate-button" disabled={generating} onClick={() => void generate()} type="button">{generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${DEFAULT_COPY_MODEL === "claude-opus-4-8" ? "Opus 4.8" : DEFAULT_COPY_MODEL}` : "Regenerate full article"}</button>
+        <button className="primary-button article-generate-button" disabled={generating || !capability.available} onClick={() => void generate()} type="button">{!capability.available ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${capability.modelLabel === "claude-opus-4-8" ? "Opus 4.8" : capability.modelLabel}` : "Regenerate full article"}</button>
+        {!capability.available && <p className="article-generation-unavailable">Full-article generation is not configured in this environment. You can still edit the starter outline below and download it as a Word document.</p>}
         {error && <div className="error-banner" role="alert">{error}</div>}
       </section>
 

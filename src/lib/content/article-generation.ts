@@ -1,5 +1,29 @@
 export const DEFAULT_COPY_MODEL = "claude-opus-4-8";
 
+export type ArticleGenerationCapability = {
+  /** Whether full-article generation is configured (Anthropic key present). */
+  available: boolean;
+  /** Honest label for the UI: the real model when configured, otherwise an unavailable notice. */
+  modelLabel: string;
+};
+
+/**
+ * Pure server-side capability check. Pass the raw environment values —
+ * ANTHROPIC_API_KEY and ANTHROPIC_COPY_MODEL — so the UI can label the
+ * article model honestly instead of claiming a model that cannot be called.
+ */
+export function resolveArticleGenerationCapability(env: {
+  anthropicApiKey?: string | null;
+  copyModel?: string | null;
+}): ArticleGenerationCapability {
+  const available = typeof env.anthropicApiKey === "string" && env.anthropicApiKey.trim().length > 0;
+  if (!available) return { available: false, modelLabel: "Article model unavailable" };
+  const model = typeof env.copyModel === "string" && env.copyModel.trim().length > 0
+    ? env.copyModel.trim()
+    : DEFAULT_COPY_MODEL;
+  return { available: true, modelLabel: model };
+}
+
 export const ARTICLE_VOICE_OPTIONS = [
   { value: "friendly_expert", label: "Friendly expert", description: "Clear, useful, and approachable." },
   { value: "punchy_coach", label: "Punchy coach", description: "Neil Patel-inspired pacing: direct, energetic, and example-led." },

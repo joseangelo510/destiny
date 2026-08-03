@@ -257,4 +257,101 @@ describe("six-month editorial calendar", () => {
     expect(selected.map((kw) => kw.keyword)).toContain("fremont debris hauling");
     expect(selected.map((kw) => kw.keyword)).toContain("junk removal cost");
   });
+
+  it("automatic mode excludes branded, competitor, free, and national terms for the 98junkit failure set", () => {
+    // Real regression set: a Fremont / Bay Area junk-removal business whose
+    // automatic calendar previously included competitor brands, unoffered
+    // "free" services, and national phrases.
+    const candidates = [
+      { keyword: "commercial junk removal services", intent: "transactional", searchVolume: 400 },
+      { keyword: "fremont junk removal", intent: "transactional", searchVolume: 300 },
+      { keyword: "loadup junk removal", intent: "navigational", searchVolume: 900 },
+      { keyword: "junkman junk removal", intent: "navigational", searchVolume: 250 },
+      { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },
+      { keyword: "junk removal usa", intent: "transactional", searchVolume: 600 },
+      { keyword: "junk removal united states", intent: "transactional", searchVolume: 150 },
+      { keyword: "ready set junk", intent: "navigational", searchVolume: 120 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {}, {
+      productsServices: "Junk removal, debris hauling, and commercial cleanout services",
+      locationEvidence: "We serve Fremont and the Bay Area with same-day junk removal and hauling.",
+      competitorNames: ["Ready Set Junk"],
+    });
+    const keywords = selected.map((kw) => kw.keyword);
+
+    expect(keywords).toContain("commercial junk removal services");
+    expect(keywords).toContain("fremont junk removal");
+    expect(keywords).not.toContain("loadup junk removal");
+    expect(keywords).not.toContain("junkman junk removal");
+    expect(keywords).not.toContain("free junk removal");
+    expect(keywords).not.toContain("junk removal usa");
+    expect(keywords).not.toContain("junk removal united states");
+    expect(keywords).not.toContain("ready set junk");
+  });
+
+  it("keeps legitimate niche modifiers that are not brands, qualifiers, or evidenced terms", () => {
+    // "hoarder" is not in the offer text, evidence, or qualifier list, but the
+    // search is transactional — the branded-modifier rule must not drop it.
+    const candidates = [
+      { keyword: "hoarder junk removal", intent: "transactional", searchVolume: 350 },
+      { keyword: "mattress junk removal", intent: "informational", searchVolume: 150 },
+      { keyword: "loadup junk removal", intent: "navigational", searchVolume: 900 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {}, {
+      productsServices: "Junk removal and debris hauling",
+      locationEvidence: "Junk removal in Fremont and the Bay Area.",
+      competitorNames: [],
+    });
+    const keywords = selected.map((kw) => kw.keyword);
+
+    expect(keywords).toContain("hoarder junk removal");
+    expect(keywords).toContain("mattress junk removal");
+    expect(keywords).not.toContain("loadup junk removal");
+  });
+
+  it("keeps free-service terms when the business actually offers a free service", () => {
+    const candidates = [
+      { keyword: "free junk removal estimate", intent: "transactional", searchVolume: 200 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {}, {
+      productsServices: "Junk removal with free estimates",
+      locationEvidence: "Free estimates for junk removal in Fremont.",
+      competitorNames: [],
+    });
+
+    expect(selected.map((kw) => kw.keyword)).toContain("free junk removal estimate");
+  });
+
+  it("explicit user approvals override every automatic safeguard", () => {
+    const candidates = [
+      { keyword: "loadup junk removal", intent: "navigational", searchVolume: 900 },
+      { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {
+      "loadup junk removal": "approved",
+      "free junk removal": "approved",
+      "junk removal cost": "declined",
+    }, {
+      productsServices: "Junk removal and debris hauling",
+      locationEvidence: "Junk removal in Fremont and the Bay Area.",
+      competitorNames: ["LoadUp"],
+    });
+
+    expect(selected.map((kw) => kw.keyword)).toEqual(["loadup junk removal", "free junk removal"]);
+  });
+
+  it("falls back to the raw list when automatic safeguards would exclude everything", () => {
+    const candidates = [
+      { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {}, {
+      productsServices: "Junk removal",
+      locationEvidence: "Junk removal in Fremont.",
+      competitorNames: [],
+    });
+
+    expect(selected).toHaveLength(1);
+  });
 });

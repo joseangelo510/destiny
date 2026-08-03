@@ -4,6 +4,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
+import { resolveArticleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
@@ -45,7 +46,11 @@ export default async function ContentPage() {
   }, 50);
   const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
   const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
-  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions);
+  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, {
+    productsServices: context.website?.products_services ?? "",
+    locationEvidence: pageTextForCalendar,
+    competitorNames: context.competitors.map((competitor) => String(competitor.name || "")).filter(Boolean),
+  });
   const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), INITIAL_PLAN_WEEKS, inferBusinessModel(context.website?.products_services ?? ""), { productsServices: context.website?.products_services ?? "", pageText: pageTextForCalendar });
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
@@ -64,6 +69,10 @@ export default async function ContentPage() {
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
+          generationCapability={resolveArticleGenerationCapability({
+            anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+            copyModel: process.env.ANTHROPIC_COPY_MODEL,
+          })}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
