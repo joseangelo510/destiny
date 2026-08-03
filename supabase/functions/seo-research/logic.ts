@@ -88,6 +88,13 @@ export function parseOrganicPerformance(payload: unknown) {
     .slice(-3);
 }
 
+export function organicHistoryWindowStart(now = new Date()) {
+  const start = new Date(now);
+  start.setUTCDate(1);
+  start.setUTCMonth(start.getUTCMonth() - 3);
+  return start.toISOString().slice(0, 10);
+}
+
 function mappedCounts(value: unknown, labels: Record<string, string>) {
   return Object.entries(record(value)).map(([key, count]) => ({ label: labels[key] ?? key.replaceAll("_", " "), value: number(count) }))
     .filter((item) => item.value > 0).sort((left, right) => right.value - left.value);

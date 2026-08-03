@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseOrganicPerformance } from "./logic";
+import { organicHistoryWindowStart, parseOrganicPerformance } from "./logic";
 
 const successfulPayload = (items: unknown[]) => ({
   status_code: 20000,
@@ -20,6 +20,10 @@ describe("organic performance history", () => {
       { date: "2026-07-01", traffic: 118, keywords: 61, top3: 7, top10: 19 },
       { date: "2026-08-01", traffic: 146, keywords: 72, top3: 10, top10: 25 },
     ]);
+  });
+
+  it("returns the first day three calendar months before the reference date", () => {
+    expect(organicHistoryWindowStart(new Date("2026-08-03T15:00:00Z"))).toBe("2026-05-01");
   });
 
   it("rejects provider failures instead of drawing invented history", () => {

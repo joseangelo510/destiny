@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { firstResult, normalizeDomain, parseBacklinks, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { firstResult, normalizeDomain, organicHistoryWindowStart, parseBacklinks, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -31,12 +31,6 @@ async function providerPost(path: string, body: Record<string, unknown>[], login
   return response.json();
 }
 
-function ninetyDayStart() {
-  const start = new Date();
-  start.setUTCDate(1);
-  start.setUTCMonth(start.getUTCMonth() - 2);
-  return start.toISOString().slice(0, 10);
-}
 
 export default {
   fetch: withSupabase({ auth: "user" }, async (request) => {
@@ -68,7 +62,7 @@ export default {
               target: query,
               location_name: location,
               language_name: "English",
-              date_from: ninetyDayStart(),
+              date_from: organicHistoryWindowStart(),
               correlate: true,
             }], login, password).catch(() => null)
             : Promise.resolve(null),
