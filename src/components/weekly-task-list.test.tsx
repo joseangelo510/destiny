@@ -42,4 +42,28 @@ describe("WeeklyTaskList", () => {
 
     expect(html).not.toMatch(/<details[^>]* open=""/);
   });
+
+  it("does not let users skip the primary recommendation in Research & strategy", () => {
+    const html = renderToStaticMarkup(<WeeklyTaskList
+      openTaskId="primary-task"
+      tasks={[{
+        ...baseTask,
+        id: "primary-task",
+        title: "Fix the highest-impact audit opportunity",
+        task_type: "primary_quest",
+      }]}
+    />);
+
+    expect(html).not.toContain("Skip for now");
+    expect(html).toContain("Approve &amp; complete");
+  });
+
+  it("keeps the skip action available for other incomplete tasks", () => {
+    const html = renderToStaticMarkup(<WeeklyTaskList
+      openTaskId="keyword-task"
+      tasks={[{ ...baseTask, id: "keyword-task", title: "Approve keyword direction" }]}
+    />);
+
+    expect(html).toContain("Skip for now");
+  });
 });

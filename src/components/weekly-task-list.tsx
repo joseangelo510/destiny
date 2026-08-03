@@ -82,7 +82,7 @@ export function WeeklyTaskList({ openTaskId, tasks, remainingTasks = Number.POSI
         {task.external_url && <a className="secondary-button" href={task.external_url} rel="noreferrer" target="_blank">Open live thread ↗</a>}
         {task.status !== "complete" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "complete")} type="button">{saving === task.id ? "Saving…" : task.requires_approval ? "Approve & complete" : "Mark done"}</button>}
         {task.status === "complete" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "todo")} type="button">Reopen</button>}
-        {task.status !== "skipped" && task.status !== "complete" && <button className="text-button" disabled={saving === task.id} onClick={() => void update(task, "skipped")} type="button">Skip for now</button>}
+        {task.task_type !== "primary_quest" && task.status !== "skipped" && task.status !== "complete" && <button className="text-button" disabled={saving === task.id} onClick={() => void update(task, "skipped")} type="button">Skip for now</button>}
       </div></div>
     </details>;
     })}
