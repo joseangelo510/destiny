@@ -14,7 +14,7 @@ export default async function ReviewsPage() {
   const recentReviews = synced ? list(businessMetadata.recentReviews).map(record) : [];
   return (
     <WorkspaceShell active="/reviews" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Reviews" description="Track review proof and turn customer feedback into a consistent local-search habit.">
-      <FeatureJourneyCallout milestone="Compounding authority" description="Consistent review work builds trust. Destiny will keep verified search and conversion results separate from tasks you mark complete." />
+      <FeatureJourneyCallout milestone="Grow what works" description="Consistent review work builds trust. Destiny keeps verified search and conversion results separate from tasks you mark complete." />
       {!context.website ? <WorkspaceEmpty title="Add your business first" description="Complete onboarding before connecting and measuring your Google Business Profile." /> : (
         <section className="review-grid">
           <article className="workspace-card review-score"><span className={`status-chip ${synced ? "" : "amber"}`}>{synced ? "Synced" : googleBusiness?.status ?? "Not connected"}</span><strong>{reviewCount.toLocaleString()}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!).toLocaleString()}.` : "The latest SEO audit does not include live Google review data. Connect and sync Google Business Profile to measure it."}</p><Link className="primary-button workspace-action" href="/integrations">Manage connection</Link></article>

@@ -49,11 +49,11 @@ describe("Destiny SEO coach experience", () => {
   });
 
   it("shows the truthful roadmap destination each coaching task advances", () => {
-    expect(taskRoadmapTarget("primary_quest")).toBe("First pages indexed");
-    expect(taskRoadmapTarget("content_review")).toBe("First content published");
-    expect(taskRoadmapTarget("community_distribution")).toBe("First clicks");
-    expect(taskRoadmapTarget("directory_growth")).toBe("Compounding authority");
-    expect(taskRoadmapTarget("technical_review")).toBe("Stronger foundations");
+    expect(taskRoadmapTarget("primary_quest")).toBe("Get ready to be found");
+    expect(taskRoadmapTarget("content_review")).toBe("Get ready to be found");
+    expect(taskRoadmapTarget("community_distribution")).toBe("Build visibility");
+    expect(taskRoadmapTarget("directory_growth")).toBe("Grow what works");
+    expect(taskRoadmapTarget("technical_review")).toBe("Get ready to be found");
   });
 
   it("removes the redundant business confirmation and groups all actionable work", () => {

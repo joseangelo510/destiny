@@ -122,21 +122,21 @@ export function guidedTaskPath(task: { task_type: string; action_path: string })
 }
 
 const TASK_ROADMAP_TARGETS: Record<string, string> = {
-  keyword_review: "First content published",
-  content_review: "First content published",
-  primary_quest: "First pages indexed",
-  community_distribution: "First clicks",
-  distribution: "First clicks",
-  social_distribution: "First clicks",
-  publisher_outreach: "Compounding authority",
-  directory_growth: "Compounding authority",
-  reviews: "Compounding authority",
-  measurement: "Verified search growth",
-  technical_review: "Stronger foundations",
+  keyword_review: "Get ready to be found",
+  content_review: "Get ready to be found",
+  primary_quest: "Get ready to be found",
+  technical_review: "Get ready to be found",
+  community_distribution: "Build visibility",
+  distribution: "Build visibility",
+  social_distribution: "Build visibility",
+  publisher_outreach: "Grow what works",
+  directory_growth: "Grow what works",
+  reviews: "Grow what works",
+  measurement: "Grow what works",
 };
 
 export function taskRoadmapTarget(taskType: string) {
-  return TASK_ROADMAP_TARGETS[taskType] ?? "Verified search growth";
+  return TASK_ROADMAP_TARGETS[taskType] ?? "Grow what works";
 }
 
 export function completionPresentation(task: Pick<CoachTask, "status" | "verification_status">) {

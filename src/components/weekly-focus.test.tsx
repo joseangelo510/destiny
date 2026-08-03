@@ -25,7 +25,7 @@ describe("WeeklyFocus", () => {
     expect(html).toContain(task.title);
     expect(html).toContain("Begin this step");
     expect(html).toContain("12 minutes");
-    expect(html).toContain("First content published");
+    expect(html).toContain("Get ready to be found");
     expect(html).toContain("2-week streak");
     expect(html).not.toContain("destiny-compass");
   });

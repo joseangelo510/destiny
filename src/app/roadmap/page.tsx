@@ -23,7 +23,7 @@ export default async function RoadmapPage() {
   });
   const weekly = buildWeeklyProgressSummary(context.quests);
 
-  return <WorkspaceShell active="/roadmap" eyebrow={context.website.normalized_domain} title="Your SEO roadmap" description="A truthful journey from completed work to verified search outcomes. Destiny reveals the route without promising dates or results it cannot prove.">
+  return <WorkspaceShell active="/roadmap" eyebrow={context.website.normalized_domain} title="Your visibility journey" description="See where you are, where you are going, and the one useful step to take next.">
     <RoadmapExperience roadmap={roadmap} weekly={weekly} />
   </WorkspaceShell>;
 }

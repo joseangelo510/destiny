@@ -22,7 +22,7 @@ export default async function DistributionPage() {
   ];
   return (
     <WorkspaceShell active="/distribution" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Distribute this week’s work" description="Use four practical channels: helpful community replies, social sharing, publisher outreach, and trusted directory or review profiles.">
-      <FeatureJourneyCallout milestone="First clicks and compounding authority" description="Helpful replies and relevant outreach complete the effort. Search Console remains the source of truth for impressions and clicks." />
+      <FeatureJourneyCallout milestone="Build visibility" description="Helpful replies and relevant outreach make your business easier to discover. Search Console remains the source of truth for impressions and clicks." />
       {!context.audit ? <WorkspaceEmpty title="Run an audit first" description="Destiny needs your search context before it can recommend relevant distribution opportunities." /> : (
         <div className="distribution-sections">
           <section className="workspace-card distribution-section" id="community"><div className="distribution-section-heading"><div><span className="eyebrow">1 · Community forums</span><h2>Reply to three useful Reddit or Quora threads</h2><p>Help first. Add a link only when it genuinely answers the question.</p></div><strong>Goal: 3 replies</strong></div><div className="opportunity-grid compact">{opportunities.slice(0, 6).map((opportunity, index) => {

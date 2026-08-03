@@ -20,6 +20,8 @@ describe("truthful SEO adventure roadmap", () => {
     expect(roadmap.nodes.slice(2).every((node) => node.state !== "complete")).toBe(true);
     expect(roadmap.nodes.find((node) => node.id === "content-published")?.evidence).toContain("marked complete");
     expect(roadmap.nodes.find((node) => node.id === "pages-indexed")?.kind).toBe("outcome");
+    expect(roadmap.nodes.find((node) => node.id === "page-two")?.label).toBe("Rankings improving");
+    expect(roadmap.nodes.find((node) => node.id === "page-one")?.label).toBe("Strong search visibility");
   });
 
   it("unlocks outcome nodes only from connected search and conversion evidence", () => {

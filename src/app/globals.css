@@ -1599,6 +1599,77 @@ body { background: #f3f6f3; font-family: var(--font-body); }
   .secondary-button { transition: none; }
 }
 
+/* Apple Clarity roadmap: one calm path, three destinations, one next action. */
+.apple-roadmap { background: linear-gradient(145deg, #fbfcfa, #edf4f0); border: 1px solid #d5e2db; border-radius: 30px; box-shadow: 0 24px 64px rgba(26, 69, 55, .08); margin-bottom: 24px; overflow: hidden; padding: clamp(30px, 5vw, 62px); }
+.apple-roadmap-copy { max-width: 760px; }
+.apple-roadmap-copy h2 { color: var(--forest-dark); font-family: var(--font-display); font-size: clamp(44px, 6vw, 72px); font-weight: 500; letter-spacing: -.055em; line-height: .98; margin: 15px 0 18px; }
+.apple-roadmap-copy > p { color: var(--muted); font-size: clamp(18px, 2vw, 22px); line-height: 1.5; margin: 0; }
+.apple-roadmap-map { margin: 50px 0 34px; padding-top: 35px; position: relative; }
+.apple-roadmap-route { display: block; height: 125px; overflow: visible; width: 100%; }
+.apple-roadmap-route-base,
+.apple-roadmap-route-progress { fill: none; stroke-linecap: round; stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.apple-roadmap-route-base { stroke: #cad8d1; stroke-dasharray: 2.2 4; }
+.apple-roadmap-route-progress { stroke: var(--forest); }
+.apple-roadmap-marker-halo { fill: rgba(216, 241, 126, .5); stroke: none; }
+.apple-roadmap-marker { fill: var(--lime); stroke: var(--forest-dark); stroke-width: .7; vector-effect: non-scaling-stroke; }
+.apple-roadmap-position { color: var(--forest-dark); font-size: 12px; font-weight: 850; letter-spacing: .03em; position: absolute; text-align: center; top: 14px; transform: translateX(-50%); white-space: nowrap; }
+.apple-roadmap-position span { background: white; border: 1px solid #cbdad2; border-radius: 999px; box-shadow: 0 8px 22px rgba(26, 69, 55, .08); display: inline-block; padding: 7px 11px; }
+.apple-roadmap-position span::after { border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid white; bottom: -5px; content: ""; left: 50%; position: absolute; transform: translateX(-50%); }
+.apple-roadmap-destinations { display: grid; gap: clamp(22px, 4vw, 58px); grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: -28px; position: relative; }
+.apple-roadmap-destinations article { min-width: 0; padding-top: 35px; position: relative; }
+.apple-roadmap-destinations article:nth-child(2) { text-align: center; }
+.apple-roadmap-destinations article:nth-child(3) { text-align: right; }
+.apple-roadmap-stop { align-items: center; background: #f2f5f3; border: 2px solid #9db5aa; border-radius: 50%; color: #70877d; display: flex; font-size: 12px; font-weight: 900; height: 27px; justify-content: center; left: 0; position: absolute; top: 0; width: 27px; }
+.apple-roadmap-destinations article:nth-child(2) .apple-roadmap-stop { left: 50%; transform: translateX(-50%); }
+.apple-roadmap-destinations article:nth-child(3) .apple-roadmap-stop { left: auto; right: 0; }
+.apple-roadmap-destinations article.complete .apple-roadmap-stop { background: var(--forest); border-color: var(--forest); color: white; }
+.apple-roadmap-destinations article.current .apple-roadmap-stop { background: var(--lime); border-color: var(--forest); color: var(--forest-dark); box-shadow: 0 0 0 7px rgba(216, 241, 126, .25); }
+.apple-roadmap-destinations small { color: #74877f; display: block; font-size: 12px; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
+.apple-roadmap-destinations h3 { color: var(--forest-dark); font-family: var(--font-display); font-size: clamp(23px, 2.5vw, 31px); font-weight: 500; letter-spacing: -.035em; line-height: 1.1; margin: 8px 0; }
+.apple-roadmap-destinations p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0; }
+.apple-roadmap-next { align-items: center; background: white; border: 1px solid #cfddd6; border-radius: 21px; box-shadow: 0 15px 38px rgba(26, 69, 55, .08); display: grid; gap: 26px; grid-template-columns: minmax(0, 1fr) auto; margin-top: 42px; padding: clamp(22px, 3.5vw, 34px); }
+.apple-roadmap-next span { color: var(--forest); display: block; font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.apple-roadmap-next h3 { color: var(--forest-dark); font-family: var(--font-display); font-size: clamp(27px, 3vw, 37px); font-weight: 500; letter-spacing: -.035em; line-height: 1.1; margin: 8px 0; }
+.apple-roadmap-next p { color: var(--muted); font-size: 15px; line-height: 1.55; margin: 0; max-width: 720px; }
+.apple-roadmap-next .primary-button { white-space: nowrap; }
+.apple-roadmap-legend { color: #677b72; display: flex; flex-wrap: wrap; font-size: 13px; gap: 12px 28px; margin-top: 24px; }
+.apple-roadmap-legend > span { align-items: center; display: inline-flex; gap: 7px; }
+.apple-roadmap-legend i { border-radius: 50%; display: inline-block; height: 9px; width: 9px; }
+.apple-roadmap-legend i.effort { background: #d7b241; }
+.apple-roadmap-legend i.outcome { background: #2f7f62; }
+.apple-roadmap-evidence-list { border-top: 1px solid var(--line); display: grid; padding: 8px 20px 20px; }
+.apple-roadmap-evidence-list article { align-items: start; border-bottom: 1px solid var(--line); display: grid; gap: 14px; grid-template-columns: 28px minmax(0, 1fr) auto; padding: 17px 4px; }
+.apple-roadmap-evidence-list article:last-child { border-bottom: 0; }
+.apple-roadmap-evidence-list article > span { align-items: center; background: #eef3f0; border-radius: 50%; color: var(--muted); display: flex; font-size: 13px; font-weight: 900; height: 26px; justify-content: center; width: 26px; }
+.apple-roadmap-evidence-list article.complete > span { background: var(--forest); color: white; }
+.apple-roadmap-evidence-list article.current > span { background: var(--lime); color: var(--forest-dark); }
+.apple-roadmap-evidence-list strong { color: var(--ink); font-size: 15px; }
+.apple-roadmap-evidence-list p { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 5px 0 0; }
+.apple-roadmap-evidence-list small { color: var(--forest); font-size: 11px; font-weight: 850; padding-top: 4px; text-transform: uppercase; }
+
+@media (max-width: 760px) {
+  .apple-roadmap { border-radius: 22px; padding: 29px 21px; }
+  .apple-roadmap-copy h2 { font-size: clamp(39px, 12vw, 52px); }
+  .apple-roadmap-map { margin-top: 40px; padding-top: 0; }
+  .apple-roadmap-route,
+  .apple-roadmap-position { display: none; }
+  .apple-roadmap-destinations { gap: 0; grid-template-columns: 1fr; margin-top: 0; }
+  .apple-roadmap-destinations article,
+  .apple-roadmap-destinations article:nth-child(2),
+  .apple-roadmap-destinations article:nth-child(3) { border-left: 2px solid #cad8d1; min-height: 128px; padding: 0 0 28px 50px; text-align: left; }
+  .apple-roadmap-destinations article:last-child { border-left-color: transparent; min-height: 0; }
+  .apple-roadmap-stop,
+  .apple-roadmap-destinations article:nth-child(2) .apple-roadmap-stop,
+  .apple-roadmap-destinations article:nth-child(3) .apple-roadmap-stop { left: -15px; right: auto; top: -2px; transform: none; }
+  .apple-roadmap-destinations article.current::after { color: var(--forest); content: "You are here"; font-size: 11px; font-weight: 900; left: 50px; letter-spacing: .04em; position: absolute; text-transform: uppercase; top: 81px; }
+  .apple-roadmap-next { align-items: stretch; grid-template-columns: 1fr; margin-top: 35px; }
+  .apple-roadmap-next .primary-button { width: 100%; }
+  .apple-roadmap-legend { align-items: flex-start; flex-direction: column; }
+  .apple-roadmap-evidence-list { padding: 5px 14px 15px; }
+  .apple-roadmap-evidence-list article { grid-template-columns: 28px 1fr; }
+  .apple-roadmap-evidence-list article > small { grid-column: 2; }
+}
+
 /* This Week: one focused task deck replaces the repeated hero and category stack. */
 .weekly-loop { background: white; border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 18px 46px rgba(26, 69, 55, .08); margin-bottom: 16px; overflow: hidden; }
 .weekly-loop-heading { align-items: end; display: flex; gap: 36px; justify-content: space-between; padding: 31px 32px 25px; }

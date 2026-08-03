@@ -67,7 +67,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
   const definitions: Array<Omit<SeoRoadmapNode, "state"> & { complete: boolean }> = [
     {
       id: "foundations",
-      label: "Foundations",
+      label: "Website ready",
       kind: "effort",
       complete: Boolean(foundations),
       description: "Complete the highest-impact technical or website task selected from your audit.",
@@ -80,7 +80,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "content-published",
-      label: "First content published",
+      label: "First useful content live",
       kind: "effort",
       complete: Boolean(content),
       description: "Prepare, approve, and publish the first useful page or article from your strategy.",
@@ -93,7 +93,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "pages-indexed",
-      label: "First pages indexed",
+      label: "Pages showing in search",
       kind: "outcome",
       complete: hasSearchAppearance,
       description: "Google begins showing at least one of your pages in search results.",
@@ -104,7 +104,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "first-impressions",
-      label: "First impressions",
+      label: "People seeing you",
       kind: "outcome",
       complete: impressions > 0,
       description: "People begin seeing your pages for real searches.",
@@ -115,7 +115,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "first-clicks",
-      label: "First clicks",
+      label: "People visiting you",
       kind: "outcome",
       complete: clicks > 0,
       description: "Searchers begin visiting your website from Google.",
@@ -126,18 +126,18 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "page-two",
-      label: "Page two",
+      label: "Rankings improving",
       kind: "outcome",
       complete: Boolean(pageTwoPosition),
       description: "A tracked query reaches positions 11–20—or advances beyond them.",
-      typicalRange: "Often 1–6 months, depending on competition",
+      typicalRange: "Often several months, depending on competition",
       evidence: pageTwoPosition ? `Search Console verified a query at position ${pageTwoPosition.toFixed(1)}.` : "No connected query has reached the top 20 yet.",
       actionHref: "/analytics",
       actionLabel: "Review rankings",
     },
     {
       id: "page-one",
-      label: "Page one",
+      label: "Strong search visibility",
       kind: "outcome",
       complete: hasPageOne,
       description: "A tracked query reaches positions 1–10.",
@@ -148,7 +148,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "first-organic-lead",
-      label: "First organic lead or conversion",
+      label: "First customer action",
       kind: "outcome",
       complete: keyEvents > 0,
       description: "Organic search contributes a configured website conversion or key event.",
@@ -159,7 +159,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "compounding-authority",
-      label: "Compounding authority",
+      label: "Visibility growing consistently",
       kind: "outcome",
       complete: hasCompoundingEvidence,
       description: "Rankings, qualified clicks, and conversions repeat strongly enough to support the next growth loop.",
