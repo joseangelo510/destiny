@@ -1615,6 +1615,7 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 .apple-roadmap-position { color: var(--forest-dark); font-size: 12px; font-weight: 850; letter-spacing: .03em; position: absolute; text-align: center; top: 14px; transform: translateX(-50%); white-space: nowrap; }
 .apple-roadmap-position span { background: white; border: 1px solid #cbdad2; border-radius: 999px; box-shadow: 0 8px 22px rgba(26, 69, 55, .08); display: inline-block; padding: 7px 11px; }
 .apple-roadmap-position span::after { border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid white; bottom: -5px; content: ""; left: 50%; position: absolute; transform: translateX(-50%); }
+.apple-roadmap-mobile-position { display: none; }
 .apple-roadmap-destinations { display: grid; gap: clamp(22px, 4vw, 58px); grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: -28px; position: relative; }
 .apple-roadmap-destinations article { min-width: 0; padding-top: 35px; position: relative; }
 .apple-roadmap-destinations article:nth-child(2) { text-align: center; }
@@ -1661,7 +1662,7 @@ body { background: #f3f6f3; font-family: var(--font-body); }
   .apple-roadmap-stop,
   .apple-roadmap-destinations article:nth-child(2) .apple-roadmap-stop,
   .apple-roadmap-destinations article:nth-child(3) .apple-roadmap-stop { left: -15px; right: auto; top: -2px; transform: none; }
-  .apple-roadmap-destinations article.current::after { color: var(--forest); content: "You are here"; font-size: 11px; font-weight: 900; left: 50px; letter-spacing: .04em; position: absolute; text-transform: uppercase; top: 81px; }
+  .apple-roadmap-mobile-position { color: var(--forest); display: block; font-size: 11px; font-weight: 900; letter-spacing: .04em; margin: 0 0 8px; text-transform: uppercase; }
   .apple-roadmap-next { align-items: stretch; grid-template-columns: 1fr; margin-top: 35px; }
   .apple-roadmap-next .primary-button { width: 100%; }
   .apple-roadmap-legend { align-items: flex-start; flex-direction: column; }

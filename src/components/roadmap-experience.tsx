@@ -72,6 +72,7 @@ export function RoadmapExperience({ roadmap, weekly }: RoadmapExperienceProps) {
             const current = index === currentDestination && !complete;
             return <article className={`${complete ? "complete" : ""} ${current ? "current" : ""}`} key={destination.id}>
               <span className="apple-roadmap-stop" aria-hidden="true">{complete ? "✓" : index + 1}</span>
+              {current && <span className="apple-roadmap-mobile-position">You are here</span>}
               <small>{destination.timing}</small>
               <h3>{destination.title}</h3>
               <p>{destination.description}</p>
