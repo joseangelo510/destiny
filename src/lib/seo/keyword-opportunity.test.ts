@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
+import { keywordHasGeographicConflict, rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
 
 const EMPOWERLY_CONTEXT = {
   productsServices: "College admissions counseling, application strategy, essay coaching, and college planning for high school students",
@@ -283,5 +283,36 @@ describe("keyword opportunity ranking", () => {
     expect(diversified.length).toBeGreaterThanOrEqual(30);
     expect(Math.max(...Object.values(counts))).toBeLessThanOrEqual(15);
     expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe("keywordHasGeographicConflict", () => {
+  const fremonEvidence = "junk removal fremont bay area east bay california hauling debris";
+
+  it("flags keywords with city names absent from page-text evidence (98junkit.com pattern)", () => {
+    expect(keywordHasGeographicConflict("junk removal los angeles", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal manhattan", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal boston", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal houston", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal green bay", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal seattle", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal chicago", fremonEvidence)).toBe(true);
+    expect(keywordHasGeographicConflict("junk removal philadelphia", fremonEvidence)).toBe(true);
+  });
+
+  it("passes keywords whose city appears in the page-text evidence", () => {
+    expect(keywordHasGeographicConflict("junk removal fremont", fremonEvidence)).toBe(false);
+    expect(keywordHasGeographicConflict("bay area junk removal", fremonEvidence)).toBe(false);
+  });
+
+  it("passes non-geographic keywords unconditionally", () => {
+    expect(keywordHasGeographicConflict("same day junk removal", fremonEvidence)).toBe(false);
+    expect(keywordHasGeographicConflict("junk removal near me", fremonEvidence)).toBe(false);
+    expect(keywordHasGeographicConflict("debris hauling cost", fremonEvidence)).toBe(false);
+  });
+
+  it("passes everything when evidence is empty", () => {
+    expect(keywordHasGeographicConflict("junk removal chicago", "")).toBe(false);
+    expect(keywordHasGeographicConflict("los angeles hauling", "   ")).toBe(false);
   });
 });

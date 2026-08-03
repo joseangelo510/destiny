@@ -22,6 +22,18 @@ describe("AuditMomentumProcessing", () => {
     expect(html).not.toContain("decorative timer");
   });
 
+  it("says results are in the notification center without promising email delivery", () => {
+    const html = renderToStaticMarkup(<AuditMomentumProcessing
+      auditId="audit-xyz"
+      initialProgress={30}
+      initialStatus="running"
+      website="testco.com"
+    />);
+
+    expect(html).toContain("notification center");
+    expect(html).not.toContain("will link back");
+  });
+
   it("shows an honest recovery state instead of pretending progress continued", () => {
     const html = renderToStaticMarkup(<AuditMomentumProcessing
       auditId="audit-123"

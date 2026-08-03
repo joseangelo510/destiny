@@ -20,6 +20,13 @@ export function selectKeywordsForCalendar<T extends EditorialKeyword>(
 export type SearchIntent = "awareness" | "consideration" | "conversion";
 export type BusinessModel = "product" | "service";
 
+export type EditorialContext = {
+  /** Business products/services for offer-fit scoring. */
+  productsServices?: string;
+  /** Concatenated page text from the website's inspected pages. */
+  pageText?: string;
+};
+
 export const SEARCH_INTENT_DEFINITIONS: Record<SearchIntent, {
   label: string;
   summary: string;
@@ -213,6 +220,38 @@ function businessKeywordFit(keyword: string, businessModel: BusinessModel) {
   return 1;
 }
 
+// US city/metro phrases for geographic relevance filtering in the calendar.
+const US_CITY_PHRASES_EC: readonly string[] = [
+  "los angeles", "manhattan", "new york city", "nyc", "brooklyn",
+  "boston", "houston", "green bay", "seattle", "chicago", "philadelphia",
+  "fremont", "bay area", "san francisco", "san jose", "san diego",
+  "dallas", "austin", "denver", "miami", "atlanta", "phoenix",
+  "minneapolis", "portland", "las vegas",
+];
+
+function editorialGeoConflict(keyword: string, pageText: string): boolean {
+  if (!pageText.trim()) return false;
+  const kw = keyword.toLowerCase();
+  const ev = pageText.toLowerCase();
+  return US_CITY_PHRASES_EC.some((city) => kw.includes(city) && !ev.includes(city));
+}
+
+function editorialOfferTokenSet(productsServices: string): Set<string> {
+  return new Set(
+    productsServices.toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .split(/\s+/)
+      .filter((t) => t.length >= 3 && !["and", "the", "for", "with", "from", "that", "this"].includes(t)),
+  );
+}
+
+function editorialKeywordOfferFit(keyword: string, offerTokens: Set<string>): number {
+  if (!offerTokens.size) return 1; // no context → pass through
+  return keyword.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(/\s+/)
+    .filter((t) => offerTokens.has(t)).length;
+}
+
 export function prioritizeEditorialKeywords(keywords: EditorialKeyword[], businessModel: BusinessModel = "service"): PrioritizedEditorialKeyword[] {
   return keywords.map((keyword) => {
     const providerIntent = normalizedIntent(keyword);
@@ -243,12 +282,22 @@ export function prioritizeEditorialKeywords(keywords: EditorialKeyword[], busine
     || left.keyword.localeCompare(right.keyword));
 }
 
-export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24, businessModel: BusinessModel = "service"): EditorialCalendarItem[] {
+export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24, businessModel: BusinessModel = "service", context?: EditorialContext): EditorialCalendarItem[] {
   if (!keywords.length) return [];
   const prioritized = prioritizeEditorialKeywords(keywords, businessModel);
+  // Offer-fit filter: when ≥3 offer-anchored keywords exist, drop audience-only phrases.
+  const offerTokens = editorialOfferTokenSet(context?.productsServices ?? "");
+  const offerAnchored = prioritized.filter((kw) => kw.opportunity === "existing_rank" || editorialKeywordOfferFit(kw.keyword, offerTokens) > 0);
+  const afterOfferFilter = offerAnchored.length >= 3 ? offerAnchored : prioritized;
+  // Geographic filter: drop keywords whose city is absent from page-text evidence.
+  const pageText = context?.pageText ?? "";
+  const afterGeoFilter = pageText
+    ? afterOfferFilter.filter((kw) => kw.opportunity === "existing_rank" || !editorialGeoConflict(kw.keyword, pageText))
+    : afterOfferFilter;
+  const pool = afterGeoFilter.length ? afterGeoFilter : prioritized;
   const angles = businessModel === "product" ? PRODUCT_ANGLES : SERVICE_ANGLES;
   return Array.from({ length: weeks }, (_, index) => {
-    const keyword = prioritized[index % prioritized.length];
+    const keyword = pool[index % pool.length];
     const angle = angles[index % angles.length];
     const opportunity = keyword.opportunity || "site_idea";
     const evidence = opportunity === "competitor_gap"

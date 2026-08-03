@@ -135,7 +135,7 @@ export function AuditMomentumProcessing({
               <div><strong>{stage.title}</strong><p>{stage.state === "active" ? stage.activeMessage : stage.description}</p><small>{stage.state === "complete" ? "Research saved" : stage.state === "active" ? "Working now" : stage.state === "failed" ? "Needs attention" : "Up next"}</small></div>
             </li>)}
           </ol>
-          <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. The notification center and audit-ready email will link back to your completed strategy."}</p></div>
+          <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. Your results and link are always in the notification center; Destiny also requests an email update when your audit is ready."}</p></div>
           {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>

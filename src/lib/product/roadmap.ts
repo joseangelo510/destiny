@@ -63,21 +63,21 @@ export type SeoRoadmapPhase = {
 const phaseDefinitions: Array<Omit<SeoRoadmapPhase, "tasks" | "signals"> & { signalIds: string[] }> = [
   {
     id: "ready",
-    timing: "First 60 days",
+    timing: "Days 1–30",
     title: "Get ready to be found",
     description: "Strengthen your website and publish useful content.",
     signalIds: ["pages-indexed"],
   },
   {
     id: "visibility",
-    timing: "Days 61–120",
+    timing: "Days 31–60",
     title: "Build visibility",
     description: "Help more of the right people discover and visit you.",
     signalIds: ["first-impressions", "first-clicks", "page-two"],
   },
   {
     id: "growth",
-    timing: "Days 121–180",
+    timing: "Days 61–90",
     title: "Grow what works",
     description: "Build on the search activity that produces real customer actions.",
     signalIds: ["page-one", "first-organic-lead", "compounding-authority"],

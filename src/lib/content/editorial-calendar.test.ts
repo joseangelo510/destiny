@@ -122,6 +122,23 @@ describe("six-month editorial calendar", () => {
     expect(SEARCH_INTENT_DEFINITIONS.conversion.description).toMatch(/pricing|buy|hire|sign up/i);
   });
 
+  it("excludes audience-only topics when offer-anchored alternatives exist (junk-removal pattern)", () => {
+    const calendar = buildEditorialCalendar([
+      { keyword: "junk removal near me", intent: "transactional", searchVolume: 1200, difficulty: 20 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800, difficulty: 25 },
+      { keyword: "debris removal service", intent: "commercial", searchVolume: 600, difficulty: 30 },
+      { keyword: "property managers near me", intent: "transactional", searchVolume: 400, difficulty: 20 },
+      { keyword: "property manager cost", intent: "transactional", searchVolume: 300, difficulty: 25 },
+      { keyword: "rental property managers", intent: "commercial", searchVolume: 200, difficulty: 30 },
+    ], 24, "service", { productsServices: "junk removal, hauling, debris removal, cleanouts" });
+
+    const focusKeywords = calendar.map((item) => item.focusKeyword);
+    expect(focusKeywords).not.toContain("property managers near me");
+    expect(focusKeywords).not.toContain("property manager cost");
+    expect(focusKeywords).not.toContain("rental property managers");
+    expect(focusKeywords.some((kw) => kw.includes("junk removal") || kw.includes("debris removal"))).toBe(true);
+  });
+
   it("returns no invented calendar when there are no approved keywords", () => {
     expect(buildEditorialCalendar([])).toEqual([]);
   });

@@ -35,4 +35,13 @@ describe("PublicOnboarding momentum experience", () => {
     expect(html).toContain("Sound on");
     expect(html).not.toContain("destiny-compass");
   });
+
+  it("makes truthful email claims without promising delivery", () => {
+    const source = readFileSync(new URL("./public-onboarding.tsx", import.meta.url), "utf8");
+
+    expect(source).toContain("notification center");
+    expect(source).toContain("requests email updates");
+    expect(source).not.toContain("audit-ready updates");
+    expect(source).not.toContain("We'll use this for your welcome and audit-ready");
+  });
 });

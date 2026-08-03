@@ -271,7 +271,7 @@ export function PublicOnboarding() {
               <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
               <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
             </div>
-            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>We’ll use this for your welcome and audit-ready updates. It is not an email verification gate.</small></label>
+            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Destiny requests email updates for your audit results. Your results are always available in the in-app notification center.</small></label>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Business website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://www.yourbusiness.com" required type="text" value={form.website} /><small id="website-help">Enter your business’s website address, such as https://www.yourbusiness.com; do not enter only your business name.</small></label>
           </>}

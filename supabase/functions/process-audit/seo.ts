@@ -726,7 +726,8 @@ export async function runDataForSeoAudit(
     ...keyword,
     intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
   }));
-  const rankedKeywordsForStrategy = rankKeywordOpportunities(intentEnrichedCandidates, businessContext ?? {}, 300, businessSearchBrief);
+  const pageTextEvidence = pages.map((page) => page.text).join(" ");
+  const rankedKeywordsForStrategy = rankKeywordOpportunities(intentEnrichedCandidates, { ...(businessContext ?? {}), pageText: pageTextEvidence }, 300, businessSearchBrief);
   const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 50).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),

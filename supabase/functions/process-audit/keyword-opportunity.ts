@@ -21,6 +21,8 @@ export type KeywordBusinessContext = {
   audienceChallengesGoals?: string;
   differentiation?: string;
   market?: string;
+  /** Concatenated page-text evidence from the scanned website pages. */
+  pageText?: string;
 };
 
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
@@ -170,6 +172,31 @@ function audienceConflict(keyword: string, contextDescription: string) {
   return HIGH_SCHOOL_AUDIENCE.test(contextDescription) && GRADUATE_AUDIENCE.test(keyword);
 }
 
+// Major US city/metro phrases. A keyword that contains one of these but the
+// website's page text does not is almost certainly a location the business
+// does not serve — reject it from non-ranking candidates.
+const US_CITY_PHRASES: readonly string[] = [
+  "los angeles", "manhattan", "new york city", "nyc", "brooklyn",
+  "boston", "houston", "green bay", "seattle", "chicago", "philadelphia",
+  "fremont", "bay area", "san francisco", "san jose", "san diego",
+  "dallas", "austin", "denver", "miami", "atlanta", "phoenix",
+  "minneapolis", "portland", "las vegas", "detroit", "baltimore",
+  "washington dc",
+];
+
+/**
+ * Returns true when a keyword contains a US city phrase that does not appear
+ * in the website's page-text evidence, meaning the site likely does not serve
+ * that location. Always returns false for existing-ranking keywords — preserve
+ * those regardless.
+ */
+export function keywordHasGeographicConflict(keyword: string, evidence: string): boolean {
+  if (!evidence.trim()) return false;
+  const kw = keyword.toLowerCase();
+  const ev = evidence.toLowerCase();
+  return US_CITY_PHRASES.some((city) => kw.includes(city) && !ev.includes(city));
+}
+
 function revenueFit(keyword: string, intent: ProviderIntent) {
   const service = SERVICE_BUSINESS.test(keyword);
   const buyerAction = BUYER_ACTION.test(keyword);
@@ -237,6 +264,7 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
     if (audienceConflict(candidate.keyword, businessDescription)) return [];
     seen.add(identity);
+    if (Number(candidate.rank ?? 0) === 0 && context.pageText && keywordHasGeographicConflict(candidate.keyword, context.pageText)) return [];
     const providerIntent = inferIntent(candidate);
     if (INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)
       && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return [];

@@ -81,6 +81,12 @@ describe("truthful SEO adventure roadmap", () => {
     expect(roadmap.nodes.find((node) => node.id === "first-clicks")?.evidence).toContain("12 clicks");
   });
 
+  it("uses 30-day phase windows that fit a 90-day initial plan", () => {
+    const roadmap = buildSeoRoadmap({ auditComplete: false, quests: [], searchConsole: null, analytics: null });
+
+    expect(roadmap.phases.map((phase) => phase.timing)).toEqual(["Days 1–30", "Days 31–60", "Days 61–90"]);
+  });
+
   it("requires multiple verified signals before claiming compounding authority", () => {
     const roadmap = buildSeoRoadmap({
       auditComplete: true,

@@ -60,10 +60,25 @@ describe("WeeklyTaskList", () => {
 
   it("keeps the skip action available for other incomplete tasks", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
-      openTaskId="keyword-task"
-      tasks={[{ ...baseTask, id: "keyword-task", title: "Approve keyword direction" }]}
+      openTaskId="content-task"
+      tasks={[{ ...baseTask, id: "content-task", title: "Publish your first article", task_type: "content_review" }]}
     />);
 
     expect(html).toContain("Skip for now");
+  });
+
+  it("hides skip for keyword_review so the strategy decision stays visible", () => {
+    const html = renderToStaticMarkup(<WeeklyTaskList
+      openTaskId="kw-review"
+      tasks={[{
+        ...baseTask,
+        id: "kw-review",
+        title: "Approve keyword direction",
+        task_type: "keyword_review",
+      }]}
+    />);
+
+    expect(html).not.toContain("Skip for now");
+    expect(html).toContain("Open guided step");
   });
 });

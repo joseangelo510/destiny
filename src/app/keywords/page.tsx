@@ -2,7 +2,7 @@ import { KeywordStrategyReview } from "@/components/keyword-strategy-review";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
+import { keywordHasGeographicConflict, rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const providerIntent = (value: unknown): "transactional" | "commercial" | "navigational" | "informational" => {
@@ -45,12 +45,15 @@ export default async function KeywordsPage() {
   }] : []);
   const hasPersistedSemanticStrategy = keywordCandidates.length > 0
     && keywordCandidates.every((keyword) => keyword.priorityScore > 0 && keyword.priorityReason && keyword.themeId && keyword.themeLabel);
+  const pageTextEvidence = pages.map((page) => String(page.text || "")).join(" ");
   const usableKeywords = hasPersistedSemanticStrategy
-    ? keywordCandidates.map((keyword) => ({
-      ...keyword,
-      competitorRankers: Number(keyword.competitorRankers ?? 0),
-      essential: Boolean(keyword.essential),
-    }))
+    ? keywordCandidates
+        .filter((keyword) => Number(keyword.rank) > 0 || !keywordHasGeographicConflict(keyword.keyword, pageTextEvidence))
+        .map((keyword) => ({
+          ...keyword,
+          competitorRankers: Number(keyword.competitorRankers ?? 0),
+          essential: Boolean(keyword.essential),
+        }))
     : rankKeywordOpportunities(keywordCandidates, {
       businessName: context.website?.business_name ?? "",
       productsServices: context.website?.products_services ?? "",

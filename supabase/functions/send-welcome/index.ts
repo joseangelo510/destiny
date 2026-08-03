@@ -41,6 +41,13 @@ export default {
       reason: cause instanceof Error ? cause.message.slice(0, 300) : "Email delivery failed.",
     }));
 
+    if (delivery.status === "sent") {
+      console.log(JSON.stringify({ event: "welcome_email_sent", userId, websiteId: website.id }));
+    } else if (delivery.status === "skipped") {
+      console.log(JSON.stringify({ event: "welcome_email_skipped", userId, websiteId: website.id, reason: (delivery as { reason?: string }).reason ?? "" }));
+    } else {
+      console.error(JSON.stringify({ event: "welcome_email_failed", userId, websiteId: website.id, reason: (delivery as { reason?: string }).reason ?? "" }));
+    }
     return json({ delivery });
   }),
 };

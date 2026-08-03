@@ -33,7 +33,8 @@ export default async function ContentPage() {
   const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
   const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions);
   const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
-  const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), INITIAL_PLAN_WEEKS, inferBusinessModel(context.website?.products_services ?? ""));
+  const pageTextForCalendar = pages.map((page) => String(page.text || "")).join(" ");
+  const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), INITIAL_PLAN_WEEKS, inferBusinessModel(context.website?.products_services ?? ""), { productsServices: context.website?.products_services ?? "", pageText: pageTextForCalendar });
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
