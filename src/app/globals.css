@@ -261,6 +261,10 @@ button { cursor: pointer; }
 .audit-live-progress-track > span { background: linear-gradient(90deg, #3e8c6c, var(--lime)); border-radius: inherit; display: block; height: 100%; position: relative; transition: width .7s ease; }
 .audit-live-progress-track > span::after { animation: audit-progress-shimmer 1.8s linear infinite; background: linear-gradient(90deg, transparent, rgba(255,255,255,.58), transparent); content: ""; inset: 0; position: absolute; transform: translateX(-100%); }
 .audit-live-progress p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; }
+.audit-time-estimate { background: var(--forest-dark); border-radius: 17px; color: white; display: grid; gap: 5px; margin-top: 13px; padding: 17px 18px; }
+.audit-time-estimate span { color: #b9d8cb; font-size: 11px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.audit-time-estimate strong { font-family: var(--font-display); font-size: 25px; font-weight: 500; line-height: 1.15; }
+.audit-time-estimate small { color: #d4e5de; font-size: 13px; line-height: 1.45; }
 .founder-encouragement { border-left: 4px solid var(--lime); display: grid; gap: 5px; margin-top: 19px; padding: 4px 0 4px 14px; }
 .founder-encouragement span { color: var(--forest); font-size: 12px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
 .founder-encouragement strong { font-size: 16px; line-height: 1.4; }

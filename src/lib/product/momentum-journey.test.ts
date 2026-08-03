@@ -7,23 +7,21 @@ import {
 } from "./momentum-journey";
 
 describe("Destiny momentum journey", () => {
-  it("keeps the existing four onboarding sections while making progress explicit", () => {
+  it("keeps the three required onboarding sections while making progress explicit", () => {
     expect(ONBOARDING_MOMENTUM_STAGES.map((stage) => stage.title)).toEqual([
       "Business & website",
       "Customer & market",
       "Competitors & edge",
-      "Review & analyze",
     ]);
 
     const journey = onboardingMomentumJourney(3);
     expect(journey.current.title).toBe("Competitors & edge");
     expect(journey.completedCount).toBe(2);
-    expect(journey.percent).toBe(50);
+    expect(journey.percent).toBe(67);
     expect(journey.stages.map((stage) => stage.state)).toEqual([
       "complete",
       "complete",
       "active",
-      "upcoming",
     ]);
   });
 

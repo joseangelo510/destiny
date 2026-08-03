@@ -50,13 +50,15 @@ async function sendResendEmail(input: {
   return { status: "sent", messageId: typeof payload.id === "string" ? payload.id : undefined };
 }
 
-export async function sendAuditReadyEmail(input: {
+export type AuditReadyEmailInput = {
   auditId: string;
   firstName: string;
   recipient: string;
   domain: string;
   weeklyQuest: string;
-}): Promise<EmailDelivery> {
+};
+
+export async function sendAuditReadyEmail(input: AuditReadyEmailInput): Promise<EmailDelivery> {
   if (input.recipient.toLowerCase().endsWith("@example.invalid")) {
     return { status: "skipped", reason: "Non-deliverable QA address." };
   }
@@ -84,4 +86,33 @@ export async function sendAuditReadyEmail(input: {
     html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Your Destiny audit is ready.</h1><p>We analyzed <strong>${domain}</strong> and selected one clear action to begin improving your search visibility.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><small style="color:#275f4e;font-weight:700;text-transform:uppercase">Your first weekly quest</small><h2 style="margin:8px 0 0">${quest}</h2></div><p><a href="${escapeHtml(resultsUrl)}" style="background:#275f4e;color:white;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">View my audit results</a></p><p style="color:#71807a;margin-top:32px">Destiny turns SEO into one focused habit at a time.</p></div>`,
     text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nYour Destiny audit for ${input.domain} is ready.\n\nYour first weekly quest: ${input.weeklyQuest}\n\nView your results: ${resultsUrl}\n\nDestiny turns SEO into one focused habit at a time.`,
   });
+}
+
+export async function sendAuditReadyEmailWithRetry(
+  input: AuditReadyEmailInput,
+  options: {
+    attempts?: number;
+    send?: (input: AuditReadyEmailInput) => Promise<EmailDelivery>;
+    sleep?: (milliseconds: number) => Promise<unknown>;
+  } = {},
+): Promise<EmailDelivery> {
+  const attempts = Math.max(1, Math.min(3, Math.round(options.attempts ?? 3)));
+  const send = options.send ?? sendAuditReadyEmail;
+  const sleep = options.sleep ?? ((milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+  let lastDelivery: EmailDelivery = { status: "failed", reason: "Email delivery did not start." };
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      lastDelivery = await send(input);
+    } catch (cause) {
+      lastDelivery = {
+        status: "failed",
+        reason: cause instanceof Error ? cause.message.slice(0, 300) : "Email provider request failed.",
+      };
+    }
+    if (lastDelivery.status === "sent" || lastDelivery.status === "skipped" || attempt === attempts) return lastDelivery;
+    await sleep(500 * 2 ** (attempt - 1));
+  }
+
+  return lastDelivery;
 }

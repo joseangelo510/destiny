@@ -11,6 +11,7 @@ import {
   type CelebrationPreferences,
 } from "../lib/product/celebrations";
 import { AUDIT_MOMENTUM_STAGES, auditMomentumJourney } from "../lib/product/momentum-journey";
+import { auditTimingEstimate } from "../lib/product/audit-timing";
 
 type AuditStatus = "running" | "complete" | "failed";
 
@@ -20,6 +21,7 @@ export function AuditMomentumProcessing({
   initialProgress,
   initialStatus,
   onRetry,
+  startedAt,
   website,
 }: {
   auditId?: string | null;
@@ -27,6 +29,7 @@ export function AuditMomentumProcessing({
   initialProgress: number;
   initialStatus: AuditStatus;
   onRetry?: () => void;
+  startedAt?: string | null;
   website: string;
 }) {
   const [status, setStatus] = useState<AuditStatus>(initialStatus);
@@ -34,7 +37,9 @@ export function AuditMomentumProcessing({
   const [error, setError] = useState(failureMessage ?? "Destiny could not complete this audit.");
   const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
   const [celebrationsReady, setCelebrationsReady] = useState(false);
+  const [nowMs, setNowMs] = useState(0);
   const journey = useMemo(() => auditMomentumJourney(progress, status), [progress, status]);
+  const timing = useMemo(() => auditTimingEstimate({ nowMs, progress, startedAt, status }), [nowMs, progress, startedAt, status]);
   const failed = status === "failed";
   const complete = status === "complete";
   const displayWebsite = website.trim() || "your business";
@@ -75,6 +80,16 @@ export function AuditMomentumProcessing({
     };
   }, [auditId, status]);
 
+  useEffect(() => {
+    if (status !== "running" || !startedAt) return;
+    const hydrationTimer = window.setTimeout(() => setNowMs(Date.now()), 0);
+    const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => {
+      window.clearTimeout(hydrationTimer);
+      window.clearInterval(interval);
+    };
+  }, [startedAt, status]);
+
   const toggleSound = () => {
     const next = { ...celebrationPreferences, muted: !celebrationPreferences.muted };
     setCelebrationPreferences(next);
@@ -104,6 +119,11 @@ export function AuditMomentumProcessing({
             <div aria-label={`Audit ${journey.percent}% complete`} aria-valuemax={100} aria-valuemin={0} aria-valuenow={journey.percent} className="audit-live-progress-track" role="progressbar"><span style={{ width: `${journey.percent}%` }} /></div>
             <p aria-live="polite">{journey.statusLine}</p>
           </div>
+          {!failed && <div aria-live="polite" className="audit-time-estimate">
+            <span>{complete ? "Report completed" : "Estimated completion"}</span>
+            <strong>{complete ? "Your report is ready" : timing.delayed ? "Taking longer than usual" : `About ${timing.secondsRemaining} seconds remaining`}</strong>
+            <small>{complete ? "Opening your saved results now." : `Most reports finish in about ${timing.normalSeconds} seconds. Live provider response times can vary.`}</small>
+          </div>}
           {!failed && <div className="founder-encouragement"><span>Small steps. Real evidence.</span><strong>You do not need an SEO team to build search momentum.</strong></div>}
         </section>
 

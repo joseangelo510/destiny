@@ -10,7 +10,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const [{ data: audit, error }, { data: metrics }, { data: quest }] = await Promise.all([
-    supabase.from("audits").select("id,status,progress,failure_message,completed_at").eq("id", id).maybeSingle(),
+    supabase.from("audits").select("id,status,progress,failure_message,created_at,completed_at").eq("id", id).maybeSingle(),
     supabase.from("audit_metrics").select("critical_issues,warnings,ranking_keywords,new_keywords,lost_keywords,content_gaps,google_reviews,raw_provider_payload").eq("audit_id", id).maybeSingle(),
     supabase.from("quests").select("title,category").eq("audit_id", id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
   ]);

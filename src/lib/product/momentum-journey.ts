@@ -19,8 +19,8 @@ export const ONBOARDING_MOMENTUM_STAGES: OnboardingStageDefinition[] = [
   {
     id: "business",
     title: "Business & website",
-    description: "Give Destiny the story behind what you sell",
-    celebration: "Business story captured",
+    description: "Add your contact details and business website",
+    celebration: "Business details captured",
   },
   {
     id: "audience",
@@ -33,12 +33,6 @@ export const ONBOARDING_MOMENTUM_STAGES: OnboardingStageDefinition[] = [
     title: "Competitors & edge",
     description: "Show Destiny where you deserve to stand out",
     celebration: "Competitive edge mapped",
-  },
-  {
-    id: "review",
-    title: "Review & analyze",
-    description: "Confirm the route and launch live research",
-    celebration: "Research route ready",
   },
 ];
 

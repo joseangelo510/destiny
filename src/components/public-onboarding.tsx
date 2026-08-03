@@ -77,8 +77,7 @@ export function PublicOnboarding() {
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready;
     if (step === 2) return stepTwo.ready;
-    if (step === 3) return form.standout.trim().length > 0 && competitorValidation.ready;
-    return form.firstName.trim().length > 0 && form.lastName.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email.trim());
+    return form.standout.trim().length > 0 && competitorValidation.ready;
   }, [competitorValidation.ready, form, step, stepOne.ready, stepTwo.ready]);
 
   useEffect(() => {
@@ -177,7 +176,7 @@ export function PublicOnboarding() {
       setForm((current) => ({ ...current, website: stepOne.normalizedWebsite ?? current.website }));
     }
     const completedStage = ONBOARDING_MOMENTUM_STAGES[step - 1];
-    setStep((current) => Math.min(4, current + 1));
+    setStep((current) => Math.min(3, current + 1));
     if (step === 2) void discoverCompetitors();
     setCelebration(completedStage.celebration);
     void playDestinySound("task_complete");
@@ -186,7 +185,7 @@ export function PublicOnboarding() {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (step !== 4 || !stepReady) return;
+    if (step !== 3 || !stepReady) return;
     setLoading(true);
     setError("");
     try {
@@ -236,7 +235,7 @@ export function PublicOnboarding() {
   };
 
   if (auditStatus !== "idle") {
-    return <AuditMomentumProcessing failureMessage={error} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(4); }} website={form.website} />;
+    return <AuditMomentumProcessing failureMessage={error} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
   }
 
   return (
@@ -263,27 +262,32 @@ export function PublicOnboarding() {
         </aside>
 
         <form className="guided-onboarding-card" onSubmit={submit}>
-          <span className="guided-step">Step {step} of 4</span>
+          <span className="guided-step">Step {step} of 3</span>
 
           {step === 1 && <>
             <h2>Tell us about your business</h2>
-            <p className="lede">Start with a public website, what you provide, and the customer problem your business solves.</p>
+            <p className="lede">Start with your contact details and the public website Destiny should analyze. Every response is required.</p>
+            <div className="form-grid two-column">
+              <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
+              <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
+            </div>
+            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>We’ll use this for your welcome and audit-ready updates. It is not an email verification gate.</small></label>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
-            <label>Website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="yourwebsite.com or https://yourwebsite.com" required type="text" value={form.website} /><small id="website-help">Any public website you are authorized to analyze</small></label>
-            <VoiceTextarea field="productsServices" label="Tell us about your business and the products or services you provide" listening={listening} onChange={(value) => updateField("productsServices", value)} onDictate={dictate} placeholder="Describe your main products or services in clear, everyday language." value={form.productsServices} />
-            <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
+            <label>Business website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://www.yourbusiness.com" required type="text" value={form.website} /><small id="website-help">Enter your business’s website address, such as https://www.yourbusiness.com; do not enter only your business name.</small></label>
           </>}
 
           {step === 2 && <>
-            <h2>Who is your ideal customer?</h2>
-            <p className="lede">Tell Destiny who you want to reach and the outcomes they care about. Destiny uses the United States search database automatically.</p>
+            <h2>What do you offer, and who do you help?</h2>
+            <p className="lede">Tell Destiny what you provide, the problem it solves, and who you want to reach. Every response is required. Destiny uses the United States search database automatically.</p>
+            <VoiceTextarea field="productsServices" label="Tell us about your business and the products or services you provide" listening={listening} onChange={(value) => updateField("productsServices", value)} onDictate={dictate} placeholder="Describe your main products or services in clear, everyday language." value={form.productsServices} />
+            <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
             <VoiceTextarea field="customer" label="Ideal customer" listening={listening} onChange={(value) => updateField("customer", value)} onDictate={dictate} placeholder="Describe who they are, what they need, and what makes them ready to buy." value={form.customer} />
             <VoiceTextarea field="audienceGoals" label="What challenges and goals do you want to help your audience with?" listening={listening} onChange={(value) => updateField("audienceGoals", value)} onDictate={dictate} placeholder="Share what they are struggling with today and the outcome they want to achieve." value={form.audienceGoals} />
           </>}
 
           {step === 3 && <>
             <h2>Who are your competitors?</h2>
-            <p className="lede">Add at least two real competitors. Destiny also discovers sites that compete for the same searches, so you can choose the businesses that truly belong in your analysis.</p>
+            <p className="lede">Add at least two real competitors and explain what makes your business stand out. Every response is required. Destiny also discovers sites that compete for the same searches.</p>
             <section aria-live="polite" className="competitor-suggestions">
               <div><strong>Discovered in your search landscape</strong><small>These can include businesses, publishers, or marketplaces. Add only the companies you consider direct competitors.</small></div>
               {competitorSuggestionsLoading && <p>Finding organic search neighbors for {form.website}…</p>}
@@ -300,32 +304,10 @@ export function PublicOnboarding() {
             <VoiceTextarea field="standout" label="What makes you stand out from competitors?" listening={listening} onChange={(value) => updateField("standout", value)} onDictate={dictate} placeholder="Share your experience, point of view, proof, and what customers value about working with you." value={form.standout} />
           </>}
 
-          {step === 4 && <>
-            <h2>Ready to build your search baseline?</h2>
-            <p className="lede">Tell us where to send your updates, review the details, then start a real analysis.</p>
-            <div className="form-grid two-column">
-              <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
-              <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
-            </div>
-            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>We’ll use this for your welcome and audit-ready updates. It is not an email verification gate.</small></label>
-            <div className="guided-review-grid">
-              <div><span>Business name</span><strong>{form.businessName}</strong></div>
-              <div><span>Website</span><strong>{form.website}</strong></div>
-              <div><span>Search database</span><strong>{ONBOARDING_SEARCH_COUNTRY}</strong></div>
-              <div><span>Products and services</span><p>{form.productsServices}</p></div>
-              <div><span>Problem being solved</span><p>{form.problem}</p></div>
-              <div><span>Ideal customer</span><p>{form.customer}</p></div>
-              <div><span>Audience challenges and goals</span><p>{form.audienceGoals}</p></div>
-              <div><span>Known competitors</span><p>{form.competitors || "Let Destiny discover them from organic search overlap"}</p></div>
-              <div className="wide"><span>What makes you stand out</span><p>{form.standout}</p></div>
-            </div>
-            <div className="guided-next"><strong>What happens next</strong><p>Destiny checks ranking keywords, keyword opportunities, measured organic competitors, crawl pages, and mobile performance. The notification center saves progress and completion updates.</p></div>
-          </>}
-
           {error && <div className="error-banner">{error}</div>}
           <div className="guided-actions">
             {step === 1 ? <Link className="secondary-button" href="/">Back to home</Link> : <button className="secondary-button" onClick={() => { setError(""); setStep((current) => current - 1); }} type="button">Back</button>}
-            {step < 4 ? <button className="primary-button" disabled={!stepReady} onClick={nextStep} type="button">Continue</button> : <button className="primary-button" disabled={!stepReady || loading} type="submit">{loading ? "Starting analysis…" : "Run live analysis"}</button>}
+            {step < 3 ? <button className="primary-button" disabled={!stepReady} onClick={nextStep} type="button">Continue</button> : <button className="primary-button" disabled={!stepReady || loading} type="submit">{loading ? "Starting analysis…" : "Run live analysis"}</button>}
           </div>
         </form>
       </div>

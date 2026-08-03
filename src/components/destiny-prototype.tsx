@@ -33,13 +33,6 @@ type DestinyNotification = {
   created_at: string;
 };
 
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
-
 const initialForm = {
   firstName: "",
   lastName: "",
@@ -212,7 +205,11 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
   };
 
   const dictate = (field: OnboardingField) => {
-    const Constructor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    const speechWindow = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Constructor = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
     if (!Constructor) {
       setError("Voice input is not supported in this browser. Chrome is recommended.");
       return;

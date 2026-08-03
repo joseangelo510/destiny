@@ -13,6 +13,8 @@ describe("AuditMomentumProcessing", () => {
 
     expect(html).toContain("Your momentum is building for example.com");
     expect(html).toContain("65% saved");
+    expect(html).toContain("About 15 seconds remaining");
+    expect(html).toContain("Most reports finish in about 30 seconds");
     expect(html).toContain('aria-valuenow="65"');
     expect(html).toContain("Revenue-ready keywords");
     expect(html).toContain("Working now");

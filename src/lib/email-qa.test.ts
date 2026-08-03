@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { sendAuditReadyEmail } from "../../supabase/functions/process-audit/email";
+import { sendAuditReadyEmail, sendAuditReadyEmailWithRetry } from "../../supabase/functions/process-audit/email";
 import { sendWelcomeEmail } from "../../supabase/functions/send-welcome/email";
 
 describe("non-deliverable QA email addresses", () => {
@@ -24,5 +24,27 @@ describe("non-deliverable QA email addresses", () => {
 
     expect(provider).not.toHaveBeenCalled();
     provider.mockRestore();
+  });
+
+  it("retries provider failures but never retries a configuration skip", async () => {
+    const failedThenSent = vi.fn()
+      .mockResolvedValueOnce({ status: "failed", reason: "Temporary provider error" })
+      .mockResolvedValueOnce({ status: "sent", messageId: "email-123" });
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const input = {
+      auditId: "audit-123",
+      firstName: "Maya",
+      recipient: "maya@example.com",
+      domain: "example.com",
+      weeklyQuest: "Publish the highest-opportunity page",
+    };
+
+    await expect(sendAuditReadyEmailWithRetry(input, { send: failedThenSent, sleep })).resolves.toEqual({ status: "sent", messageId: "email-123" });
+    expect(failedThenSent).toHaveBeenCalledTimes(2);
+    expect(sleep).toHaveBeenCalledTimes(1);
+
+    const skipped = vi.fn().mockResolvedValue({ status: "skipped", reason: "Transactional email secrets are not configured." });
+    await expect(sendAuditReadyEmailWithRetry(input, { send: skipped, sleep })).resolves.toMatchObject({ status: "skipped" });
+    expect(skipped).toHaveBeenCalledTimes(1);
   });
 });

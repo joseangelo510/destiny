@@ -55,6 +55,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
       failureMessage={audit.failure_message}
       initialProgress={Number(audit.progress ?? 0)}
       initialStatus={audit.status === "failed" ? "failed" : "running"}
+      startedAt={audit.created_at}
       website={String(website.normalized_domain || website.url || businessName)}
     />;
   }

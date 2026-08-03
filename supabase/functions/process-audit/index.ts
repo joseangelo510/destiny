@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { sendAuditReadyEmail } from "./email.ts";
+import { sendAuditReadyEmailWithRetry } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
 import { auditReadyNotificationCopy } from "./notifications.ts";
 import { runSeoAudit } from "./seo.ts";
@@ -190,15 +190,18 @@ export default {
           .eq("kind", "audit_ready")
           .eq("destination_path", "/this-week");
 
-        await sendAuditReadyEmail({
+        const emailDelivery = await sendAuditReadyEmailWithRetry({
           auditId,
           firstName: profile?.first_name ?? "",
           recipient: profile?.contact_email ?? "",
           domain: result.domain,
           weeklyQuest: logic.weeklyQuest,
-        }).catch((emailCause) => {
-          console.error("Audit-ready email failed", emailCause instanceof Error ? emailCause.message : "Unknown error");
         });
+        if (emailDelivery.status === "sent") {
+          console.log("Audit-ready email sent", { auditId, messageId: emailDelivery.messageId ?? null });
+        } else {
+          console.error("Audit-ready email not delivered", { auditId, status: emailDelivery.status, reason: emailDelivery.reason ?? "Unknown reason" });
+        }
       } catch (cause) {
         const message = cause instanceof Error ? cause.message : "Destiny could not complete the audit.";
         await context.supabaseAdmin.rpc("fail_destiny_audit", {
