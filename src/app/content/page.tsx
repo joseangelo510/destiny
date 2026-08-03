@@ -22,6 +22,13 @@ export default async function ContentPage() {
     rank: Number(keyword.rank ?? 0),
     cpc: Number(keyword.cpc ?? 0),
     competitorRankers: Number(keyword.competitorRankers ?? 0),
+    // Preserve persisted semantic-cluster data so the re-ranking pass can
+    // forward it through the fallback path instead of overwriting with
+    // "Evidence-based opportunity". Required for offer-fit filtering to
+    // distinguish an audience segment from an actual sold service.
+    themeId: keyword.themeId,
+    themeLabel: keyword.themeLabel,
+    themeRole: keyword.themeRole,
   }] : []), {
     productsServices: context.website?.products_services ?? "",
     problemSolved: context.website?.problem_solved ?? "",

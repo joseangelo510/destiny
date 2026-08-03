@@ -42,6 +42,9 @@ export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandida
   themeRole: KeywordTheme["funnelRole"];
 };
 
+// Valid themeRole values — used to validate a persisted candidate's themeRole before forwarding it.
+const VALID_THEME_ROLES = new Set<string>(["conversion", "consideration", "awareness", "technical_authority"]);
+
 const STOP_WORDS = new Set([
   "a", "about", "and", "are", "as", "at", "be", "best", "business", "by", "customer", "customers", "expert", "for", "from", "get", "good", "help", "high", "in", "into", "is", "it", "local", "of", "on", "online", "or", "our", "people", "private", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "top", "want", "we", "who", "with", "you", "your",
 ]);
@@ -328,9 +331,12 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
       priorityTier: keywordPriorityTier,
       priorityScore,
       priorityReason: priorityReason(candidate, providerIntent, relevanceTier, themeMatch?.theme.label),
-      themeId: themeMatch?.theme.id ?? "evidence-based",
-      themeLabel: themeMatch?.theme.label ?? "Evidence-based opportunity",
-      themeRole: themeMatch?.theme.funnelRole ?? (providerIntent === "transactional" ? "conversion" : customerIntent(providerIntent)),
+      // A new brief match always wins. Without one, preserve any valid persisted
+      // theme so downstream filters (e.g. offer-fit in editorial calendar) can
+      // distinguish an audience segment from a sold service.
+      themeId: themeMatch?.theme.id ?? (typeof candidate.themeId === "string" && candidate.themeId ? candidate.themeId : "evidence-based"),
+      themeLabel: themeMatch?.theme.label ?? (typeof candidate.themeLabel === "string" && candidate.themeLabel ? candidate.themeLabel : "Evidence-based opportunity"),
+      themeRole: themeMatch?.theme.funnelRole ?? (VALID_THEME_ROLES.has(candidate.themeRole as string) ? candidate.themeRole as KeywordTheme["funnelRole"] : (providerIntent === "transactional" ? "conversion" : customerIntent(providerIntent))),
     } as RankedKeywordOpportunity<T>];
   });
   return ranked.sort((left, right) => left.priorityTier - right.priorityTier

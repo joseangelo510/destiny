@@ -286,6 +286,100 @@ describe("keyword opportunity ranking", () => {
   });
 });
 
+describe("theme preservation through re-ranking", () => {
+  // A property-management business context ensures "property managers near me"
+  // passes the relevance gate (BUYER_ACTION matches "near me"; offer overlaps
+  // "property"). Without a BusinessSearchBrief the themeMatch is always null,
+  // so the fix must forward the candidate's persisted themeId/themeLabel/themeRole
+  // instead of overwriting them with "evidence-based"/"Evidence-based opportunity".
+  const PROPERTY_MGMT_CONTEXT = {
+    productsServices: "residential property management, tenant screening, rent collection, lease management",
+    problemSolved: "Property owners need help managing rental properties and tenants",
+    idealCustomer: "Real estate investors and rental property owners",
+  };
+
+  it("preserves a persisted Audience use cases themeLabel when no brief theme matches", () => {
+    const ranked = rankKeywordOpportunities([{
+      keyword: "property managers near me",
+      intent: "transactional",
+      searchVolume: 400,
+      difficulty: 20,
+      opportunity: "site_idea",
+      themeId: "audience-use-cases",
+      themeLabel: "Audience use cases",
+      themeRole: "awareness",
+    }], PROPERTY_MGMT_CONTEXT);
+
+    const result = ranked.find((kw) => kw.keyword === "property managers near me");
+    expect(result).toBeDefined();
+    expect(result!.themeId).toBe("audience-use-cases");
+    expect(result!.themeLabel).toBe("Audience use cases");
+    expect(result!.themeRole).toBe("awareness");
+  });
+
+  it("overwrites a persisted theme when a new brief match is found", () => {
+    // Full BusinessSearchBrief shape — every required field must be present or
+    // keywordThemeMatch crashes reading offerVsEnablement.notTheOffer.
+    const PROPERTY_MGMT_BRIEF = {
+      source: "claude-opus-4-8" as const,
+      model: "claude-opus-4-8",
+      businessSummary: "Residential property management providing tenant screening, rent collection, and lease management.",
+      offerVsEnablement: {
+        whatCompanySells: ["property management services", "tenant screening", "rent collection"],
+        whatProductEnables: ["property owners to earn passive income"],
+        notTheOffer: ["real estate buying", "mortgage services"],
+      },
+      audiences: ["real estate investors", "rental property owners"],
+      problems: ["managing tenants", "collecting rent", "delinquent payments"],
+      differentiators: ["local property managers", "24/7 maintenance response"],
+      themes: [{
+        id: "property-mgmt-services",
+        label: "Property management services",
+        funnelRole: "conversion" as const,
+        priority: "primary" as const,
+        // "property manager" → canonical tokens ["property","manager"] both appear in
+        // "property managers near me" → requiredMatches = 1; seed overlap >= 0.25.
+        seedKeywords: ["find property managers near me", "local property manager", "hire property manager"],
+        requiredTerms: ["property manager"],
+        negativeTerms: ["real estate agent", "mortgage"],
+        evidence: [{ field: "productsServices" as const, quote: "property management" }],
+      }],
+    };
+
+    const ranked = rankKeywordOpportunities([{
+      keyword: "property managers near me",
+      intent: "transactional",
+      searchVolume: 400,
+      difficulty: 20,
+      opportunity: "site_idea",
+      themeId: "audience-use-cases",
+      themeLabel: "Audience use cases",
+      themeRole: "awareness",
+    }], PROPERTY_MGMT_CONTEXT, 50, PROPERTY_MGMT_BRIEF);
+
+    const result = ranked.find((kw) => kw.keyword === "property managers near me");
+    expect(result).toBeDefined();
+    // Brief match wins — should NOT preserve the stale persisted theme.
+    expect(result!.themeId).toBe("property-mgmt-services");
+    expect(result!.themeLabel).toBe("Property management services");
+    expect(result!.themeRole).toBe("conversion");
+  });
+
+  it("falls back to evidence-based when no brief and no persisted theme", () => {
+    const ranked = rankKeywordOpportunities([{
+      keyword: "property managers near me",
+      intent: "transactional",
+      searchVolume: 400,
+      difficulty: 20,
+    }], PROPERTY_MGMT_CONTEXT);
+
+    const result = ranked.find((kw) => kw.keyword === "property managers near me");
+    expect(result).toBeDefined();
+    expect(result!.themeId).toBe("evidence-based");
+    expect(result!.themeLabel).toBe("Evidence-based opportunity");
+  });
+});
+
 describe("keywordHasGeographicConflict", () => {
   const fremonEvidence = "junk removal fremont bay area east bay california hauling debris";
 
