@@ -86,6 +86,6 @@ describe("Destiny LOGOS parity", () => {
     expect([superGrowth.browser.weeklyTaskCount, superGrowth.browser.contentTaskCount, superGrowth.browser.distributionTaskCount]).toEqual([8, 3, 4]);
     expect(beginner.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
     expect(moderate.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution"]);
-    expect(superGrowth.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution", "publisher_outreach", "directory_growth", "measurement"]);
+    expect(superGrowth.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution", "publisher_outreach", "directory_growth", "technical_review"]);
   });
 });

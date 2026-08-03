@@ -121,7 +121,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
         </div>
       </details>
 
-      <details className="audit-evidence-drawer">
+      <details className="audit-evidence-drawer" id="technical-evidence">
         <summary><span><strong>Explore the detailed audit evidence</strong><small>Technical findings, keywords, competitors, and measured SEO data</small></span><b>Open results</b></summary>
         <div className="audit-evidence-body">
           <section className="results-metrics">
@@ -147,7 +147,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
             <article className="result-panel keyword-strategy-panel">
               <div className="card-heading"><span>Keyword and content strategy</span><small>{keywords.length} usable opportunities</small></div>
               <div className="keyword-preview-list">{keywords.length ? keywords.slice(0, 6).map((keyword, index) => <div key={`${String(keyword.keyword)}-${index}`}><span>{index + 1}</span><div><strong>{String(keyword.keyword)}</strong><small>{String(keyword.opportunity ?? "existing rank").replaceAll("_", " ")} · {Number(keyword.searchVolume ?? 0).toLocaleString()} monthly searches · difficulty {Number(keyword.difficulty ?? 0)}</small></div></div>) : <p className="empty-state">No usable keyword opportunities were saved.</p>}</div>
-              <div className="results-actions"><Link className="primary-button" href="/content">Open content studio</Link><Link className="secondary-button" href="/growth-plan">View six-month plan</Link></div>
+              <div className="results-actions"><Link className="primary-button" href="/content">Open content studio</Link><Link className="secondary-button" href="/growth-plan">View three-month plan</Link></div>
             </article>
           </section>
         </div>

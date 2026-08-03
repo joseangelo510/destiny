@@ -18,7 +18,8 @@ import {
 
 const tasks = [
   { id: "content", task_type: "content_review", status: "todo", verification_status: "unverified", priority: 1 },
-  { id: "llm", task_type: "measurement", status: "todo", verification_status: "unverified", priority: 3 },
+  { id: "legacy-analysis", task_type: "measurement", status: "todo", verification_status: "unverified", priority: 3 },
+  { id: "technical", task_type: "technical_review", status: "todo", verification_status: "unverified", priority: 3 },
   { id: "business", task_type: "business_confirmation", status: "todo", verification_status: "unverified", priority: 1 },
   { id: "keywords", task_type: "keyword_review", status: "todo", verification_status: "unverified", priority: 1 },
   { id: "community", task_type: "community_distribution", status: "todo", verification_status: "unverified", priority: 2 },
@@ -32,7 +33,7 @@ describe("Destiny SEO coach experience", () => {
       "This week",
       "Roadmap",
       "Strategy",
-      "Results",
+      "Analytics",
     ]);
     expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
       "Home",
@@ -52,27 +53,29 @@ describe("Destiny SEO coach experience", () => {
     expect(taskRoadmapTarget("content_review")).toBe("First content published");
     expect(taskRoadmapTarget("community_distribution")).toBe("First clicks");
     expect(taskRoadmapTarget("directory_growth")).toBe("Compounding authority");
-    expect(taskRoadmapTarget("measurement")).toBe("Verified search growth");
+    expect(taskRoadmapTarget("technical_review")).toBe("Stronger foundations");
   });
 
   it("removes the redundant business confirmation and groups all actionable work", () => {
     expect(DEFAULT_WEEKLY_TASK_LIMIT).toBe(8);
     expect(getActionableCoachTasks(tasks).map((task) => task.id)).not.toContain("business");
+    expect(getActionableCoachTasks(tasks).map((task) => task.id)).not.toContain("legacy-analysis");
     expect(orderCoachTasks(tasks).map((task) => task.id)).toEqual([
       "keywords",
       "fix",
       "content",
       "community",
       "social",
-      "llm",
+      "technical",
       "business",
+      "legacy-analysis",
     ]);
-    expect(getCoachTaskWindow(tasks, false).map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "llm"]);
+    expect(getCoachTaskWindow(tasks, false).map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "technical"]);
     expect(groupCoachTasks(tasks).map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
-      ["research-strategy", ["keywords", "fix"]],
+      ["research-strategy", ["keywords"]],
       ["content-creation", ["content"]],
       ["distribution", ["community", "social"]],
-      ["data-analysis", ["llm"]],
+      ["technical-seo", ["fix", "technical"]],
     ]);
   });
 

@@ -4,7 +4,7 @@ export const PRIMARY_NAVIGATION = [
   { label: "This week", href: "/this-week" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Strategy", href: "/results" },
-  { label: "Results", href: "/analytics" },
+  { label: "Analytics", href: "/analytics" },
 ] as const;
 
 export const FEATURE_NAVIGATION = [
@@ -37,7 +37,8 @@ const taskOrder: Record<string, number> = {
   publisher_outreach: 5,
   directory_growth: 6,
   reviews: 6,
-  measurement: 7,
+  technical_review: 7,
+  measurement: 98,
   business_confirmation: 98,
   vocabulary_review: 98,
 };
@@ -47,7 +48,7 @@ export const COACH_CATEGORIES = [
     id: "research-strategy",
     label: "Research & strategy",
     description: "Review the research Destiny completed, approve your keyword direction, and handle the highest-impact recommendation.",
-    taskTypes: ["keyword_review", "primary_quest"],
+    taskTypes: ["keyword_review"],
   },
   {
     id: "content-creation",
@@ -62,17 +63,17 @@ export const COACH_CATEGORIES = [
     taskTypes: ["community_distribution", "distribution", "social_distribution", "publisher_outreach", "directory_growth", "reviews"],
   },
   {
-    id: "data-analysis",
-    label: "Data analysis",
-    description: "Monitor keyword rankings, search traffic, conversions, and the results of completed work.",
-    taskTypes: ["measurement"],
+    id: "technical-seo",
+    label: "Technical SEO",
+    description: "Fix crawlability, indexing, page structure, and performance issues found on your website.",
+    taskTypes: ["primary_quest", "technical_review"],
   },
 ] as const;
 
-const REDUNDANT_INITIAL_TASKS = new Set(["business_confirmation", "vocabulary_review"]);
+const NON_COACHING_TASKS = new Set(["business_confirmation", "vocabulary_review", "measurement"]);
 
 export function getActionableCoachTasks<T extends CoachTask>(tasks: T[]): T[] {
-  return tasks.filter((task) => !REDUNDANT_INITIAL_TASKS.has(task.task_type));
+  return tasks.filter((task) => !NON_COACHING_TASKS.has(task.task_type));
 }
 
 export function orderCoachTasks<T extends CoachTask>(tasks: T[]): T[] {
@@ -131,6 +132,7 @@ const TASK_ROADMAP_TARGETS: Record<string, string> = {
   directory_growth: "Compounding authority",
   reviews: "Compounding authority",
   measurement: "Verified search growth",
+  technical_review: "Stronger foundations",
 };
 
 export function taskRoadmapTarget(taskType: string) {

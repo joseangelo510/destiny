@@ -11,7 +11,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-02.4";
+const LOGOS_RULES_VERSION = "2026-08-02.5";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -38,7 +38,7 @@ function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, audit
     social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 2, priority: 2, xp: 25 },
     publisher_outreach: { title: "Contact three non-competing publishers ranking for your keyword", why: "A relevant reference, contribution, or relationship can earn qualified referral traffic and future authority.", category: "distribution", taskType: "publisher_outreach", actionPath: "/distribution#outreach", estimatedMinutes: 30, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 35 },
     directory_growth: { title: "Complete one directory profile or request three reviews", why: "Product Hunt, G2, Capterra, and Google Business Profile help buyers compare options; established profiles should build fresh proof.", category: "distribution", taskType: "directory_growth", actionPath: "/distribution#directories", estimatedMinutes: 25, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 30 },
-    measurement: { title: "Review keyword, traffic, and conversion movement", why: "Monthly DataForSEO trends and connected Search Console, Analytics, and CMS data show whether completed work is producing results.", category: "measurement", taskType: "measurement", actionPath: "/analytics", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+    technical_review: { title: "Run a PageSpeed and deeper technical check", why: "Destiny keeps onboarding fast by checking the homepage first. This follow-up reviews performance and the wider technical foundation after your initial strategy is ready.", category: "technical", taskType: "technical_review", actionPath: `/audits/${auditId}#technical-evidence`, externalUrl: `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`https://${result.domain}`)}`, estimatedMinutes: 20, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
   };
   return manifest.map((code) => tasks[code as keyof typeof tasks]).filter(Boolean);
 }

@@ -41,6 +41,20 @@ const groups = [
     taskTypes: ["content_review"],
     tasks: [task({ id: "content-task", title: "Review your first article", task_type: "content_review" })],
   },
+  {
+    id: "distribution",
+    label: "Distribution",
+    description: "Bring approved expertise to the places customers already spend time.",
+    taskTypes: ["community_distribution"],
+    tasks: [],
+  },
+  {
+    id: "technical-seo",
+    label: "Technical SEO",
+    description: "Fix crawlability, indexing, page structure, and performance issues.",
+    taskTypes: ["primary_quest", "technical_review"],
+    tasks: [task({ id: "technical-task", title: "Run a PageSpeed and deeper technical check", task_type: "technical_review" })],
+  },
 ];
 
 describe("WeeklyLoop", () => {
@@ -55,6 +69,8 @@ describe("WeeklyLoop", () => {
     expect(html).not.toContain("See the full week");
     expect((html.match(/Research &amp; strategy/g) ?? [])).toHaveLength(1);
     expect((html.match(/Content creation/g) ?? [])).toHaveLength(1);
+    expect((html.match(/Technical SEO/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain("Data analysis");
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {
