@@ -212,4 +212,49 @@ describe("six-month editorial calendar", () => {
       "college counselor pricing",
     ]);
   });
+
+  it("automatic calendar suppresses zero-volume noise when demand-backed candidates exist", () => {
+    // "bay area for years" is a hallucinated phrase with no search demand;
+    // it must be excluded automatically when at least one real keyword has volume.
+    const candidates = [
+      { keyword: "junk removal near me", intent: "transactional", searchVolume: 1_200 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
+      { keyword: "bay area for years", intent: "informational", searchVolume: 0 },
+      { keyword: "serving the community", intent: "informational", searchVolume: 0 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {});
+
+    expect(selected.map((kw) => kw.keyword)).not.toContain("bay area for years");
+    expect(selected.map((kw) => kw.keyword)).not.toContain("serving the community");
+    expect(selected.map((kw) => kw.keyword)).toContain("junk removal near me");
+    expect(selected.map((kw) => kw.keyword)).toContain("junk removal cost");
+  });
+
+  it("preserves all candidates in automatic mode when every candidate has zero volume", () => {
+    // Edge case: brand-new audit with no DataForSEO volume data yet — do not
+    // blank the calendar entirely.
+    const candidates = [
+      { keyword: "junk removal near me", intent: "transactional", searchVolume: 0 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 0 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {});
+
+    expect(selected).toHaveLength(2);
+  });
+
+  it("honors an explicitly approved zero-volume keyword once the user has made decisions", () => {
+    // A user may approve a niche keyword before volume data arrives; that
+    // explicit decision must be respected regardless of volume.
+    const candidates = [
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
+      { keyword: "fremont debris hauling", intent: "transactional", searchVolume: 0 },
+    ];
+    const selected = selectKeywordsForCalendar(candidates, {
+      "junk removal cost": "approved",
+      "fremont debris hauling": "approved",
+    });
+
+    expect(selected.map((kw) => kw.keyword)).toContain("fremont debris hauling");
+    expect(selected.map((kw) => kw.keyword)).toContain("junk removal cost");
+  });
 });

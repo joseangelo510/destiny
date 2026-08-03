@@ -17,7 +17,17 @@ export function selectKeywordsForCalendar<T extends EditorialKeyword>(
   decisions: Record<string, "approved" | "declined">,
 ): T[] {
   const reviewed = Object.keys(decisions).length > 0;
-  if (!reviewed) return keywords;
+  if (!reviewed) {
+    // Automatic mode (no user decisions yet): suppress zero-volume noise when at
+    // least one demand-backed candidate exists. Hallucinated or incidental phrases
+    // with no measurable search demand are excluded so they cannot reach the
+    // editorial calendar. When every candidate has zero volume (e.g. volume data
+    // has not yet arrived), preserve the full list rather than returning nothing.
+    const demandBacked = keywords.filter((kw) => Number(kw.searchVolume ?? 0) > 0);
+    return demandBacked.length > 0 ? demandBacked : keywords;
+  }
+  // Explicit decisions: honour approved keywords regardless of volume — the user
+  // may have approved a niche phrase before volume data was available.
   return keywords.filter((keyword) => decisions[keyword.keyword] === "approved");
 }
 
