@@ -123,20 +123,72 @@ describe("six-month editorial calendar", () => {
   });
 
   it("excludes audience-only topics when offer-anchored alternatives exist (junk-removal pattern)", () => {
+    // Simulates 98junkit.com: junk-removal terms are tagged "Products and services";
+    // property-manager terms are tagged "Audience use cases" (the customer segment,
+    // not a service the company provides). productsServices explicitly includes
+    // "property management" so token overlap alone would not exclude them.
     const calendar = buildEditorialCalendar([
-      { keyword: "junk removal near me", intent: "transactional", searchVolume: 1200, difficulty: 20 },
-      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800, difficulty: 25 },
-      { keyword: "debris removal service", intent: "commercial", searchVolume: 600, difficulty: 30 },
-      { keyword: "property managers near me", intent: "transactional", searchVolume: 400, difficulty: 20 },
-      { keyword: "property manager cost", intent: "transactional", searchVolume: 300, difficulty: 25 },
-      { keyword: "rental property managers", intent: "commercial", searchVolume: 200, difficulty: 30 },
-    ], 24, "service", { productsServices: "junk removal, hauling, debris removal, cleanouts" });
+      {
+        keyword: "junk removal near me",
+        intent: "transactional",
+        searchVolume: 1200,
+        difficulty: 20,
+        themeId: "products-services",
+        themeLabel: "Products and services",
+      },
+      {
+        keyword: "junk removal cost",
+        intent: "transactional",
+        searchVolume: 800,
+        difficulty: 25,
+        themeId: "products-services",
+        themeLabel: "Products and services",
+      },
+      {
+        keyword: "debris removal service",
+        intent: "commercial",
+        searchVolume: 600,
+        difficulty: 30,
+        themeId: "products-services",
+        themeLabel: "Products and services",
+      },
+      {
+        keyword: "property managers near me",
+        intent: "transactional",
+        searchVolume: 400,
+        difficulty: 20,
+        themeId: "audience-use-cases",
+        themeLabel: "Audience use cases",
+      },
+      {
+        keyword: "property manager cost",
+        intent: "transactional",
+        searchVolume: 300,
+        difficulty: 25,
+        themeId: "audience-use-cases",
+        themeLabel: "Audience use cases",
+      },
+      {
+        keyword: "rental property managers",
+        intent: "commercial",
+        searchVolume: 200,
+        difficulty: 30,
+        themeId: "audience-use-cases",
+        themeLabel: "Audience use cases",
+      },
+    ], 24, "service", {
+      // Explicitly includes "property management" so token-overlap alone would
+      // not exclude the property-manager keywords — the semantic theme must win.
+      productsServices: "junk removal, hauling, debris removal, cleanouts; serving property management companies",
+    });
 
     const focusKeywords = calendar.map((item) => item.focusKeyword);
     expect(focusKeywords).not.toContain("property managers near me");
     expect(focusKeywords).not.toContain("property manager cost");
     expect(focusKeywords).not.toContain("rental property managers");
     expect(focusKeywords.some((kw) => kw.includes("junk removal") || kw.includes("debris removal"))).toBe(true);
+    // Calendar opens with an offer-anchored topic, not an audience topic.
+    expect(focusKeywords[0]).not.toMatch(/property manager/i);
   });
 
   it("returns no invented calendar when there are no approved keywords", () => {

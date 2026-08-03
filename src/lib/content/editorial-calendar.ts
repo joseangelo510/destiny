@@ -6,6 +6,10 @@ export type EditorialKeyword = {
   difficulty?: number;
   rank?: number;
   cpc?: number;
+  /** Semantic cluster id produced by the keyword-research pipeline (e.g. "products-services"). */
+  themeId?: string;
+  /** Human-readable cluster label (e.g. "Products and services", "Audience use cases"). */
+  themeLabel?: string;
 };
 
 export function selectKeywordsForCalendar<T extends EditorialKeyword>(
@@ -246,9 +250,27 @@ function editorialOfferTokenSet(productsServices: string): Set<string> {
   );
 }
 
-function editorialKeywordOfferFit(keyword: string, offerTokens: Set<string>): number {
+// Patterns that identify a semantic theme as audience/customer-facing (not an offer).
+const AUDIENCE_THEME_RE = /\b(audience|customer|use.?case|buyer|persona|segment)\b/i;
+// Patterns that identify a semantic theme as product/service/offer-facing.
+const OFFER_THEME_RE = /\b(product|service|offer|solution|feature)\b/i;
+
+/**
+ * Returns how strongly a keyword fits the business's offer.
+ * - Returns 0  when the semantic theme labels it as audience/customer/use-case.
+ * - Returns 4  when the semantic theme labels it as product/service/offer.
+ * - Falls back to token-overlap count when no decisive theme exists.
+ * - Returns 1  when there are no offer tokens (no context → pass through).
+ */
+function editorialKeywordOfferFit(kw: PrioritizedEditorialKeyword, offerTokens: Set<string>): number {
   if (!offerTokens.size) return 1; // no context → pass through
-  return keyword.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(/\s+/)
+  // Decisive semantic theme wins over token overlap.
+  if (kw.themeLabel) {
+    if (AUDIENCE_THEME_RE.test(kw.themeLabel)) return 0;
+    if (OFFER_THEME_RE.test(kw.themeLabel)) return 4;
+  }
+  // Fall back to token overlap.
+  return kw.keyword.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(/\s+/)
     .filter((t) => offerTokens.has(t)).length;
 }
 
@@ -287,7 +309,7 @@ export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24,
   const prioritized = prioritizeEditorialKeywords(keywords, businessModel);
   // Offer-fit filter: when ≥3 offer-anchored keywords exist, drop audience-only phrases.
   const offerTokens = editorialOfferTokenSet(context?.productsServices ?? "");
-  const offerAnchored = prioritized.filter((kw) => kw.opportunity === "existing_rank" || editorialKeywordOfferFit(kw.keyword, offerTokens) > 0);
+  const offerAnchored = prioritized.filter((kw) => kw.opportunity === "existing_rank" || editorialKeywordOfferFit(kw, offerTokens) > 0);
   const afterOfferFilter = offerAnchored.length >= 3 ? offerAnchored : prioritized;
   // Geographic filter: drop keywords whose city is absent from page-text evidence.
   const pageText = context?.pageText ?? "";
