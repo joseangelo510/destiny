@@ -201,12 +201,48 @@ Return one JSON object only with this shape:
 }`;
 }
 
+/**
+ * Bounded generation budget for a 2,000–3,000-word article. The previous
+ * budget (10k tokens, 8 web searches) let real requests run past Replit's
+ * 300-second serverless ceiling, which killed the function mid-flight and
+ * left the client with a generic failure.
+ */
+export const ARTICLE_MAX_TOKENS = 6000;
+export const ARTICLE_WEB_SEARCH_MAX_USES = 4;
+
+/**
+ * Server-side abort budget. Must stay comfortably below Replit's 300-second
+ * function ceiling so the route can return an actionable error instead of
+ * being killed by the platform.
+ */
+export const ANTHROPIC_REQUEST_TIMEOUT_MS = 280_000;
+
 export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COPY_MODEL) {
   return {
     model,
-    max_tokens: 10000,
-    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 8 }],
+    max_tokens: ARTICLE_MAX_TOKENS,
+    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: ARTICLE_WEB_SEARCH_MAX_USES }],
     messages: [{ role: "user", content: prompt }],
+  };
+}
+
+/**
+ * Builds a sanitized, actionable error from a non-OK Anthropic response.
+ * Includes the provider HTTP status and error code; redacts anything that
+ * looks like an API key and never includes prompt contents.
+ */
+export function sanitizeAnthropicError(status: number, payload: unknown): { error: string; code: string; httpStatus: number } {
+  const body = payload && typeof payload === "object" && !Array.isArray(payload)
+    ? payload as { error?: { type?: unknown; message?: unknown } }
+    : {};
+  const providerCode = typeof body.error?.type === "string" && body.error.type ? body.error.type : "unknown_error";
+  const providerMessage = typeof body.error?.message === "string"
+    ? body.error.message.replace(/sk-ant-[A-Za-z0-9_-]+/g, "[redacted]").slice(0, 300)
+    : "";
+  return {
+    error: `Claude request failed (HTTP ${status}, ${providerCode}).${providerMessage ? ` ${providerMessage}` : ""}`,
+    code: providerCode,
+    httpStatus: status >= 400 && status < 500 ? status : 502,
   };
 }
 
