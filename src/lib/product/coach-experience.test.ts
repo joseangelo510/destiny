@@ -32,19 +32,33 @@ describe("Destiny SEO coach experience", () => {
     expect(PRIMARY_NAVIGATION.map((item) => item.label)).toEqual([
       "This week",
       "Roadmap",
-      "Strategy",
+      "Game Plan",
       "Analytics",
     ]);
     expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
       "Home",
       "Website audits",
-      "Three-month plan",
       "Content studio",
       "Keyword strategy",
       "Distribution",
       "Reviews",
       "Connections",
       "LLM visibility",
+    ]);
+  });
+
+  it("keeps review work in trust-building instead of Technical SEO", () => {
+    const reviewQuest = {
+      id: "review-quest",
+      task_type: "primary_quest",
+      category: "reviews",
+      status: "todo",
+      verification_status: "unverified",
+      priority: 1,
+    };
+
+    expect(groupCoachTasks([reviewQuest]).map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
+      ["distribution", ["review-quest"]],
     ]);
   });
 

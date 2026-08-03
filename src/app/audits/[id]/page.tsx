@@ -10,6 +10,7 @@ import {
   getCurrentCoachTask,
   groupCoachTasks,
 } from "@/lib/product/coach-experience";
+import { resolveBusinessIdentity } from "@/lib/product/game-plan";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
 import { createClient } from "@/lib/supabase/server";
 
@@ -48,7 +49,11 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const keywords = selectUsableAuditKeywords(providerResult.keywords);
   const relatedWebsite = Array.isArray(audit.websites) ? audit.websites[0] : audit.websites;
   const website = record(relatedWebsite);
-  const businessName = String(website.business_name || website.normalized_domain || "Your business");
+  const businessIdentity = resolveBusinessIdentity({
+    businessName: String(website.business_name || ""),
+    normalizedDomain: String(website.normalized_domain || website.url || ""),
+  });
+  const businessName = businessIdentity.displayName;
   if (audit.status !== "complete") {
     return <AuditMomentumProcessing
       auditId={audit.id}

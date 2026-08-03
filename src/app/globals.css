@@ -1816,3 +1816,100 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 @media (prefers-reduced-motion: reduce) {
   .weekly-plan-reveal-backdrop { backdrop-filter: none; }
 }
+
+/* Game Plan: a stable, executive-ready quarter rather than a second task list. */
+.game-plan-document { display: grid; gap: 18px; margin-top: 8px; }
+.game-plan-identity-warning { align-items: center; background: #fff7e6; border: 1px solid #ead49b; border-radius: 18px; display: flex; gap: 28px; justify-content: space-between; padding: 22px 24px; }
+.game-plan-identity-warning h2 { font-family: var(--font-display); font-size: 25px; font-weight: 500; letter-spacing: -.03em; margin: 6px 0; }
+.game-plan-identity-warning p { color: #685d40; font-size: 14px; line-height: 1.55; margin: 0; max-width: 780px; }
+.game-plan-identity-warning .secondary-button { flex: 0 0 auto; }
+.game-plan-hero { align-items: flex-start; background: linear-gradient(145deg, #173e33, #285f4f); border-radius: 28px; color: white; display: flex; gap: 44px; justify-content: space-between; overflow: hidden; padding: clamp(31px, 5vw, 55px); position: relative; }
+.game-plan-hero::after { border: 1px solid rgba(255,255,255,.11); border-radius: 50%; content: ""; height: 360px; position: absolute; right: -120px; top: -150px; width: 360px; }
+.game-plan-hero > div { max-width: 920px; position: relative; z-index: 1; }
+.game-plan-hero .eyebrow { color: #cfe6dc; }
+.game-plan-hero h2 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 68px); font-weight: 500; letter-spacing: -.055em; line-height: .98; margin: 16px 0 20px; }
+.game-plan-hero p { color: #d5e6df; font-size: 18px; line-height: 1.6; margin: 0; max-width: 830px; }
+.game-plan-export { background: var(--lime); border-color: var(--lime); color: var(--forest-dark); flex: 0 0 auto; position: relative; z-index: 2; }
+.game-plan-export:hover { background: #e4f898; color: var(--forest-dark); }
+.game-plan-export:disabled { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.18); color: #d4e1dc; cursor: not-allowed; }
+.game-plan-status-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 30px; }
+.game-plan-status-row span { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; color: #e1eee9; font-size: 11px; font-weight: 800; padding: 8px 11px; }
+.game-plan-section { background: white; border: 1px solid var(--line); border-radius: 24px; padding: clamp(26px, 4vw, 42px); }
+.game-plan-section-heading { display: grid; gap: 18px; grid-template-columns: 42px minmax(0, 1fr); margin-bottom: 27px; }
+.game-plan-section-heading > span { align-items: center; background: #edf5f1; border-radius: 50%; color: var(--forest); display: flex; font-size: 12px; font-weight: 900; height: 42px; justify-content: center; width: 42px; }
+.game-plan-section-heading small { color: var(--forest); font-size: 11px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.game-plan-section-heading h2 { font-family: var(--font-display); font-size: clamp(29px, 3.6vw, 42px); font-weight: 500; letter-spacing: -.04em; margin: 5px 0 7px; }
+.game-plan-section-heading p { color: var(--muted); font-size: 15px; line-height: 1.55; margin: 0; max-width: 760px; }
+.game-plan-baseline { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+.game-plan-baseline article { background: #f5f8f6; border-radius: 16px; padding: 21px; }
+.game-plan-baseline strong { display: block; font-family: var(--font-display); font-size: 37px; font-weight: 500; }
+.game-plan-baseline span { color: var(--muted); display: block; font-size: 12px; font-weight: 750; margin-top: 6px; }
+.game-plan-text-link { color: var(--forest); display: inline-block; font-size: 13px; font-weight: 850; margin-top: 20px; text-decoration: none; }
+.game-plan-plays { display: grid; gap: 13px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.game-plan-plays article { border: 1px solid var(--line); border-radius: 18px; display: flex; flex-direction: column; min-height: 260px; padding: 24px; }
+.game-plan-plays article > span { color: #92a19b; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.game-plan-plays h3 { font-family: var(--font-display); font-size: 27px; font-weight: 500; letter-spacing: -.035em; line-height: 1.1; margin: 20px 0 10px; }
+.game-plan-plays p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0 0 22px; }
+.game-plan-plays small { background: #f2f6f4; border-radius: 10px; color: #64766f; font-size: 11px; font-weight: 750; margin-top: auto; padding: 9px 10px; }
+.game-plan-plays a { color: var(--forest); font-size: 12px; font-weight: 850; margin-top: 14px; text-decoration: none; }
+.game-plan-months { display: grid; gap: 13px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.game-plan-months article { background: #f7f9f8; border: 1px solid #e4ebe7; border-radius: 18px; padding: 22px; }
+.game-plan-months article:first-child { background: #eef6f2; border-color: #c7ded3; }
+.game-plan-months article > div { align-items: center; display: flex; gap: 8px; justify-content: space-between; }
+.game-plan-months article > div span { color: var(--forest); font-size: 11px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.game-plan-months article > div small { color: var(--muted); font-size: 10px; }
+.game-plan-months h3 { font-family: var(--font-display); font-size: 24px; font-weight: 500; letter-spacing: -.03em; margin: 21px 0 16px; }
+.game-plan-months ul, .game-plan-scope ul { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.game-plan-months li, .game-plan-scope li { color: #52635d; font-size: 13px; line-height: 1.4; padding-left: 20px; position: relative; }
+.game-plan-months li::before { background: var(--forest); border-radius: 50%; content: ""; height: 6px; left: 1px; position: absolute; top: 6px; width: 6px; }
+.game-plan-scope { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+.game-plan-scope article { background: #eef6f2; border: 1px solid #cfe1d8; border-radius: 18px; padding: 23px; }
+.game-plan-scope article.deferred { background: #f6f7f6; border-color: #e2e6e4; }
+.game-plan-scope article > span { color: var(--forest); display: block; font-size: 12px; font-weight: 900; letter-spacing: .07em; margin-bottom: 18px; text-transform: uppercase; }
+.game-plan-scope li::before { color: var(--forest); content: "✓"; font-size: 12px; font-weight: 900; left: 0; position: absolute; top: 1px; }
+.game-plan-scope .deferred li::before { color: #8b9893; content: "—"; }
+.game-plan-forecasts { display: grid; gap: 13px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.game-plan-forecasts article { background: #fbfcfb; border: 1px dashed #b8c9c1; border-radius: 18px; padding: 23px; }
+.game-plan-forecasts article > div { align-items: center; display: flex; gap: 10px; }
+.game-plan-forecasts article > div span { background: #e8f1ed; border-radius: 999px; color: var(--forest); font-size: 9px; font-weight: 900; letter-spacing: .07em; padding: 6px 8px; text-transform: uppercase; }
+.game-plan-forecasts article > div small { color: var(--muted); font-size: 11px; font-weight: 800; }
+.game-plan-forecasts article > strong { display: block; font-family: var(--font-display); font-size: 23px; font-weight: 500; line-height: 1.2; margin: 20px 0; }
+.game-plan-forecasts p { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 10px 0 0; }
+.game-plan-forecasts p b { color: var(--ink); display: block; font-size: 9px; letter-spacing: .07em; margin-bottom: 2px; text-transform: uppercase; }
+.game-plan-disclaimer { background: #f4f6f5; border-radius: 12px; color: #67766f; font-size: 12px; line-height: 1.55; margin: 18px 0 0; padding: 15px 17px; }
+.game-plan-footer { align-items: flex-start; border-top: 1px solid var(--line); display: flex; gap: 40px; justify-content: space-between; margin: 10px 8px 0; padding: 25px 0 5px; }
+.game-plan-footer > div:first-child { max-width: 720px; }
+.game-plan-footer strong { display: block; font-size: 13px; }
+.game-plan-footer p, .game-plan-footer span { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 6px 0 0; }
+
+@media (max-width: 900px) {
+  .game-plan-hero { align-items: stretch; flex-direction: column; }
+  .game-plan-export { align-self: flex-start; }
+  .game-plan-months { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .game-plan-identity-warning, .game-plan-footer { align-items: stretch; flex-direction: column; }
+  .game-plan-hero { border-radius: 22px; padding: 30px 22px; }
+  .game-plan-hero h2 { font-size: 43px; }
+  .game-plan-export { width: 100%; }
+  .game-plan-section { border-radius: 20px; padding: 25px 18px; }
+  .game-plan-section-heading { grid-template-columns: 35px minmax(0, 1fr); }
+  .game-plan-section-heading > span { height: 35px; width: 35px; }
+  .game-plan-baseline, .game-plan-plays, .game-plan-scope, .game-plan-forecasts { grid-template-columns: 1fr; }
+}
+
+@media print {
+  @page { margin: 14mm; size: letter; }
+  body { background: white; }
+  .sidebar, .mobile-primary-nav, .workspace-header-top, .game-plan-export, .game-plan-identity-warning, .workspace-header > p { display: none !important; }
+  .app-shell { display: block; }
+  .dashboard, .workspace-page { max-width: none; padding: 0; }
+  .workspace-header { margin-bottom: 16px; }
+  .game-plan-document { gap: 12px; }
+  .game-plan-hero { background: #173e33 !important; border-radius: 0; break-after: page; min-height: 225mm; padding: 32mm 20mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .game-plan-section { border-radius: 0; break-inside: avoid; box-shadow: none; }
+  .game-plan-plays article, .game-plan-months article, .game-plan-forecasts article { break-inside: avoid; }
+  .game-plan-plays a, .game-plan-text-link { color: var(--forest); }
+  .game-plan-status-row span { border: 1px solid rgba(255,255,255,.25); }
+}

@@ -8,7 +8,7 @@ describe("WorkspaceShell coaching hierarchy", () => {
 
     expect(html).toContain("This week");
     expect(html).toContain("Roadmap");
-    expect(html).toContain("Strategy");
+    expect(html).toContain("Game Plan");
     expect(html).toContain("Analytics");
     expect(html).toContain("Tools &amp; reports");
     expect(html).toContain("Content studio");

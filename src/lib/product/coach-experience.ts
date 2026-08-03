@@ -3,14 +3,13 @@ export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 export const PRIMARY_NAVIGATION = [
   { label: "This week", href: "/this-week" },
   { label: "Roadmap", href: "/roadmap" },
-  { label: "Strategy", href: "/results" },
+  { label: "Game Plan", href: "/results" },
   { label: "Analytics", href: "/analytics" },
 ] as const;
 
 export const FEATURE_NAVIGATION = [
   { label: "Home", href: "/" },
   { label: "Website audits", href: "/audits" },
-  { label: "Three-month plan", href: "/growth-plan" },
   { label: "Content studio", href: "/content" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Distribution", href: "/distribution" },
@@ -22,6 +21,7 @@ export const FEATURE_NAVIGATION = [
 type CoachTask = {
   id: string;
   task_type: string;
+  category?: string | null;
   status: string;
   verification_status?: string | null;
   priority: number;
@@ -104,7 +104,7 @@ export function groupCoachTasks<T extends CoachTask>(tasks: T[]) {
   const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
   return COACH_CATEGORIES.map((category) => ({
     ...category,
-    tasks: ordered.filter((task) => (category.taskTypes as readonly string[]).includes(task.task_type)),
+    tasks: ordered.filter((task) => taskMatchesCoachCategory(task, category.id, category.taskTypes)),
   })).filter((category) => category.tasks.length > 0);
 }
 
@@ -112,8 +112,13 @@ export function groupCoachTasksForLoop<T extends CoachTask>(tasks: T[]) {
   const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
   return COACH_CATEGORIES.map((category) => ({
     ...category,
-    tasks: ordered.filter((task) => (category.taskTypes as readonly string[]).includes(task.task_type)),
+    tasks: ordered.filter((task) => taskMatchesCoachCategory(task, category.id, category.taskTypes)),
   }));
+}
+
+function taskMatchesCoachCategory(task: CoachTask, categoryId: string, taskTypes: readonly string[]) {
+  if (task.task_type === "primary_quest" && task.category === "reviews") return categoryId === "distribution";
+  return taskTypes.includes(task.task_type);
 }
 
 export function guidedTaskPath(task: { task_type: string; action_path: string }) {
