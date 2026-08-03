@@ -2,9 +2,15 @@ export type RoadmapNodeKind = "effort" | "outcome";
 export type RoadmapNodeState = "complete" | "current" | "locked";
 
 export type RoadmapQuest = {
+  id?: string;
+  title?: string;
+  description?: string;
+  action_path?: string;
   task_type: string;
   status: string;
   verification_status?: string | null;
+  week_number?: number;
+  priority?: number;
 };
 
 export type RoadmapSearchConsole = {
@@ -35,6 +41,58 @@ export type SeoRoadmapNode = {
   actionHref: string;
   actionLabel: string;
 };
+
+export type SeoJourneyTask = {
+  id: string;
+  label: string;
+  detail: string;
+  state: "complete" | "current" | "future";
+  actionHref: string;
+  weekNumber: number;
+};
+
+export type SeoRoadmapPhase = {
+  id: "ready" | "visibility" | "growth";
+  timing: string;
+  title: string;
+  description: string;
+  tasks: SeoJourneyTask[];
+  signals: SeoRoadmapNode[];
+};
+
+const phaseDefinitions: Array<Omit<SeoRoadmapPhase, "tasks" | "signals"> & { signalIds: string[] }> = [
+  {
+    id: "ready",
+    timing: "First 60 days",
+    title: "Get ready to be found",
+    description: "Strengthen your website and publish useful content.",
+    signalIds: ["pages-indexed"],
+  },
+  {
+    id: "visibility",
+    timing: "Days 61–120",
+    title: "Build visibility",
+    description: "Help more of the right people discover and visit you.",
+    signalIds: ["first-impressions", "first-clicks", "page-two"],
+  },
+  {
+    id: "growth",
+    timing: "Days 121–180",
+    title: "Grow what works",
+    description: "Build on the search activity that produces real customer actions.",
+    signalIds: ["page-one", "first-organic-lead", "compounding-authority"],
+  },
+];
+
+const excludedEffortTypes = new Set(["business_confirmation", "measurement", "vocabulary_review"]);
+const visibilityTaskTypes = new Set(["community_distribution", "distribution", "social_distribution"]);
+const growthTaskTypes = new Set(["publisher_outreach", "directory_growth", "reviews"]);
+
+function taskPhaseId(taskType: string): SeoRoadmapPhase["id"] {
+  if (visibilityTaskTypes.has(taskType)) return "visibility";
+  if (growthTaskTypes.has(taskType)) return "growth";
+  return "ready";
+}
 
 function number(value: unknown) {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -181,10 +239,44 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     };
   });
   const completedCount = nodes.filter((node) => node.state === "complete").length;
+  const effortQuests = input.quests
+    .filter((quest) => !excludedEffortTypes.has(quest.task_type) && quest.status !== "skipped")
+    .sort((left, right) => (left.week_number ?? 1) - (right.week_number ?? 1) || (left.priority ?? 99) - (right.priority ?? 99));
+  const effortCompleted = effortQuests.filter((quest) => quest.status === "complete").length;
+  const effortTotal = effortQuests.length;
+  const effortProgress = effortTotal ? Math.round((effortCompleted / effortTotal) * 100) : 0;
+  const currentEffortIndex = effortQuests.findIndex((quest) => quest.status === "in_progress") >= 0
+    ? effortQuests.findIndex((quest) => quest.status === "in_progress")
+    : effortQuests.findIndex((quest) => quest.status !== "complete");
+  const journeyTasks = effortQuests.map((quest, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => ({
+    id: quest.id ?? `${quest.task_type}-${index}`,
+    label: quest.title?.trim() || "Complete the recommended task",
+    detail: quest.description?.trim() || "Complete this step to move your work forward.",
+    state: quest.status === "complete" ? "complete" : index === currentEffortIndex ? "current" : "future",
+    actionHref: quest.action_path?.trim() || "/this-week",
+    weekNumber: Math.max(1, quest.week_number ?? 1),
+    phaseId: taskPhaseId(quest.task_type),
+  }));
+  const phases: SeoRoadmapPhase[] = phaseDefinitions.map(({ signalIds, ...phase }) => ({
+    ...phase,
+    tasks: journeyTasks.filter((task) => task.phaseId === phase.id),
+    signals: nodes.filter((node) => signalIds.includes(node.id)),
+  }));
+  const pathProgress = Math.round(phases.reduce((total, phase) => {
+    if (!phase.tasks.length) return total;
+    const phaseCompleted = phase.tasks.filter((task) => task.state === "complete").length;
+    return total + (phaseCompleted / phase.tasks.length) * (100 / phases.length);
+  }, 0));
   return {
     nodes,
     completedCount,
     progress: Math.round((completedCount / nodes.length) * 100),
     currentNode: nodes.find((node) => node.state === "current") ?? null,
+    effortCompleted,
+    effortTotal,
+    effortProgress,
+    pathProgress,
+    currentTask: journeyTasks.find((task) => task.state === "current") ?? null,
+    phases,
   };
 }

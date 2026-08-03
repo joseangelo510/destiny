@@ -1647,6 +1647,58 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 .apple-roadmap-evidence-list strong { color: var(--ink); font-size: 15px; }
 .apple-roadmap-evidence-list p { color: var(--muted); font-size: 13px; line-height: 1.45; margin: 5px 0 0; }
 .apple-roadmap-evidence-list small { color: var(--forest); font-size: 11px; font-weight: 850; padding-top: 4px; text-transform: uppercase; }
+.apple-roadmap-route-rising { height: 180px; }
+.apple-roadmap-ascent-fill { fill: url(#roadmap-ascent-fill); }
+.apple-roadmap-position { transition: left .45s cubic-bezier(.22, 1, .36, 1), top .45s cubic-bezier(.22, 1, .36, 1); }
+.apple-roadmap-position small { color: #6e8178; display: inline; font-size: 10px; font-weight: 750; }
+.apple-roadmap-route-progress,
+.apple-roadmap-marker,
+.apple-roadmap-marker-halo { transition: cx .45s cubic-bezier(.22, 1, .36, 1), cy .45s cubic-bezier(.22, 1, .36, 1), stroke-dasharray .45s cubic-bezier(.22, 1, .36, 1); }
+.apple-roadmap-destinations-rising { margin-top: -46px; }
+.apple-roadmap-destinations-rising article:nth-child(2) { transform: translateY(-45px); }
+.apple-roadmap-destinations-rising article:nth-child(3) { transform: translateY(-100px); }
+.apple-roadmap-phase-proof { color: var(--forest); display: block; font-size: 11px; font-weight: 800; margin-top: 10px; }
+
+.apple-roadmap-journey { background: white; border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 18px 46px rgba(26, 69, 55, .06); margin: 0 0 24px; overflow: hidden; }
+.apple-roadmap-journey > header { padding: clamp(26px, 4vw, 42px); }
+.apple-roadmap-journey > header h2 { color: var(--forest-dark); font-family: var(--font-display); font-size: clamp(36px, 4.6vw, 54px); font-weight: 500; letter-spacing: -.045em; line-height: 1; margin: 10px 0 13px; }
+.apple-roadmap-journey > header p { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 0; max-width: 760px; }
+.apple-roadmap-phase-list { border-top: 1px solid var(--line); padding: 10px clamp(18px, 3vw, 34px) 28px; }
+.apple-roadmap-phase { display: grid; gap: 18px; grid-template-columns: 52px minmax(0, 1fr); position: relative; }
+.apple-roadmap-phase-rail { display: flex; justify-content: center; position: relative; }
+.apple-roadmap-phase-rail::after { background: #d5e1db; bottom: -10px; content: ""; position: absolute; top: 47px; width: 2px; }
+.apple-roadmap-phase:last-child .apple-roadmap-phase-rail::after { display: none; }
+.apple-roadmap-phase-rail > span { align-items: center; background: #f1f5f3; border: 2px solid #a8bcb2; border-radius: 50%; color: #71857b; display: flex; font-size: 13px; font-weight: 900; height: 36px; justify-content: center; margin-top: 29px; position: relative; width: 36px; z-index: 1; }
+.apple-roadmap-phase.complete .apple-roadmap-phase-rail > span { background: var(--forest); border-color: var(--forest); color: white; }
+.apple-roadmap-phase.current .apple-roadmap-phase-rail > span { background: var(--lime); border-color: var(--forest); box-shadow: 0 0 0 7px rgba(216, 241, 126, .24); color: var(--forest-dark); }
+.apple-roadmap-phase-body { border-bottom: 1px solid var(--line); padding: 25px 0 31px; }
+.apple-roadmap-phase:last-child .apple-roadmap-phase-body { border-bottom: 0; }
+.apple-roadmap-phase-body > header { align-items: end; display: flex; gap: 25px; justify-content: space-between; margin-bottom: 17px; }
+.apple-roadmap-phase-body > header small { color: #73877e; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.apple-roadmap-phase-body > header h3 { color: var(--forest-dark); font-family: var(--font-display); font-size: clamp(25px, 3vw, 34px); font-weight: 500; letter-spacing: -.035em; line-height: 1.05; margin: 6px 0 0; }
+.apple-roadmap-phase-body > header > span { background: #f1f5f3; border-radius: 999px; color: var(--forest); font-size: 12px; font-weight: 850; padding: 7px 11px; white-space: nowrap; }
+.apple-roadmap-phase-items { display: grid; gap: 9px; }
+.apple-roadmap-task-row,
+.apple-roadmap-signal-row { align-items: start; background: #fbfcfb; border: 1px solid #dde6e1; border-radius: 15px; display: grid; gap: 13px; grid-template-columns: 30px minmax(0, 1fr) auto; padding: 15px 16px; }
+.apple-roadmap-task-row.complete { background: #f2f8f4; }
+.apple-roadmap-task-row.current { background: white; border: 2px solid #729f8b; box-shadow: 0 9px 25px rgba(31, 74, 61, .09); }
+.apple-roadmap-phase.future .apple-roadmap-task-row.future,
+.apple-roadmap-signal-row.waiting { opacity: .58; }
+.apple-roadmap-row-mark,
+.apple-roadmap-signal-mark { align-items: center; background: #eef3f0; border: 1px solid #b5c7be; border-radius: 50%; color: var(--forest); display: flex; font-size: 13px; font-weight: 900; height: 28px; justify-content: center; width: 28px; }
+.apple-roadmap-task-row.complete .apple-roadmap-row-mark { background: var(--forest); border-color: var(--forest); color: white; }
+.apple-roadmap-task-row.current .apple-roadmap-row-mark { background: var(--lime); border-color: var(--forest); }
+.apple-roadmap-signal-mark { background: transparent; border-radius: 9px; font-size: 20px; }
+.apple-roadmap-signal-row.verified { background: #edf7f2; border-color: #9fc8b5; box-shadow: inset 3px 0 0 var(--forest); }
+.apple-roadmap-signal-row.verified .apple-roadmap-signal-mark { background: var(--forest); border-color: var(--forest); box-shadow: 0 0 0 5px rgba(47, 127, 98, .1); color: var(--lime); }
+.apple-roadmap-task-row small,
+.apple-roadmap-signal-row small { color: #71847b; display: block; font-size: 10px; font-weight: 850; letter-spacing: .055em; margin-bottom: 4px; text-transform: uppercase; }
+.apple-roadmap-task-row strong,
+.apple-roadmap-signal-row strong { color: var(--ink); display: block; font-size: 16px; line-height: 1.35; }
+.apple-roadmap-task-row p,
+.apple-roadmap-signal-row p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 6px 0 0; }
+.apple-roadmap-row-state { color: var(--forest); font-size: 10px; font-weight: 900; letter-spacing: .05em; padding-top: 7px; text-transform: uppercase; }
+.apple-roadmap-phase-empty { background: #f7f9f8; border-radius: 13px; color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; padding: 16px; }
 
 @media (max-width: 760px) {
   .apple-roadmap { border-radius: 22px; padding: 29px 21px; }
@@ -1657,7 +1709,7 @@ body { background: #f3f6f3; font-family: var(--font-body); }
   .apple-roadmap-destinations { gap: 0; grid-template-columns: 1fr; margin-top: 0; }
   .apple-roadmap-destinations article,
   .apple-roadmap-destinations article:nth-child(2),
-  .apple-roadmap-destinations article:nth-child(3) { border-left: 2px solid #cad8d1; min-height: 128px; padding: 0 0 28px 50px; text-align: left; }
+  .apple-roadmap-destinations article:nth-child(3) { border-left: 2px solid #cad8d1; min-height: 150px; padding: 0 0 28px 50px; text-align: left; transform: none; }
   .apple-roadmap-destinations article:last-child { border-left-color: transparent; min-height: 0; }
   .apple-roadmap-stop,
   .apple-roadmap-destinations article:nth-child(2) .apple-roadmap-stop,
@@ -1669,6 +1721,25 @@ body { background: #f3f6f3; font-family: var(--font-body); }
   .apple-roadmap-evidence-list { padding: 5px 14px 15px; }
   .apple-roadmap-evidence-list article { grid-template-columns: 28px 1fr; }
   .apple-roadmap-evidence-list article > small { grid-column: 2; }
+  .apple-roadmap-journey { border-radius: 22px; }
+  .apple-roadmap-journey > header { padding: 27px 21px; }
+  .apple-roadmap-phase-list { padding: 7px 13px 22px; }
+  .apple-roadmap-phase { gap: 10px; grid-template-columns: 38px minmax(0, 1fr); }
+  .apple-roadmap-phase-rail > span { height: 30px; margin-top: 27px; width: 30px; }
+  .apple-roadmap-phase-rail::after { top: 59px; }
+  .apple-roadmap-phase-body { padding: 23px 0 27px; }
+  .apple-roadmap-phase-body > header { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .apple-roadmap-phase-body > header > span { white-space: normal; }
+  .apple-roadmap-task-row,
+  .apple-roadmap-signal-row { grid-template-columns: 28px minmax(0, 1fr); padding: 14px 12px; }
+  .apple-roadmap-row-state { grid-column: 2; padding-top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-roadmap-position,
+  .apple-roadmap-route-progress,
+  .apple-roadmap-marker,
+  .apple-roadmap-marker-halo { transition: none; }
 }
 
 /* This Week: one focused task deck replaces the repeated hero and category stack. */

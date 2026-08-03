@@ -2,6 +2,34 @@ import { describe, expect, it } from "vitest";
 import { buildSeoRoadmap } from "./roadmap";
 
 describe("truthful SEO adventure roadmap", () => {
+  it("moves effort progress for completed tasks without letting outcome evidence move the marker", () => {
+    const quests = [
+      { id: "keywords", title: "Approve priority keywords", description: "Choose the strongest opportunities.", action_path: "/keywords", task_type: "keyword_review", status: "complete", verification_status: "unverified", week_number: 1, priority: 1 },
+      { id: "content", title: "Publish your first guide", description: "Turn the approved topic into a useful page.", action_path: "/content", task_type: "content_review", status: "todo", verification_status: "unverified", week_number: 1, priority: 2 },
+      { id: "reddit", title: "Answer a relevant Reddit question", description: "Help a searcher in context.", action_path: "/distribution", task_type: "community_distribution", status: "todo", verification_status: "unverified", week_number: 2, priority: 3 },
+      { id: "reviews", title: "Request three customer reviews", description: "Build visible proof.", action_path: "/reviews", task_type: "reviews", status: "todo", verification_status: "unverified", week_number: 3, priority: 4 },
+    ];
+    const withoutEvidence = buildSeoRoadmap({ auditComplete: true, quests, searchConsole: null, analytics: null });
+    const withEvidence = buildSeoRoadmap({
+      auditComplete: true,
+      quests,
+      searchConsole: { impressions: 1000, clicks: 30, topQueries: [{ query: "example", position: 7 }] },
+      analytics: { organicKeyEvents: 2 },
+    });
+
+    expect(withoutEvidence.effortCompleted).toBe(1);
+    expect(withoutEvidence.effortTotal).toBe(4);
+    expect(withoutEvidence.effortProgress).toBe(25);
+    expect(withoutEvidence.pathProgress).toBe(17);
+    expect(withEvidence.effortProgress).toBe(25);
+    expect(withoutEvidence.currentTask?.label).toBe("Publish your first guide");
+    expect(withoutEvidence.phases.map((phase) => phase.tasks.map((task) => task.label))).toEqual([
+      ["Approve priority keywords", "Publish your first guide"],
+      ["Answer a relevant Reddit question"],
+      ["Request three customer reviews"],
+    ]);
+  });
+
   it("keeps effort completion distinct from verified outcome evidence", () => {
     const roadmap = buildSeoRoadmap({
       auditComplete: true,

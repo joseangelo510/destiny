@@ -17,7 +17,7 @@ export default async function RoadmapPage() {
   const analytics = connectedMetadata(context, "google_analytics") as RoadmapAnalytics | null;
   const roadmap = buildSeoRoadmap({
     auditComplete: context.audit?.status === "complete",
-    quests: context.quests,
+    quests: context.audit ? context.quests.filter((quest) => quest.audit_id === context.audit?.id) : [],
     searchConsole,
     analytics,
   });
