@@ -1,0 +1,28 @@
+Apply the attached scoped release destiny-site-audit-dashboard-2026-08-03.zip to the existing Destiny SEO project in ~/workspace and deploy it.
+
+Safety and scope:
+- First verify SHA256 exactly ba9f358d36e6b2383d8e0a51908019715b70413575376117b08aea91f41b4878.
+- Verify the archive contains exactly these 8 paths:
+  src/app/audits/page.tsx
+  src/app/globals.css
+  src/components/audit-issue-explorer.tsx
+  src/components/audit-issue-explorer.test.tsx
+  src/lib/seo/audit-dashboard.ts
+  src/lib/seo/audit-dashboard.test.ts
+  src/lib/seo/dataforseo-provider.ts
+  supabase/functions/process-audit/seo.ts
+- Extract to a temporary directory first and inspect the diff against current source. The live project received recent keyword-research and 90-day-chart work. Preserve every unrelated recent change, especially in globals.css and dataforseo-provider.ts; merge only the attached audit-dashboard changes if a direct replacement would remove newer unrelated code.
+- Do not change secrets, auth, customer data, email behavior, domain, deployment type, Reserved VM settings, or any other feature.
+
+Required result:
+- Expand /audits from history-only into the new Destiny audit command center with provider-backed health percentage, critical/warning/notice summaries, top three "Fix these first" cards, technical-category overview, filterable complete issue explorer with plain-English guidance and affected pages, truthful homepage-scan scope disclosure, processing/failure/empty states, and compact audit history.
+- Keep the health percentage provider-backed; never invent a fallback score.
+- Remove the 10-issue retention cap in both the server provider and process-audit Edge Function so future audits retain every returned technical finding.
+- Preserve the existing /audits/[id] saved-strategy page.
+
+Validation:
+- Run pnpm test, pnpm lint, pnpm exec tsc --noEmit, and pnpm build.
+- Report exact test-file count, test count, and route count.
+- Fix only release-caused failures.
+- If and only if every gate passes, deploy the existing Supabase process-audit Edge Function using the project’s existing deployment/JWT configuration, confirm the new active version, then republish the existing Reserved VM at https://destiny-seo.replit.app. Do not create another deployment or domain.
+- After publish, verify the public /audits route loads and that the deployed HTML includes the new audit-dashboard copy such as "Technical health by category" or "Fix these first". Report the deployment identifier and Edge Function version.

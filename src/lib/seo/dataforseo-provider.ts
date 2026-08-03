@@ -357,7 +357,7 @@ export class DataForSeoProvider implements SeoProvider {
         onPageScore: typeof page.onpage_score === "number" ? page.onpage_score : null,
       },
       historicalPerformance,
-      issues: issues.slice(0, 10),
+      issues,
       competitors,
       keywords: buildKeywordStrategy([rankedKeywords, gapKeywords, keywordIdeas], input.businessContext),
       notices: [

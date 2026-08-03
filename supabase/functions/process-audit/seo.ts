@@ -780,7 +780,7 @@ export async function runDataForSeoAudit(
       onPageScore: typeof page.onpage_score === "number" ? page.onpage_score : null,
     },
     historicalPerformance,
-    issues: issues.slice(0, 10),
+    issues,
     competitors: analyzedCompetitors,
     keywords,
     pages,
