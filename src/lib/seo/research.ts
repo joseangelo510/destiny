@@ -24,6 +24,13 @@ export type KeywordResearchResult = {
   location: string;
   updatedAt: string;
   metrics: ReturnType<typeof summarizeKeywordResearch>;
+  performance?: Array<{
+    date: string;
+    traffic: number;
+    keywords: number;
+    top3: number;
+    top10: number;
+  }>;
   rows: KeywordResearchRow[];
   notices: string[];
 };
