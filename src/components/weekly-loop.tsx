@@ -82,6 +82,7 @@ export function WeeklyLoop({
   const openTaskId = activeGroup?.tasks.find((task) => task.id === currentTaskId)?.id
     ?? activeGroup?.tasks.find((task) => task.status === "in_progress")?.id
     ?? activeGroup?.tasks.find((task) => task.status === "todo")?.id
+    ?? activeGroup?.tasks[0]?.id
     ?? null;
 
   return <>

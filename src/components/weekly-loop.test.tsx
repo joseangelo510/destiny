@@ -10,6 +10,7 @@ const task = (overrides: Partial<{
   id: string;
   title: string;
   task_type: string;
+  status: string;
 }> = {}) => ({
   id: "keyword-task",
   title: "Approve your priority keywords",
@@ -71,6 +72,22 @@ describe("WeeklyLoop", () => {
     expect((html.match(/Content creation/g) ?? [])).toHaveLength(1);
     expect((html.match(/Technical SEO/g) ?? [])).toHaveLength(1);
     expect(html).not.toContain("Data analysis");
+  });
+
+  it("opens the first task when Research and Strategy is completed-only (no todo or in-progress)", () => {
+    const completedGroups = groups.map((group) =>
+      group.id === "research-strategy"
+        ? { ...group, tasks: [task({ status: "complete" })] }
+        : group,
+    );
+    // Pass currentTaskId to pin the active group to research-strategy even though all its tasks are complete
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={1} currentTaskId="keyword-task" groups={completedGroups} remainingTasks={0} />);
+
+    // The completed keyword_review task must still be open (first task fallback)
+    expect(html).toContain('open=""');
+    // And its action link must read "Review saved strategy", not "Open guided step"
+    expect(html).toContain("Review saved strategy");
+    expect(html).not.toContain("Open guided step");
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {
