@@ -364,6 +364,44 @@ describe("six-month editorial calendar", () => {
     expect(selected.map((kw) => kw.keyword)).toEqual(["loadup junk removal", "free junk removal"]);
   });
 
+  it("derives the first three article outlines from the vetted calendar, never the raw keyword pool (98junkit)", () => {
+    // Live regression: the This Week outline rail showed "Free Junk Removal
+    // Services" while the calendar below was clean. The rail must derive from
+    // the same vetted selection: selectKeywordsForCalendar → buildEditorialCalendar → slice(0, 3).
+    const candidates = [
+      { keyword: "commercial junk removal services", intent: "transactional", searchVolume: 400 },
+      { keyword: "fremont junk removal", intent: "transactional", searchVolume: 300 },
+      { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
+      { keyword: "loadup junk removal", intent: "informational", searchVolume: 900 },
+      { keyword: "junkman junk removal", intent: "informational", searchVolume: 250 },
+      { keyword: "free junk removal services", intent: "transactional", searchVolume: 700 },
+      { keyword: "junk removal usa", intent: "transactional", searchVolume: 600 },
+      { keyword: "ready set junk", intent: "navigational", searchVolume: 120 },
+      { keyword: "bay area for years", intent: "informational", searchVolume: 0 },
+    ];
+    const context = {
+      productsServices: "Junk removal, debris hauling, and commercial cleanout services",
+      locationEvidence: "We serve Fremont and the Bay Area with same-day junk removal and hauling.",
+      competitorNames: ["Ready Set Junk"],
+    };
+    const vetted = selectKeywordsForCalendar(candidates, {}, context);
+    const calendar = buildEditorialCalendar(vetted, 12, "service", {
+      productsServices: context.productsServices,
+      pageText: context.locationEvidence,
+    });
+    const outlineKeywords = calendar.slice(0, 3).map((item) => item.focusKeyword);
+    const excluded = [
+      "loadup junk removal", "junkman junk removal", "free junk removal services",
+      "junk removal usa", "ready set junk", "bay area for years",
+    ];
+
+    expect(outlineKeywords).toContain("commercial junk removal services");
+    for (const phrase of excluded) {
+      expect(outlineKeywords).not.toContain(phrase);
+      expect(calendar.map((item) => item.focusKeyword)).not.toContain(phrase);
+    }
+  });
+
   it("falls back to the raw list when automatic safeguards would exclude everything", () => {
     const candidates = [
       { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },

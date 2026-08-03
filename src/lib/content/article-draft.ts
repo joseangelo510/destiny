@@ -59,6 +59,19 @@ export function normalizeArticleBody(value: string) {
   return value.replace(/\.{2,}(\s+That matters\b)/g, ".$1");
 }
 
+/**
+ * Finds the saved (browser-persisted) draft that belongs to a vetted fallback
+ * keyword. Matching is by keyword, never by array index — stale drafts built
+ * from an earlier, unvetted keyword set (e.g. excluded competitor or "free"
+ * phrases) must be discarded rather than override a vetted outline.
+ */
+export function savedDraftForKeyword(saved: unknown, keyword: string): unknown {
+  if (!Array.isArray(saved)) return undefined;
+  return saved.find((item) =>
+    item !== null && typeof item === "object" && !Array.isArray(item)
+    && (item as { keyword?: unknown }).keyword === keyword);
+}
+
 export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const keyword = input.keyword.trim() || "your customer’s search question";
   const titleKeyword = titleCase(keyword);

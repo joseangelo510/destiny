@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody } from "./article-draft";
+import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody, savedDraftForKeyword } from "./article-draft";
 
 describe("article review workspace", () => {
   it("creates an editable, business-specific article and Word-compatible document", () => {
@@ -24,5 +24,21 @@ describe("article review workspace", () => {
     expect(document).toContain("Meta description 2");
     expect(fitMetaDescription("A very long saved description ".repeat(12)).length).toBeLessThanOrEqual(150);
     expect(normalizeArticleBody("Local experience.. That matters because it is specific.")).toBe("Local experience. That matters because it is specific.");
+  });
+
+  it("matches saved browser drafts by keyword so stale excluded keywords cannot override vetted outlines", () => {
+    // Real 98junkit regression: drafts persisted from the old unvetted rail
+    // included "free junk removal services". After the vetted rail ships,
+    // those saved drafts must be discarded, not matched by index.
+    const staleSaved = [
+      { keyword: "free junk removal services", title: "Free Junk Removal Services", approved: true },
+      { keyword: "loadup junk removal", title: "Loadup Junk Removal" },
+      { keyword: "commercial junk removal services", title: "My edited commercial title" },
+    ];
+    expect(savedDraftForKeyword(staleSaved, "commercial junk removal services")).toEqual(staleSaved[2]);
+    expect(savedDraftForKeyword(staleSaved, "fremont junk removal")).toBeUndefined();
+    expect(savedDraftForKeyword(staleSaved, "free junk removal services")).toEqual(staleSaved[0]);
+    expect(savedDraftForKeyword("not-an-array", "fremont junk removal")).toBeUndefined();
+    expect(savedDraftForKeyword([null, "string", 4], "fremont junk removal")).toBeUndefined();
   });
 });

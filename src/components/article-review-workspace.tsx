@@ -9,6 +9,7 @@ import {
   currentArticleQualityIssues,
   fitMetaDescription,
   normalizeArticleBody,
+  savedDraftForKeyword,
   type ArticleDraft,
 } from "@/lib/content/article-draft";
 import {
@@ -99,7 +100,10 @@ export function ArticleReviewWorkspace({
         if (saved) {
           const parsed = JSON.parse(saved) as unknown;
           if (Array.isArray(parsed)) {
-            setDrafts(initialDrafts.map((fallback, index) => normalizeSavedDraft(parsed[index], fallback)));
+            // Match saved drafts by keyword, not index: stale drafts persisted
+            // from an earlier unvetted keyword set (competitor brands, "free"
+            // phrases) must not override the vetted outlines from the server.
+            setDrafts(initialDrafts.map((fallback) => normalizeSavedDraft(savedDraftForKeyword(parsed, fallback.keyword), fallback)));
           }
         }
       } catch { /* Browser storage is a convenience, never an approval gate. */ }
