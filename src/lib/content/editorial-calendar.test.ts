@@ -262,12 +262,15 @@ describe("six-month editorial calendar", () => {
     // Real regression set: a Fremont / Bay Area junk-removal business whose
     // automatic calendar previously included competitor brands, unoffered
     // "free" services, and national phrases.
+    // The live provider marks the brand queries "informational", so the
+    // safeguard must not depend on navigational intent labels.
     const candidates = [
       { keyword: "commercial junk removal services", intent: "transactional", searchVolume: 400 },
       { keyword: "fremont junk removal", intent: "transactional", searchVolume: 300 },
-      { keyword: "loadup junk removal", intent: "navigational", searchVolume: 900 },
-      { keyword: "junkman junk removal", intent: "navigational", searchVolume: 250 },
+      { keyword: "loadup junk removal", intent: "informational", searchVolume: 900 },
+      { keyword: "junkman junk removal", intent: "informational", searchVolume: 250 },
       { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },
+      { keyword: "free junk removal services", intent: "transactional", searchVolume: 700 },
       { keyword: "junk removal usa", intent: "transactional", searchVolume: 600 },
       { keyword: "junk removal united states", intent: "transactional", searchVolume: 150 },
       { keyword: "ready set junk", intent: "navigational", searchVolume: 120 },
@@ -284,18 +287,25 @@ describe("six-month editorial calendar", () => {
     expect(keywords).not.toContain("loadup junk removal");
     expect(keywords).not.toContain("junkman junk removal");
     expect(keywords).not.toContain("free junk removal");
+    expect(keywords).not.toContain("free junk removal services");
     expect(keywords).not.toContain("junk removal usa");
     expect(keywords).not.toContain("junk removal united states");
     expect(keywords).not.toContain("ready set junk");
   });
 
-  it("keeps legitimate niche modifiers that are not brands, qualifiers, or evidenced terms", () => {
-    // "hoarder" is not in the offer text, evidence, or qualifier list, but the
-    // search is transactional — the branded-modifier rule must not drop it.
+  it("keeps legitimate niche modifiers while excluding brand modifiers regardless of intent labels", () => {
+    // Allowlisted service modifiers and evidenced place names stay; unknown
+    // brand tokens go even when the provider labels the query informational.
     const candidates = [
       { keyword: "hoarder junk removal", intent: "transactional", searchVolume: 350 },
+      { keyword: "cheap junk removal", intent: "transactional", searchVolume: 500 },
+      { keyword: "furniture junk removal", intent: "transactional", searchVolume: 300 },
+      { keyword: "appliance junk removal", intent: "transactional", searchVolume: 200 },
+      { keyword: "same day junk removal", intent: "transactional", searchVolume: 450 },
+      { keyword: "fremont junk removal", intent: "transactional", searchVolume: 300 },
       { keyword: "mattress junk removal", intent: "informational", searchVolume: 150 },
-      { keyword: "loadup junk removal", intent: "navigational", searchVolume: 900 },
+      { keyword: "loadup junk removal", intent: "informational", searchVolume: 900 },
+      { keyword: "junkman junk removal", intent: "informational", searchVolume: 250 },
     ];
     const selected = selectKeywordsForCalendar(candidates, {}, {
       productsServices: "Junk removal and debris hauling",
@@ -305,22 +315,34 @@ describe("six-month editorial calendar", () => {
     const keywords = selected.map((kw) => kw.keyword);
 
     expect(keywords).toContain("hoarder junk removal");
+    expect(keywords).toContain("cheap junk removal");
+    expect(keywords).toContain("furniture junk removal");
+    expect(keywords).toContain("appliance junk removal");
+    expect(keywords).toContain("same day junk removal");
+    expect(keywords).toContain("fremont junk removal");
     expect(keywords).toContain("mattress junk removal");
     expect(keywords).not.toContain("loadup junk removal");
+    expect(keywords).not.toContain("junkman junk removal");
   });
 
-  it("keeps free-service terms when the business actually offers a free service", () => {
+  it("treats free estimates as different from a free service and requires the exact phrase", () => {
+    // The business advertises free estimates; that must not authorise
+    // "free junk removal" — only the exact evidenced free phrase passes.
     const candidates = [
+      { keyword: "free junk removal", intent: "transactional", searchVolume: 1_500 },
       { keyword: "free junk removal estimate", intent: "transactional", searchVolume: 200 },
       { keyword: "junk removal cost", intent: "transactional", searchVolume: 800 },
     ];
     const selected = selectKeywordsForCalendar(candidates, {}, {
-      productsServices: "Junk removal with free estimates",
-      locationEvidence: "Free estimates for junk removal in Fremont.",
+      productsServices: "Junk removal and debris hauling",
+      locationEvidence: "We offer a free junk removal estimate for every Fremont job.",
       competitorNames: [],
     });
+    const keywords = selected.map((kw) => kw.keyword);
 
-    expect(selected.map((kw) => kw.keyword)).toContain("free junk removal estimate");
+    expect(keywords).not.toContain("free junk removal");
+    expect(keywords).toContain("free junk removal estimate");
+    expect(keywords).toContain("junk removal cost");
   });
 
   it("explicit user approvals override every automatic safeguard", () => {

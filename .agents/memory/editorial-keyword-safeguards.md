@@ -1,10 +1,10 @@
 ---
 name: Editorial keyword safeguards
-description: How automatic editorial-calendar exclusion rules must be scoped to avoid over-filtering
+description: How automatic editorial-calendar exclusion rules must be scoped to avoid over- and under-filtering
 ---
 
-Automatic keyword exclusion heuristics (branded modifiers, "free" terms, national scope) must be tightly gated or they suppress legitimate niche keywords.
+Automatic keyword exclusion heuristics (branded modifiers, "free" terms, national scope) must be anchored to decisive evidence, not provider metadata.
 
-**Why:** A first pass excluded any keyword containing an unknown token alongside an offer term as a "likely brand" — code review showed this drops valid niche modifiers like "hoarder junk removal". The fix: only treat unknown modifiers as brands on navigational (brand-finding) intent queries.
+**Why:** Two production lessons from the junk-removal regression set: (1) provider intent labels are unreliable — brand searches like "loadup junk removal" arrive as *informational*, so gating brand exclusion on navigational intent misses real brands; (2) substring matching is unsafe for "free" services — "free junk removal" is a prefix of the evidenced "free junk removal estimate", so exact-phrase evidence must be token-level with a boundary check (phrase ends at text end or a connective word).
 
-**How to apply:** When extending `automaticCalendarExclusionReason` in the editorial calendar module, keep each rule anchored to a decisive signal (competitor list match, explicit intent, evidence text) — never "token I don't recognise". Explicit user approvals must always bypass all automatic safeguards.
+**How to apply:** In `automaticCalendarExclusionReason`, brand detection uses an allowlist of legitimate service modifiers plus strategic-page location evidence — never intent labels. Free-service keywords require the exact free phrase evidenced (free estimates ≠ free service). Explicit user approvals always bypass all automatic safeguards.

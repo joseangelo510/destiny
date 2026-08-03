@@ -21,15 +21,25 @@ export type CalendarSelectionContext = {
   competitorNames?: string[];
 };
 
-// Generic service/commercial qualifiers that never indicate a competitor brand.
-const GENERIC_QUALIFIER_TOKENS = new Set([
+// Allowlist of legitimate service modifiers that never indicate a competitor
+// brand: commercial qualifiers, urgency terms, item/venue nouns, and common
+// question words. Tokens outside this list must be part of the stated offer
+// or evidenced on the site's strategic pages to survive the brand check.
+const LEGITIMATE_SERVICE_MODIFIER_TOKENS = new Set([
   "best", "top", "cheap", "cheapest", "affordable", "local", "near", "me",
   "same", "day", "fast", "quick", "emergency", "licensed", "insured",
   "professional", "reliable", "commercial", "residential", "small", "large",
   "full", "eco", "friendly", "green", "service", "services", "company",
   "companies", "cost", "costs", "price", "prices", "pricing", "quote",
-  "quotes", "hire", "book", "and", "the", "for", "with", "from", "that",
-  "this", "how", "what", "why", "when", "your", "our",
+  "quotes", "estimate", "estimates", "hire", "book", "and", "the", "for",
+  "with", "from", "that", "this", "how", "what", "why", "when", "your", "our",
+  // Item and venue nouns common in junk-removal / hauling service searches.
+  "hoarder", "hoarding", "furniture", "appliance", "appliances", "mattress",
+  "mattresses", "couch", "sofa", "tv", "piano", "refrigerator", "freezer",
+  "washer", "dryer", "hot", "tub", "yard", "garage", "basement", "attic",
+  "shed", "estate", "construction", "debris", "trash", "garbage", "waste",
+  "office", "house", "home", "apartment", "property", "cleanout",
+  "cleanouts", "curbside", "bulk", "heavy", "item", "items", "pickup",
 ]);
 
 const NATIONAL_SCOPE_RE = /\b(usa|u\.s\.a\.|us|u\.s\.|united states|america|american|nationwide|national)\b/i;
@@ -37,6 +47,32 @@ const FREE_SERVICE_RE = /\bfree\b/i;
 
 function normalizeForMatch(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+// Connective words that may legitimately follow an evidenced phrase without
+// extending the service name ("free junk removal estimate FOR every job").
+const PHRASE_BOUNDARY_TOKENS = new Set([
+  "for", "in", "to", "on", "at", "and", "or", "with", "near", "across",
+  "throughout", "every", "all", "we", "our", "your", "the", "a", "an",
+  "is", "are", "when", "if", "so", "but",
+]);
+
+/**
+ * True when the normalized phrase appears in the normalized text as a
+ * complete phrase — i.e. the occurrence ends at the text's end or before a
+ * connective word, not inside a longer service phrase.
+ */
+function exactPhraseInText(phrase: string, text: string): boolean {
+  if (!phrase || !text) return false;
+  const textTokens = text.split(" ");
+  const phraseTokens = phrase.split(" ");
+  for (let i = 0; i + phraseTokens.length <= textTokens.length; i += 1) {
+    if (phraseTokens.every((token, j) => textTokens[i + j] === token)) {
+      const next = textTokens[i + phraseTokens.length];
+      if (next === undefined || PHRASE_BOUNDARY_TOKENS.has(next)) return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -60,10 +96,15 @@ export function automaticCalendarExclusionReason(
     if (normalized && phrase.includes(normalized)) return "competitor name";
   }
 
-  // 2. "Free" service phrases unless the business evidences a free offer.
+  // 2. "Free" service phrases. Offering free estimates is not the same as
+  // offering the service itself for free — only allow a free-service keyword
+  // when that exact free-service phrase is evidenced in the stated offer or
+  // on the site's strategic pages. A prefix match inside a longer free
+  // phrase ("free junk removal" inside "free junk removal estimate") does
+  // not count as evidence.
   if (FREE_SERVICE_RE.test(phrase)) {
-    const freeEvidenced = /\bfree\b/.test(offerText) || /\bfree\b/.test(evidence);
-    if (!freeEvidenced) return "free service not offered";
+    const exactPhraseEvidenced = exactPhraseInText(phrase, offerText) || exactPhraseInText(phrase, evidence);
+    if (!exactPhraseEvidenced) return "free service not offered";
   }
 
   // 3. National/USA scope for an evidenced local business.
@@ -71,19 +112,18 @@ export function automaticCalendarExclusionReason(
     return "national scope for local business";
   }
 
-  // 4. Likely competitor-branded modifiers. Only brand-finding (navigational)
-  // searches are candidates for this rule — a navigational query whose
-  // modifier is not a generic qualifier, not part of the stated offer, and
-  // not evidenced on the site's strategic pages is someone else's brand.
-  // Non-navigational keywords with unfamiliar modifiers (e.g. niche service
-  // qualifiers) are legitimate and must not be excluded here.
-  const isNavigational = String(keyword.intent || "").toLowerCase().includes("navigation");
-  if (isNavigational && offerTokens.size) {
+  // 4. Likely competitor-branded modifiers. Providers frequently mislabel
+  // brand searches (e.g. "loadup junk removal" arrives as informational), so
+  // this rule cannot rely on intent. Instead: a modifier alongside an offer
+  // term is a likely brand when it is not on the legitimate-service-modifier
+  // allowlist, not part of the stated offer, and not evidenced on the site's
+  // strategic pages (which authorise real local place names like "fremont").
+  if (offerTokens.size) {
     const tokens = phrase.split(/\s+/);
     const hasOfferToken = tokens.some((t) => offerTokens.has(t));
     if (hasOfferToken) {
       const unknown = tokens.filter((t) =>
-        !GENERIC_QUALIFIER_TOKENS.has(t)
+        !LEGITIMATE_SERVICE_MODIFIER_TOKENS.has(t)
         && !offerTokens.has(t)
         && !(evidence && evidence.includes(t)));
       if (unknown.length > 0) return "likely branded modifier";
