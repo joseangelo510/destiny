@@ -29,10 +29,9 @@ describe("stepOneValidation", () => {
 });
 
 describe("stepTwoValidation", () => {
-  it("requires the ideal customer, their challenges and goals, and a search country", () => {
-    expect(stepTwoValidation({ customer: "Startup marketing teams", audienceGoals: "Increase qualified traffic and reduce manual work", country: "United States" })).toEqual({ ready: true });
-    expect(stepTwoValidation({ customer: "", audienceGoals: "Increase qualified traffic", country: "United States" })).toEqual({ ready: false });
-    expect(stepTwoValidation({ customer: "Startup marketing teams", audienceGoals: "", country: "United States" })).toEqual({ ready: false });
-    expect(stepTwoValidation({ customer: "Startup marketing teams", audienceGoals: "Increase qualified traffic", country: "" })).toEqual({ ready: false });
+  it("requires the ideal customer and their challenges and goals while the country stays fixed", () => {
+    expect(stepTwoValidation({ customer: "Startup marketing teams", audienceGoals: "Increase qualified traffic and reduce manual work" })).toEqual({ ready: true });
+    expect(stepTwoValidation({ customer: "", audienceGoals: "Increase qualified traffic" })).toEqual({ ready: false });
+    expect(stepTwoValidation({ customer: "Startup marketing teams", audienceGoals: "" })).toEqual({ ready: false });
   });
 });

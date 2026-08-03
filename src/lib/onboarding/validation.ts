@@ -22,8 +22,8 @@ export function stepOneValidation(input: StepOneInput) {
   }
 }
 
-export function stepTwoValidation(input: { customer: string; audienceGoals: string; country: string }) {
+export function stepTwoValidation(input: { customer: string; audienceGoals: string }) {
   return {
-    ready: Boolean(input.customer.trim() && input.audienceGoals.trim() && input.country.trim()),
+    ready: Boolean(input.customer.trim() && input.audienceGoals.trim()),
   };
 }

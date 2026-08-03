@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
 import { parseCompetitorEntries, validateCompetitorEntries } from "@/lib/onboarding/competitors";
+import { ONBOARDING_SEARCH_COUNTRY } from "@/lib/onboarding/market";
 import { createClient } from "@/lib/supabase/server";
 
 type OnboardingPayload = {
@@ -11,8 +12,6 @@ type OnboardingPayload = {
   email?: unknown;
   firstName?: unknown;
   lastName?: unknown;
-  localMarket?: unknown;
-  country?: unknown;
   productsServices?: unknown;
   standout?: unknown;
   problem?: unknown;
@@ -36,8 +35,6 @@ export async function POST(request: Request) {
     const audienceGoals = text(body.audienceGoals, 4000);
     const standout = text(body.standout, 4000);
     const competitors = text(body.competitors, 4000);
-    const localMarket = text(body.localMarket, 240);
-    const country = text(body.country, 120) || "United States";
     const website = normalizeWebsite(text(body.website, 2048));
 
     if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !productsServices || !problem || !customer || !audienceGoals || !standout) {
@@ -86,7 +83,7 @@ export async function POST(request: Request) {
       ideal_customer: customer,
       audience_challenges_goals: audienceGoals,
       differentiation: standout,
-      market: localMarket ? `${localMarket} · ${country}` : country,
+      market: ONBOARDING_SEARCH_COUNTRY,
       onboarding_completed_at: new Date().toISOString(),
     };
     const { data: existingWebsite, error: existingWebsiteError } = await supabase

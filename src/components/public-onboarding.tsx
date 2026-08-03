@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
 import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
 import { appendCompetitorSuggestion, validateCompetitorEntries } from "../lib/onboarding/competitors";
+import { ONBOARDING_SEARCH_COUNTRY } from "../lib/onboarding/market";
+import {
+  appendDictation,
+  type DictationRecognition,
+  type DictationSession,
+  startDictationSession,
+} from "../lib/onboarding/dictation";
 import {
   DEFAULT_CELEBRATION_PREFERENCES,
   playDestinySound,
@@ -19,34 +26,13 @@ import {
 
 type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
-type SpeechRecognitionEventLike = {
-  results: { 0: { 0: { transcript: string } } };
-};
-
-type SpeechRecognitionLike = {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+type SpeechRecognitionConstructor = new () => DictationRecognition;
 
 type CompetitorSuggestion = {
   domain: string;
   sharedKeywords: number;
   relation: "search_landscape";
 };
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
 
 const emptyForm = {
   website: "",
@@ -55,20 +41,12 @@ const emptyForm = {
   problem: "",
   customer: "",
   audienceGoals: "",
-  localMarket: "",
-  country: "United States",
   competitors: "",
   standout: "",
   firstName: "",
   lastName: "",
   email: "",
 };
-
-const countries = [
-  "United States", "Canada", "United Kingdom", "Australia", "New Zealand", "Ireland",
-  "France", "Germany", "Spain", "Italy", "Netherlands", "Belgium", "Sweden", "Norway",
-  "Denmark", "Finland", "Singapore", "India", "Japan", "Brazil", "Mexico",
-];
 
 export function PublicOnboarding() {
   const [step, setStep] = useState(1);
@@ -84,6 +62,8 @@ export function PublicOnboarding() {
   const [competitorSuggestions, setCompetitorSuggestions] = useState<CompetitorSuggestion[]>([]);
   const [competitorSuggestionsLoading, setCompetitorSuggestionsLoading] = useState(false);
   const [competitorSuggestionNotice, setCompetitorSuggestionNotice] = useState("");
+  const dictationSessionRef = useRef<DictationSession | null>(null);
+  const dictationFieldRef = useRef<VoiceField | null>(null);
 
   const updateField = (field: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -111,14 +91,37 @@ export function PublicOnboarding() {
     return () => window.clearTimeout(hydrationTimer);
   }, []);
 
+  useEffect(() => () => {
+    dictationSessionRef.current?.stop();
+    dictationSessionRef.current = null;
+  }, []);
+
   useEffect(() => {
     if (!celebration) return;
     const timer = window.setTimeout(() => setCelebration(""), 2100);
     return () => window.clearTimeout(timer);
   }, [celebration]);
 
+  const finishDictation = () => {
+    const session = dictationSessionRef.current;
+    dictationSessionRef.current = null;
+    dictationFieldRef.current = null;
+    setListening(null);
+    session?.stop();
+  };
+
   const dictate = (field: VoiceField) => {
-    const Constructor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (dictationSessionRef.current) {
+      const shouldStartAnotherField = dictationFieldRef.current !== field;
+      finishDictation();
+      if (!shouldStartAnotherField) return;
+    }
+
+    const speechWindow = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Constructor = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
     if (!Constructor) {
       setError("Voice input is not supported in this browser. Chrome is recommended.");
       return;
@@ -127,16 +130,20 @@ export function PublicOnboarding() {
     setError("");
     setListening(field);
     const recognition = new Constructor();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setForm((current) => ({ ...current, [field]: `${current[field]} ${transcript}`.trim() }));
-    };
-    recognition.onerror = () => setError("Destiny could not hear you. Allow microphone access in Chrome and try again.");
-    recognition.onend = () => setListening(null);
-    recognition.start();
+    dictationFieldRef.current = field;
+    dictationSessionRef.current = startDictationSession({
+      recognition,
+      onError: setError,
+      onStop: () => {
+        if (dictationFieldRef.current !== field) return;
+        dictationSessionRef.current = null;
+        dictationFieldRef.current = null;
+        setListening(null);
+      },
+      onTranscript: (transcript) => {
+        setForm((current) => ({ ...current, [field]: appendDictation(current[field], transcript) }));
+      },
+    });
   };
 
   const discoverCompetitors = async () => {
@@ -148,7 +155,7 @@ export function PublicOnboarding() {
       const response = await fetch("/api/onboarding/competitors/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ website: form.website, locationName: form.country }),
+        body: JSON.stringify({ website: form.website, locationName: ONBOARDING_SEARCH_COUNTRY }),
       });
       const payload = await response.json() as { suggestions?: CompetitorSuggestion[]; warning?: string };
       setCompetitorSuggestions(payload.suggestions ?? []);
@@ -164,6 +171,7 @@ export function PublicOnboarding() {
 
   const nextStep = () => {
     if (!stepReady) return;
+    finishDictation();
     setError("");
     if (step === 1 && stepOne.normalizedWebsite) {
       setForm((current) => ({ ...current, website: stepOne.normalizedWebsite ?? current.website }));
@@ -204,7 +212,7 @@ export function PublicOnboarding() {
         body: JSON.stringify({
           website: form.website,
           websiteId: onboardingPayload.websiteId,
-          locationName: form.country,
+          locationName: ONBOARDING_SEARCH_COUNTRY,
         }),
       });
       const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; progress?: number };
@@ -268,11 +276,9 @@ export function PublicOnboarding() {
 
           {step === 2 && <>
             <h2>Who is your ideal customer?</h2>
-            <p className="lede">Local context shapes the strategy; the country selects the supported keyword database.</p>
+            <p className="lede">Tell Destiny who you want to reach and the outcomes they care about. Destiny uses the United States search database automatically.</p>
             <VoiceTextarea field="customer" label="Ideal customer" listening={listening} onChange={(value) => updateField("customer", value)} onDictate={dictate} placeholder="Describe who they are, what they need, and what makes them ready to buy." value={form.customer} />
             <VoiceTextarea field="audienceGoals" label="What challenges and goals do you want to help your audience with?" listening={listening} onChange={(value) => updateField("audienceGoals", value)} onDictate={dictate} placeholder="Share what they are struggling with today and the outcome they want to achieve." value={form.audienceGoals} />
-            <label>Local market <em>Optional</em><input onChange={(event) => updateField("localMarket", event.target.value)} placeholder="San Francisco, California" value={form.localMarket} /><small>Used as strategy context; not sent as a DataForSEO country.</small></label>
-            <label>Search database country<select onChange={(event) => updateField("country", event.target.value)} value={form.country}>{countries.map((country) => <option key={country}>{country}</option>)}</select><small>DataForSEO Labs uses a supported country-level search database.</small></label>
           </>}
 
           {step === 3 && <>
@@ -305,12 +311,11 @@ export function PublicOnboarding() {
             <div className="guided-review-grid">
               <div><span>Business name</span><strong>{form.businessName}</strong></div>
               <div><span>Website</span><strong>{form.website}</strong></div>
-              <div><span>Search database</span><strong>{form.country}</strong></div>
+              <div><span>Search database</span><strong>{ONBOARDING_SEARCH_COUNTRY}</strong></div>
               <div><span>Products and services</span><p>{form.productsServices}</p></div>
               <div><span>Problem being solved</span><p>{form.problem}</p></div>
               <div><span>Ideal customer</span><p>{form.customer}</p></div>
               <div><span>Audience challenges and goals</span><p>{form.audienceGoals}</p></div>
-              <div><span>Local market</span><strong>{form.localMarket || "Not specified"}</strong></div>
               <div><span>Known competitors</span><p>{form.competitors || "Let Destiny discover them from organic search overlap"}</p></div>
               <div className="wide"><span>What makes you stand out</span><p>{form.standout}</p></div>
             </div>
@@ -339,5 +344,17 @@ function VoiceTextarea({ field, label, listening, onChange, onDictate, optional 
   placeholder: string;
   value: string;
 }) {
-  return <label><span className="label-row"><span>{label} {optional && <em>Optional</em>}</span><button className={listening === field ? "voice-button listening" : "voice-button"} onClick={() => onDictate(field)} type="button">{listening === field ? "Listening…" : "◉ Talk instead"}</button></span><textarea onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={!optional} rows={4} value={value} /></label>;
+  const active = listening === field;
+  const inputId = `onboarding-${field}`;
+  return <div className={active ? "voice-field listening" : "voice-field"}>
+    <div className="label-row">
+      <label htmlFor={inputId}>{label} {optional && <em>Optional</em>}</label>
+      <button aria-label={`${active ? "Stop" : "Start"} dictation for ${label}`} aria-pressed={active} className={active ? "voice-button listening" : "voice-button"} onClick={() => onDictate(field)} type="button">
+        <span aria-hidden="true" className="voice-button-icon">{active ? <><span className="voice-stop-icon" /><span className="voice-listening-bars"><i /><i /><i /></span></> : <svg className="voice-microphone-icon" viewBox="0 0 20 20"><rect height="10" rx="4" width="6" x="7" y="2" /><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v3M7 18h6" /></svg>}</span>
+        <span>{active ? "Listening · tap to stop" : "Dictate"}</span>
+      </button>
+    </div>
+    <textarea id={inputId} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={!optional} rows={4} value={value} />
+    <small aria-live="polite" className="voice-dictation-help">{active ? "Listening now. Tap stop when you are done." : "Click to dictate. Tap again when done,"} Destiny will finish after 5 seconds of silence.</small>
+  </div>;
 }
