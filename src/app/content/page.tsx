@@ -12,6 +12,12 @@ import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/
 export default async function ContentPage() {
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
+  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
+  // Strategic pages only — mirrors the filter on the Keyword strategy page so that
+  // incidental city mentions in blog posts or "other"-role pages cannot authorise
+  // out-of-market editorial topics via the geo-conflict filter.
+  const strategicPages = pages.filter((page) => String(page.role || "other") !== "other" && !/\/(?:blog|news|articles?|category|tag|uncategorized)(?:\/|$)/i.test(String(page.url || "")));
+  const pageTextForCalendar = strategicPages.map((page) => String(page.text || "")).join(" ");
   const keywordRecords = list(providerResult.keywords).map(record);
   const rankedKeywords = rankKeywordOpportunities(keywordRecords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
     keyword: keyword.keyword,
@@ -35,16 +41,11 @@ export default async function ContentPage() {
     idealCustomer: context.website?.ideal_customer ?? "",
     audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
     market: context.website?.market ?? "",
+    pageText: pageTextForCalendar,
   }, 50);
   const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
   const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
   const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions);
-  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
-  // Strategic pages only — mirrors the filter on the Keyword strategy page so that
-  // incidental city mentions in blog posts or "other"-role pages cannot authorise
-  // out-of-market editorial topics via the geo-conflict filter.
-  const strategicPages = pages.filter((page) => String(page.role || "other") !== "other" && !/\/(?:blog|news|articles?|category|tag|uncategorized)(?:\/|$)/i.test(String(page.url || "")));
-  const pageTextForCalendar = strategicPages.map((page) => String(page.text || "")).join(" ");
   const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), INITIAL_PLAN_WEEKS, inferBusinessModel(context.website?.products_services ?? ""), { productsServices: context.website?.products_services ?? "", pageText: pageTextForCalendar });
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
