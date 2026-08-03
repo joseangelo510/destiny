@@ -10,7 +10,7 @@ export const PRIMARY_NAVIGATION = [
 export const FEATURE_NAVIGATION = [
   { label: "Home", href: "/" },
   { label: "Website audits", href: "/audits" },
-  { label: "Six-month plan", href: "/growth-plan" },
+  { label: "Three-month plan", href: "/growth-plan" },
   { label: "Content studio", href: "/content" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Distribution", href: "/distribution" },
@@ -105,6 +105,14 @@ export function groupCoachTasks<T extends CoachTask>(tasks: T[]) {
     ...category,
     tasks: ordered.filter((task) => (category.taskTypes as readonly string[]).includes(task.task_type)),
   })).filter((category) => category.tasks.length > 0);
+}
+
+export function groupCoachTasksForLoop<T extends CoachTask>(tasks: T[]) {
+  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
+  return COACH_CATEGORIES.map((category) => ({
+    ...category,
+    tasks: ordered.filter((task) => (category.taskTypes as readonly string[]).includes(task.task_type)),
+  }));
 }
 
 export function guidedTaskPath(task: { task_type: string; action_path: string }) {

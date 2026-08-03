@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { CelebrationControls } from "@/components/celebration-controls";
-import { WeeklyFocus } from "@/components/weekly-focus";
-import { WeeklyTaskList } from "@/components/weekly-task-list";
+import { WeeklyLoop } from "@/components/weekly-loop";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { getActionableCoachTasks, getCurrentCoachTask, groupCoachTasks } from "@/lib/product/coach-experience";
+import { getActionableCoachTasks, getCurrentCoachTask, groupCoachTasksForLoop } from "@/lib/product/coach-experience";
 import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 
@@ -16,13 +15,13 @@ export default async function ThisWeekPage() {
   }
   const allTasks = context.quests.filter((task) => task.audit_id === context.audit?.id);
   const actionableTasks = getActionableCoachTasks(allTasks);
-  const groups = groupCoachTasks(actionableTasks);
+  const groups = groupCoachTasksForLoop(actionableTasks);
   const done = actionableTasks.filter((task) => task.status === "complete").length;
   const remainingTasks = actionableTasks.filter((task) => task.status !== "complete").length;
   const currentTask = getCurrentCoachTask(actionableTasks);
   const weekly = buildWeeklyProgressSummary(context.quests);
   return <WorkspaceShell active="/this-week" eyebrow={`${context.website.normalized_domain} · Week 1`} title="This week" description="Complete one useful task to maintain your weekly streak. Finish the full plan to earn a Perfect Week.">
-    <WeeklyFocus completed={done} currentStreak={weekly.currentStreak} task={currentTask} total={actionableTasks.length} />
+    <WeeklyLoop auditId={context.audit.id} currentStreak={weekly.currentStreak} currentTaskId={currentTask?.id ?? null} groups={groups} remainingTasks={remainingTasks} />
     <details className="weekly-momentum-drawer">
       <summary><span><strong>Your momentum</strong><small>{weekly.currentStreak}-week streak · {done} of {actionableTasks.length} complete</small></span><b>View history</b></summary>
       <section className="weekly-momentum-grid" aria-label="Weekly streak and completion history">{[
@@ -32,7 +31,6 @@ export default async function ThisWeekPage() {
         [weekly.lifetimeActiveWeeks, "Lifetime active weeks", "Weeks where you completed useful work"],
       ].map(([value, label, detail]) => <article key={String(label)}><strong>{Number(value)}</strong><span>{label}</span><small>{detail}</small></article>)}</section>
     </details>
-    <div className="coach-category-stack" id="weekly-checklist">{groups.map((group, index) => <section className="coach-task-category" id={group.id} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h2>{group.label}</h2><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList openTaskId={currentTask?.id ?? null} remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
     <CelebrationControls />
   </WorkspaceShell>;
 }

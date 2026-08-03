@@ -37,7 +37,7 @@ describe("Destiny SEO coach experience", () => {
     expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
       "Home",
       "Website audits",
-      "Six-month plan",
+      "Three-month plan",
       "Content studio",
       "Keyword strategy",
       "Distribution",
