@@ -249,6 +249,30 @@ describe("LOGOS keyword policy authority", () => {
     expect(runLogic).toHaveBeenCalledTimes(24);
   });
 
+  it("evaluates only the strongest 60 pre-ranked candidates within the edge CPU budget", async () => {
+    const runLogic = vi.fn(async () => ({
+      keywordEligible: true,
+      keywordSearchIntent: "conversion" as const,
+      keywordPriorityTier: 1 as const,
+      keywordPriorityScore: 90,
+      keywordVerdict: "accept" as const,
+      keywordRuleId: "essential_gap" as const,
+      keywordReason: "Accepted",
+      keywordPolicyCode: "eligible_core_conversion",
+      keywordRelevanceTier: "core" as const,
+      keywordEssential: true,
+      keywordDataQuality: "complete" as const,
+      keywordRuleIds: ["essential_gap"],
+    }));
+    const candidates = Array.from({ length: 90 }, (_, index) => opportunity({ keyword: `keyword ${index}` }));
+
+    const result = await applyLogosKeywordPolicy(candidates, runLogic);
+
+    expect(result).toHaveLength(60);
+    expect(runLogic).toHaveBeenCalledTimes(60);
+    expect(result.map((keyword) => keyword.keyword)).not.toContain("keyword 89");
+  });
+
   it("matches the temporary TypeScript reference for 30 real 98 Junk It audit keywords", async () => {
     const actual = await applyLogosKeywordPolicy(JUNKIT_GOLDEN_KEYWORDS);
     const expected = JUNKIT_GOLDEN_KEYWORDS.map(referencePolicy).filter((keyword) => keyword !== null)

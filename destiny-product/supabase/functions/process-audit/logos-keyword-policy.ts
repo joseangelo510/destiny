@@ -23,6 +23,11 @@ type KeywordPolicyResult = Pick<DestinyLogicResult,
 type KeywordPolicyRunner = (input: DestinyLogicInput) => Promise<KeywordPolicyResult>;
 
 const LOGOS_POLICY_CONCURRENCY = 4;
+// The upstream ranker has already ordered these candidates. Destiny only saves
+// 35 recommendations, so evaluating the strongest 60 preserves selection
+// headroom without spending the Edge Function's CPU budget on 240 rows that
+// cannot reach the product surface.
+const LOGOS_POLICY_CANDIDATE_LIMIT = 60;
 
 async function mapWithConcurrency<T, R>(
   values: T[],
@@ -102,7 +107,8 @@ export async function applyLogosKeywordPolicy<T extends RankedKeywordOpportunity
   keywords: T[],
   runLogic: KeywordPolicyRunner = runDestinyLogic,
 ): Promise<Array<LogosRankedKeywordOpportunity<T>>> {
-  const evaluated = await mapWithConcurrency(keywords, LOGOS_POLICY_CONCURRENCY, async (keyword) => {
+  const policyCandidates = keywords.slice(0, LOGOS_POLICY_CANDIDATE_LIMIT);
+  const evaluated = await mapWithConcurrency(policyCandidates, LOGOS_POLICY_CONCURRENCY, async (keyword) => {
     let result: KeywordPolicyResult;
     try {
       result = await runLogic(policyInput(keyword));

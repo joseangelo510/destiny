@@ -12,7 +12,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-04.2";
+const LOGOS_RULES_VERSION = "2026-08-04.3";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
