@@ -488,6 +488,34 @@ button { cursor: pointer; }
 .configuration-note { background: #fff5dc; border: 1px solid #f0dca7; border-radius: 14px; color: #785a17; padding: 18px; }
 .configuration-note p { font-size: 12px; line-height: 1.5; margin-bottom: 0; }
 .integration-list + .integration-list { margin-top: 24px; }
+.integration-section-heading { margin-bottom: 2px; }
+.integration-section-heading small, .website-profile-card .workspace-card-heading small { display: block; margin-top: 2px; }
+.website-profile-card { display: grid; gap: 20px; }
+.website-profile-card fieldset { border: 0; margin: 0; min-width: 0; padding: 0; }
+.website-profile-card legend { font-size: 16px; font-weight: 600; margin-bottom: 10px; padding: 0; }
+.website-platform-search { border: 1px solid var(--line); border-radius: 11px; font-size: 15px; margin-bottom: 12px; max-width: 340px; min-height: 44px; padding: 10px 14px; width: 100%; }
+.website-platform-search:focus-visible { border-color: var(--forest); outline: 2px solid var(--forest); outline-offset: 1px; }
+.website-platform-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.website-platform-tile { align-items: center; background: white; border: 1px solid var(--line); border-radius: 12px; color: inherit; cursor: pointer; display: flex; font-size: 15px; font-weight: 400; gap: 9px; min-height: 44px; padding: 10px 14px; position: relative; text-align: left; }
+.website-platform-tile input[type="radio"] { height: 1px; margin: 0; opacity: 0; position: absolute; width: 1px; }
+.website-platform-tile:hover { border-color: #bfd3ca; }
+.website-platform-tile:focus-within { outline: 2px solid var(--forest); outline-offset: 2px; }
+.website-platform-tile.selected { background: #eef5f2; border-color: var(--forest); font-weight: 600; }
+.website-platform-tile small { color: var(--forest); font-size: 12px; font-weight: 600; margin-left: auto; }
+.website-platform-mark { align-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--forest); display: inline-flex; flex: none; font-size: 12px; font-weight: 600; height: 20px; justify-content: center; width: 20px; }
+.website-platform-tile.selected .website-platform-mark { background: var(--forest); border-color: var(--forest); color: white; }
+.website-platform-none { color: var(--muted); font-size: 14px; grid-column: 1 / -1; margin: 0; }
+.website-tools-hint { color: var(--muted); font-size: 14px; margin: -4px 0 10px; }
+.website-tools-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.website-tool-option { align-items: center; background: white; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; display: inline-flex; font-size: 15px; gap: 9px; min-height: 44px; padding: 10px 14px; }
+.website-tool-option:hover { border-color: #bfd3ca; }
+.website-tool-option:focus-within { outline: 2px solid var(--forest); outline-offset: 2px; }
+.website-tool-option.selected { background: #eef5f2; border-color: var(--forest); font-weight: 600; }
+.website-tool-option input { accent-color: var(--forest); height: 17px; width: 17px; }
+.website-tool-option small { color: var(--forest); font-size: 12px; font-weight: 600; }
+.website-profile-footer { align-items: flex-start; display: grid; gap: 10px; }
+.website-profile-status p { font-size: 14px; margin: 0; }
+.website-profile-saved { color: var(--forest); font-weight: 600; }
 .cms-connect-action { align-items: flex-end; display: flex; flex-direction: column; gap: 8px; position: relative; }
 .cms-connect-form { background: white; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 45px rgba(31,74,61,.16); display: grid; gap: 12px; padding: 18px; position: absolute; right: 0; top: calc(100% + 9px); width: min(380px, 78vw); z-index: 20; }
 .cms-connect-form label { color: var(--ink); display: grid; font-size: 11px; font-weight: 800; gap: 6px; }
@@ -510,6 +538,15 @@ button { cursor: pointer; }
   .integration-row { grid-template-columns: 46px 1fr 110px; }
   .integration-row .integration-actions { grid-column: 2 / -1; justify-content: flex-start; width: fit-content; }
   .guided-onboarding-layout { gap: 35px; grid-template-columns: 310px minmax(0, 1fr); padding-left: 28px; padding-right: 28px; }
+}
+
+@media (max-width: 720px) {
+  .website-platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .website-profile-footer .primary-button { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .website-platform-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
