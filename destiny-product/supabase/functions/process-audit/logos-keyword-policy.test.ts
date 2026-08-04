@@ -219,6 +219,36 @@ describe("LOGOS keyword policy authority", () => {
     ]);
   });
 
+  it("bounds concurrent LOGOS evaluations so a large audit cannot exhaust the edge worker", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    const runLogic = vi.fn(async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 3));
+      active -= 1;
+      return {
+        keywordEligible: true,
+        keywordSearchIntent: "conversion" as const,
+        keywordPriorityTier: 1 as const,
+        keywordPriorityScore: 90,
+        keywordVerdict: "accept" as const,
+        keywordRuleId: "essential_gap" as const,
+        keywordReason: "Accepted",
+        keywordPolicyCode: "eligible_core_conversion",
+        keywordRelevanceTier: "core" as const,
+        keywordEssential: true,
+        keywordDataQuality: "complete" as const,
+        keywordRuleIds: ["essential_gap"],
+      };
+    });
+    const candidates = Array.from({ length: 24 }, (_, index) => opportunity({ keyword: `keyword ${index}` }));
+
+    await expect(applyLogosKeywordPolicy(candidates, runLogic)).resolves.toHaveLength(24);
+    expect(maximumActive).toBeLessThanOrEqual(4);
+    expect(runLogic).toHaveBeenCalledTimes(24);
+  });
+
   it("matches the temporary TypeScript reference for 30 real 98 Junk It audit keywords", async () => {
     const actual = await applyLogosKeywordPolicy(JUNKIT_GOLDEN_KEYWORDS);
     const expected = JUNKIT_GOLDEN_KEYWORDS.map(referencePolicy).filter((keyword) => keyword !== null)

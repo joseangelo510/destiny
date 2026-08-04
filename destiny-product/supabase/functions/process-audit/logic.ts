@@ -213,6 +213,13 @@ function decodeWasm() {
   return bytes;
 }
 
+let compiledWasmModule: Promise<WebAssembly.Module> | null = null;
+
+function getCompiledWasmModule() {
+  if (!compiledWasmModule) compiledWasmModule = WebAssembly.compile(decodeWasm());
+  return compiledWasmModule;
+}
+
 export async function runDestinyLogic(input: DestinyLogicInput): Promise<DestinyLogicResult> {
   const output: string[] = [];
   const decoder = new TextDecoder();
@@ -366,8 +373,8 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     },
   };
 
-  const instantiated = await WebAssembly.instantiate(decodeWasm(), imports);
-  runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
+  const instantiated = await WebAssembly.instantiate(await getCompiledWasmModule(), imports);
+  runtimeRef.current = instantiated.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
   if (output.length < 100) {

@@ -22,6 +22,26 @@ type KeywordPolicyResult = Pick<DestinyLogicResult,
 
 type KeywordPolicyRunner = (input: DestinyLogicInput) => Promise<KeywordPolicyResult>;
 
+const LOGOS_POLICY_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T, R>(
+  values: T[],
+  concurrency: number,
+  mapper: (value: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(values.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(Math.max(1, concurrency), values.length) }, async () => {
+    while (cursor < values.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await mapper(values[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 export type LogosRankedKeywordOpportunity<T extends RankedKeywordOpportunity = RankedKeywordOpportunity> = T & {
   policyCode: string;
   policyEngine: "logos" | "typescript-fallback";
@@ -82,7 +102,7 @@ export async function applyLogosKeywordPolicy<T extends RankedKeywordOpportunity
   keywords: T[],
   runLogic: KeywordPolicyRunner = runDestinyLogic,
 ): Promise<Array<LogosRankedKeywordOpportunity<T>>> {
-  const evaluated = await Promise.all(keywords.map(async (keyword) => {
+  const evaluated = await mapWithConcurrency(keywords, LOGOS_POLICY_CONCURRENCY, async (keyword) => {
     let result: KeywordPolicyResult;
     try {
       result = await runLogic(policyInput(keyword));
@@ -115,7 +135,7 @@ export async function applyLogosKeywordPolicy<T extends RankedKeywordOpportunity
       dataQuality: result.keywordDataQuality,
       firedRuleIds: result.keywordRuleIds,
     };
-  }));
+  });
 
   return evaluated.filter((keyword): keyword is LogosRankedKeywordOpportunity<T> => keyword !== null)
     .sort((left, right) => left.priorityTier - right.priorityTier
