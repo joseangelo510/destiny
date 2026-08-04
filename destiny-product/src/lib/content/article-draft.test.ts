@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody } from "./article-draft";
 
 describe("article review workspace", () => {
-  it("creates an editable, business-specific article and Word-compatible document", () => {
+  it("creates an editable, business-specific article and Word-compatible document", async () => {
     const draft = buildArticleDraft({
       keyword: "saas content marketing agency",
       businessName: "Jose Angelo Studios",
@@ -18,7 +18,7 @@ describe("article review workspace", () => {
     expect(draft.metaDescriptions.every((description) => description.length <= 150)).toBe(true);
     expect(draft.body).not.toContain("experience.. That matters");
     expect(draft.preferences.format).toBe("seo_article");
-    expect(articleCanBeApproved(draft)).toBe(false);
+    expect(await articleCanBeApproved(draft)).toBe(false);
     const document = buildWordDocument(draft);
     expect(document).toContain("application-ready Destiny article");
     expect(document).toContain("Meta description 2");

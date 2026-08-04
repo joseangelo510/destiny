@@ -67,7 +67,7 @@ export default async function AuditsPage() {
     return [{ code: String(issue.code || "unknown_issue"), label: String(issue.label || issue.code || "Technical issue"), severity } satisfies AuditIssueInput];
   });
   const inspectedPages = list(providerResult.pages).length;
-  const dashboard = buildAuditDashboard({
+  const dashboard = await buildAuditDashboard({
     healthScore: typeof providerMetrics.onPageScore === "number" ? providerMetrics.onPageScore : null,
     inspectedPages,
     inspectedUrl: website.url,

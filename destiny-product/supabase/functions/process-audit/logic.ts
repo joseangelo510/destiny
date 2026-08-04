@@ -97,6 +97,13 @@ export type DestinyLogicInput = {
   momentumAuditProgress?: number;
   momentumAuditStatusCode?: number;
   momentumElapsedSeconds?: number;
+  onboardingOneFields?: number; onboardingEmailValid?: number; onboardingUrlValid?: number; onboardingTwoFields?: number;
+  auditHealthAvailable?: number; auditHealthRaw?: number; auditMeasuredCritical?: number; auditMeasuredWarnings?: number; auditVisibleIssues?: number;
+  rankStatusCode?: number; rankFoundCode?: number; rankCurrentPosition?: number; rankHasPrevious?: number; rankPreviousFound?: number; rankPreviousPosition?: number;
+  rankHasLastCheck?: number; rankAgeHours?: number; rankAgeDays?: number;
+  articleFormatCode?: number; articleWordCount?: number; articleH1Count?: number; articleH2Count?: number; articleH3Count?: number; articleSkippedLevel?: number;
+  articleTitleKeyword?: number; articleFirstH2Keyword?: number; articleKeywordFreePercent?: number; articleBrigadeCount?: number; articleFirstBrigade?: number;
+  articleMinBrigadeGap?: number; articleStockPhrase?: number; articleMetaCount?: number; articleMetaOverlength?: number; articleSourceCount?: number; articleCitedCount?: number;
 };
 
 export type DestinyLogicResult = {
@@ -181,6 +188,12 @@ export type DestinyLogicResult = {
   momentumAuditReady: boolean;
   momentumTimingDelayed: boolean;
   momentumTimingSeconds: number;
+  onboardingOneReady: boolean; onboardingTwoReady: boolean;
+  auditHealthScore: number; auditHealthCode: number; auditIsPartial: boolean;
+  rankReadingCode: number; rankMovementCode: number; rankMovementDelta: number; rankFreshnessCode: number;
+  rankBucket: number;
+  articleWordIssue: boolean; articleHeadingIssue: boolean; articleHeadingKeywordIssue: boolean; articleHeadingVarietyIssue: boolean;
+  articleBrigadeIssue: boolean; articleBrigadeSpacingIssue: boolean; articleStockIssue: boolean; articleMetaIssue: boolean; articleSourceIssue: boolean;
 };
 
 type LogicExports = {
@@ -304,6 +317,13 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.progressAnyInProgress ?? 0),
     String(input.progressProviderAvailable ?? 0),
     String(input.momentumOnboardingStep ?? 0), String(input.momentumAuditProgress ?? 0), String(input.momentumAuditStatusCode ?? 0), String(input.momentumElapsedSeconds ?? 0),
+    String(input.onboardingOneFields ?? 0), String(input.onboardingEmailValid ?? 0), String(input.onboardingUrlValid ?? 0), String(input.onboardingTwoFields ?? 0),
+    String(input.auditHealthAvailable ?? 0), String(input.auditHealthRaw ?? 0), String(input.auditMeasuredCritical ?? 0), String(input.auditMeasuredWarnings ?? 0), String(input.auditVisibleIssues ?? 0),
+    String(input.rankStatusCode ?? 0), String(input.rankFoundCode ?? -1), String(input.rankCurrentPosition ?? 0), String(input.rankHasPrevious ?? 0), String(input.rankPreviousFound ?? 0), String(input.rankPreviousPosition ?? 0),
+    String(input.rankHasLastCheck ?? 0), String(input.rankAgeHours ?? 0), String(input.rankAgeDays ?? 0),
+    String(input.articleFormatCode ?? 0), String(input.articleWordCount ?? 0), String(input.articleH1Count ?? 0), String(input.articleH2Count ?? 0), String(input.articleH3Count ?? 0), String(input.articleSkippedLevel ?? 0),
+    String(input.articleTitleKeyword ?? 0), String(input.articleFirstH2Keyword ?? 0), String(input.articleKeywordFreePercent ?? 0), String(input.articleBrigadeCount ?? 0), String(input.articleFirstBrigade ?? 0),
+    String(input.articleMinBrigadeGap ?? 0), String(input.articleStockPhrase ?? 0), String(input.articleMetaCount ?? 0), String(input.articleMetaOverlength ?? 0), String(input.articleSourceCount ?? 0), String(input.articleCitedCount ?? 0),
   ];
 
   const imports = {
@@ -350,7 +370,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 81) {
+  if (output.length < 100) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -435,5 +455,24 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     momentumAuditReady: output[78] === "true",
     momentumTimingDelayed: output[79] === "true",
     momentumTimingSeconds: Number.parseInt(output[80], 10),
+    onboardingOneReady: output[81] === "true",
+    onboardingTwoReady: output[82] === "true",
+    auditHealthScore: Number.parseInt(output[83], 10),
+    auditHealthCode: Number.parseInt(output[84], 10),
+    auditIsPartial: output[85] === "true",
+    rankReadingCode: Number.parseInt(output[86], 10),
+    rankMovementCode: Number.parseInt(output[87], 10),
+    rankMovementDelta: Number.parseInt(output[88], 10),
+    rankFreshnessCode: Number.parseInt(output[89], 10),
+    articleWordIssue: output[90] === "true",
+    articleHeadingIssue: output[91] === "true",
+    articleHeadingKeywordIssue: output[92] === "true",
+    articleHeadingVarietyIssue: output[93] === "true",
+    articleBrigadeIssue: output[94] === "true",
+    articleBrigadeSpacingIssue: output[95] === "true",
+    articleStockIssue: output[96] === "true",
+    articleMetaIssue: output[97] === "true",
+    articleSourceIssue: output[98] === "true",
+    rankBucket: Number.parseInt(output[99], 10),
   };
 }

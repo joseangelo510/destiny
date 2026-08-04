@@ -112,7 +112,7 @@ export async function POST(request: Request) {
   try {
     const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
     const article = parseGeneratedArticlePayload(rawText);
-    const qualityIssues = validateGeneratedArticle(article, input.keyword, input.preferences.format);
+    const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
     return NextResponse.json({
       draft: {
         keyword: input.keyword,

@@ -91,16 +91,16 @@ describe("Destiny article generation policy", () => {
     expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
   });
 
-  it("accepts a substantive SEO article and rejects short or stock-phrase drafts", () => {
+  it("accepts a substantive SEO article and rejects short or stock-phrase drafts", async () => {
     const valid = validLongFormPayload();
-    expect(validateGeneratedArticle(valid, "seo content strategy", "seo_article")).toEqual([]);
+    await expect(validateGeneratedArticle(valid, "seo content strategy", "seo_article")).resolves.toEqual([]);
 
     const invalid = {
       ...valid,
       bodyMarkdown: "# SEO Content Strategy\n\n## SEO Content Strategy Basics\n\nLet's dive in. This is short.",
       bucketBrigades: [{ text: "Let's dive in.", afterWord: 8 }],
     };
-    expect(validateGeneratedArticle(invalid, "seo content strategy", "seo_article").map((issue) => issue.code)).toEqual(expect.arrayContaining([
+    expect((await validateGeneratedArticle(invalid, "seo content strategy", "seo_article")).map((issue) => issue.code)).toEqual(expect.arrayContaining([
       "word_count",
       "heading_structure",
       "heading_variety",

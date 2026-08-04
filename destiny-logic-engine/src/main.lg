@@ -973,6 +973,179 @@ live in the web platform.
         Return 5.
     Return remaining.
 
+## To ChooseRequiredStepReady (field_count: Int) and (required_count: Int) and (email_valid: Int) and (url_valid: Int) -> Text:
+
+    If field_count is less than required_count:
+        Return "false".
+    If email_valid equals 0:
+        Return "false".
+    If url_valid equals 0:
+        Return "false".
+    Return "true".
+
+## To ChooseSimpleStepReady (field_count: Int) and (required_count: Int) -> Text:
+
+    If field_count is less than required_count:
+        Return "false".
+    Return "true".
+
+## To ChooseAuditHealthScore (available: Int) and (score: Int) -> Int:
+
+    If available equals 0:
+        Return -1.
+    Return ClampPercent(score).
+
+## To ChooseAuditHealthCode (score: Int) -> Int:
+
+    If score is less than 0:
+        Return 0.
+    If score is greater than 89:
+        Return 4.
+    If score is greater than 74:
+        Return 3.
+    If score is greater than 49:
+        Return 2.
+    Return 1.
+
+## To ChooseAuditPartial (critical: Int) and (warnings: Int) and (visible_issues: Int) -> Text:
+
+    If critical + warnings is greater than visible_issues:
+        Return "true".
+    Return "false".
+
+## To ChooseRankReadingCode (status_code: Int) and (found_code: Int) and (position: Int) -> Int:
+
+    If status_code equals 2:
+        Return 0.
+    If status_code equals 0:
+        Return 1.
+    If found_code is less than 0:
+        Return 1.
+    If found_code equals 0:
+        Return 2.
+    If position is less than 1:
+        Return 2.
+    Return 3.
+
+## To ChooseRankMovementCode (status_code: Int) and (has_previous: Int) and (current_found: Int) and (current_position: Int) and (previous_found: Int) and (previous_position: Int) -> Int:
+
+    If status_code equals 0:
+        Return 0.
+    If status_code equals 2:
+        Return 0.
+    If has_previous equals 0:
+        If current_found equals 1:
+            Return 1.
+        Return 0.
+    If current_found equals 1:
+        If previous_found equals 0:
+            Return 2.
+    If current_found equals 0:
+        If previous_found equals 1:
+            Return 3.
+    If current_position is less than 1:
+        If previous_position is less than 1:
+            Return 0.
+        Return 3.
+    If previous_position is less than 1:
+        Return 1.
+    If current_position is less than previous_position:
+        Return 4.
+    If current_position is greater than previous_position:
+        Return 5.
+    Return 6.
+
+## To ChooseRankMovementDelta (current_position: Int) and (previous_position: Int) -> Int:
+
+    If current_position is less than 1:
+        Return 0.
+    If previous_position is less than 1:
+        Return 0.
+    Return previous_position - current_position.
+
+## To ChooseRankFreshnessCode (has_last_check: Int) and (age_hours: Int) and (age_days: Int) -> Int:
+
+    If has_last_check equals 0:
+        If age_hours is greater than 24:
+            Return 1.
+        Return 0.
+    If age_days is greater than 6:
+        Return 2.
+    Return 3.
+
+## To ChooseRankBucket (found: Int) and (position: Int) -> Int:
+
+    If found equals 0:
+        Return 0.
+    If position is less than 1:
+        Return 0.
+    If position is less than 4:
+        Return 1.
+    If position is less than 11:
+        Return 2.
+    If position is less than 21:
+        Return 3.
+    Return 4.
+
+## To ChooseArticleWordIssue (format_code: Int) and (word_count: Int) -> Text:
+
+    If format_code equals 1:
+        If word_count is less than 1900:
+            Return "true".
+        If word_count is greater than 3200:
+            Return "true".
+        Return "false".
+    If word_count is less than 700:
+        Return "true".
+    If word_count is greater than 2600:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleHeadingIssue (format_code: Int) and (h1_count: Int) and (h2_count: Int) and (h3_count: Int) and (skipped_level: Int) -> Text:
+
+    If h1_count is less than 1:
+        Return "true".
+    If h1_count is greater than 1:
+        Return "true".
+    If h3_count is less than 1:
+        Return "true".
+    If skipped_level equals 1:
+        Return "true".
+    If format_code equals 1:
+        If h2_count is less than 6:
+            Return "true".
+        If h2_count is greater than 9:
+            Return "true".
+        Return "false".
+    If h2_count is less than 3:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleBrigadeIssue (format_code: Int) and (brigade_count: Int) -> Text:
+
+    If format_code equals 1:
+        If brigade_count is less than 4:
+            Return "true".
+        If brigade_count is greater than 9:
+            Return "true".
+        Return "false".
+    If brigade_count is less than 1:
+        Return "true".
+    If brigade_count is greater than 6:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleSourceIssue (format_code: Int) and (source_count: Int) and (cited_count: Int) -> Text:
+
+    Let required be 1.
+    If format_code equals 1:
+        Set required to 3.
+    If source_count is less than required:
+        Return "true".
+    If cited_count is less than required:
+        Return "true".
+    Return "false".
+
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
     If policy_enabled equals 0:
@@ -1083,6 +1256,41 @@ live in the web platform.
     Let momentum_audit_progress be parseInt(item (planning_start + 41) of arguments).
     Let momentum_audit_status_code be parseInt(item (planning_start + 42) of arguments).
     Let momentum_elapsed_seconds be parseInt(item (planning_start + 43) of arguments).
+    Let onboarding_one_fields be parseInt(item (planning_start + 44) of arguments).
+    Let onboarding_email_valid be parseInt(item (planning_start + 45) of arguments).
+    Let onboarding_url_valid be parseInt(item (planning_start + 46) of arguments).
+    Let onboarding_two_fields be parseInt(item (planning_start + 47) of arguments).
+    Let audit_health_available be parseInt(item (planning_start + 48) of arguments).
+    Let audit_health_raw be parseInt(item (planning_start + 49) of arguments).
+    Let audit_measured_critical be parseInt(item (planning_start + 50) of arguments).
+    Let audit_measured_warnings be parseInt(item (planning_start + 51) of arguments).
+    Let audit_visible_issues be parseInt(item (planning_start + 52) of arguments).
+    Let rank_status_code be parseInt(item (planning_start + 53) of arguments).
+    Let rank_found_code be parseInt(item (planning_start + 54) of arguments).
+    Let rank_current_position be parseInt(item (planning_start + 55) of arguments).
+    Let rank_has_previous be parseInt(item (planning_start + 56) of arguments).
+    Let rank_previous_found be parseInt(item (planning_start + 57) of arguments).
+    Let rank_previous_position be parseInt(item (planning_start + 58) of arguments).
+    Let rank_has_last_check be parseInt(item (planning_start + 59) of arguments).
+    Let rank_age_hours be parseInt(item (planning_start + 60) of arguments).
+    Let rank_age_days be parseInt(item (planning_start + 61) of arguments).
+    Let article_format_code be parseInt(item (planning_start + 62) of arguments).
+    Let article_word_count be parseInt(item (planning_start + 63) of arguments).
+    Let article_h1_count be parseInt(item (planning_start + 64) of arguments).
+    Let article_h2_count be parseInt(item (planning_start + 65) of arguments).
+    Let article_h3_count be parseInt(item (planning_start + 66) of arguments).
+    Let article_skipped_level be parseInt(item (planning_start + 67) of arguments).
+    Let article_title_keyword be parseInt(item (planning_start + 68) of arguments).
+    Let article_first_h2_keyword be parseInt(item (planning_start + 69) of arguments).
+    Let article_keyword_free_percent be parseInt(item (planning_start + 70) of arguments).
+    Let article_brigade_count be parseInt(item (planning_start + 71) of arguments).
+    Let article_first_brigade be parseInt(item (planning_start + 72) of arguments).
+    Let article_min_brigade_gap be parseInt(item (planning_start + 73) of arguments).
+    Let article_stock_phrase be parseInt(item (planning_start + 74) of arguments).
+    Let article_meta_count be parseInt(item (planning_start + 75) of arguments).
+    Let article_meta_overlength be parseInt(item (planning_start + 76) of arguments).
+    Let article_source_count be parseInt(item (planning_start + 77) of arguments).
+    Let article_cited_count be parseInt(item (planning_start + 78) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -1173,6 +1381,45 @@ live in the web platform.
             Set momentum_audit_ready to "true".
     Let momentum_timing_delayed be ChooseTimingDelayed(momentum_audit_status_code, momentum_elapsed_seconds).
     Let momentum_timing_seconds be ChooseTimingSeconds(momentum_audit_status_code, momentum_audit_percent, momentum_timing_delayed).
+    Let onboarding_one_ready be ChooseRequiredStepReady(onboarding_one_fields, 5, onboarding_email_valid, onboarding_url_valid).
+    Let onboarding_two_ready be ChooseSimpleStepReady(onboarding_two_fields, 4).
+    Let audit_health_score be ChooseAuditHealthScore(audit_health_available, audit_health_raw).
+    Let audit_health_code be ChooseAuditHealthCode(audit_health_score).
+    Let audit_is_partial be ChooseAuditPartial(audit_measured_critical, audit_measured_warnings, audit_visible_issues).
+    Let rank_reading_code be ChooseRankReadingCode(rank_status_code, rank_found_code, rank_current_position).
+    Let rank_movement_code be ChooseRankMovementCode(rank_status_code, rank_has_previous, rank_found_code, rank_current_position, rank_previous_found, rank_previous_position).
+    Let rank_movement_delta be ChooseRankMovementDelta(rank_current_position, rank_previous_position).
+    Let rank_freshness_code be ChooseRankFreshnessCode(rank_has_last_check, rank_age_hours, rank_age_days).
+    Let rank_bucket be ChooseRankBucket(rank_found_code, rank_current_position).
+    Let article_word_issue be ChooseArticleWordIssue(article_format_code, article_word_count).
+    Let article_heading_issue be ChooseArticleHeadingIssue(article_format_code, article_h1_count, article_h2_count, article_h3_count, article_skipped_level).
+    Let article_heading_keyword_issue be "false".
+    If article_title_keyword equals 0:
+        Set article_heading_keyword_issue to "true".
+    If article_first_h2_keyword equals 0:
+        Set article_heading_keyword_issue to "true".
+    Let article_heading_variety_issue be "false".
+    If article_keyword_free_percent is less than 40:
+        Set article_heading_variety_issue to "true".
+    Let article_brigade_issue be ChooseArticleBrigadeIssue(article_format_code, article_brigade_count).
+    Let article_brigade_spacing_issue be "false".
+    If article_brigade_count is greater than 0:
+        If article_first_brigade is greater than 150:
+            Set article_brigade_spacing_issue to "true".
+        If article_brigade_count is greater than 1:
+            If article_min_brigade_gap is less than 100:
+                Set article_brigade_spacing_issue to "true".
+    Let article_stock_issue be "false".
+    If article_stock_phrase equals 1:
+        Set article_stock_issue to "true".
+    Let article_meta_issue be "false".
+    If article_meta_count is less than 2:
+        Set article_meta_issue to "true".
+    If article_meta_count is greater than 2:
+        Set article_meta_issue to "true".
+    If article_meta_overlength equals 1:
+        Set article_meta_issue to "true".
+    Let article_source_issue be ChooseArticleSourceIssue(article_format_code, article_source_count, article_cited_count).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -1254,3 +1501,22 @@ live in the web platform.
     Show momentum_audit_ready.
     Show momentum_timing_delayed.
     Show momentum_timing_seconds.
+    Show onboarding_one_ready.
+    Show onboarding_two_ready.
+    Show audit_health_score.
+    Show audit_health_code.
+    Show audit_is_partial.
+    Show rank_reading_code.
+    Show rank_movement_code.
+    Show rank_movement_delta.
+    Show rank_freshness_code.
+    Show article_word_issue.
+    Show article_heading_issue.
+    Show article_heading_keyword_issue.
+    Show article_heading_variety_issue.
+    Show article_brigade_issue.
+    Show article_brigade_spacing_issue.
+    Show article_stock_issue.
+    Show article_meta_issue.
+    Show article_source_issue.
+    Show rank_bucket.

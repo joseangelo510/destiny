@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildAuditDashboard } from "./audit-dashboard";
 
 describe("audit dashboard view model", () => {
-  it("uses the provider health score without inventing a replacement", () => {
-    const dashboard = buildAuditDashboard({
+  it("uses the provider health score without inventing a replacement", async () => {
+    const dashboard = await buildAuditDashboard({
       healthScore: 73.6,
       inspectedPages: 4,
       inspectedUrl: "https://example.com/",
@@ -19,8 +19,8 @@ describe("audit dashboard view model", () => {
     expect(dashboard.isPartial).toBe(true);
   });
 
-  it("keeps the health score unavailable when the provider did not return one", () => {
-    const dashboard = buildAuditDashboard({
+  it("keeps the health score unavailable when the provider did not return one", async () => {
+    const dashboard = await buildAuditDashboard({
       healthScore: null,
       inspectedPages: 0,
       inspectedUrl: "https://example.com/",
@@ -33,8 +33,8 @@ describe("audit dashboard view model", () => {
     expect(dashboard.healthLabel).toBe("Score unavailable");
   });
 
-  it("classifies every saved issue and gives it a plain-language next action", () => {
-    const dashboard = buildAuditDashboard({
+  it("classifies every saved issue and gives it a plain-language next action", async () => {
+    const dashboard = await buildAuditDashboard({
       healthScore: 48,
       inspectedPages: 1,
       inspectedUrl: "https://example.com/",
@@ -61,8 +61,8 @@ describe("audit dashboard view model", () => {
     expect(dashboard.isPartial).toBe(false);
   });
 
-  it("prioritizes critical issues before warnings while preserving all details", () => {
-    const dashboard = buildAuditDashboard({
+  it("prioritizes critical issues before warnings while preserving all details", async () => {
+    const dashboard = await buildAuditDashboard({
       healthScore: 80,
       inspectedPages: 1,
       inspectedUrl: "https://example.com/",

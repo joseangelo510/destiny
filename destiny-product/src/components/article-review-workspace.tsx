@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  articleCanBeApproved,
   buildWordDocument,
   currentArticleQualityIssues,
   fitMetaDescription,
@@ -90,6 +89,7 @@ export function ArticleReviewWorkspace({
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
 
   useEffect(() => {
     const hydrate = window.setTimeout(() => {
@@ -113,11 +113,27 @@ export function ArticleReviewWorkspace({
   }, [drafts, storageKey, storageReady]);
 
   const draft = drafts[selected];
+  const qualitySignature = draft ? JSON.stringify([draft.title, draft.body, draft.metaDescriptions, draft.bucketBrigades, draft.sources, draft.preferences.format, draft.generationStatus]) : "";
+  const qualityIssues = qualityCheck.signature === qualitySignature ? qualityCheck.issues : [];
+  const qualityVerified = qualityCheck.signature === qualitySignature;
   const approvedCount = drafts.filter((item) => item.approved).length;
-  const qualityIssues = useMemo(() => draft ? currentArticleQualityIssues(draft) : [], [draft]);
   const wordCount = useMemo(() => draft ? markdownWordCount(draft.body) : 0, [draft]);
-  const canApprove = draft ? articleCanBeApproved(draft) : false;
+  const canApprove = Boolean(draft?.generationStatus === "generated" && qualityVerified && qualityIssues.length === 0);
   const issueCategories = [...new Set(qualityIssues.map((issue) => issueCategory(issue.code)))];
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!draft) return;
+    void currentArticleQualityIssues(draft).then((issues) => {
+      if (!cancelled) setQualityCheck({ signature: qualitySignature, issues });
+    }).catch((cause: unknown) => {
+      if (!cancelled) {
+        setQualityCheck({ signature: qualitySignature, issues: [{ code: "generation_required", message: "Destiny could not verify the article rules. Try again before approval." }] });
+        console.error("logos_article_quality", { fallbacks: 0, wasm_errors: 1, cause });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [draft, qualitySignature]);
 
   const updateDraft = (change: (current: EditableDraft) => EditableDraft) => {
     setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));

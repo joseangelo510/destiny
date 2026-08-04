@@ -15,10 +15,9 @@ local/CI parity instead of production shadow infrastructure.
 - Keep a linear migration history. Do not squash or rebase phase checkpoints.
 - Default each completed domain to LOGOS only after its parity and end-to-end
   gates pass.
-- Keep one rollback variable: `DESTINY_ENGINE=typescript`. Any other value, or
-  an unset value, selects LOGOS.
-- Keep the legacy TypeScript implementation as a temporary rollback path until
-  two quiet weeks after public launch. Git remains the durable recovery path.
+- Keep `DESTINY_ENGINE=typescript` only for the original audit-worker keyword
+  policy while that compatibility path exists. Later domains use the annotated
+  Git phase tags as the complete rollback unit so duplicated policy cannot drift.
 - Tag every completed domain before beginning the next one.
 - Freeze unrelated feature development until the LOGOS-primary cutover tag.
 
@@ -33,7 +32,7 @@ them.
 2. Empty, zero, maximum, and malformed-input behavior is covered.
 3. The complete related user flow passes with LOGOS selected.
 4. Full tests, lint, and production build pass.
-5. The rollback variable is tested before the phase is tagged.
+5. The annotated code rollback point is created and pushed before the next phase.
 
 The migration is honestly LOGOS-primary when LOGOS is the default authority
 for scoring, recommendations, coaching progression, roadmap progression, and
@@ -70,9 +69,8 @@ caches, release ZIP files, and generated target directories.
 
 ## Rollback
 
-1. **Fast rollback:** set `DESTINY_ENGINE=typescript` and restart/redeploy the
-   affected runtime.
-2. **Code rollback:** deploy the previous annotated phase or application tag.
+1. **Keyword-worker rollback:** set `DESTINY_ENGINE=typescript` and restart the worker.
+2. **Complete rollback:** deploy the previous annotated phase or application tag.
 3. **Data recovery:** use Supabase recovery only for actual data corruption.
    LOGOS phases remain schema-additive, so ordinary rollback does not require a
    database restore.

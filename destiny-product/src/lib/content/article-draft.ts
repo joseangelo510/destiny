@@ -129,7 +129,7 @@ Review this draft for accuracy, add a real example from your experience, and rep
   };
 }
 
-export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQualityIssue[] {
+export async function currentArticleQualityIssues(draft: ArticleDraft): Promise<ArticleQualityIssue[]> {
   if (draft.generationStatus !== "generated") {
     return [{
       code: "generation_required",
@@ -138,7 +138,7 @@ export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQuality
         : "Generate the full article before approval.",
     }];
   }
-  return validateGeneratedArticle({
+  return await validateGeneratedArticle({
     title: draft.title,
     metaDescriptions: draft.metaDescriptions,
     bodyMarkdown: draft.body,
@@ -148,8 +148,8 @@ export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQuality
   }, draft.keyword, draft.preferences.format);
 }
 
-export function articleCanBeApproved(draft: ArticleDraft) {
-  return draft.generationStatus === "generated" && currentArticleQualityIssues(draft).length === 0;
+export async function articleCanBeApproved(draft: ArticleDraft) {
+  return draft.generationStatus === "generated" && (await currentArticleQualityIssues(draft)).length === 0;
 }
 
 function escapeHtml(value: string) {

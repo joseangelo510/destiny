@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
-import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
+import { onboardingValidationFromPolicy, stepOneValidationFacts, stepTwoValidationFacts } from "../lib/onboarding/validation";
 import { appendCompetitorSuggestion, validateCompetitorEntries } from "../lib/onboarding/competitors";
 import { ONBOARDING_SEARCH_COUNTRY } from "../lib/onboarding/market";
 import {
@@ -71,17 +71,18 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const stepOne = useMemo(() => stepOneValidation(form), [form]);
-  const stepTwo = useMemo(() => stepTwoValidation(form), [form]);
+  const stepOneFacts = useMemo(() => stepOneValidationFacts(form), [form]);
+  const stepTwoFacts = useMemo(() => stepTwoValidationFacts(form), [form]);
   const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
   const [momentumPolicy, setMomentumPolicy] = useState(initialMomentumPolicy);
+  const { stepOne, stepTwo } = useMemo(() => onboardingValidationFromPolicy(momentumPolicy, stepOneFacts), [momentumPolicy, stepOneFacts]);
   const onboardingJourney = useMemo(() => onboardingMomentumFromPolicy(momentumPolicy), [momentumPolicy]);
 
   const stepReady = useMemo(() => {
-    if (step === 1) return stepOne.ready;
-    if (step === 2) return stepTwo.ready;
+    if (step === 1) return stepOne.ready && stepOneFacts.fieldCount === 5 && stepOneFacts.emailValid && stepOneFacts.urlValid;
+    if (step === 2) return stepTwo.ready && stepTwoFacts.fieldCount === 4;
     return form.standout.trim().length > 0 && competitorValidation.ready;
-  }, [competitorValidation.ready, form, step, stepOne.ready, stepTwo.ready]);
+  }, [competitorValidation.ready, form, step, stepOne.ready, stepOneFacts, stepTwo.ready, stepTwoFacts.fieldCount]);
 
   useEffect(() => {
     const saved = readCelebrationPreferences();
@@ -99,13 +100,17 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
       auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
       newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
       momentumOnboardingStep: step,
+      onboardingOneFields: stepOneFacts.fieldCount,
+      onboardingEmailValid: Number(stepOneFacts.emailValid),
+      onboardingUrlValid: Number(stepOneFacts.urlValid),
+      onboardingTwoFields: stepTwoFacts.fieldCount,
     }).then((policy) => {
       if (!cancelled) setMomentumPolicy(policy);
     }).catch((error: unknown) => {
-      console.error("logos_momentum_onboarding", { fallbacks: 1, wasm_errors: 1, error });
+      console.error("logos_momentum_onboarding", { fallbacks: 0, wasm_errors: 1, error });
     });
     return () => { cancelled = true; };
-  }, [step]);
+  }, [step, stepOneFacts.emailValid, stepOneFacts.fieldCount, stepOneFacts.urlValid, stepTwoFacts.fieldCount]);
 
   useEffect(() => () => {
     dictationSessionRef.current?.stop();

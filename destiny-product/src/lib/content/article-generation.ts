@@ -226,54 +226,51 @@ function headingRecords(markdown: string) {
   });
 }
 
-export function validateGeneratedArticle(payload: GeneratedArticlePayload, keyword: string, format: ArticleFormat): ArticleQualityIssue[] {
-  const issues: ArticleQualityIssue[] = [];
+export function articleQualityFacts(payload: GeneratedArticlePayload, keyword: string, format: ArticleFormat) {
   const wordCount = markdownWordCount(payload.bodyMarkdown);
-  const minimum = format === "seo_article" ? 1900 : 700;
-  const maximum = format === "seo_article" ? 3200 : 2600;
-  if (wordCount < minimum || wordCount > maximum) {
-    issues.push({ code: "word_count", message: `Draft is ${wordCount.toLocaleString()} words; ${format === "seo_article" ? "SEO articles should target 2,000–3,000 words" : "the selected format is outside its useful length band"}.` });
-  }
-
   const headings = headingRecords(payload.bodyMarkdown);
   const h1s = headings.filter((heading) => heading.level === 1);
   const h2s = headings.filter((heading) => heading.level === 2);
   const h3s = headings.filter((heading) => heading.level === 3);
   const skippedLevel = headings.some((heading, index) => index > 0 && heading.level > headings[index - 1].level + 1);
-  const requiredH2s = format === "seo_article" ? h2s.length >= 6 && h2s.length <= 9 : h2s.length >= 3;
-  if (h1s.length !== 1 || !requiredH2s || !h3s.length || skippedLevel) {
-    issues.push({ code: "heading_structure", message: "Use one H1, a useful H2 outline, at least one H3, and no skipped heading levels." });
-  }
-  if (!containsKeyword(payload.title, keyword) || !h2s[0] || !containsKeyword(h2s[0].text, keyword)) {
-    issues.push({ code: "heading_keyword", message: "The title and first H2 need the focus keyword or a close natural variant." });
-  }
   const keywordFreeRatio = headings.length ? headings.filter((heading) => !containsKeyword(heading.text, keyword)).length / headings.length : 0;
-  if (keywordFreeRatio < 0.4) {
-    issues.push({ code: "heading_variety", message: "Keep at least 40% of headings free of target-keyword language." });
-  }
-
-  const brigadeMinimum = format === "seo_article" ? 4 : 1;
-  const brigadeMaximum = format === "seo_article" ? 9 : 6;
-  if (payload.bucketBrigades.length < brigadeMinimum || payload.bucketBrigades.length > brigadeMaximum) {
-    issues.push({ code: "brigade_count", message: `Use ${brigadeMinimum}–${brigadeMaximum} contextual transitions for this format.` });
-  }
   const sortedPositions = payload.bucketBrigades.map((brigade) => brigade.afterWord).sort((a, b) => a - b);
-  if (sortedPositions.length && (sortedPositions[0] > 150 || sortedPositions.some((position, index) => index > 0 && position - sortedPositions[index - 1] < 100))) {
-    issues.push({ code: "brigade_spacing", message: "Place the first bridge early and keep later bridges at least 100 words apart." });
-  }
   const completeText = `${payload.bodyMarkdown}\n${payload.bucketBrigades.map((brigade) => brigade.text).join("\n")}`.toLocaleLowerCase();
-  if (BANNED_STOCK_PHRASES.some((phrase) => completeText.includes(phrase))) {
-    issues.push({ code: "stock_phrase", message: "Replace stock bucket-brigade or AI phrases with a transition tied to the local point." });
-  }
-  if (payload.metaDescriptions.length !== 2 || payload.metaDescriptions.some((description) => description.length > 150)) {
-    issues.push({ code: "meta_descriptions", message: "Supply exactly two meta descriptions of 150 characters or fewer." });
-  }
   const citedSourceCount = payload.sources.filter((source) => payload.bodyMarkdown.includes(`](${source.url})`)).length;
-  const requiredSources = format === "seo_article" ? 3 : 1;
-  if (payload.sources.length < requiredSources || citedSourceCount < requiredSources) {
-    issues.push({ code: "source_coverage", message: `Use at least ${requiredSources} verified sources and cite each one inline where it supports a claim.` });
-  }
+  const gaps = sortedPositions.slice(1).map((position, index) => position - sortedPositions[index]);
+  return {
+    formatCode: format === "seo_article" ? 1 : 0, wordCount, h1Count: h1s.length, h2Count: h2s.length, h3Count: h3s.length,
+    skippedLevel: Number(skippedLevel), titleKeyword: Number(containsKeyword(payload.title, keyword)), firstH2Keyword: Number(Boolean(h2s[0] && containsKeyword(h2s[0].text, keyword))),
+    keywordFreePercent: Math.floor(keywordFreeRatio * 100), brigadeCount: payload.bucketBrigades.length, firstBrigade: sortedPositions[0] ?? 0,
+    minBrigadeGap: gaps.length ? Math.min(...gaps) : 0, stockPhrase: Number(BANNED_STOCK_PHRASES.some((phrase) => completeText.includes(phrase))),
+    metaCount: payload.metaDescriptions.length, metaOverlength: Number(payload.metaDescriptions.some((description) => description.length > 150)), sourceCount: payload.sources.length, citedCount: citedSourceCount,
+  };
+}
+
+export function articleQualityIssuesFromPolicy(policy: Pick<DestinyLogicResult, "articleWordIssue" | "articleHeadingIssue" | "articleHeadingKeywordIssue" | "articleHeadingVarietyIssue" | "articleBrigadeIssue" | "articleBrigadeSpacingIssue" | "articleStockIssue" | "articleMetaIssue" | "articleSourceIssue">, facts: ReturnType<typeof articleQualityFacts>, format: ArticleFormat): ArticleQualityIssue[] {
+  const issues: ArticleQualityIssue[] = [];
+  if (policy.articleWordIssue) issues.push({ code: "word_count", message: `Draft is ${facts.wordCount.toLocaleString()} words; ${format === "seo_article" ? "SEO articles should target 2,000–3,000 words" : "the selected format is outside its useful length band"}.` });
+  if (policy.articleHeadingIssue) issues.push({ code: "heading_structure", message: "Use one H1, a useful H2 outline, at least one H3, and no skipped heading levels." });
+  if (policy.articleHeadingKeywordIssue) issues.push({ code: "heading_keyword", message: "The title and first H2 need the focus keyword or a close natural variant." });
+  if (policy.articleHeadingVarietyIssue) issues.push({ code: "heading_variety", message: "Keep at least 40% of headings free of target-keyword language." });
+  if (policy.articleBrigadeIssue) issues.push({ code: "brigade_count", message: `Use ${format === "seo_article" ? "4–9" : "1–6"} contextual transitions for this format.` });
+  if (policy.articleBrigadeSpacingIssue) issues.push({ code: "brigade_spacing", message: "Place the first bridge early and keep later bridges at least 100 words apart." });
+  if (policy.articleStockIssue) issues.push({ code: "stock_phrase", message: "Replace stock bucket-brigade or AI phrases with a transition tied to the local point." });
+  if (policy.articleMetaIssue) issues.push({ code: "meta_descriptions", message: "Supply exactly two meta descriptions of 150 characters or fewer." });
+  if (policy.articleSourceIssue) issues.push({ code: "source_coverage", message: `Use at least ${format === "seo_article" ? 3 : 1} verified sources and cite each one inline where it supports a claim.` });
   return issues;
+}
+
+export async function validateGeneratedArticle(payload: GeneratedArticlePayload, keyword: string, format: ArticleFormat): Promise<ArticleQualityIssue[]> {
+  const facts = articleQualityFacts(payload, keyword, format);
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    articleFormatCode: facts.formatCode, articleWordCount: facts.wordCount, articleH1Count: facts.h1Count, articleH2Count: facts.h2Count, articleH3Count: facts.h3Count,
+    articleSkippedLevel: facts.skippedLevel, articleTitleKeyword: facts.titleKeyword, articleFirstH2Keyword: facts.firstH2Keyword, articleKeywordFreePercent: facts.keywordFreePercent,
+    articleBrigadeCount: facts.brigadeCount, articleFirstBrigade: facts.firstBrigade, articleMinBrigadeGap: facts.minBrigadeGap, articleStockPhrase: facts.stockPhrase,
+    articleMetaCount: facts.metaCount, articleMetaOverlength: facts.metaOverlength, articleSourceCount: facts.sourceCount, articleCitedCount: facts.citedCount,
+  });
+  return articleQualityIssuesFromPolicy(policy, facts, format);
 }
 
 function escapeXml(value: string) {
@@ -339,3 +336,5 @@ export function parseGeneratedArticlePayload(raw: string): GeneratedArticlePaylo
   if (!title || !bodyMarkdown) throw new Error("Claude did not return a complete article draft.");
   return { title, metaDescriptions, bodyMarkdown, bucketBrigades, sources, infographics };
 }
+import type { DestinyLogicResult } from "../logicaffeine";
+import { runDestinyServerLogic } from "../logicaffeine-server";

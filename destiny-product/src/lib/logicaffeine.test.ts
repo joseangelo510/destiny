@@ -355,4 +355,25 @@ describe("Destiny LOGOS parity", () => {
     expect(browser).toEqual(worker);
     expect(browser).toMatchObject(expected);
   });
+
+  it("owns the remaining onboarding, audit, rank, and article policy gates in both adapters", async () => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      onboardingOneFields: 5, onboardingEmailValid: 1, onboardingUrlValid: 1, onboardingTwoFields: 4,
+      auditHealthAvailable: 1, auditHealthRaw: 74, auditMeasuredCritical: 2, auditMeasuredWarnings: 4, auditVisibleIssues: 5,
+      rankStatusCode: 1, rankFoundCode: 1, rankCurrentPosition: 7, rankHasPrevious: 1, rankPreviousFound: 1, rankPreviousPosition: 13,
+      rankHasLastCheck: 1, rankAgeDays: 7,
+      articleFormatCode: 1, articleWordCount: 2400, articleH1Count: 1, articleH2Count: 7, articleH3Count: 2,
+      articleTitleKeyword: 1, articleFirstH2Keyword: 1, articleKeywordFreePercent: 45, articleBrigadeCount: 6,
+      articleFirstBrigade: 120, articleMinBrigadeGap: 140, articleMetaCount: 2, articleSourceCount: 4, articleCitedCount: 4,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject({
+      onboardingOneReady: true, onboardingTwoReady: true,
+      auditHealthScore: 74, auditHealthCode: 2, auditIsPartial: true,
+      rankReadingCode: 3, rankMovementCode: 4, rankMovementDelta: 6, rankFreshnessCode: 2, rankBucket: 2,
+      articleWordIssue: false, articleHeadingIssue: false, articleHeadingKeywordIssue: false, articleHeadingVarietyIssue: false,
+      articleBrigadeIssue: false, articleBrigadeSpacingIssue: false, articleStockIssue: false, articleMetaIssue: false, articleSourceIssue: false,
+    });
+  });
 });

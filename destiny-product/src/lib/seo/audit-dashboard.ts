@@ -150,24 +150,13 @@ const DEFAULT_GUIDANCE: Record<AuditCategoryId, { whyItMatters: string; nextActi
   },
 };
 
-function normalizeScore(value: number | null) {
-  if (value === null || !Number.isFinite(value)) return null;
-  return Math.round(Math.max(0, Math.min(100, value)));
-}
-
-function healthLabel(score: number | null) {
-  if (score === null) return "Score unavailable";
-  if (score >= 90) return "Excellent foundation";
-  if (score >= 75) return "Good foundation";
-  if (score >= 50) return "Needs attention";
-  return "At risk";
-}
+const HEALTH_LABELS = ["Score unavailable", "At risk", "Needs attention", "Good foundation", "Excellent foundation"] as const;
 
 export function issueCategory(code: string) {
   return CATEGORY_BY_CODE[code] ?? "other-technical";
 }
 
-export function buildAuditDashboard(input: {
+export async function buildAuditDashboard(input: {
   healthScore: number | null;
   inspectedPages: number;
   inspectedUrl: string;
@@ -187,8 +176,14 @@ export function buildAuditDashboard(input: {
       ...guidance,
     };
   }).sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"));
-  const score = normalizeScore(input.healthScore);
   const issueTotal = Math.max(0, input.measuredCritical) + Math.max(0, input.measuredWarnings);
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    auditHealthAvailable: Number(input.healthScore !== null && Number.isFinite(input.healthScore)),
+    auditHealthRaw: input.healthScore === null || !Number.isFinite(input.healthScore) ? 0 : Math.round(input.healthScore),
+    auditMeasuredCritical: Math.max(0, input.measuredCritical), auditMeasuredWarnings: Math.max(0, input.measuredWarnings), auditVisibleIssues: issues.length,
+  });
+  const score = policy.auditHealthScore < 0 ? null : policy.auditHealthScore;
   const categories = AUDIT_CATEGORIES.map((category) => {
     const matching = issues.filter((issue) => issue.category === category.id);
     return {
@@ -202,12 +197,13 @@ export function buildAuditDashboard(input: {
   return {
     categories,
     coverageLabel: `Initial coverage: homepage technical scan${input.inspectedPages > 0 ? ` + ${input.inspectedPages} strategic page${input.inspectedPages === 1 ? "" : "s"} reviewed for business relevance` : ""}.`,
-    healthLabel: healthLabel(score),
+    healthLabel: HEALTH_LABELS[policy.auditHealthCode] ?? HEALTH_LABELS[0],
     healthScore: score,
-    isPartial: issueTotal > issues.length,
+    isPartial: policy.auditIsPartial,
     issueTotal,
     issues,
     priorityIssues: issues.slice(0, 3),
     priorityIssue: issues[0] ?? null,
   };
 }
+import { runDestinyServerLogic } from "../logicaffeine-server";

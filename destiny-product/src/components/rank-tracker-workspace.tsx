@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { rankMovementFromReadings, rankReadingState, summarizeRankings, trackerFreshness } from "../lib/seo/rank-tracker";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { rankFreshnessFromPolicy, rankMovementFromPolicy, rankPolicyInput, rankReadingFromPolicy } from "../lib/seo/rank-tracker";
+import { runDestinyLogic } from "../lib/logicaffeine";
 
 export type RankTrackerList = { id: string; name: string };
 export type RankTrackerKeyword = {
@@ -19,6 +20,7 @@ export type RankTrackerKeyword = {
   resultUrl: string | null;
   checkedAt: string | null;
   history?: Array<{ observedAt: string; position: number | null; found: boolean }>;
+  policyView?: { reading: { label: string; tone: string }; movement: { label: string; tone: string }; freshness: { message: string }; bucket: number };
 };
 
 type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[] };
@@ -31,7 +33,30 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
   const [listName, setListName] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
-  const summary = useMemo(() => summarizeRankings(keywords.map((row) => ({ status: row.status, position: row.currentPosition, found: row.found }))), [keywords]);
+  useEffect(() => {
+    let cancelled = false;
+    const missing = keywords.filter((row) => !row.policyView);
+    if (!missing.length) return;
+    void Promise.all(missing.map(async (row) => {
+      const previous = row.previousFound === undefined && row.previousPosition === null ? null : { position: row.previousPosition, found: row.previousFound ?? (row.previousPosition !== null) };
+      const input = rankPolicyInput({ status: row.status, position: row.currentPosition, found: row.found }, previous, { createdAt: row.createdAt, lastCheckedAt: row.lastCheckedAt, now: new Date() });
+      const policy = await runDestinyLogic(input);
+      return { id: row.id, policyView: { reading: rankReadingFromPolicy(policy, row.currentPosition), movement: rankMovementFromPolicy(policy), freshness: rankFreshnessFromPolicy(policy, input.rankAgeDays ?? 0), bucket: policy.rankBucket } };
+    })).then((updates) => {
+      if (!cancelled) setKeywords((current) => current.map((row) => updates.find((update) => update.id === row.id) ? { ...row, policyView: updates.find((update) => update.id === row.id)?.policyView } : row));
+    }).catch((cause: unknown) => {
+      if (cancelled) return;
+      setKeywords((current) => current.map((row) => !row.policyView ? { ...row, policyView: { reading: { label: "Rules unavailable — reload", tone: "error" }, movement: { label: "—", tone: "flat" }, freshness: { message: "Destiny could not verify freshness." }, bucket: 0 } } : row));
+      setError("Destiny could not load the rank-tracker rules. Reload to try again.");
+      console.error("logos_rank_tracker", { fallbacks: 0, wasm_errors: 1, cause });
+    });
+    return () => { cancelled = true; };
+  }, [keywords]);
+  const summary = useMemo(() => {
+    const measured = keywords.filter((row) => row.status !== "pending" && row.found !== null);
+    const ranked = measured.filter((row) => row.found && row.currentPosition !== null);
+    return { tracked: keywords.length, measured: measured.length, top3: measured.filter((row) => row.policyView?.bucket === 1).length, top10: measured.filter((row) => row.policyView && row.policyView.bucket > 0 && row.policyView.bucket < 3).length, averagePosition: ranked.length ? Math.round(ranked.reduce((sum, row) => sum + (row.currentPosition ?? 0), 0) / ranked.length) : null };
+  }, [keywords]);
   const visible = useMemo(() => activeList === "all" ? keywords : activeList === "general" ? keywords.filter((item) => !item.listId) : keywords.filter((item) => item.listId === activeList), [activeList, keywords]);
 
   async function addKeyword(event: FormEvent) {
@@ -92,9 +117,9 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
       <div className="rank-table-panel">
         <form className="rank-add-form" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label="Keyword to track" onChange={(event) => setKeyword(event.target.value)} placeholder="Enter a keyword" value={keyword} /></label><button className="primary-button" disabled={adding} type="submit">{adding ? "Adding…" : "Track keyword"}</button></form>
         <div className="rank-table-scroll"><table className="rank-table"><thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Trend</th><th>Ranking page</th><th>Last checked</th><th>List</th></tr></thead><tbody>{visible.map((row) => {
-          const reading = rankReadingState({ status: row.status, position: row.currentPosition, found: row.found });
-          const movement = row.status === "pending" || row.status === "error" ? { label: "—", tone: "flat" } : rankMovementFromReadings({ position: row.currentPosition, found: row.found }, row.previousFound === undefined && row.previousPosition === null ? null : { position: row.previousPosition, found: row.previousFound ?? (row.previousPosition !== null) });
-          const freshness = trackerFreshness({ status: row.status, createdAt: row.createdAt, lastCheckedAt: row.lastCheckedAt });
+          const reading = row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
+          const movement = row.policyView?.movement ?? { label: "—", tone: "flat" };
+          const freshness = row.policyView?.freshness ?? { message: "Calculating freshness…" };
           return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? new Date(row.checkedAt).toLocaleDateString() : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td></tr>;
         })}</tbody></table></div>
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}

@@ -87,6 +87,7 @@ export type MomentumPolicy = Pick<DestinyLogicResult,
   "momentumOnboardingCurrent" | "momentumOnboardingCompleted" | "momentumOnboardingPercent" |
   "momentumAuditPercent" | "momentumAuditCompleted" | "momentumAuditCurrent" | "momentumAuditReady" |
   "momentumTimingDelayed" | "momentumTimingSeconds"
+  | "onboardingOneReady" | "onboardingTwoReady"
 >;
 
 const baseInput = {
