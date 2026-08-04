@@ -20,19 +20,19 @@ export const ONBOARDING_MOMENTUM_STAGES: OnboardingStageDefinition[] = [
     id: "business",
     title: "Business & website",
     description: "Add your contact details and business website",
-    celebration: "Business details captured",
+    celebration: "Great start. Your foundation is in place.",
   },
   {
     id: "audience",
     title: "Customer & market",
     description: "Define who you want search to bring you",
-    celebration: "Audience direction added",
+    celebration: "That helps. We know who needs to find you—and why.",
   },
   {
     id: "competitors",
     title: "Competitors & edge",
     description: "Show Destiny where you deserve to stand out",
-    celebration: "Competitive edge mapped",
+    celebration: "Your competitive edge is mapped. Let’s find the opportunity.",
   },
 ];
 

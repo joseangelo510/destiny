@@ -12,6 +12,7 @@ describe("PublicOnboarding momentum experience", () => {
 
     expect(html).toContain("Build the momentum to be found");
     expect(html).toContain("Your path");
+    expect(html).toContain("Let’s start with what is already true about your business");
     expect(html).toContain("Small steps. Real evidence. No SEO team required.");
     expect(html).toContain("Business website URL");
     expect(html).toContain("do not enter only your business name");
@@ -35,7 +36,7 @@ describe("PublicOnboarding momentum experience", () => {
     expect(source).toContain("Destiny will finish after 5 seconds of silence");
     expect(source).toContain('className="voice-microphone-icon"');
     expect(html).toContain('aria-current="step"');
-    expect(html).toContain("Sound on");
-    expect(html).not.toContain("destiny-compass");
+    expect(html).toContain("Sound off");
+    expect(html).toContain("destiny-compass");
   });
 });

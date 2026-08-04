@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { WeeklyTaskList } from "./weekly-task-list";
 
@@ -20,6 +21,14 @@ const baseTask = {
 };
 
 describe("WeeklyTaskList", () => {
+  it("reserves an earned completion moment that sends momentum to the roadmap", () => {
+    const source = readFileSync(new URL("./weekly-task-list.tsx", import.meta.url), "utf8");
+    expect(source).toContain("celebrationMessage");
+    expect(source).toContain("celebration.detail");
+    expect(source).toContain('href="/roadmap"');
+    expect(source).toContain("just-completed");
+  });
+
   it("opens only the task selected by the coach instead of the first task in every category", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
       openTaskId="task-2"

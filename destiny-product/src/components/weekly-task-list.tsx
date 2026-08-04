@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { completionPresentation, guidedTaskPath, taskRoadmapTarget } from "../lib/product/coach-experience";
-import { playDestinySound, type CelebrationKind } from "../lib/product/celebrations";
+import { celebrationMessage, playDestinySound, type CelebrationKind } from "../lib/product/celebrations";
 
 type WeeklyTask = {
   id: string;
@@ -25,10 +25,11 @@ export function WeeklyTaskList({ openTaskId, tasks }: { openTaskId: string | nul
   const router = useRouter();
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [celebration, setCelebration] = useState("");
+  const [celebration, setCelebration] = useState<{ kind: CelebrationKind; title: string; detail: string } | null>(null);
+  const [justCompleted, setJustCompleted] = useState<string | null>(null);
   useEffect(() => {
     if (!celebration) return;
-    const timer = window.setTimeout(() => setCelebration(""), 2400);
+    const timer = window.setTimeout(() => setCelebration(null), 4200);
     return () => window.clearTimeout(timer);
   }, [celebration]);
   const update = async (task: WeeklyTask, status: "complete" | "skipped" | "todo") => {
@@ -41,7 +42,8 @@ export function WeeklyTaskList({ openTaskId, tasks }: { openTaskId: string | nul
       if (status === "complete") {
         const kind: CelebrationKind = payload.celebration && payload.celebration !== "none" ? payload.celebration : "task_complete";
         void playDestinySound(kind);
-        setCelebration(kind === "perfect_week" ? "Perfect Week earned" : kind === "verified_result" ? "Verified result confirmed" : kind === "roadmap_unlock" ? "Roadmap step unlocked" : "Task complete");
+        setCelebration({ kind, ...celebrationMessage(kind) });
+        setJustCompleted(task.id);
       }
       router.refresh();
     }
@@ -69,7 +71,7 @@ export function WeeklyTaskList({ openTaskId, tasks }: { openTaskId: string | nul
         : task.requires_approval
         ? "You review the prepared work, approve it, and mark the task complete."
         : "You make the recommended change and mark it complete; Destiny will verify it when evidence is available.";
-      return <details className={`weekly-task ${task.status}`} data-task-id={task.id} key={task.id} open={task.id === openTaskId}>
+      return <details className={`weekly-task ${task.status} ${justCompleted === task.id ? "just-completed" : ""}`} data-task-id={task.id} key={task.id} open={task.id === openTaskId}>
       <summary><span className="task-number">{task.status === "complete" ? "✓" : task.status === "skipped" ? "–" : index + 1}</span><span><strong>{task.title}</strong><small>{task.estimated_minutes} min · {task.requires_approval ? "Your confirmation required" : "Guided action"}</small><em>This moves you toward → {taskRoadmapTarget(task.task_type)}</em></span><b className={`completion-state ${completion.tone}`}>{completion.label}</b></summary>
       <div className="weekly-task-body"><p><strong>Why this matters:</strong> {task.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === "complete" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === "user_confirmation" ? "Verified by your confirmation" : "Evidence verified by Destiny"} · {new Date(task.verified_at).toLocaleDateString()}</small>}</div>}<div className="weekly-task-actions">
         <Link className="primary-button" href={guidedTaskPath(task)}>{task.status === "complete" && task.task_type === "keyword_review" ? "Review saved strategy" : "Open guided step"}</Link>
@@ -80,7 +82,7 @@ export function WeeklyTaskList({ openTaskId, tasks }: { openTaskId: string | nul
       </div></div>
     </details>;
     })}
-    {celebration && <div aria-live="polite" className="destiny-celebration"><span>⌁</span><strong>{celebration}</strong></div>}
+    {celebration && <div aria-live="polite" className={`destiny-celebration ${celebration.kind}`}><span>⌁</span><p><strong>{celebration.title}</strong><small>{celebration.detail}</small></p><Link href="/roadmap">View roadmap →</Link></div>}
     {error && <div className="error-banner">{error}</div>}
   </section>;
 }

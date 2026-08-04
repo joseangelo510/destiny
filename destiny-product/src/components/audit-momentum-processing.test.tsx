@@ -17,6 +17,7 @@ describe("AuditMomentumProcessing", () => {
     />);
 
     expect(html).toContain("Your momentum is building for example.com");
+    expect(html).toContain("Almost there. This is the fun part.");
     expect(html).toContain("65% saved");
     expect(html).toContain("About 15 seconds remaining");
     expect(html).toContain("Most reports finish in about 30 seconds");
@@ -42,6 +43,7 @@ describe("AuditMomentumProcessing", () => {
     />);
 
     expect(html).toContain("Research paused");
+    expect(html).toContain("Now we know where it stopped. Let’s get it moving again.");
     expect(html).toContain("The provider could not return competitor evidence.");
     expect(html).toContain("Needs attention");
     expect(html).toContain("Review and try again");

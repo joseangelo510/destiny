@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SeoHistoryChart } from "@/components/seo-history-chart";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import { VerifiedResultSpotlight, selectVerifiedResult } from "@/components/verified-result-spotlight";
 import type { HistoricalSeoPoint } from "@/lib/analytics/history";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
@@ -30,10 +31,16 @@ export default async function AnalyticsPage() {
   const businessProfile = syncedMetadata(context.integrations, "google_business_profile");
   const youtube = syncedMetadata(context.integrations, "youtube");
   const hasFirstPartyData = Boolean(searchConsole || analytics || businessProfile || youtube);
+  const verifiedResult = selectVerifiedResult({
+    organicKeyEvents: Number(analytics?.organicKeyEvents ?? 0),
+    searchClicks: Number(searchConsole?.clicks ?? 0),
+    searchImpressions: Number(searchConsole?.impressions ?? 0),
+  });
   return (
     <WorkspaceShell active="/analytics" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="SEO analytics" description="Real SEO metrics with their source shown—never an unexplained composite visibility score.">
       {!metrics ? <WorkspaceEmpty title="Analytics begin after your audit" description="Run an audit to save keyword, traffic-estimate, content-gap, and technical metrics." /> : (
         <>
+          <VerifiedResultSpotlight result={verifiedResult} />
           <div className="section-heading"><div><span>Search history</span><h2>How your visibility is changing</h2></div><small>DataForSEO · latest 3 available months</small></div>
           {historicalPerformance.length ? <section className="seo-history-grid">
             <SeoHistoryChart points={historicalPerformance} metric="organicTraffic" title="Estimated organic search traffic" description="The estimated visits your rankings could earn each month." />

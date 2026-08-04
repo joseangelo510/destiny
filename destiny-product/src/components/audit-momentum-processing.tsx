@@ -47,6 +47,13 @@ export function AuditMomentumProcessing({
   const failed = status === "failed";
   const complete = status === "complete";
   const displayWebsite = website.trim() || "your business";
+  const coachMessage = failed
+    ? "Now we know where it stopped. Let’s get it moving again."
+    : complete
+    ? "Your route is ready. Let’s build on it."
+    : journey.completedCount >= 4
+    ? "Almost there. This is the fun part."
+    : "Good progress. Your opportunity is starting to take shape.";
 
   useEffect(() => {
     const saved = readCelebrationPreferences();
@@ -127,6 +134,7 @@ export function AuditMomentumProcessing({
           <div className="eyebrow">{failed ? "Research paused" : complete ? "Route ready" : "Live research in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
           <p>{failed ? error : complete ? "Destiny saved the evidence and built your first coaching plan. Taking you to the results now." : "You finished the onboarding. Destiny is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
+          <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachMessage}</strong></p></div>
           <CompassCompanion
             ariaLabel={`Research compass showing ${journey.completedCount} of ${AUDIT_MOMENTUM_STAGES.length} saved stages`}
             completed={journey.completedCount}
