@@ -6,13 +6,12 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   buildAuditNarrative,
   buildGuidedFix,
-  getCoachTaskWindow,
-  getCurrentCoachTask,
-  groupCoachTasks,
+  buildCoachTaskSet,
 } from "@/lib/product/coach-experience";
 import { resolveBusinessIdentity } from "@/lib/product/game-plan";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
 import { createClient } from "@/lib/supabase/server";
+import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -43,37 +42,40 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   if (!audit) notFound();
 
   const raw = record(metrics?.raw_provider_payload);
+  const emailDelivery = record(raw.emailDelivery);
   const providerResult = record(raw.providerResult);
-  // Email-delivery truthfulness: only warn when the audit pipeline explicitly
-  // recorded that the audit-ready email was skipped or failed. Never claim
-  // delivery from the web UI.
-  const emailDeliveryRecord = record(raw.emailDelivery);
-  const emailDeliveryStatus = typeof raw.emailDelivery === "string"
-    ? raw.emailDelivery
-    : String(emailDeliveryRecord.status || "");
-  const emailDeliveryFailed = emailDeliveryStatus === "skipped" || emailDeliveryStatus === "failed";
   const issues = list(providerResult.issues).map(record);
   const competitors = list(providerResult.competitors).map(record);
   const keywords = selectUsableAuditKeywords(providerResult.keywords);
   const relatedWebsite = Array.isArray(audit.websites) ? audit.websites[0] : audit.websites;
   const website = record(relatedWebsite);
-  const businessIdentity = resolveBusinessIdentity({
+  const businessIdentity = await resolveBusinessIdentity({
     businessName: String(website.business_name || ""),
     normalizedDomain: String(website.normalized_domain || website.url || ""),
   });
   const businessName = businessIdentity.displayName;
   if (audit.status !== "complete") {
+    const initialPolicy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumAuditProgress: Number(audit.progress ?? 0),
+      momentumAuditStatusCode: audit.status === "failed" ? 2 : 0,
+      // The browser supplies the live elapsed clock immediately after hydration.
+      momentumElapsedSeconds: 0,
+    });
     return <AuditMomentumProcessing
       auditId={audit.id}
       failureMessage={audit.failure_message}
       initialProgress={Number(audit.progress ?? 0)}
+      initialPolicy={initialPolicy}
       initialStatus={audit.status === "failed" ? "failed" : "running"}
       startedAt={audit.created_at}
       website={String(website.normalized_domain || website.url || businessName)}
     />;
   }
-  const coreTasks = getCoachTaskWindow(tasks ?? [], false);
-  const currentCoachTask = getCurrentCoachTask(coreTasks);
+  const coach = await buildCoachTaskSet(tasks ?? [], false);
+  const coreTasks = coach.window;
+  const currentCoachTask = coach.currentTask;
   const primaryTask = coreTasks.find((task) => task.task_type === "primary_quest") ?? coreTasks[1] ?? coreTasks[0];
   const topIssue = [...issues].sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"))[0];
   const narrative = buildAuditNarrative({
@@ -82,7 +84,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     primaryTaskTitle: primaryTask?.title,
   });
   const guidedFix = buildGuidedFix(topIssue);
-  const taskGroups = groupCoachTasks(coreTasks);
+  const taskGroups = coach.groups;
   const remainingTasks = coreTasks.filter((task) => task.status !== "complete").length;
   const sourceLabel = typeof providerResult.sourceLabel === "string"
     ? providerResult.sourceLabel
@@ -97,6 +99,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   };
 
   return <WorkspaceShell active="/results" eyebrow={String(website.normalized_domain || "Destiny workspace")} title="Your SEO strategy is ready" description="Destiny translated your audit results into one clear opportunity and a short strategy checklist. Start at the top; the detailed evidence remains available below.">
+      {(emailDelivery.status === "skipped" || emailDelivery.status === "failed") && <div className="integration-banner warning" role="status"><strong>Your results are saved here</strong><p>Destiny could not send the email update for this audit. Use this saved results page and the notification center while email delivery is being connected.</p></div>}
       <section className="audit-narrative">
         <div>
           <span className="eyebrow">{narrative.eyebrow}</span>
@@ -106,11 +109,6 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
         </div>
         <div className={`data-source ${audit.provider === "dataforseo" ? "live" : "demo"}`}><span />{sourceLabel}</div>
       </section>
-
-      {emailDeliveryFailed && <section className="workspace-card email-delivery-warning" role="status">
-        <strong>Your results are saved here</strong>
-        <p>The email update for this audit could not be sent. Everything is available in this workspace and in your notification center — nothing was lost.</p>
-      </section>}
 
       <section className="guided-fix-card" id="recommended-fix">
         <div className="guided-fix-heading"><span className="eyebrow">Your first guided step</span><h2>{guidedFix.title}</h2><p>{guidedFix.explanation}</p></div>

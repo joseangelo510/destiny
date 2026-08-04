@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
-import { stepOneValidation, stepTwoValidation } from "../lib/onboarding/validation";
+import { CompassCompanion } from "./compass-companion";
+import { onboardingValidationFromPolicy, stepOneValidationFacts, stepTwoValidationFacts } from "../lib/onboarding/validation";
 import { appendCompetitorSuggestion, validateCompetitorEntries } from "../lib/onboarding/competitors";
 import { ONBOARDING_SEARCH_COUNTRY } from "../lib/onboarding/market";
 import {
@@ -21,8 +22,10 @@ import {
 } from "../lib/product/celebrations";
 import {
   ONBOARDING_MOMENTUM_STAGES,
-  onboardingMomentumJourney,
+  onboardingMomentumFromPolicy,
+  type MomentumPolicy,
 } from "../lib/product/momentum-journey";
+import { runDestinyLogic } from "../lib/logicaffeine";
 
 type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
@@ -48,7 +51,7 @@ const emptyForm = {
   email: "",
 };
 
-export function PublicOnboarding() {
+export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPolicy: MomentumPolicy }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [listening, setListening] = useState<VoiceField | null>(null);
@@ -69,16 +72,23 @@ export function PublicOnboarding() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const stepOne = useMemo(() => stepOneValidation(form), [form]);
-  const stepTwo = useMemo(() => stepTwoValidation(form), [form]);
+  const stepOneFacts = useMemo(() => stepOneValidationFacts(form), [form]);
+  const stepTwoFacts = useMemo(() => stepTwoValidationFacts(form), [form]);
   const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
-  const onboardingJourney = useMemo(() => onboardingMomentumJourney(step), [step]);
+  const [momentumPolicy, setMomentumPolicy] = useState(initialMomentumPolicy);
+  const { stepOne, stepTwo } = useMemo(() => onboardingValidationFromPolicy(momentumPolicy, stepOneFacts), [momentumPolicy, stepOneFacts]);
+  const onboardingJourney = useMemo(() => onboardingMomentumFromPolicy(momentumPolicy), [momentumPolicy]);
+  const coachReaction = step === 1
+    ? "Let’s start with what is already true about your business."
+    : step === 2
+    ? "Great start. Now let’s find the people who need you."
+    : "That helps. We know who needs to find you—and why.";
 
   const stepReady = useMemo(() => {
-    if (step === 1) return stepOne.ready;
-    if (step === 2) return stepTwo.ready;
+    if (step === 1) return stepOne.ready && stepOneFacts.fieldCount === 5 && stepOneFacts.emailValid && stepOneFacts.urlValid;
+    if (step === 2) return stepTwo.ready && stepTwoFacts.fieldCount === 4;
     return form.standout.trim().length > 0 && competitorValidation.ready;
-  }, [competitorValidation.ready, form, step, stepOne.ready, stepTwo.ready]);
+  }, [competitorValidation.ready, form, step, stepOne.ready, stepOneFacts, stepTwo.ready, stepTwoFacts.fieldCount]);
 
   useEffect(() => {
     const saved = readCelebrationPreferences();
@@ -89,6 +99,24 @@ export function PublicOnboarding() {
     }, 0);
     return () => window.clearTimeout(hydrationTimer);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void runDestinyLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumOnboardingStep: step,
+      onboardingOneFields: stepOneFacts.fieldCount,
+      onboardingEmailValid: Number(stepOneFacts.emailValid),
+      onboardingUrlValid: Number(stepOneFacts.urlValid),
+      onboardingTwoFields: stepTwoFacts.fieldCount,
+    }).then((policy) => {
+      if (!cancelled) setMomentumPolicy(policy);
+    }).catch((error: unknown) => {
+      console.error("logos_momentum_onboarding", { fallbacks: 0, wasm_errors: 1, error });
+    });
+    return () => { cancelled = true; };
+  }, [step, stepOneFacts.emailValid, stepOneFacts.fieldCount, stepOneFacts.urlValid, stepTwoFacts.fieldCount]);
 
   useEffect(() => () => {
     dictationSessionRef.current?.stop();
@@ -235,7 +263,7 @@ export function PublicOnboarding() {
   };
 
   if (auditStatus !== "idle") {
-    return <AuditMomentumProcessing failureMessage={error} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
+    return <AuditMomentumProcessing failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
   }
 
   return (
@@ -251,7 +279,7 @@ export function PublicOnboarding() {
           <p className="eyebrow">Your guided SEO starting line</p>
           <h1>Build the momentum to be found.</h1>
           <p>You bring the business knowledge. Destiny turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
-          <div className="onboarding-momentum-summary"><div className="onboarding-path-number"><strong>{onboardingJourney.currentNumber}</strong><span>of {ONBOARDING_MOMENTUM_STAGES.length}</span></div><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
+          <div className="onboarding-momentum-summary"><CompassCompanion ariaLabel={`${onboardingJourney.completedCount} of ${ONBOARDING_MOMENTUM_STAGES.length} onboarding building blocks complete`} compact completed={onboardingJourney.completedCount} total={ONBOARDING_MOMENTUM_STAGES.length} /><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
           <ol aria-label="Onboarding journey" className="guided-stage-list">
             {onboardingJourney.stages.map((stage, index) => {
               const number = index + 1;
@@ -263,6 +291,7 @@ export function PublicOnboarding() {
 
         <form className="guided-onboarding-card" onSubmit={submit}>
           <span className="guided-step">Step {step} of 3</span>
+          <div aria-live="polite" className="onboarding-coach-reaction"><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachReaction}</strong></p></div>
 
           {step === 1 && <>
             <h2>Tell us about your business</h2>
@@ -271,7 +300,7 @@ export function PublicOnboarding() {
               <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
               <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
             </div>
-            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Destiny requests email updates for your audit results. Your results are always available in the in-app notification center.</small></label>
+            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Destiny will request welcome and audit-ready updates for this address. You can always find the same results in the notification center.</small></label>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Business website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://www.yourbusiness.com" required type="text" value={form.website} /><small id="website-help">Enter your business’s website address, such as https://www.yourbusiness.com; do not enter only your business name.</small></label>
           </>}

@@ -3,14 +3,9 @@ import {
   DEFAULT_WEEKLY_TASK_LIMIT,
   buildAuditNarrative,
   buildGuidedFix,
+  buildCoachTaskSet,
   completionPresentation,
-  firstOpenTaskIndex,
-  getActionableCoachTasks,
-  getCurrentCoachTask,
-  getCoachTaskWindow,
-  groupCoachTasks,
   guidedTaskPath,
-  orderCoachTasks,
   PRIMARY_NAVIGATION,
   FEATURE_NAVIGATION,
   taskRoadmapTarget,
@@ -50,7 +45,7 @@ describe("Destiny SEO coach experience", () => {
     ]);
   });
 
-  it("keeps review work in trust-building instead of Technical SEO", () => {
+  it("keeps review work in trust-building instead of Technical SEO", async () => {
     const reviewQuest = {
       id: "review-quest",
       task_type: "primary_quest",
@@ -60,7 +55,7 @@ describe("Destiny SEO coach experience", () => {
       priority: 1,
     };
 
-    expect(groupCoachTasks([reviewQuest]).map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
+    expect((await buildCoachTaskSet([reviewQuest])).groups.map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
       ["distribution", ["review-quest"]],
     ]);
   });
@@ -73,22 +68,12 @@ describe("Destiny SEO coach experience", () => {
     expect(taskRoadmapTarget("technical_review")).toBe("Get ready to be found");
   });
 
-  it("removes the redundant business confirmation and groups all actionable work", () => {
+  it("removes the redundant business confirmation and groups all actionable work", async () => {
+    const coach = await buildCoachTaskSet(tasks, false);
     expect(DEFAULT_WEEKLY_TASK_LIMIT).toBe(8);
-    expect(getActionableCoachTasks(tasks).map((task) => task.id)).not.toContain("business");
-    expect(getActionableCoachTasks(tasks).map((task) => task.id)).not.toContain("legacy-analysis");
-    expect(orderCoachTasks(tasks).map((task) => task.id)).toEqual([
-      "keywords",
-      "fix",
-      "content",
-      "community",
-      "social",
-      "technical",
-      "business",
-      "legacy-analysis",
-    ]);
-    expect(getCoachTaskWindow(tasks, false).map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "technical"]);
-    expect(groupCoachTasks(tasks).map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
+    expect(coach.actionable.map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "technical"]);
+    expect(coach.window.map((task) => task.id)).toEqual(["keywords", "fix", "content", "community", "social", "technical"]);
+    expect(coach.groups.map((group) => [group.id, group.tasks.map((task) => task.id)])).toEqual([
       ["research-strategy", ["keywords"]],
       ["content-creation", ["content"]],
       ["distribution", ["community", "social"]],
@@ -138,18 +123,13 @@ describe("Destiny SEO coach experience", () => {
     });
   });
 
-  it("opens the next actionable task without reopening a completed plan", () => {
-    expect(firstOpenTaskIndex([{ status: "complete" }, { status: "todo" }])).toBe(1);
-    expect(firstOpenTaskIndex([{ status: "complete" }, { status: "complete" }])).toBe(-1);
-  });
-
-  it("keeps one current task in focus and preserves work already in progress", () => {
-    expect(getCurrentCoachTask([
+  it("keeps one current task in focus and preserves work already in progress", async () => {
+    expect((await buildCoachTaskSet([
       { id: "keywords", task_type: "keyword_review", status: "todo", verification_status: "unverified", priority: 1 },
       { id: "content", task_type: "content_review", status: "in_progress", verification_status: "unverified", priority: 1 },
       { id: "fix", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
-    ])?.id).toBe("content");
-    expect(getCurrentCoachTask(tasks)?.id).toBe("keywords");
-    expect(getCurrentCoachTask(tasks.map((task) => ({ ...task, status: "complete" })))).toBeNull();
+    ])).currentTask?.id).toBe("content");
+    expect((await buildCoachTaskSet(tasks)).currentTask?.id).toBe("keywords");
+    expect((await buildCoachTaskSet(tasks.map((task) => ({ ...task, status: "complete" })))).currentTask).toBeNull();
   });
 });

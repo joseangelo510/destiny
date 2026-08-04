@@ -1,9 +1,25 @@
 export type AuditTimingStatus = "running" | "complete" | "failed";
 
 const NORMAL_AUDIT_SECONDS = 30;
-const DELAYED_AFTER_SECONDS = 45;
 
-export function auditTimingEstimate({
+export type AuditTimingPolicy = Pick<DestinyLogicResult, "momentumTimingDelayed" | "momentumTimingSeconds">;
+
+export function auditElapsedSeconds(nowMs: number, startedAt?: string | null) {
+  const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
+  return nowMs > 0 && Number.isFinite(startedMs)
+    ? Math.max(0, Math.floor((nowMs - startedMs) / 1000))
+    : 0;
+}
+
+export function auditTimingFromPolicy(policy: AuditTimingPolicy) {
+  return {
+    secondsRemaining: policy.momentumTimingSeconds < 0 ? null : policy.momentumTimingSeconds,
+    delayed: policy.momentumTimingDelayed,
+    normalSeconds: NORMAL_AUDIT_SECONDS,
+  };
+}
+
+export async function auditTimingEstimate({
   nowMs = 0,
   progress,
   startedAt,
@@ -14,19 +30,15 @@ export function auditTimingEstimate({
   startedAt?: string | null;
   status: AuditTimingStatus;
 }) {
-  if (status === "complete") return { secondsRemaining: 0, delayed: false, normalSeconds: NORMAL_AUDIT_SECONDS };
-  if (status === "failed") return { secondsRemaining: null, delayed: false, normalSeconds: NORMAL_AUDIT_SECONDS };
-
-  const normalizedProgress = Math.min(99, Math.max(0, Number.isFinite(progress) ? progress : 0));
-  const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
-  const elapsedSeconds = nowMs > 0 && Number.isFinite(startedMs)
-    ? Math.max(0, Math.floor((nowMs - startedMs) / 1000))
-    : 0;
-  if (elapsedSeconds > DELAYED_AFTER_SECONDS) {
-    return { secondsRemaining: null, delayed: true, normalSeconds: NORMAL_AUDIT_SECONDS };
-  }
-
-  const progressSeconds = NORMAL_AUDIT_SECONDS * (1 - normalizedProgress / 100);
-  const secondsRemaining = Math.max(5, Math.ceil(progressSeconds / 5) * 5);
-  return { secondsRemaining, delayed: false, normalSeconds: NORMAL_AUDIT_SECONDS };
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+    newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    momentumAuditProgress: Number.isFinite(progress) ? Math.round(progress) : 0,
+    momentumAuditStatusCode: momentumStatusCode(status),
+    momentumElapsedSeconds: auditElapsedSeconds(nowMs, startedAt),
+  });
+  return auditTimingFromPolicy(policy);
 }
+import type { DestinyLogicResult } from "../logicaffeine";
+import { runDestinyServerLogic } from "../logicaffeine-server";
+import { momentumStatusCode } from "./momentum-journey";

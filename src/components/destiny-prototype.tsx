@@ -60,6 +60,92 @@ const seededLogic: DestinyLogicResult = {
   contentTaskCount: 1,
   distributionTaskCount: 1,
   weeklyTaskManifest: ["vocabulary_review", "content_review", "primary_quest"],
+  keywordEligible: false,
+  keywordSearchIntent: "awareness",
+  keywordPriorityTier: 0,
+  keywordPriorityScore: 0,
+  keywordPolicyCode: "legacy_keyword_policy",
+  keywordRelevanceTier: "none",
+  keywordEssential: false,
+  keywordDataQuality: "intent_missing",
+  keywordRuleIds: ["legacy_keyword_policy"],
+  questSource: "growth_action",
+  issueQuestCode: "none",
+  issueDataQuality: "complete",
+  weeklyTaskApprovals: [true, true, false],
+  weeklyTaskTiers: [1, 1, 1],
+  weeklyTaskPriorities: [1, 1, 1],
+  questTransitionAllowed: true,
+  questTransitionRuleId: "allow_noop",
+  questVerificationStatus: "unverified",
+  questSetCompletedAt: false,
+  questSetVerifiedAt: false,
+  questClearEvidence: true,
+  questCelebration: "none",
+  currentStreak: 0,
+  bestStreak: 0,
+  perfectWeeks: 0,
+  lifetimeActiveWeeks: 0,
+  planCanExport: false,
+  planIdentityRuleId: "blocked_identity_mismatch",
+  planKeywordTargetLow: 0,
+  planKeywordTargetHigh: 0,
+  planThemeCodes: ["foundation", "content_engine", "authority"],
+  planScopeCode: "initial_quarter",
+  planForecastConfidence: "directional",
+  editorialIntentCode: 0,
+  editorialSearchIntent: "awareness",
+  editorialBusinessFit: 1,
+  editorialOfferFit: 0,
+  editorialPriorityTier: 0,
+  editorialPriorityScore: 0,
+  editorialKeywordIndex: 0,
+  editorialAngleCode: 1,
+  editorialInferredBusinessModelCode: 1,
+  progressCompounding: false,
+  progressCurrentNode: 1,
+  progressTaskExcluded: false,
+  progressTaskPhase: "ready",
+  progressTaskState: "future",
+  llmContentState: "not_started",
+  llmPlatformState: "not_started",
+  llmAuthorityState: "not_started",
+  llmOutcomeState: "not_started",
+  llmNextStep: 1,
+  sourceProgressPercent: 0,
+  sourceProofPercent: 0,
+  sourceProgressState: "not_started",
+  coachTaskOrder: 99,
+  coachCategory: "technical-seo",
+  progressDataQuality: "provider_missing",
+  momentumOnboardingCurrent: 1,
+  momentumOnboardingCompleted: 0,
+  momentumOnboardingPercent: 0,
+  momentumAuditPercent: 0,
+  momentumAuditCompleted: 0,
+  momentumAuditCurrent: 1,
+  momentumAuditReady: false,
+  momentumTimingDelayed: false,
+  momentumTimingSeconds: 30,
+  onboardingOneReady: false,
+  onboardingTwoReady: false,
+  auditHealthScore: -1,
+  auditHealthCode: 0,
+  auditIsPartial: false,
+  rankReadingCode: 1,
+  rankMovementCode: 0,
+  rankMovementDelta: 0,
+  rankFreshnessCode: 0,
+  rankBucket: 0,
+  articleWordIssue: true,
+  articleHeadingIssue: true,
+  articleHeadingKeywordIssue: true,
+  articleHeadingVarietyIssue: true,
+  articleBrigadeIssue: true,
+  articleBrigadeSpacingIssue: false,
+  articleStockIssue: false,
+  articleMetaIssue: true,
+  articleSourceIssue: true,
 };
 
 const seededAudit: SeoAuditResult = {
@@ -283,7 +369,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           <div className={failed ? "processing-orb failed" : "processing-orb"}>{failed ? "!" : "D"}</div>
           <div className="eyebrow">{failed ? "Audit needs attention" : "Audit in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : `We’re building your strategy for ${form.website}.`}</h1>
-          <p>{failed ? error : "Destiny is analyzing your website, competitors, keyword opportunities, and the first 24 weeks of your growth plan."}</p>
+          <p>{failed ? error : "Destiny is analyzing your website, competitors, keyword opportunities, and the first 12 weeks of your growth plan."}</p>
           {!failed && <div className="processing-steps"><span className="complete">Business profile saved</span><span className="active">Website and competitor analysis</span><span>Keyword strategy</span><span>LOGOS weekly quest</span></div>}
           {!failed && <div className="configuration-note"><strong>You can safely leave this page</strong><p>Your audit is saved. Destiny will add a notification and, once email is activated, send a link when the results are ready.</p></div>}
           {failed && <div className="processing-actions"><button className="primary-button" onClick={() => { setError(""); setView("onboarding"); }} type="button">Review and try again</button><Link className="secondary-button" href="/audits">View audit history</Link></div>}
@@ -307,7 +393,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           <h1>Tell Destiny about your business.</h1>
           <p className="lede">
             We’ll use this context to prepare your website audit, competitor research,
-            keyword strategy, and six-month growth plan.
+            keyword strategy, and three-month growth plan.
           </p>
 
           <div className="form-grid two-column">
@@ -425,7 +511,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
 
         <section className="lower-grid">
           <article className="plan-card">
-            <div className="card-heading"><div><span>Six-month growth plan</span><small>Your first 30 days are ready</small></div><Link href="/growth-plan">View plan →</Link></div>
+            <div className="card-heading"><div><span>Three-month growth plan</span><small>Your first 30 days are ready</small></div><Link href="/growth-plan">View plan →</Link></div>
             <div className="timeline">
               {[
                 ["Month 1", "Fix foundations", "Technical cleanup + measurement"],

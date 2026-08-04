@@ -10,8 +10,9 @@ import {
   saveCelebrationPreferences,
   type CelebrationPreferences,
 } from "../lib/product/celebrations";
-import { AUDIT_MOMENTUM_STAGES, auditMomentumJourney } from "../lib/product/momentum-journey";
-import { auditTimingEstimate } from "../lib/product/audit-timing";
+import { AUDIT_MOMENTUM_STAGES, auditMomentumFromPolicy, momentumStatusCode, type MomentumPolicy } from "../lib/product/momentum-journey";
+import { auditElapsedSeconds, auditTimingFromPolicy } from "../lib/product/audit-timing";
+import { runDestinyLogic } from "../lib/logicaffeine";
 
 type AuditStatus = "running" | "complete" | "failed";
 
@@ -19,6 +20,7 @@ export function AuditMomentumProcessing({
   auditId,
   failureMessage = "Destiny could not complete this audit.",
   initialProgress,
+  initialPolicy,
   initialStatus,
   onRetry,
   startedAt,
@@ -27,6 +29,7 @@ export function AuditMomentumProcessing({
   auditId?: string | null;
   failureMessage?: string | null;
   initialProgress: number;
+  initialPolicy: MomentumPolicy;
   initialStatus: AuditStatus;
   onRetry?: () => void;
   startedAt?: string | null;
@@ -38,11 +41,19 @@ export function AuditMomentumProcessing({
   const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
   const [celebrationsReady, setCelebrationsReady] = useState(false);
   const [nowMs, setNowMs] = useState(0);
-  const journey = useMemo(() => auditMomentumJourney(progress, status), [progress, status]);
-  const timing = useMemo(() => auditTimingEstimate({ nowMs, progress, startedAt, status }), [nowMs, progress, startedAt, status]);
+  const [logicPolicy, setLogicPolicy] = useState(initialPolicy);
+  const journey = useMemo(() => auditMomentumFromPolicy(logicPolicy, status), [logicPolicy, status]);
+  const timing = useMemo(() => auditTimingFromPolicy(logicPolicy), [logicPolicy]);
   const failed = status === "failed";
   const complete = status === "complete";
   const displayWebsite = website.trim() || "your business";
+  const coachMessage = failed
+    ? "Now we know where it stopped. Let’s get it moving again."
+    : complete
+    ? "Your route is ready. Let’s build on it."
+    : journey.completedCount >= 4
+    ? "Almost there. This is the fun part."
+    : "Good progress. Your opportunity is starting to take shape.";
 
   useEffect(() => {
     const saved = readCelebrationPreferences();
@@ -90,6 +101,22 @@ export function AuditMomentumProcessing({
     };
   }, [startedAt, status]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void runDestinyLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumAuditProgress: progress,
+      momentumAuditStatusCode: momentumStatusCode(status),
+      momentumElapsedSeconds: auditElapsedSeconds(nowMs, startedAt),
+    }).then((policy) => {
+      if (!cancelled) setLogicPolicy(policy);
+    }).catch((error: unknown) => {
+      console.error("logos_momentum_timing", { fallbacks: 1, wasm_errors: 1, error });
+    });
+    return () => { cancelled = true; };
+  }, [nowMs, progress, startedAt, status]);
+
   const toggleSound = () => {
     const next = { ...celebrationPreferences, muted: !celebrationPreferences.muted };
     setCelebrationPreferences(next);
@@ -107,6 +134,7 @@ export function AuditMomentumProcessing({
           <div className="eyebrow">{failed ? "Research paused" : complete ? "Route ready" : "Live research in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
           <p>{failed ? error : complete ? "Destiny saved the evidence and built your first coaching plan. Taking you to the results now." : "You finished the onboarding. Destiny is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
+          <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachMessage}</strong></p></div>
           <CompassCompanion
             ariaLabel={`Research compass showing ${journey.completedCount} of ${AUDIT_MOMENTUM_STAGES.length} saved stages`}
             completed={journey.completedCount}
@@ -135,7 +163,7 @@ export function AuditMomentumProcessing({
               <div><strong>{stage.title}</strong><p>{stage.state === "active" ? stage.activeMessage : stage.description}</p><small>{stage.state === "complete" ? "Research saved" : stage.state === "active" ? "Working now" : stage.state === "failed" ? "Needs attention" : "Up next"}</small></div>
             </li>)}
           </ol>
-          <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. Your results and link are always in the notification center; Destiny also requests an email update when your audit is ready."}</p></div>
+          <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
           {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>

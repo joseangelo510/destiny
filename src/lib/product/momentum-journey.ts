@@ -20,19 +20,19 @@ export const ONBOARDING_MOMENTUM_STAGES: OnboardingStageDefinition[] = [
     id: "business",
     title: "Business & website",
     description: "Add your contact details and business website",
-    celebration: "Business details captured",
+    celebration: "Great start. Your foundation is in place.",
   },
   {
     id: "audience",
     title: "Customer & market",
     description: "Define who you want search to bring you",
-    celebration: "Audience direction added",
+    celebration: "That helps. We know who needs to find you—and why.",
   },
   {
     id: "competitors",
     title: "Competitors & edge",
     description: "Show Destiny where you deserve to stand out",
-    celebration: "Competitive edge mapped",
+    celebration: "Your competitive edge is mapped. Let’s find the opportunity.",
   },
 ];
 
@@ -77,20 +77,27 @@ export const AUDIT_MOMENTUM_STAGES: AuditMomentumStageDefinition[] = [
   {
     id: "coaching-route",
     title: "Your coaching route",
-    description: "Destiny turns the evidence into weekly actions and a six-month plan.",
+    description: "Destiny turns the evidence into weekly actions and a three-month plan.",
     activeMessage: "Building a manageable first week and the route that follows it.",
     completeAt: 100,
   },
 ];
 
-function clamp(value: number, minimum: number, maximum: number) {
-  if (!Number.isFinite(value)) return minimum;
-  return Math.min(maximum, Math.max(minimum, Math.round(value)));
-}
+export type MomentumPolicy = Pick<DestinyLogicResult,
+  "momentumOnboardingCurrent" | "momentumOnboardingCompleted" | "momentumOnboardingPercent" |
+  "momentumAuditPercent" | "momentumAuditCompleted" | "momentumAuditCurrent" | "momentumAuditReady" |
+  "momentumTimingDelayed" | "momentumTimingSeconds"
+  | "onboardingOneReady" | "onboardingTwoReady"
+>;
 
-export function onboardingMomentumJourney(step: number) {
-  const currentNumber = clamp(step, 1, ONBOARDING_MOMENTUM_STAGES.length);
-  const completedCount = currentNumber - 1;
+const baseInput = {
+  auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+  newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+};
+
+export function onboardingMomentumFromPolicy(policy: MomentumPolicy) {
+  const currentNumber = policy.momentumOnboardingCurrent;
+  const completedCount = policy.momentumOnboardingCompleted;
   const stages = ONBOARDING_MOMENTUM_STAGES.map((stage, index) => ({
     ...stage,
     state: index < completedCount ? "complete" as const : index === completedCount ? "active" as const : "upcoming" as const,
@@ -99,16 +106,16 @@ export function onboardingMomentumJourney(step: number) {
     current: stages[currentNumber - 1],
     currentNumber,
     completedCount,
-    percent: Math.round((completedCount / ONBOARDING_MOMENTUM_STAGES.length) * 100),
+    percent: policy.momentumOnboardingPercent,
     stages,
   };
 }
 
-export function auditMomentumJourney(progress: number, status: "running" | "complete" | "failed") {
-  const percent = status === "complete" ? 100 : clamp(progress, 0, 100);
-  const completedCount = AUDIT_MOMENTUM_STAGES.filter((stage) => percent >= stage.completeAt).length;
-  const currentIndex = Math.min(completedCount, AUDIT_MOMENTUM_STAGES.length - 1);
-  const ready = status === "complete" && percent === 100;
+export function auditMomentumFromPolicy(policy: MomentumPolicy, status: "running" | "complete" | "failed") {
+  const percent = policy.momentumAuditPercent;
+  const completedCount = policy.momentumAuditCompleted;
+  const currentIndex = policy.momentumAuditCurrent - 1;
+  const ready = policy.momentumAuditReady;
   const stages = AUDIT_MOMENTUM_STAGES.map((stage, index) => ({
     ...stage,
     state: ready || index < completedCount
@@ -131,3 +138,26 @@ export function auditMomentumJourney(progress: number, status: "running" | "comp
       : `${percent}% saved from live research. ${current.activeMessage}`,
   };
 }
+
+function statusCode(status: "running" | "complete" | "failed") {
+  return status === "complete" ? 1 : status === "failed" ? 2 : 0;
+}
+
+export async function onboardingMomentumJourney(step: number) {
+  return onboardingMomentumFromPolicy(await runDestinyServerLogic({ ...baseInput, momentumOnboardingStep: step }));
+}
+
+export async function auditMomentumJourney(progress: number, status: "running" | "complete" | "failed") {
+  const policy = await runDestinyServerLogic({
+    ...baseInput,
+    momentumAuditProgress: Number.isFinite(progress) ? Math.round(progress) : 0,
+    momentumAuditStatusCode: statusCode(status),
+  });
+  return auditMomentumFromPolicy(policy, status);
+}
+
+export function momentumStatusCode(status: "running" | "complete" | "failed") {
+  return statusCode(status);
+}
+import type { DestinyLogicResult } from "../logicaffeine";
+import { runDestinyServerLogic } from "../logicaffeine-server";

@@ -6,8 +6,8 @@ export type CelebrationPreferences = {
   reduced: boolean;
 };
 
-export const DEFAULT_CELEBRATION_PREFERENCES: CelebrationPreferences = { muted: false, reduced: false };
-export const CELEBRATION_STORAGE_KEY = "destiny-celebrations-v1";
+export const DEFAULT_CELEBRATION_PREFERENCES: CelebrationPreferences = { muted: true, reduced: false };
+export const CELEBRATION_STORAGE_KEY = "destiny-celebrations-v2";
 
 type SoundStep = {
   frequency: number;
@@ -39,6 +39,17 @@ const SOUND_PATTERNS: Record<CelebrationKind, SoundStep[]> = {
     { frequency: 1175, duration: 0.24, delay: 0.3, gain: 0.035, wave: "sine" },
   ],
 };
+
+const CELEBRATION_MESSAGES: Record<CelebrationKind, { title: string; detail: string }> = {
+  task_complete: { title: "Shipped.", detail: "Your roadmap moved forward." },
+  perfect_week: { title: "Perfect Week.", detail: "You completed every assigned step. That consistency compounds." },
+  verified_result: { title: "Verified result.", detail: "Connected evidence confirmed that your visibility is moving." },
+  roadmap_unlock: { title: "New ground unlocked.", detail: "Your completed work opened the next part of the journey." },
+};
+
+export function celebrationMessage(kind: CelebrationKind) {
+  return { ...CELEBRATION_MESSAGES[kind] };
+}
 
 export function parseCelebrationPreferences(raw: string | null): CelebrationPreferences {
   if (!raw) return { ...DEFAULT_CELEBRATION_PREFERENCES };
