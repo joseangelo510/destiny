@@ -10,8 +10,9 @@ import {
   saveCelebrationPreferences,
   type CelebrationPreferences,
 } from "../lib/product/celebrations";
-import { AUDIT_MOMENTUM_STAGES, auditMomentumJourney } from "../lib/product/momentum-journey";
-import { auditTimingEstimate } from "../lib/product/audit-timing";
+import { AUDIT_MOMENTUM_STAGES, auditMomentumFromPolicy, momentumStatusCode, type MomentumPolicy } from "../lib/product/momentum-journey";
+import { auditElapsedSeconds, auditTimingFromPolicy } from "../lib/product/audit-timing";
+import { runDestinyLogic } from "../lib/logicaffeine";
 
 type AuditStatus = "running" | "complete" | "failed";
 
@@ -19,6 +20,7 @@ export function AuditMomentumProcessing({
   auditId,
   failureMessage = "Destiny could not complete this audit.",
   initialProgress,
+  initialPolicy,
   initialStatus,
   onRetry,
   startedAt,
@@ -27,6 +29,7 @@ export function AuditMomentumProcessing({
   auditId?: string | null;
   failureMessage?: string | null;
   initialProgress: number;
+  initialPolicy: MomentumPolicy;
   initialStatus: AuditStatus;
   onRetry?: () => void;
   startedAt?: string | null;
@@ -38,8 +41,9 @@ export function AuditMomentumProcessing({
   const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
   const [celebrationsReady, setCelebrationsReady] = useState(false);
   const [nowMs, setNowMs] = useState(0);
-  const journey = useMemo(() => auditMomentumJourney(progress, status), [progress, status]);
-  const timing = useMemo(() => auditTimingEstimate({ nowMs, progress, startedAt, status }), [nowMs, progress, startedAt, status]);
+  const [logicPolicy, setLogicPolicy] = useState(initialPolicy);
+  const journey = useMemo(() => auditMomentumFromPolicy(logicPolicy, status), [logicPolicy, status]);
+  const timing = useMemo(() => auditTimingFromPolicy(logicPolicy), [logicPolicy]);
   const failed = status === "failed";
   const complete = status === "complete";
   const displayWebsite = website.trim() || "your business";
@@ -89,6 +93,22 @@ export function AuditMomentumProcessing({
       window.clearInterval(interval);
     };
   }, [startedAt, status]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void runDestinyLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumAuditProgress: progress,
+      momentumAuditStatusCode: momentumStatusCode(status),
+      momentumElapsedSeconds: auditElapsedSeconds(nowMs, startedAt),
+    }).then((policy) => {
+      if (!cancelled) setLogicPolicy(policy);
+    }).catch((error: unknown) => {
+      console.error("logos_momentum_timing", { fallbacks: 1, wasm_errors: 1, error });
+    });
+    return () => { cancelled = true; };
+  }, [nowMs, progress, startedAt, status]);
 
   const toggleSound = () => {
     const next = { ...celebrationPreferences, muted: !celebrationPreferences.muted };

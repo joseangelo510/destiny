@@ -21,8 +21,10 @@ import {
 } from "../lib/product/celebrations";
 import {
   ONBOARDING_MOMENTUM_STAGES,
-  onboardingMomentumJourney,
+  onboardingMomentumFromPolicy,
+  type MomentumPolicy,
 } from "../lib/product/momentum-journey";
+import { runDestinyLogic } from "../lib/logicaffeine";
 
 type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
 
@@ -48,7 +50,7 @@ const emptyForm = {
   email: "",
 };
 
-export function PublicOnboarding() {
+export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPolicy: MomentumPolicy }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyForm);
   const [listening, setListening] = useState<VoiceField | null>(null);
@@ -72,7 +74,8 @@ export function PublicOnboarding() {
   const stepOne = useMemo(() => stepOneValidation(form), [form]);
   const stepTwo = useMemo(() => stepTwoValidation(form), [form]);
   const competitorValidation = useMemo(() => validateCompetitorEntries(form.competitors), [form.competitors]);
-  const onboardingJourney = useMemo(() => onboardingMomentumJourney(step), [step]);
+  const [momentumPolicy, setMomentumPolicy] = useState(initialMomentumPolicy);
+  const onboardingJourney = useMemo(() => onboardingMomentumFromPolicy(momentumPolicy), [momentumPolicy]);
 
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready;
@@ -89,6 +92,20 @@ export function PublicOnboarding() {
     }, 0);
     return () => window.clearTimeout(hydrationTimer);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void runDestinyLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumOnboardingStep: step,
+    }).then((policy) => {
+      if (!cancelled) setMomentumPolicy(policy);
+    }).catch((error: unknown) => {
+      console.error("logos_momentum_onboarding", { fallbacks: 1, wasm_errors: 1, error });
+    });
+    return () => { cancelled = true; };
+  }, [step]);
 
   useEffect(() => () => {
     dictationSessionRef.current?.stop();
@@ -235,7 +252,7 @@ export function PublicOnboarding() {
   };
 
   if (auditStatus !== "idle") {
-    return <AuditMomentumProcessing failureMessage={error} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
+    return <AuditMomentumProcessing failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
   }
 
   return (

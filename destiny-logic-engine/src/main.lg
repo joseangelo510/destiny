@@ -908,6 +908,71 @@ live in the web platform.
         Return "provider_missing".
     Return "complete".
 
+## To ClampPercent (value: Int) -> Int:
+
+    If value is less than 0:
+        Return 0.
+    If value is greater than 100:
+        Return 100.
+    Return value.
+
+## To ChooseOnboardingCurrentStage (step: Int) -> Int:
+
+    If step is less than 1:
+        Return 1.
+    If step is greater than 3:
+        Return 3.
+    Return step.
+
+## To ChooseAuditCompletedStages (percent: Int) -> Int:
+
+    If percent is greater than 99:
+        Return 6.
+    If percent is greater than 79:
+        Return 5.
+    If percent is greater than 64:
+        Return 4.
+    If percent is greater than 44:
+        Return 3.
+    If percent is greater than 29:
+        Return 2.
+    If percent is greater than 9:
+        Return 1.
+    Return 0.
+
+## To ChooseAuditCurrentStage (completed: Int) -> Int:
+
+    If completed is greater than 5:
+        Return 6.
+    Return completed + 1.
+
+## To ChooseTimingDelayed (status_code: Int) and (elapsed_seconds: Int) -> Text:
+
+    If status_code is greater than 0:
+        Return "false".
+    If elapsed_seconds is greater than 45:
+        Return "true".
+    Return "false".
+
+## To ChooseTimingSeconds (status_code: Int) and (progress: Int) and (delayed: Text) -> Int:
+
+    If status_code equals 1:
+        Return 0.
+    If status_code equals 2:
+        Return -1.
+    If delayed equals "true":
+        Return -1.
+    Let bounded be progress.
+    If bounded is greater than 99:
+        Set bounded to 99.
+    If bounded is less than 0:
+        Set bounded to 0.
+    Let blocks be ((6 * (100 - bounded)) + 99) divided by 100.
+    Let remaining be blocks * 5.
+    If remaining is less than 5:
+        Return 5.
+    Return remaining.
+
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
     If policy_enabled equals 0:
@@ -1014,6 +1079,10 @@ live in the web platform.
     Let progress_task_category_code be parseInt(item (planning_start + 37) of arguments).
     Let progress_any_in_progress be parseInt(item (planning_start + 38) of arguments).
     Let progress_provider_available be parseInt(item (planning_start + 39) of arguments).
+    Let momentum_onboarding_step be parseInt(item (planning_start + 40) of arguments).
+    Let momentum_audit_progress be parseInt(item (planning_start + 41) of arguments).
+    Let momentum_audit_status_code be parseInt(item (planning_start + 42) of arguments).
+    Let momentum_elapsed_seconds be parseInt(item (planning_start + 43) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -1090,6 +1159,20 @@ live in the web platform.
     Let coach_task_order be ChooseCoachTaskOrder(progress_task_code).
     Let coach_category be ChooseCoachCategory(progress_task_code, progress_task_category_code).
     Let progress_data_quality be ChooseProgressDataQuality(progress_provider_available).
+    Let momentum_onboarding_current be ChooseOnboardingCurrentStage(momentum_onboarding_step).
+    Let momentum_onboarding_completed be momentum_onboarding_current - 1.
+    Let momentum_onboarding_percent be ((momentum_onboarding_completed * 100) + 1) divided by 3.
+    Let momentum_audit_percent be ClampPercent(momentum_audit_progress).
+    If momentum_audit_status_code equals 1:
+        Set momentum_audit_percent to 100.
+    Let momentum_audit_completed be ChooseAuditCompletedStages(momentum_audit_percent).
+    Let momentum_audit_current be ChooseAuditCurrentStage(momentum_audit_completed).
+    Let momentum_audit_ready be "false".
+    If momentum_audit_status_code equals 1:
+        If momentum_audit_percent equals 100:
+            Set momentum_audit_ready to "true".
+    Let momentum_timing_delayed be ChooseTimingDelayed(momentum_audit_status_code, momentum_elapsed_seconds).
+    Let momentum_timing_seconds be ChooseTimingSeconds(momentum_audit_status_code, momentum_audit_percent, momentum_timing_delayed).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -1162,3 +1245,12 @@ live in the web platform.
     Show coach_task_order.
     Show coach_category.
     Show progress_data_quality.
+    Show momentum_onboarding_current.
+    Show momentum_onboarding_completed.
+    Show momentum_onboarding_percent.
+    Show momentum_audit_percent.
+    Show momentum_audit_completed.
+    Show momentum_audit_current.
+    Show momentum_audit_ready.
+    Show momentum_timing_delayed.
+    Show momentum_timing_seconds.

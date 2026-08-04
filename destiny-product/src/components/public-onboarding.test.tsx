@@ -2,10 +2,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { PublicOnboarding } from "./public-onboarding";
+import { runDestinyServerLogic } from "../lib/logicaffeine-server";
 
 describe("PublicOnboarding momentum experience", () => {
-  it("keeps the founder-led questions and presents them as a visible journey", () => {
-    const html = renderToStaticMarkup(<PublicOnboarding />);
+  it("keeps the founder-led questions and presents them as a visible journey", async () => {
+    const initialMomentumPolicy = await runDestinyServerLogic({ auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0, momentumOnboardingStep: 1 });
+    const html = renderToStaticMarkup(<PublicOnboarding initialMomentumPolicy={initialMomentumPolicy} />);
     const source = readFileSync(new URL("./public-onboarding.tsx", import.meta.url), "utf8");
 
     expect(html).toContain("Build the momentum to be found");

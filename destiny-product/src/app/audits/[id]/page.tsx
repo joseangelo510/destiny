@@ -11,6 +11,7 @@ import {
 import { resolveBusinessIdentity } from "@/lib/product/game-plan";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
 import { createClient } from "@/lib/supabase/server";
+import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -54,10 +55,19 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   });
   const businessName = businessIdentity.displayName;
   if (audit.status !== "complete") {
+    const initialPolicy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0,
+      newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      momentumAuditProgress: Number(audit.progress ?? 0),
+      momentumAuditStatusCode: audit.status === "failed" ? 2 : 0,
+      // The browser supplies the live elapsed clock immediately after hydration.
+      momentumElapsedSeconds: 0,
+    });
     return <AuditMomentumProcessing
       auditId={audit.id}
       failureMessage={audit.failure_message}
       initialProgress={Number(audit.progress ?? 0)}
+      initialPolicy={initialPolicy}
       initialStatus={audit.status === "failed" ? "failed" : "running"}
       startedAt={audit.created_at}
       website={String(website.normalized_domain || website.url || businessName)}

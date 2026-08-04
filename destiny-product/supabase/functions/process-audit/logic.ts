@@ -93,6 +93,10 @@ export type DestinyLogicInput = {
   progressTaskCategoryCode?: number;
   progressAnyInProgress?: number;
   progressProviderAvailable?: number;
+  momentumOnboardingStep?: number;
+  momentumAuditProgress?: number;
+  momentumAuditStatusCode?: number;
+  momentumElapsedSeconds?: number;
 };
 
 export type DestinyLogicResult = {
@@ -168,6 +172,15 @@ export type DestinyLogicResult = {
   coachTaskOrder: number;
   coachCategory: "research-strategy" | "content-creation" | "distribution" | "technical-seo";
   progressDataQuality: "complete" | "provider_missing";
+  momentumOnboardingCurrent: number;
+  momentumOnboardingCompleted: number;
+  momentumOnboardingPercent: number;
+  momentumAuditPercent: number;
+  momentumAuditCompleted: number;
+  momentumAuditCurrent: number;
+  momentumAuditReady: boolean;
+  momentumTimingDelayed: boolean;
+  momentumTimingSeconds: number;
 };
 
 type LogicExports = {
@@ -290,6 +303,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.progressTaskCategoryCode ?? 0),
     String(input.progressAnyInProgress ?? 0),
     String(input.progressProviderAvailable ?? 0),
+    String(input.momentumOnboardingStep ?? 0), String(input.momentumAuditProgress ?? 0), String(input.momentumAuditStatusCode ?? 0), String(input.momentumElapsedSeconds ?? 0),
   ];
 
   const imports = {
@@ -336,7 +350,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 72) {
+  if (output.length < 81) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -412,5 +426,14 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     coachTaskOrder: Number.parseInt(output[69], 10),
     coachCategory: output[70] as DestinyLogicResult["coachCategory"],
     progressDataQuality: output[71] as DestinyLogicResult["progressDataQuality"],
+    momentumOnboardingCurrent: Number.parseInt(output[72], 10),
+    momentumOnboardingCompleted: Number.parseInt(output[73], 10),
+    momentumOnboardingPercent: Number.parseInt(output[74], 10),
+    momentumAuditPercent: Number.parseInt(output[75], 10),
+    momentumAuditCompleted: Number.parseInt(output[76], 10),
+    momentumAuditCurrent: Number.parseInt(output[77], 10),
+    momentumAuditReady: output[78] === "true",
+    momentumTimingDelayed: output[79] === "true",
+    momentumTimingSeconds: Number.parseInt(output[80], 10),
   };
 }

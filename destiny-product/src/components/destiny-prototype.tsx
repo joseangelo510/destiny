@@ -118,6 +118,15 @@ const seededLogic: DestinyLogicResult = {
   coachTaskOrder: 99,
   coachCategory: "technical-seo",
   progressDataQuality: "provider_missing",
+  momentumOnboardingCurrent: 1,
+  momentumOnboardingCompleted: 0,
+  momentumOnboardingPercent: 0,
+  momentumAuditPercent: 0,
+  momentumAuditCompleted: 0,
+  momentumAuditCurrent: 1,
+  momentumAuditReady: false,
+  momentumTimingDelayed: false,
+  momentumTimingSeconds: 30,
 };
 
 const seededAudit: SeoAuditResult = {

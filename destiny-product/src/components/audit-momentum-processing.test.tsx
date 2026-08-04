@@ -1,12 +1,17 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
+import { runDestinyServerLogic } from "../lib/logicaffeine-server";
+
+const base = { auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0 };
 
 describe("AuditMomentumProcessing", () => {
-  it("renders a durable, truthful research journey from saved audit progress", () => {
+  it("renders a durable, truthful research journey from saved audit progress", async () => {
+    const initialPolicy = await runDestinyServerLogic({ ...base, momentumAuditProgress: 65, momentumAuditStatusCode: 0, momentumElapsedSeconds: 0 });
     const html = renderToStaticMarkup(<AuditMomentumProcessing
       auditId="audit-123"
       initialProgress={65}
+      initialPolicy={initialPolicy}
       initialStatus="running"
       website="example.com"
     />);
@@ -25,11 +30,13 @@ describe("AuditMomentumProcessing", () => {
     expect(html).not.toContain("six-month");
   });
 
-  it("shows an honest recovery state instead of pretending progress continued", () => {
+  it("shows an honest recovery state instead of pretending progress continued", async () => {
+    const initialPolicy = await runDestinyServerLogic({ ...base, momentumAuditProgress: 46, momentumAuditStatusCode: 2 });
     const html = renderToStaticMarkup(<AuditMomentumProcessing
       auditId="audit-123"
       failureMessage="The provider could not return competitor evidence."
       initialProgress={46}
+      initialPolicy={initialPolicy}
       initialStatus="failed"
       website="example.com"
     />);
