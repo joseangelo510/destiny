@@ -1,10 +1,8 @@
 import { GoogleIntegrationAction } from "@/components/google-integration-action";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
+import { PublishingDestinations } from "@/components/publishing-destinations";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { WebsiteProfileCard } from "@/components/website-profile-card";
-import { WordPressIntegrationAction } from "@/components/wordpress-integration-action";
-import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 const providers = [
@@ -34,12 +32,12 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
   const context = await getWorkspaceContext();
   const connectedProvider = params.provider ? providerNames[params.provider] : undefined;
   return (
-    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Bring first-party Google data into Destiny and connect an approved content workflow to your CMS. Credentials remain server-side.">
+    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Connect the SEO data Destiny measures and the destination where approved content should be drafted. Credentials remain server-side.">
       <FeatureJourneyCallout milestone="Signs it’s working" description="Search Console and Analytics let Destiny confirm real impressions, clicks, rankings, and conversions." />
       {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Destiny needs a saved website before an external account can be connected to it." /> : (
         <>
         <section className="integration-list" id="google-setup">
-          <div className="workspace-card-heading integration-section-heading"><div><strong>Connected accounts</strong><small>Accounts Destiny reads data from to power your dashboard.</small></div></div>
+          <div className="workspace-card-heading integration-section-heading"><div><strong>SEO data connections</strong><small>Accounts Destiny reads to measure visibility, traffic, local discovery, and content performance.</small></div></div>
           {params.google === "connected" && <div className="integration-banner success"><strong>{connectedProvider ?? "Google"} connected</strong><p>Destiny securely saved the connection. The account will be used only for the website you selected.</p></div>}
           {params.google === "cancelled" && <div className="integration-banner"><strong>Connection cancelled</strong><p>No Google account was connected and no credentials were saved.</p></div>}
           {params.google === "configuration_required" && <div className="integration-banner warning"><strong>Google setup is not active yet</strong><p>The server still needs the approved Google OAuth client credentials. Nothing was connected or exposed.</p></div>}
@@ -51,17 +49,16 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
             return <article className="integration-row" key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata)}</p>{saved?.last_synced_at && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${connected ? "" : "amber"}`}>{saved?.status ?? "Not connected"}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
           })}
           <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Destiny never reports a connection as live until Google completes authorization.</p></div>
-          {(() => {
-            const wordpress = context.integrations.find((item) => item.provider === "wordpress");
-            const connected = wordpress?.status === "connected";
-            const metadata = record(wordpress?.metadata);
-            return <article className="integration-row"><span className="integration-logo">W</span><div><strong>WordPress</strong><p>Verify a revocable Application Password, then hand approved drafts to WordPress without exposing credentials in the browser.</p><p className="integration-summary">{connected ? `${String(metadata.display_name || "WordPress editor")} · ${String(metadata.site_url || "Connected site")}` : "Connect after reviewing the first SEO draft."}</p></div><span className={`status-chip ${connected ? "" : "amber"}`}>{connected ? "Connected" : "Not connected"}</span><WordPressIntegrationAction connected={connected} savedSiteUrl={typeof metadata.site_url === "string" ? metadata.site_url : undefined} websiteId={context.website.id} /></article>;
-          })()}
-          <div className="configuration-note"><strong>Human approval stays required</strong><p>Connecting WordPress does not auto-publish. Destiny keeps Draft → Review & approve → CMS as separate steps.</p></div>
         </section>
         {(() => {
-          const builderProfile = parseBuilderProfile(context.website.builder_profile);
-          return <WebsiteProfileCard initialBuilderTools={builderProfile.builderTools} initialPlatform={builderProfile.platform} websiteId={context.website.id} />;
+          const wordpress = context.integrations.find((item) => item.provider === "wordpress");
+          const metadata = record(wordpress?.metadata);
+          return <PublishingDestinations
+            wordpressConnected={wordpress?.status === "connected"}
+            wordpressDisplayName={typeof metadata.display_name === "string" ? metadata.display_name : undefined}
+            wordpressSiteUrl={typeof metadata.site_url === "string" ? metadata.site_url : undefined}
+            websiteId={context.website.id}
+          />;
         })()}
         </>
       )}
