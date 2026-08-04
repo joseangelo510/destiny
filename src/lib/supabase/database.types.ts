@@ -405,6 +405,50 @@ export type Database = {
           },
         ]
       }
+      directory_profiles: {
+        Row: {
+          created_at: string
+          directory_key: string
+          id: string
+          http_status: number | null
+          last_checked_at: string | null
+          organization_id: string
+          profile_url: string | null
+          public_rating: number | null
+          public_review_count: number | null
+          status: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          directory_key: string
+          id?: string
+          http_status?: number | null
+          last_checked_at?: string | null
+          organization_id: string
+          profile_url?: string | null
+          public_rating?: number | null
+          public_review_count?: number | null
+          status?: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          directory_key?: string
+          http_status?: number | null
+          last_checked_at?: string | null
+          profile_url?: string | null
+          public_rating?: number | null
+          public_review_count?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "directory_profiles_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+          { foreignKeyName: "directory_profiles_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
       llm_visibility_tasks: {
         Row: {
           completed_at: string | null

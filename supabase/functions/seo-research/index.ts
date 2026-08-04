@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { firstResult, normalizeDomain, organicHistoryWindowStart, parseBacklinks, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -7,6 +7,8 @@ type ResearchRequest = {
   mode?: unknown;
   locationName?: unknown;
   target?: unknown;
+  topics?: unknown;
+  excludeDomains?: unknown;
 };
 
 function json(data: unknown, status = 200) {
@@ -91,7 +93,27 @@ export default {
         return json(parseBacklinks(summary, links, target));
       }
 
-      return json({ error: "Select keyword or backlink research." }, 400);
+      if (body.kind === "creators") {
+        const topics = Array.isArray(body.topics) ? body.topics.filter((item): item is string => typeof item === "string").slice(0, 3) : [];
+        const excludeDomains = Array.isArray(body.excludeDomains) ? body.excludeDomains.filter((item): item is string => typeof item === "string").slice(0, 20) : [];
+        const location = typeof body.locationName === "string" && body.locationName.trim() ? body.locationName.trim() : "United States";
+        const requests = creatorSearchRequests(topics, location);
+        if (!requests.length) return json({ error: "Choose at least one priority keyword first." }, 400);
+        const payload = await providerPost("/v3/serp/google/organic/live/advanced", requests, login, password);
+        return json({
+          sourceLabel: "Live DataForSEO creator discovery",
+          updatedAt: new Date().toISOString(),
+          topics,
+          rows: parseCreatorSearchResults(payload, excludeDomains),
+          notices: [
+            "Results come from current public search evidence across Medium, YouTube, LinkedIn, Instagram, and independent blogs.",
+            "Audience size must be verified before applying Destiny's 3,000–100,000 follower target.",
+            "Destiny does not invent contact details. Any email must include the public source where it was found.",
+          ],
+        });
+      }
+
+      return json({ error: "Select keyword, backlink, or creator research." }, 400);
     } catch (cause) {
       return json({ error: cause instanceof Error ? cause.message : "Destiny could not complete live SEO research." }, 502);
     }

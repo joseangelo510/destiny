@@ -456,7 +456,9 @@ button { cursor: pointer; }
 .intent-chip.consideration { background: #fff2d4; color: #815b0b; }
 .intent-chip.conversion { background: #e2f3e9; color: #216447; }
 .opportunity-grid, .review-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
-.opportunity-item { min-height: 290px; }
+.distribution-section .opportunity-item { display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 16px; }
+.distribution-section .opportunity-item h3, .distribution-section .opportunity-item p { margin: 0; }
+.distribution-section .opportunity-item .workspace-action { align-self: flex-start; margin-top: 4px; }
 .opportunity-item > .status-chip { float: right; }
 .opportunity-item h2 { font-family: Georgia, serif; font-size: 28px; font-weight: 500; margin: 30px 0 12px; }
 .opportunity-item p, .review-score p, .connection-callout p { color: var(--muted); line-height: 1.55; }
@@ -1283,6 +1285,43 @@ body { font-size: 17px; }
 .directory-grid article { background: #f4f8f6; border-radius: 15px; padding: 18px; }
 .directory-grid article strong { font-size: 17px; }
 .directory-grid article p { color: var(--muted); font-size: 14px; line-height: 1.5; min-height: 62px; }
+.recommendation-panel { background: #f6f9f7; border: 1px solid var(--line); border-radius: 16px; margin: 18px 0; padding: 0 18px; }
+.recommendation-panel summary { color: var(--forest); cursor: pointer; font-size: 15px; font-weight: 850; padding: 16px 0; }
+.recommendation-grid { border-top: 1px solid var(--line); display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 14px 0 18px; }
+.recommendation-grid article { background: white; border-radius: 13px; padding: 15px; }
+.recommendation-grid article strong { font-size: 15px; }
+.recommendation-grid article p, .recommendation-grid > p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 6px 0 0; }
+.upgrade-preview { align-items: center; background: linear-gradient(135deg, #eef7f2, #f8f9ef); border: 1px solid #dce9e2; border-radius: 17px; display: flex; gap: 20px; justify-content: space-between; margin: 18px 0; padding: 18px; }
+.upgrade-preview span, .upgrade-preview strong { display: block; }
+.upgrade-preview span { color: var(--forest); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.upgrade-preview strong { font-family: Georgia, serif; font-size: 21px; font-weight: 500; margin-top: 5px; }
+.upgrade-preview p { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 5px 0 0; max-width: 760px; }
+.upgrade-preview .primary-button { flex: 0 0 auto; }
+.creator-discovery-note { align-items: center; background: #f6f9f7; border-radius: 13px; display: flex; font-size: 13px; gap: 10px; margin: -4px 0 16px; padding: 12px 14px; }
+.creator-discovery-note strong { color: var(--forest); }
+.creator-discovery-note span { color: var(--muted); }
+.directory-registry-section { margin-top: 22px; }
+.directory-registry { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.directory-profile-card { border: 1px solid var(--line); border-radius: 16px; min-width: 0; padding: 18px; }
+.directory-profile-heading, .directory-profile-heading > div { align-items: center; display: flex; gap: 10px; }
+.directory-profile-heading { justify-content: space-between; }
+.directory-profile-heading > div { flex-wrap: wrap; }
+.directory-profile-heading > div > strong { font-size: 17px; }
+.directory-profile-heading > a { color: var(--forest); font-size: 13px; font-weight: 800; text-decoration: none; }
+.directory-profile-card > p { color: var(--muted); font-size: 14px; line-height: 1.5; min-height: 42px; }
+.directory-profile-card form { align-items: end; display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr) auto; }
+.directory-profile-card label span { display: block; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+.directory-profile-card input { border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 14px; min-width: 0; padding: 11px 12px; width: 100%; }
+.directory-profile-card > small { color: var(--muted); display: block; font-size: 12px; line-height: 1.45; margin: 10px 0; }
+.directory-public-stats { display: flex; font-size: 13px; gap: 12px; margin-bottom: 10px; }
+.directory-public-stats b { color: var(--forest); }
+.directory-public-stats span { color: var(--muted); }
+.save-message { color: #246748; font-size: 12px; font-weight: 700; margin-top: 8px; }
+.directory-monitor-actions, .creator-discovery-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
+.directory-monitor-actions button { background: transparent; border: 0; cursor: pointer; padding: 0; }
+.directory-monitor-actions button:disabled { cursor: wait; opacity: .6; }
+.creator-discovery-actions { background: #f8faf9; border: 1px solid var(--line); border-radius: 14px; justify-content: space-between; margin: 0 0 16px; padding: 13px; }
+.creator-discovery-actions small { color: var(--muted); font-size: 12px; line-height: 1.4; }
 
 .seo-history-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); margin-bottom: 24px; }
 .history-chart-heading { align-items: flex-start; display: flex; gap: 20px; justify-content: space-between; }
@@ -1415,6 +1454,7 @@ body { font-size: 17px; }
   .article-review-workspace { grid-template-columns: 1fr 1.6fr; }
   .article-optimization { grid-column: 1 / -1; }
   .directory-grid { grid-template-columns: repeat(2, 1fr); }
+  .recommendation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
@@ -1451,6 +1491,10 @@ body { font-size: 17px; }
   .article-preference-grid, .article-meta-grid { grid-template-columns: 1fr; }
   .article-infographic-card { grid-template-columns: 1fr; }
   .directory-grid { grid-template-columns: 1fr; }
+  .directory-registry, .recommendation-grid { grid-template-columns: 1fr; }
+  .upgrade-preview { align-items: flex-start; flex-direction: column; }
+  .creator-discovery-note { align-items: flex-start; flex-direction: column; }
+  .directory-profile-card form { align-items: stretch; grid-template-columns: 1fr; }
   .publisher-list article { align-items: flex-start; flex-direction: column; }
   .business-context-review summary { align-items: flex-start; gap: 16px; }
   .llm-progress-hero, .llm-source-map, .llm-benchmark-visual { grid-template-columns: minmax(0, 1fr); }
