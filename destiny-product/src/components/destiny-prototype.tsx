@@ -93,6 +93,15 @@ const seededLogic: DestinyLogicResult = {
   planThemeCodes: ["foundation", "content_engine", "authority"],
   planScopeCode: "initial_quarter",
   planForecastConfidence: "directional",
+  editorialIntentCode: 0,
+  editorialSearchIntent: "awareness",
+  editorialBusinessFit: 1,
+  editorialOfferFit: 0,
+  editorialPriorityTier: 0,
+  editorialPriorityScore: 0,
+  editorialKeywordIndex: 0,
+  editorialAngleCode: 1,
+  editorialInferredBusinessModelCode: 1,
 };
 
 const seededAudit: SeoAuditResult = {

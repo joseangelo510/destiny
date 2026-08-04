@@ -8,8 +8,8 @@ import {
 } from "./editorial-calendar";
 
 describe("three-month editorial calendar", () => {
-  it("fills all 12 weeks from a smaller approved keyword set", () => {
-    const calendar = buildEditorialCalendar([
+  it("fills all 12 weeks from a smaller approved keyword set", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "college admissions counseling", intent: "commercial", opportunity: "competitor_gap", searchVolume: 500, difficulty: 31, rank: 0 },
       { keyword: "college essay coaching", intent: "informational", opportunity: "site_idea", searchVolume: 250, difficulty: 24, rank: 0 },
     ]);
@@ -22,8 +22,8 @@ describe("three-month editorial calendar", () => {
     expect(new Set(calendar.map((item) => item.searchIntent))).toEqual(new Set(["awareness", "consideration"]));
   });
 
-  it("starts the schedule with revenue-oriented content formats", () => {
-    const calendar = buildEditorialCalendar([
+  it("starts the schedule with revenue-oriented content formats", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "hire a college admissions counselor", intent: "transactional", opportunity: "competitor_gap", searchVolume: 500, difficulty: 31, cpc: 8 },
     ]);
 
@@ -36,8 +36,8 @@ describe("three-month editorial calendar", () => {
     expect(calendar[0]).toMatchObject({ searchIntent: "conversion" });
   });
 
-  it("uses product conversion pages for a product business", () => {
-    const calendar = buildEditorialCalendar([
+  it("uses product conversion pages for a product business", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "house cleaning products", intent: "transactional", opportunity: "competitor_gap", searchVolume: 27_100, difficulty: 15 },
     ], 12, "product");
 
@@ -51,13 +51,13 @@ describe("three-month editorial calendar", () => {
     expect(calendar[0].title).not.toMatch(/hire|service/i);
   });
 
-  it("infers straightforward product and service business models from onboarding", () => {
-    expect(inferBusinessModel("Reusable cleaning products, starter kits, bottles, and tablet refills")).toBe("product");
-    expect(inferBusinessModel("Residential lawn mowing, yard cleanup, maintenance, and seasonal services")).toBe("service");
+  it("infers straightforward product and service business models from onboarding", async () => {
+    await expect(inferBusinessModel("Reusable cleaning products, starter kits, bottles, and tablet refills")).resolves.toBe("product");
+    await expect(inferBusinessModel("Residential lawn mowing, yard cleanup, maintenance, and seasonal services")).resolves.toBe("service");
   });
 
-  it("keeps product-purchase keywords behind service revenue terms for a service business", () => {
-    const calendar = buildEditorialCalendar([
+  it("keeps product-purchase keywords behind service revenue terms for a service business", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "weed control lawn spray", intent: "transactional", opportunity: "competitor_gap", searchVolume: 1_300, difficulty: 0 },
       { keyword: "lawn care mowing service", intent: "commercial", opportunity: "site_idea", searchVolume: 27_100, difficulty: 26 },
     ], 12, "service");
@@ -68,8 +68,8 @@ describe("three-month editorial calendar", () => {
     });
   });
 
-  it("prioritizes buying intent with real demand over raw informational volume", () => {
-    const prioritized = prioritizeEditorialKeywords([
+  it("prioritizes buying intent with real demand over raw informational volume", async () => {
+    const prioritized = await prioritizeEditorialKeywords([
       { keyword: "hire a college admissions counselor", intent: "transactional", opportunity: "existing_rank", searchVolume: 250, difficulty: 35, rank: 12, cpc: 8 },
       { keyword: "best college admissions counseling", intent: "commercial", opportunity: "competitor_gap", searchVolume: 600, difficulty: 30, cpc: 5 },
       { keyword: "what is college counseling", intent: "informational", opportunity: "competitor_gap", searchVolume: 5_000, difficulty: 20, cpc: 0 },
@@ -84,8 +84,8 @@ describe("three-month editorial calendar", () => {
     expect(prioritized[0].priorityReason).toMatch(/buying intent|rank #12|monthly searches/i);
   });
 
-  it("puts a meaningful transactional opportunity ahead of a larger comparison term", () => {
-    const prioritized = prioritizeEditorialKeywords([
+  it("puts a meaningful transactional opportunity ahead of a larger comparison term", async () => {
+    const prioritized = await prioritizeEditorialKeywords([
       { keyword: "weed control lawn spray", intent: "transactional", opportunity: "competitor_gap", searchVolume: 1_300, difficulty: 0, cpc: 0 },
       { keyword: "lawn weed control", intent: "commercial", opportunity: "competitor_gap", searchVolume: 8_100, difficulty: 0, cpc: 10 },
     ], "product");
@@ -94,8 +94,8 @@ describe("three-month editorial calendar", () => {
     expect(prioritized[0].searchIntent).toBe("conversion");
   });
 
-  it("does not let a zero-volume transactional phrase outrank a commercial term with demand", () => {
-    const prioritized = prioritizeEditorialKeywords([
+  it("does not let a zero-volume transactional phrase outrank a commercial term with demand", async () => {
+    const prioritized = await prioritizeEditorialKeywords([
       { keyword: "buy unknown service", intent: "transactional", opportunity: "site_idea", searchVolume: 0, difficulty: 20, cpc: 9 },
       { keyword: "best local service", intent: "commercial", opportunity: "competitor_gap", searchVolume: 100, difficulty: 30, cpc: 4 },
     ]);
@@ -103,8 +103,8 @@ describe("three-month editorial calendar", () => {
     expect(prioritized[0].keyword).toBe("best local service");
   });
 
-  it("uses the prioritized keyword order for the first editorial topics", () => {
-    const calendar = buildEditorialCalendar([
+  it("uses the prioritized keyword order for the first editorial topics", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "how college essays work", intent: "informational", opportunity: "competitor_gap", searchVolume: 2_000, difficulty: 20, cpc: 0 },
       { keyword: "college counselor pricing", intent: "transactional", opportunity: "existing_rank", searchVolume: 180, difficulty: 28, rank: 9, cpc: 7 },
     ]);
@@ -116,8 +116,8 @@ describe("three-month editorial calendar", () => {
     });
   });
 
-  it("keeps a local service calendar anchored to the offer and evidenced service area", () => {
-    const calendar = buildEditorialCalendar([
+  it("keeps a local service calendar anchored to the offer and evidenced service area", async () => {
+    const calendar = await buildEditorialCalendar([
       { keyword: "property managers near me", themeId: "audience-use-cases", themeLabel: "Audience use cases", intent: "transactional", opportunity: "site_idea", searchVolume: 40_500, difficulty: 26 },
       { keyword: "junk removal services in los angeles", intent: "commercial", opportunity: "site_idea", searchVolume: 590, difficulty: 8 },
       { keyword: "junk removal services boston", intent: "commercial", opportunity: "site_idea", searchVolume: 90, difficulty: 2 },
@@ -142,17 +142,17 @@ describe("three-month editorial calendar", () => {
     ]));
   });
 
-  it("explains each search-intent stage in customer language", () => {
+  it("explains each search-intent stage in customer language", async () => {
     expect(SEARCH_INTENT_DEFINITIONS.awareness.description).toMatch(/learning|research/i);
     expect(SEARCH_INTENT_DEFINITIONS.consideration.description).toMatch(/compar|evaluat/i);
     expect(SEARCH_INTENT_DEFINITIONS.conversion.description).toMatch(/pricing|buy|hire|sign up/i);
   });
 
-  it("returns no invented calendar when there are no approved keywords", () => {
-    expect(buildEditorialCalendar([])).toEqual([]);
+  it("returns no invented calendar when there are no approved keywords", async () => {
+    await expect(buildEditorialCalendar([])).resolves.toEqual([]);
   });
 
-  it("uses approved keyword decisions and excludes every declined keyword", () => {
+  it("uses approved keyword decisions and excludes every declined keyword", async () => {
     const candidates = [
       { keyword: "college admissions consultant", intent: "commercial", searchVolume: 1_300 },
       { keyword: "college essay tips", intent: "informational", searchVolume: 8_100 },
@@ -170,7 +170,7 @@ describe("three-month editorial calendar", () => {
     ]);
   });
 
-  it("keeps unreviewed automatic calendars on demand-backed keywords", () => {
+  it("keeps unreviewed automatic calendars on demand-backed keywords", async () => {
     const selected = selectKeywordsForCalendar([
       { keyword: "commercial junk removal services", searchVolume: 590 },
       { keyword: "bay area for years", searchVolume: 0 },
@@ -180,7 +180,7 @@ describe("three-month editorial calendar", () => {
     expect(selected.map((item) => item.keyword)).toEqual(["commercial junk removal services"]);
   });
 
-  it("honors an explicit approval even when provider volume is zero", () => {
+  it("honors an explicit approval even when provider volume is zero", async () => {
     const selected = selectKeywordsForCalendar([
       { keyword: "commercial junk removal services", searchVolume: 590 },
       { keyword: "same-day cleanout coordination", searchVolume: 0 },
@@ -189,7 +189,7 @@ describe("three-month editorial calendar", () => {
     expect(selected.map((item) => item.keyword)).toEqual(["same-day cleanout coordination"]);
   });
 
-  it("keeps competitor brands, freebie intent, and national phrases out of an automatic local-service calendar", () => {
+  it("keeps competitor brands, freebie intent, and national phrases out of an automatic local-service calendar", async () => {
     const selected = selectKeywordsForCalendar([
       { keyword: "commercial junk removal services", searchVolume: 590 },
       { keyword: "fremont junk removal", searchVolume: 210 },
@@ -210,7 +210,7 @@ describe("three-month editorial calendar", () => {
     ]);
   });
 
-  it("still honors explicit approval for a competitor term", () => {
+  it("still honors explicit approval for a competitor term", async () => {
     const selected = selectKeywordsForCalendar([
       { keyword: "loadup junk removal", searchVolume: 14_800 },
     ], { "loadup junk removal": "approved" }, {
@@ -219,5 +219,31 @@ describe("three-month editorial calendar", () => {
     });
 
     expect(selected.map((item) => item.keyword)).toEqual(["loadup junk removal"]);
+  });
+
+  it("keeps priority ties deterministic and cuts a 13th keyword after 12 slots", async () => {
+    const candidates = Array.from({ length: 13 }, (_, index) => ({
+      keyword: `service option ${String(index + 1).padStart(2, "0")}`,
+      intent: "commercial",
+      opportunity: "competitor_gap",
+      searchVolume: 100,
+      difficulty: 20,
+    }));
+    const first = await prioritizeEditorialKeywords(candidates);
+    const second = await prioritizeEditorialKeywords(candidates);
+    expect(first.map((item) => item.keyword)).toEqual(second.map((item) => item.keyword));
+    const calendar = await buildEditorialCalendar(candidates);
+    expect(calendar).toHaveLength(12);
+    expect(new Set(calendar.map((item) => item.focusKeyword)).size).toBe(12);
+    expect(calendar.map((item) => item.focusKeyword)).not.toContain("service option 13");
+  });
+
+  it("maps all three funnel stages deterministically when eligible demand supports them", async () => {
+    const calendar = await buildEditorialCalendar([
+      { keyword: "hire admissions consultant", intent: "transactional", searchVolume: 100 },
+      { keyword: "best admissions consultant", intent: "commercial", searchVolume: 100 },
+      { keyword: "how admissions consulting works", intent: "informational", searchVolume: 100 },
+    ]);
+    expect(new Set(calendar.map((item) => item.searchIntent))).toEqual(new Set(["conversion", "consideration", "awareness"]));
   });
 });

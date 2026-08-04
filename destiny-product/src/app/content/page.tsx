@@ -47,10 +47,11 @@ export default async function ContentPage() {
     competitorNames: context.competitors.map((competitor) => competitor.name),
   };
   const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, editorialContext);
-  const calendar = buildEditorialCalendar(
+  const businessModel = await inferBusinessModel(context.website?.products_services ?? "");
+  const calendar = await buildEditorialCalendar(
     keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })),
     INITIAL_PLAN_WEEKS,
-    inferBusinessModel(context.website?.products_services ?? ""),
+    businessModel,
     editorialContext,
   );
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");

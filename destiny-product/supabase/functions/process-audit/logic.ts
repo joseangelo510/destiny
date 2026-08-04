@@ -57,6 +57,18 @@ export type DestinyLogicInput = {
   planApprovedKeywords?: number;
   planUsableKeywords?: number;
   planDataQualityFlags?: number;
+  editorialConversionLanguage?: number;
+  editorialCommercialLanguage?: number;
+  editorialProviderIntentCode?: 0 | 1 | 2 | 3;
+  editorialBusinessModelCode?: 1 | 2;
+  editorialProductQuery?: number;
+  editorialServiceQuery?: number;
+  editorialThemeRoleCode?: 0 | 1 | 2;
+  editorialOfferOverlap?: number;
+  editorialWeekSlot?: number;
+  editorialKeywordCount?: number;
+  editorialProductEvidence?: number;
+  editorialServiceEvidence?: number;
 };
 
 export type DestinyLogicResult = {
@@ -107,6 +119,15 @@ export type DestinyLogicResult = {
   planThemeCodes: string[];
   planScopeCode: string;
   planForecastConfidence: "directional" | "limited";
+  editorialIntentCode: 0 | 1 | 2 | 3;
+  editorialSearchIntent: "awareness" | "consideration" | "conversion";
+  editorialBusinessFit: number;
+  editorialOfferFit: number;
+  editorialPriorityTier: number;
+  editorialPriorityScore: number;
+  editorialKeywordIndex: number;
+  editorialAngleCode: number;
+  editorialInferredBusinessModelCode: 1 | 2;
 };
 
 type LogicExports = {
@@ -208,6 +229,18 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.planApprovedKeywords ?? 0),
     String(input.planUsableKeywords ?? 0),
     String(input.planDataQualityFlags ?? 0),
+    String(input.editorialConversionLanguage ?? 0),
+    String(input.editorialCommercialLanguage ?? 0),
+    String(input.editorialProviderIntentCode ?? 0),
+    String(input.editorialBusinessModelCode ?? 1),
+    String(input.editorialProductQuery ?? 0),
+    String(input.editorialServiceQuery ?? 0),
+    String(input.editorialThemeRoleCode ?? 0),
+    String(input.editorialOfferOverlap ?? 0),
+    String(input.editorialWeekSlot ?? 0),
+    String(input.editorialKeywordCount ?? 0),
+    String(input.editorialProductEvidence ?? 0),
+    String(input.editorialServiceEvidence ?? 0),
   ];
 
   const imports = {
@@ -254,7 +287,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 47) {
+  if (output.length < 56) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -305,5 +338,14 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     planThemeCodes: output[44].split(",").filter(Boolean),
     planScopeCode: output[45],
     planForecastConfidence: output[46] as DestinyLogicResult["planForecastConfidence"],
+    editorialIntentCode: Number.parseInt(output[47], 10) as DestinyLogicResult["editorialIntentCode"],
+    editorialSearchIntent: output[48] as DestinyLogicResult["editorialSearchIntent"],
+    editorialBusinessFit: Number.parseInt(output[49], 10),
+    editorialOfferFit: Number.parseInt(output[50], 10),
+    editorialPriorityTier: Number.parseInt(output[51], 10),
+    editorialPriorityScore: Number.parseInt(output[52], 10),
+    editorialKeywordIndex: Number.parseInt(output[53], 10),
+    editorialAngleCode: Number.parseInt(output[54], 10),
+    editorialInferredBusinessModelCode: Number.parseInt(output[55], 10) as 1 | 2,
   };
 }

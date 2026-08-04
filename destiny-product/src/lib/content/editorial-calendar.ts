@@ -1,5 +1,6 @@
 import { INITIAL_PLAN_WEEKS } from "../product/plan-horizon";
 import { keywordHasGeographicConflict } from "../seo/keyword-opportunity";
+import { runDestinyServerLogic } from "../logicaffeine-server";
 
 export type EditorialKeyword = {
   keyword: string;
@@ -167,13 +168,15 @@ const PRODUCT_ANGLES = [
 const PRODUCT_LANGUAGE = /\b(products?|goods|kits?|refills?|bottles?|devices?|equipment|merchandise|retail|shop|store)\b/i;
 const SERVICE_LANGUAGE = /\b(services?|consulting|coaching|counseling|maintenance|repair|installation|care|management|agency|mowing|cleanup)\b/i;
 
-export function inferBusinessModel(productsServices: string): BusinessModel {
+export async function inferBusinessModel(productsServices: string): Promise<BusinessModel> {
   const productMatch = PRODUCT_LANGUAGE.test(productsServices);
   const serviceMatch = SERVICE_LANGUAGE.test(productsServices);
-  if (productMatch && !serviceMatch) return "product";
-  if (serviceMatch && !productMatch) return "service";
-  if (productMatch) return "product";
-  return "service";
+  const logic = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    editorialProductEvidence: productMatch ? 1 : 0,
+    editorialServiceEvidence: serviceMatch ? 1 : 0,
+  });
+  return logic.editorialInferredBusinessModelCode === 2 ? "product" : "service";
 }
 
 type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
@@ -186,13 +189,6 @@ export type PrioritizedEditorialKeyword = EditorialKeyword & {
   priorityScore: number;
   priorityReason: string;
   offerFit: number;
-};
-
-const INTENT_WEIGHT: Record<ProviderIntent, number> = {
-  transactional: 1.15,
-  commercial: 0.8,
-  navigational: 0.3,
-  informational: 0.25,
 };
 
 const INTENT_LABEL: Record<ProviderIntent, string> = {
@@ -216,40 +212,33 @@ function offerTokens(value: string) {
     .filter((token) => token.length >= 3 && !OFFER_STOP_WORDS.has(token));
 }
 
-function keywordOfferFit(keyword: EditorialKeyword, productsServices = "") {
+function editorialOfferEvidence(keyword: EditorialKeyword, productsServices = "") {
   const theme = `${keyword.themeId ?? ""} ${keyword.themeLabel ?? ""}`.toLowerCase();
-  if (/audience|customer|use case/.test(theme)) return 0;
-  if (/product|service|offer/.test(theme)) return 4;
+  const themeRoleCode = /audience|customer|use case/.test(theme) ? 1 : /product|service|offer/.test(theme) ? 2 : 0;
   const offer = new Set(offerTokens(productsServices));
-  if (!offer.size) return 1;
   const overlap = new Set(offerTokens(keyword.keyword).filter((token) => offer.has(token))).size;
-  if (overlap >= 2) return 3;
-  if (overlap === 1) return 1;
+  return { themeRoleCode: themeRoleCode as 0 | 1 | 2, overlap: offer.size ? overlap : 1 };
+}
+
+function providerIntentCode(keyword: EditorialKeyword): 0 | 1 | 2 | 3 {
+  const intent = String(keyword.intent || "informational").toLowerCase();
+  if (intent.includes("transaction") || intent.includes("conversion")) return 3;
+  if (intent.includes("commercial") || intent.includes("consideration")) return 2;
+  if (intent.includes("navigational") || intent.includes("navigation")) return 1;
   return 0;
 }
 
-function normalizedIntent(keyword: EditorialKeyword): ProviderIntent {
-  if (CONVERSION_LANGUAGE.test(keyword.keyword)) return "transactional";
-  if (COMMERCIAL_LANGUAGE.test(keyword.keyword)) return "commercial";
-  const intent = String(keyword.intent || "informational").toLowerCase();
-  if (intent.includes("transaction") || intent.includes("conversion")) return "transactional";
-  if (intent.includes("commercial") || intent.includes("consideration")) return "commercial";
-  if (intent.includes("navigational") || intent.includes("navigation")) return "navigational";
+function providerIntentName(code: number): ProviderIntent {
+  if (code === 3) return "transactional";
+  if (code === 2) return "commercial";
+  if (code === 1) return "navigational";
   return "informational";
 }
 
-function productIntent(intent: ProviderIntent): SearchIntent {
-  if (intent === "transactional") return "conversion";
-  if (intent === "commercial" || intent === "navigational") return "consideration";
-  return "awareness";
-}
-
-function opportunityMultiplier(keyword: EditorialKeyword) {
-  const rank = Number(keyword.rank ?? 0);
-  if (keyword.opportunity === "existing_rank" && rank >= 4 && rank <= 20) return 1.25;
-  if (keyword.opportunity === "competitor_gap") return 1.1;
-  if (keyword.opportunity === "existing_rank") return 1.08;
-  return 1;
+function opportunityCode(keyword: EditorialKeyword): 0 | 1 | 2 {
+  if (keyword.opportunity === "existing_rank") return 1;
+  if (keyword.opportunity === "competitor_gap") return 2;
+  return 0;
 }
 
 function priorityReason(keyword: EditorialKeyword, intent: ProviderIntent) {
@@ -263,77 +252,66 @@ function priorityReason(keyword: EditorialKeyword, intent: ProviderIntent) {
   return `${INTENT_LABEL[intent]} · ${volume.toLocaleString()} monthly searches · ${evidence}`;
 }
 
-function revenuePriorityTier(intent: ProviderIntent, volume: number) {
-  if (intent === "transactional" && volume >= 100) return 3;
-  if (intent === "commercial" && volume >= 30) return 2;
-  if (intent === "transactional" && volume > 0) return 1;
-  return 0;
-}
-
-function businessKeywordFit(keyword: string, businessModel: BusinessModel) {
-  const productMatch = PRODUCT_QUERY_LANGUAGE.test(keyword);
-  const serviceMatch = SERVICE_QUERY_LANGUAGE.test(keyword);
-  if (businessModel === "service") {
-    if (serviceMatch) return 2;
-    if (productMatch) return 0;
-    return 1;
-  }
-  if (productMatch) return 2;
-  if (serviceMatch) return 0;
-  return 1;
-}
-
-export function prioritizeEditorialKeywords(
+export async function prioritizeEditorialKeywords(
   keywords: EditorialKeyword[],
   businessModel: BusinessModel = "service",
   context: EditorialBusinessContext = {},
-): PrioritizedEditorialKeyword[] {
-  return keywords.filter((keyword) => !keywordHasGeographicConflict(keyword, context)).map((keyword) => {
-    const providerIntent = normalizedIntent(keyword);
+): Promise<PrioritizedEditorialKeyword[]> {
+  const evaluated = await Promise.all(keywords.filter((keyword) => !keywordHasGeographicConflict(keyword, context)).map(async (keyword) => {
     const volume = Math.max(0, Number(keyword.searchVolume ?? 0));
-    const difficulty = Math.min(100, Math.max(0, Number(keyword.difficulty ?? 0)));
-    const cpc = Math.min(10, Math.max(0, Number(keyword.cpc ?? 0)));
-    const demandPenalty = volume === 0 ? 0.45 : volume < 30 && providerIntent !== "transactional" ? 0.7 : 1;
-    const priorityScore = INTENT_WEIGHT[providerIntent]
-      * Math.log10(Math.max(volume, 10))
-      * (1 - (difficulty / 100 * 0.6))
-      * (1 + (cpc / 10 * 0.5))
-      * opportunityMultiplier(keyword)
-      * demandPenalty;
+    const offerEvidence = editorialOfferEvidence(keyword, context.productsServices);
+    const logic = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      keywordPolicyEnabled: 1, keywordCoreMatches: 1, keywordPositiveDemand: volume > 0 ? 1 : 0,
+      keywordSearchVolume: volume, keywordDifficulty: Number(keyword.difficulty ?? 0), keywordCpcCents: Math.round(Number(keyword.cpc ?? 0) * 100),
+      keywordRank: Number(keyword.rank ?? 0), keywordOpportunityCode: opportunityCode(keyword), keywordIntentKnown: keyword.intent ? 1 : 0,
+      editorialConversionLanguage: CONVERSION_LANGUAGE.test(keyword.keyword) ? 1 : 0,
+      editorialCommercialLanguage: COMMERCIAL_LANGUAGE.test(keyword.keyword) ? 1 : 0,
+      editorialProviderIntentCode: providerIntentCode(keyword), editorialBusinessModelCode: businessModel === "service" ? 1 : 2,
+      editorialProductQuery: PRODUCT_QUERY_LANGUAGE.test(keyword.keyword) ? 1 : 0,
+      editorialServiceQuery: SERVICE_QUERY_LANGUAGE.test(keyword.keyword) ? 1 : 0,
+      editorialThemeRoleCode: offerEvidence.themeRoleCode, editorialOfferOverlap: offerEvidence.overlap,
+    });
+    const providerIntent = providerIntentName(logic.editorialIntentCode);
     return {
       ...keyword,
       providerIntent,
-      searchIntent: productIntent(providerIntent),
-      businessFit: businessKeywordFit(keyword.keyword, businessModel),
-      priorityTier: revenuePriorityTier(providerIntent, volume),
-      priorityScore,
+      searchIntent: logic.editorialSearchIntent,
+      businessFit: logic.editorialBusinessFit,
+      priorityTier: logic.editorialPriorityTier,
+      priorityScore: logic.editorialPriorityScore,
       priorityReason: priorityReason(keyword, providerIntent),
-      offerFit: keywordOfferFit(keyword, context.productsServices),
+      offerFit: logic.editorialOfferFit,
     };
-  }).sort((left, right) => right.offerFit - left.offerFit
+  }));
+  return evaluated.sort((left, right) => right.offerFit - left.offerFit
     || right.businessFit - left.businessFit
-    || right.priorityTier - left.priorityTier
+    || (left.priorityTier || 99) - (right.priorityTier || 99)
     || right.priorityScore - left.priorityScore
     || Number(right.searchVolume ?? 0) - Number(left.searchVolume ?? 0)
     || Number(left.difficulty ?? 0) - Number(right.difficulty ?? 0)
     || left.keyword.localeCompare(right.keyword));
 }
 
-export function buildEditorialCalendar(
+export async function buildEditorialCalendar(
   keywords: EditorialKeyword[],
   weeks = INITIAL_PLAN_WEEKS,
   businessModel: BusinessModel = "service",
   context: EditorialBusinessContext = {},
-): EditorialCalendarItem[] {
+): Promise<EditorialCalendarItem[]> {
   if (!keywords.length) return [];
-  const prioritized = prioritizeEditorialKeywords(keywords, businessModel, context);
+  const prioritized = await prioritizeEditorialKeywords(keywords, businessModel, context);
   if (!prioritized.length) return [];
   const offerAnchored = prioritized.filter((keyword) => keyword.offerFit >= 2);
   const calendarKeywords = offerAnchored.length >= 3 ? offerAnchored : prioritized;
   const angles = businessModel === "product" ? PRODUCT_ANGLES : SERVICE_ANGLES;
-  return Array.from({ length: weeks }, (_, index) => {
-    const keyword = calendarKeywords[index % calendarKeywords.length];
-    const angle = angles[index % angles.length];
+  const calendar = await Promise.all(Array.from({ length: weeks }, async (_, index) => {
+    const slotPolicy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      editorialWeekSlot: index + 1, editorialKeywordCount: calendarKeywords.length,
+    });
+    const keyword = calendarKeywords[Math.max(0, slotPolicy.editorialKeywordIndex - 1)];
+    const angle = angles[Math.max(0, slotPolicy.editorialAngleCode - 1) % angles.length];
     const opportunity = keyword.opportunity || "site_idea";
     const evidence = opportunity === "competitor_gap"
       ? "Competitor gap"
@@ -351,7 +329,9 @@ export function buildEditorialCalendar(
       searchVolume: Number(keyword.searchVolume ?? 0),
       difficulty: Number(keyword.difficulty ?? 0),
       priorityReason: keyword.priorityReason,
-      status: index < 4 ? "Review draft" : "Planned",
+      status: (index < 4 ? "Review draft" : "Planned") as EditorialCalendarItem["status"],
     };
-  });
+  }));
+  console.info(JSON.stringify({ event: "logos_editorial_plan", weeks: calendar.length, keywords: calendarKeywords.length, fallbacks: 0, wasm_errors: 0 }));
+  return calendar;
 }

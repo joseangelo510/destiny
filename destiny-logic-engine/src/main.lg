@@ -683,6 +683,65 @@ live in the web platform.
         Return "limited".
     Return "directional".
 
+## To ChooseEditorialIntentCode (conversion_language: Int) and (commercial_language: Int) and (provider_intent_code: Int) -> Int:
+
+    If conversion_language is greater than 0:
+        Return 3.
+    If commercial_language is greater than 0:
+        Return 2.
+    Return provider_intent_code.
+
+## To ChooseEditorialBusinessFit (business_model_code: Int) and (product_query: Int) and (service_query: Int) -> Int:
+
+    If business_model_code equals 1:
+        If service_query is greater than 0:
+            Return 2.
+        If product_query is greater than 0:
+            Return 0.
+        Return 1.
+    If product_query is greater than 0:
+        Return 2.
+    If service_query is greater than 0:
+        Return 0.
+    Return 1.
+
+## To ChooseEditorialOfferFit (theme_role_code: Int) and (offer_overlap: Int) -> Int:
+
+    If theme_role_code equals 1:
+        Return 0.
+    If theme_role_code equals 2:
+        Return 4.
+    If offer_overlap is greater than 1:
+        Return 3.
+    If offer_overlap equals 1:
+        Return 1.
+    Return 0.
+
+## To ChooseEditorialKeywordIndex (week_slot: Int) and (keyword_count: Int) -> Int:
+
+    If keyword_count is less than 1:
+        Return 0.
+    Let keyword_index be week_slot.
+    While keyword_index is greater than keyword_count:
+        Set keyword_index to keyword_index - keyword_count.
+    If keyword_index is less than 1:
+        Return 1.
+    Return keyword_index.
+
+## To ChooseEditorialAngleCode (week_slot: Int) -> Int:
+
+    If week_slot is less than 1:
+        Return 1.
+    If week_slot is greater than 12:
+        Return 12.
+    Return week_slot.
+
+## To ChooseEditorialBusinessModel (product_evidence: Int) and (service_evidence: Int) -> Int:
+
+    If product_evidence is greater than 0:
+        Return 2.
+    Return 1.
+
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
     If policy_enabled equals 0:
@@ -753,6 +812,18 @@ live in the web platform.
     Let plan_approved_keywords be parseInt(item (planning_start + 1) of arguments).
     Let plan_usable_keywords be parseInt(item (planning_start + 2) of arguments).
     Let plan_data_quality_flags be parseInt(item (planning_start + 3) of arguments).
+    Let editorial_conversion_language be parseInt(item (planning_start + 4) of arguments).
+    Let editorial_commercial_language be parseInt(item (planning_start + 5) of arguments).
+    Let editorial_provider_intent_code be parseInt(item (planning_start + 6) of arguments).
+    Let editorial_business_model_code be parseInt(item (planning_start + 7) of arguments).
+    Let editorial_product_query be parseInt(item (planning_start + 8) of arguments).
+    Let editorial_service_query be parseInt(item (planning_start + 9) of arguments).
+    Let editorial_theme_role_code be parseInt(item (planning_start + 10) of arguments).
+    Let editorial_offer_overlap be parseInt(item (planning_start + 11) of arguments).
+    Let editorial_week_slot be parseInt(item (planning_start + 12) of arguments).
+    Let editorial_keyword_count be parseInt(item (planning_start + 13) of arguments).
+    Let editorial_product_evidence be parseInt(item (planning_start + 14) of arguments).
+    Let editorial_service_evidence be parseInt(item (planning_start + 15) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -804,6 +875,15 @@ live in the web platform.
     Let plan_keyword_target_low be ChoosePlanKeywordTargetLow(plan_approved_keywords, plan_usable_keywords).
     Let plan_keyword_target_high be ChoosePlanKeywordTargetHigh(plan_keyword_target_low, plan_usable_keywords).
     Let plan_forecast_confidence be ChoosePlanForecastConfidence(plan_data_quality_flags).
+    Let editorial_intent_code be ChooseEditorialIntentCode(editorial_conversion_language, editorial_commercial_language, editorial_provider_intent_code).
+    Let editorial_search_intent be ChooseKeywordSearchIntent(editorial_intent_code).
+    Let editorial_business_fit be ChooseEditorialBusinessFit(editorial_business_model_code, editorial_product_query, editorial_service_query).
+    Let editorial_offer_fit be ChooseEditorialOfferFit(editorial_theme_role_code, editorial_offer_overlap).
+    Let editorial_priority_tier be ChooseKeywordPriorityTier(1, keyword_eligible, authoritative_relevance_code, editorial_offer_fit * 25).
+    Let editorial_priority_score be ChooseKeywordPriorityScore(1, keyword_eligible, editorial_intent_code, editorial_business_fit * 50, editorial_offer_fit * 25, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
+    Let editorial_keyword_index be ChooseEditorialKeywordIndex(editorial_week_slot, editorial_keyword_count).
+    Let editorial_angle_code be ChooseEditorialAngleCode(editorial_week_slot).
+    Let editorial_inferred_business_model_code be ChooseEditorialBusinessModel(editorial_product_evidence, editorial_service_evidence).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -851,3 +931,12 @@ live in the web platform.
     Show "foundation,content_engine,authority".
     Show "initial_quarter".
     Show plan_forecast_confidence.
+    Show editorial_intent_code.
+    Show editorial_search_intent.
+    Show editorial_business_fit.
+    Show editorial_offer_fit.
+    Show editorial_priority_tier.
+    Show editorial_priority_score.
+    Show editorial_keyword_index.
+    Show editorial_angle_code.
+    Show editorial_inferred_business_model_code.
