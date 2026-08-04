@@ -76,6 +76,80 @@ describe("Destiny LOGOS parity", () => {
     expect(blocked.browser).toMatchObject({ keywordVerdict: "reject", keywordRuleId: "blocked_noise", weeklyTaskCount: 8 });
   });
 
+  it("makes LOGOS authoritative for keyword eligibility, intent, tier, and score", async () => {
+    const conversion = await runBoth({
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: 20,
+      newKeywords: 2,
+      lostKeywords: 0,
+      contentGaps: 4,
+      reviewCount: 20,
+      keywordCoreMatches: 2,
+      keywordSupportMatches: 2,
+      competitorRankers: 2,
+      keywordBlocklisted: 0,
+      keywordPolicyEnabled: 1,
+      keywordPositiveDemand: 1,
+      keywordDisqualifiers: 0,
+      keywordIntentCode: 3,
+      keywordRelevanceCode: 2,
+      keywordBusinessFitPercent: 89,
+      keywordRevenueFitPercent: 100,
+      keywordVolumePoints: 7,
+      keywordAttainabilityPoints: 4,
+      keywordValuePoints: 5,
+      keywordOpportunityPoints: 5,
+      keywordDemandPenalty: 0,
+      planTier: 2,
+    } as Parameters<typeof runBrowserLogic>[0]);
+
+    expect(conversion.browser).toEqual(conversion.worker);
+    expect(conversion.browser).toMatchObject({
+      keywordEligible: true,
+      keywordSearchIntent: "conversion",
+      keywordPriorityTier: 1,
+      keywordPriorityScore: 93,
+      keywordPolicyCode: "eligible_core_conversion",
+    });
+
+    const zeroDemand = await runBoth({
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: 20,
+      newKeywords: 2,
+      lostKeywords: 0,
+      contentGaps: 4,
+      reviewCount: 20,
+      keywordCoreMatches: 2,
+      keywordSupportMatches: 2,
+      competitorRankers: 2,
+      keywordBlocklisted: 0,
+      keywordPolicyEnabled: 1,
+      keywordPositiveDemand: 0,
+      keywordDisqualifiers: 0,
+      keywordIntentCode: 3,
+      keywordRelevanceCode: 2,
+      keywordBusinessFitPercent: 89,
+      keywordRevenueFitPercent: 100,
+      keywordVolumePoints: 0,
+      keywordAttainabilityPoints: 4,
+      keywordValuePoints: 5,
+      keywordOpportunityPoints: 5,
+      keywordDemandPenalty: 0,
+      planTier: 2,
+    } as Parameters<typeof runBrowserLogic>[0]);
+
+    expect(zeroDemand.browser).toMatchObject({
+      keywordEligible: false,
+      keywordVerdict: "reject",
+      keywordPolicyCode: "reject_no_demand",
+      keywordPriorityScore: 0,
+    });
+  });
+
   it("returns the exact categorized execution mix without a second business confirmation", async () => {
     const base = { auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20 };
     const beginner = await runBoth({ ...base, planTier: 1 });

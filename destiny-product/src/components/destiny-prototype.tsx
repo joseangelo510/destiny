@@ -60,6 +60,11 @@ const seededLogic: DestinyLogicResult = {
   contentTaskCount: 1,
   distributionTaskCount: 1,
   weeklyTaskManifest: ["vocabulary_review", "content_review", "primary_quest"],
+  keywordEligible: false,
+  keywordSearchIntent: "awareness",
+  keywordPriorityTier: 0,
+  keywordPriorityScore: 0,
+  keywordPolicyCode: "legacy_keyword_policy",
 };
 
 const seededAudit: SeoAuditResult = {

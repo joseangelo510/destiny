@@ -14,6 +14,18 @@ export type DestinyLogicInput = {
   competitorRankers?: number;
   keywordBlocklisted?: number;
   planTier?: 1 | 2 | 3;
+  keywordPolicyEnabled?: number;
+  keywordPositiveDemand?: number;
+  keywordDisqualifiers?: number;
+  keywordIntentCode?: 0 | 1 | 2 | 3;
+  keywordRelevanceCode?: 0 | 1 | 2;
+  keywordBusinessFitPercent?: number;
+  keywordRevenueFitPercent?: number;
+  keywordVolumePoints?: number;
+  keywordAttainabilityPoints?: number;
+  keywordValuePoints?: number;
+  keywordOpportunityPoints?: number;
+  keywordDemandPenalty?: number;
 };
 
 export type DestinyLogicResult = {
@@ -31,6 +43,11 @@ export type DestinyLogicResult = {
   contentTaskCount: number;
   distributionTaskCount: number;
   weeklyTaskManifest: string[];
+  keywordEligible: boolean;
+  keywordSearchIntent: "awareness" | "consideration" | "conversion";
+  keywordPriorityTier: 0 | 1 | 2 | 3 | 4;
+  keywordPriorityScore: number;
+  keywordPolicyCode: string;
 };
 
 type LogicExports = {
@@ -87,11 +104,24 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.competitorRankers ?? 0),
     String(input.keywordBlocklisted ?? 0),
     String(input.planTier ?? 1),
+    String(input.keywordPolicyEnabled ?? 0),
+    String(input.keywordPositiveDemand ?? 0),
+    String(input.keywordDisqualifiers ?? 0),
+    String(input.keywordIntentCode ?? 0),
+    String(input.keywordRelevanceCode ?? 0),
+    String(input.keywordBusinessFitPercent ?? 0),
+    String(input.keywordRevenueFitPercent ?? 0),
+    String(input.keywordVolumePoints ?? 0),
+    String(input.keywordAttainabilityPoints ?? 0),
+    String(input.keywordValuePoints ?? 0),
+    String(input.keywordOpportunityPoints ?? 0),
+    String(input.keywordDemandPenalty ?? 0),
   ];
 
   const imports = {
     env: {
       print_text: (handle: number) => output.push(readText(handle)),
+      print_i64: (value: bigint) => output.push(value.toString()),
       parse_int: (handle: number) => BigInt(Number.parseInt(readText(handle).trim(), 10) || 0),
       args: () => {
         if (argumentHandle) return argumentHandle;
@@ -132,7 +162,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 14) {
+  if (output.length < 19) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -150,5 +180,10 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     contentTaskCount: Number.parseInt(output[11], 10),
     distributionTaskCount: Number.parseInt(output[12], 10),
     weeklyTaskManifest: output[13].split(",").filter(Boolean),
+    keywordEligible: output[14] === "true",
+    keywordSearchIntent: output[15] as DestinyLogicResult["keywordSearchIntent"],
+    keywordPriorityTier: Number.parseInt(output[16], 10) as DestinyLogicResult["keywordPriorityTier"],
+    keywordPriorityScore: Number.parseInt(output[17], 10),
+    keywordPolicyCode: output[18],
   };
 }
