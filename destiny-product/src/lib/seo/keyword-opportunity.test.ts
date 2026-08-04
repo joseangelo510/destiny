@@ -37,6 +37,70 @@ const LOGICAFFEINE_BRIEF = {
 };
 
 describe("keyword opportunity ranking", () => {
+  it("rejects unrelated tails from live 98 Junk It discovery while preserving buyer keywords", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "commercial junk removal near me", intent: "commercial", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "office furniture removal", intent: "transactional", searchVolume: 1_300, opportunity: "site_idea" },
+      { keyword: "same day furniture removal", intent: "transactional", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "furniture mold removal", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "furniture stain removal", intent: "commercial", searchVolume: 1_000, opportunity: "site_idea" },
+      { keyword: "furniture wax removal", intent: "commercial", searchVolume: 260, opportunity: "site_idea" },
+      { keyword: "furniture smell removal", intent: "commercial", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "loadup furniture removal", intent: "commercial", searchVolume: 110, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal, furniture removal, appliance hauling, estate cleanouts, and office cleanouts",
+      idealCustomer: "Homeowners, property managers, real estate agents, and businesses in the San Francisco Bay Area",
+      problemSolved: "Customers need unwanted furniture, appliances, and debris hauled away quickly",
+    });
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "commercial junk removal near me",
+      "office furniture removal",
+      "same day furniture removal",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "furniture mold removal",
+      "furniture stain removal",
+      "furniture wax removal",
+      "furniture smell removal",
+      "loadup furniture removal",
+    ]));
+  });
+
+  it("rejects unrelated coaching and essay tails from live Empowerly discovery", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "college counselor", intent: "commercial", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "admissions counseling", intent: "commercial", searchVolume: 2_400, opportunity: "site_idea" },
+      { keyword: "college application essay coaching", intent: "commercial", searchVolume: 390, opportunity: "site_idea" },
+      { keyword: "coaching leadership style essay", intent: "informational", searchVolume: 720, opportunity: "site_idea" },
+      { keyword: "coaching and mentoring reflective essay", intent: "informational", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "essay coaching for UPSC", intent: "commercial", searchVolume: 110, opportunity: "site_idea" },
+      { keyword: "prompt essay coaching reviews", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "essay coaching by Debbie Merion", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "college counselor",
+      "admissions counseling",
+      "college application essay coaching",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "coaching leadership style essay",
+      "coaching and mentoring reflective essay",
+      "essay coaching for UPSC",
+      "prompt essay coaching reviews",
+      "essay coaching by Debbie Merion",
+    ]));
+  });
+
+  it("classifies institution research as awareness even when a provider labels it commercial", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "high point university acceptance rate", intent: "commercial", searchVolume: 14_800, opportunity: "site_idea", directCompetitorRankers: 1 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked[0]).toMatchObject({ providerIntent: "informational", searchIntent: "awareness" });
+  });
+
   it("rejects unmeasured onboarding fragments and proof points instead of padding the pool", () => {
     const ranked = rankKeywordOpportunities([
       { keyword: "served fremont", intent: "transactional", searchVolume: 10, opportunity: "site_idea" },
@@ -188,7 +252,6 @@ describe("keyword opportunity ranking", () => {
 
     expect(ranked.map((item) => item.keyword).sort()).toEqual([
       "commercial junk removal services",
-      "waste management residential services",
       "waste removal services",
     ].sort());
   });

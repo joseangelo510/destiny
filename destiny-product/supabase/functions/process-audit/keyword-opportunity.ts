@@ -72,7 +72,7 @@ const INSTITUTION = /\b(?:academy|colleges?|school|universit(?:y|ies))\b/i;
 const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|best|deadline|essay|get into|requirements?|ranking|top|tuition)\b/i;
 const SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX = /\b(?:acceptance rate|admissions? requirements?|how to get into)\b/i;
 const PROOF_OR_SENTENCE_FRAGMENT = /\b(?:customers? need|earned|five[ -]star|served)\b/i;
-const RECURRING_COLLECTION_QUERY = /\b(?:interstate waste services?|pick up rubbish services?|rubbish collection services?|rubbish pickup|trash pickup(?: services?)?|trash services?|waste collection services?|waste pickup|bulk pickup trash|garbage waste pickup|curbside pickup waste management)\b/i;
+const RECURRING_COLLECTION_QUERY = /\b(?:interstate waste services?|pick up rubbish services?|rubbish collection services?|rubbish pickup|trash pickup(?: services?)?|trash services?|waste collection services?|waste management residential services?|waste pickup|bulk pickup trash|garbage waste pickup|curbside pickup waste management)\b/i;
 const RENTAL_SERVICE_QUERY = /\b(?:dumpster|truck) rentals?\b/i;
 const TRUCK_EQUIPMENT_QUERY = /\b(?:disposal|dump|garbage|waste) trucks?\b/i;
 const SERVICE_ACTION_QUERY = /\b(?:agency|cleanouts?|coach|coaches|coaching|consultant|consultants|consulting|counseling|counselor|counselors|disposal|haul|hauling|management|pickup|removal|services?)\b/i;
@@ -105,7 +105,7 @@ const GENERIC_DIFFERENTIATOR_TOKENS = new Set([
   "estimate", "experience", "review", "team", "year",
 ]);
 const DISCOVERY_MODIFIER_TOKENS = new Set([
-  "affordable", "best", "cheap", "company", "cost", "day", "estimate", "fast", "free", "guide", "hire", "how", "listing", "local", "near", "post", "pre", "price", "pricing", "quote", "review", "same", "top", "what", "when", "where", "why",
+  "affordable", "best", "cheap", "company", "cost", "day", "estimate", "fast", "free", "guide", "hire", "how", "list", "listing", "local", "near", "post", "pre", "price", "pricing", "quote", "review", "same", "top", "what", "when", "where", "why",
 ]);
 
 function normalizedPhrase(value: string) {
@@ -153,6 +153,7 @@ function contextProfile(context: KeywordBusinessContext) {
     context.audienceChallengesGoals,
     context.differentiation,
     context.market,
+    context.locationEvidence,
   ].filter(Boolean).join(" ");
   return {
     offer: new Set(canonicalTokens(productsServices)),
@@ -182,8 +183,31 @@ function isLowEvidenceSiteIdea(candidate: KeywordCandidate, businessTokens: Set<
   return grounded / meaningful.length <= 0.5;
 }
 
+function hasContextualSemanticConflict(candidate: KeywordCandidate, businessDescription: string, businessTokens: Set<string>) {
+  if (candidate.opportunity !== "site_idea") return false;
+  const keyword = candidate.keyword;
+  const admissionsBusiness = /\b(?:college|admissions?|application)\b/i.test(businessDescription);
+  if (admissionsBusiness && /\b(?:essay|coaching?)\b/i.test(keyword)) {
+    const exactCoreService = /^\s*essay coaching\s*$/i.test(keyword);
+    const admissionsAnchor = /\b(?:college|admissions?|application|student|high school)\b/i.test(keyword);
+    if (!exactCoreService && !admissionsAnchor) return true;
+  }
+
+  const removalBusiness = /\b(?:junk|furniture|appliance|debris).*(?:cleanout|haul|removal)\b/i.test(businessDescription);
+  if (!removalBusiness || !/\b(?:cleanout|haul|removal)\b/i.test(keyword)) return false;
+  const meaningful = canonicalTokens(keyword).filter((token) => !DISCOVERY_MODIFIER_TOKENS.has(token));
+  const unknownIndexes = meaningful.flatMap((token, index) => businessTokens.has(token) ? [] : [index]);
+  if (unknownIndexes.length !== 1) return false;
+  const [unknownIndex] = unknownIndexes;
+  return unknownIndex === 0 || (unknownIndex > 0 && unknownIndex < meaningful.length - 1);
+}
+
 function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   if (TRANSACTIONAL.test(candidate.keyword)) return "transactional";
+  // Provider intent can mislabel institution-research queries as commercial.
+  // These are awareness topics unless the phrase also expresses a buyer action.
+  if (INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword)
+    && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return "informational";
   const supplied = String(candidate.intent ?? "").toLowerCase();
   if (supplied.includes("transaction") || supplied.includes("conversion")) return "transactional";
   if (supplied.includes("commercial") || supplied.includes("consideration")) return "commercial";
@@ -363,6 +387,7 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
     if (isLowEvidenceSiteIdea(candidate, business.all)) return [];
+    if (hasContextualSemanticConflict(candidate, businessDescription, business.all)) return [];
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
     const productsServices = context.productsServices ?? "";
     if (RECURRING_COLLECTION_QUERY.test(candidate.keyword)
