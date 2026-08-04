@@ -48,7 +48,7 @@ export const COACH_CATEGORIES = [
   {
     id: "distribution",
     label: "Distribution",
-    description: "Join community conversations, share on social, contact publishers, and build listings and reviews.",
+    description: "Join community conversations, share on social, contact niche creators, and build listings and reviews.",
     taskTypes: ["community_distribution", "distribution", "social_distribution", "publisher_outreach", "directory_growth", "reviews"],
   },
   {

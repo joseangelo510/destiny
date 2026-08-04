@@ -149,3 +149,53 @@ export function normalizeDomain(value: string) {
   if (!domain || !domain.includes(".") || domain === "localhost") throw new Error("Enter a valid public domain.");
   return domain;
 }
+
+const CREATOR_PLATFORMS = ["medium.com", "youtube.com", "linkedin.com", "instagram.com"] as const;
+const MAJOR_MEDIA = /(^|\.)(forbes|nytimes|foxnews|cnn|bbc|wsj|washingtonpost|businessinsider)\.(com|co\.uk)$/i;
+
+export function creatorSearchRequests(topics: string[], locationName = "United States") {
+  const topic = topics.map((item) => item.trim()).find((item) => item.length >= 2)?.slice(0, 160) ?? "";
+  if (!topic) return [];
+  return [
+    ...CREATOR_PLATFORMS.map((domain) => ({ keyword: `${topic} site:${domain}`, location_name: locationName, language_code: "en", depth: 20 })),
+    { keyword: `${topic} independent blog`, location_name: locationName, language_code: "en", depth: 20 },
+  ];
+}
+
+export function parseCreatorSearchResults(payload: unknown, excludedDomains: string[] = []) {
+  const root = record(payload);
+  if (number(root.status_code) !== 20000) throw new Error(string(root.status_message) || "DataForSEO rejected creator research.");
+  const excluded = new Set(excludedDomains.map((domain) => domain.toLowerCase().replace(/^www\./, "")));
+  const seen = new Set<string>();
+  return array(root.tasks).flatMap((taskValue) => {
+    const task = record(taskValue);
+    if (number(task.status_code) !== 20000) return [];
+    const query = string(record(task.data).keyword);
+    const topic = query.replace(/\s+site:[^\s]+$/i, "").replace(/\s+independent blog$/i, "").trim();
+    return array(record(array(task.result)[0]).items).flatMap((itemValue) => {
+      const item = record(itemValue);
+      if (string(item.type) !== "organic") return [];
+      const url = string(item.url);
+      let domain = "";
+      try { domain = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
+      if (!domain || excluded.has(domain) || [...excluded].some((value) => domain.endsWith(`.${value}`)) || MAJOR_MEDIA.test(domain) || seen.has(url)) return [];
+      seen.add(url);
+      const platform = domain.includes("medium.com") ? "Medium"
+        : domain.includes("youtube.com") ? "YouTube"
+          : domain.includes("linkedin.com") ? "LinkedIn"
+            : domain.includes("instagram.com") ? "Instagram"
+              : "Independent blog";
+      return [{
+        name: string(item.title).split(/[—|]/)[0].trim() || domain,
+        domain,
+        platform,
+        title: string(item.title) || "Relevant published work",
+        url,
+        snippet: string(item.description),
+        matchedTopic: topic,
+        audienceEstimate: null,
+        audienceVerification: "required" as const,
+      }];
+    });
+  }).slice(0, 25);
+}

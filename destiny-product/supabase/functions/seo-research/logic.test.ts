@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { organicHistoryWindowStart, parseOrganicPerformance } from "./logic";
+import { creatorSearchRequests, organicHistoryWindowStart, parseCreatorSearchResults, parseOrganicPerformance } from "./logic";
 
 const successfulPayload = (items: unknown[]) => ({
   status_code: 20000,
@@ -28,5 +28,37 @@ describe("organic performance history", () => {
 
   it("rejects provider failures instead of drawing invented history", () => {
     expect(() => parseOrganicPerformance({ status_code: 20000, tasks: [{ status_code: 40501, status_message: "Invalid target" }] })).toThrow("Invalid target");
+  });
+});
+
+describe("creator discovery", () => {
+  it("builds one bounded, platform-specific research request per source", () => {
+    expect(creatorSearchRequests(["college admissions counseling", "essay coaching"])).toEqual([
+      expect.objectContaining({ keyword: "college admissions counseling site:medium.com" }),
+      expect.objectContaining({ keyword: "college admissions counseling site:youtube.com" }),
+      expect.objectContaining({ keyword: "college admissions counseling site:linkedin.com" }),
+      expect.objectContaining({ keyword: "college admissions counseling site:instagram.com" }),
+      expect.objectContaining({ keyword: "college admissions counseling independent blog" }),
+    ]);
+  });
+
+  it("keeps niche creator sources, excludes competitors and major media, and never invents audience size", () => {
+    const payload = {
+      status_code: 20000,
+      tasks: [
+        { status_code: 20000, data: { keyword: "junk removal site:youtube.com" }, result: [{ items: [
+          { type: "organic", title: "Local cleanup tips — Small Hauler", url: "https://youtube.com/watch?v=abc", description: "Practical cleanup advice" },
+          { type: "organic", title: "Competitor", url: "https://competitor.example/blog", description: "Competing company" },
+        ] }] },
+        { status_code: 20000, data: { keyword: "junk removal independent blog" }, result: [{ items: [
+          { type: "organic", title: "Major media", url: "https://forbes.com/sites/example", description: "Too broad" },
+          { type: "organic", title: "Bay Area moving notes", url: "https://localmovingwriter.example/junk-guide", description: "Niche local article" },
+        ] }] },
+      ],
+    };
+    expect(parseCreatorSearchResults(payload, ["competitor.example"])).toEqual([
+      expect.objectContaining({ platform: "YouTube", audienceEstimate: null, audienceVerification: "required" }),
+      expect.objectContaining({ platform: "Independent blog", domain: "localmovingwriter.example", audienceEstimate: null }),
+    ]);
   });
 });

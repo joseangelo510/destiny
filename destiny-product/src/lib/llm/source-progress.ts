@@ -185,13 +185,13 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
   {
     key: "earned-media",
     name: "Earned media",
-    domain: "Industry publishers · news · research",
+    domain: "Niche creators · specialist publications · research",
     category: "earned",
     summary: "Earn independent coverage that corroborates the business beyond its own claims.",
     expectation: "Coverage must be independently editorial and genuinely relevant; a press release alone is not third-party validation.",
     tasks: [
       { key: "prepare-proof", title: "Prepare a source-worthy proof package", description: "Collect original data, expert credentials, customer evidence, clear quotes, and the primary documents that support the story.", actionHref: "/content", actionLabel: "Prepare proof" },
-      { key: "match-publishers", title: "Match the story to credible publishers", description: "Identify journalists, newsletters, podcasts, associations, or industry publications whose audiences genuinely need the evidence.", actionHref: "/distribution", actionLabel: "Plan outreach" },
+      { key: "match-publishers", title: "Match the story to credible niche creators", description: "Identify writers, newsletters, podcasts, associations, or specialist publications whose audiences genuinely need the evidence.", actionHref: "/distribution", actionLabel: "Plan outreach" },
       { key: "earn-mention", title: "Earn and record an independent mention", description: "Pitch a useful contribution, then save the exact live coverage URL when independent editorial mention is secured.", actionHref: "/distribution", actionLabel: "Open outreach", requiresProof: true, proofLabel: "Independent coverage URL", proofPlaceholder: "https://publisher.com/coverage" },
     ],
   },
