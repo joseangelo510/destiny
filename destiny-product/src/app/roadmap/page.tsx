@@ -21,7 +21,7 @@ export default async function RoadmapPage() {
     searchConsole,
     analytics,
   });
-  const weekly = buildWeeklyProgressSummary(context.quests);
+  const weekly = await buildWeeklyProgressSummary(context.quests);
 
   return <WorkspaceShell active="/roadmap" eyebrow={context.website.normalized_domain} title="Your visibility journey" description="See where you are, where you are going, and the one useful step to take next.">
     <RoadmapExperience roadmap={roadmap} weekly={weekly} />

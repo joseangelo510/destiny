@@ -281,6 +281,146 @@ live in the web platform.
             Return "unknown_issue".
     Return "complete".
 
+## To ChooseQuestTransitionAllowed (task_code: Int) and (current_status_code: Int) and (requested_status_code: Int) -> Text:
+
+    If current_status_code is greater than 2:
+        Return "false".
+    If requested_status_code is greater than 2:
+        Return "false".
+    If requested_status_code equals 2:
+        If task_code equals 2:
+            Return "false".
+        If task_code equals 3:
+            Return "false".
+    Return "true".
+
+## To ChooseQuestTransitionRule (task_code: Int) and (current_status_code: Int) and (requested_status_code: Int) -> Text:
+
+    If current_status_code is greater than 2:
+        Return "reject_unknown_current_status".
+    If requested_status_code is greater than 2:
+        Return "reject_unknown_requested_status".
+    If requested_status_code equals 2:
+        If task_code equals 2:
+            Return "reject_required_task_skip".
+        If task_code equals 3:
+            Return "reject_required_task_skip".
+    If current_status_code equals requested_status_code:
+        Return "allow_noop".
+    If requested_status_code equals 1:
+        Return "allow_complete".
+    If requested_status_code equals 0:
+        Return "allow_reopen".
+    Return "allow_skip".
+
+## To ChooseQuestVerificationStatus (task_code: Int) and (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        If task_code equals 1:
+            Return "verified".
+    Return "unverified".
+
+## To ChooseQuestSetCompletedAt (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        Return "true".
+    Return "false".
+
+## To ChooseQuestSetVerifiedAt (task_code: Int) and (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        If task_code equals 1:
+            Return "true".
+    Return "false".
+
+## To ChooseQuestClearEvidence (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        Return "false".
+    Return "true".
+
+## To ChooseQuestCelebration (transition_allowed: Text) and (task_code: Int) and (requested_status_code: Int) and (remaining_after_completion: Int) and (verification_status: Text) -> Text:
+
+    If transition_allowed equals "false":
+        Return "none".
+    If requested_status_code equals 0:
+        Return "none".
+    If requested_status_code equals 2:
+        Return "none".
+    If requested_status_code is greater than 2:
+        Return "none".
+    If remaining_after_completion equals 0:
+        Return "perfect_week".
+    If verification_status equals "verified":
+        Return "verified_result".
+    If task_code equals 2:
+        Return "roadmap_unlock".
+    If task_code equals 4:
+        Return "roadmap_unlock".
+    Return "task_complete".
+
+## To HasActiveWeek (arguments: Seq of Text) and (week_count: Int) and (target_week: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Repeat for week_offset from 1 to week_count:
+        Let argument_index be 53 + week_offset.
+        Let saved_week be parseInt(item argument_index of arguments).
+        If saved_week equals target_week:
+            Return 1.
+    Return 0.
+
+## To ChooseCurrentWeeklyStreak (arguments: Seq of Text) and (current_week: Int) and (week_count: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Let cursor be current_week.
+    Let current_active be HasActiveWeek(arguments, week_count, cursor).
+    If current_active equals 0:
+        Set cursor to cursor - 1.
+    Let streak be 0.
+    Let keep_counting be HasActiveWeek(arguments, week_count, cursor).
+    While keep_counting equals 1:
+        Set streak to streak + 1.
+        Set cursor to cursor - 1.
+        Set keep_counting to HasActiveWeek(arguments, week_count, cursor).
+    Return streak.
+
+## To ChooseBestWeeklyStreak (arguments: Seq of Text) and (week_count: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Let best be 0.
+    Let running be 0.
+    Let previous be -999999999.
+    Repeat for week_offset from 1 to week_count:
+        Let argument_index be 53 + week_offset.
+        Let saved_week be parseInt(item argument_index of arguments).
+        If saved_week equals previous + 1:
+            Set running to running + 1.
+        Otherwise:
+            Set running to 1.
+        If running is greater than best:
+            Set best to running.
+        Set previous to saved_week.
+    Return best.
+
+## To ChoosePerfectWeekCount (arguments: Seq of Text) and (week_count: Int) and (plan_count: Int) -> Int:
+
+    If plan_count equals 0:
+        Return 0.
+    Let perfect_count be 0.
+    Let plan_start be 54 + week_count.
+    Repeat for plan_offset from 1 to plan_count:
+        Let total_index be plan_start + ((plan_offset - 1) * 2).
+        Let complete_index be total_index + 1.
+        Let total_tasks be parseInt(item total_index of arguments).
+        Let complete_tasks be parseInt(item complete_index of arguments).
+        If total_tasks is greater than 0:
+            If complete_tasks equals total_tasks:
+                Set perfect_count to perfect_count + 1.
+    Return perfect_count.
+
 ## To ChooseKeywordRelevanceCode (core_matches: Int) and (support_matches: Int) -> Int:
 
     If core_matches is greater than 0:
@@ -564,6 +704,13 @@ live in the web platform.
     Let warning_no_h1 be parseInt(item 44 of arguments).
     Let warning_no_alt be parseInt(item 45 of arguments).
     Let unknown_issue_count be parseInt(item 46 of arguments).
+    Let quest_task_code be parseInt(item 47 of arguments).
+    Let quest_current_status_code be parseInt(item 48 of arguments).
+    Let quest_requested_status_code be parseInt(item 49 of arguments).
+    Let quest_remaining_after_completion be parseInt(item 50 of arguments).
+    Let streak_current_week be parseInt(item 51 of arguments).
+    Let streak_week_count be parseInt(item 52 of arguments).
+    Let streak_plan_count be parseInt(item 53 of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -592,6 +739,16 @@ live in the web platform.
     Let weekly_task_tiers be ChooseWeeklyTaskTiers(plan_tier).
     Let weekly_task_priorities be ChooseWeeklyTaskPriorities(plan_tier).
     Let issue_data_quality be ChooseIssueDataQuality(issue_quest_code, unknown_issue_count).
+    Let quest_transition_allowed be ChooseQuestTransitionAllowed(quest_task_code, quest_current_status_code, quest_requested_status_code).
+    Let quest_transition_rule_id be ChooseQuestTransitionRule(quest_task_code, quest_current_status_code, quest_requested_status_code).
+    Let quest_verification_status be ChooseQuestVerificationStatus(quest_task_code, quest_requested_status_code).
+    Let quest_set_completed_at be ChooseQuestSetCompletedAt(quest_requested_status_code).
+    Let quest_set_verified_at be ChooseQuestSetVerifiedAt(quest_task_code, quest_requested_status_code).
+    Let quest_clear_evidence be ChooseQuestClearEvidence(quest_requested_status_code).
+    Let quest_celebration be ChooseQuestCelebration(quest_transition_allowed, quest_task_code, quest_requested_status_code, quest_remaining_after_completion, quest_verification_status).
+    Let streak_current be ChooseCurrentWeeklyStreak(arguments, streak_current_week, streak_week_count).
+    Let streak_best be ChooseBestWeeklyStreak(arguments, streak_week_count).
+    Let streak_perfect_weeks be ChoosePerfectWeekCount(arguments, streak_week_count, streak_plan_count).
     Let keyword_search_intent be ChooseKeywordSearchIntent(keyword_intent_code).
     Let keyword_priority_tier be ChooseKeywordPriorityTier(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent).
     Let keyword_priority_score be ChooseKeywordPriorityScore(keyword_policy_enabled, keyword_eligible, keyword_intent_code, keyword_business_fit_percent, keyword_revenue_fit_percent, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
@@ -629,3 +786,14 @@ live in the web platform.
     Show weekly_task_approvals.
     Show weekly_task_tiers.
     Show weekly_task_priorities.
+    Show quest_transition_allowed.
+    Show quest_transition_rule_id.
+    Show quest_verification_status.
+    Show quest_set_completed_at.
+    Show quest_set_verified_at.
+    Show quest_clear_evidence.
+    Show quest_celebration.
+    Show streak_current.
+    Show streak_best.
+    Show streak_perfect_weeks.
+    Show streak_week_count.

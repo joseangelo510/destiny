@@ -19,7 +19,7 @@ export default async function ThisWeekPage() {
   const done = actionableTasks.filter((task) => task.status === "complete").length;
   const remainingTasks = actionableTasks.filter((task) => task.status !== "complete").length;
   const currentTask = getCurrentCoachTask(actionableTasks);
-  const weekly = buildWeeklyProgressSummary(context.quests);
+  const weekly = await buildWeeklyProgressSummary(context.quests);
   return <WorkspaceShell active="/this-week" eyebrow={`${context.website.normalized_domain} · Week 1`} title="This week" description="Complete one useful task to maintain your weekly streak. Finish the full plan to earn a Perfect Week.">
     <WeeklyLoop auditId={context.audit.id} currentStreak={weekly.currentStreak} currentTaskId={currentTask?.id ?? null} groups={groups} remainingTasks={remainingTasks} />
     <details className="weekly-momentum-drawer">

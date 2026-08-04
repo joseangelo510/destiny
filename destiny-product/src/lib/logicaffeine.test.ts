@@ -335,4 +335,24 @@ describe("Destiny LOGOS parity", () => {
     expect(first.browser).toEqual(first.worker);
     expect(second.browser).toEqual(second.worker);
   });
+
+  it.each([
+    ["business confirmation auto-verifies", { questTaskCode: 1, questCurrentStatusCode: 0, questRequestedStatusCode: 1, questRemainingAfterCompletion: -1 }, { questTransitionAllowed: true, questTransitionRuleId: "allow_complete", questVerificationStatus: "verified", questSetCompletedAt: true, questSetVerifiedAt: true, questClearEvidence: false, questCelebration: "verified_result" }],
+    ["ordinary work stays self-reported", { questTaskCode: 6, questCurrentStatusCode: 0, questRequestedStatusCode: 1, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: true, questVerificationStatus: "unverified", questCelebration: "task_complete" }],
+    ["reopening clears evidence", { questTaskCode: 2, questCurrentStatusCode: 1, questRequestedStatusCode: 0, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: true, questTransitionRuleId: "allow_reopen", questSetCompletedAt: false, questSetVerifiedAt: false, questClearEvidence: true, questCelebration: "none" }],
+    ["last actionable task earns Perfect Week", { questTaskCode: 6, questCurrentStatusCode: 0, questRequestedStatusCode: 1, questRemainingAfterCompletion: 0 }, { questTransitionAllowed: true, questCelebration: "perfect_week" }],
+    ["primary task unlocks roadmap", { questTaskCode: 2, questCurrentStatusCode: 0, questRequestedStatusCode: 1, questRemainingAfterCompletion: 1 }, { questTransitionAllowed: true, questCelebration: "roadmap_unlock" }],
+    ["content task unlocks roadmap", { questTaskCode: 4, questCurrentStatusCode: 0, questRequestedStatusCode: 1, questRemainingAfterCompletion: 1 }, { questTransitionAllowed: true, questCelebration: "roadmap_unlock" }],
+    ["required primary task cannot be skipped", { questTaskCode: 2, questCurrentStatusCode: 0, questRequestedStatusCode: 2, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: false, questTransitionRuleId: "reject_required_task_skip", questCelebration: "none" }],
+    ["required keyword task cannot be skipped", { questTaskCode: 3, questCurrentStatusCode: 0, questRequestedStatusCode: 2, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: false, questTransitionRuleId: "reject_required_task_skip" }],
+    ["optional task can be skipped", { questTaskCode: 6, questCurrentStatusCode: 0, questRequestedStatusCode: 2, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: true, questTransitionRuleId: "allow_skip", questClearEvidence: true }],
+    ["unknown status is rejected", { questTaskCode: 6, questCurrentStatusCode: 9, questRequestedStatusCode: 1, questRemainingAfterCompletion: 2 }, { questTransitionAllowed: false, questTransitionRuleId: "reject_unknown_current_status" }],
+  ] as const)("owns quest transition: %s", async (_label, transition, expected) => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      ...transition,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject(expected);
+  });
 });

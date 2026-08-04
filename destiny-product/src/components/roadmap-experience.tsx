@@ -5,7 +5,7 @@ import type { buildWeeklyProgressSummary } from "../lib/quests/streak";
 
 type RoadmapExperienceProps = {
   roadmap: ReturnType<typeof buildSeoRoadmap>;
-  weekly: ReturnType<typeof buildWeeklyProgressSummary>;
+  weekly: Awaited<ReturnType<typeof buildWeeklyProgressSummary>>;
 };
 
 export function RoadmapExperience({ roadmap, weekly }: RoadmapExperienceProps) {

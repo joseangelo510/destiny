@@ -46,6 +46,13 @@ export type DestinyLogicInput = {
   warningNoH1?: number;
   warningNoAlt?: number;
   unknownIssueCount?: number;
+  questTaskCode?: number;
+  questCurrentStatusCode?: number;
+  questRequestedStatusCode?: number;
+  questRemainingAfterCompletion?: number;
+  streakCurrentWeek?: number;
+  streakWeekIndexes?: number[];
+  streakPlans?: Array<{ total: number; complete: number }>;
 };
 
 export type DestinyLogicResult = {
@@ -78,6 +85,17 @@ export type DestinyLogicResult = {
   weeklyTaskApprovals: boolean[];
   weeklyTaskTiers: number[];
   weeklyTaskPriorities: number[];
+  questTransitionAllowed: boolean;
+  questTransitionRuleId: string;
+  questVerificationStatus: "verified" | "unverified";
+  questSetCompletedAt: boolean;
+  questSetVerifiedAt: boolean;
+  questClearEvidence: boolean;
+  questCelebration: "none" | "perfect_week" | "verified_result" | "roadmap_unlock" | "task_complete";
+  currentStreak: number;
+  bestStreak: number;
+  perfectWeeks: number;
+  lifetimeActiveWeeks: number;
 };
 
 type LogicExports = {
@@ -166,6 +184,15 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.warningNoH1 ?? 0),
     String(input.warningNoAlt ?? 0),
     String(input.unknownIssueCount ?? 0),
+    String(input.questTaskCode ?? 0),
+    String(input.questCurrentStatusCode ?? 0),
+    String(input.questRequestedStatusCode ?? 0),
+    String(input.questRemainingAfterCompletion ?? 0),
+    String(input.streakCurrentWeek ?? 0),
+    String(input.streakWeekIndexes?.length ?? 0),
+    String(input.streakPlans?.length ?? 0),
+    ...(input.streakWeekIndexes ?? []).map(String),
+    ...(input.streakPlans ?? []).flatMap((plan) => [String(plan.total), String(plan.complete)]),
   ];
 
   const imports = {
@@ -212,7 +239,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 29) {
+  if (output.length < 40) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -245,5 +272,16 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     weeklyTaskApprovals: output[26].split(",").filter(Boolean).map((value) => value === "true"),
     weeklyTaskTiers: output[27].split(",").filter(Boolean).map((value) => Number.parseInt(value, 10)),
     weeklyTaskPriorities: output[28].split(",").filter(Boolean).map((value) => Number.parseInt(value, 10)),
+    questTransitionAllowed: output[29] === "true",
+    questTransitionRuleId: output[30],
+    questVerificationStatus: output[31] as DestinyLogicResult["questVerificationStatus"],
+    questSetCompletedAt: output[32] === "true",
+    questSetVerifiedAt: output[33] === "true",
+    questClearEvidence: output[34] === "true",
+    questCelebration: output[35] as DestinyLogicResult["questCelebration"],
+    currentStreak: Number.parseInt(output[36], 10),
+    bestStreak: Number.parseInt(output[37], 10),
+    perfectWeeks: Number.parseInt(output[38], 10),
+    lifetimeActiveWeeks: Number.parseInt(output[39], 10),
   };
 }

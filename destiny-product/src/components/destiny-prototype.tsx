@@ -75,6 +75,17 @@ const seededLogic: DestinyLogicResult = {
   weeklyTaskApprovals: [true, true, false],
   weeklyTaskTiers: [1, 1, 1],
   weeklyTaskPriorities: [1, 1, 1],
+  questTransitionAllowed: true,
+  questTransitionRuleId: "allow_noop",
+  questVerificationStatus: "unverified",
+  questSetCompletedAt: false,
+  questSetVerifiedAt: false,
+  questClearEvidence: true,
+  questCelebration: "none",
+  currentStreak: 0,
+  bestStreak: 0,
+  perfectWeeks: 0,
+  lifetimeActiveWeeks: 0,
 };
 
 const seededAudit: SeoAuditResult = {
