@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { runDestinyLogic as runBrowserLogic } from "./logicaffeine";
 import { runDestinyLogic as runWorkerLogic } from "../../supabase/functions/process-audit/logic";
+import { JUNKIT_RECOMMENDATION_FIXTURE } from "../../supabase/functions/process-audit/fixtures/98junkit-recommendation";
 
 const wasmPath = new URL("../../public/logic/destiny-logic-engine.wasm", import.meta.url);
 
@@ -232,5 +233,106 @@ describe("Destiny LOGOS parity", () => {
     expect(browser).toMatchObject(expected);
     expect(browser.keywordPriorityScore).toBeGreaterThanOrEqual(0);
     expect(browser.keywordPriorityScore).toBeLessThanOrEqual(100);
+  });
+
+  it("lets LOGOS deterministically choose a critical issue over a warning", async () => {
+    const input = {
+      auditComplete: 1, criticalIssues: 1, warnings: 1, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20,
+      criticalHighLoading: 1, warningNoTitle: 1, planTier: 3 as const,
+    };
+    const first = await runBoth(input);
+    const second = await runBoth(input);
+    expect(first.browser).toEqual(first.worker);
+    expect(first.browser).toEqual(second.browser);
+    expect(first.browser).toMatchObject({
+      weeklyQuest: "Reduce the time visitors wait for your homepage",
+      questSource: "issue_fix",
+      issueQuestCode: "high_loading_time",
+      issueDataQuality: "complete",
+      urgency: "urgent",
+    });
+  });
+
+  it("keeps the growth recommendation when no recognized issue exists", async () => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20,
+      planTier: 1,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject({
+      weeklyQuest: "Publish the highest-opportunity page",
+      questSource: "growth_action",
+      issueQuestCode: "none",
+      issueDataQuality: "complete",
+    });
+  });
+
+  it("flags an unknown provider issue without panicking or inventing a fix", async () => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 1, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 0, reviewCount: 20,
+      unknownIssueCount: 1, planTier: 1,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject({
+      questSource: "growth_action",
+      issueQuestCode: "none",
+      issueDataQuality: "unknown_issue",
+    });
+  });
+
+  it.each([
+    [1, ["keyword_review", "primary_quest", "content_review"], [true, false, true], [1, 1, 1], [1, 1, 1]],
+    [2, ["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution"], [true, false, true, false, false], [1, 1, 1, 2, 2], [1, 1, 1, 2, 2]],
+    [3, ["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution", "publisher_outreach", "directory_growth", "technical_review"], [true, false, true, false, false, true, false, false], [1, 1, 1, 2, 2, 3, 3, 3], [1, 1, 1, 2, 2, 3, 3, 3]],
+  ] as const)("returns complete LOGOS-owned task decisions for tier %s", async (planTier, manifest, approvals, tiers, priorities) => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20,
+      planTier,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser.weeklyTaskManifest).toEqual(manifest);
+    expect(browser.weeklyTaskApprovals).toEqual(approvals);
+    expect(browser.weeklyTaskTiers).toEqual(tiers);
+    expect(browser.weeklyTaskPriorities).toEqual(priorities);
+    expect(browser.weeklyTaskCount).toBe(manifest.length);
+  });
+
+  it("matches the real 98junkit audit recommendation fixture across both WASM adapters", async () => {
+    const { browser, worker } = await runBoth(JUNKIT_RECOMMENDATION_FIXTURE.input);
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject(JUNKIT_RECOMMENDATION_FIXTURE.expected);
+    expect(browser.weeklyTaskManifest).toHaveLength(browser.weeklyTaskCount);
+    expect(browser.weeklyTaskApprovals).toHaveLength(browser.weeklyTaskCount);
+    expect(browser.weeklyTaskTiers).toHaveLength(browser.weeklyTaskCount);
+    expect(browser.weeklyTaskPriorities).toHaveLength(browser.weeklyTaskCount);
+  });
+
+  it("still emits a coherent recommendation when zero keywords survive eligibility", async () => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      keywordPolicyEnabled: 1, keywordSearchVolume: 0, keywordCoreMatches: 0, keywordSupportMatches: 0, competitorRankers: 0,
+      planTier: 1,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser.keywordEligible).toBe(false);
+    expect(browser.questSource).toBe("growth_action");
+    expect(browser.weeklyQuest).toBe("Ask three recent customers for a Google review");
+    expect(browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
+    expect(browser.weeklyTaskManifest).toHaveLength(browser.weeklyTaskCount);
+  });
+
+  it("keeps equal-priority manifest tasks in deterministic LOGOS order", async () => {
+    const input = {
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 20, newKeywords: 2, lostKeywords: 0, contentGaps: 2, reviewCount: 20,
+      planTier: 3 as const,
+    };
+    const first = await runBoth(input);
+    const second = await runBoth(input);
+    const firstPriorityTasks = first.browser.weeklyTaskManifest.filter((_task, index) => first.browser.weeklyTaskPriorities[index] === 1);
+    const secondPriorityTasks = second.browser.weeklyTaskManifest.filter((_task, index) => second.browser.weeklyTaskPriorities[index] === 1);
+    expect(firstPriorityTasks).toEqual(["keyword_review", "primary_quest", "content_review"]);
+    expect(secondPriorityTasks).toEqual(firstPriorityTasks);
+    expect(first.browser).toEqual(first.worker);
+    expect(second.browser).toEqual(second.worker);
   });
 });

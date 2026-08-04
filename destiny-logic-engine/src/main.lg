@@ -180,6 +180,107 @@ live in the web platform.
         Return "keyword_review,primary_quest,content_review,community_distribution,social_distribution".
     Return "keyword_review,primary_quest,content_review".
 
+## To ChooseWeeklyTaskApprovals (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "true,false,true,false,false,true,false,false".
+    If plan_tier equals 2:
+        Return "true,false,true,false,false".
+    Return "true,false,true".
+
+## To ChooseWeeklyTaskTiers (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "1,1,1,2,2,3,3,3".
+    If plan_tier equals 2:
+        Return "1,1,1,2,2".
+    Return "1,1,1".
+
+## To ChooseWeeklyTaskPriorities (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "1,1,1,2,2,3,3,3".
+    If plan_tier equals 2:
+        Return "1,1,1,2,2".
+    Return "1,1,1".
+
+## To ChooseIssueQuestCode (critical_render_blocking: Int) and (critical_high_loading: Int) and (critical_no_title: Int) and (critical_no_description: Int) and (critical_no_h1: Int) and (critical_no_alt: Int) and (warning_render_blocking: Int) and (warning_high_loading: Int) and (warning_no_title: Int) and (warning_no_description: Int) and (warning_no_h1: Int) and (warning_no_alt: Int) -> Text:
+
+    If critical_render_blocking is greater than 0:
+        Return "has_render_blocking_resources".
+    If critical_high_loading is greater than 0:
+        Return "high_loading_time".
+    If critical_no_title is greater than 0:
+        Return "no_title".
+    If critical_no_description is greater than 0:
+        Return "no_description".
+    If critical_no_h1 is greater than 0:
+        Return "no_h1_tag".
+    If critical_no_alt is greater than 0:
+        Return "no_image_alt".
+    If warning_render_blocking is greater than 0:
+        Return "has_render_blocking_resources".
+    If warning_high_loading is greater than 0:
+        Return "high_loading_time".
+    If warning_no_title is greater than 0:
+        Return "no_title".
+    If warning_no_description is greater than 0:
+        Return "no_description".
+    If warning_no_h1 is greater than 0:
+        Return "no_h1_tag".
+    If warning_no_alt is greater than 0:
+        Return "no_image_alt".
+    Return "none".
+
+## To ChooseQuestSource (issue_quest_code: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return "growth_action".
+    Return "issue_fix".
+
+## To ChooseIssueQuestCategory (issue_quest_code: Text) and (growth_category: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_category.
+    Return "technical".
+
+## To ChooseIssueQuestTitle (issue_quest_code: Text) and (growth_quest: Text) -> Text:
+
+    If issue_quest_code equals "has_render_blocking_resources":
+        Return "Make your homepage load faster for visitors".
+    If issue_quest_code equals "high_loading_time":
+        Return "Reduce the time visitors wait for your homepage".
+    If issue_quest_code equals "no_title":
+        Return "Give your homepage a clear search title".
+    If issue_quest_code equals "no_description":
+        Return "Add a clear search description to your homepage".
+    If issue_quest_code equals "no_h1_tag":
+        Return "Add one clear main heading to your homepage".
+    If issue_quest_code equals "no_image_alt":
+        Return "Describe important images for search and accessibility".
+    Return growth_quest.
+
+## To ChooseIssueQuestUrgency (issue_quest_code: Text) and (recognized_critical_issues: Int) and (growth_urgency: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_urgency.
+    If recognized_critical_issues is greater than 0:
+        Return "urgent".
+    Return "focused".
+
+## To ChooseIssueQuestExplanation (issue_quest_code: Text) and (growth_explanation: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_explanation.
+    Return "Destiny selected the highest-priority inspectable website issue so the first action removes a concrete search and visitor barrier".
+
+## To ChooseIssueDataQuality (issue_quest_code: Text) and (unknown_issue_count: Int) -> Text:
+
+    If issue_quest_code equals "none":
+        If unknown_issue_count is greater than 0:
+            Return "unknown_issue".
+    Return "complete".
+
 ## To ChooseKeywordRelevanceCode (core_matches: Int) and (support_matches: Int) -> Int:
 
     If core_matches is greater than 0:
@@ -450,12 +551,32 @@ live in the web platform.
     Let keyword_opportunity_code be parseInt(item 31 of arguments).
     Let direct_competitor_rankers be parseInt(item 32 of arguments).
     Let keyword_intent_known be parseInt(item 33 of arguments).
+    Let critical_render_blocking be parseInt(item 34 of arguments).
+    Let critical_high_loading be parseInt(item 35 of arguments).
+    Let critical_no_title be parseInt(item 36 of arguments).
+    Let critical_no_description be parseInt(item 37 of arguments).
+    Let critical_no_h1 be parseInt(item 38 of arguments).
+    Let critical_no_alt be parseInt(item 39 of arguments).
+    Let warning_render_blocking be parseInt(item 40 of arguments).
+    Let warning_high_loading be parseInt(item 41 of arguments).
+    Let warning_no_title be parseInt(item 42 of arguments).
+    Let warning_no_description be parseInt(item 43 of arguments).
+    Let warning_no_h1 be parseInt(item 44 of arguments).
+    Let warning_no_alt be parseInt(item 45 of arguments).
+    Let unknown_issue_count be parseInt(item 46 of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
-    Let weekly_quest be ChooseWeeklyQuest(decision_code).
-    Let quest_category be ChooseQuestCategory(decision_code).
-    Let urgency be ChooseUrgency(decision_code, critical_issues).
-    Let explanation be ChooseExplanation(decision_code).
+    Let growth_quest be ChooseWeeklyQuest(decision_code).
+    Let issue_quest_code be ChooseIssueQuestCode(critical_render_blocking, critical_high_loading, critical_no_title, critical_no_description, critical_no_h1, critical_no_alt, warning_render_blocking, warning_high_loading, warning_no_title, warning_no_description, warning_no_h1, warning_no_alt).
+    Let quest_source be ChooseQuestSource(issue_quest_code).
+    Let weekly_quest be ChooseIssueQuestTitle(issue_quest_code, growth_quest).
+    Let growth_category be ChooseQuestCategory(decision_code).
+    Let quest_category be ChooseIssueQuestCategory(issue_quest_code, growth_category).
+    Let growth_urgency be ChooseUrgency(decision_code, critical_issues).
+    Let recognized_critical_issues be critical_render_blocking + critical_high_loading + critical_no_title + critical_no_description + critical_no_h1 + critical_no_alt.
+    Let urgency be ChooseIssueQuestUrgency(issue_quest_code, recognized_critical_issues, growth_urgency).
+    Let growth_explanation be ChooseExplanation(decision_code).
+    Let explanation be ChooseIssueQuestExplanation(issue_quest_code, growth_explanation).
     Let legacy_keyword_verdict be ChooseKeywordVerdict(keyword_core_matches, keyword_support_matches, competitor_rankers, keyword_blocklisted).
     Let authoritative_relevance_code be ChooseKeywordRelevanceCode(keyword_core_matches, keyword_support_matches).
     Let keyword_eligible be ChooseKeywordEligibility(keyword_policy_enabled, keyword_search_volume, keyword_disqualifiers, keyword_blocklisted, authoritative_relevance_code).
@@ -467,6 +588,10 @@ live in the web platform.
     Let content_task_count be ChooseContentTaskCount(plan_tier).
     Let distribution_task_count be ChooseDistributionTaskCount(plan_tier).
     Let weekly_task_manifest be ChooseWeeklyTaskManifest(plan_tier).
+    Let weekly_task_approvals be ChooseWeeklyTaskApprovals(plan_tier).
+    Let weekly_task_tiers be ChooseWeeklyTaskTiers(plan_tier).
+    Let weekly_task_priorities be ChooseWeeklyTaskPriorities(plan_tier).
+    Let issue_data_quality be ChooseIssueDataQuality(issue_quest_code, unknown_issue_count).
     Let keyword_search_intent be ChooseKeywordSearchIntent(keyword_intent_code).
     Let keyword_priority_tier be ChooseKeywordPriorityTier(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent).
     Let keyword_priority_score be ChooseKeywordPriorityScore(keyword_policy_enabled, keyword_eligible, keyword_intent_code, keyword_business_fit_percent, keyword_revenue_fit_percent, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
@@ -498,3 +623,9 @@ live in the web platform.
     Show keyword_essential.
     Show keyword_data_quality.
     Show keyword_rule_ids.
+    Show quest_source.
+    Show issue_quest_code.
+    Show issue_data_quality.
+    Show weekly_task_approvals.
+    Show weekly_task_tiers.
+    Show weekly_task_priorities.

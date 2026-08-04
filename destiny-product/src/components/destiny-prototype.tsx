@@ -69,6 +69,12 @@ const seededLogic: DestinyLogicResult = {
   keywordEssential: false,
   keywordDataQuality: "intent_missing",
   keywordRuleIds: ["legacy_keyword_policy"],
+  questSource: "growth_action",
+  issueQuestCode: "none",
+  issueDataQuality: "complete",
+  weeklyTaskApprovals: [true, true, false],
+  weeklyTaskTiers: [1, 1, 1],
+  weeklyTaskPriorities: [1, 1, 1],
 };
 
 const seededAudit: SeoAuditResult = {

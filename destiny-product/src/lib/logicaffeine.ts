@@ -31,6 +31,19 @@ export type DestinyLogicInput = {
   keywordOpportunityCode?: 0 | 1 | 2;
   keywordDirectCompetitorRankers?: number;
   keywordIntentKnown?: number;
+  criticalRenderBlocking?: number;
+  criticalHighLoading?: number;
+  criticalNoTitle?: number;
+  criticalNoDescription?: number;
+  criticalNoH1?: number;
+  criticalNoAlt?: number;
+  warningRenderBlocking?: number;
+  warningHighLoading?: number;
+  warningNoTitle?: number;
+  warningNoDescription?: number;
+  warningNoH1?: number;
+  warningNoAlt?: number;
+  unknownIssueCount?: number;
 };
 
 export type DestinyLogicResult = {
@@ -57,6 +70,12 @@ export type DestinyLogicResult = {
   keywordEssential: boolean;
   keywordDataQuality: "complete" | "intent_missing";
   keywordRuleIds: string[];
+  questSource: "issue_fix" | "growth_action";
+  issueQuestCode: string;
+  issueDataQuality: "complete" | "unknown_issue";
+  weeklyTaskApprovals: boolean[];
+  weeklyTaskTiers: number[];
+  weeklyTaskPriorities: number[];
 };
 
 type LogicExports = {
@@ -130,6 +149,19 @@ export async function runDestinyLogic(
     String(input.keywordOpportunityCode ?? 0),
     String(input.keywordDirectCompetitorRankers ?? 0),
     String(input.keywordIntentKnown ?? 0),
+    String(input.criticalRenderBlocking ?? 0),
+    String(input.criticalHighLoading ?? 0),
+    String(input.criticalNoTitle ?? 0),
+    String(input.criticalNoDescription ?? 0),
+    String(input.criticalNoH1 ?? 0),
+    String(input.criticalNoAlt ?? 0),
+    String(input.warningRenderBlocking ?? 0),
+    String(input.warningHighLoading ?? 0),
+    String(input.warningNoTitle ?? 0),
+    String(input.warningNoDescription ?? 0),
+    String(input.warningNoH1 ?? 0),
+    String(input.warningNoAlt ?? 0),
+    String(input.unknownIssueCount ?? 0),
   ];
 
   const imports = {
@@ -177,7 +209,7 @@ export async function runDestinyLogic(
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 23) {
+  if (output.length < 29) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
 
@@ -205,5 +237,11 @@ export async function runDestinyLogic(
     keywordEssential: output[20] === "true",
     keywordDataQuality: output[21] as DestinyLogicResult["keywordDataQuality"],
     keywordRuleIds: output[22].split(",").filter(Boolean),
+    questSource: output[23] as DestinyLogicResult["questSource"],
+    issueQuestCode: output[24],
+    issueDataQuality: output[25] as DestinyLogicResult["issueDataQuality"],
+    weeklyTaskApprovals: output[26].split(",").filter(Boolean).map((value) => value === "true"),
+    weeklyTaskTiers: output[27].split(",").filter(Boolean).map((value) => Number.parseInt(value, 10)),
+    weeklyTaskPriorities: output[28].split(",").filter(Boolean).map((value) => Number.parseInt(value, 10)),
   };
 }
