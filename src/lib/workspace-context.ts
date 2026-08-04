@@ -29,7 +29,7 @@ export async function getWorkspaceContext() {
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase.from("profiles").select("first_name,last_name,contact_email").eq("id", userId).maybeSingle(),
+    supabase.from("profiles").select("first_name,last_name,contact_email,founder_why").eq("id", userId).maybeSingle(),
   ]);
 
   if (!website) {

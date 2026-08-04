@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keywordHasGeographicConflict, rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
+import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
 
 const EMPOWERLY_CONTEXT = {
   productsServices: "College admissions counseling, application strategy, essay coaching, and college planning for high school students",
@@ -37,6 +37,297 @@ const LOGICAFFEINE_BRIEF = {
 };
 
 describe("keyword opportunity ranking", () => {
+  it("rejects unrelated tails from live 98 Junk It discovery while preserving buyer keywords", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "commercial junk removal near me", intent: "commercial", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "office furniture removal", intent: "transactional", searchVolume: 1_300, opportunity: "site_idea" },
+      { keyword: "same day furniture removal", intent: "transactional", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "furniture mold removal", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "furniture stain removal", intent: "commercial", searchVolume: 1_000, opportunity: "site_idea" },
+      { keyword: "furniture wax removal", intent: "commercial", searchVolume: 260, opportunity: "site_idea" },
+      { keyword: "furniture smell removal", intent: "commercial", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "loadup furniture removal", intent: "commercial", searchVolume: 110, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal, furniture removal, appliance hauling, estate cleanouts, and office cleanouts",
+      idealCustomer: "Homeowners, property managers, real estate agents, and businesses in the San Francisco Bay Area",
+      problemSolved: "Customers need unwanted furniture, appliances, and debris hauled away quickly",
+    });
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "commercial junk removal near me",
+      "office furniture removal",
+      "same day furniture removal",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "furniture mold removal",
+      "furniture stain removal",
+      "furniture wax removal",
+      "furniture smell removal",
+      "loadup furniture removal",
+    ]));
+  });
+
+  it("rejects unrelated coaching and essay tails from live Empowerly discovery", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "college counselor", intent: "commercial", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "admissions counseling", intent: "commercial", searchVolume: 2_400, opportunity: "site_idea" },
+      { keyword: "college application essay coaching", intent: "commercial", searchVolume: 390, opportunity: "site_idea" },
+      { keyword: "coaching leadership style essay", intent: "informational", searchVolume: 720, opportunity: "site_idea" },
+      { keyword: "coaching and mentoring reflective essay", intent: "informational", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "essay coaching for UPSC", intent: "commercial", searchVolume: 110, opportunity: "site_idea" },
+      { keyword: "prompt essay coaching reviews", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "essay coaching by Debbie Merion", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "college counselor",
+      "admissions counseling",
+      "college application essay coaching",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "coaching leadership style essay",
+      "coaching and mentoring reflective essay",
+      "essay coaching for UPSC",
+      "prompt essay coaching reviews",
+      "essay coaching by Debbie Merion",
+    ]));
+  });
+
+  it("classifies institution research as awareness even when a provider labels it commercial", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "high point university acceptance rate", intent: "commercial", searchVolume: 14_800, opportunity: "site_idea", directCompetitorRankers: 1 },
+    ], EMPOWERLY_CONTEXT);
+
+    expect(ranked[0]).toMatchObject({ providerIntent: "informational", searchIntent: "awareness" });
+  });
+
+  it("rejects unmeasured onboarding fragments and proof points instead of padding the pool", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "served fremont", intent: "transactional", searchVolume: 10, opportunity: "site_idea" },
+      { keyword: "customers need fast", intent: "transactional", searchVolume: 0, opportunity: "site_idea" },
+      { keyword: "earned more than 200 five star reviews", intent: "commercial", searchVolume: 10, opportunity: "site_idea" },
+      { keyword: "finish moves", intent: "informational", searchVolume: 0, opportunity: "site_idea" },
+      { keyword: "united states", intent: "informational", searchVolume: 0, opportunity: "site_idea" },
+      { keyword: "commercial junk removal services", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal in Fremont and the Bay Area",
+      differentiation: "Served Fremont for 20 years with more than 200 five-star reviews",
+    });
+
+    expect(ranked.map((item) => item.keyword)).toEqual(["commercial junk removal services"]);
+    expect(ranked.every((item) => Number(item.searchVolume) > 0)).toBe(true);
+  });
+
+  it("requires audience and outcome themes to stay attached to the service being sold", () => {
+    const junkBrief = {
+      source: "deterministic" as const,
+      model: null,
+      businessSummary: "98 Junk It removes residential and commercial junk in Fremont.",
+      offerVsEnablement: {
+        whatCompanySells: ["junk removal", "property cleanouts", "construction debris hauling"],
+        whatProductEnables: ["finish moves", "prepare properties for sale"],
+        notTheOffer: [],
+      },
+      audiences: ["property managers", "real estate professionals"],
+      problems: ["unwanted furniture and debris"],
+      differentiators: ["200 five-star reviews"],
+      themes: [
+        { id: "services", label: "Junk removal services", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["junk removal", "property cleanouts", "construction debris hauling"], requiredTerms: ["junk removal", "cleanouts", "debris hauling"], negativeTerms: ["property management", "real estate CRM"], evidence: [{ field: "productsServices" as const, quote: "residential and commercial junk removal" }] },
+        { id: "audiences", label: "Audience use cases", funnelRole: "consideration" as const, priority: "secondary" as const, seedKeywords: ["property managers", "real estate professionals"], requiredTerms: ["property managers", "real estate professionals"], negativeTerms: [], evidence: [{ field: "idealCustomer" as const, quote: "property managers and real estate professionals" }] },
+        { id: "outcomes", label: "Customer outcomes", funnelRole: "awareness" as const, priority: "secondary" as const, seedKeywords: ["finish moves", "prepare properties for sale"], requiredTerms: ["finish moves", "properties for sale"], negativeTerms: [], evidence: [{ field: "audienceChallengesGoals" as const, quote: "finish moves and prepare properties for sale" }] },
+      ],
+    };
+    const ranked = rankKeywordOpportunities([
+      { keyword: "property managers cost", intent: "transactional", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "rental property managers near me", intent: "transactional", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "commercial real estate property managers", intent: "commercial", searchVolume: 5_400, opportunity: "site_idea" },
+      { keyword: "real estate CRM", intent: "commercial", searchVolume: 4_400, opportunity: "site_idea" },
+      { keyword: "renovation schedule", intent: "transactional", searchVolume: 320, opportunity: "site_idea" },
+      { keyword: "junk removal for property managers", intent: "commercial", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "pre listing junk removal", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "construction debris hauling", intent: "commercial", searchVolume: 480, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal, property cleanouts, and construction debris hauling",
+      idealCustomer: "Property managers, real estate professionals, homeowners, and contractors",
+      audienceChallengesGoals: "Finish moves and prepare properties for sale",
+    }, 50, junkBrief);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "junk removal for property managers",
+      "pre listing junk removal",
+      "construction debris hauling",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "property managers cost",
+      "rental property managers near me",
+      "commercial real estate property managers",
+      "real estate CRM",
+      "renovation schedule",
+    ]));
+  });
+
+  it("rejects geography-only, unrelated-industry, remote-city, and social-proof leakage", () => {
+    const junkBrief = {
+      source: "deterministic" as const,
+      model: null,
+      businessSummary: "98 Junk It provides junk removal and cleanout services.",
+      offerVsEnablement: {
+        whatCompanySells: ["residential and commercial junk removal", "property cleanouts", "furniture and appliance removal", "construction debris hauling", "same day pickup"],
+        whatProductEnables: ["reclaim usable space"],
+        notTheOffer: [],
+      },
+      audiences: ["property managers"],
+      problems: ["unwanted furniture and debris"],
+      differentiators: ["served Fremont for 20 years", "200 five-star reviews"],
+      themes: [
+        { id: "services", label: "Products and services", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["residential and commercial junk removal", "property cleanouts", "construction debris hauling"], requiredTerms: ["junk", "property cleanouts", "debris hauling"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "residential and commercial junk removal" }] },
+        { id: "furniture", label: "Furniture and appliance removal", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["furniture removal", "appliance removal"], requiredTerms: ["removal"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "furniture and appliance removal" }] },
+        { id: "disposal", label: "Responsible junk disposal", funnelRole: "awareness" as const, priority: "secondary" as const, seedKeywords: ["responsible disposal", "junk disposal"], requiredTerms: ["disposal"], negativeTerms: [], evidence: [{ field: "problemSolved" as const, quote: "responsible disposal" }] },
+        { id: "estimates", label: "Free estimates", funnelRole: "technical_authority" as const, priority: "supporting" as const, seedKeywords: ["free junk removal estimates", "free estimates"], requiredTerms: ["free estimates"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "free estimates" }] },
+        { id: "proof", label: "Differentiated capabilities", funnelRole: "technical_authority" as const, priority: "primary" as const, seedKeywords: ["served Fremont", "five-star reviews"], requiredTerms: ["served Fremont", "five-star reviews"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "served Fremont for 20 years and earned 200 five-star reviews" }] },
+      ],
+    };
+    const ranked = rankKeywordOpportunities([
+      { keyword: "commercial junk removal services", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "hotels san francisco bay area", intent: "transactional", searchVolume: 60_500, opportunity: "site_idea" },
+      { keyword: "car rental san francisco bay area", intent: "transactional", searchVolume: 18_100, opportunity: "site_idea" },
+      { keyword: "apartments for rent san francisco bay area", intent: "transactional", searchVolume: 18_100, opportunity: "site_idea" },
+      { keyword: "craigslist sf bay area ca apartments", intent: "commercial", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "what services do residential care homes provide", intent: "informational", searchVolume: 10, opportunity: "site_idea" },
+      { keyword: "junk removal services baltimore", intent: "commercial", searchVolume: 40, opportunity: "site_idea" },
+      { keyword: "mold removal services", intent: "commercial", searchVolume: 110_000, opportunity: "site_idea" },
+      { keyword: "auto dent removal services", intent: "commercial", searchVolume: 550_000, opportunity: "site_idea" },
+      { keyword: "junk car removal", intent: "transactional", searchVolume: 9_900, opportunity: "site_idea" },
+      { keyword: "junk removal leads", intent: "transactional", searchVolume: 390, opportunity: "site_idea" },
+      { keyword: "oklahoma city junk removal", intent: "informational", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "athens junk removal", intent: "informational", searchVolume: 320, opportunity: "site_idea" },
+      { keyword: "junk removal barrie free", intent: "commercial", searchVolume: 10, opportunity: "site_idea" },
+      { keyword: "ottawa junk removal free", intent: "commercial", searchVolume: 10, opportunity: "site_idea" },
+      { keyword: "waste removal services", intent: "commercial", searchVolume: 8_100, opportunity: "site_idea" },
+      { keyword: "waste management residential services", intent: "commercial", searchVolume: 40_500, opportunity: "site_idea" },
+      { keyword: "trash service near me", intent: "transactional", searchVolume: 74_000, opportunity: "competitor_gap" },
+      { keyword: "trash services near me", intent: "transactional", searchVolume: 74_000, opportunity: "competitor_gap" },
+      { keyword: "trash pickup", intent: "transactional", searchVolume: 22_200, opportunity: "competitor_gap" },
+      { keyword: "big bulk trash pickup", intent: "transactional", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "bulk pickup trash", intent: "transactional", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "bulky waste pickup", intent: "transactional", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "large trash pickup", intent: "transactional", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "waste collection services", intent: "commercial", searchVolume: 27_100, opportunity: "competitor_gap" },
+      { keyword: "garbage waste pickup", intent: "commercial", searchVolume: 22_200, opportunity: "competitor_gap" },
+      { keyword: "curbside pickup waste management", intent: "commercial", searchVolume: 12_100, opportunity: "competitor_gap" },
+      { keyword: "pick up rubbish service", intent: "transactional", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "trash pickup services", intent: "commercial", searchVolume: 14_800, opportunity: "competitor_gap" },
+      { keyword: "rubbish collection service", intent: "commercial", searchVolume: 27_100, opportunity: "competitor_gap" },
+      { keyword: "interstate waste services", intent: "commercial", searchVolume: 18_100, opportunity: "site_idea" },
+      { keyword: "bay area disposal", intent: "commercial", searchVolume: 210, opportunity: "site_idea" },
+      { keyword: "waste management dumpster rental", intent: "transactional", searchVolume: 14_800, opportunity: "site_idea" },
+      { keyword: "abc home and commercial services", intent: "commercial", searchVolume: 12_100, opportunity: "site_idea" },
+      { keyword: "waste disposal truck", intent: "transactional", searchVolume: 40_500, opportunity: "site_idea" },
+      { keyword: "bulk rubbish pickup", intent: "transactional", searchVolume: 14_800, opportunity: "site_idea" },
+      { keyword: "construction estimates free", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "estimates free", intent: "commercial", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "free estimates on plumbing", intent: "commercial", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "free estimates plumber", intent: "commercial", searchVolume: 2_900, opportunity: "site_idea" },
+      { keyword: "free estimates roofing", intent: "commercial", searchVolume: 1_600, opportunity: "site_idea" },
+      { keyword: "free home estimates", intent: "commercial", searchVolume: 5_400, opportunity: "site_idea" },
+      { keyword: "estimates templates free", intent: "commercial", searchVolume: 1_900, opportunity: "site_idea" },
+      { keyword: "free estimates for hvac", intent: "commercial", searchVolume: 880, opportunity: "site_idea" },
+      { keyword: "garbage disposal installation cost", intent: "transactional", searchVolume: 9_900, opportunity: "site_idea" },
+      { keyword: "tire disposal near me", intent: "transactional", searchVolume: 18_100, opportunity: "site_idea" },
+      { keyword: "garbage disposal replacement", intent: "transactional", searchVolume: 9_900, opportunity: "site_idea" },
+      { keyword: "garbage disposal not working", intent: "transactional", searchVolume: 27_100, opportunity: "site_idea" },
+      { keyword: "insinkerator garbage disposal", intent: "commercial", searchVolume: 40_500, opportunity: "site_idea" },
+      { keyword: "sharps container disposal", intent: "commercial", searchVolume: 18_100, opportunity: "site_idea" },
+      { keyword: "continuous feed garbage disposal", intent: "commercial", searchVolume: 12_100, opportunity: "site_idea" },
+      { keyword: "cat litter disposal system", intent: "commercial", searchVolume: 12_100, opportunity: "site_idea" },
+      { keyword: "waste dump locations near me", intent: "transactional", searchVolume: 301_000, opportunity: "site_idea" },
+      { keyword: "same day laundry pickup and delivery near me", intent: "transactional", searchVolume: 110, opportunity: "site_idea" },
+      { keyword: "capital waste services", intent: "commercial", searchVolume: 8_100, opportunity: "site_idea" },
+      { keyword: "junk out junk removal", intent: "informational", searchVolume: 210, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal in Fremont and the Bay Area, property cleanouts, furniture and appliance removal, construction debris hauling, and same-day pickup",
+      differentiation: "Served Fremont for 20 years with 200 five-star reviews",
+      locationEvidence: "Fremont, San Jose, Livermore, Pleasanton, and the San Francisco Bay Area",
+    }, 50, junkBrief);
+
+    expect(ranked.map((item) => item.keyword).sort()).toEqual([
+      "commercial junk removal services",
+      "waste removal services",
+    ].sort());
+  });
+
+  it("drops the broad informational head term while retaining measured buyer-oriented service phrases", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "junk removal", intent: "informational", searchVolume: 135_000, opportunity: "competitor_gap", competitorRankers: 2 },
+      { keyword: "junk hauling", intent: "commercial", searchVolume: 1_900, opportunity: "site_idea" },
+      { keyword: "same day junk removal", intent: "commercial", searchVolume: 320, opportunity: "site_idea" },
+      { keyword: "commercial junk removal services", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "junk removal cost", intent: "informational", searchVolume: 720, opportunity: "site_idea" },
+    ], {
+      productsServices: "Residential and commercial junk removal, same-day pickup, and junk hauling",
+      idealCustomer: "Homeowners and local businesses in Fremont",
+    });
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "junk hauling",
+      "same day junk removal",
+      "commercial junk removal services",
+      "junk removal cost",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toContain("junk removal");
+  });
+
+  it("does not let a saved audience theme bypass the service-anchor gate", () => {
+    const ranked = rankKeywordOpportunities([{
+      keyword: "property managers near me",
+      intent: "transactional",
+      searchVolume: 40_500,
+      opportunity: "site_idea",
+      themeId: "audience-use-cases",
+      themeLabel: "Audience use cases",
+      themeRole: "consideration",
+    }], {
+      productsServices: "Residential and commercial junk removal, property cleanouts, and construction debris hauling",
+      idealCustomer: "Property managers and homeowners in Fremont",
+    });
+
+    expect(ranked).toEqual([]);
+  });
+
+  it("keeps evidenced local markets and rejects unrelated city modifiers", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "junk removal services in los angeles", intent: "commercial", searchVolume: 590, opportunity: "site_idea" },
+      { keyword: "junk removal services boston", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "junk removal services tucson", intent: "commercial", searchVolume: 30, opportunity: "site_idea" },
+      { keyword: "junk removal services york pa", intent: "commercial", searchVolume: 30, opportunity: "site_idea" },
+      { keyword: "roswell junk removal", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "junk removal columbus", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "junk removal madison", intent: "commercial", searchVolume: 90, opportunity: "site_idea" },
+      { keyword: "fremont junk removal", intent: "commercial", searchVolume: 210, opportunity: "site_idea" },
+      { keyword: "junk removal san jose", intent: "commercial", searchVolume: 70, opportunity: "site_idea" },
+      { keyword: "junk removal livermore", intent: "commercial", searchVolume: 90, opportunity: "existing_rank", rank: 20 },
+    ], {
+      productsServices: "Residential and commercial junk removal serving Fremont and the Bay Area",
+      idealCustomer: "Homeowners and businesses in Fremont",
+      locationEvidence: "Serving Fremont, San Jose, Livermore, Pleasanton, and Redwood City",
+    });
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "fremont junk removal",
+      "junk removal san jose",
+      "junk removal livermore",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "junk removal services in los angeles",
+      "junk removal services boston",
+      "junk removal services tucson",
+      "junk removal services york pa",
+      "roswell junk removal",
+      "junk removal columbus",
+      "junk removal madison",
+    ]));
+  });
+
   it("rejects unrelated high-volume keywords that only share generic onboarding words", () => {
     const ranked = rankKeywordOpportunities([
       { keyword: "best savings account high-yield", intent: "commercial", searchVolume: 1_000_000, difficulty: 37, cpc: 15.23, opportunity: "competitor_gap", competitorRankers: 2 },
@@ -213,7 +504,7 @@ describe("keyword opportunity ranking", () => {
     expect(ranked[0]).toMatchObject({ keyword: "admissions counseling", relevanceTier: "core", priorityTier: 1 });
   });
 
-  it("can retain a six-month-sized approval pool without padding it with noise", () => {
+  it("can retain a broad three-month approval pool without padding it with noise", () => {
     const candidates = Array.from({ length: 60 }, (_, index) => ({
       keyword: index % 2 ? `college admissions counseling topic${index}` : `college application coaching guide${index}`,
       intent: index % 3 === 0 ? "transactional" : index % 3 === 1 ? "commercial" : "informational",
@@ -284,135 +575,24 @@ describe("keyword opportunity ranking", () => {
     expect(Math.max(...Object.values(counts))).toBeLessThanOrEqual(15);
     expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
   });
-});
 
-describe("theme preservation through re-ranking", () => {
-  // A property-management business context ensures "property managers near me"
-  // passes the relevance gate (BUYER_ACTION matches "near me"; offer overlaps
-  // "property"). Without a BusinessSearchBrief the themeMatch is always null,
-  // so the fix must forward the candidate's persisted themeId/themeLabel/themeRole
-  // instead of overwriting them with "evidence-based"/"Evidence-based opportunity".
-  const PROPERTY_MGMT_CONTEXT = {
-    productsServices: "residential property management, tenant screening, rent collection, lease management",
-    problemSolved: "Property owners need help managing rental properties and tenants",
-    idealCustomer: "Real estate investors and rental property owners",
-  };
+  it("does not truncate a valid single-theme local-service pool to eleven keywords", () => {
+    const ranked = Array.from({ length: 35 }, (_, index) => ({
+      keyword: `measured junk removal service segment${index + 1}`,
+      searchVolume: 100 + index,
+      priorityTier: 1 as const,
+      priorityScore: 90 - (index % 10),
+      businessFit: 1,
+      revenueFit: 0.9,
+      relevanceTier: "core" as const,
+      providerIntent: "commercial" as const,
+      searchIntent: "consideration" as const,
+      priorityReason: "Measured service opportunity",
+      themeId: "products-and-services",
+      themeLabel: "Products and services",
+      themeRole: "conversion" as const,
+    }));
 
-  it("preserves a persisted Audience use cases themeLabel when no brief theme matches", () => {
-    const ranked = rankKeywordOpportunities([{
-      keyword: "property managers near me",
-      intent: "transactional",
-      searchVolume: 400,
-      difficulty: 20,
-      opportunity: "site_idea",
-      themeId: "audience-use-cases",
-      themeLabel: "Audience use cases",
-      themeRole: "awareness",
-    }], PROPERTY_MGMT_CONTEXT);
-
-    const result = ranked.find((kw) => kw.keyword === "property managers near me");
-    expect(result).toBeDefined();
-    expect(result!.themeId).toBe("audience-use-cases");
-    expect(result!.themeLabel).toBe("Audience use cases");
-    expect(result!.themeRole).toBe("awareness");
-  });
-
-  it("overwrites a persisted theme when a new brief match is found", () => {
-    // Full BusinessSearchBrief shape — every required field must be present or
-    // keywordThemeMatch crashes reading offerVsEnablement.notTheOffer.
-    const PROPERTY_MGMT_BRIEF = {
-      source: "claude-opus-4-8" as const,
-      model: "claude-opus-4-8",
-      businessSummary: "Residential property management providing tenant screening, rent collection, and lease management.",
-      offerVsEnablement: {
-        whatCompanySells: ["property management services", "tenant screening", "rent collection"],
-        whatProductEnables: ["property owners to earn passive income"],
-        notTheOffer: ["real estate buying", "mortgage services"],
-      },
-      audiences: ["real estate investors", "rental property owners"],
-      problems: ["managing tenants", "collecting rent", "delinquent payments"],
-      differentiators: ["local property managers", "24/7 maintenance response"],
-      themes: [{
-        id: "property-mgmt-services",
-        label: "Property management services",
-        funnelRole: "conversion" as const,
-        priority: "primary" as const,
-        // "property manager" → canonical tokens ["property","manager"] both appear in
-        // "property managers near me" → requiredMatches = 1; seed overlap >= 0.25.
-        seedKeywords: ["find property managers near me", "local property manager", "hire property manager"],
-        requiredTerms: ["property manager"],
-        negativeTerms: ["real estate agent", "mortgage"],
-        evidence: [{ field: "productsServices" as const, quote: "property management" }],
-      }],
-    };
-
-    const ranked = rankKeywordOpportunities([{
-      keyword: "property managers near me",
-      intent: "transactional",
-      searchVolume: 400,
-      difficulty: 20,
-      opportunity: "site_idea",
-      themeId: "audience-use-cases",
-      themeLabel: "Audience use cases",
-      themeRole: "awareness",
-    }], PROPERTY_MGMT_CONTEXT, 50, PROPERTY_MGMT_BRIEF);
-
-    const result = ranked.find((kw) => kw.keyword === "property managers near me");
-    expect(result).toBeDefined();
-    // Brief match wins — should NOT preserve the stale persisted theme.
-    expect(result!.themeId).toBe("property-mgmt-services");
-    expect(result!.themeLabel).toBe("Property management services");
-    expect(result!.themeRole).toBe("conversion");
-  });
-
-  it("falls back to evidence-based when no brief and no persisted theme", () => {
-    const ranked = rankKeywordOpportunities([{
-      keyword: "property managers near me",
-      intent: "transactional",
-      searchVolume: 400,
-      difficulty: 20,
-    }], PROPERTY_MGMT_CONTEXT);
-
-    const result = ranked.find((kw) => kw.keyword === "property managers near me");
-    expect(result).toBeDefined();
-    expect(result!.themeId).toBe("evidence-based");
-    expect(result!.themeLabel).toBe("Evidence-based opportunity");
-  });
-});
-
-describe("keywordHasGeographicConflict", () => {
-  const fremonEvidence = "junk removal fremont bay area east bay california hauling debris";
-
-  it("flags keywords with city names absent from page-text evidence (98junkit.com pattern)", () => {
-    expect(keywordHasGeographicConflict("junk removal los angeles", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal manhattan", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal boston", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal houston", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal green bay", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal seattle", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal chicago", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal philadelphia", fremonEvidence)).toBe(true);
-    // Extended local-market regression — unsupported secondary US cities.
-    expect(keywordHasGeographicConflict("junk removal services tucson", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal services york pa", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("roswell junk removal", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal columbus", fremonEvidence)).toBe(true);
-    expect(keywordHasGeographicConflict("junk removal madison", fremonEvidence)).toBe(true);
-  });
-
-  it("passes keywords whose city appears in the page-text evidence", () => {
-    expect(keywordHasGeographicConflict("junk removal fremont", fremonEvidence)).toBe(false);
-    expect(keywordHasGeographicConflict("bay area junk removal", fremonEvidence)).toBe(false);
-  });
-
-  it("passes non-geographic keywords unconditionally", () => {
-    expect(keywordHasGeographicConflict("same day junk removal", fremonEvidence)).toBe(false);
-    expect(keywordHasGeographicConflict("junk removal near me", fremonEvidence)).toBe(false);
-    expect(keywordHasGeographicConflict("debris hauling cost", fremonEvidence)).toBe(false);
-  });
-
-  it("passes everything when evidence is empty", () => {
-    expect(keywordHasGeographicConflict("junk removal chicago", "")).toBe(false);
-    expect(keywordHasGeographicConflict("los angeles hauling", "   ")).toBe(false);
+    expect(selectDiversifiedKeywordOpportunities(ranked, 35)).toHaveLength(35);
   });
 });

@@ -9,7 +9,7 @@ import {
 } from "./source-progress";
 
 describe("LLM source progress", () => {
-  it("uses current, model-specific citation benchmarks instead of one universal ranking", () => {
+  it("uses current, model-specific citation benchmarks instead of one universal ranking", async () => {
     expect(AI_ENGINE_CITATION_SNAPSHOTS).toHaveLength(5);
     expect(AI_ENGINE_CITATION_SNAPSHOTS.every((snapshot) => snapshot.updated === "July 2026")).toBe(true);
     expect(AI_ENGINE_CITATION_SNAPSHOTS.find((snapshot) => snapshot.id === "gemini")?.dataAsOf).toBe("June 2026");
@@ -18,7 +18,7 @@ describe("LLM source progress", () => {
     expect(AI_ENGINE_CITATION_SNAPSHOTS.find((snapshot) => snapshot.id === "google-ai-overviews")?.domains[0]).toMatchObject({ domain: "youtube.com", share: 21.1 });
   });
 
-  it("connects actionable benchmark sources to the right source playbook", () => {
+  it("connects actionable benchmark sources to the right source playbook", async () => {
     expect(citationDomainPlaybookKey("reddit.com")).toBe("reddit");
     expect(citationDomainPlaybookKey("en.wikipedia.org")).toBe("wikipedia");
     expect(citationDomainPlaybookKey("youtube.com")).toBe("youtube");
@@ -26,7 +26,7 @@ describe("LLM source progress", () => {
     expect(citationDomainPlaybookKey("google.com")).toBeNull();
   });
 
-  it("provides small, actionable playbooks for the source ecosystems users can influence", () => {
+  it("provides small, actionable playbooks for the source ecosystems users can influence", async () => {
     expect(LLM_SOURCE_PLAYBOOKS.map((source) => source.key)).toEqual([
       "owned-site",
       "reddit",
@@ -65,8 +65,8 @@ describe("LLM source progress", () => {
     ]);
   });
 
-  it("computes readiness from persisted source tasks and keeps provider evidence separate", () => {
-    const result = buildLlmSourceProgress({
+  it("computes readiness from persisted source tasks and keeps provider evidence separate", async () => {
+    const result = await buildLlmSourceProgress({
       records: [
         { source_key: "youtube", task_key: "choose-question", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" },
         { source_key: "youtube", task_key: "publish-video", status: "complete", completed_at: "2026-08-02T12:05:00.000Z" },
@@ -84,21 +84,21 @@ describe("LLM source progress", () => {
     expect(result.readiness.label).not.toMatch(/AI visibility score|AI-visible/i);
   });
 
-  it("does not let checklist completion fabricate a verified AI citation outcome", () => {
+  it("does not let checklist completion fabricate a verified AI citation outcome", async () => {
     const records = LLM_SOURCE_PLAYBOOKS.flatMap((source) => source.tasks.map((task) => ({
       source_key: source.key,
       task_key: task.key,
       status: "complete",
       completed_at: "2026-08-02T12:00:00.000Z",
     })));
-    const result = buildLlmSourceProgress({ records, llmVisibility: { status: "available", totalMentions: 0, platforms: [] } });
+    const result = await buildLlmSourceProgress({ records, llmVisibility: { status: "available", totalMentions: 0, platforms: [] } });
 
     expect(result.readiness).toMatchObject({ completed: 27, total: 27, percent: 100 });
     expect(result.verifiedVisibility.detected).toBe(false);
     expect(result.verifiedVisibility.label).toMatch(/no provider-detected mentions/i);
   });
 
-  it("validates source task updates against the product playbooks", () => {
+  it("validates source task updates against the product playbooks", async () => {
     expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "complete", proofUrl: "https://www.youtube.com/watch?v=proof123" })).toEqual({
       ok: true,
       value: {
@@ -118,8 +118,8 @@ describe("LLM source progress", () => {
     expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "verified" })).toMatchObject({ ok: false });
   });
 
-  it("tracks attached public proof without turning it into provider evidence", () => {
-    const result = buildLlmSourceProgress({
+  it("tracks attached public proof without turning it into provider evidence", async () => {
+    const result = await buildLlmSourceProgress({
       records: [
         { source_key: "youtube", task_key: "publish-video", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://youtu.be/proof123", proof_attached_at: "2026-08-02T12:01:00.000Z" },
       ],
@@ -131,7 +131,7 @@ describe("LLM source progress", () => {
     expect(result.verifiedVisibility.detected).toBe(false);
   });
 
-  it("requires owned-site proof to belong to the onboarded website", () => {
+  it("requires owned-site proof to belong to the onboarded website", async () => {
     expect(proofUrlMatchesWebsite("https://blog.example.com/buyer-guide", "example.com")).toBe(true);
     expect(proofUrlMatchesWebsite("https://www.example.com/buyer-guide", "www.example.com")).toBe(true);
     expect(proofUrlMatchesWebsite("https://example.com.evil.test/buyer-guide", "example.com")).toBe(false);

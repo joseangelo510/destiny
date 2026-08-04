@@ -22,6 +22,17 @@ export default async function KeywordsPage() {
   const vocabulary = list(provider.siteVocabulary).map(record);
   const keywords = list(provider.keywords).map(record);
   const keywordQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "keyword_review");
+  const locationEvidence = pages.map((page) => String(page.text || "")).join(" ");
+  const keywordBusinessContext = {
+    businessName: context.website?.business_name ?? "",
+    productsServices: context.website?.products_services ?? "",
+    problemSolved: context.website?.problem_solved ?? "",
+    idealCustomer: context.website?.ideal_customer ?? "",
+    audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
+    differentiation: context.website?.differentiation ?? "",
+    market: context.website?.market ?? "",
+    locationEvidence,
+  };
   const { data: savedDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
   const initialDecisions = Object.fromEntries((savedDecisions ?? []).map((decision) => [decision.keyword, decision.decision])) as Record<string, "approved" | "declined">;
   const keywordCandidates = keywords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
@@ -42,27 +53,16 @@ export default async function KeywordsPage() {
     themeId: String(keyword.themeId ?? ""),
     themeLabel: String(keyword.themeLabel ?? ""),
     themeRole: String(keyword.themeRole ?? ""),
-  }] : []);
+  }] : []).filter((keyword) => !keywordHasGeographicConflict(keyword, keywordBusinessContext));
   const hasPersistedSemanticStrategy = keywordCandidates.length > 0
     && keywordCandidates.every((keyword) => keyword.priorityScore > 0 && keyword.priorityReason && keyword.themeId && keyword.themeLabel);
-  const pageTextEvidence = pages.map((page) => String(page.text || "")).join(" ");
   const usableKeywords = hasPersistedSemanticStrategy
-    ? keywordCandidates
-        .filter((keyword) => Number(keyword.rank) > 0 || !keywordHasGeographicConflict(keyword.keyword, pageTextEvidence))
-        .map((keyword) => ({
-          ...keyword,
-          competitorRankers: Number(keyword.competitorRankers ?? 0),
-          essential: Boolean(keyword.essential),
-        }))
-    : rankKeywordOpportunities(keywordCandidates, {
-      businessName: context.website?.business_name ?? "",
-      productsServices: context.website?.products_services ?? "",
-      problemSolved: context.website?.problem_solved ?? "",
-      idealCustomer: context.website?.ideal_customer ?? "",
-      audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
-      differentiation: context.website?.differentiation ?? "",
-      market: context.website?.market ?? "",
-    }, 50).map((keyword) => ({
+    ? keywordCandidates.map((keyword) => ({
+      ...keyword,
+      competitorRankers: Number(keyword.competitorRankers ?? 0),
+      essential: Boolean(keyword.essential),
+    }))
+    : rankKeywordOpportunities(keywordCandidates, keywordBusinessContext, 50).map((keyword) => ({
       ...keyword,
       competitorRankers: Number(keyword.competitorRankers ?? 0),
       essential: keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational",

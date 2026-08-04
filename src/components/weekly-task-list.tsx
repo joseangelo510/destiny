@@ -21,7 +21,7 @@ type WeeklyTask = {
   verified_at: string | null;
 };
 
-export function WeeklyTaskList({ openTaskId, tasks, remainingTasks = Number.POSITIVE_INFINITY }: { openTaskId: string | null; tasks: WeeklyTask[]; remainingTasks?: number }) {
+export function WeeklyTaskList({ openTaskId, tasks }: { openTaskId: string | null; tasks: WeeklyTask[]; remainingTasks?: number }) {
   const router = useRouter();
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -36,17 +36,11 @@ export function WeeklyTaskList({ openTaskId, tasks, remainingTasks = Number.POSI
     setSaving(task.id);
     setError("");
     const response = await fetch(`/api/quests/${encodeURIComponent(task.id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-    const payload = await response.json() as { error?: string; quest?: { verification_status?: string } };
+    const payload = await response.json() as { error?: string; celebration?: CelebrationKind | "none"; quest?: { verification_status?: string } };
     if (!response.ok) setError(payload.error || "Destiny could not update the task.");
     else {
       if (status === "complete") {
-        const kind: CelebrationKind = remainingTasks === 1
-          ? "perfect_week"
-          : payload.quest?.verification_status === "verified"
-          ? "verified_result"
-          : task.task_type === "primary_quest" || task.task_type === "content_review"
-          ? "roadmap_unlock"
-          : "task_complete";
+        const kind: CelebrationKind = payload.celebration && payload.celebration !== "none" ? payload.celebration : "task_complete";
         void playDestinySound(kind);
         setCelebration({ kind, ...celebrationMessage(kind) });
         setJustCompleted(task.id);
@@ -84,7 +78,7 @@ export function WeeklyTaskList({ openTaskId, tasks, remainingTasks = Number.POSI
         {task.external_url && <a className="secondary-button" href={task.external_url} rel="noreferrer" target="_blank">{task.task_type === "technical_review" ? "Open PageSpeed Insights ↗" : "Open live thread ↗"}</a>}
         {task.status !== "complete" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "complete")} type="button">{saving === task.id ? "Saving…" : task.requires_approval ? "Approve & complete" : "Mark done"}</button>}
         {task.status === "complete" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "todo")} type="button">Reopen</button>}
-        {task.task_type !== "primary_quest" && task.task_type !== "keyword_review" && task.status !== "skipped" && task.status !== "complete" && <button className="text-button" disabled={saving === task.id} onClick={() => void update(task, "skipped")} type="button">Skip for now</button>}
+        {!new Set(["primary_quest", "keyword_review"]).has(task.task_type) && task.status !== "skipped" && task.status !== "complete" && <button className="text-button" disabled={saving === task.id} onClick={() => void update(task, "skipped")} type="button">Skip for now</button>}
       </div></div>
     </details>;
     })}

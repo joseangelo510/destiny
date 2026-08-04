@@ -4,22 +4,21 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
-import { resolveArticleGenerationCapability } from "@/lib/content/article-generation";
-import { buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { articleGenerationCapability } from "@/lib/content/article-generation";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage() {
+  const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
-  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
-  // Strategic pages only — mirrors the filter on the Keyword strategy page so that
-  // incidental city mentions in blog posts or "other"-role pages cannot authorise
-  // out-of-market editorial topics via the geo-conflict filter.
-  const strategicPages = pages.filter((page) => String(page.role || "other") !== "other" && !/\/(?:blog|news|articles?|category|tag|uncategorized)(?:\/|$)/i.test(String(page.url || "")));
-  const pageTextForCalendar = strategicPages.map((page) => String(page.text || "")).join(" ");
   const keywordRecords = list(providerResult.keywords).map(record);
+  const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
+  const strategicPages = pages.filter((page) => String(page.role || "other") !== "other"
+    && !/\/(?:blog|news|articles?|category|tag|uncategorized)(?:\/|$)/i.test(String(page.url || "")));
+  const locationEvidence = strategicPages.map((page) => String(page.text || "")).join(" ");
   const rankedKeywords = rankKeywordOpportunities(keywordRecords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
     keyword: keyword.keyword,
     intent: String(keyword.intent || keyword.providerIntent || "informational"),
@@ -29,29 +28,32 @@ export default async function ContentPage() {
     rank: Number(keyword.rank ?? 0),
     cpc: Number(keyword.cpc ?? 0),
     competitorRankers: Number(keyword.competitorRankers ?? 0),
-    // Preserve persisted semantic-cluster data so the re-ranking pass can
-    // forward it through the fallback path instead of overwriting with
-    // "Evidence-based opportunity". Required for offer-fit filtering to
-    // distinguish an audience segment from an actual sold service.
-    themeId: keyword.themeId,
-    themeLabel: keyword.themeLabel,
-    themeRole: keyword.themeRole,
+    themeId: typeof keyword.themeId === "string" ? keyword.themeId : undefined,
+    themeLabel: typeof keyword.themeLabel === "string" ? keyword.themeLabel : undefined,
+    themeRole: typeof keyword.themeRole === "string" ? keyword.themeRole : undefined,
   }] : []), {
     productsServices: context.website?.products_services ?? "",
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     audienceChallengesGoals: context.website?.audience_challenges_goals ?? "",
     market: context.website?.market ?? "",
-    pageText: pageTextForCalendar,
+    locationEvidence,
   }, 50);
   const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
   const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
-  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, {
+  const editorialContext = {
     productsServices: context.website?.products_services ?? "",
-    locationEvidence: pageTextForCalendar,
-    competitorNames: context.competitors.map((competitor) => String(competitor.name || "")).filter(Boolean),
-  });
-  const calendar = buildEditorialCalendar(keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })), INITIAL_PLAN_WEEKS, inferBusinessModel(context.website?.products_services ?? ""), { productsServices: context.website?.products_services ?? "", pageText: pageTextForCalendar });
+    locationEvidence,
+    competitorNames: context.competitors.map((competitor) => competitor.name),
+  };
+  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, editorialContext);
+  const businessModel = await inferBusinessModel(context.website?.products_services ?? "");
+  const calendar = await buildEditorialCalendar(
+    keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })),
+    INITIAL_PLAN_WEEKS,
+    businessModel,
+    editorialContext,
+  );
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
@@ -69,13 +71,6 @@ export default async function ContentPage() {
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
-          calendar={calendar}
-          calendarSourceLabel={String(providerResult.sourceLabel ?? "Saved audit data")}
-          planMonths={INITIAL_PLAN_MONTHS}
-          generationCapability={resolveArticleGenerationCapability({
-            anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-            copyModel: process.env.ANTHROPIC_COPY_MODEL,
-          })}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
@@ -87,10 +82,50 @@ export default async function ContentPage() {
               text: typeof page.text === "string" ? page.text : undefined,
             })),
           }}
+          generationAvailable={generationCapability.available}
+          generationModelLabel={generationCapability.label}
           initialDrafts={articleDrafts}
           questId={approvalQuest?.id}
           questStatus={approvalQuest?.status}
         />
+        <section className="workspace-card">
+          <div className="workspace-card-heading editorial-calendar-heading">
+            <div><strong>Editorial calendar</strong><small>{String(providerResult.sourceLabel ?? "Saved audit data")}</small></div>
+            <div className="editorial-calendar-meta">
+              <span>{calendar.length} weeks · {INITIAL_PLAN_MONTHS} months</span>
+              <span className="intent-help">
+                <span>Search intent</span>
+                <button type="button" aria-label="What do the search intent stages mean?" aria-describedby="search-intent-help">i</button>
+                <span className="intent-tooltip" id="search-intent-help" role="tooltip">
+                  <strong>Search intent</strong>
+                  {(Object.keys(SEARCH_INTENT_DEFINITIONS) as Array<keyof typeof SEARCH_INTENT_DEFINITIONS>).map((intent) => (
+                    <span className="intent-tooltip-row" key={intent}>
+                      <b>{SEARCH_INTENT_DEFINITIONS[intent].label}</b>
+                      <small>{SEARCH_INTENT_DEFINITIONS[intent].description}</small>
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </div>
+          </div>
+          <div className="content-table">
+            <div className="content-row content-head"><span>Schedule</span><span>Content type</span><span>Focus keyword</span><span>Monthly Searches</span><span>Title</span><span>Search intent</span><span>Status</span></div>
+            {calendar.map((item, index) => {
+              const intentDefinition = SEARCH_INTENT_DEFINITIONS[item.searchIntent];
+              return (
+                <div className="content-row" key={`${item.focusKeyword}-${index}`}>
+                  <span className="editorial-schedule" data-label="Schedule"><small>Month {item.month}</small><strong>Week {item.week}</strong></span>
+                  <span data-label="Content type"><strong>{item.contentType}</strong></span>
+                  <span data-label="Focus keyword"><strong>{item.focusKeyword}</strong></span>
+                  <span data-label="Monthly Searches"><strong>{item.searchVolume.toLocaleString()}</strong><small>{item.priorityReason} · Difficulty {item.difficulty}</small></span>
+                  <span data-label="Title"><strong>{item.title}</strong></span>
+                  <span data-label="Search intent"><strong className={`intent-chip ${item.searchIntent}`}>{intentDefinition.label}</strong><small>{intentDefinition.summary}</small></span>
+                  <span data-label="Status"><span className={`status-chip ${index < 3 ? "" : "amber"}`}>{index < 3 && approvalQuest?.status === "complete" ? "Approved for delivery" : item.status}</span></span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
         </>
       )}
     </WorkspaceShell>

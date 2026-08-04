@@ -189,7 +189,12 @@ describe("live audit orchestration", () => {
       if (url.endsWith("/ranked_keywords/live")) return Response.json(payload({ metrics: { organic: { count: 0, is_new: 0, is_lost: 0, etv: 0 } }, items: [] }));
       if (url.endsWith("/competitors_domain/live")) return Response.json(payload({ items: [{ domain: "competitor-one.com", intersections: 5 }, { domain: "competitor-two.com", intersections: 4 }] }));
       if (url.endsWith("/keywords_for_site/live")) return Response.json(payload({ items: [{ keyword: "map of globe", keyword_info: { search_volume: 900 }, keyword_properties: {} }] }));
-      if (url.endsWith("/keyword_ideas/live")) return Response.json(payload({ items: [] }));
+      if (url.endsWith("/keyword_ideas/live")) return Response.json(payload({ items: [{
+        keyword: "online graphic design",
+        keyword_info: { search_volume: 1_300, cpc: 6 },
+        keyword_properties: { keyword_difficulty: 29 },
+        search_intent_info: { main_intent: "commercial" },
+      }] }));
       if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/search_intent/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [] }));

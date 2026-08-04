@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
+import { runDestinyLogic } from "../lib/logicaffeine";
+import { buildCoachTaskSet } from "../lib/product/coach-experience";
+import { JUNKIT_RECOMMENDATION_FIXTURE } from "../../supabase/functions/process-audit/fixtures/98junkit-recommendation";
 import { WeeklyLoop } from "./weekly-loop";
 
 vi.mock("next/navigation", () => ({
@@ -11,6 +15,7 @@ const task = (overrides: Partial<{
   title: string;
   task_type: string;
   status: string;
+  action_path: string;
 }> = {}) => ({
   id: "keyword-task",
   title: "Approve your priority keywords",
@@ -74,22 +79,6 @@ describe("WeeklyLoop", () => {
     expect(html).not.toContain("Data analysis");
   });
 
-  it("opens the first task when Research and Strategy is completed-only (no todo or in-progress)", () => {
-    const completedGroups = groups.map((group) =>
-      group.id === "research-strategy"
-        ? { ...group, tasks: [task({ status: "complete" })] }
-        : group,
-    );
-    // Pass currentTaskId to pin the active group to research-strategy even though all its tasks are complete
-    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={1} currentTaskId="keyword-task" groups={completedGroups} remainingTasks={0} />);
-
-    // The completed keyword_review task must still be open (first task fallback)
-    expect(html).toContain('open=""');
-    // And its action link must read "Review saved strategy", not "Open guided step"
-    expect(html).toContain("Review saved strategy");
-    expect(html).not.toContain("Open guided step");
-  });
-
   it("keeps the one-time post-audit plan reveal available", () => {
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} initialRevealOpen remainingTasks={2} />);
 
@@ -97,5 +86,57 @@ describe("WeeklyLoop", () => {
     expect(html).toContain("Your path to being found has four parts");
     expect(html).toContain("See my week 1 plan");
     expect(html).toContain("Replay plan reveal");
+  });
+
+  it("can make the week smaller without changing or completing any task", () => {
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} initialFocusMode remainingTasks={2} />);
+
+    expect(html).toContain("I hear you. Let’s make this smaller.");
+    expect(html).toContain("One step");
+    expect(html).toContain("about 12 minutes");
+    expect(html).toContain("Approve your priority keywords");
+    expect(html).not.toContain("Review your first article");
+    expect(html).toContain("Show my full week");
+  });
+
+  it("opens a completed-only strategy task so the saved review remains reachable", () => {
+    const completedGroups = groups.map((group) => group.id === "research-strategy"
+      ? { ...group, tasks: [task({ status: "complete", action_path: "/keywords" })] }
+      : { ...group, tasks: [] });
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={1} groups={completedGroups} remainingTasks={1} />);
+
+    expect(html).toContain('data-task-id="keyword-task" open=""');
+    expect(html).toContain('href="/keywords"');
+    expect(html).toContain("Review saved strategy");
+  });
+
+  it("renders a real-audit weekly screen from the LOGOS-owned manifest", async () => {
+    const bytes = await readFile(new URL("../../public/logic/destiny-logic-engine.wasm", import.meta.url));
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(bytes)));
+    const logic = await runDestinyLogic(JUNKIT_RECOMMENDATION_FIXTURE.input);
+    vi.unstubAllGlobals();
+    const tasks = logic.weeklyTaskManifest.map((taskType, index) => ({
+      id: `logos-${index}`,
+      title: taskType === "primary_quest" ? logic.weeklyQuest : taskType.replaceAll("_", " "),
+      description: taskType === "primary_quest" ? logic.explanation : "LOGOS selected this task for the current plan.",
+      status: "todo",
+      action_path: taskType === "primary_quest" ? "/audits/audit-1#recommended-fix" : `/${taskType}`,
+      estimated_minutes: 15,
+      requires_approval: logic.weeklyTaskApprovals[index],
+      external_url: null,
+      task_type: taskType,
+      category: taskType === "primary_quest" ? logic.questCategory : taskType.includes("distribution") || taskType.includes("outreach") || taskType.includes("growth") ? "distribution" : "content",
+      priority: logic.weeklyTaskPriorities[index],
+      verification_status: "unverified",
+      verification_method: null,
+      verified_at: null,
+    }));
+    const logosGroups = (await buildCoachTaskSet(tasks)).loopGroups;
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} currentTaskId="logos-1" groups={logosGroups} initialRevealOpen remainingTasks={tasks.length} />);
+
+    expect(html).toContain("Make your homepage load faster for visitors");
+    expect(html).toContain('aria-label="0 of 8 weekly tasks complete"');
+    expect(html).toContain("Technical SEO");
+    expect(logic.weeklyTaskManifest).toHaveLength(8);
   });
 });

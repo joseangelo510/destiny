@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  buyerExpansionSeeds,
   createBusinessSearchBrief,
   deterministicBusinessSearchBrief,
   type BusinessSearchContext,
@@ -12,6 +13,16 @@ const LOGICAFFEINE_CONTEXT: BusinessSearchContext = {
   idealCustomer: "data center developers, software developers, vibe coders",
   audienceChallengesGoals: "we want our audience to be able to program just like all of the other programmers in the world and not have to learn totally new language a bunch of different syntax and symbols we want them to be able to use English. We also want to exponentially reduce power consumption of datacenter high-performance compute processing.",
   differentiation: "Our programming language has a built in SAT solver and super compiler. We can transpile logos hardware specifications and then transpile them into System Verilog Assertions for computer chip architecture design that is provably bug free.",
+  market: "United States",
+};
+
+const JUNK_REMOVAL_CONTEXT: BusinessSearchContext = {
+  businessName: "98 Junk It",
+  productsServices: "We provide residential and commercial junk removal in Fremont and the San Francisco Bay Area, including property cleanouts, furniture and appliance removal, construction debris hauling, and same-day pickup.",
+  problemSolved: "Customers need a fast, reliable way to remove unwanted furniture, appliances, debris, and clutter without renting a truck.",
+  idealCustomer: "Homeowners, renters, property managers, real estate professionals, contractors, and local business owners in Fremont and the Bay Area.",
+  audienceChallengesGoals: "Help customers reclaim usable space, finish moves, and prepare properties for sale or rent.",
+  differentiation: "We have served Fremont for 20 years and earned more than 200 five-star reviews.",
   market: "United States",
 };
 
@@ -142,6 +153,35 @@ describe("business search brief", () => {
     expect(brief.themes.flatMap((theme) => theme.seedKeywords)).not.toContain("build software");
   });
 
+  it("keeps the Opus brief and supplements omitted onboarding fields conservatively", async () => {
+    const partialBrief = {
+      ...CLAUDE_BRIEF,
+      themes: CLAUDE_BRIEF.themes.map((theme) => ({
+        ...theme,
+        evidence: theme.evidence.filter((item) =>
+          item.field !== "differentiation" && item.field !== "audienceChallengesGoals"),
+      })).filter((theme) => theme.evidence.length),
+    };
+    const fetchMock = vi.fn(async () => Response.json({
+      id: "msg_partial",
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: JSON.stringify(partialBrief) }],
+    }));
+
+    const brief = await createBusinessSearchBrief(
+      LOGICAFFEINE_CONTEXT,
+      [],
+      { apiKey: "test-key", model: "claude-opus-4-8" },
+      fetchMock,
+    );
+
+    const coveredFields = new Set(brief.themes.flatMap((theme) => theme.evidence.map((item) => item.field)));
+    expect(brief.source).toBe("claude-opus-4-8");
+    expect(brief.warning).toMatch(/supplemented/i);
+    expect(coveredFields.has("audienceChallengesGoals")).toBe(true);
+    expect(coveredFields.has("differentiation")).toBe(true);
+  });
+
   it("uses the deterministic brief when the API is unavailable", async () => {
     const brief = await createBusinessSearchBrief(
       LOGICAFFEINE_CONTEXT,
@@ -152,5 +192,59 @@ describe("business search brief", () => {
 
     expect(brief.source).toBe("deterministic");
     expect(brief.warning).toMatch(/Opus 4\.8/i);
+  });
+
+  it("separates services from geography, audiences, outcomes, and proof in the deterministic fallback", () => {
+    const brief = deterministicBusinessSearchBrief(JUNK_REMOVAL_CONTEXT);
+    const offers = brief.offerVsEnablement.whatCompanySells.map((value) => value.toLowerCase());
+    const productThemeSeeds = brief.themes
+      .filter((theme) => theme.evidence.some((item) => item.field === "productsServices"))
+      .flatMap((theme) => theme.seedKeywords.map((value) => value.toLowerCase()));
+
+    expect(offers).toEqual(expect.arrayContaining([
+      "residential and commercial junk removal",
+      "property cleanouts",
+      "furniture and appliance removal",
+      "construction debris hauling",
+      "same day pickup",
+    ]));
+    expect([...offers, ...productThemeSeeds].join(" | ")).not.toMatch(/san francisco bay area|served fremont|five.star reviews|property managers|finish moves|united states/i);
+  });
+
+  it("builds buyer expansion seeds from offers and offer-plus-audience combinations only", () => {
+    const brief = {
+      source: "deterministic" as const,
+      model: null,
+      businessSummary: "98 Junk It removes junk in Fremont.",
+      offerVsEnablement: {
+        whatCompanySells: ["commercial junk removal services", "construction debris hauling"],
+        whatProductEnables: ["finish moves", "reclaim space"],
+        notTheOffer: [],
+      },
+      audiences: ["property managers", "real estate professionals"],
+      problems: ["customers need fast removal"],
+      differentiators: ["200 five-star reviews"],
+      themes: [
+        { id: "offer", label: "Junk removal", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["commercial junk removal services", "property cleanouts"], requiredTerms: ["junk removal"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "commercial junk removal services" }] },
+        { id: "debris", label: "Debris and appliance removal", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["construction debris hauling", "appliance removal"], requiredTerms: ["debris hauling", "appliance removal"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "construction debris hauling" }] },
+        { id: "audience", label: "Audience", funnelRole: "consideration" as const, priority: "secondary" as const, seedKeywords: ["property managers", "real estate professionals"], requiredTerms: ["property managers"], negativeTerms: [], evidence: [{ field: "idealCustomer" as const, quote: "property managers" }] },
+        { id: "proof", label: "Proof", funnelRole: "technical_authority" as const, priority: "supporting" as const, seedKeywords: ["200 five-star reviews"], requiredTerms: ["five-star reviews"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "200 five-star reviews" }] },
+      ],
+    };
+
+    const seeds = buyerExpansionSeeds(brief, 8);
+
+    expect(seeds).toEqual(expect.arrayContaining([
+      "commercial junk removal services",
+      "construction debris hauling",
+      "commercial junk removal services for property managers",
+    ]));
+    expect(seeds.indexOf("construction debris hauling")).toBeLessThan(seeds.indexOf("property cleanouts"));
+    expect(seeds.slice(0, 2)).toEqual([
+      "commercial junk removal services",
+      "construction debris hauling",
+    ]);
+    expect(seeds.join(" | ")).not.toMatch(/finish moves|five-star reviews|customers need fast/i);
+    expect(seeds).not.toContain("property managers");
   });
 });

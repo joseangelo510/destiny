@@ -25,7 +25,7 @@ export function selectVerifiedResult({
   if (searchClicks > 0) return {
     value: Math.round(searchClicks).toLocaleString("en-US"),
     label: "search clicks",
-    title: "People are finding—and choosing—you.",
+    title: "Someone found you.",
     detail: "Google Search sent visitors to your website in the latest connected period.",
     source: "Google Search Console",
   };

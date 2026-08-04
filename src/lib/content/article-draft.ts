@@ -59,19 +59,6 @@ export function normalizeArticleBody(value: string) {
   return value.replace(/\.{2,}(\s+That matters\b)/g, ".$1");
 }
 
-/**
- * Finds the saved (browser-persisted) draft that belongs to a vetted fallback
- * keyword. Matching is by keyword, never by array index — stale drafts built
- * from an earlier, unvetted keyword set (e.g. excluded competitor or "free"
- * phrases) must be discarded rather than override a vetted outline.
- */
-export function savedDraftForKeyword(saved: unknown, keyword: string): unknown {
-  if (!Array.isArray(saved)) return undefined;
-  return saved.find((item) =>
-    item !== null && typeof item === "object" && !Array.isArray(item)
-    && (item as { keyword?: unknown }).keyword === keyword);
-}
-
 export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const keyword = input.keyword.trim() || "your customer’s search question";
   const titleKeyword = titleCase(keyword);
@@ -142,7 +129,7 @@ Review this draft for accuracy, add a real example from your experience, and rep
   };
 }
 
-export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQualityIssue[] {
+export async function currentArticleQualityIssues(draft: ArticleDraft): Promise<ArticleQualityIssue[]> {
   if (draft.generationStatus !== "generated") {
     return [{
       code: "generation_required",
@@ -151,7 +138,7 @@ export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQuality
         : "Generate the full article before approval.",
     }];
   }
-  return validateGeneratedArticle({
+  return await validateGeneratedArticle({
     title: draft.title,
     metaDescriptions: draft.metaDescriptions,
     bodyMarkdown: draft.body,
@@ -161,8 +148,8 @@ export function currentArticleQualityIssues(draft: ArticleDraft): ArticleQuality
   }, draft.keyword, draft.preferences.format);
 }
 
-export function articleCanBeApproved(draft: ArticleDraft) {
-  return draft.generationStatus === "generated" && currentArticleQualityIssues(draft).length === 0;
+export async function articleCanBeApproved(draft: ArticleDraft) {
+  return draft.generationStatus === "generated" && (await currentArticleQualityIssues(draft)).length === 0;
 }
 
 function escapeHtml(value: string) {

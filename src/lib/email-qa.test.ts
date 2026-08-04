@@ -1,8 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import { sendAuditReadyEmail, sendAuditReadyEmailWithRetry } from "../../supabase/functions/process-audit/email";
+import { sendAuditReadyEmail, sendAuditReadyEmailWithRetry, withEmailDelivery } from "../../supabase/functions/process-audit/email";
 import { sendWelcomeEmail } from "../../supabase/functions/send-welcome/email";
 
 describe("non-deliverable QA email addresses", () => {
+  it("preserves audit evidence while recording the truthful delivery result", () => {
+    expect(withEmailDelivery({ providerResult: { domain: "98junkit.com" }, growthStage: "foundation" }, {
+      status: "skipped",
+      reason: "Transactional email secrets are not configured.",
+    })).toEqual({
+      providerResult: { domain: "98junkit.com" },
+      growthStage: "foundation",
+      emailDelivery: { status: "skipped", reason: "Transactional email secrets are not configured." },
+    });
+  });
   it("never calls an email provider for welcome or audit-ready QA messages", async () => {
     const provider = vi.spyOn(globalThis, "fetch");
 

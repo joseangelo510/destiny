@@ -84,14 +84,15 @@ const phaseDefinitions: Array<Omit<SeoRoadmapPhase, "tasks" | "signals"> & { sig
   },
 ];
 
-const excludedEffortTypes = new Set(["business_confirmation", "measurement", "vocabulary_review"]);
-const visibilityTaskTypes = new Set(["community_distribution", "distribution", "social_distribution"]);
-const growthTaskTypes = new Set(["publisher_outreach", "directory_growth", "reviews"]);
+function taskCode(taskType: string) {
+  return ({ business_confirmation: 1, primary_quest: 2, keyword_review: 3, content_review: 4, vocabulary_review: 5, measurement: 7, community_distribution: 8, distribution: 9, social_distribution: 10, publisher_outreach: 11, directory_growth: 12, reviews: 13, technical_review: 14 } as Record<string, number>)[taskType] ?? 6;
+}
 
-function taskPhaseId(taskType: string): SeoRoadmapPhase["id"] {
-  if (visibilityTaskTypes.has(taskType)) return "visibility";
-  if (growthTaskTypes.has(taskType)) return "growth";
-  return "ready";
+function taskStatusCode(status: string) {
+  if (status === "complete") return 1;
+  if (status === "skipped") return 2;
+  if (status === "in_progress") return 3;
+  return 0;
 }
 
 function number(value: unknown) {
@@ -109,7 +110,7 @@ function completedQuest(quests: RoadmapQuest[], taskType: string) {
   return quests.find((quest) => quest.task_type === taskType && quest.status === "complete");
 }
 
-export function buildSeoRoadmap(input: SeoRoadmapInput) {
+export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   const foundations = completedQuest(input.quests, "primary_quest");
   const content = completedQuest(input.quests, "content_review");
   const impressions = number(input.searchConsole?.impressions);
@@ -120,7 +121,16 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
   const pageTwoPosition = positions.find((position) => position > 10 && position <= 20) ?? pageOnePosition;
   const hasSearchAppearance = impressions > 0;
   const hasPageOne = Boolean(pageOnePosition);
-  const hasCompoundingEvidence = hasPageOne && keyEvents > 0 && clicks >= 25;
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    progressAuditComplete: input.auditComplete ? 1 : 0,
+    progressFoundationStatus: foundations ? foundations.verification_status === "verified" ? 2 : 1 : 0,
+    progressContentStatus: content ? content.verification_status === "verified" ? 2 : 1 : 0,
+    progressImpressions: impressions, progressClicks: clicks, progressPageOne: hasPageOne ? 1 : 0,
+    progressPageTwo: pageTwoPosition ? 1 : 0, progressKeyEvents: keyEvents,
+    progressProviderAvailable: input.searchConsole || input.analytics ? 1 : 0,
+  });
+  const hasCompoundingEvidence = policy.progressCompounding;
 
   const definitions: Array<Omit<SeoRoadmapNode, "state"> & { complete: boolean }> = [
     {
@@ -230,7 +240,7 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
   ];
 
-  const currentIndex = definitions.findIndex((node) => !node.complete);
+  const currentIndex = policy.progressCurrentNode > 0 ? policy.progressCurrentNode - 1 : -1;
   const nodes = definitions.map((node, index): SeoRoadmapNode => {
     const { complete, ...definition } = node;
     return {
@@ -239,23 +249,31 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     };
   });
   const completedCount = nodes.filter((node) => node.state === "complete").length;
-  const effortQuests = input.quests
-    .filter((quest) => !excludedEffortTypes.has(quest.task_type) && quest.status !== "skipped")
-    .sort((left, right) => (left.week_number ?? 1) - (right.week_number ?? 1) || (left.priority ?? 99) - (right.priority ?? 99));
+  const orderedQuests = [...input.quests].sort((left, right) => (left.week_number ?? 1) - (right.week_number ?? 1) || (left.priority ?? 99) - (right.priority ?? 99));
+  const evaluatedQuests: Array<{ quest: RoadmapQuest; state: SeoJourneyTask["state"]; phaseId: SeoRoadmapPhase["id"] }> = [];
+  let currentChosen = 0;
+  const anyInProgress = orderedQuests.some((quest) => quest.status === "in_progress") ? 1 : 0;
+  for (const quest of orderedQuests) {
+    const taskPolicy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      progressTaskCode: taskCode(quest.task_type), progressTaskStatusCode: taskStatusCode(quest.status), progressCurrentChosen: currentChosen, progressAnyInProgress: anyInProgress,
+    });
+    if (taskPolicy.progressTaskExcluded || quest.status === "skipped") continue;
+    evaluatedQuests.push({ quest, state: taskPolicy.progressTaskState, phaseId: taskPolicy.progressTaskPhase });
+    if (taskPolicy.progressTaskState === "current") currentChosen = 1;
+  }
+  const effortQuests = evaluatedQuests.map((item) => item.quest);
   const effortCompleted = effortQuests.filter((quest) => quest.status === "complete").length;
   const effortTotal = effortQuests.length;
   const effortProgress = effortTotal ? Math.round((effortCompleted / effortTotal) * 100) : 0;
-  const currentEffortIndex = effortQuests.findIndex((quest) => quest.status === "in_progress") >= 0
-    ? effortQuests.findIndex((quest) => quest.status === "in_progress")
-    : effortQuests.findIndex((quest) => quest.status !== "complete");
-  const journeyTasks = effortQuests.map((quest, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => ({
+  const journeyTasks = evaluatedQuests.map(({ quest, state, phaseId }, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => ({
     id: quest.id ?? `${quest.task_type}-${index}`,
     label: quest.title?.trim() || "Complete the recommended task",
     detail: quest.description?.trim() || "Complete this step to move your work forward.",
-    state: quest.status === "complete" ? "complete" : index === currentEffortIndex ? "current" : "future",
+    state,
     actionHref: quest.action_path?.trim() || "/this-week",
     weekNumber: Math.max(1, quest.week_number ?? 1),
-    phaseId: taskPhaseId(quest.task_type),
+    phaseId,
   }));
   const phases: SeoRoadmapPhase[] = phaseDefinitions.map(({ signalIds, ...phase }) => ({
     ...phase,
@@ -267,11 +285,13 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     const phaseCompleted = phase.tasks.filter((task) => task.state === "complete").length;
     return total + (phaseCompleted / phase.tasks.length) * (100 / phases.length);
   }, 0));
+  console.info(JSON.stringify({ event: "logos_progress_roadmap", nodes: nodes.length, tasks: journeyTasks.length, fallbacks: 0, wasm_errors: 0 }));
   return {
     nodes,
     completedCount,
     progress: Math.round((completedCount / nodes.length) * 100),
     currentNode: nodes.find((node) => node.state === "current") ?? null,
+    dataQuality: policy.progressDataQuality,
     effortCompleted,
     effortTotal,
     effortProgress,
@@ -280,3 +300,4 @@ export function buildSeoRoadmap(input: SeoRoadmapInput) {
     phases,
   };
 }
+import { runDestinyServerLogic } from "../logicaffeine-server";

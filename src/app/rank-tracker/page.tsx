@@ -2,6 +2,7 @@ import { RankTrackerWorkspace, type RankTrackerKeyword } from "@/components/rank
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext } from "@/lib/workspace-context";
+import { rankTrackerView } from "@/lib/seo/rank-tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +21,13 @@ export default async function RankTrackerPage() {
     if (values.length < 8) grouped[observation.tracked_keyword_id] = [...values, observation];
     return grouped;
   }, {});
-  const rows: RankTrackerKeyword[] = (tracked ?? []).map((row) => {
+  const rows: RankTrackerKeyword[] = await Promise.all((tracked ?? []).map(async (row) => {
     const history = byKeyword[row.id] ?? [];
     const latest = history[0];
     const previous = history[1];
+    const reading = { status: row.status, position: latest?.found ? latest.position : null, found: latest ? latest.found : null };
+    const previousReading = previous ? { position: previous.found ? previous.position : null, found: previous.found } : null;
+    const policyView = await rankTrackerView(reading, previousReading, { createdAt: row.created_at, lastCheckedAt: row.last_checked_at, now: new Date() });
     return {
       id: row.id,
       keyword: row.keyword,
@@ -39,8 +43,9 @@ export default async function RankTrackerPage() {
       resultUrl: latest?.result_url ?? null,
       checkedAt: latest?.observed_at ?? null,
       history: history.map((observation) => ({ observedAt: observation.observed_at, position: observation.position, found: observation.found })),
+      policyView,
     };
-  });
+  }));
 
   return <WorkspaceShell active="/rank-tracker" eyebrow={context.website.normalized_domain} title="Rank tracker" description="Follow the keywords you approved, organize them into lists, and compare evidence-backed Google positions on a consistent weekly cadence.">
     <RankTrackerWorkspace initialKeywords={rows} initialLists={lists ?? []} websiteId={context.website.id} />

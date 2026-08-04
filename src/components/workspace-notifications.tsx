@@ -69,11 +69,10 @@ export function WorkspaceNotifications() {
   };
 
   return <div className="workspace-notification-center">
-    <button aria-controls="workspace-notification-panel" aria-expanded={open} aria-haspopup="true" aria-label={notificationButtonLabel(unread)} className={`workspace-notification-button${open ? " expanded" : ""}`} onClick={() => setOpen((current) => !current)} type="button">
-      {/* Original outline bell drawn for Destiny — no copied UI assets. */}
-      <svg aria-hidden="true" className="workspace-notification-bell" fill="none" height="21" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" viewBox="0 0 21 21" width="21">
-        <path d="M10.5 3a5.1 5.1 0 0 0-5.1 5.1c0 3.1-.9 4.6-1.9 5.7-.3.4 0 1 .5 1h13c.5 0 .8-.6.5-1-1-1.1-1.9-2.6-1.9-5.7A5.1 5.1 0 0 0 10.5 3Z" />
-        <path d="M8.6 17.4a2 2 0 0 0 3.8 0" />
+    <button aria-controls="workspace-notification-panel" aria-expanded={open} aria-haspopup="dialog" aria-label={notificationButtonLabel(unread)} className="workspace-notification-button" onClick={() => setOpen((current) => !current)} type="button">
+      <svg aria-hidden="true" className="workspace-notification-icon" fill="none" viewBox="0 0 24 24">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
       </svg>
       {unread > 0 && <b>{unread}</b>}
     </button>

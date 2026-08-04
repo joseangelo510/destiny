@@ -74,36 +74,41 @@ function effortStage({
   taskTypes: string[];
 }): AiVisibilityStage {
   const matches = matchingQuests(quests, taskTypes);
-  const completed = matches.find((quest) => quest.status === "complete");
-  if (completed) {
-    return {
-      id,
-      kind: "effort",
-      title,
-      description,
-      actionPath,
-      state: "complete",
-      evidenceLabel: completed.verification_status === "verified" ? "Detected by Destiny" : "Marked done by you",
-    };
-  }
   return {
     id,
     kind: "effort",
     title,
     description,
     actionPath,
-    state: matches.length ? "in_progress" : "not_started",
-    evidenceLabel: matches.length ? "Ready in your coaching plan" : "Not started",
+    state: "not_started" as ProgressState,
+    evidenceLabel: matches.find((quest) => quest.status === "complete")?.verification_status === "verified" ? "Detected by Destiny" : matches.find((quest) => quest.status === "complete") ? "Marked done by you" : matches.length ? "Ready in your coaching plan" : "Not started",
   };
 }
 
-export function buildAiVisibilityProgress({
+function effortEvidenceCode(quests: QuestSignal[], taskTypes: string[]) {
+  const matches = matchingQuests(quests, taskTypes);
+  return matches.some((quest) => quest.status === "complete") ? 2 : matches.length ? 1 : 0;
+}
+
+export async function buildAiVisibilityProgress({
   quests,
   llmVisibility,
 }: {
   quests: QuestSignal[];
   llmVisibility: LlmVisibilitySignal;
 }) {
+  const contentTypes = ["content_review"];
+  const platformTypes = ["community_distribution", "distribution", "social_distribution"];
+  const authorityTypes = ["publisher_outreach", "directory_growth", "reviews"];
+  const totalMentions = Math.max(0, Number(llmVisibility.totalMentions ?? 0));
+  const evidenceAvailable = llmVisibility.status === "available";
+  const platforms = Array.isArray(llmVisibility.platforms) ? llmVisibility.platforms : [];
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    llmContentStateCode: effortEvidenceCode(quests, contentTypes), llmPlatformStateCode: effortEvidenceCode(quests, platformTypes),
+    llmAuthorityStateCode: effortEvidenceCode(quests, authorityTypes), llmEvidenceAvailable: evidenceAvailable ? 1 : 0,
+    llmMentions: totalMentions, llmPlatformPositiveCount: platforms.filter((platform) => Number(platform.mentions ?? 0) > 0).length,
+  });
   const effortStages = [
     effortStage({
       id: "owned-source-content",
@@ -111,7 +116,7 @@ export function buildAiVisibilityProgress({
       description: "Publish clear, original pages that answer the questions buyers and AI systems research.",
       actionPath: "/content",
       quests,
-      taskTypes: ["content_review"],
+      taskTypes: contentTypes,
     }),
     effortStage({
       id: "trusted-platform-presence",
@@ -119,7 +124,7 @@ export function buildAiVisibilityProgress({
       description: "Contribute useful answers and expert content on relevant channels such as Reddit, LinkedIn, Quora, or YouTube.",
       actionPath: "/distribution",
       quests,
-      taskTypes: ["community_distribution", "distribution", "social_distribution"],
+      taskTypes: platformTypes,
     }),
     effortStage({
       id: "third-party-authority",
@@ -127,20 +132,18 @@ export function buildAiVisibilityProgress({
       description: "Build legitimate reviews, listings, publisher mentions, and expert references beyond your own website.",
       actionPath: "/reviews",
       quests,
-      taskTypes: ["publisher_outreach", "directory_growth", "reviews"],
+      taskTypes: authorityTypes,
     }),
   ];
-
-  const totalMentions = Math.max(0, Number(llmVisibility.totalMentions ?? 0));
-  const evidenceAvailable = llmVisibility.status === "available";
-  const detected = evidenceAvailable && totalMentions > 0;
+  [policy.llmContentState, policy.llmPlatformState, policy.llmAuthorityState].forEach((state, index) => { effortStages[index].state = state; });
+  const detected = policy.llmOutcomeState === "verified";
   const outcomeStage: AiVisibilityStage = {
     id: "verified-ai-visibility",
     kind: "outcome",
     title: "Verify AI mentions and citations",
     description: "Destiny checks available provider data separately from the readiness work above.",
     actionPath: "/llm-visibility#verified-evidence",
-    state: detected ? "verified" : evidenceAvailable ? "monitoring" : "not_started",
+    state: policy.llmOutcomeState,
     evidenceLabel: detected
       ? `${totalMentions.toLocaleString()} provider-detected mentions`
       : evidenceAvailable
@@ -148,7 +151,6 @@ export function buildAiVisibilityProgress({
         : "Connect or run supported AI visibility research",
   };
   const completed = effortStages.filter((stage) => stage.state === "complete").length;
-  const platforms = Array.isArray(llmVisibility.platforms) ? llmVisibility.platforms : [];
 
   return {
     readiness: {
@@ -163,6 +165,7 @@ export function buildAiVisibilityProgress({
       evidenceAvailable,
     },
     stages: [...effortStages, outcomeStage],
-    nextStep: effortStages.find((stage) => stage.state !== "complete") ?? outcomeStage,
+    nextStep: [...effortStages, outcomeStage][Math.max(0, policy.llmNextStep - 1)],
   };
 }
+import { runDestinyServerLogic } from "../logicaffeine-server";

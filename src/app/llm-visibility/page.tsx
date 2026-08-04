@@ -2,6 +2,7 @@ import { LlmSourceDashboard } from "@/components/llm-source-dashboard";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
+import { buildLlmSourceProgress } from "@/lib/llm/source-progress";
 
 export default async function LlmVisibilityPage() {
   const context = await getWorkspaceContext();
@@ -21,24 +22,18 @@ export default async function LlmVisibilityPage() {
     .select("id,source_key,task_key,status,completed_at,proof_url,proof_attached_at,updated_at")
     .eq("website_id", context.website.id)
     .order("updated_at", { ascending: true });
+  const initialRecords = (sourceTasks ?? []).map((task) => ({
+    id: task.id, source_key: task.source_key, task_key: task.task_key, status: task.status,
+    completed_at: task.completed_at, proof_url: task.proof_url, proof_attached_at: task.proof_attached_at, updated_at: task.updated_at,
+  }));
+  const llmVisibility = { status: llm.status, totalMentions: llm.totalMentions, platforms: platforms.map((platform) => ({ platform: platform.platform, mentions: platform.mentions })) };
+  const initialProgress = await buildLlmSourceProgress({ records: initialRecords, llmVisibility });
 
   return <WorkspaceShell active="/llm-visibility" eyebrow={context.website.normalized_domain} title="LLM visibility" description="Build source readiness through small actions, then verify company mentions and citations with separate provider evidence.">
     <LlmSourceDashboard
-      initialRecords={(sourceTasks ?? []).map((task) => ({
-        id: task.id,
-        source_key: task.source_key,
-        task_key: task.task_key,
-        status: task.status,
-        completed_at: task.completed_at,
-        proof_url: task.proof_url,
-        proof_attached_at: task.proof_attached_at,
-        updated_at: task.updated_at,
-      }))}
-      llmVisibility={{
-        status: llm.status,
-        totalMentions: llm.totalMentions,
-        platforms: platforms.map((platform) => ({ platform: platform.platform, mentions: platform.mentions })),
-      }}
+      initialRecords={initialRecords}
+      initialProgress={initialProgress}
+      llmVisibility={llmVisibility}
       websiteId={context.website.id}
     />
 

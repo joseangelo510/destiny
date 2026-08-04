@@ -42,12 +42,11 @@ export default {
     }));
 
     if (delivery.status === "sent") {
-      console.log(JSON.stringify({ event: "welcome_email_sent", userId, websiteId: website.id }));
-    } else if (delivery.status === "skipped") {
-      console.log(JSON.stringify({ event: "welcome_email_skipped", userId, websiteId: website.id, reason: (delivery as { reason?: string }).reason ?? "" }));
+      console.log("Welcome email sent", { websiteId: website.id, messageId: delivery.messageId ?? null });
     } else {
-      console.error(JSON.stringify({ event: "welcome_email_failed", userId, websiteId: website.id, reason: (delivery as { reason?: string }).reason ?? "" }));
+      console.error("Welcome email not delivered", { websiteId: website.id, status: delivery.status, reason: delivery.reason ?? "Unknown reason" });
     }
+
     return json({ delivery });
   }),
 };

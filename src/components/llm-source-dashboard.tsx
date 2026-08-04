@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import {
   AI_ENGINE_CITATION_SNAPSHOTS,
@@ -49,23 +49,31 @@ export function LlmSourceDashboard({
   websiteId,
   initialRecords,
   llmVisibility,
+  initialProgress,
 }: {
   websiteId: string;
   initialRecords: LlmVisibilityTaskRecord[];
   llmVisibility: LlmVisibilitySignal;
+  initialProgress: Awaited<ReturnType<typeof buildLlmSourceProgress>>;
 }) {
   const [records, setRecords] = useState(initialRecords);
-  const initialProgress = buildLlmSourceProgress({ records: initialRecords, llmVisibility });
-  const [selectedSource, setSelectedSource] = useState<LlmSourceKey>(initialProgress.nextTask?.sourceKey ?? "owned-site");
+  const [selectedSource, setSelectedSource] = useState<LlmSourceKey>("owned-site");
   const [selectedBenchmark, setSelectedBenchmark] = useState<CitationBenchmarkId>(AI_ENGINE_CITATION_SNAPSHOTS[0].id);
   const [proofDrafts, setProofDrafts] = useState<Record<string, string>>(() => Object.fromEntries(initialRecords.flatMap((record) => record.proof_url ? [[`${record.source_key}:${record.task_key}`, record.proof_url]] : [])));
   const [savingTask, setSavingTask] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
-  const progress = useMemo(() => buildLlmSourceProgress({ records, llmVisibility }), [records, llmVisibility]);
-  const activeSource = progress.sources.find((source) => source.key === selectedSource) ?? progress.sources[0];
-  const activeBenchmark = AI_ENGINE_CITATION_SNAPSHOTS.find((snapshot) => snapshot.id === selectedBenchmark) ?? AI_ENGINE_CITATION_SNAPSHOTS[0];
-  const benchmarkMax = Math.max(...activeBenchmark.domains.map((domain) => domain.share));
+  const [progress, setProgress] = useState<Awaited<ReturnType<typeof buildLlmSourceProgress>>>(initialProgress);
+
+  useEffect(() => {
+    let cancelled = false;
+    void buildLlmSourceProgress({ records, llmVisibility }).then((next) => {
+      if (cancelled) return;
+      setProgress(next);
+      if (next.nextTask) setSelectedSource((current) => current || next.nextTask!.sourceKey);
+    });
+    return () => { cancelled = true; };
+  }, [records, llmVisibility]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -121,6 +129,10 @@ export function LlmSourceDashboard({
       void supabase.removeChannel(channel);
     };
   }, [websiteId]);
+
+  const activeSource = progress.sources.find((source) => source.key === selectedSource) ?? progress.sources[0];
+  const activeBenchmark = AI_ENGINE_CITATION_SNAPSHOTS.find((snapshot) => snapshot.id === selectedBenchmark) ?? AI_ENGINE_CITATION_SNAPSHOTS[0];
+  const benchmarkMax = Math.max(...activeBenchmark.domains.map((domain) => domain.share));
 
   const updateTask = async (sourceKey: LlmSourceKey, taskKey: string, status: "todo" | "complete", proofUrl: string | null = null) => {
     const identity = `${sourceKey}:${taskKey}`;

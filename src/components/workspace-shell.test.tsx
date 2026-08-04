@@ -26,19 +26,12 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Keyword strategy");
   });
 
-  it("keeps the title text block together and places the notification action at the header's top-right corner", () => {
+  it("keeps notifications in a dedicated top-right header action instead of the title flow", () => {
     const html = renderToStaticMarkup(<WorkspaceShell active="/this-week" description="One useful step." eyebrow="example.com" title="This week"><p>Work</p></WorkspaceShell>);
 
-    // A dedicated left text block (eyebrow + title + description together)…
-    expect(html).toMatch(/<div class="workspace-header-text"><div class="eyebrow">example.com<\/div><h1>This week<\/h1><p>One useful step.<\/p><\/div>/);
-    // …followed by the sole trailing notification action at the far top-right.
-    expect(html).toMatch(/workspace-header-text[\s\S]*workspace-header-action/);
-    expect(html).toContain('class="workspace-header-action"');
-    // The action is a bell icon, not the old diamond glyph, wired for accessibility.
-    expect(html).toContain("workspace-notification-bell");
-    expect(html).not.toContain("◇");
-    expect(html).toContain('aria-haspopup="true"');
-    expect(html).toContain('aria-controls="workspace-notification-panel"');
+    expect(html).toContain('class="workspace-header-copy"');
+    expect(html).toMatch(/<header class="workspace-header"><div class="workspace-header-copy">.*<\/div><div class="workspace-notification-center">/);
+    expect(html).toContain('class="workspace-notification-icon"');
     expect(html).toContain('aria-label="Open notifications"');
   });
 });

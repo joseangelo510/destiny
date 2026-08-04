@@ -1,7 +1,8 @@
 import { withSupabase } from "@supabase/server";
-import { sendAuditReadyEmailWithRetry } from "./email.ts";
+import { sendAuditReadyEmailWithRetry, withEmailDelivery } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
 import { auditReadyNotificationCopy } from "./notifications.ts";
+import { assertRecommendationManifest, encodeAuditIssues } from "./recommendation-policy.ts";
 import { runSeoAudit } from "./seo.ts";
 
 declare const EdgeRuntime: { waitUntil(task: Promise<unknown>): void };
@@ -11,7 +12,7 @@ type AuditRequest = {
   locationName?: unknown;
 };
 
-const LOGOS_RULES_VERSION = "2026-08-02.5";
+const LOGOS_RULES_VERSION = "2026-08-04.1";
 
 async function sha256(value: unknown) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
@@ -19,28 +20,24 @@ async function sha256(value: unknown) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, primaryQuest: string, primaryCategory: string, manifest: string[]) {
-  const highestIssue = result.issues.find((issue) => issue.severity === "critical") ?? result.issues[0];
-  const issueTitles: Record<string, string> = {
-    has_render_blocking_resources: "Make your homepage load faster for visitors",
-    high_loading_time: "Reduce the time visitors wait for your homepage",
-    no_title: "Give your homepage a clear search title",
-    no_description: "Add a clear search description to your homepage",
-    no_h1_tag: "Add one clear main heading to your homepage",
-    no_image_alt: "Describe important images for search and accessibility",
-  };
-  const plainPrimaryQuest = highestIssue ? issueTitles[highestIssue.code] ?? primaryQuest : primaryQuest;
+function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, logic: Awaited<ReturnType<typeof runDestinyLogic>>) {
   const tasks = {
-    keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Destiny completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 25 },
-    primary_quest: { title: plainPrimaryQuest, why: "Destiny translated the highest-impact audit finding into a guided, non-technical action.", category: primaryCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, requiresApproval: false, minPlanTier: 1, priority: 1, xp: 25 },
-    content_review: { title: "Review and approve three articles for this week", why: "Each article is editable, connected to an approved keyword, and stays behind a human accuracy gate before CMS or document delivery.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 35, requiresApproval: true, minPlanTier: 1, priority: 1, xp: 45 },
-    community_distribution: { title: "Reply to three relevant Reddit or Quora discussions", why: "Helpful answers in live conversations can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "community_distribution", actionPath: "/distribution#community", estimatedMinutes: 35, requiresApproval: false, minPlanTier: 2, priority: 2, xp: 35 },
-    social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, requiresApproval: false, minPlanTier: 2, priority: 2, xp: 25 },
-    publisher_outreach: { title: "Review three niche creators covering your priority topics", why: "A relevant creator, author, or specialist publication can earn qualified referral traffic and future authority.", category: "distribution", taskType: "publisher_outreach", actionPath: "/distribution#outreach", estimatedMinutes: 30, requiresApproval: true, minPlanTier: 3, priority: 3, xp: 35 },
-    directory_growth: { title: "Complete one directory profile or request three reviews", why: "Product Hunt, G2, Capterra, and Google Business Profile help buyers compare options; established profiles should build fresh proof.", category: "distribution", taskType: "directory_growth", actionPath: "/distribution#directories", estimatedMinutes: 25, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 30 },
-    technical_review: { title: "Run a PageSpeed and deeper technical check", why: "Destiny keeps onboarding fast by checking the homepage first. This follow-up reviews performance and the wider technical foundation after your initial strategy is ready.", category: "technical", taskType: "technical_review", actionPath: `/audits/${auditId}#technical-evidence`, externalUrl: `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`https://${result.domain}`)}`, estimatedMinutes: 20, requiresApproval: false, minPlanTier: 3, priority: 3, xp: 25 },
+    keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Destiny completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, xp: 25 },
+    primary_quest: { title: logic.weeklyQuest, why: logic.explanation, category: logic.questCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, xp: 25 },
+    content_review: { title: "Review and approve three articles for this week", why: "Each article is editable, connected to an approved keyword, and stays behind a human accuracy gate before CMS or document delivery.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 35, xp: 45 },
+    community_distribution: { title: "Reply to three relevant Reddit or Quora discussions", why: "Helpful answers in live conversations can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "community_distribution", actionPath: "/distribution#community", estimatedMinutes: 35, xp: 35 },
+    social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, xp: 25 },
+    publisher_outreach: { title: "Review three niche creators covering your priority topics", why: "A relevant creator, author, or specialist publication can earn qualified referral traffic and future authority.", category: "distribution", taskType: "publisher_outreach", actionPath: "/distribution#outreach", estimatedMinutes: 30, xp: 35 },
+    directory_growth: { title: "Complete one directory profile or request three reviews", why: "Product Hunt, G2, Capterra, and Google Business Profile help buyers compare options; established profiles should build fresh proof.", category: "distribution", taskType: "directory_growth", actionPath: "/distribution#directories", estimatedMinutes: 25, xp: 30 },
+    technical_review: { title: "Run a PageSpeed and deeper technical check", why: "Destiny keeps onboarding fast by checking the homepage first. This follow-up reviews performance and the wider technical foundation after your initial strategy is ready.", category: "technical", taskType: "technical_review", actionPath: `/audits/${auditId}#technical-evidence`, externalUrl: `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`https://${result.domain}`)}`, estimatedMinutes: 20, xp: 25 },
   };
-  return manifest.map((code) => tasks[code as keyof typeof tasks]).filter(Boolean);
+  assertRecommendationManifest(logic);
+  return logic.weeklyTaskManifest.map((code, index) => ({
+    ...tasks[code as keyof typeof tasks],
+    requiresApproval: logic.weeklyTaskApprovals[index],
+    minPlanTier: logic.weeklyTaskTiers[index],
+    priority: logic.weeklyTaskPriorities[index],
+  })).filter((task) => task.title);
 }
 
 function json(data: unknown, status = 200) {
@@ -151,9 +148,17 @@ export default {
           contentGaps: result.metrics.contentGaps,
           reviewCount: result.metrics.reviewCount,
           planTier: 3 as const,
+          ...encodeAuditIssues(result.issues),
         };
         const logic = await runDestinyLogic(logicInput);
-        const weeklyTasks = buildWeeklyTasks(result, auditId, logic.weeklyQuest, logic.questCategory, logic.weeklyTaskManifest);
+        console.info(JSON.stringify({
+          event: "logos_recommendation_policy",
+          questSource: logic.questSource,
+          issueQuestCode: logic.issueQuestCode,
+          tasks: logic.weeklyTaskCount,
+          fallbacks: 0,
+        }));
+        const weeklyTasks = buildWeeklyTasks(result, auditId, logic);
         if (weeklyTasks.length !== logic.weeklyTaskCount) {
           throw new Error("LOGOS task quota did not match the generated weekly plan.");
         }
@@ -202,6 +207,16 @@ export default {
         } else {
           console.error("Audit-ready email not delivered", { auditId, status: emailDelivery.status, reason: emailDelivery.reason ?? "Unknown reason" });
         }
+        const { data: savedMetrics } = await context.supabaseAdmin
+          .from("audit_metrics")
+          .select("raw_provider_payload")
+          .eq("audit_id", auditId)
+          .maybeSingle();
+        const { error: emailStatusError } = await context.supabaseAdmin
+          .from("audit_metrics")
+          .update({ raw_provider_payload: withEmailDelivery(savedMetrics?.raw_provider_payload, emailDelivery) })
+          .eq("audit_id", auditId);
+        if (emailStatusError) console.error("Audit email delivery status could not be saved", { auditId, reason: emailStatusError.message });
       } catch (cause) {
         const message = cause instanceof Error ? cause.message : "Destiny could not complete the audit.";
         await context.supabaseAdmin.rpc("fail_destiny_audit", {

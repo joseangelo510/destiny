@@ -15,20 +15,26 @@ LOGOS owns:
 - urgency;
 - a stable decision code;
 - an inspectable explanation for the decision.
+- keyword eligibility, intent, revenue priority, and recommendation ordering;
+- weekly quest transitions, verification, streaks, coaching order, and celebrations;
+- the three-month strategy, editorial scheduling, and forecast confidence;
+- roadmap, LLM visibility, source-task, and momentum progression;
+- onboarding eligibility, audit-health bands, rank-tracker states, and article quality gates.
 
 Next.js and Supabase continue to own:
 
-- form validation and URL normalization;
+- string parsing and URL normalization (LOGOS makes the final onboarding eligibility decision);
 - authentication and authorization;
 - database and RLS access;
 - DataForSEO and Google API calls;
 - background execution, notifications, and email delivery;
 - UI rendering and generative content.
 
-## Version 1 decision contract
+## Current decision contract
 
-Inputs are integer signals so the same compiled WebAssembly module can run in
-the browser and the Supabase audit worker:
+Inputs are normalized integer facts so the same compiled WebAssembly module
+runs in the browser, Next.js server, and Supabase audit worker. The typed
+adapter and golden parity tests are the authoritative field-order contract.
 
 1. audit complete;
 2. critical issues;
@@ -55,13 +61,12 @@ Outputs, in order:
 3. Update browser and worker adapters to the same typed contract.
 4. Remove TypeScript policy that is now produced by LOGOS.
 5. Run parity, unit, lint, build, and interpreted LOGOS checks.
-6. Deploy the worker and web app.
-7. Run real multi-domain audits and verify saved metrics, decision metadata,
+6. Tag and push the verified rollback checkpoint.
+7. Deploy only after release approval, then run real multi-domain audits and verify saved metrics, decision metadata,
    quest, notification, and dashboard output.
 
 ## Rollback
 
-The previous WebAssembly artifact and two-output adapter remain recoverable
-from the prior Replit checkpoint. No database column is required for this
-phase; the complete LOGOS decision is persisted inside the existing raw audit
-payload while the current quest columns remain backward compatible.
+Every promoted domain has an annotated Git tag. The baseline tag and the
+phase tags recover source, adapters, generated WASM, tests, and UI together.
+No destructive database migration is part of the LOGOS cutover.

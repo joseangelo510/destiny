@@ -1,15 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  ANTHROPIC_REQUEST_TIMEOUT_MS,
-  ARTICLE_MAX_TOKENS,
-  ARTICLE_WEB_SEARCH_MAX_USES,
   DEFAULT_ARTICLE_PREFERENCES,
   DEFAULT_COPY_MODEL,
-  sanitizeAnthropicError,
+  articleGenerationCapability,
   buildAnthropicArticleRequest,
   buildArticleGenerationPrompt,
   renderInfographicSvg,
-  resolveArticleGenerationCapability,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
 } from "./article-generation";
@@ -57,6 +53,15 @@ describe("Destiny article generation policy", () => {
     expect(DEFAULT_COPY_MODEL).toBe("claude-opus-4-8");
   });
 
+  it("reports the real article model capability instead of advertising an unavailable model", () => {
+    expect(articleGenerationCapability(undefined, "claude-opus-4-8")).toEqual({
+      available: false,
+      model: "claude-opus-4-8",
+      label: "Claude Opus 4.8",
+    });
+    expect(articleGenerationCapability("server-secret", "claude-opus-4-8")).toMatchObject({ available: true });
+  });
+
   it("builds a hidden prompt with the locked long-form, heading, brigade, source, and graphics rules", () => {
     const prompt = buildArticleGenerationPrompt({
       keyword: "seo content strategy",
@@ -81,22 +86,21 @@ describe("Destiny article generation policy", () => {
 
   it("configures Opus 4.8 with server-side web research instead of asking the model to invent sources", () => {
     const request = buildAnthropicArticleRequest("Research and write the article.", "claude-opus-4-8");
-    expect(request.max_tokens).toBe(6000);
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 4 }]);
+    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
     expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
   });
 
-  it("accepts a substantive SEO article and rejects short or stock-phrase drafts", () => {
+  it("accepts a substantive SEO article and rejects short or stock-phrase drafts", async () => {
     const valid = validLongFormPayload();
-    expect(validateGeneratedArticle(valid, "seo content strategy", "seo_article")).toEqual([]);
+    await expect(validateGeneratedArticle(valid, "seo content strategy", "seo_article")).resolves.toEqual([]);
 
     const invalid = {
       ...valid,
       bodyMarkdown: "# SEO Content Strategy\n\n## SEO Content Strategy Basics\n\nLet's dive in. This is short.",
       bucketBrigades: [{ text: "Let's dive in.", afterWord: 8 }],
     };
-    expect(validateGeneratedArticle(invalid, "seo content strategy", "seo_article").map((issue) => issue.code)).toEqual(expect.arrayContaining([
+    expect((await validateGeneratedArticle(invalid, "seo content strategy", "seo_article")).map((issue) => issue.code)).toEqual(expect.arrayContaining([
       "word_count",
       "heading_structure",
       "heading_variety",
@@ -120,66 +124,5 @@ describe("Destiny article generation policy", () => {
     expect(svg).toContain("A Better Content Workflow");
     expect(svg).toContain("Source: Destiny article research");
     expect(svg).not.toContain("<image");
-  });
-});
-
-describe("article generation request budget and error handling", () => {
-  it("keeps the generation budget bounded for a 2,000–3,000-word article", () => {
-    const request = buildAnthropicArticleRequest("Write the article.");
-    expect(request.model).toBe(DEFAULT_COPY_MODEL);
-    expect(request.max_tokens).toBe(ARTICLE_MAX_TOKENS);
-    expect(ARTICLE_MAX_TOKENS).toBe(6000);
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: ARTICLE_WEB_SEARCH_MAX_USES }]);
-    expect(ARTICLE_WEB_SEARCH_MAX_USES).toBe(4);
-  });
-
-  it("aborts server-side before Replit's 300-second function ceiling", () => {
-    expect(ANTHROPIC_REQUEST_TIMEOUT_MS).toBeLessThan(300_000);
-    expect(ANTHROPIC_REQUEST_TIMEOUT_MS).toBeGreaterThanOrEqual(240_000);
-  });
-
-  it("builds a sanitized actionable error with provider status and code", () => {
-    const sanitized = sanitizeAnthropicError(429, { error: { type: "rate_limit_error", message: "Rate limited. Retry later." } });
-    expect(sanitized.error).toContain("HTTP 429");
-    expect(sanitized.error).toContain("rate_limit_error");
-    expect(sanitized.error).toContain("Rate limited. Retry later.");
-    expect(sanitized.code).toBe("rate_limit_error");
-    expect(sanitized.httpStatus).toBe(429);
-  });
-
-  it("redacts key-like strings and maps provider 5xx to a 502 without leaking internals", () => {
-    const sanitized = sanitizeAnthropicError(529, { error: { type: "overloaded_error", message: "Bad key sk-ant-api03-SECRETSECRET provided" } });
-    expect(sanitized.error).not.toContain("SECRETSECRET");
-    expect(sanitized.error).toContain("[redacted]");
-    expect(sanitized.httpStatus).toBe(502);
-  });
-
-  it("survives an unparseable provider error body", () => {
-    const sanitized = sanitizeAnthropicError(500, "not json");
-    expect(sanitized.error).toContain("HTTP 500");
-    expect(sanitized.code).toBe("unknown_error");
-    expect(sanitized.httpStatus).toBe(502);
-  });
-});
-
-describe("resolveArticleGenerationCapability", () => {
-  it("reports unavailable with an honest label when the Anthropic key is absent", () => {
-    for (const anthropicApiKey of [undefined, null, "", "   "]) {
-      const capability = resolveArticleGenerationCapability({ anthropicApiKey, copyModel: "claude-opus-4-8" });
-      expect(capability.available).toBe(false);
-      expect(capability.modelLabel).toBe("Article model unavailable");
-    }
-  });
-
-  it("reports the configured copy model when the key is present", () => {
-    const capability = resolveArticleGenerationCapability({ anthropicApiKey: "sk-ant-test", copyModel: "claude-opus-4-9" });
-    expect(capability).toEqual({ available: true, modelLabel: "claude-opus-4-9" });
-  });
-
-  it("falls back to the default copy model when no model override is set", () => {
-    for (const copyModel of [undefined, null, "", "  "]) {
-      const capability = resolveArticleGenerationCapability({ anthropicApiKey: "sk-ant-test", copyModel });
-      expect(capability).toEqual({ available: true, modelLabel: DEFAULT_COPY_MODEL });
-    }
   });
 });

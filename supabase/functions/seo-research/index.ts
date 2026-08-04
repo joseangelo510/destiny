@@ -33,7 +33,6 @@ async function providerPost(path: string, body: Record<string, unknown>[], login
   return response.json();
 }
 
-
 export default {
   fetch: withSupabase({ auth: "user" }, async (request) => {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);

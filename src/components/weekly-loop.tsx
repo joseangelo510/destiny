@@ -30,7 +30,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   "research-strategy": "⌁",
   "content-creation": "✎",
   distribution: "↗",
-  "data-analysis": "⌗",
+  "technical-seo": "⌗",
 };
 
 export function WeeklyLoop({
@@ -38,6 +38,7 @@ export function WeeklyLoop({
   currentStreak,
   currentTaskId = null,
   groups,
+  initialFocusMode = false,
   initialRevealOpen = false,
   remainingTasks,
 }: {
@@ -45,6 +46,7 @@ export function WeeklyLoop({
   currentStreak: number;
   currentTaskId?: string | null;
   groups: WeeklyLoopGroup[];
+  initialFocusMode?: boolean;
   initialRevealOpen?: boolean;
   remainingTasks: number;
 }) {
@@ -52,10 +54,16 @@ export function WeeklyLoop({
     ?? groups.find((group) => group.tasks.some((task) => task.status === "todo" || task.status === "in_progress"))
     ?? groups[0];
   const [activeGroupId, setActiveGroupId] = useState(initialGroup?.id ?? "");
+  const [focusMode, setFocusMode] = useState(initialFocusMode);
   const [revealOpen, setRevealOpen] = useState(initialRevealOpen);
   const activeGroup = groups.find((group) => group.id === activeGroupId) ?? groups[0];
   const allTasks = useMemo(() => groups.flatMap((group) => group.tasks), [groups]);
   const complete = allTasks.filter((task) => task.status === "complete").length;
+  const focusTask = allTasks.find((task) => task.id === currentTaskId)
+    ?? allTasks.find((task) => task.status === "in_progress")
+    ?? allTasks.find((task) => task.status === "todo")
+    ?? allTasks[0]
+    ?? null;
   const revealStorageKey = `destiny-plan-reveal:${auditId}`;
 
   useEffect(() => {
@@ -97,9 +105,15 @@ export function WeeklyLoop({
           <strong>{complete > 0 ? `${complete} of ${allTasks.length}` : allTasks.length}</strong>
           <span>{complete > 0 ? "complete this week" : "tasks this week"}</span>
           <small>{currentStreak}-week streak</small>
+          {!focusMode && focusTask && <button className="overwhelm-button" onClick={() => setFocusMode(true)} type="button"><span aria-hidden="true">♡</span> I’m overwhelmed</button>}
         </div>
       </header>
 
+      {focusMode && focusTask ? <section aria-labelledby="focus-mode-title" className="weekly-focus-mode">
+        <header><span className="weekly-focus-orbit" aria-hidden="true">✦</span><div><span className="eyebrow">One small step is enough</span><h3 id="focus-mode-title">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className="text-button" onClick={() => setFocusMode(false)} type="button">Show my full week</button></header>
+        <div className="weekly-focus-time"><span>One step</span><strong>about {focusTask.estimated_minutes} minutes</strong></div>
+        <WeeklyTaskList openTaskId={focusTask.id} remainingTasks={remainingTasks} tasks={[focusTask]} />
+      </section> : <>
       <div className="weekly-loop-tabs" role="tablist" aria-label="Weekly SEO work">
         {groups.map((group, index) => {
           const groupComplete = group.tasks.filter((task) => task.status === "complete").length;
@@ -117,6 +131,7 @@ export function WeeklyLoop({
           ? <WeeklyTaskList openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
           : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
       </section>}
+      </>}
     </section>
 
     <button className="weekly-plan-replay" onClick={() => setRevealOpen(true)} type="button"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>

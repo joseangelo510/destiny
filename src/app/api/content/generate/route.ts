@@ -3,11 +3,9 @@ import {
   ARTICLE_FORMAT_OPTIONS,
   ARTICLE_VOICE_OPTIONS,
   DEFAULT_ARTICLE_PREFERENCES,
-  ANTHROPIC_REQUEST_TIMEOUT_MS,
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
-  sanitizeAnthropicError,
   buildArticleGenerationPrompt,
   parseGeneratedArticlePayload,
   validateGeneratedArticle,
@@ -96,49 +94,25 @@ export async function POST(request: Request) {
 
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   const prompt = buildArticleGenerationPrompt(input);
-  // Abort before Replit's 300-second function ceiling so we can return an
-  // actionable error instead of the platform killing the request mid-flight.
-  const controller = new AbortController();
-  const abortTimer = setTimeout(() => controller.abort(), ANTHROPIC_REQUEST_TIMEOUT_MS);
-  let response: Response;
-  try {
-    response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
-      signal: controller.signal,
-    });
-  } catch (cause) {
-    const aborted = cause instanceof Error && cause.name === "AbortError";
-    const code = aborted ? "ANTHROPIC_TIMEOUT" : "ANTHROPIC_NETWORK";
-    // Sanitized observability: never log the key or prompt contents.
-    console.error("Anthropic article generation failed", { code, model, timeoutMs: ANTHROPIC_REQUEST_TIMEOUT_MS });
-    return NextResponse.json({
-      error: aborted
-        ? `Claude did not finish within ${Math.round(ANTHROPIC_REQUEST_TIMEOUT_MS / 1000)} seconds and the request was stopped. Try again — shorter special instructions or turning off infographics can help.`
-        : "Destiny could not reach Claude. Check your connection or Anthropic status, then try again.",
-      code,
-    }, { status: 504 });
-  } finally {
-    clearTimeout(abortTimer);
-  }
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
+  });
 
   const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string } };
   if (!response.ok) {
-    const sanitized = sanitizeAnthropicError(response.status, payload);
-    // Sanitized observability: provider status/code only, no key or prompt.
-    console.error("Anthropic article generation returned an error", { status: response.status, code: sanitized.code, model });
-    return NextResponse.json({ error: sanitized.error, code: sanitized.code }, { status: sanitized.httpStatus });
+    return NextResponse.json({ error: payload.error?.message || `Claude returned HTTP ${response.status}.` }, { status: response.status >= 400 && response.status < 500 ? response.status : 502 });
   }
 
   try {
     const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
     const article = parseGeneratedArticlePayload(rawText);
-    const qualityIssues = validateGeneratedArticle(article, input.keyword, input.preferences.format);
+    const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
     return NextResponse.json({
       draft: {
         keyword: input.keyword,

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { AI_CITATION_BENCHMARK, buildAiVisibilityProgress } from "./progress";
 
 describe("AI visibility progress", () => {
-  it("keeps readiness actions separate from verified AI visibility", () => {
-    const progress = buildAiVisibilityProgress({
+  it("keeps readiness actions separate from verified AI visibility", async () => {
+    const progress = await buildAiVisibilityProgress({
       quests: [
         { task_type: "content_review", status: "complete", verification_status: null },
         { task_type: "community_distribution", status: "complete", verification_status: "verified" },
@@ -19,8 +19,8 @@ describe("AI visibility progress", () => {
     expect(progress.readiness.label).not.toMatch(/AI-visible|visibility score/i);
   });
 
-  it("only marks the outcome verified when provider mention evidence exists", () => {
-    const progress = buildAiVisibilityProgress({
+  it("only marks the outcome verified when provider mention evidence exists", async () => {
+    const progress = await buildAiVisibilityProgress({
       quests: [],
       llmVisibility: {
         status: "available",
@@ -34,7 +34,7 @@ describe("AI visibility progress", () => {
     expect(progress.stages.at(-1)).toMatchObject({ kind: "outcome", state: "verified" });
   });
 
-  it("versions the cited-domain benchmark and preserves the leading domains", () => {
+  it("versions the cited-domain benchmark and preserves the leading domains", async () => {
     expect(AI_CITATION_BENCHMARK.source).toMatch(/Semrush/i);
     expect(AI_CITATION_BENCHMARK.asOf).toBe("October 2025");
     expect(AI_CITATION_BENCHMARK.promptCount).toBe(230_000);

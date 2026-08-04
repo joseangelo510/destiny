@@ -1,4 +1,5 @@
 import {
+  buyerExpansionSeeds,
   createBusinessSearchBrief,
   themeSeeds,
   type BusinessSearchBrief,
@@ -6,6 +7,7 @@ import {
   type BusinessSearchContext,
 } from "./business-search-brief.ts";
 import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity.ts";
+import { applyLogosKeywordPolicy } from "./logos-keyword-policy.ts";
 import {
   extractSiteVocabulary,
   parseContentPage,
@@ -136,6 +138,13 @@ function record(value: unknown): JsonRecord {
 function array(value: unknown): unknown[] { return Array.isArray(value) ? value : []; }
 function number(value: unknown) { return typeof value === "number" && Number.isFinite(value) ? value : 0; }
 function string(value: unknown) { return typeof value === "string" ? value : ""; }
+
+export function keywordPolicyEngine() {
+  const deno = (globalThis as typeof globalThis & {
+    Deno?: { env?: { get?: (name: string) => string | undefined } };
+  }).Deno;
+  return deno?.env?.get?.("DESTINY_ENGINE") === "typescript" ? "typescript" : "logos";
+}
 
 export function normalizeWebsite(value: string) {
   const trimmed = value.trim();
@@ -526,19 +535,10 @@ export async function runDataForSeoAudit(
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
   const businessSearchBrief = await createBusinessSearchBrief(businessContext ?? {}, knownCompetitors, strategyModel);
-  const categorySeeds = themeSeeds(businessSearchBrief, 16);
-  const contextSeeds = categorySeeds.map((keyword) => ({
-    keyword,
-    rank: 0,
-    searchVolume: 0,
-    url: "",
-    intent: "commercial",
-    difficulty: 0,
-    cpc: 0,
-    opportunity: "site_idea" as const,
-  }));
-  const buyerSeedThemes = businessSearchBrief.themes.filter((theme) => theme.funnelRole === "conversion" || theme.funnelRole === "consideration");
-  const buyerSeeds = themeSeeds({ ...businessSearchBrief, themes: buyerSeedThemes.length ? buyerSeedThemes : businessSearchBrief.themes }, 8);
+  const searchSeedThemes = businessSearchBrief.themes.filter((theme) =>
+    theme.evidence.some((item) => item.field === "productsServices" || item.field === "problemSolved"));
+  const categorySeeds = themeSeeds({ ...businessSearchBrief, themes: searchSeedThemes }, 16);
+  const buyerSeeds = buyerExpansionSeeds(businessSearchBrief, 10);
   // LLM target metrics can be the slowest live endpoint. Start it alongside
   // the baseline audit and contain failure so it never blocks core SEO results.
   const llmPromise = dataForSeoPost("/v3/ai_optimization/llm_mentions/target_metrics/live", [{
@@ -706,7 +706,7 @@ export async function runDataForSeoAudit(
     (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
       || b.searchVolume - a.searchVolume
       || a.keyword.localeCompare(b.keyword));
-  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, buyerKeywordIdeas, keywordIdeas, categoryKeywordIdeas, contextSeeds], 500)
+  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, buyerKeywordIdeas, keywordIdeas, categoryKeywordIdeas], 500)
     .map((keyword) => ({
       ...keyword,
       competitorRankers: competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
@@ -726,16 +726,31 @@ export async function runDataForSeoAudit(
     ...keyword,
     intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
   }));
-  const pageTextEvidence = pages.map((page) => page.text).join(" ");
-  const rankedKeywordsForStrategy = rankKeywordOpportunities(intentEnrichedCandidates, { ...(businessContext ?? {}), pageText: pageTextEvidence }, 300, businessSearchBrief);
-  const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 50).map((keyword) => ({
+  const legacyRankedKeywords = rankKeywordOpportunities(intentEnrichedCandidates, {
+    ...(businessContext ?? {}),
+    locationEvidence: pages.map((page) => page.text).join(" "),
+  }, 300, businessSearchBrief);
+  const rankedKeywordsForStrategy = keywordPolicyEngine() === "typescript"
+    ? legacyRankedKeywords
+    : await applyLogosKeywordPolicy(legacyRankedKeywords);
+  const logosFallbackCount = rankedKeywordsForStrategy.filter((keyword) =>
+    "policyEngine" in keyword && keyword.policyEngine === "typescript-fallback").length;
+  console.info(JSON.stringify({
+    event: "logos_keyword_policy",
+    candidates: legacyRankedKeywords.length,
+    evaluated: rankedKeywordsForStrategy.length,
+    fallbacks: logosFallbackCount,
+  }));
+  const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 35).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),
     matchedTerms: [],
-    reason: keyword.priorityReason,
-    essential: keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
-      && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
-        || keyword.providerIntent === "transactional"),
+    reason: "reason" in keyword && typeof keyword.reason === "string" ? keyword.reason : keyword.priorityReason,
+    essential: "essential" in keyword && typeof keyword.essential === "boolean"
+      ? keyword.essential
+      : keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
+        && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
+          || keyword.providerIntent === "transactional"),
   }));
   await onProgress(80);
 
@@ -799,8 +814,8 @@ export async function runDataForSeoAudit(
         : "Discovered domains are treated as search-landscape evidence until the user identifies direct business competitors.",
       `${businessSearchBrief.source === "claude-opus-4-8" ? "Claude Opus 4.8" : "Destiny's deterministic fallback"} synthesized every onboarding answer into ${businessSearchBrief.themes.length} evidence-backed search themes before keyword expansion.`,
       businessSearchBrief.warning ?? "The semantic brief separates what the company sells from what its product enables customers to build.",
-      buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} theme-balanced seed${buyerSeeds.length === 1 ? "" : "s"} and reclassified with DataForSEO Search Intent.` : "No evidence-backed buyer seed could be derived from onboarding.",
-      contextSeeds.length ? "Site and category ideas are seeded across distinct onboarding themes; measured DataForSEO volume and intent remain authoritative." : "No usable category seed could be derived from the complete onboarding record.",
+      buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} offer-led seed${buyerSeeds.length === 1 ? "" : "s"}, including service-plus-audience combinations, and reclassified with DataForSEO Search Intent.` : "No evidence-backed buyer seed could be derived from onboarding.",
+      categorySeeds.length ? "Onboarding themes are used only to query DataForSEO. Every recommendation must return positive measured demand and pass Destiny's service-relevance gate." : "No usable product or customer-problem seed could be derived from the complete onboarding record.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],

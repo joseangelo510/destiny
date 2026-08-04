@@ -4,8 +4,8 @@ import { buildAuditDashboard } from "../lib/seo/audit-dashboard";
 import { AuditIssueExplorer } from "./audit-issue-explorer";
 
 describe("AuditIssueExplorer", () => {
-  it("renders severity and category filters with complete issue guidance", () => {
-    const dashboard = buildAuditDashboard({
+  it("renders severity and category filters with complete issue guidance", async () => {
+    const dashboard = await buildAuditDashboard({
       healthScore: 61,
       inspectedPages: 2,
       inspectedUrl: "https://example.com/",

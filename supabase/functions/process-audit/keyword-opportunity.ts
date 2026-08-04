@@ -21,8 +21,7 @@ export type KeywordBusinessContext = {
   audienceChallengesGoals?: string;
   differentiation?: string;
   market?: string;
-  /** Concatenated page-text evidence from the scanned website pages. */
-  pageText?: string;
+  locationEvidence?: string;
 };
 
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
@@ -42,9 +41,6 @@ export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandida
   themeRole: KeywordTheme["funnelRole"];
 };
 
-// Valid themeRole values — used to validate a persisted candidate's themeRole before forwarding it.
-const VALID_THEME_ROLES = new Set<string>(["conversion", "consideration", "awareness", "technical_authority"]);
-
 const STOP_WORDS = new Set([
   "a", "about", "and", "are", "as", "at", "be", "best", "business", "by", "customer", "customers", "expert", "for", "from", "get", "good", "help", "high", "in", "into", "is", "it", "local", "of", "on", "online", "or", "our", "people", "private", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "top", "want", "we", "who", "with", "you", "your",
 ]);
@@ -61,10 +57,11 @@ const TOKEN_FAMILIES: Record<string, string> = {
   essay: "essay", essays: "essay",
   parent: "family", parents: "family", families: "family", family: "family",
   student: "student", students: "student",
+  clutter: "junk", debris: "junk", rubbish: "junk", trash: "junk", waste: "junk",
 };
 
 const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hire|near me|order|price|prices|pricing|promo code|quote|schedule|sign up|subscribe)\b/i;
-const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
+const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
@@ -74,9 +71,63 @@ const COMPARISON_ACTION = /\b(?:alternative|alternatives|best|compare|comparison
 const INSTITUTION = /\b(?:academy|colleges?|school|universit(?:y|ies))\b/i;
 const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|best|deadline|essay|get into|requirements?|ranking|top|tuition)\b/i;
 const SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX = /\b(?:acceptance rate|admissions? requirements?|how to get into)\b/i;
+const PROOF_OR_SENTENCE_FRAGMENT = /\b(?:customers? need|earned|five[ -]star|served)\b/i;
+const RECURRING_COLLECTION_QUERY = /\b(?:interstate waste services?|pick up rubbish services?|rubbish collection services?|rubbish pickup|trash pickup(?: services?)?|trash services?|waste collection services?|waste management residential services?|waste pickup|bulk pickup trash|garbage waste pickup|curbside pickup waste management)\b/i;
+const RENTAL_SERVICE_QUERY = /\b(?:dumpster|truck) rentals?\b/i;
+const TRUCK_EQUIPMENT_QUERY = /\b(?:disposal|dump|garbage|waste) trucks?\b/i;
+const SERVICE_ACTION_QUERY = /\b(?:agency|cleanouts?|coach|coaches|coaching|consultant|consultants|consulting|counseling|counselor|counselors|disposal|haul|hauling|management|pickup|removal|services?)\b/i;
 const GRADUATE_AUDIENCE = /\b(?:business school|graduate school|law school|mba|medical school|phd)\b/i;
 const HIGH_SCHOOL_AUDIENCE = /\b(?:high school|teen|undergraduate)\b/i;
 const GENERIC_OFFER_TOKENS = new Set(["advice", "application", "guidance", "management", "planning", "solution", "strategy", "support"]);
+const GENERIC_OFFER_ANCHORS = new Set(["company", "estimate", "free", "local", "pickup", "provider", "removal"]);
+const KNOWN_LOCATION_PHRASES = [
+  "albuquerque", "anaheim", "anchorage", "arlington", "athens", "atlanta", "austin", "bakersfield", "baltimore", "barrie", "boston",
+  "buffalo", "chandler", "charlotte", "chicago", "chula vista", "cincinnati", "cleveland", "columbus", "corpus christi",
+  "dallas", "denver", "detroit", "durham", "fort worth", "garland", "gilbert", "glendale", "green bay", "greensboro",
+  "henderson", "hialeah", "honolulu", "houston", "indianapolis", "irvine", "jacksonville", "jersey city", "kansas city",
+  "las vegas", "lexington", "long beach", "los angeles", "louisville", "madison", "manhattan", "memphis", "mesa", "miami",
+  "milwaukee", "minneapolis", "nashville", "new orleans", "new york", "new york city", "newark", "norfolk", "north las vegas", "nyc",
+  "oklahoma city", "omaha", "orlando", "ottawa", "philadelphia", "phoenix", "pittsburgh", "plano", "portland", "raleigh", "reno", "riverside",
+  "roswell", "saint louis", "san antonio", "san diego", "santa ana", "scottsdale", "seattle", "st louis", "stockton",
+  "tampa", "tucson", "tulsa", "virginia beach", "washington dc", "wichita", "winston salem", "york pa",
+  "berkeley", "fremont", "livermore", "los altos", "los gatos", "menlo park", "mill valley", "mountain view",
+  "oakland", "palo alto", "pleasanton", "redwood city", "sacramento", "san carlos", "san francisco", "san jose",
+  "san mateo", "san ramon", "santa clara", "south san francisco", "walnut creek",
+] as const;
+const OFFER_CONTEXT_ONLY_TOKENS = new Set([
+  ...GENERIC_OFFER_TOKENS,
+  ...GENERIC_OFFER_ANCHORS,
+  ...KNOWN_LOCATION_PHRASES.flatMap((place) => place.split(/\s+/)),
+  "area", "bay", "california", "ca", "commercial", "day", "fast", "home", "me", "near", "residential", "same", "usa", "united", "states",
+]);
+const GENERIC_DIFFERENTIATOR_TOKENS = new Set([
+  ...OFFER_CONTEXT_ONLY_TOKENS,
+  "estimate", "experience", "review", "team", "year",
+]);
+const DISCOVERY_MODIFIER_TOKENS = new Set([
+  "affordable", "best", "cheap", "company", "cost", "day", "estimate", "fast", "free", "guide", "hire", "how", "list", "listing", "local", "near", "post", "pre", "price", "pricing", "quote", "review", "same", "top", "what", "when", "where", "why",
+]);
+
+function normalizedPhrase(value: string) {
+  return ` ${value.normalize("NFKC").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+}
+
+export function keywordHasGeographicConflict(
+  candidate: Pick<KeywordCandidate, "keyword" | "opportunity">,
+  context: KeywordBusinessContext,
+) {
+  if (candidate.opportunity === "existing_rank") return false;
+  const keyword = normalizedPhrase(candidate.keyword);
+  const evidence = normalizedPhrase([
+    context.productsServices,
+    context.problemSolved,
+    context.idealCustomer,
+    context.audienceChallengesGoals,
+    context.differentiation,
+    context.locationEvidence,
+  ].filter(Boolean).join(" "));
+  return KNOWN_LOCATION_PHRASES.some((place) => keyword.includes(` ${place} `) && !evidence.includes(` ${place} `));
+}
 
 function canonicalToken(token: string) {
   const explicit = TOKEN_FAMILIES[token];
@@ -102,6 +153,7 @@ function contextProfile(context: KeywordBusinessContext) {
     context.audienceChallengesGoals,
     context.differentiation,
     context.market,
+    context.locationEvidence,
   ].filter(Boolean).join(" ");
   return {
     offer: new Set(canonicalTokens(productsServices)),
@@ -118,8 +170,44 @@ function isNoise(keyword: string) {
   return numeric >= 2 && numeric / Math.max(tokens.length, 1) >= 0.4;
 }
 
+function isLowEvidenceSiteIdea(candidate: KeywordCandidate, businessTokens: Set<string>) {
+  if (candidate.opportunity !== "site_idea") return false;
+  if (SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX.test(candidate.keyword)) return false;
+  const tokens = canonicalTokens(candidate.keyword);
+  const counts = tokens.reduce<Map<string, number>>((result, token) =>
+    result.set(token, (result.get(token) ?? 0) + 1), new Map());
+  if ([...counts].some(([token, count]) => count > 1 && !OFFER_CONTEXT_ONLY_TOKENS.has(token))) return true;
+  const meaningful = tokens.filter((token) => !DISCOVERY_MODIFIER_TOKENS.has(token));
+  if (meaningful.length < 2 || businessTokens.has(meaningful[0])) return false;
+  const grounded = meaningful.filter((token) => businessTokens.has(token)).length;
+  return grounded / meaningful.length <= 0.5;
+}
+
+function hasContextualSemanticConflict(candidate: KeywordCandidate, businessDescription: string, businessTokens: Set<string>) {
+  if (candidate.opportunity !== "site_idea") return false;
+  const keyword = candidate.keyword;
+  const admissionsBusiness = /\b(?:college|admissions?|application)\b/i.test(businessDescription);
+  if (admissionsBusiness && /\b(?:essay|coaching?)\b/i.test(keyword)) {
+    const exactCoreService = /^\s*essay coaching\s*$/i.test(keyword);
+    const admissionsAnchor = /\b(?:college|admissions?|application|student|high school)\b/i.test(keyword);
+    if (!exactCoreService && !admissionsAnchor) return true;
+  }
+
+  const removalBusiness = /\b(?:junk|furniture|appliance|debris).*(?:cleanout|haul|removal)\b/i.test(businessDescription);
+  if (!removalBusiness || !/\b(?:cleanout|haul|removal)\b/i.test(keyword)) return false;
+  const meaningful = canonicalTokens(keyword).filter((token) => !DISCOVERY_MODIFIER_TOKENS.has(token));
+  const unknownIndexes = meaningful.flatMap((token, index) => businessTokens.has(token) ? [] : [index]);
+  if (unknownIndexes.length !== 1) return false;
+  const [unknownIndex] = unknownIndexes;
+  return unknownIndex === 0 || (unknownIndex > 0 && unknownIndex < meaningful.length - 1);
+}
+
 function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   if (TRANSACTIONAL.test(candidate.keyword)) return "transactional";
+  // Provider intent can mislabel institution-research queries as commercial.
+  // These are awareness topics unless the phrase also expresses a buyer action.
+  if (INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword)
+    && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return "informational";
   const supplied = String(candidate.intent ?? "").toLowerCase();
   if (supplied.includes("transaction") || supplied.includes("conversion")) return "transactional";
   if (supplied.includes("commercial") || supplied.includes("consideration")) return "commercial";
@@ -137,7 +225,7 @@ function customerIntent(intent: ProviderIntent): CustomerIntent {
 }
 
 function intentPoints(intent: ProviderIntent) {
-  return 25 * ({ transactional: 1, commercial: 0.85, navigational: 0.25, informational: 0.3 }[intent]);
+  return ({ transactional: 25, commercial: 21, navigational: 6, informational: 8 }[intent]);
 }
 
 function opportunityPoints(candidate: KeywordCandidate) {
@@ -173,32 +261,6 @@ function priorityReason(candidate: KeywordCandidate, intent: ProviderIntent, rel
 
 function audienceConflict(keyword: string, contextDescription: string) {
   return HIGH_SCHOOL_AUDIENCE.test(contextDescription) && GRADUATE_AUDIENCE.test(keyword);
-}
-
-// Major US city/metro phrases. A keyword that contains one of these but the
-// website's page text does not is almost certainly a location the business
-// does not serve — reject it from non-ranking candidates.
-const US_CITY_PHRASES: readonly string[] = [
-  "los angeles", "manhattan", "new york city", "nyc", "brooklyn",
-  "boston", "houston", "green bay", "seattle", "chicago", "philadelphia",
-  "fremont", "bay area", "san francisco", "san jose", "san diego",
-  "dallas", "austin", "denver", "miami", "atlanta", "phoenix",
-  "minneapolis", "portland", "las vegas", "detroit", "baltimore",
-  "washington dc",
-  "columbus", "madison", "roswell", "tucson", "york pa",
-];
-
-/**
- * Returns true when a keyword contains a US city phrase that does not appear
- * in the website's page-text evidence, meaning the site likely does not serve
- * that location. Always returns false for existing-ranking keywords — preserve
- * those regardless.
- */
-export function keywordHasGeographicConflict(keyword: string, evidence: string): boolean {
-  if (!evidence.trim()) return false;
-  const kw = keyword.toLowerCase();
-  const ev = evidence.toLowerCase();
-  return US_CITY_PHRASES.some((city) => kw.includes(city) && !ev.includes(city));
 }
 
 function revenueFit(keyword: string, intent: ProviderIntent) {
@@ -251,6 +313,60 @@ function keywordThemeMatch(keyword: string, brief: BusinessSearchBrief) {
   return best;
 }
 
+function keywordConflictsWithNonOffer(keyword: string, brief: BusinessSearchBrief) {
+  const keywordTokens = new Set(canonicalTokens(keyword));
+  return brief.offerVsEnablement.notTheOffer.some((phrase) => {
+    const terms = canonicalTokens(phrase);
+    if (!terms.length) return false;
+    const shared = terms.filter((term) => keywordTokens.has(term)).length;
+    return shared === terms.length || (terms.length >= 2 && shared >= 2);
+  });
+}
+
+function keywordHasOfferAnchor(keyword: string, brief: BusinessSearchBrief) {
+  const keywordTokens = new Set(canonicalTokens(keyword));
+  if (!keywordTokens.size) return false;
+  const offerPhrases = [
+    ...brief.offerVsEnablement.whatCompanySells,
+    ...brief.themes
+      .filter((theme) => theme.evidence.some((item) => item.field === "productsServices"))
+      .flatMap((theme) => [...theme.requiredTerms, ...theme.seedKeywords]),
+  ];
+  return offerPhrases.some((phrase) => {
+    const phraseTerms = canonicalTokens(phrase);
+    const meaningfulTerms = phraseTerms.filter((term) => !OFFER_CONTEXT_ONLY_TOKENS.has(term));
+    const shared = meaningfulTerms.filter((term) => keywordTokens.has(term)).length;
+    return shared >= 2 || (shared === 1 && SERVICE_ACTION_QUERY.test(keyword));
+  });
+}
+
+function keywordHasTechnicalAuthorityAnchor(keyword: string, theme: KeywordTheme) {
+  if (theme.funnelRole !== "technical_authority") return false;
+  const keywordTokens = new Set(canonicalTokens(keyword));
+  const evidenceTerms = new Set([...theme.requiredTerms, ...theme.seedKeywords]
+    .flatMap(canonicalTokens)
+    .filter((term) => !GENERIC_DIFFERENTIATOR_TOKENS.has(term)));
+  return [...evidenceTerms].filter((term) => keywordTokens.has(term)).length >= 2;
+}
+
+function themeRequiresOfferAnchor(theme: KeywordTheme, keyword: string, intent: ProviderIntent) {
+  const fields = new Set(theme.evidence.map((item) => item.field));
+  if (fields.has("productsServices")) return true;
+  if (fields.has("idealCustomer") || fields.has("market") || fields.has("differentiation")) return true;
+  if (!fields.has("problemSolved") && !fields.has("audienceChallengesGoals")) return false;
+  // A real long-tail problem query can be useful awareness content even when
+  // it does not name the solution. Short outcome fragments and buyer queries
+  // must still name the offer they are meant to sell.
+  return intent !== "informational" || canonicalTokens(keyword).length < 4;
+}
+
+function isBroadInformationalHeadTerm(candidate: KeywordCandidate, intent: ProviderIntent) {
+  if (intent !== "informational" || candidate.opportunity === "existing_rank") return false;
+  const tokens = canonicalTokens(candidate.keyword);
+  return tokens.length <= 2 && !TRANSACTIONAL.test(candidate.keyword) && !COMMERCIAL.test(candidate.keyword)
+    && !INFORMATIONAL.test(candidate.keyword);
+}
+
 export function rankKeywordOpportunities<T extends KeywordCandidate>(
   candidates: T[],
   context: KeywordBusinessContext,
@@ -263,13 +379,30 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
   const businessOffersSoftware = SOFTWARE_PRODUCT.test(businessDescription);
   const seen = new Set<string>();
   const ranked = candidates.flatMap((candidate) => {
+    const volume = Number(candidate.searchVolume);
+    // Recommendations must be backed by a positive DataForSEO demand record.
+    // Raw onboarding phrases can be useful as expansion queries, never as
+    // recommendable keywords in their own right.
+    if (!Number.isFinite(volume) || volume <= 0) return [];
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
+    if (isLowEvidenceSiteIdea(candidate, business.all)) return [];
+    if (hasContextualSemanticConflict(candidate, businessDescription, business.all)) return [];
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
+    const productsServices = context.productsServices ?? "";
+    if (RECURRING_COLLECTION_QUERY.test(candidate.keyword)
+      && !/\b(?:garbage collection|rubbish collection|trash collection|trash pickup)\b/i.test(productsServices)) return [];
+    if (RENTAL_SERVICE_QUERY.test(candidate.keyword) && !RENTAL_SERVICE_QUERY.test(productsServices)) return [];
+    if (TRUCK_EQUIPMENT_QUERY.test(candidate.keyword) && !TRUCK_EQUIPMENT_QUERY.test(productsServices)) return [];
+    if (brief && keywordConflictsWithNonOffer(candidate.keyword, brief)) return [];
+    if (/\b(?:auto|car|cars|vehicle|vehicles)\b/i.test(candidate.keyword)
+      && !/\b(?:auto|car|cars|vehicle|vehicles)\b/i.test(productsServices)) return [];
+    if (/\bleads?\b/i.test(candidate.keyword) && !/\bleads?\b/i.test(productsServices)) return [];
     if (audienceConflict(candidate.keyword, businessDescription)) return [];
+    if (keywordHasGeographicConflict(candidate, context)) return [];
     seen.add(identity);
-    if (Number(candidate.rank ?? 0) === 0 && context.pageText && keywordHasGeographicConflict(candidate.keyword, context.pageText)) return [];
     const providerIntent = inferIntent(candidate);
+    if (isBroadInformationalHeadTerm(candidate, providerIntent)) return [];
     if (INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)
       && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return [];
     const keywordTokens = new Set(canonicalTokens(candidate.keyword));
@@ -277,7 +410,14 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const totalOverlap = [...keywordTokens].filter((token) => business.all.has(token)).length;
     const distinctiveOfferOverlap = [...keywordTokens].filter((token) => business.offer.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
     const distinctiveTotalOverlap = [...keywordTokens].filter((token) => business.all.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
+    if (PROOF_OR_SENTENCE_FRAGMENT.test(candidate.keyword) && distinctiveOfferOverlap < 2) return [];
+    const savedAudienceTheme = /(?:audience|customer outcome|market relevance)/i
+      .test(`${String(candidate.themeId ?? "")} ${String(candidate.themeLabel ?? "")}`);
+    if (!brief && savedAudienceTheme && distinctiveOfferOverlap < 2) return [];
     const themeMatch = brief ? keywordThemeMatch(candidate.keyword, brief) : null;
+    if (brief && themeMatch && themeRequiresOfferAnchor(themeMatch.theme, candidate.keyword, providerIntent)
+      && !keywordHasOfferAnchor(candidate.keyword, brief)
+      && !keywordHasTechnicalAuthorityAnchor(candidate.keyword, themeMatch.theme)) return [];
     const contextualSchoolResearch = HIGH_SCHOOL_AUDIENCE.test(businessDescription)
       && INSTITUTION.test(candidate.keyword)
       && INSTITUTION_RESEARCH.test(candidate.keyword);
@@ -311,17 +451,19 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
       : Math.min(0.78, Math.max(semanticFit, 0.35 + offerOverlap * 0.08 + totalOverlap * 0.1));
     const keywordRevenueFit = revenueFit(candidate.keyword, providerIntent);
     const keywordPriorityTier = priorityTier(relevanceTier, keywordRevenueFit);
-    const volume = Math.max(0, Number(candidate.searchVolume ?? 0));
     const difficulty = Math.min(100, Math.max(0, Number(candidate.difficulty ?? 0)));
     const cpc = Math.max(0, Number(candidate.cpc ?? 0));
-    const volumePoints = Math.min(10, 10 * Math.log10(volume + 1) / 4.5);
-    const attainabilityPoints = Math.max(0, 5 * (1 - difficulty / 100));
-    const valuePoints = Math.min(5, 5 * Math.log10(cpc + 1) / 1.7);
-    const demandPenalty = volume === 0 ? 6 : volume < 20 && providerIntent !== "transactional" ? 3 : 0;
-    const priorityScore = Math.round(Math.max(0, Math.min(100,
-      intentPoints(providerIntent) + businessFit * 30 + keywordRevenueFit * 20
+    const volumePoints = Math.round(Math.min(10, 10 * Math.log10(volume + 1) / 4.5));
+    const attainabilityPoints = Math.round(Math.max(0, 5 * (1 - difficulty / 100)));
+    const valuePoints = Math.round(Math.min(5, 5 * Math.log10(cpc + 1) / 1.7));
+    const demandPenalty = volume < 20 && providerIntent !== "transactional" ? 3 : 0;
+    const savedThemeRole = ["conversion", "consideration", "awareness", "technical_authority"].includes(String(candidate.themeRole))
+      ? candidate.themeRole as KeywordTheme["funnelRole"]
+      : null;
+    const priorityScore = Math.max(0, Math.min(100,
+      intentPoints(providerIntent) + Math.round(businessFit * 30) + Math.round(keywordRevenueFit * 20)
       + volumePoints + attainabilityPoints + valuePoints + opportunityPoints(candidate) - demandPenalty,
-    )));
+    ));
     return [{
       ...candidate,
       providerIntent,
@@ -332,12 +474,9 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
       priorityTier: keywordPriorityTier,
       priorityScore,
       priorityReason: priorityReason(candidate, providerIntent, relevanceTier, themeMatch?.theme.label),
-      // A new brief match always wins. Without one, preserve any valid persisted
-      // theme so downstream filters (e.g. offer-fit in editorial calendar) can
-      // distinguish an audience segment from a sold service.
-      themeId: themeMatch?.theme.id ?? (typeof candidate.themeId === "string" && candidate.themeId ? candidate.themeId : "evidence-based"),
-      themeLabel: themeMatch?.theme.label ?? (typeof candidate.themeLabel === "string" && candidate.themeLabel ? candidate.themeLabel : "Evidence-based opportunity"),
-      themeRole: themeMatch?.theme.funnelRole ?? (VALID_THEME_ROLES.has(candidate.themeRole as string) ? candidate.themeRole as KeywordTheme["funnelRole"] : (providerIntent === "transactional" ? "conversion" : customerIntent(providerIntent))),
+      themeId: themeMatch?.theme.id ?? (typeof candidate.themeId === "string" ? candidate.themeId : "evidence-based"),
+      themeLabel: themeMatch?.theme.label ?? (typeof candidate.themeLabel === "string" ? candidate.themeLabel : "Evidence-based opportunity"),
+      themeRole: themeMatch?.theme.funnelRole ?? savedThemeRole ?? (providerIntent === "transactional" ? "conversion" : customerIntent(providerIntent)),
     } as RankedKeywordOpportunity<T>];
   });
   return ranked.sort((left, right) => left.priorityTier - right.priorityTier
@@ -359,13 +498,13 @@ function nearDuplicate(left: string, right: string) {
 export function selectDiversifiedKeywordOpportunities<T extends RankedKeywordOpportunity>(ranked: T[], limit = 50): T[] {
   const maximum = Math.max(0, limit);
   if (!maximum) return [];
-  const themeCap = Math.max(3, Math.ceil(maximum * 0.3));
   const queues = new Map<string, T[]>();
   for (const keyword of ranked) {
     const queue = queues.get(keyword.themeId) ?? [];
     queue.push(keyword);
     queues.set(keyword.themeId, queue);
   }
+  const themeCap = queues.size <= 1 ? maximum : Math.max(3, Math.ceil(maximum * 0.3));
   const selected: T[] = [];
   const counts = new Map<string, number>();
   const intentBand = (keyword: T) => keyword.themeRole === "technical_authority"
@@ -381,18 +520,9 @@ export function selectDiversifiedKeywordOpportunities<T extends RankedKeywordOpp
     bandCounts.set(band, (bandCounts.get(band) ?? 0) + 1);
   };
 
-  // Establish real coverage first: the highest-ranked valid opportunity from
-  // every evidence-backed theme gets a chance before any theme can dominate.
-  for (const queue of queues.values()) {
-    let keyword = queue.shift();
-    while (keyword && !canAdd(keyword)) keyword = queue.shift();
-    if (keyword) add(keyword);
-    if (selected.length === maximum) return selected;
-  }
-
-  // Preserve Jose's revenue priority while deliberately reserving space for
+  // Preserve revenue priority while deliberately reserving space for
   // learning-demand and technical-authority paths. Empty bands are never
-  // padded; their unused capacity is released to the final global fill.
+  // padded, and no theme is guaranteed a slot merely for existing.
   const bandTargets: Array<[string, number]> = [
     ["commercial", Math.floor(maximum * 0.44)],
     ["awareness", Math.floor(maximum * 0.26)],

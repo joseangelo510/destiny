@@ -14,6 +14,7 @@ export type GamePlanInput = {
   rankingKeywords: number;
   tasks: GamePlanTask[];
   usableKeywords: number;
+  dataQualityFlags?: number;
 };
 
 export type BusinessIdentity = {
@@ -43,13 +44,13 @@ function domainLabel(domain: string) {
     .join(" ");
 }
 
-export function resolveBusinessIdentity({
+export function businessIdentityMatchCount({
   businessName,
   normalizedDomain,
 }: {
   businessName: string;
   normalizedDomain: string;
-}): BusinessIdentity {
+}) {
   const name = businessName.trim();
   const domain = normalizedDomain.trim();
   const domainCompact = identityTokens(domain).join("");
@@ -61,8 +62,17 @@ export function resolveBusinessIdentity({
     || nameTokens.some((token) => domainCompact.includes(token))
   ));
 
-  if (matches) return { displayName: name, needsReview: false, canExport: true };
-  return { displayName: domainLabel(domain), needsReview: true, canExport: false };
+  return matches ? 1 : 0;
+}
+
+export async function resolveBusinessIdentity(input: { businessName: string; normalizedDomain: string }): Promise<BusinessIdentity> {
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    planIdentityMatches: businessIdentityMatchCount(input),
+  });
+  return policy.planCanExport
+    ? { displayName: input.businessName.trim(), needsReview: false, canExport: true }
+    : { displayName: domainLabel(input.normalizedDomain), needsReview: true, canExport: false };
 }
 
 function countTasks(tasks: GamePlanTask[], predicate: (task: GamePlanTask) => boolean) {
@@ -78,8 +88,18 @@ function monthLabel(start: Date, offset: number) {
   return value.toLocaleDateString("en-US", { month: "long", timeZone: "UTC", year: "numeric" });
 }
 
-export function buildGamePlan(input: GamePlanInput) {
-  const identity = resolveBusinessIdentity(input);
+export async function buildGamePlan(input: GamePlanInput) {
+  const identityMatches = businessIdentityMatchCount(input);
+  const policy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    planIdentityMatches: identityMatches,
+    planApprovedKeywords: Math.max(0, input.approvedKeywords),
+    planUsableKeywords: Math.max(0, input.usableKeywords),
+    planDataQualityFlags: Math.max(0, input.dataQualityFlags ?? 0),
+  });
+  const identity: BusinessIdentity = policy.planCanExport
+    ? { displayName: input.businessName.trim(), needsReview: false, canExport: true }
+    : { displayName: domainLabel(input.normalizedDomain), needsReview: true, canExport: false };
   const start = input.auditCompletedAt && !Number.isNaN(Date.parse(input.auditCompletedAt))
     ? new Date(input.auditCompletedAt)
     : new Date();
@@ -94,8 +114,13 @@ export function buildGamePlan(input: GamePlanInput) {
     "social_distribution",
   ].includes(task.task_type));
   const taskProgress = countTasks(input.tasks, () => true);
-  const keywordTargetLow = Math.max(input.approvedKeywords, Math.min(input.usableKeywords, 12));
-  const keywordTargetHigh = Math.max(keywordTargetLow, Math.min(input.usableKeywords, keywordTargetLow + 12));
+  const keywordTargetLow = policy.planKeywordTargetLow;
+  const keywordTargetHigh = policy.planKeywordTargetHigh;
+  const themeCopy = {
+    foundation: { theme: "Build the foundation", milestones: ["Confirm the priority keyword direction", "Resolve the highest-impact technical issues", "Improve the most important existing pages", "Validate measurement and indexing"] },
+    content_engine: { theme: "Build the content engine", milestones: ["Publish high-intent service and decision pages", "Create supporting educational content", "Strengthen internal links between related pages", "Begin repeatable review and distribution work"] },
+    authority: { theme: "Expand authority", milestones: ["Distribute the strongest content", "Earn credible citations and mentions", "Refresh pages showing early traction", "Use verified results to choose the next quarter"] },
+  } as const;
 
   return {
     ...identity,
@@ -138,26 +163,11 @@ export function buildGamePlan(input: GamePlanInput) {
         linkLabel: "Review distribution strategy",
       },
     ],
-    months: [
-      {
-        label: "Month 1",
-        date: monthLabel(start, 0),
-        theme: "Build the foundation",
-        milestones: ["Confirm the priority keyword direction", "Resolve the highest-impact technical issues", "Improve the most important existing pages", "Validate measurement and indexing"],
-      },
-      {
-        label: "Month 2",
-        date: monthLabel(start, 1),
-        theme: "Build the content engine",
-        milestones: ["Publish high-intent service and decision pages", "Create supporting educational content", "Strengthen internal links between related pages", "Begin repeatable review and distribution work"],
-      },
-      {
-        label: "Month 3",
-        date: monthLabel(start, 2),
-        theme: "Expand authority",
-        milestones: ["Distribute the strongest content", "Earn credible citations and mentions", "Refresh pages showing early traction", "Use verified results to choose the next quarter"],
-      },
-    ],
+    months: policy.planThemeCodes.map((code, index) => ({
+      label: `Month ${index + 1}`,
+      date: monthLabel(start, index),
+      ...(themeCopy[code as keyof typeof themeCopy] ?? themeCopy.foundation),
+    })),
     scope: {
       inThisQuarter: [
         "Priority keyword and search-intent direction",
@@ -203,11 +213,14 @@ export function buildGamePlan(input: GamePlanInput) {
         baseline: `${Math.max(0, Math.round(input.estimatedOrganicTraffic)).toLocaleString()} estimated organic visits`,
         expectedRange: "New impressions and keyword movement may begin within 60–90 days",
         assumption: "Technical blockers are addressed and useful pages are indexed.",
-        confidence: "Directional only—not a traffic or ranking guarantee.",
+        confidence: policy.planForecastConfidence === "limited"
+          ? "Limited confidence until missing search evidence is available."
+          : "Directional only—not a traffic or ranking guarantee.",
       },
     ],
     forecastDisclaimer: "Search rankings and traffic cannot be guaranteed. Destiny forecasts likely progress from the current baseline, planned work, competition, domain authority, and consistent execution. Verified outcomes appear only in Analytics.",
   };
 }
 
-export type GamePlan = ReturnType<typeof buildGamePlan>;
+export type GamePlan = Awaited<ReturnType<typeof buildGamePlan>>;
+import { runDestinyServerLogic } from "../logicaffeine-server";

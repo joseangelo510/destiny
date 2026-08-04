@@ -4,6 +4,13 @@ export type EmailDelivery = {
   reason?: string;
 };
 
+export function withEmailDelivery(rawPayload: unknown, delivery: EmailDelivery) {
+  const raw = rawPayload && typeof rawPayload === "object" && !Array.isArray(rawPayload)
+    ? rawPayload as Record<string, unknown>
+    : {};
+  return { ...raw, emailDelivery: delivery };
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")

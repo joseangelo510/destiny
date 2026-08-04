@@ -1,5 +1,7 @@
-/** Duration constants for the initial three-month growth plan. */
 export const INITIAL_PLAN_MONTHS = 3;
-export const INITIAL_PLAN_WEEKS = 12;
-/** Minimum keyword approvals needed to fill a varied three-month plan (one per week, plus buffer). */
+export const WEEKS_PER_PLAN_MONTH = 4;
+export const INITIAL_PLAN_WEEKS = INITIAL_PLAN_MONTHS * WEEKS_PER_PLAN_MONTH;
+
+// A 12-week calendar needs enough approved options for variety without asking
+// a new user to commit to a second planning cycle they have not unlocked.
 export const INITIAL_KEYWORD_APPROVAL_TARGET = 15;

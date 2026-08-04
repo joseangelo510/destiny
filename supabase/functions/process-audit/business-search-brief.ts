@@ -52,7 +52,7 @@ export type BusinessSearchBriefConfig = {
 type KnownCompetitor = { name: string; url?: string | null };
 
 const FIELD_LABELS: Array<{ field: BusinessSearchField; label: string; funnelRole: KeywordTheme["funnelRole"]; priority: KeywordTheme["priority"] }> = [
-  { field: "productsServices", label: "Products and services", funnelRole: "consideration", priority: "primary" },
+  { field: "productsServices", label: "Products and services", funnelRole: "conversion", priority: "primary" },
   { field: "problemSolved", label: "Problems and demand", funnelRole: "awareness", priority: "primary" },
   { field: "idealCustomer", label: "Audience use cases", funnelRole: "consideration", priority: "secondary" },
   { field: "audienceChallengesGoals", label: "Customer outcomes", funnelRole: "awareness", priority: "secondary" },
@@ -207,6 +207,46 @@ function phraseCandidates(value: string) {
   return phrases.slice(0, 8);
 }
 
+function productServiceCandidates(value: string) {
+  const source = clean(value, 4_000)
+    .replace(/^[\s]*(?:we|our (?:company|business))\s+(?:provide|offer|sell|build|create|deliver)\s+/i, "")
+    .replace(/\bincluding\b/gi, ",")
+    .replace(/[–—-]+/g, " ");
+  const candidates: string[] = [];
+  const seen = new Set<string>();
+  const add = (candidate: string) => {
+    const text = candidate.replace(/\s+/g, " ").trim();
+    const key = normalizeEvidence(text);
+    const words = key.split(/\s+/).filter(Boolean);
+    if (!key || words.length < 2 || words.length > 9 || seen.has(key)) return;
+    if (/^(?:san francisco )?bay area$|^united states$/i.test(text)) return;
+    seen.add(key);
+    candidates.push(text);
+  };
+  for (const raw of source.split(/[,;.!?\n]+/)) {
+    const withoutLeadingJoiner = raw
+      .replace(/^\s*(?:and|or)\s+/i, "")
+      .replace(/^\s*(?:our\s+)?(?:core\s+)?product\s+is\s+/i, "")
+      .replace(/^\s*it\s+is\s+/i, "")
+      .trim();
+    const withoutLocation = withoutLeadingJoiner
+      .replace(/\s+(?:in|serving|across)\s+(?=(?:the\s+)?[A-Z])[\s\S]*$/, "")
+      .replace(/[.!?]+$/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    add(withoutLocation);
+    const coordinated = withoutLocation.split(/\s+and\s+/i).map((part) => part.trim()).filter(Boolean);
+    if (coordinated.length === 2) {
+      add(coordinated[0]);
+      add(coordinated[1]);
+      const leftWords = coordinated[0].split(/\s+/).filter(Boolean);
+      const rightWords = coordinated[1].split(/\s+/).filter(Boolean);
+      if (leftWords.length === 1 && rightWords.length === 2) add(`${leftWords[0]} ${rightWords[1]}`);
+    }
+  }
+  return candidates.slice(0, 8);
+}
+
 function evidenceExcerpt(value: string) {
   const trimmed = clean(value, 4_000);
   const first = trimmed.split(/[.;\n]/)[0]?.trim() || trimmed;
@@ -217,7 +257,8 @@ export function deterministicBusinessSearchBrief(context: BusinessSearchContext,
   const themes = FIELD_LABELS.flatMap(({ field, label, funnelRole, priority }) => {
     const value = fieldValue(context, field);
     if (!value) return [];
-    const phrases = phraseCandidates(value).filter((phrase) => normalizeEvidence(phrase) !== "build software");
+    const phrases = (field === "productsServices" ? productServiceCandidates(value) : phraseCandidates(value))
+      .filter((phrase) => normalizeEvidence(phrase) !== "build software");
     if (!phrases.length) return [];
     const seeds = phrases.slice(0, 4);
     return [{
@@ -232,7 +273,7 @@ export function deterministicBusinessSearchBrief(context: BusinessSearchContext,
     } satisfies KeywordTheme];
   }).slice(0, 8);
 
-  const products = phraseCandidates(fieldValue(context, "productsServices")).slice(0, 5);
+  const products = productServiceCandidates(fieldValue(context, "productsServices")).slice(0, 8);
   const audiences = phraseCandidates(fieldValue(context, "idealCustomer")).slice(0, 6);
   const problems = phraseCandidates(`${fieldValue(context, "problemSolved")} ${fieldValue(context, "audienceChallengesGoals")}`).slice(0, 8);
   const differentiators = phraseCandidates(fieldValue(context, "differentiation")).slice(0, 8);
@@ -299,7 +340,7 @@ function parseClaudeBrief(value: unknown, context: BusinessSearchContext, model:
   const offer = row.offerVsEnablement && typeof row.offerVsEnablement === "object" && !Array.isArray(row.offerVsEnablement)
     ? row.offerVsEnablement as Record<string, unknown>
     : {};
-  const themes = Array.isArray(row.themes)
+  let themes = Array.isArray(row.themes)
     ? row.themes.map((theme, index) => parseTheme(theme, context, index)).filter((theme): theme is KeywordTheme => Boolean(theme)).slice(0, 8)
     : [];
   if (themes.length < 3) throw new Error("Claude did not return enough evidence-backed search themes.");
@@ -307,7 +348,19 @@ function parseClaudeBrief(value: unknown, context: BusinessSearchContext, model:
     .filter((field) => field !== "market" && Boolean(fieldValue(context, field)));
   const coveredFields = new Set(themes.flatMap((theme) => theme.evidence.map((evidence) => evidence.field)));
   const missingCoverage = requiredCoverage.filter((field) => !coveredFields.has(field));
-  if (missingCoverage.length) throw new Error(`Claude omitted onboarding evidence: ${missingCoverage.join(", ")}.`);
+  let coverageWarning: string | undefined;
+  if (missingCoverage.length) {
+    const fallback = deterministicBusinessSearchBrief(context);
+    const supplementalThemes = missingCoverage.flatMap((field) => {
+      const theme = fallback.themes.find((candidate) => candidate.evidence.some((evidence) => evidence.field === field));
+      return theme ? [theme] : [];
+    });
+    themes = [...themes.slice(0, Math.max(3, 8 - supplementalThemes.length)), ...supplementalThemes].slice(0, 8);
+    const supplementedFields = new Set(themes.flatMap((theme) => theme.evidence.map((evidence) => evidence.field)));
+    const stillMissing = requiredCoverage.filter((field) => !supplementedFields.has(field));
+    if (stillMissing.length) throw new Error(`Claude omitted onboarding evidence: ${stillMissing.join(", ")}.`);
+    coverageWarning = `Claude Opus 4.8 omitted evidence for ${missingCoverage.join(", ")}; Destiny supplemented those fields from its conservative onboarding parser.`;
+  }
   const enablement = uniqueStrings(offer.whatProductEnables, 8);
   const leakedOutcome = themes.flatMap((theme) => theme.seedKeywords).find((seed) => enablement.some((outcome) => {
     const normalizedOutcome = normalizeEvidence(outcome);
@@ -327,6 +380,7 @@ function parseClaudeBrief(value: unknown, context: BusinessSearchContext, model:
     problems: uniqueStrings(row.problems, 10),
     differentiators: uniqueStrings(row.differentiators, 10),
     themes,
+    ...(coverageWarning ? { warning: coverageWarning } : {}),
   };
 }
 
@@ -422,6 +476,59 @@ export function themeSeeds(brief: BusinessSearchBrief, limit = 16) {
       seen.add(key);
       seeds.push(seed);
       if (seeds.length === limit) break;
+    }
+  }
+  return seeds;
+}
+
+export function buyerExpansionSeeds(brief: BusinessSearchBrief, limit = 8) {
+  const suitable = (value: string, maximumWords: number) => {
+    const words = normalizeEvidence(value).split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.length <= maximumWords;
+  };
+  const unique = (values: string[], maximumWords: number) => {
+    const seen = new Set<string>();
+    return values.flatMap((value) => {
+      const cleaned = clean(value, 120);
+      const key = normalizeEvidence(cleaned);
+      if (!cleaned || !suitable(cleaned, maximumWords) || seen.has(key)) return [];
+      seen.add(key);
+      return [cleaned];
+    });
+  };
+  const offerThemes = brief.themes.filter((theme) =>
+    theme.evidence.some((item) => item.field === "productsServices"));
+  const audienceThemes = brief.themes.filter((theme) =>
+    theme.evidence.some((item) => item.field === "idealCustomer"));
+  const offerQueues = offerThemes.map((theme) => [...theme.seedKeywords]);
+  const balancedOfferSeeds: string[] = [];
+  while (offerQueues.some((queue) => queue.length)) {
+    for (const queue of offerQueues) {
+      const seed = queue.shift();
+      if (seed) balancedOfferSeeds.push(seed);
+    }
+  }
+  const offers = unique([
+    ...brief.offerVsEnablement.whatCompanySells,
+    ...balancedOfferSeeds,
+  ], 8);
+  const audiences = unique([
+    ...audienceThemes.flatMap((theme) => theme.seedKeywords),
+    ...brief.audiences,
+  ], 5);
+  const seeds: string[] = [];
+  const seen = new Set<string>();
+  const add = (value: string) => {
+    const key = normalizeEvidence(value);
+    if (!key || seen.has(key) || seeds.length >= limit) return;
+    seen.add(key);
+    seeds.push(value);
+  };
+  offers.slice(0, Math.max(1, Math.ceil(limit / 2))).forEach(add);
+  for (const offer of offers.slice(0, 3)) {
+    for (const audience of audiences.slice(0, 4)) {
+      add(`${offer} for ${audience}`);
+      if (seeds.length >= limit) return seeds;
     }
   }
   return seeds;
