@@ -1,0 +1,9 @@
+# This repository intentionally tracks only the active Destiny product and its
+# LOGOS engine. Historical prototypes and local output archives remain outside
+# version control.
+*
+!/.gitignore
+!/destiny-product/
+!/destiny-product/**
+!/destiny-logic-engine/
+!/destiny-logic-engine/**

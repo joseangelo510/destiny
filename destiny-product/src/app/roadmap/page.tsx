@@ -1,0 +1,29 @@
+import { redirect } from "next/navigation";
+import { RoadmapExperience } from "@/components/roadmap-experience";
+import { WorkspaceShell } from "@/components/workspace-shell";
+import { buildSeoRoadmap, type RoadmapAnalytics, type RoadmapSearchConsole } from "@/lib/product/roadmap";
+import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
+import { getWorkspaceContext, record } from "@/lib/workspace-context";
+
+function connectedMetadata(context: Awaited<ReturnType<typeof getWorkspaceContext>>, provider: string) {
+  const integration = context.integrations.find((item) => item.provider === provider && item.status === "connected" && item.last_synced_at);
+  return integration ? record(integration.metadata) : null;
+}
+
+export default async function RoadmapPage() {
+  const context = await getWorkspaceContext();
+  if (!context.website) redirect("/onboarding");
+  const searchConsole = connectedMetadata(context, "google_search_console") as RoadmapSearchConsole | null;
+  const analytics = connectedMetadata(context, "google_analytics") as RoadmapAnalytics | null;
+  const roadmap = buildSeoRoadmap({
+    auditComplete: context.audit?.status === "complete",
+    quests: context.audit ? context.quests.filter((quest) => quest.audit_id === context.audit?.id) : [],
+    searchConsole,
+    analytics,
+  });
+  const weekly = buildWeeklyProgressSummary(context.quests);
+
+  return <WorkspaceShell active="/roadmap" eyebrow={context.website.normalized_domain} title="Your visibility journey" description="See where you are, where you are going, and the one useful step to take next.">
+    <RoadmapExperience roadmap={roadmap} weekly={weekly} />
+  </WorkspaceShell>;
+}

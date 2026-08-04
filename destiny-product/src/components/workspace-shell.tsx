@@ -1,0 +1,56 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "../lib/product/coach-experience";
+import { WorkspaceNotifications } from "./workspace-notifications";
+
+export function WorkspaceShell({
+  active,
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  active: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
+  return (
+    <main className="app-shell">
+      <aside className="sidebar">
+        <Link aria-label="Destiny homepage" className="brand sidebar-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <nav aria-label="Destiny workspace">
+          <span className="nav-section-label">Your coaching</span>
+          {PRIMARY_NAVIGATION.map((item) => (
+            <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
+          ))}
+        </nav>
+        <details className="desktop-feature-menu" open={Boolean(activeFeature)}>
+          <summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary>
+          <div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}</div>
+        </details>
+        <details className="mobile-feature-menu">
+          <summary>Tools & reports</summary>
+          <div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}</div>
+        </details>
+        <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
+      </aside>
+      <section className="dashboard workspace-page" data-active={active}>
+        <header className="workspace-header">
+          <div className="workspace-header-copy">
+            <div className="eyebrow">{eyebrow}</div>
+            <h1>{title}</h1>
+            <p>{description}</p>
+          </div>
+          <WorkspaceNotifications />
+        </header>
+        {children}
+      </section>
+      <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">
+        {PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>)}
+      </nav>
+    </main>
+  );
+}
