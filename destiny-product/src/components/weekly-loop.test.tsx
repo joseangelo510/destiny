@@ -88,6 +88,17 @@ describe("WeeklyLoop", () => {
     expect(html).toContain("Replay plan reveal");
   });
 
+  it("can make the week smaller without changing or completing any task", () => {
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} initialFocusMode remainingTasks={2} />);
+
+    expect(html).toContain("I hear you. Let’s make this smaller.");
+    expect(html).toContain("One step");
+    expect(html).toContain("about 12 minutes");
+    expect(html).toContain("Approve your priority keywords");
+    expect(html).not.toContain("Review your first article");
+    expect(html).toContain("Show my full week");
+  });
+
   it("opens a completed-only strategy task so the saved review remains reachable", () => {
     const completedGroups = groups.map((group) => group.id === "research-strategy"
       ? { ...group, tasks: [task({ status: "complete", action_path: "/keywords" })] }

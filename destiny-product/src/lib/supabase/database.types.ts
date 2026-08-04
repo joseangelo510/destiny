@@ -630,6 +630,7 @@ export type Database = {
           contact_email: string
           created_at: string
           first_name: string
+          founder_why: string
           id: string
           last_name: string
           updated_at: string
@@ -638,6 +639,7 @@ export type Database = {
           contact_email?: string
           created_at?: string
           first_name?: string
+          founder_why?: string
           id: string
           last_name?: string
           updated_at?: string
@@ -646,6 +648,7 @@ export type Database = {
           contact_email?: string
           created_at?: string
           first_name?: string
+          founder_why?: string
           id?: string
           last_name?: string
           updated_at?: string
