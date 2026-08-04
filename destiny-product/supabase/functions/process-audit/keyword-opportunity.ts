@@ -201,7 +201,7 @@ function customerIntent(intent: ProviderIntent): CustomerIntent {
 }
 
 function intentPoints(intent: ProviderIntent) {
-  return 25 * ({ transactional: 1, commercial: 0.85, navigational: 0.25, informational: 0.3 }[intent]);
+  return ({ transactional: 25, commercial: 21, navigational: 6, informational: 8 }[intent]);
 }
 
 function opportunityPoints(candidate: KeywordCandidate) {
@@ -428,17 +428,17 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const keywordPriorityTier = priorityTier(relevanceTier, keywordRevenueFit);
     const difficulty = Math.min(100, Math.max(0, Number(candidate.difficulty ?? 0)));
     const cpc = Math.max(0, Number(candidate.cpc ?? 0));
-    const volumePoints = Math.min(10, 10 * Math.log10(volume + 1) / 4.5);
-    const attainabilityPoints = Math.max(0, 5 * (1 - difficulty / 100));
-    const valuePoints = Math.min(5, 5 * Math.log10(cpc + 1) / 1.7);
+    const volumePoints = Math.round(Math.min(10, 10 * Math.log10(volume + 1) / 4.5));
+    const attainabilityPoints = Math.round(Math.max(0, 5 * (1 - difficulty / 100)));
+    const valuePoints = Math.round(Math.min(5, 5 * Math.log10(cpc + 1) / 1.7));
     const demandPenalty = volume < 20 && providerIntent !== "transactional" ? 3 : 0;
     const savedThemeRole = ["conversion", "consideration", "awareness", "technical_authority"].includes(String(candidate.themeRole))
       ? candidate.themeRole as KeywordTheme["funnelRole"]
       : null;
-    const priorityScore = Math.round(Math.max(0, Math.min(100,
-      intentPoints(providerIntent) + businessFit * 30 + keywordRevenueFit * 20
+    const priorityScore = Math.max(0, Math.min(100,
+      intentPoints(providerIntent) + Math.round(businessFit * 30) + Math.round(keywordRevenueFit * 20)
       + volumePoints + attainabilityPoints + valuePoints + opportunityPoints(candidate) - demandPenalty,
-    )));
+    ));
     return [{
       ...candidate,
       providerIntent,

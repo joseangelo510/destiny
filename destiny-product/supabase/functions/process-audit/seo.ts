@@ -7,6 +7,7 @@ import {
   type BusinessSearchContext,
 } from "./business-search-brief.ts";
 import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity.ts";
+import { applyLogosKeywordPolicy } from "./logos-keyword-policy.ts";
 import {
   extractSiteVocabulary,
   parseContentPage,
@@ -137,6 +138,13 @@ function record(value: unknown): JsonRecord {
 function array(value: unknown): unknown[] { return Array.isArray(value) ? value : []; }
 function number(value: unknown) { return typeof value === "number" && Number.isFinite(value) ? value : 0; }
 function string(value: unknown) { return typeof value === "string" ? value : ""; }
+
+export function keywordPolicyEngine() {
+  const deno = (globalThis as typeof globalThis & {
+    Deno?: { env?: { get?: (name: string) => string | undefined } };
+  }).Deno;
+  return deno?.env?.get?.("DESTINY_ENGINE") === "typescript" ? "typescript" : "logos";
+}
 
 export function normalizeWebsite(value: string) {
   const trimmed = value.trim();
@@ -718,18 +726,23 @@ export async function runDataForSeoAudit(
     ...keyword,
     intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
   }));
-  const rankedKeywordsForStrategy = rankKeywordOpportunities(intentEnrichedCandidates, {
+  const legacyRankedKeywords = rankKeywordOpportunities(intentEnrichedCandidates, {
     ...(businessContext ?? {}),
     locationEvidence: pages.map((page) => page.text).join(" "),
   }, 300, businessSearchBrief);
+  const rankedKeywordsForStrategy = keywordPolicyEngine() === "typescript"
+    ? legacyRankedKeywords
+    : await applyLogosKeywordPolicy(legacyRankedKeywords);
   const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 35).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),
     matchedTerms: [],
-    reason: keyword.priorityReason,
-    essential: keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
-      && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
-        || keyword.providerIntent === "transactional"),
+    reason: "reason" in keyword && typeof keyword.reason === "string" ? keyword.reason : keyword.priorityReason,
+    essential: "essential" in keyword && typeof keyword.essential === "boolean"
+      ? keyword.essential
+      : keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
+        && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
+          || keyword.providerIntent === "transactional"),
   }));
   await onProgress(80);
 

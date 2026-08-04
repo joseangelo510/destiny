@@ -6,6 +6,40 @@ LOGOS becomes Destiny's primary product-logic language. TypeScript remains the
 runtime and integration layer for UI rendering, network access, authentication,
 authorization, persistence, secrets, background execution, and generative AI.
 
+## Accepted compressed migration plan
+
+Destiny has no public users yet, and the owner has explicitly accepted the
+risk of an aggressive LOGOS-primary cutover before launch. The migration uses
+local/CI parity instead of production shadow infrastructure.
+
+- Keep a linear migration history. Do not squash or rebase phase checkpoints.
+- Default each completed domain to LOGOS only after its parity and end-to-end
+  gates pass.
+- Keep one rollback variable: `DESTINY_ENGINE=typescript`. Any other value, or
+  an unset value, selects LOGOS.
+- Keep the legacy TypeScript implementation as a temporary rollback path until
+  two quiet weeks after public launch. Git remains the durable recovery path.
+- Tag every completed domain before beginning the next one.
+- Freeze unrelated feature development until the LOGOS-primary cutover tag.
+
+The heavier trace tables, production shadow execution, retention jobs,
+monitoring cron, database-configured flags, and 30-day promotion gate described
+in the original architecture review are deferred until real usage warrants
+them.
+
+## Minimum gate for every domain
+
+1. Fixture parity covers representative real-business inputs.
+2. Empty, zero, maximum, and malformed-input behavior is covered.
+3. The complete related user flow passes with LOGOS selected.
+4. Full tests, lint, and production build pass.
+5. The rollback variable is tested before the phase is tagged.
+
+The migration is honestly LOGOS-primary when LOGOS is the default authority
+for scoring, recommendations, coaching progression, roadmap progression, and
+plan rules. TypeScript may fetch, normalize, persist, and render data, but it
+must not make those product decisions.
+
 ## Verified baseline
 
 - Production reference: `https://destiny-seo.replit.app/`
@@ -34,64 +68,22 @@ caches, release ZIP files, and generated target directories.
 - `engine-vX.Y.Z`: annotated tag for every promoted LOGOS engine.
 - `vX.Y.Z`: annotated tag for every production application release.
 
-## Four rollback levels
+## Rollback
 
-1. **Authority flag:** switch the affected domain from `logos` to `typescript`
-   without a deployment. Keep the TypeScript path running during the stability
-   window so this fallback remains real.
-2. **Artifact pin:** select the last compatible versioned WASM artifact and
-   verify its checksum and engine-version handshake.
-3. **Code rollback:** redeploy the latest known-good application tag from
-   `main`.
-4. **Data recovery:** use Supabase point-in-time recovery or a verified export
-   only for data corruption. Normal rollback must not require restoring data.
+1. **Fast rollback:** set `DESTINY_ENGINE=typescript` and restart/redeploy the
+   affected runtime.
+2. **Code rollback:** deploy the previous annotated phase or application tag.
+3. **Data recovery:** use Supabase recovery only for actual data corruption.
+   LOGOS phases remain schema-additive, so ordinary rollback does not require a
+   database restore.
 
-## Migration rules
+## Deferred production safeguards
 
-- Database changes remain additive until at least 30 days after a LOGOS domain
-  becomes authoritative. Do not drop or rename fields used by the fallback.
+- Database changes remain additive. Do not drop or rename fields used by the
+  fallback before the post-launch stability window ends.
 - Browser and worker artifacts come from one compile-and-embed command.
-- Each artifact records source hash, compiler version, build flags, and output
-  checksum. Browser and worker adapters must verify the same engine version.
-- Shadow evaluations record rules version, normalized inputs, both outputs,
-  decision differences, latency, and fallback reason under protected RLS.
-- Trace retention and sampling are explicit because traces can contain customer
-  business context.
 - Time, timezone, randomness, and other nondeterministic inputs are explicit.
 - Prefer integer scoring in LOGOS to avoid JavaScript/WASM floating-point drift.
-
-## Gate for each business-logic domain
-
-### Gate A: enter shadow mode
-
-- Baseline and production tags exist remotely.
-- Supabase schema and data export is verified.
-- Typed input/output contract tests pass.
-- Browser/worker engine-version handshake passes.
-- Trace storage, RLS, retention, and sampling pass.
-- TypeScript remains authoritative.
-
-### Gate B: enter canary
-
-- Eligibility decisions match exactly.
-- Rule identifiers match exactly.
-- Ranking and prioritization meet a written top-N/order tolerance.
-- Every difference is classified as a LOGOS bug, TypeScript bug, or resolved
-  specification ambiguity.
-- No unexplained difference remains in the canary corpus.
-
-### Gate C: become authoritative
-
-- Low-risk canary has no material error-rate or latency regression.
-- The authority flag and last-good artifact rollback have both been exercised.
-- Real-domain regression cases pass.
-- LOGOS becomes authoritative only for the promoted domain.
-
-### Gate D: remove the fallback
-
-- LOGOS has remained authoritative and monitored for at least 30 days.
-- Rollback metrics and trace review show stable behavior.
-- TypeScript policy removal ships as its own tagged, reversible release.
 
 ## Migration order
 
