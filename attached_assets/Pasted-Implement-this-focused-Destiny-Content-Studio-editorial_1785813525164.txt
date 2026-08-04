@@ -1,0 +1,31 @@
+Implement this focused Destiny Content Studio editorial-calendar redesign now. Preserve the newer state-driven Direction → Writing → Reading workspace and all existing generation API behavior. Do not change onboarding, audit logic, keyword scoring, DataForSEO calls, secrets, domains, or unrelated features.
+
+Owner feedback:
+- In the editorial calendar, “Review draft” is impossible when no draft exists. The option should instead be “Create content,” leading the user to scroll up and generate it.
+- Improve the editorial calendar’s messy typography and design.
+- Add an (i) information control to every column, like SEMrush/Ahrefs, with a short explanation of what the column means and how it benefits the user.
+
+Adopted Claude Fable 5 direction:
+1. Make status and action derive from the real article state. No draft => Status “Planned” and action “Create content.” Saved generated draft => “Draft ready” and action “Review draft.” Scheduled => “Scheduled.” Published => “Published” and action “View post.” It must be structurally impossible to show Review draft without a saved draft.
+2. “Create content” must select/prefill the matching focus keyword, title, content type, and search intent in the existing writing workspace above; smooth-scroll that workspace into view; focus the Generate control; and use a subtle temporary accent-ring pulse so the destination is obvious. Do NOT automatically trigger an Anthropic generation request—the generation click remains explicit. Preserve the source-row context if the user returns.
+3. Desktop type/design: one existing/system type stack, only 400 and 600 weights; 15px body at 1.4 line-height; 13px semibold muted sentence-case headers; 16px horizontal cell padding; ~52px row minimum; horizontal dividers only; no zebra striping/vertical rules/heavy shadow; tabular right-aligned numerals for Monthly Searches; one quiet always-visible action.
+4. Below 720px render readable cards, not a horizontally scrolling seven-column table. Card: 16px semibold title; 14px muted keyword + monthly searches + intent; schedule/status line; 44px full-width action.
+5. Add a real 16px info button next to EVERY header. It must work by click/tap and keyboard, not hover alone; include visible focus, aria-expanded, aria-controls/aria-describedby as appropriate; Escape and outside click dismiss; max-width about 260px. Do not use a bare text “(I)” label—use an accessible original info icon that visually reads as circled lowercase i.
+6. Tooltip copy:
+- Schedule: “When this piece is planned to publish. A steady schedule helps you build momentum.”
+- Content type: “The format Destiny recommends, such as a service page, guide, FAQ, or comparison.”
+- Focus keyword: “The main search phrase this content targets, so each page has a clear purpose.”
+- Monthly searches: “An estimated number of U.S. searches for this keyword each month. Use it with intent and competition—not by itself.”
+- Title: “The recommended working headline, built around the keyword and your audience’s need.”
+- Search intent: “What the searcher is trying to do: learn, compare options, or take action. Matching intent helps content rank and convert.”
+- Status: “Where this idea is in your workflow: planned, draft ready, scheduled, or published.”
+- Action (if a separate header is used): “The next truthful step available for this content.”
+Keep Status and Action as separate columns if the current table needs both; never label an action as a fake status.
+
+TDD and verification:
+- First add regression tests for real-state-derived status/action and “Review draft” absence when no draft exists.
+- Add a test that Create content selects the row topic, scrolls/focuses the writing workspace, and does not auto-call generation.
+- Add accessibility tests for every header info control and dismissal behavior.
+- Add responsive rendering tests for desktop table and mobile cards if practical in the existing setup.
+- Run focused tests, full tests, lint, TypeScript, production build. Fix only issues caused by this work.
+- Conduct a code review pass, create a checkpoint when clean, and DO NOT republish. Report exact gates and changed files.

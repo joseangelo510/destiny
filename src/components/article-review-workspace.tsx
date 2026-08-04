@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EditorialCalendarTable, type CalendarDraftState } from "./editorial-calendar-table";
+import type { EditorialCalendarItem } from "../lib/content/editorial-calendar";
 import {
   articleCanBeApproved,
+  buildArticleDraft,
   buildWordDocument,
   currentArticleQualityIssues,
   fitMetaDescription,
@@ -64,6 +67,40 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
     qualityIssues: Array.isArray(saved.qualityIssues) ? saved.qualityIssues : fallback.qualityIssues,
     approved: saved.approved === true && generationStatus === "generated",
   };
+}
+
+function buildCalendarStarterDraft(item: EditorialCalendarItem, context: ArticleGenerationContext): EditableDraft {
+  // Prefill the workspace with the calendar row's keyword and working title so
+  // "Create content" lands on a ready direction. Generation stays explicit.
+  return {
+    ...buildArticleDraft({
+      keyword: item.focusKeyword,
+      businessName: context.businessName,
+      problemSolved: context.problemSolved,
+      idealCustomer: context.idealCustomer,
+      differentiation: context.differentiation,
+    }),
+    title: item.title,
+    approved: false,
+  };
+}
+
+// Pure: apply a calendar "Create content" click to the draft list. Appends a
+// prefilled starter for new keywords, syncs the working title onto an existing
+// starter (never onto a generated article), and returns the exact index to
+// select — computed from the same snapshot, so rapid clicks cannot drift.
+export function applyCalendarCreateSelection(drafts: EditableDraft[], item: EditorialCalendarItem, context: ArticleGenerationContext): { drafts: EditableDraft[]; selectedIndex: number } {
+  const existing = drafts.findIndex((candidate) => candidate.keyword === item.focusKeyword);
+  if (existing >= 0) {
+    const current = drafts[existing];
+    if (current.generationStatus === "starter" && current.title !== item.title) {
+      const next = [...drafts];
+      next[existing] = { ...current, title: item.title };
+      return { drafts: next, selectedIndex: existing };
+    }
+    return { drafts, selectedIndex: existing };
+  }
+  return { drafts: [...drafts, buildCalendarStarterDraft(item, context)], selectedIndex: drafts.length };
 }
 
 function issueCategory(code: string) {
@@ -128,16 +165,22 @@ export function GenerationProgressPanel({ stageIndex }: { stageIndex: number }) 
 
 export function ArticleReviewWorkspace({
   auditId,
+  calendar,
+  calendarSourceLabel,
   generationCapability,
   initialDrafts,
   generationContext,
+  planMonths,
   questId,
   questStatus,
 }: {
   auditId: string;
+  calendar?: EditorialCalendarItem[];
+  calendarSourceLabel?: string;
   generationCapability?: ArticleGenerationCapability;
   initialDrafts: ArticleDraft[];
   generationContext: ArticleGenerationContext;
+  planMonths?: number;
   questId?: string;
   questStatus?: string;
 }) {
@@ -156,6 +199,9 @@ export function ArticleReviewWorkspace({
   const [adjusting, setAdjusting] = useState(false);
   const [readingMode, setReadingMode] = useState<"preview" | "edit">("preview");
   const [expanded, setExpanded] = useState(false);
+  const [pulse, setPulse] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const generateButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const hydrate = window.setTimeout(() => {
@@ -167,13 +213,27 @@ export function ArticleReviewWorkspace({
             // Match saved drafts by keyword, not index: stale drafts persisted
             // from an earlier unvetted keyword set (competitor brands, "free"
             // phrases) must not override the vetted outlines from the server.
-            setDrafts(initialDrafts.map((fallback) => normalizeSavedDraft(savedDraftForKeyword(parsed, fallback.keyword), fallback)));
+            const weekly = initialDrafts.map((fallback) => normalizeSavedDraft(savedDraftForKeyword(parsed, fallback.keyword), fallback));
+            // Also restore drafts the user started from later calendar rows —
+            // only for vetted calendar keywords, preserving the stale-draft
+            // safeguard for everything else.
+            const weeklyKeywords = new Set(initialDrafts.map((item) => item.keyword));
+            const calendarKeywords = new Set((calendar ?? []).map((item) => item.focusKeyword));
+            const extras = (calendar ?? []).flatMap((item) => {
+              if (weeklyKeywords.has(item.focusKeyword) || !calendarKeywords.has(item.focusKeyword)) return [];
+              const savedDraft = savedDraftForKeyword(parsed, item.focusKeyword);
+              if (!savedDraft) return [];
+              return [normalizeSavedDraft(savedDraft, buildCalendarStarterDraft(item, generationContext))];
+            });
+            const seen = new Set<string>();
+            setDrafts([...weekly, ...extras].filter((item) => seen.has(item.keyword) ? false : (seen.add(item.keyword), true)));
           }
         }
       } catch { /* Browser storage is a convenience, never an approval gate. */ }
       setStorageReady(true);
     }, 0);
     return () => window.clearTimeout(hydrate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialDrafts, storageKey]);
 
   useEffect(() => {
@@ -189,7 +249,11 @@ export function ArticleReviewWorkspace({
   }, [generatingKeyword]);
 
   const draft = drafts[selected];
-  const approvedCount = drafts.filter((item) => item.approved).length;
+  // Weekly quest progress stays tied to this week's assigned articles even if
+  // the user starts extra drafts from later calendar rows.
+  const weeklyKeywords = useMemo(() => new Set(initialDrafts.map((item) => item.keyword)), [initialDrafts]);
+  const approvedCount = drafts.filter((item) => weeklyKeywords.has(item.keyword) && item.approved).length;
+  const weeklyTotal = initialDrafts.length;
   const qualityIssues = useMemo(() => draft ? currentArticleQualityIssues(draft) : [], [draft]);
   const wordCount = useMemo(() => draft ? markdownWordCount(draft.body) : 0, [draft]);
   const tableOfContents = useMemo(() => draft ? articleTableOfContents(draft.body) : [], [draft]);
@@ -286,8 +350,34 @@ export function ArticleReviewWorkspace({
     URL.revokeObjectURL(url);
   };
 
+  const focusWorkspace = (mode: "create" | "review") => {
+    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setPulse(true);
+    window.setTimeout(() => setPulse(false), 1600);
+    if (mode === "create") window.setTimeout(() => generateButtonRef.current?.focus({ preventScroll: true }), 450);
+  };
+
+  const openCalendarRow = (item: EditorialCalendarItem, mode: "create" | "review") => {
+    if (mode === "create") {
+      // Prefill this calendar row's direction; the Anthropic request still
+      // only happens when the user explicitly clicks Generate.
+      const applied = applyCalendarCreateSelection(drafts, item, generationContext);
+      if (applied.drafts !== drafts) setDrafts(applied.drafts);
+      setSelected(applied.selectedIndex);
+    } else {
+      const existing = drafts.findIndex((candidate) => candidate.keyword === item.focusKeyword);
+      if (existing < 0) return;
+      setSelected(existing);
+    }
+    setError("");
+    setAdjusting(false);
+    setReadingMode("preview");
+    setExpanded(false);
+    focusWorkspace(mode);
+  };
+
   const finish = async () => {
-    if (!questId || approvedCount !== drafts.length) return;
+    if (!questId || approvedCount !== weeklyTotal) return;
     setSaving(true);
     setError("");
     const response = await fetch(`/api/quests/${encodeURIComponent(questId)}`, {
@@ -310,13 +400,14 @@ export function ArticleReviewWorkspace({
     draft.preferences.addInfographics ? "Infographics on" : "No infographics",
   ].filter(Boolean).join(" · ");
 
-  return <section className="article-review-workspace">
+  return <>
+  <section className="article-review-workspace">
     <div className="article-topic-rail">
-      <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div>
+      <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {weeklyTotal} approved</strong></div>
       {drafts.map((item, index) => <button className={index === selected ? "active" : ""} key={item.keyword} onClick={() => { setSelected(index); setError(""); setAdjusting(false); setReadingMode("preview"); setExpanded(false); }} type="button"><span>{item.approved ? "✓" : index + 1}</span><div><strong>{item.title}</strong><small>{topicRailStatusLabel(item.generationStatus)} · {item.keyword}</small></div></button>)}
     </div>
 
-    <div className="article-editor workspace-card">
+    <div className={`article-editor workspace-card${pulse ? " accent-pulse" : ""}`} ref={editorRef}>
       {directionCollapsed
         ? <section className="article-direction-summary" aria-label="Writing direction summary">
             <div><span className="eyebrow">Writing direction</span><p>{preferenceSummary}{draft.preferences.specialInstructions.trim() ? " · Special instructions set" : ""}</p></div>
@@ -333,7 +424,7 @@ export function ArticleReviewWorkspace({
               <label>Special instructions<textarea rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
               <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
             </fieldset>
-            <button className="primary-button article-generate-button" disabled={Boolean(generatingKeyword) || !capability.available} onClick={() => void generate()} type="button">{!capability.available ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${capability.modelLabel === "claude-opus-4-8" ? "Opus 4.8" : capability.modelLabel}` : "Regenerate full article"}</button>
+            <button className="primary-button article-generate-button" disabled={Boolean(generatingKeyword) || !capability.available} onClick={() => void generate()} ref={generateButtonRef} type="button">{!capability.available ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${capability.modelLabel === "claude-opus-4-8" ? "Opus 4.8" : capability.modelLabel}` : "Regenerate full article"}</button>
             {!capability.available && <p className="article-generation-unavailable">Full-article generation is not configured in this environment. Destiny will not show placeholder writing in its place.</p>}
             {error && <div className="error-banner" role="alert">{error}</div>}
           </section>}
@@ -388,7 +479,17 @@ export function ArticleReviewWorkspace({
       {canApprove ? <div className="article-quality-summary"><strong>Internal checks passed</strong><p>Confirm the business claims, links, sources, graphics, and offer before approval.</p></div> : <div className="article-quality-summary"><strong>Areas Destiny will improve</strong><ul>{issueCategories.map((category) => <li key={category}>{category}</li>)}</ul></div>}
       {draft.generatedBy && <small className="article-generated-by">Generated by {draft.generatedBy}</small>}
       <Link className="secondary-button" href="/integrations">Connect CMS</Link>
-      <button className="primary-button" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
+      <button className="primary-button" disabled={!questId || approvedCount !== weeklyTotal || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
     </aside>
-  </section>;
+  </section>
+  {calendar && calendar.length > 0 && <EditorialCalendarTable
+    calendar={calendar}
+    draftStates={Object.fromEntries(drafts.map((item) => [item.keyword, { generationStatus: item.generationStatus, approved: item.approved } satisfies CalendarDraftState]))}
+    onCreateContent={(item) => openCalendarRow(item, "create")}
+    onReviewDraft={(item) => openCalendarRow(item, "review")}
+    planMonths={planMonths ?? 1}
+    questComplete={questStatus === "complete"}
+    sourceLabel={calendarSourceLabel ?? "Saved audit data"}
+  />}
+  </>;
 }

@@ -5,7 +5,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
 import { buildArticleDraft } from "@/lib/content/article-draft";
 import { resolveArticleGenerationCapability } from "@/lib/content/article-generation";
-import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -69,6 +69,9 @@ export default async function ContentPage() {
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
+          calendar={calendar}
+          calendarSourceLabel={String(providerResult.sourceLabel ?? "Saved audit data")}
+          planMonths={INITIAL_PLAN_MONTHS}
           generationCapability={resolveArticleGenerationCapability({
             anthropicApiKey: process.env.ANTHROPIC_API_KEY,
             copyModel: process.env.ANTHROPIC_COPY_MODEL,
@@ -88,44 +91,6 @@ export default async function ContentPage() {
           questId={approvalQuest?.id}
           questStatus={approvalQuest?.status}
         />
-        <section className="workspace-card">
-          <div className="workspace-card-heading editorial-calendar-heading">
-            <div><strong>Editorial calendar</strong><small>{String(providerResult.sourceLabel ?? "Saved audit data")}</small></div>
-            <div className="editorial-calendar-meta">
-              <span>{calendar.length} weeks · {INITIAL_PLAN_MONTHS} months</span>
-              <span className="intent-help">
-                <span>Search intent</span>
-                <button type="button" aria-label="What do the search intent stages mean?" aria-describedby="search-intent-help">i</button>
-                <span className="intent-tooltip" id="search-intent-help" role="tooltip">
-                  <strong>Search intent</strong>
-                  {(Object.keys(SEARCH_INTENT_DEFINITIONS) as Array<keyof typeof SEARCH_INTENT_DEFINITIONS>).map((intent) => (
-                    <span className="intent-tooltip-row" key={intent}>
-                      <b>{SEARCH_INTENT_DEFINITIONS[intent].label}</b>
-                      <small>{SEARCH_INTENT_DEFINITIONS[intent].description}</small>
-                    </span>
-                  ))}
-                </span>
-              </span>
-            </div>
-          </div>
-          <div className="content-table">
-            <div className="content-row content-head"><span>Schedule</span><span>Content type</span><span>Focus keyword</span><span>Monthly Searches</span><span>Title</span><span>Search intent</span><span>Status</span></div>
-            {calendar.map((item, index) => {
-              const intentDefinition = SEARCH_INTENT_DEFINITIONS[item.searchIntent];
-              return (
-                <div className="content-row" key={`${item.focusKeyword}-${index}`}>
-                  <span className="editorial-schedule" data-label="Schedule"><small>Month {item.month}</small><strong>Week {item.week}</strong></span>
-                  <span data-label="Content type"><strong>{item.contentType}</strong></span>
-                  <span data-label="Focus keyword"><strong>{item.focusKeyword}</strong></span>
-                  <span data-label="Monthly Searches"><strong>{item.searchVolume.toLocaleString()}</strong><small>{item.priorityReason} · Difficulty {item.difficulty}</small></span>
-                  <span data-label="Title"><strong>{item.title}</strong></span>
-                  <span data-label="Search intent"><strong className={`intent-chip ${item.searchIntent}`}>{intentDefinition.label}</strong><small>{intentDefinition.summary}</small></span>
-                  <span data-label="Status"><span className={`status-chip ${index < 3 ? "" : "amber"}`}>{index < 3 && approvalQuest?.status === "complete" ? "Approved for delivery" : item.status}</span></span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
         </>
       )}
     </WorkspaceShell>

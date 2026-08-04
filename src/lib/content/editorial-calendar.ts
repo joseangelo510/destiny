@@ -203,8 +203,28 @@ export type EditorialCalendarItem = {
   searchVolume: number;
   difficulty: number;
   priorityReason: string;
-  status: "Review draft" | "Planned";
 };
+
+// The visible status/action pair is derived from the REAL article state, never
+// from a row's position. It is structurally impossible to produce a
+// "Review draft" action without a saved draft.
+export type CalendarRowArticleState = {
+  hasSavedDraft: boolean;
+  approvedForDelivery?: boolean;
+  publishedUrl?: string;
+};
+
+export type CalendarRowPresentation = {
+  status: "Planned" | "Draft ready" | "Scheduled" | "Published";
+  action: { kind: "create"; label: "Create content" } | { kind: "review"; label: "Review draft" } | { kind: "view"; label: "View post"; url: string };
+};
+
+export function calendarRowPresentation(state: CalendarRowArticleState): CalendarRowPresentation {
+  if (state.publishedUrl) return { status: "Published", action: { kind: "view", label: "View post", url: state.publishedUrl } };
+  if (!state.hasSavedDraft) return { status: "Planned", action: { kind: "create", label: "Create content" } };
+  if (state.approvedForDelivery) return { status: "Scheduled", action: { kind: "review", label: "Review draft" } };
+  return { status: "Draft ready", action: { kind: "review", label: "Review draft" } };
+}
 
 const SERVICE_ANGLES = [
   { contentType: "Service page", title: (keyword: string) => `Where to hire help for ${keyword}` },
@@ -477,7 +497,6 @@ export function buildEditorialCalendar(keywords: EditorialKeyword[], weeks = 24,
       searchVolume: Number(keyword.searchVolume ?? 0),
       difficulty: Number(keyword.difficulty ?? 0),
       priorityReason: keyword.priorityReason,
-      status: index < 4 ? "Review draft" : "Planned",
     };
   });
 }
