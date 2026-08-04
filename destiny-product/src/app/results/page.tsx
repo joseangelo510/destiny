@@ -27,7 +27,7 @@ export default async function ResultsPage() {
     .select("decision")
     .eq("audit_id", context.audit.id);
   const approvedKeywords = (keywordDecisions ?? []).filter((decision) => decision.decision === "approved").length;
-  const plan = buildGamePlan({
+  const plan = await buildGamePlan({
     approvedKeywords,
     auditCompletedAt: context.audit.completed_at,
     businessName: context.website.business_name,

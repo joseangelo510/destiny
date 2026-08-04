@@ -50,7 +50,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
   const keywords = selectUsableAuditKeywords(providerResult.keywords);
   const relatedWebsite = Array.isArray(audit.websites) ? audit.websites[0] : audit.websites;
   const website = record(relatedWebsite);
-  const businessIdentity = resolveBusinessIdentity({
+  const businessIdentity = await resolveBusinessIdentity({
     businessName: String(website.business_name || ""),
     normalizedDomain: String(website.normalized_domain || website.url || ""),
   });

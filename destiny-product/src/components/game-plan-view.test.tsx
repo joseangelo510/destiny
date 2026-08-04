@@ -20,8 +20,8 @@ const input = {
 };
 
 describe("GamePlanView", () => {
-  it("renders the executive plan hierarchy without weekly checkboxes", () => {
-    const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={buildGamePlan(input)} />);
+  it("renders the executive plan hierarchy without weekly checkboxes", async () => {
+    const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={await buildGamePlan(input)} />);
 
     expect(html).toContain("Four focused plays");
     expect(html).toContain("Three months at a glance");
@@ -32,8 +32,8 @@ describe("GamePlanView", () => {
     expect(html).not.toContain('type="checkbox"');
   });
 
-  it("blocks export and suppresses a conflicting stored business name", () => {
-    const plan = buildGamePlan({ ...input, businessName: "DatacenterDotDev Inc." });
+  it("blocks export and suppresses a conflicting stored business name", async () => {
+    const plan = await buildGamePlan({ ...input, businessName: "DatacenterDotDev Inc." });
     const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={plan} />);
 
     expect(html).toContain("Destiny found conflicting business details");

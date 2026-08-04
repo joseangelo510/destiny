@@ -53,6 +53,10 @@ export type DestinyLogicInput = {
   streakCurrentWeek?: number;
   streakWeekIndexes?: number[];
   streakPlans?: Array<{ total: number; complete: number }>;
+  planIdentityMatches?: number;
+  planApprovedKeywords?: number;
+  planUsableKeywords?: number;
+  planDataQualityFlags?: number;
 };
 
 export type DestinyLogicResult = {
@@ -96,6 +100,13 @@ export type DestinyLogicResult = {
   bestStreak: number;
   perfectWeeks: number;
   lifetimeActiveWeeks: number;
+  planCanExport: boolean;
+  planIdentityRuleId: string;
+  planKeywordTargetLow: number;
+  planKeywordTargetHigh: number;
+  planThemeCodes: string[];
+  planScopeCode: string;
+  planForecastConfidence: "directional" | "limited";
 };
 
 type LogicExports = {
@@ -193,6 +204,10 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.streakPlans?.length ?? 0),
     ...(input.streakWeekIndexes ?? []).map(String),
     ...(input.streakPlans ?? []).flatMap((plan) => [String(plan.total), String(plan.complete)]),
+    String(input.planIdentityMatches ?? 0),
+    String(input.planApprovedKeywords ?? 0),
+    String(input.planUsableKeywords ?? 0),
+    String(input.planDataQualityFlags ?? 0),
   ];
 
   const imports = {
@@ -239,7 +254,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 40) {
+  if (output.length < 47) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -283,5 +298,12 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     bestStreak: Number.parseInt(output[37], 10),
     perfectWeeks: Number.parseInt(output[38], 10),
     lifetimeActiveWeeks: Number.parseInt(output[39], 10),
+    planCanExport: output[40] === "true",
+    planIdentityRuleId: output[41],
+    planKeywordTargetLow: Number.parseInt(output[42], 10),
+    planKeywordTargetHigh: Number.parseInt(output[43], 10),
+    planThemeCodes: output[44].split(",").filter(Boolean),
+    planScopeCode: output[45],
+    planForecastConfidence: output[46] as DestinyLogicResult["planForecastConfidence"],
   };
 }

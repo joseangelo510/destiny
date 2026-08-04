@@ -86,6 +86,13 @@ const seededLogic: DestinyLogicResult = {
   bestStreak: 0,
   perfectWeeks: 0,
   lifetimeActiveWeeks: 0,
+  planCanExport: false,
+  planIdentityRuleId: "blocked_identity_mismatch",
+  planKeywordTargetLow: 0,
+  planKeywordTargetHigh: 0,
+  planThemeCodes: ["foundation", "content_engine", "authority"],
+  planScopeCode: "initial_quarter",
+  planForecastConfidence: "directional",
 };
 
 const seededAudit: SeoAuditResult = {

@@ -1,31 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { buildGamePlan, resolveBusinessIdentity } from "./game-plan";
+import { buildGamePlan, businessIdentityMatchCount } from "./game-plan";
 
 describe("90-Day Game Plan", () => {
   it("uses a confirmed business name when it matches the website identity", () => {
-    expect(resolveBusinessIdentity({
+    expect(businessIdentityMatchCount({
       businessName: "Logic Caffeine",
       normalizedDomain: "logicaffeine.com",
-    })).toEqual({
-      displayName: "Logic Caffeine",
-      needsReview: false,
-      canExport: true,
-    });
+    })).toBe(1);
   });
 
   it("never exports a conflicting business name", () => {
-    expect(resolveBusinessIdentity({
+    expect(businessIdentityMatchCount({
       businessName: "DatacenterDotDev Inc.",
       normalizedDomain: "logicaffeine.com",
-    })).toEqual({
-      displayName: "Logicaffeine",
-      needsReview: true,
-      canExport: false,
-    });
+    })).toBe(0);
   });
 
-  it("builds a distinct executive plan instead of another weekly checklist", () => {
-    const plan = buildGamePlan({
+  it("builds a distinct executive plan instead of another weekly checklist", async () => {
+    const plan = await buildGamePlan({
       auditCompletedAt: "2026-08-02T20:10:55.000Z",
       businessName: "Logic Caffeine",
       normalizedDomain: "logicaffeine.com",
@@ -55,5 +47,15 @@ describe("90-Day Game Plan", () => {
     expect(plan.scope.outThisQuarter).toContain("Guaranteed page-one rankings or traffic promises");
     expect(plan.taskProgress).toEqual({ complete: 1, total: 4 });
     expect(plan.canExport).toBe(true);
+  });
+
+  it("uses LOGOS to floor zero-demand forecasts and downgrade incomplete evidence", async () => {
+    const plan = await buildGamePlan({
+      businessName: "Unknown", normalizedDomain: "example.com", criticalIssues: 0, rankingKeywords: 0,
+      estimatedOrganicTraffic: 0, approvedKeywords: 0, usableKeywords: 0, tasks: [], dataQualityFlags: 1,
+    });
+    expect(plan.canExport).toBe(false);
+    expect(plan.forecasts[0].expectedRange).toBe("0–0 priority themes actively targeted");
+    expect(plan.forecasts.at(-1)?.confidence).toMatch(/limited confidence/i);
   });
 });

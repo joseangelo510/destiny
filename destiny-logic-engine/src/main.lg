@@ -646,6 +646,43 @@ live in the web platform.
         Return "supporting_evidence".
     Return policy_code.
 
+## To ChoosePlanCanExport (identity_matches: Int) -> Text:
+
+    If identity_matches is greater than 0:
+        Return "true".
+    Return "false".
+
+## To ChoosePlanIdentityRule (identity_matches: Int) -> Text:
+
+    If identity_matches is greater than 0:
+        Return "confirmed_business_identity".
+    Return "blocked_identity_mismatch".
+
+## To ChoosePlanKeywordTargetLow (approved_keywords: Int) and (usable_keywords: Int) -> Int:
+
+    Let usable_floor be usable_keywords.
+    If usable_floor is greater than 12:
+        Set usable_floor to 12.
+    If approved_keywords is greater than usable_floor:
+        Return approved_keywords.
+    Return usable_floor.
+
+## To ChoosePlanKeywordTargetHigh (target_low: Int) and (usable_keywords: Int) -> Int:
+
+    Let target_ceiling be target_low + 12.
+    Let usable_ceiling be usable_keywords.
+    If usable_ceiling is greater than target_ceiling:
+        Set usable_ceiling to target_ceiling.
+    If target_low is greater than usable_ceiling:
+        Return target_low.
+    Return usable_ceiling.
+
+## To ChoosePlanForecastConfidence (data_quality_flags: Int) -> Text:
+
+    If data_quality_flags is greater than 0:
+        Return "limited".
+    Return "directional".
+
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
     If policy_enabled equals 0:
@@ -711,6 +748,11 @@ live in the web platform.
     Let streak_current_week be parseInt(item 51 of arguments).
     Let streak_week_count be parseInt(item 52 of arguments).
     Let streak_plan_count be parseInt(item 53 of arguments).
+    Let planning_start be 54 + streak_week_count + (streak_plan_count * 2).
+    Let plan_identity_matches be parseInt(item planning_start of arguments).
+    Let plan_approved_keywords be parseInt(item (planning_start + 1) of arguments).
+    Let plan_usable_keywords be parseInt(item (planning_start + 2) of arguments).
+    Let plan_data_quality_flags be parseInt(item (planning_start + 3) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -757,6 +799,11 @@ live in the web platform.
     Let keyword_essential be ChooseKeywordEssential(keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent, keyword_intent_code, direct_competitor_rankers).
     Let keyword_data_quality be ChooseKeywordDataQuality(keyword_intent_known).
     Let keyword_rule_ids be ChooseKeywordRuleIds(keyword_policy_code, keyword_rule_id).
+    Let plan_can_export be ChoosePlanCanExport(plan_identity_matches).
+    Let plan_identity_rule_id be ChoosePlanIdentityRule(plan_identity_matches).
+    Let plan_keyword_target_low be ChoosePlanKeywordTargetLow(plan_approved_keywords, plan_usable_keywords).
+    Let plan_keyword_target_high be ChoosePlanKeywordTargetHigh(plan_keyword_target_low, plan_usable_keywords).
+    Let plan_forecast_confidence be ChoosePlanForecastConfidence(plan_data_quality_flags).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -797,3 +844,10 @@ live in the web platform.
     Show streak_best.
     Show streak_perfect_weeks.
     Show streak_week_count.
+    Show plan_can_export.
+    Show plan_identity_rule_id.
+    Show plan_keyword_target_low.
+    Show plan_keyword_target_high.
+    Show "foundation,content_engine,authority".
+    Show "initial_quarter".
+    Show plan_forecast_confidence.
