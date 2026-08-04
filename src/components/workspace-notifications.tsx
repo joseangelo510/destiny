@@ -69,10 +69,15 @@ export function WorkspaceNotifications() {
   };
 
   return <div className="workspace-notification-center">
-    <button aria-expanded={open} aria-label={notificationButtonLabel(unread)} className="workspace-notification-button" onClick={() => setOpen((current) => !current)} type="button">
-      <span aria-hidden="true">◇</span>{unread > 0 && <b>{unread}</b>}
+    <button aria-controls="workspace-notification-panel" aria-expanded={open} aria-haspopup="true" aria-label={notificationButtonLabel(unread)} className={`workspace-notification-button${open ? " expanded" : ""}`} onClick={() => setOpen((current) => !current)} type="button">
+      {/* Original outline bell drawn for Destiny — no copied UI assets. */}
+      <svg aria-hidden="true" className="workspace-notification-bell" fill="none" height="21" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" viewBox="0 0 21 21" width="21">
+        <path d="M10.5 3a5.1 5.1 0 0 0-5.1 5.1c0 3.1-.9 4.6-1.9 5.7-.3.4 0 1 .5 1h13c.5 0 .8-.6.5-1-1-1.1-1.9-2.6-1.9-5.7A5.1 5.1 0 0 0 10.5 3Z" />
+        <path d="M8.6 17.4a2 2 0 0 0 3.8 0" />
+      </svg>
+      {unread > 0 && <b>{unread}</b>}
     </button>
-    {open && <section aria-label="Notifications" className="workspace-notification-panel">
+    {open && <section aria-label="Notifications" className="workspace-notification-panel" id="workspace-notification-panel">
       <div className="notification-panel-heading"><div><strong>Notifications</strong><span>{unread} unread</span></div>{unread > 0 && <button className="text-button" onClick={() => void markAllRead()} type="button">Mark all read</button>}</div>
       {loading ? <p className="notification-empty">Loading updates…</p> : error ? <p className="notification-error" role="alert">{error}</p> : notifications.length ? notifications.map((notification) => <button className={notification.read_at ? "notification-item" : "notification-item unread"} key={notification.id} onClick={() => void openNotification(notification)} type="button"><span className="notification-dot" /><span><strong>{notification.title}</strong><small>{notification.body}</small></span></button>) : <p className="notification-empty">Audit updates and result links will appear here.</p>}
     </section>}

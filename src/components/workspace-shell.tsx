@@ -39,9 +39,8 @@ export function WorkspaceShell({
       </aside>
       <section className="dashboard workspace-page" data-active={active}>
         <header className="workspace-header">
-          <div className="workspace-header-top"><div className="eyebrow">{eyebrow}</div><WorkspaceNotifications /></div>
-          <h1>{title}</h1>
-          <p>{description}</p>
+          <div className="workspace-header-text"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div>
+          <div className="workspace-header-action"><WorkspaceNotifications /></div>
         </header>
         {children}
       </section>
