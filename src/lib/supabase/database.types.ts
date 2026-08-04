@@ -704,6 +704,7 @@ export type Database = {
       websites: {
         Row: {
           audience_challenges_goals: string
+          builder_profile: Json
           business_name: string
           created_at: string
           differentiation: string
@@ -722,6 +723,7 @@ export type Database = {
         }
         Insert: {
           audience_challenges_goals?: string
+          builder_profile?: Json
           business_name: string
           created_at?: string
           differentiation?: string
@@ -740,6 +742,7 @@ export type Database = {
         }
         Update: {
           audience_challenges_goals?: string
+          builder_profile?: Json
           business_name?: string
           created_at?: string
           differentiation?: string

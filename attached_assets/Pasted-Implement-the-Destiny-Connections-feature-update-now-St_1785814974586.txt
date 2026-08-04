@@ -1,0 +1,41 @@
+Implement the Destiny Connections feature update now. Start by inspecting the current Connections page, existing Google connection logic, profile persistence, tests, and styles. Preserve all working Google Search Console, Google Analytics/GA4, Google Business Profile, OAuth, refresh, disconnect, and dashboard behavior. Do not modify onboarding in this pass. Do not add fake API integrations or new OAuth flows. Do not deploy; checkpoint only after all gates pass.
+
+Owner’s exact request:
+“Can you help me add these crm options to the connections tab / feature 
+- [ ] Add the following cms for connections - Wix, Webflow, Squarespace, loveable, go daddy builder, joomba, weekly, Duda, drupal, site core, Shopify, 
+- [ ] Add option if they built their with AI  - ChatGPT / Claude / Perxeiplity / -how can we do this best? Please consult with claude 5.0 fable on this”
+
+Normalize the intended platform names in the UI: Lovable, GoDaddy Website Builder, Joomla, Weebly, Sitecore, and Perplexity. Also retain WordPress and Other if already present.
+
+Adopted Claude Fable 5 direction:
+1. Split the existing Connections experience into two clear sections:
+   - “Connected accounts” — subtitle: “Accounts Destiny reads data from to power your dashboard.” Only genuine working account integrations go here.
+   - “Your website” — subtitle: “Tell Destiny where your site is built so advice fits your tools.” This is editable profile information, not a claimed API connection.
+2. Under Your website add:
+   - “Where is your site built?” Single-select searchable platform picker/radiogroup containing: Wix, Webflow, Squarespace, Shopify, Lovable, GoDaddy Website Builder, Joomla, Weebly, Duda, Drupal, Sitecore, WordPress, Other.
+   - “Did AI tools help you build it?” Optional multi-select checkbox group containing ChatGPT, Claude, Perplexity, Other.
+3. ChatGPT, Claude, and Perplexity are builder metadata/preferences, never account connections. Store them as builderTools (or the matching existing profile naming) and use the saved values to enable future coaching personalization.
+4. Truthful wording:
+   - A selected platform/tool shows “Saved” or “Selected,” never “Connected.”
+   - “Connect” appears only for a genuinely implemented account connection.
+   - If direct connection does not exist, show: “Saved. Destiny will tailor your SEO advice for [platform]. A direct connection isn’t available yet, so we’ll show you where to make changes.”
+   - Do not use fake “Notify me” behavior unless a real persisted waitlist already exists. Do not add Coming soon badges unless backed by an explicit registry state.
+5. Build a typed registry and pure state/presentation helpers so UI labels cannot drift:
+   - account states: connected, action_needed, available
+   - website selections: selected/unselected
+   - optional planned state only if there is existing product support; otherwise omit
+   - invariant: providers without a live connection implementation can never render “Connect.”
+6. Calm Apple-clarity design: preserve existing visual system, generous spacing, restrained white cards, one accent color, text+icon state (not color alone), no copied third-party logos/assets. 44px touch targets. Mobile single-column sections; platform tiles may be 2 columns. Accessible radiogroup for CMS, checkboxes for AI tools, visible focus, aria labels, and live-region save confirmation.
+7. Persistence:
+   - Use the existing authenticated user/profile persistence pattern. Do not store this only in component state.
+   - Prefer an existing flexible profile/preferences field if it is already the project convention.
+   - If a schema change is genuinely required, add a safe idempotent migration without altering existing Google connection records, and use the project’s established migration path. Do not invent production credentials or expose secrets.
+   - Loading, saving, success, and error states must be truthful; preserve selections after reload.
+8. TDD:
+   - First add characterization/regression tests locking current Google account rendering and actions.
+   - Test the complete requested platform registry and three AI tools.
+   - Test single-select platform behavior, multi-select AI behavior, saved persistence and reload hydration, mobile/accessibility semantics, and save error recovery.
+   - Add an invariant test proving no non-live platform renders “Connect.”
+   - Run focused tests, full tests, lint, TypeScript, production build.
+   - Conduct a code-review pass for tenant isolation, persistence, state races, regression to existing Google connection behavior, and misleading copy.
+   - Create a checkpoint when clean. DO NOT republish; report exact changed files and gate results.

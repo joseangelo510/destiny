@@ -413,6 +413,44 @@ button { cursor: pointer; }
 .calendar-action:hover { background: #eef5f2; border-color: #bfd3ca; }
 .calendar-action:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
 .article-editor.accent-pulse { animation: accent-ring-pulse 1.5s ease-out 1; }
+
+/* Connections — "Your website" profile section. Calm cards, one accent,
+   selection is text + mark (never color alone), 44px touch targets. */
+.integration-section-heading { margin-bottom: 2px; }
+.integration-section-heading small, .website-profile-card .workspace-card-heading small { display: block; margin-top: 2px; }
+.website-profile-card { display: grid; gap: 20px; }
+.website-profile-card fieldset { border: 0; margin: 0; min-width: 0; padding: 0; }
+.website-profile-card legend { font-size: 16px; font-weight: 600; margin-bottom: 10px; padding: 0; }
+.website-platform-search { border: 1px solid var(--line); border-radius: 11px; font-size: 15px; margin-bottom: 12px; max-width: 340px; min-height: 44px; padding: 10px 14px; width: 100%; }
+.website-platform-search:focus-visible { border-color: var(--forest); outline: 2px solid var(--forest); outline-offset: 1px; }
+.website-platform-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.website-platform-tile { align-items: center; background: white; border: 1px solid var(--line); border-radius: 12px; color: inherit; cursor: pointer; display: flex; font-size: 15px; font-weight: 400; gap: 9px; min-height: 44px; padding: 10px 14px; position: relative; text-align: left; }
+.website-platform-tile input[type="radio"] { height: 1px; margin: 0; opacity: 0; position: absolute; width: 1px; }
+.website-platform-tile:hover { border-color: #bfd3ca; }
+.website-platform-tile:focus-within { outline: 2px solid var(--forest); outline-offset: 2px; }
+.website-platform-tile.selected { background: #eef5f2; border-color: var(--forest); font-weight: 600; }
+.website-platform-tile small { color: var(--forest); font-size: 12px; font-weight: 600; margin-left: auto; }
+.website-platform-mark { align-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--forest); display: inline-flex; flex: none; font-size: 12px; font-weight: 600; height: 20px; justify-content: center; width: 20px; }
+.website-platform-tile.selected .website-platform-mark { background: var(--forest); border-color: var(--forest); color: white; }
+.website-platform-none { color: var(--muted); font-size: 14px; grid-column: 1 / -1; margin: 0; }
+.website-tools-hint { color: var(--muted); font-size: 14px; margin: -4px 0 10px; }
+.website-tools-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.website-tool-option { align-items: center; background: white; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; display: inline-flex; font-size: 15px; gap: 9px; min-height: 44px; padding: 10px 14px; }
+.website-tool-option:hover { border-color: #bfd3ca; }
+.website-tool-option:focus-within { outline: 2px solid var(--forest); outline-offset: 2px; }
+.website-tool-option.selected { background: #eef5f2; border-color: var(--forest); font-weight: 600; }
+.website-tool-option input { accent-color: var(--forest); height: 17px; width: 17px; }
+.website-tool-option small { color: var(--forest); font-size: 12px; font-weight: 600; }
+.website-profile-footer { align-items: flex-start; display: grid; gap: 10px; }
+.website-profile-status p { font-size: 14px; margin: 0; }
+.website-profile-saved { color: var(--forest); font-weight: 600; }
+@media (max-width: 720px) {
+  .website-platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .website-profile-footer .primary-button { width: 100%; }
+}
+@media (max-width: 420px) {
+  .website-platform-grid { grid-template-columns: 1fr; }
+}
 @keyframes accent-ring-pulse { 0% { box-shadow: 0 0 0 0 rgba(39,95,78,.45); } 70% { box-shadow: 0 0 0 10px rgba(39,95,78,0); } 100% { box-shadow: 0 0 0 0 rgba(39,95,78,0); } }
 .intent-chip.awareness { background: #e9f2ff; color: #28578a; }
 .intent-chip.consideration { background: #fff2d4; color: #815b0b; }
