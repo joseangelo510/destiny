@@ -742,6 +742,172 @@ live in the web platform.
         Return 2.
     Return 1.
 
+## To ChooseProgressCurrentNode (foundation: Int) and (content: Int) and (impressions: Int) and (clicks: Int) and (page_two: Int) and (page_one: Int) and (key_events: Int) and (compounding: Int) -> Int:
+
+    If foundation equals 0:
+        Return 1.
+    If content equals 0:
+        Return 2.
+    If impressions equals 0:
+        Return 3.
+    If impressions equals 0:
+        Return 4.
+    If clicks equals 0:
+        Return 5.
+    If page_two equals 0:
+        Return 6.
+    If page_one equals 0:
+        Return 7.
+    If key_events equals 0:
+        Return 8.
+    If compounding equals 0:
+        Return 9.
+    Return 0.
+
+## To ChooseProgressCompounding (page_one: Int) and (clicks: Int) and (key_events: Int) -> Int:
+
+    If page_one equals 0:
+        Return 0.
+    If clicks is less than 25:
+        Return 0.
+    If key_events is less than 1:
+        Return 0.
+    Return 1.
+
+## To ChooseProgressTaskExcluded (task_code: Int) -> Text:
+
+    If task_code equals 1:
+        Return "true".
+    If task_code equals 5:
+        Return "true".
+    If task_code equals 7:
+        Return "true".
+    Return "false".
+
+## To ChooseProgressTaskPhase (task_code: Int) -> Text:
+
+    If task_code equals 8:
+        Return "visibility".
+    If task_code equals 9:
+        Return "visibility".
+    If task_code equals 10:
+        Return "visibility".
+    If task_code equals 11:
+        Return "growth".
+    If task_code equals 12:
+        Return "growth".
+    If task_code equals 13:
+        Return "growth".
+    Return "ready".
+
+## To ChooseProgressTaskState (status_code: Int) and (current_chosen: Int) and (any_in_progress: Int) -> Text:
+
+    If status_code equals 1:
+        Return "complete".
+    If status_code equals 2:
+        Return "future".
+    If status_code equals 3:
+        Return "current".
+    If any_in_progress is greater than 0:
+        Return "future".
+    If current_chosen equals 0:
+        Return "current".
+    Return "future".
+
+## To ChooseLlmEffortState (evidence_code: Int) -> Text:
+
+    If evidence_code equals 2:
+        Return "complete".
+    If evidence_code equals 1:
+        Return "in_progress".
+    Return "not_started".
+
+## To ChooseLlmOutcomeState (evidence_available: Int) and (mentions: Int) -> Text:
+
+    If evidence_available equals 0:
+        Return "not_started".
+    If mentions is greater than 0:
+        Return "verified".
+    Return "monitoring".
+
+## To ChooseLlmNextStep (content_state: Int) and (platform_state: Int) and (authority_state: Int) -> Int:
+
+    If content_state is less than 2:
+        Return 1.
+    If platform_state is less than 2:
+        Return 2.
+    If authority_state is less than 2:
+        Return 3.
+    Return 4.
+
+## To ChoosePercent (complete: Int) and (total: Int) -> Int:
+
+    If total is less than 1:
+        Return 0.
+    Return ((complete * 100) + (total divided by 2)) divided by total.
+
+## To ChooseSourceState (complete: Int) and (total: Int) -> Text:
+
+    If total is greater than 0:
+        If complete equals total:
+            Return "complete".
+    If complete is greater than 0:
+        Return "in_progress".
+    Return "not_started".
+
+## To ChooseCoachTaskOrder (task_code: Int) -> Int:
+
+    If task_code equals 3:
+        Return 0.
+    If task_code equals 2:
+        Return 1.
+    If task_code equals 4:
+        Return 2.
+    If task_code equals 8:
+        Return 3.
+    If task_code equals 9:
+        Return 3.
+    If task_code equals 10:
+        Return 4.
+    If task_code equals 11:
+        Return 5.
+    If task_code equals 12:
+        Return 6.
+    If task_code equals 13:
+        Return 6.
+    If task_code equals 14:
+        Return 7.
+    Return 99.
+
+## To ChooseCoachCategory (task_code: Int) and (category_code: Int) -> Text:
+
+    If task_code equals 3:
+        Return "research-strategy".
+    If task_code equals 4:
+        Return "content-creation".
+    If task_code equals 8:
+        Return "distribution".
+    If task_code equals 9:
+        Return "distribution".
+    If task_code equals 10:
+        Return "distribution".
+    If task_code equals 11:
+        Return "distribution".
+    If task_code equals 12:
+        Return "distribution".
+    If task_code equals 13:
+        Return "distribution".
+    If task_code equals 2:
+        If category_code equals 2:
+            Return "distribution".
+    Return "technical-seo".
+
+## To ChooseProgressDataQuality (provider_available: Int) -> Text:
+
+    If provider_available equals 0:
+        Return "provider_missing".
+    Return "complete".
+
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
     If policy_enabled equals 0:
@@ -824,6 +990,30 @@ live in the web platform.
     Let editorial_keyword_count be parseInt(item (planning_start + 13) of arguments).
     Let editorial_product_evidence be parseInt(item (planning_start + 14) of arguments).
     Let editorial_service_evidence be parseInt(item (planning_start + 15) of arguments).
+    Let progress_audit_complete be parseInt(item (planning_start + 16) of arguments).
+    Let progress_foundation_status be parseInt(item (planning_start + 17) of arguments).
+    Let progress_content_status be parseInt(item (planning_start + 18) of arguments).
+    Let progress_impressions be parseInt(item (planning_start + 19) of arguments).
+    Let progress_clicks be parseInt(item (planning_start + 20) of arguments).
+    Let progress_page_one be parseInt(item (planning_start + 21) of arguments).
+    Let progress_page_two be parseInt(item (planning_start + 22) of arguments).
+    Let progress_key_events be parseInt(item (planning_start + 23) of arguments).
+    Let progress_task_code be parseInt(item (planning_start + 24) of arguments).
+    Let progress_task_status_code be parseInt(item (planning_start + 25) of arguments).
+    Let progress_current_chosen be parseInt(item (planning_start + 26) of arguments).
+    Let llm_content_state_code be parseInt(item (planning_start + 27) of arguments).
+    Let llm_platform_state_code be parseInt(item (planning_start + 28) of arguments).
+    Let llm_authority_state_code be parseInt(item (planning_start + 29) of arguments).
+    Let llm_evidence_available be parseInt(item (planning_start + 30) of arguments).
+    Let llm_mentions be parseInt(item (planning_start + 31) of arguments).
+    Let llm_platform_positive_count be parseInt(item (planning_start + 32) of arguments).
+    Let source_completed be parseInt(item (planning_start + 33) of arguments).
+    Let source_total be parseInt(item (planning_start + 34) of arguments).
+    Let source_proof_attached be parseInt(item (planning_start + 35) of arguments).
+    Let source_proof_possible be parseInt(item (planning_start + 36) of arguments).
+    Let progress_task_category_code be parseInt(item (planning_start + 37) of arguments).
+    Let progress_any_in_progress be parseInt(item (planning_start + 38) of arguments).
+    Let progress_provider_available be parseInt(item (planning_start + 39) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -884,6 +1074,22 @@ live in the web platform.
     Let editorial_keyword_index be ChooseEditorialKeywordIndex(editorial_week_slot, editorial_keyword_count).
     Let editorial_angle_code be ChooseEditorialAngleCode(editorial_week_slot).
     Let editorial_inferred_business_model_code be ChooseEditorialBusinessModel(editorial_product_evidence, editorial_service_evidence).
+    Let progress_compounding be ChooseProgressCompounding(progress_page_one, progress_clicks, progress_key_events).
+    Let progress_current_node be ChooseProgressCurrentNode(progress_foundation_status, progress_content_status, progress_impressions, progress_clicks, progress_page_two, progress_page_one, progress_key_events, progress_compounding).
+    Let progress_task_excluded be ChooseProgressTaskExcluded(progress_task_code).
+    Let progress_task_phase be ChooseProgressTaskPhase(progress_task_code).
+    Let progress_task_state be ChooseProgressTaskState(progress_task_status_code, progress_current_chosen, progress_any_in_progress).
+    Let llm_content_state be ChooseLlmEffortState(llm_content_state_code).
+    Let llm_platform_state be ChooseLlmEffortState(llm_platform_state_code).
+    Let llm_authority_state be ChooseLlmEffortState(llm_authority_state_code).
+    Let llm_outcome_state be ChooseLlmOutcomeState(llm_evidence_available, llm_mentions).
+    Let llm_next_step be ChooseLlmNextStep(llm_content_state_code, llm_platform_state_code, llm_authority_state_code).
+    Let source_progress_percent be ChoosePercent(source_completed, source_total).
+    Let source_proof_percent be ChoosePercent(source_proof_attached, source_proof_possible).
+    Let source_progress_state be ChooseSourceState(source_completed, source_total).
+    Let coach_task_order be ChooseCoachTaskOrder(progress_task_code).
+    Let coach_category be ChooseCoachCategory(progress_task_code, progress_task_category_code).
+    Let progress_data_quality be ChooseProgressDataQuality(progress_provider_available).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -940,3 +1146,19 @@ live in the web platform.
     Show editorial_keyword_index.
     Show editorial_angle_code.
     Show editorial_inferred_business_model_code.
+    Show progress_compounding.
+    Show progress_current_node.
+    Show progress_task_excluded.
+    Show progress_task_phase.
+    Show progress_task_state.
+    Show llm_content_state.
+    Show llm_platform_state.
+    Show llm_authority_state.
+    Show llm_outcome_state.
+    Show llm_next_step.
+    Show source_progress_percent.
+    Show source_proof_percent.
+    Show source_progress_state.
+    Show coach_task_order.
+    Show coach_category.
+    Show progress_data_quality.

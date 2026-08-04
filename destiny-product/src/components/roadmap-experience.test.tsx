@@ -6,7 +6,7 @@ import { RoadmapExperience } from "./roadmap-experience";
 
 describe("RoadmapExperience hierarchy", () => {
   it("leads with one Apple Clarity journey, one current position, and one next action", async () => {
-    const roadmap = buildSeoRoadmap({ auditComplete: true, quests: [
+    const roadmap = await buildSeoRoadmap({ auditComplete: true, quests: [
       { id: "keywords", title: "Approve priority keywords", description: "Choose the strongest opportunities.", action_path: "/keywords", task_type: "keyword_review", status: "complete", verification_status: "unverified", week_number: 1, priority: 1 },
       { id: "content", title: "Publish your first guide", description: "Create the next useful page.", action_path: "/content", task_type: "content_review", status: "todo", verification_status: "unverified", week_number: 1, priority: 2 },
     ], searchConsole: null, analytics: null });

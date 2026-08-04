@@ -69,6 +69,30 @@ export type DestinyLogicInput = {
   editorialKeywordCount?: number;
   editorialProductEvidence?: number;
   editorialServiceEvidence?: number;
+  progressAuditComplete?: number;
+  progressFoundationStatus?: number;
+  progressContentStatus?: number;
+  progressImpressions?: number;
+  progressClicks?: number;
+  progressPageOne?: number;
+  progressPageTwo?: number;
+  progressKeyEvents?: number;
+  progressTaskCode?: number;
+  progressTaskStatusCode?: number;
+  progressCurrentChosen?: number;
+  llmContentStateCode?: number;
+  llmPlatformStateCode?: number;
+  llmAuthorityStateCode?: number;
+  llmEvidenceAvailable?: number;
+  llmMentions?: number;
+  llmPlatformPositiveCount?: number;
+  sourceCompleted?: number;
+  sourceTotal?: number;
+  sourceProofAttached?: number;
+  sourceProofPossible?: number;
+  progressTaskCategoryCode?: number;
+  progressAnyInProgress?: number;
+  progressProviderAvailable?: number;
 };
 
 export type DestinyLogicResult = {
@@ -128,6 +152,22 @@ export type DestinyLogicResult = {
   editorialKeywordIndex: number;
   editorialAngleCode: number;
   editorialInferredBusinessModelCode: 1 | 2;
+  progressCompounding: boolean;
+  progressCurrentNode: number;
+  progressTaskExcluded: boolean;
+  progressTaskPhase: "ready" | "visibility" | "growth";
+  progressTaskState: "complete" | "current" | "future";
+  llmContentState: "not_started" | "in_progress" | "complete";
+  llmPlatformState: "not_started" | "in_progress" | "complete";
+  llmAuthorityState: "not_started" | "in_progress" | "complete";
+  llmOutcomeState: "not_started" | "monitoring" | "verified";
+  llmNextStep: number;
+  sourceProgressPercent: number;
+  sourceProofPercent: number;
+  sourceProgressState: "not_started" | "in_progress" | "complete";
+  coachTaskOrder: number;
+  coachCategory: "research-strategy" | "content-creation" | "distribution" | "technical-seo";
+  progressDataQuality: "complete" | "provider_missing";
 };
 
 type LogicExports = {
@@ -241,6 +281,15 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.editorialKeywordCount ?? 0),
     String(input.editorialProductEvidence ?? 0),
     String(input.editorialServiceEvidence ?? 0),
+    String(input.progressAuditComplete ?? 0), String(input.progressFoundationStatus ?? 0), String(input.progressContentStatus ?? 0),
+    String(input.progressImpressions ?? 0), String(input.progressClicks ?? 0), String(input.progressPageOne ?? 0), String(input.progressPageTwo ?? 0), String(input.progressKeyEvents ?? 0),
+    String(input.progressTaskCode ?? 0), String(input.progressTaskStatusCode ?? 0), String(input.progressCurrentChosen ?? 0),
+    String(input.llmContentStateCode ?? 0), String(input.llmPlatformStateCode ?? 0), String(input.llmAuthorityStateCode ?? 0),
+    String(input.llmEvidenceAvailable ?? 0), String(input.llmMentions ?? 0), String(input.llmPlatformPositiveCount ?? 0),
+    String(input.sourceCompleted ?? 0), String(input.sourceTotal ?? 0), String(input.sourceProofAttached ?? 0), String(input.sourceProofPossible ?? 0),
+    String(input.progressTaskCategoryCode ?? 0),
+    String(input.progressAnyInProgress ?? 0),
+    String(input.progressProviderAvailable ?? 0),
   ];
 
   const imports = {
@@ -287,7 +336,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 56) {
+  if (output.length < 72) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -347,5 +396,21 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     editorialKeywordIndex: Number.parseInt(output[53], 10),
     editorialAngleCode: Number.parseInt(output[54], 10),
     editorialInferredBusinessModelCode: Number.parseInt(output[55], 10) as 1 | 2,
+    progressCompounding: output[56] === "1",
+    progressCurrentNode: Number.parseInt(output[57], 10),
+    progressTaskExcluded: output[58] === "true",
+    progressTaskPhase: output[59] as DestinyLogicResult["progressTaskPhase"],
+    progressTaskState: output[60] as DestinyLogicResult["progressTaskState"],
+    llmContentState: output[61] as DestinyLogicResult["llmContentState"],
+    llmPlatformState: output[62] as DestinyLogicResult["llmPlatformState"],
+    llmAuthorityState: output[63] as DestinyLogicResult["llmAuthorityState"],
+    llmOutcomeState: output[64] as DestinyLogicResult["llmOutcomeState"],
+    llmNextStep: Number.parseInt(output[65], 10),
+    sourceProgressPercent: Number.parseInt(output[66], 10),
+    sourceProofPercent: Number.parseInt(output[67], 10),
+    sourceProgressState: output[68] as DestinyLogicResult["sourceProgressState"],
+    coachTaskOrder: Number.parseInt(output[69], 10),
+    coachCategory: output[70] as DestinyLogicResult["coachCategory"],
+    progressDataQuality: output[71] as DestinyLogicResult["progressDataQuality"],
   };
 }

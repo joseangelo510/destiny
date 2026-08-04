@@ -102,6 +102,22 @@ const seededLogic: DestinyLogicResult = {
   editorialKeywordIndex: 0,
   editorialAngleCode: 1,
   editorialInferredBusinessModelCode: 1,
+  progressCompounding: false,
+  progressCurrentNode: 1,
+  progressTaskExcluded: false,
+  progressTaskPhase: "ready",
+  progressTaskState: "future",
+  llmContentState: "not_started",
+  llmPlatformState: "not_started",
+  llmAuthorityState: "not_started",
+  llmOutcomeState: "not_started",
+  llmNextStep: 1,
+  sourceProgressPercent: 0,
+  sourceProofPercent: 0,
+  sourceProgressState: "not_started",
+  coachTaskOrder: 99,
+  coachCategory: "technical-seo",
+  progressDataQuality: "provider_missing",
 };
 
 const seededAudit: SeoAuditResult = {

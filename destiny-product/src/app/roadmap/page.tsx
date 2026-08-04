@@ -15,7 +15,7 @@ export default async function RoadmapPage() {
   if (!context.website) redirect("/onboarding");
   const searchConsole = connectedMetadata(context, "google_search_console") as RoadmapSearchConsole | null;
   const analytics = connectedMetadata(context, "google_analytics") as RoadmapAnalytics | null;
-  const roadmap = buildSeoRoadmap({
+  const roadmap = await buildSeoRoadmap({
     auditComplete: context.audit?.status === "complete",
     quests: context.audit ? context.quests.filter((quest) => quest.audit_id === context.audit?.id) : [],
     searchConsole,

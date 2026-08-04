@@ -6,9 +6,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   buildAuditNarrative,
   buildGuidedFix,
-  getCoachTaskWindow,
-  getCurrentCoachTask,
-  groupCoachTasks,
+  buildCoachTaskSet,
 } from "@/lib/product/coach-experience";
 import { resolveBusinessIdentity } from "@/lib/product/game-plan";
 import { selectUsableAuditKeywords } from "@/lib/seo/audit-keywords";
@@ -65,8 +63,9 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
       website={String(website.normalized_domain || website.url || businessName)}
     />;
   }
-  const coreTasks = getCoachTaskWindow(tasks ?? [], false);
-  const currentCoachTask = getCurrentCoachTask(coreTasks);
+  const coach = await buildCoachTaskSet(tasks ?? [], false);
+  const coreTasks = coach.window;
+  const currentCoachTask = coach.currentTask;
   const primaryTask = coreTasks.find((task) => task.task_type === "primary_quest") ?? coreTasks[1] ?? coreTasks[0];
   const topIssue = [...issues].sort((left, right) => Number(right.severity === "critical") - Number(left.severity === "critical"))[0];
   const narrative = buildAuditNarrative({
@@ -75,7 +74,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     primaryTaskTitle: primaryTask?.title,
   });
   const guidedFix = buildGuidedFix(topIssue);
-  const taskGroups = groupCoachTasks(coreTasks);
+  const taskGroups = coach.groups;
   const remainingTasks = coreTasks.filter((task) => task.status !== "complete").length;
   const sourceLabel = typeof providerResult.sourceLabel === "string"
     ? providerResult.sourceLabel

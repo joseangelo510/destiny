@@ -262,7 +262,7 @@ function taskIdentity(sourceKey: string, taskKey: string) {
   return `${sourceKey}:${taskKey}`;
 }
 
-export function buildLlmSourceProgress({
+export async function buildLlmSourceProgress({
   records,
   llmVisibility,
 }: {
@@ -274,48 +274,69 @@ export function buildLlmSourceProgress({
     const validTask = source?.tasks.some((task) => task.key === record.task_key);
     return validTask && record.status === "complete" ? [taskIdentity(record.source_key, record.task_key)] : [];
   }));
-  const sources = LLM_SOURCE_PLAYBOOKS.map((source) => {
-    const tasks = source.tasks.map((task) => ({
+  let currentChosen = 0;
+  const sources = [] as Array<Omit<(typeof LLM_SOURCE_PLAYBOOKS)[number], "tasks"> & { tasks: Array<(typeof LLM_SOURCE_PLAYBOOKS)[number]["tasks"][number] & { status: "complete" | "todo"; policyState: "complete" | "current" | "future"; completedAt: string | null; proofUrl: string | null; proofAttachedAt: string | null }>; completed: number; total: number; percent: number; proofAttached: number; proofPossible: number; state: "complete" | "in_progress" | "not_started" }>;
+  for (const source of LLM_SOURCE_PLAYBOOKS) {
+    const tasks = [] as typeof sources[number]["tasks"];
+    for (const task of source.tasks) {
+      const status = completedIdentities.has(taskIdentity(source.key, task.key)) ? "complete" as const : "todo" as const;
+      const taskPolicy = await runDestinyServerLogic({
+        auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+        progressTaskStatusCode: status === "complete" ? 1 : 0, progressCurrentChosen: currentChosen,
+      });
+      if (taskPolicy.progressTaskState === "current") currentChosen = 1;
+      tasks.push({
       ...task,
-      status: completedIdentities.has(taskIdentity(source.key, task.key)) ? "complete" as const : "todo" as const,
+      status,
+      policyState: taskPolicy.progressTaskState,
       completedAt: records.find((record) => record.source_key === source.key && record.task_key === task.key && record.status === "complete")?.completed_at ?? null,
       proofUrl: records.find((record) => record.source_key === source.key && record.task_key === task.key && record.status === "complete")?.proof_url ?? null,
       proofAttachedAt: records.find((record) => record.source_key === source.key && record.task_key === task.key && record.status === "complete")?.proof_attached_at ?? null,
-    }));
+      });
+    }
     const completed = tasks.filter((task) => task.status === "complete").length;
     const proofPossible = tasks.filter((task) => task.requiresProof).length;
     const proofAttached = tasks.filter((task) => task.requiresProof && task.status === "complete" && task.proofUrl).length;
-    return {
+    const sourcePolicy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      sourceCompleted: completed, sourceTotal: tasks.length, sourceProofAttached: proofAttached, sourceProofPossible: proofPossible,
+    });
+    sources.push({
       ...source,
       tasks,
       completed,
       total: tasks.length,
-      percent: Math.round((completed / tasks.length) * 100),
+      percent: sourcePolicy.sourceProgressPercent,
       proofAttached,
       proofPossible,
-      state: completed === tasks.length ? "complete" as const : completed > 0 ? "in_progress" as const : "not_started" as const,
-    };
-  });
+      state: sourcePolicy.sourceProgressState,
+    });
+  }
   const completed = sources.reduce((total, source) => total + source.completed, 0);
   const total = sources.reduce((sum, source) => sum + source.total, 0);
   const proofAttached = sources.reduce((sum, source) => sum + source.proofAttached, 0);
   const proofPossible = sources.reduce((sum, source) => sum + source.proofPossible, 0);
   const totalMentions = Math.max(0, Number(llmVisibility.totalMentions ?? 0));
   const evidenceAvailable = llmVisibility.status === "available";
-  const detected = evidenceAvailable && totalMentions > 0;
   const platforms = Array.isArray(llmVisibility.platforms) ? llmVisibility.platforms : [];
+  const aggregatePolicy = await runDestinyServerLogic({
+    auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+    sourceCompleted: completed, sourceTotal: total, sourceProofAttached: proofAttached, sourceProofPossible: proofPossible,
+    llmEvidenceAvailable: evidenceAvailable ? 1 : 0, llmMentions: totalMentions,
+  });
+  const detected = aggregatePolicy.llmOutcomeState === "verified";
 
   return {
     readiness: {
       completed,
       total,
-      percent: total ? Math.round((completed / total) * 100) : 0,
+      percent: aggregatePolicy.sourceProgressPercent,
       label: `${completed} of ${total} source-readiness actions complete`,
     },
     publicProof: {
       attached: proofAttached,
       possible: proofPossible,
-      percent: proofPossible ? Math.round((proofAttached / proofPossible) * 100) : 0,
+      percent: aggregatePolicy.sourceProofPercent,
       label: `${proofAttached} of ${proofPossible} proof-bearing actions have public proof attached`,
     },
     verifiedVisibility: {
@@ -330,7 +351,7 @@ export function buildLlmSourceProgress({
           : "Provider monitoring is not available yet",
     },
     sources,
-    nextTask: sources.flatMap((source) => source.tasks.map((task) => ({ sourceKey: source.key, sourceName: source.name, ...task }))).find((task) => task.status !== "complete") ?? null,
+    nextTask: sources.flatMap((source) => source.tasks.map((task) => ({ sourceKey: source.key, sourceName: source.name, ...task }))).find((task) => task.policyState === "current") ?? null,
   };
 }
 
@@ -378,3 +399,4 @@ export function parseLlmTaskUpdate(input: unknown):
   }
   return { ok: true, value: { websiteId, sourceKey: source.key, taskKey, status, proofUrl: proofUrl.toString() } };
 }
+import { runDestinyServerLogic } from "../logicaffeine-server";

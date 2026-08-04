@@ -1,3 +1,5 @@
+import { runDestinyServerLogic } from "../logicaffeine-server";
+
 export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
 export const PRIMARY_NAVIGATION = [
@@ -30,22 +32,6 @@ type CoachTask = {
   priority: number;
 };
 
-const taskOrder: Record<string, number> = {
-  keyword_review: 0,
-  primary_quest: 1,
-  content_review: 2,
-  community_distribution: 3,
-  distribution: 3,
-  social_distribution: 4,
-  publisher_outreach: 5,
-  directory_growth: 6,
-  reviews: 6,
-  technical_review: 7,
-  measurement: 98,
-  business_confirmation: 98,
-  vocabulary_review: 98,
-};
-
 export const COACH_CATEGORIES = [
   {
     id: "research-strategy",
@@ -73,56 +59,56 @@ export const COACH_CATEGORIES = [
   },
 ] as const;
 
-const NON_COACHING_TASKS = new Set(["business_confirmation", "vocabulary_review", "measurement"]);
-
-export function getActionableCoachTasks<T extends CoachTask>(tasks: T[]): T[] {
-  return tasks.filter((task) => !NON_COACHING_TASKS.has(task.task_type));
+function coachTaskCode(taskType: string) {
+  return ({ business_confirmation: 1, primary_quest: 2, keyword_review: 3, content_review: 4, vocabulary_review: 5, measurement: 7, community_distribution: 8, distribution: 9, social_distribution: 10, publisher_outreach: 11, directory_growth: 12, reviews: 13, technical_review: 14 } as Record<string, number>)[taskType] ?? 6;
 }
 
-export function orderCoachTasks<T extends CoachTask>(tasks: T[]): T[] {
-  return [...tasks].sort((left, right) => {
-    const leftOrder = taskOrder[left.task_type] ?? 99;
-    const rightOrder = taskOrder[right.task_type] ?? 99;
-    return leftOrder - rightOrder || left.priority - right.priority;
-  });
+function coachStatusCode(status: string) {
+  if (status === "complete") return 1;
+  if (status === "skipped") return 2;
+  if (status === "in_progress") return 3;
+  return 0;
 }
 
-export function getCoachTaskWindow<T extends CoachTask>(tasks: T[], expanded: boolean): T[] {
-  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
-  return expanded ? ordered : ordered.slice(0, DEFAULT_WEEKLY_TASK_LIMIT);
-}
-
-export function getCurrentCoachTask<T extends CoachTask>(tasks: T[]): T | null {
-  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
-  return ordered.find((task) => task.status === "in_progress")
-    ?? ordered.find((task) => task.status === "todo")
-    ?? null;
-}
-
-export function firstOpenTaskIndex(tasks: Array<Pick<CoachTask, "status">>): number {
-  return tasks.findIndex((task) => task.status === "todo" || task.status === "in_progress");
-}
-
-export function groupCoachTasks<T extends CoachTask>(tasks: T[]) {
-  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
-  return COACH_CATEGORIES.map((category) => ({
-    ...category,
-    tasks: ordered.filter((task) => taskMatchesCoachCategory(task, category.id, category.taskTypes)),
-  })).filter((category) => category.tasks.length > 0);
-}
-
-export function groupCoachTasksForLoop<T extends CoachTask>(tasks: T[]) {
-  const ordered = orderCoachTasks(getActionableCoachTasks(tasks));
-  return COACH_CATEGORIES.map((category) => ({
-    ...category,
-    tasks: ordered.filter((task) => taskMatchesCoachCategory(task, category.id, category.taskTypes)),
+export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expanded = true) {
+  const anyInProgress = tasks.some((task) => task.status === "in_progress") ? 1 : 0;
+  const evaluated = await Promise.all(tasks.map(async (task) => {
+    const policy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      progressTaskCode: coachTaskCode(task.task_type), progressTaskStatusCode: coachStatusCode(task.status),
+      progressCurrentChosen: 1, progressTaskCategoryCode: task.category === "reviews" ? 2 : 0,
+    });
+    return { task, policy };
   }));
+  const ordered = evaluated.filter((item) => !item.policy.progressTaskExcluded)
+    .sort((left, right) => left.policy.coachTaskOrder - right.policy.coachTaskOrder || left.task.priority - right.task.priority);
+  let currentChosen = 0;
+  const resolved = [] as Array<{ task: T; category: DestinyLogicCategory; state: "complete" | "current" | "future" }>;
+  for (const item of ordered) {
+    const policy = await runDestinyServerLogic({
+      auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      progressTaskCode: coachTaskCode(item.task.task_type), progressTaskStatusCode: coachStatusCode(item.task.status), progressCurrentChosen: currentChosen,
+      progressTaskCategoryCode: item.task.category === "reviews" ? 2 : 0, progressAnyInProgress: anyInProgress,
+    });
+    resolved.push({ task: item.task, category: policy.coachCategory, state: policy.progressTaskState });
+    if (policy.progressTaskState === "current") currentChosen = 1;
+  }
+  const actionable = resolved.map((item) => item.task);
+  const window = expanded ? actionable : actionable.slice(0, DEFAULT_WEEKLY_TASK_LIMIT);
+  const categories = COACH_CATEGORIES.map((category) => ({
+    ...category,
+    tasks: resolved.filter((item) => item.category === category.id && window.includes(item.task)).map((item) => item.task),
+  }));
+  return {
+    actionable,
+    window,
+    currentTask: resolved.find((item) => item.state === "current")?.task ?? null,
+    groups: categories.filter((category) => category.tasks.length > 0),
+    loopGroups: categories,
+  };
 }
 
-function taskMatchesCoachCategory(task: CoachTask, categoryId: string, taskTypes: readonly string[]) {
-  if (task.task_type === "primary_quest" && task.category === "reviews") return categoryId === "distribution";
-  return taskTypes.includes(task.task_type);
-}
+type DestinyLogicCategory = (typeof COACH_CATEGORIES)[number]["id"];
 
 export function guidedTaskPath(task: { task_type: string; action_path: string }) {
   if (task.task_type !== "primary_quest" || task.action_path.includes("#")) return task.action_path;

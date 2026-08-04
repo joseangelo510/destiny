@@ -5,6 +5,7 @@ import {
   LlmSourceDashboard,
   parseLlmTaskSyncMessage,
 } from "./llm-source-dashboard";
+import { buildLlmSourceProgress } from "../lib/llm/source-progress";
 
 describe("LLM source dashboard", () => {
   it("scopes cross-tab task messages to the active website", () => {
@@ -17,10 +18,13 @@ describe("LLM source dashboard", () => {
     expect(parseLlmTaskSyncMessage({ websiteId, task: { task_key: "missing-source" } }, websiteId)).toBeNull();
   });
 
-  it("renders an interactive source map, truthful progress, and model-specific benchmark lens", () => {
+  it("renders an interactive source map, truthful progress, and model-specific benchmark lens", async () => {
+    const records = [{ source_key: "owned-site", task_key: "clarify-entity", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" }];
+    const llmVisibility = { status: "available", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
-      initialRecords={[{ source_key: "owned-site", task_key: "clarify-entity", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" }]}
-      llmVisibility={{ status: "available", totalMentions: 0, platforms: [] }}
+      initialRecords={records}
+      initialProgress={await buildLlmSourceProgress({ records, llmVisibility })}
+      llmVisibility={llmVisibility}
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 
@@ -48,10 +52,12 @@ describe("LLM source dashboard", () => {
     expect(html).toContain("0 of 8 proof-bearing actions");
   });
 
-  it("shows the selected source checklist with effort states instead of claiming citations", () => {
+  it("shows the selected source checklist with effort states instead of claiming citations", async () => {
+    const llmVisibility = { status: "unavailable", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
       initialRecords={[]}
-      llmVisibility={{ status: "unavailable", totalMentions: 0, platforms: [] }}
+      initialProgress={await buildLlmSourceProgress({ records: [], llmVisibility })}
+      llmVisibility={llmVisibility}
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 
@@ -64,10 +70,13 @@ describe("LLM source dashboard", () => {
     expect(html).toContain("Proof is user-attached and not provider verification");
   });
 
-  it("renders attached proof separately from a provider-detected citation", () => {
+  it("renders attached proof separately from a provider-detected citation", async () => {
+    const records = [{ source_key: "owned-site", task_key: "publish-source-page", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://example.com/buyer-guide", proof_attached_at: "2026-08-02T12:01:00.000Z" }];
+    const llmVisibility = { status: "available", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
-      initialRecords={[{ source_key: "owned-site", task_key: "publish-source-page", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://example.com/buyer-guide", proof_attached_at: "2026-08-02T12:01:00.000Z" }]}
-      llmVisibility={{ status: "available", totalMentions: 0, platforms: [] }}
+      initialRecords={records}
+      initialProgress={await buildLlmSourceProgress({ records, llmVisibility })}
+      llmVisibility={llmVisibility}
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 

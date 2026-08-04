@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { runDestinyLogic } from "../lib/logicaffeine";
-import { groupCoachTasksForLoop } from "../lib/product/coach-experience";
+import { buildCoachTaskSet } from "../lib/product/coach-experience";
 import { JUNKIT_RECOMMENDATION_FIXTURE } from "../../supabase/functions/process-audit/fixtures/98junkit-recommendation";
 import { WeeklyLoop } from "./weekly-loop";
 
@@ -120,7 +120,7 @@ describe("WeeklyLoop", () => {
       verification_method: null,
       verified_at: null,
     }));
-    const logosGroups = groupCoachTasksForLoop(tasks);
+    const logosGroups = (await buildCoachTaskSet(tasks)).loopGroups;
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} currentTaskId="logos-1" groups={logosGroups} initialRevealOpen remainingTasks={tasks.length} />);
 
     expect(html).toContain("Make your homepage load faster for visitors");

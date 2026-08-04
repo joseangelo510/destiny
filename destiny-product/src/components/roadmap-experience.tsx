@@ -4,7 +4,7 @@ import type { buildSeoRoadmap } from "../lib/product/roadmap";
 import type { buildWeeklyProgressSummary } from "../lib/quests/streak";
 
 type RoadmapExperienceProps = {
-  roadmap: ReturnType<typeof buildSeoRoadmap>;
+  roadmap: Awaited<ReturnType<typeof buildSeoRoadmap>>;
   weekly: Awaited<ReturnType<typeof buildWeeklyProgressSummary>>;
 };
 
