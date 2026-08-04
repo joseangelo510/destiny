@@ -26,6 +26,13 @@ export type DestinyLogicInput = {
   keywordValuePoints?: number;
   keywordOpportunityPoints?: number;
   keywordDemandPenalty?: number;
+  keywordSearchVolume?: number;
+  keywordDifficulty?: number;
+  keywordCpcCents?: number;
+  keywordRank?: number;
+  keywordOpportunityCode?: 0 | 1 | 2;
+  keywordDirectCompetitorRankers?: number;
+  keywordIntentKnown?: number;
 };
 
 export type DestinyLogicResult = {
@@ -36,7 +43,7 @@ export type DestinyLogicResult = {
   urgency: "waiting" | "urgent" | "high" | "focused" | "routine";
   explanation: string;
   keywordVerdict: "accept" | "review" | "reject";
-  keywordRuleId: "blocked_noise" | "essential_gap" | "site_vocabulary_match" | "borderline_gap" | "no_vocabulary_match";
+  keywordRuleId: "blocked_noise" | "essential_gap" | "site_vocabulary_match" | "borderline_gap" | "supporting_evidence" | "no_vocabulary_match";
   keywordReason: string;
   essentialKeyword: boolean;
   weeklyTaskCount: number;
@@ -48,6 +55,10 @@ export type DestinyLogicResult = {
   keywordPriorityTier: 0 | 1 | 2 | 3 | 4;
   keywordPriorityScore: number;
   keywordPolicyCode: string;
+  keywordRelevanceTier: "core" | "adjacent" | "none";
+  keywordEssential: boolean;
+  keywordDataQuality: "complete" | "intent_missing";
+  keywordRuleIds: string[];
 };
 
 type LogicExports = {
@@ -116,6 +127,13 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     String(input.keywordValuePoints ?? 0),
     String(input.keywordOpportunityPoints ?? 0),
     String(input.keywordDemandPenalty ?? 0),
+    String(input.keywordSearchVolume ?? 0),
+    String(input.keywordDifficulty ?? 0),
+    String(input.keywordCpcCents ?? 0),
+    String(input.keywordRank ?? 0),
+    String(input.keywordOpportunityCode ?? 0),
+    String(input.keywordDirectCompetitorRankers ?? 0),
+    String(input.keywordIntentKnown ?? 0),
   ];
 
   const imports = {
@@ -162,7 +180,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 19) {
+  if (output.length < 23) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
   return {
@@ -185,5 +203,9 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
     keywordPriorityTier: Number.parseInt(output[16], 10) as DestinyLogicResult["keywordPriorityTier"],
     keywordPriorityScore: Number.parseInt(output[17], 10),
     keywordPolicyCode: output[18],
+    keywordRelevanceTier: output[19] as DestinyLogicResult["keywordRelevanceTier"],
+    keywordEssential: output[20] === "true",
+    keywordDataQuality: output[21] as DestinyLogicResult["keywordDataQuality"],
+    keywordRuleIds: output[22].split(",").filter(Boolean),
   };
 }

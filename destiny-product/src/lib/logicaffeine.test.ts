@@ -102,6 +102,13 @@ describe("Destiny LOGOS parity", () => {
       keywordValuePoints: 5,
       keywordOpportunityPoints: 5,
       keywordDemandPenalty: 0,
+      keywordSearchVolume: 590,
+      keywordDifficulty: 20,
+      keywordCpcCents: 4_000,
+      keywordRank: 0,
+      keywordOpportunityCode: 2,
+      keywordDirectCompetitorRankers: 2,
+      keywordIntentKnown: 1,
       planTier: 2,
     } as Parameters<typeof runBrowserLogic>[0]);
 
@@ -110,8 +117,11 @@ describe("Destiny LOGOS parity", () => {
       keywordEligible: true,
       keywordSearchIntent: "conversion",
       keywordPriorityTier: 1,
-      keywordPriorityScore: 93,
+      keywordPriorityScore: 92,
       keywordPolicyCode: "eligible_core_conversion",
+      keywordRelevanceTier: "core",
+      keywordEssential: true,
+      keywordDataQuality: "complete",
     });
 
     const zeroDemand = await runBoth({
@@ -139,6 +149,13 @@ describe("Destiny LOGOS parity", () => {
       keywordValuePoints: 5,
       keywordOpportunityPoints: 5,
       keywordDemandPenalty: 0,
+      keywordSearchVolume: 0,
+      keywordDifficulty: 20,
+      keywordCpcCents: 4_000,
+      keywordRank: 0,
+      keywordOpportunityCode: 2,
+      keywordDirectCompetitorRankers: 2,
+      keywordIntentKnown: 1,
       planTier: 2,
     } as Parameters<typeof runBrowserLogic>[0]);
 
@@ -147,6 +164,8 @@ describe("Destiny LOGOS parity", () => {
       keywordVerdict: "reject",
       keywordPolicyCode: "reject_no_demand",
       keywordPriorityScore: 0,
+      keywordRelevanceTier: "core",
+      keywordEssential: false,
     });
   });
 
@@ -161,5 +180,57 @@ describe("Destiny LOGOS parity", () => {
     expect(beginner.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
     expect(moderate.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution"]);
     expect(superGrowth.browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review", "community_distribution", "social_distribution", "publisher_outreach", "directory_growth", "technical_review"]);
+  });
+
+  it.each([
+    ["zero demand beats strong relevance", { keywordSearchVolume: 0 }, { keywordEligible: false, keywordPolicyCode: "reject_no_demand", keywordPriorityScore: 0 }],
+    ["blocklist beats high fit", { keywordBlocklisted: 1 }, { keywordEligible: false, keywordPolicyCode: "reject_blocklisted", keywordPriorityScore: 0, keywordRuleIds: ["reject_blocklisted", "blocked_noise"] }],
+    ["explicit disqualifier rejects", { keywordDisqualifiers: 1 }, { keywordEligible: false, keywordPolicyCode: "reject_disqualified" }],
+    ["missing relevance rejects", { keywordCoreMatches: 0, keywordSupportMatches: 0 }, { keywordEligible: false, keywordRelevanceTier: "none", keywordPolicyCode: "reject_no_relevance" }],
+    ["supporting evidence stays reviewable", { keywordCoreMatches: 0, keywordSupportMatches: 1 }, { keywordEligible: true, keywordRelevanceTier: "adjacent", keywordVerdict: "review", keywordPriorityTier: 4 }],
+    ["revenue fit 84 stays tier two", { keywordRevenueFitPercent: 84 }, { keywordPriorityTier: 2 }],
+    ["revenue fit 85 enters tier one", { keywordRevenueFitPercent: 85 }, { keywordPriorityTier: 1 }],
+    ["missing provider intent is explicit", { keywordIntentKnown: 0 }, { keywordDataQuality: "intent_missing" }],
+    ["known provider intent is complete", { keywordIntentKnown: 1 }, { keywordDataQuality: "complete" }],
+    ["extreme volume remains bounded", { keywordSearchVolume: 1_000_000_000 }, { keywordEligible: true }],
+    ["invalid high difficulty is clamped", { keywordDifficulty: 999 }, { keywordEligible: true }],
+    ["minimum essential signals qualify", { keywordRevenueFitPercent: 65, keywordDirectCompetitorRankers: 1 }, { keywordEssential: true }],
+    ["sub-threshold revenue is not essential", { keywordRevenueFitPercent: 64, keywordDirectCompetitorRankers: 1 }, { keywordEssential: false }],
+    ["transactional core demand can be essential without a direct competitor", { keywordDirectCompetitorRankers: 0, keywordIntentCode: 3 }, { keywordEssential: true }],
+    ["low-volume awareness remains eligible with its penalty", { keywordSearchVolume: 10, keywordIntentCode: 0 }, { keywordEligible: true, keywordSearchIntent: "awareness" }],
+  ] as const)("enforces raw keyword policy: %s", async (_label, overrides, expected) => {
+    const input = {
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: 20,
+      newKeywords: 2,
+      lostKeywords: 0,
+      contentGaps: 4,
+      reviewCount: 20,
+      keywordCoreMatches: 1,
+      keywordSupportMatches: 0,
+      competitorRankers: 2,
+      keywordBlocklisted: 0,
+      keywordPolicyEnabled: 1,
+      keywordDisqualifiers: 0,
+      keywordIntentCode: 3,
+      keywordBusinessFitPercent: 89,
+      keywordRevenueFitPercent: 100,
+      keywordSearchVolume: 590,
+      keywordDifficulty: 42,
+      keywordCpcCents: 850,
+      keywordRank: 0,
+      keywordOpportunityCode: 2 as const,
+      keywordDirectCompetitorRankers: 2,
+      keywordIntentKnown: 1,
+      planTier: 2 as const,
+      ...overrides,
+    };
+    const { browser, worker } = await runBoth(input);
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject(expected);
+    expect(browser.keywordPriorityScore).toBeGreaterThanOrEqual(0);
+    expect(browser.keywordPriorityScore).toBeLessThanOrEqual(100);
   });
 });

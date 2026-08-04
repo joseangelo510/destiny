@@ -733,6 +733,14 @@ export async function runDataForSeoAudit(
   const rankedKeywordsForStrategy = keywordPolicyEngine() === "typescript"
     ? legacyRankedKeywords
     : await applyLogosKeywordPolicy(legacyRankedKeywords);
+  const logosFallbackCount = rankedKeywordsForStrategy.filter((keyword) =>
+    "policyEngine" in keyword && keyword.policyEngine === "typescript-fallback").length;
+  console.info(JSON.stringify({
+    event: "logos_keyword_policy",
+    candidates: legacyRankedKeywords.length,
+    evaluated: rankedKeywordsForStrategy.length,
+    fallbacks: logosFallbackCount,
+  }));
   const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 35).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),

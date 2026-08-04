@@ -65,6 +65,10 @@ const seededLogic: DestinyLogicResult = {
   keywordPriorityTier: 0,
   keywordPriorityScore: 0,
   keywordPolicyCode: "legacy_keyword_policy",
+  keywordRelevanceTier: "none",
+  keywordEssential: false,
+  keywordDataQuality: "intent_missing",
+  keywordRuleIds: ["legacy_keyword_policy"],
 };
 
 const seededAudit: SeoAuditResult = {

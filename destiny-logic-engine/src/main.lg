@@ -122,9 +122,10 @@ live in the web platform.
         If competitor_rankers is greater than 1:
             Return "essential_gap".
         Return "site_vocabulary_match".
-    If support_matches is greater than 1:
+    If support_matches is greater than 0:
         If competitor_rankers is greater than 0:
             Return "borderline_gap".
+        Return "supporting_evidence".
     Return "no_vocabulary_match".
 
 ## To ChooseKeywordReason (keyword_rule: Text) -> Text:
@@ -137,6 +138,8 @@ live in the web platform.
         Return "The phrase is directly supported by the site's core vocabulary".
     If keyword_rule equals "borderline_gap":
         Return "The phrase has supporting site evidence and competitor demand but needs human review".
+    If keyword_rule equals "supporting_evidence":
+        Return "The phrase has supporting business evidence and remains a secondary opportunity for review".
     Return "The phrase is not supported by enough inspectable site evidence".
 
 ## To ChooseEssentialKeyword (keyword_rule: Text) -> Text:
@@ -177,13 +180,31 @@ live in the web platform.
         Return "keyword_review,primary_quest,content_review,community_distribution,social_distribution".
     Return "keyword_review,primary_quest,content_review".
 
-## To ChooseKeywordEligibility (policy_enabled: Int) and (positive_demand: Int) and (disqualifiers: Int) and (relevance_code: Int) -> Text:
+## To ChooseKeywordRelevanceCode (core_matches: Int) and (support_matches: Int) -> Int:
+
+    If core_matches is greater than 0:
+        Return 2.
+    If support_matches is greater than 0:
+        Return 1.
+    Return 0.
+
+## To ChooseKeywordRelevanceTier (relevance_code: Int) -> Text:
+
+    If relevance_code equals 2:
+        Return "core".
+    If relevance_code equals 1:
+        Return "adjacent".
+    Return "none".
+
+## To ChooseKeywordEligibility (policy_enabled: Int) and (search_volume: Int) and (disqualifiers: Int) and (blocklisted: Int) and (relevance_code: Int) -> Text:
 
     If policy_enabled equals 0:
         Return "legacy".
-    If positive_demand equals 0:
+    If search_volume is less than 1:
         Return "false".
     If disqualifiers is greater than 0:
+        Return "false".
+    If blocklisted is greater than 0:
         Return "false".
     If relevance_code equals 0:
         Return "false".
@@ -221,7 +242,72 @@ live in the web platform.
         Return 100.
     Return score.
 
-## To ChooseKeywordPriorityScore (policy_enabled: Int) and (eligible: Text) and (intent_code: Int) and (business_fit_percent: Int) and (revenue_fit_percent: Int) and (volume_points: Int) and (attainability_points: Int) and (value_points: Int) and (opportunity_points: Int) and (demand_penalty: Int) -> Int:
+## To ChooseVolumePoints (search_volume: Int) -> Int:
+
+    If search_volume is greater than 18835:
+        Return 10.
+    If search_volume is greater than 6682:
+        Return 9.
+    If search_volume is greater than 2370:
+        Return 8.
+    If search_volume is greater than 840:
+        Return 7.
+    If search_volume is greater than 297:
+        Return 6.
+    If search_volume is greater than 104:
+        Return 5.
+    If search_volume is greater than 36:
+        Return 4.
+    If search_volume is greater than 12:
+        Return 3.
+    If search_volume is greater than 3:
+        Return 2.
+    If search_volume is greater than 0:
+        Return 1.
+    Return 0.
+
+## To ChooseAttainabilityPoints (difficulty: Int) -> Int:
+
+    If difficulty is less than 0:
+        Return 5.
+    If difficulty is greater than 100:
+        Return 0.
+    Return (((100 - difficulty) * 5) + 50) divided by 100.
+
+## To ChooseValuePoints (cpc_cents: Int) -> Int:
+
+    If cpc_cents is greater than 3288:
+        Return 5.
+    If cpc_cents is greater than 1448:
+        Return 4.
+    If cpc_cents is greater than 607:
+        Return 3.
+    If cpc_cents is greater than 223:
+        Return 2.
+    If cpc_cents is greater than 47:
+        Return 1.
+    Return 0.
+
+## To ChooseOpportunityPoints (opportunity_code: Int) and (rank: Int) and (competitor_rankers: Int) and (direct_competitor_rankers: Int) -> Int:
+
+    If opportunity_code equals 1:
+        If rank is greater than 3:
+            If rank is less than 21:
+                Return 5.
+        Return 4.
+    If opportunity_code equals 2:
+        If direct_competitor_rankers is greater than 0:
+            Let direct_points be 3 + direct_competitor_rankers.
+            If direct_points is greater than 5:
+                Return 5.
+            Return direct_points.
+        Let competitor_points be 1 + ((competitor_rankers + 1) divided by 2).
+        If competitor_points is greater than 3:
+            Return 3.
+        Return competitor_points.
+    Return 2.
+
+## To ChooseKeywordPriorityScore (policy_enabled: Int) and (eligible: Text) and (intent_code: Int) and (business_fit_percent: Int) and (revenue_fit_percent: Int) and (search_volume: Int) and (difficulty: Int) and (cpc_cents: Int) and (opportunity_code: Int) and (rank: Int) and (competitor_rankers: Int) and (direct_competitor_rankers: Int) -> Int:
 
     If policy_enabled equals 0:
         Return 0.
@@ -230,6 +316,14 @@ live in the web platform.
     Let intent_points be ChooseKeywordIntentPoints(intent_code).
     Let business_points be RoundedWeight(business_fit_percent, 30).
     Let revenue_points be RoundedWeight(revenue_fit_percent, 20).
+    Let volume_points be ChooseVolumePoints(search_volume).
+    Let attainability_points be ChooseAttainabilityPoints(difficulty).
+    Let value_points be ChooseValuePoints(cpc_cents).
+    Let opportunity_points be ChooseOpportunityPoints(opportunity_code, rank, competitor_rankers, direct_competitor_rankers).
+    Let demand_penalty be 0.
+    If search_volume is less than 20:
+        If intent_code is less than 3:
+            Set demand_penalty to 3.
     Let score be intent_points + business_points + revenue_points + volume_points + attainability_points + value_points + opportunity_points - demand_penalty.
     Return ClampKeywordScore(score).
 
@@ -247,14 +341,16 @@ live in the web platform.
         Return 3.
     Return 4.
 
-## To ChooseKeywordPolicyCode (policy_enabled: Int) and (positive_demand: Int) and (disqualifiers: Int) and (relevance_code: Int) and (intent_code: Int) -> Text:
+## To ChooseKeywordPolicyCode (policy_enabled: Int) and (search_volume: Int) and (disqualifiers: Int) and (blocklisted: Int) and (relevance_code: Int) and (intent_code: Int) -> Text:
 
     If policy_enabled equals 0:
         Return "legacy_keyword_policy".
-    If positive_demand equals 0:
+    If search_volume is less than 1:
         Return "reject_no_demand".
     If disqualifiers is greater than 0:
         Return "reject_disqualified".
+    If blocklisted is greater than 0:
+        Return "reject_blocklisted".
     If relevance_code equals 0:
         Return "reject_no_relevance".
     If relevance_code equals 2:
@@ -268,6 +364,46 @@ live in the web platform.
     If intent_code equals 2:
         Return "eligible_adjacent_consideration".
     Return "eligible_adjacent_awareness".
+
+## To ChooseKeywordEssential (eligible: Text) and (relevance_code: Int) and (revenue_fit_percent: Int) and (intent_code: Int) and (direct_competitor_rankers: Int) -> Text:
+
+    If eligible equals "false":
+        Return "false".
+    If relevance_code is less than 2:
+        Return "false".
+    If revenue_fit_percent is less than 65:
+        Return "false".
+    If direct_competitor_rankers is greater than 0:
+        Return "true".
+    If intent_code equals 3:
+        Return "true".
+    Return "false".
+
+## To ChooseKeywordDataQuality (intent_known: Int) -> Text:
+
+    If intent_known equals 0:
+        Return "intent_missing".
+    Return "complete".
+
+## To ChooseKeywordRuleIds (policy_code: Text) and (keyword_rule: Text) -> Text:
+
+    If policy_code equals "reject_no_demand":
+        Return "reject_no_demand".
+    If policy_code equals "reject_disqualified":
+        Return "reject_disqualified".
+    If policy_code equals "reject_blocklisted":
+        Return "reject_blocklisted,blocked_noise".
+    If policy_code equals "reject_no_relevance":
+        Return "reject_no_relevance,no_vocabulary_match".
+    If keyword_rule equals "essential_gap":
+        Return "essential_gap".
+    If keyword_rule equals "site_vocabulary_match":
+        Return "site_vocabulary_match".
+    If keyword_rule equals "borderline_gap":
+        Return "borderline_gap".
+    If keyword_rule equals "supporting_evidence":
+        Return "supporting_evidence".
+    Return policy_code.
 
 ## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
 
@@ -307,6 +443,13 @@ live in the web platform.
     Let keyword_value_points be parseInt(item 24 of arguments).
     Let keyword_opportunity_points be parseInt(item 25 of arguments).
     Let keyword_demand_penalty be parseInt(item 26 of arguments).
+    Let keyword_search_volume be parseInt(item 27 of arguments).
+    Let keyword_difficulty be parseInt(item 28 of arguments).
+    Let keyword_cpc_cents be parseInt(item 29 of arguments).
+    Let keyword_rank be parseInt(item 30 of arguments).
+    Let keyword_opportunity_code be parseInt(item 31 of arguments).
+    Let direct_competitor_rankers be parseInt(item 32 of arguments).
+    Let keyword_intent_known be parseInt(item 33 of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let weekly_quest be ChooseWeeklyQuest(decision_code).
@@ -314,8 +457,9 @@ live in the web platform.
     Let urgency be ChooseUrgency(decision_code, critical_issues).
     Let explanation be ChooseExplanation(decision_code).
     Let legacy_keyword_verdict be ChooseKeywordVerdict(keyword_core_matches, keyword_support_matches, competitor_rankers, keyword_blocklisted).
-    Let keyword_eligible be ChooseKeywordEligibility(keyword_policy_enabled, keyword_positive_demand, keyword_disqualifiers, keyword_relevance_code).
-    Let keyword_verdict be ChooseAuthoritativeKeywordVerdict(keyword_policy_enabled, keyword_eligible, keyword_relevance_code, legacy_keyword_verdict).
+    Let authoritative_relevance_code be ChooseKeywordRelevanceCode(keyword_core_matches, keyword_support_matches).
+    Let keyword_eligible be ChooseKeywordEligibility(keyword_policy_enabled, keyword_search_volume, keyword_disqualifiers, keyword_blocklisted, authoritative_relevance_code).
+    Let keyword_verdict be ChooseAuthoritativeKeywordVerdict(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, legacy_keyword_verdict).
     Let keyword_rule_id be ChooseKeywordRule(keyword_core_matches, keyword_support_matches, competitor_rankers, keyword_blocklisted).
     Let keyword_reason be ChooseKeywordReason(keyword_rule_id).
     Let essential_keyword be ChooseEssentialKeyword(keyword_rule_id).
@@ -324,9 +468,13 @@ live in the web platform.
     Let distribution_task_count be ChooseDistributionTaskCount(plan_tier).
     Let weekly_task_manifest be ChooseWeeklyTaskManifest(plan_tier).
     Let keyword_search_intent be ChooseKeywordSearchIntent(keyword_intent_code).
-    Let keyword_priority_tier be ChooseKeywordPriorityTier(keyword_policy_enabled, keyword_eligible, keyword_relevance_code, keyword_revenue_fit_percent).
-    Let keyword_priority_score be ChooseKeywordPriorityScore(keyword_policy_enabled, keyword_eligible, keyword_intent_code, keyword_business_fit_percent, keyword_revenue_fit_percent, keyword_volume_points, keyword_attainability_points, keyword_value_points, keyword_opportunity_points, keyword_demand_penalty).
-    Let keyword_policy_code be ChooseKeywordPolicyCode(keyword_policy_enabled, keyword_positive_demand, keyword_disqualifiers, keyword_relevance_code, keyword_intent_code).
+    Let keyword_priority_tier be ChooseKeywordPriorityTier(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent).
+    Let keyword_priority_score be ChooseKeywordPriorityScore(keyword_policy_enabled, keyword_eligible, keyword_intent_code, keyword_business_fit_percent, keyword_revenue_fit_percent, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
+    Let keyword_policy_code be ChooseKeywordPolicyCode(keyword_policy_enabled, keyword_search_volume, keyword_disqualifiers, keyword_blocklisted, authoritative_relevance_code, keyword_intent_code).
+    Let keyword_relevance_tier be ChooseKeywordRelevanceTier(authoritative_relevance_code).
+    Let keyword_essential be ChooseKeywordEssential(keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent, keyword_intent_code, direct_competitor_rankers).
+    Let keyword_data_quality be ChooseKeywordDataQuality(keyword_intent_known).
+    Let keyword_rule_ids be ChooseKeywordRuleIds(keyword_policy_code, keyword_rule_id).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -346,3 +494,7 @@ live in the web platform.
     Show keyword_priority_tier.
     Show keyword_priority_score.
     Show keyword_policy_code.
+    Show keyword_relevance_tier.
+    Show keyword_essential.
+    Show keyword_data_quality.
+    Show keyword_rule_ids.
