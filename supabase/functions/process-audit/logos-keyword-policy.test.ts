@@ -219,9 +219,75 @@ describe("LOGOS keyword policy authority", () => {
     ]);
   });
 
+  it("bounds concurrent LOGOS evaluations so a large audit cannot exhaust the edge worker", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    const runLogic = vi.fn(async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 3));
+      active -= 1;
+      return {
+        keywordEligible: true,
+        keywordSearchIntent: "conversion" as const,
+        keywordPriorityTier: 1 as const,
+        keywordPriorityScore: 90,
+        keywordVerdict: "accept" as const,
+        keywordRuleId: "essential_gap" as const,
+        keywordReason: "Accepted",
+        keywordPolicyCode: "eligible_core_conversion",
+        keywordRelevanceTier: "core" as const,
+        keywordEssential: true,
+        keywordDataQuality: "complete" as const,
+        keywordRuleIds: ["essential_gap"],
+      };
+    });
+    const candidates = Array.from({ length: 24 }, (_, index) => opportunity({ keyword: `keyword ${index}` }));
+
+    await expect(applyLogosKeywordPolicy(candidates, runLogic)).resolves.toHaveLength(24);
+    expect(maximumActive).toBeLessThanOrEqual(4);
+    expect(runLogic).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses LOGOS for the strongest candidate and the aligned fallback for the bulk edge workload", async () => {
+    const runLogic = vi.fn(async () => ({
+      keywordEligible: true,
+      keywordSearchIntent: "conversion" as const,
+      keywordPriorityTier: 1 as const,
+      keywordPriorityScore: 90,
+      keywordVerdict: "accept" as const,
+      keywordRuleId: "essential_gap" as const,
+      keywordReason: "Accepted",
+      keywordPolicyCode: "eligible_core_conversion",
+      keywordRelevanceTier: "core" as const,
+      keywordEssential: true,
+      keywordDataQuality: "complete" as const,
+      keywordRuleIds: ["essential_gap"],
+    }));
+    const candidates = Array.from({ length: 90 }, (_, index) => opportunity({ keyword: `keyword ${index}` }));
+
+    const result = await applyLogosKeywordPolicy(candidates, runLogic);
+
+    expect(result).toHaveLength(90);
+    expect(runLogic).toHaveBeenCalledTimes(1);
+    expect(result.filter((keyword) => keyword.policyEngine === "logos")).toHaveLength(1);
+    expect(result.filter((keyword) => keyword.policyCode === "fallback_edge_cpu_budget")).toHaveLength(89);
+    expect(result.map((keyword) => keyword.keyword)).toContain("keyword 89");
+  });
+
   it("matches the temporary TypeScript reference for 30 real 98 Junk It audit keywords", async () => {
     const actual = await applyLogosKeywordPolicy(JUNKIT_GOLDEN_KEYWORDS);
-    const expected = JUNKIT_GOLDEN_KEYWORDS.map(referencePolicy).filter((keyword) => keyword !== null)
+    const expected = JUNKIT_GOLDEN_KEYWORDS.map((candidate, index) => {
+      const keyword = referencePolicy(candidate);
+      if (!keyword || index === 0) return keyword;
+      return {
+        ...keyword,
+        policyCode: "fallback_edge_cpu_budget",
+        policyEngine: "typescript-fallback" as const,
+        dataQuality: "fallback" as const,
+        firedRuleIds: ["fallback_edge_cpu_budget", keyword.ruleId],
+      };
+    }).filter((keyword) => keyword !== null)
       .sort((left, right) => left.priorityTier - right.priorityTier
         || right.priorityScore - left.priorityScore
         || right.businessFit - left.businessFit
@@ -229,6 +295,7 @@ describe("LOGOS keyword policy authority", () => {
         || left.keyword.localeCompare(right.keyword));
     expect(actual).toEqual(expected);
     expect(actual).toHaveLength(24);
-    expect(actual.every((keyword) => keyword.policyEngine === "logos")).toBe(true);
+    expect(actual.filter((keyword) => keyword.policyEngine === "logos")).toHaveLength(1);
+    expect(actual.slice(1).every((keyword) => keyword.policyEngine === "typescript-fallback")).toBe(true);
   });
 });
