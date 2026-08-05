@@ -34,15 +34,14 @@ export function parseLlmTaskSyncMessage(value: unknown, websiteId: string): LlmV
   return task as LlmVisibilityTaskRecord;
 }
 
+export function nextSourceReadinessPercent(completed: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.min(100, Math.round((Math.min(total, completed + 1) / total) * 100));
+}
+
 function upsertRecord(records: LlmVisibilityTaskRecord[], record: LlmVisibilityTaskRecord) {
   const next = records.filter((candidate) => candidate.source_key !== record.source_key || candidate.task_key !== record.task_key);
   return [...next, record];
-}
-
-function sourceEngines(domain: string) {
-  return AI_ENGINE_CITATION_SNAPSHOTS
-    .filter((snapshot) => snapshot.domains.some((item) => item.domain === domain))
-    .map((snapshot) => snapshot.label);
 }
 
 export function LlmSourceDashboard({
@@ -50,11 +49,13 @@ export function LlmSourceDashboard({
   initialRecords,
   llmVisibility,
   initialProgress,
+  providerDetectedSources = [],
 }: {
   websiteId: string;
   initialRecords: LlmVisibilityTaskRecord[];
   llmVisibility: LlmVisibilitySignal;
   initialProgress: Awaited<ReturnType<typeof buildLlmSourceProgress>>;
+  providerDetectedSources?: LlmSourceKey[];
 }) {
   const [records, setRecords] = useState(initialRecords);
   const [selectedSource, setSelectedSource] = useState<LlmSourceKey>("owned-site");
@@ -132,7 +133,7 @@ export function LlmSourceDashboard({
 
   const activeSource = progress.sources.find((source) => source.key === selectedSource) ?? progress.sources[0];
   const activeBenchmark = AI_ENGINE_CITATION_SNAPSHOTS.find((snapshot) => snapshot.id === selectedBenchmark) ?? AI_ENGINE_CITATION_SNAPSHOTS[0];
-  const benchmarkMax = Math.max(...activeBenchmark.domains.map((domain) => domain.share));
+  const activeSourcePreview = nextSourceReadinessPercent(activeSource.completed, activeSource.total);
 
   const updateTask = async (sourceKey: LlmSourceKey, taskKey: string, status: "todo" | "complete", proofUrl: string | null = null) => {
     const identity = `${sourceKey}:${taskKey}`;
@@ -189,7 +190,7 @@ export function LlmSourceDashboard({
         <span>Next useful step</span>
         <strong>{progress.nextTask ? progress.nextTask.title : "Keep monitoring evidence"}</strong>
         <p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : "Your source-readiness work is complete. Destiny will keep verified provider evidence separate."}</p>
-        {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type="button">Open this source →</button>}
+        {progress.nextTask && <button onClick={() => openBenchmarkPlaybook(progress.nextTask!.sourceKey)} type="button">Open this source →</button>}
       </article>
       <article className={`llm-verified-summary ${progress.verifiedVisibility.detected ? "detected" : ""}`}>
         <span>Verified visibility</span>
@@ -208,30 +209,49 @@ export function LlmSourceDashboard({
       </div>
     </section>
 
-    <section className="workspace-card llm-source-map-section">
-      <div className="workspace-card-heading"><div><strong>Build source readiness, one ecosystem at a time</strong><small>Choose a source to open its three-step playbook</small></div><span>{progress.sources.filter((source) => source.state === "complete").length}/{progress.sources.length} sources complete</span></div>
-      <div className="llm-source-map" aria-label="Source progress map">
-        {progress.sources.map((source, index) => {
-          const engines = sourceEngines(source.domain);
-          const selected = source.key === activeSource.key;
-          return <button
-            aria-controls="llm-source-playbook"
-            aria-expanded={selected}
-            className={`llm-source-node ${source.state} ${selected ? "selected" : ""}`}
-            data-source-key={source.key}
-            key={source.key}
-            onClick={() => setSelectedSource(source.key)}
-            type="button"
-          >
-            <span className="llm-source-step">{source.state === "complete" ? "✓" : index + 1}</span>
-            <span className="llm-source-node-copy"><strong>{source.name}</strong><small>{source.completed}/{source.total} actions · {source.category === "earned" ? "earned or eligibility-dependent" : source.category}</small>{source.proofPossible > 0 && <small>{source.proofAttached}/{source.proofPossible} public proof attached</small>}{engines.length > 0 && <em>Appears in {engines.slice(0, 2).join(" + ")} benchmark</em>}</span>
-            <span className="llm-source-mini-track" aria-hidden="true"><i style={{ width: `${source.percent}%` }} /></span>
-          </button>;
-        })}
+    <section className="workspace-card llm-signal-skyline">
+      <div className="llm-skyline-heading">
+        <div><span>Signal Skyline</span><h2>Build the sources AI trusts</h2><p>Choose a source to open its action playbook. Completing work fills your readiness bar; only provider evidence earns a gold verified marker.</p></div>
+        <div className="llm-skyline-legend" aria-label="Playboard legend"><span><i className="readiness" />Your readiness</span><span><i className="benchmark" />AI citation benchmark</span><span><i className="verified" />Provider observed</span></div>
       </div>
 
-      <article className="llm-source-playbook" id="llm-source-playbook">
+      <div className="llm-benchmark-tabs" role="tablist" aria-label="AI engine citation benchmark">
+        {AI_ENGINE_CITATION_SNAPSHOTS.map((snapshot) => <button aria-selected={snapshot.id === activeBenchmark.id} key={snapshot.id} onClick={() => setSelectedBenchmark(snapshot.id)} role="tab" type="button">{snapshot.label}</button>)}
+      </div>
+
+      <div className="llm-skyline-layout">
+        <div className="llm-signal-list" aria-label="Interactive AI source readiness playboard">
+          {progress.sources.map((source) => {
+            const selected = source.key === activeSource.key;
+            const previewPercent = nextSourceReadinessPercent(source.completed, source.total);
+            const benchmark = activeBenchmark.domains
+              .filter((domain) => citationDomainPlaybookKey(domain.domain) === source.key)
+              .sort((left, right) => right.share - left.share)[0];
+            const providerObserved = providerDetectedSources.includes(source.key);
+            return <button
+              aria-controls="llm-source-playbook"
+              aria-expanded={selected}
+              className={`llm-signal-row ${source.state} ${selected ? "selected" : ""}`}
+              data-current-readiness={source.percent}
+              data-preview-readiness={previewPercent}
+              data-signal-source={source.key}
+              data-source-key={source.key}
+              key={source.key}
+              onClick={() => setSelectedSource(source.key)}
+              type="button"
+            >
+              <span className="llm-signal-row-heading"><span><strong>{source.name}</strong><small>{source.completed}/{source.total} actions complete</small></span>{providerObserved && <b>◆ Provider observed</b>}</span>
+              <span className="llm-signal-readiness"><i><b style={{ width: `${source.percent}%` }} /><em style={{ width: `${previewPercent}%` }} /></i><strong>{source.percent}%</strong></span>
+              <span className="llm-signal-meta"><small>{source.state === "complete" ? "Source playbook complete" : `Preview after your next task: ${source.percent}% → ${previewPercent}%`}</small><small>{benchmark ? `${activeBenchmark.label} benchmark: ${benchmark.share}% of sampled citations` : `No top-source row in this ${activeBenchmark.label} benchmark`}</small></span>
+              <span className="llm-signal-open">Open {source.name} playbook →</span>
+            </button>;
+          })}
+          <p className="llm-skyline-truth"><strong>Readiness preview only.</strong> Benchmark percentages describe a market study—not your probability of receiving an AI citation.</p>
+        </div>
+
+        <article className="llm-source-playbook" id="llm-source-playbook">
         <header><div><span>{activeSource.domain}</span><h2>{activeSource.name} playbook</h2><p>{activeSource.summary}</p></div><strong>{activeSource.completed}/{activeSource.total} done</strong></header>
+        {activeSource.state !== "complete" && <div className="llm-source-preview"><span>Preview after your next task</span><strong>{activeSource.percent}% → {activeSourcePreview}% readiness</strong><small>This previews task progress, not a predicted AI citation.</small></div>}
         <div className="llm-source-expectation"><strong>What completing this means</strong><p>{activeSource.expectation}</p></div>
         <div className="llm-source-task-list">
           {activeSource.tasks.map((task, index) => {
@@ -247,28 +267,10 @@ export function LlmSourceDashboard({
             </article>;
           })}
         </div>
-      </article>
+        </article>
+      </div>
       <div aria-live="polite" className="llm-save-status">{error ? <span className="error-banner">{error}</span> : statusMessage}</div>
-    </section>
-
-    <section className="workspace-card llm-benchmark-card">
-      <div className="workspace-card-heading"><div><strong>Benchmark lens</strong><small>See why Destiny uses multiple source paths instead of one universal ranking</small></div><span>Market benchmark, not your evidence</span></div>
-      <div className="llm-benchmark-tabs" role="tablist" aria-label="AI engine citation benchmark">
-        {AI_ENGINE_CITATION_SNAPSHOTS.map((snapshot) => <button aria-selected={snapshot.id === activeBenchmark.id} key={snapshot.id} onClick={() => setSelectedBenchmark(snapshot.id)} role="tab" type="button">{snapshot.label}</button>)}
-      </div>
-      <div className="llm-benchmark-visual">
-        <div className="llm-benchmark-copy"><span>{activeBenchmark.dataAsOf} data</span><h2>{activeBenchmark.label} source attention</h2><p>Share of citations among the top sources in Ahrefs&apos; broad US query benchmark. A high market share does not mean every business should target that source.</p><small>Choose an actionable bar to open its checklist. Reference-only domains remain benchmark context.</small><a href={activeBenchmark.sourceUrl} rel="noreferrer" target="_blank">Read the current study ↗</a></div>
-        <div className="llm-benchmark-bars">
-          {activeBenchmark.domains.map((domain) => {
-            const playbookKey = citationDomainPlaybookKey(domain.domain);
-            const content = <><div><strong>{domain.label}</strong><span>{domain.share}%</span></div><i><b style={{ width: `${Math.max(5, (domain.share / benchmarkMax) * 100)}%` }} /></i><small>{playbookKey ? `Open ${progress.sources.find((source) => source.key === playbookKey)?.name ?? domain.label} playbook` : "Benchmark context only"}</small></>;
-            return playbookKey
-              ? <button aria-label={`Open ${domain.label} source playbook`} data-playbook-source={playbookKey} key={domain.domain} onClick={() => openBenchmarkPlaybook(playbookKey)} type="button">{content}</button>
-              : <div className="reference-only" key={domain.domain}>{content}</div>;
-          })}
-        </div>
-      </div>
-      <p className="llm-benchmark-footnote">Benchmarks change by model, query set, industry, country, and month. Destiny uses them to prioritize possible ecosystems; your provider evidence below remains the source of truth for detected visibility.</p>
+      <footer className="llm-skyline-footer"><span>{activeBenchmark.dataAsOf} market benchmark, not your result</span><a href={activeBenchmark.sourceUrl} rel="noreferrer" target="_blank">Read the current study ↗</a></footer>
     </section>
   </div>;
 }

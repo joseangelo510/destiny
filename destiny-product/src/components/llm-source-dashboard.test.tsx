@@ -3,11 +3,19 @@ import { describe, expect, it } from "vitest";
 import {
   llmTaskChannelName,
   LlmSourceDashboard,
+  nextSourceReadinessPercent,
   parseLlmTaskSyncMessage,
 } from "./llm-source-dashboard";
 import { buildLlmSourceProgress } from "../lib/llm/source-progress";
 
 describe("LLM source dashboard", () => {
+  it("previews the next completed source task without overstating verified visibility", () => {
+    expect(nextSourceReadinessPercent(0, 3)).toBe(33);
+    expect(nextSourceReadinessPercent(1, 3)).toBe(67);
+    expect(nextSourceReadinessPercent(3, 3)).toBe(100);
+    expect(nextSourceReadinessPercent(0, 0)).toBe(0);
+  });
+
   it("scopes cross-tab task messages to the active website", () => {
     const websiteId = "11111111-1111-4111-8111-111111111111";
     const task = { source_key: "reddit", task_key: "answer-question", status: "complete" };
@@ -36,17 +44,22 @@ describe("LLM source dashboard", () => {
     expect(html).toContain('data-source-key="youtube"');
     expect(html).toContain('data-source-key="wikipedia"');
     expect(html).toContain('aria-controls="llm-source-playbook"');
-    expect(html).toContain("Benchmark lens");
+    expect(html).toContain("Signal Skyline");
+    expect(html).toContain("Build the sources AI trusts");
+    expect(html).toContain("Preview after your next task");
+    expect(html).toContain("Readiness preview only");
+    expect(html).toContain('data-signal-source="reddit"');
+    expect(html).toContain('data-current-readiness="0"');
+    expect(html).toContain('data-preview-readiness="33"');
     expect(html).toContain("ChatGPT");
     expect(html).toContain("Gemini");
     expect(html).toContain("Perplexity");
     expect(html).toContain("Google AI Mode");
     expect(html).toContain("Google AI Overviews");
-    expect(html).toContain("Market benchmark, not your evidence");
+    expect(html).toContain("market benchmark, not your result");
     expect(html).toContain("Open Reddit playbook");
-    expect(html).toContain('data-playbook-source="reddit"');
-    expect(html).toContain('data-playbook-source="earned-media"');
-    expect(html).toContain("Choose an actionable bar to open its checklist");
+    expect(html).toContain('data-signal-source="earned-media"');
+    expect(html).toContain("Choose a source to open its action playbook");
     expect(html).toContain("Three truthful progress states");
     expect(html).toContain("Public proof attached");
     expect(html).toContain("0 of 8 proof-bearing actions");
