@@ -8,12 +8,14 @@ export function WorkspaceShell({
   eyebrow,
   title,
   description,
+  hideHeader = false,
   children,
 }: {
   active: string;
   eyebrow: string;
   title: string;
   description: string;
+  hideHeader?: boolean;
   children: ReactNode;
 }) {
   const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
@@ -38,14 +40,14 @@ export function WorkspaceShell({
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
       <section className="dashboard workspace-page" data-active={active}>
-        <header className="workspace-header">
+        {!hideHeader && <header className="workspace-header">
           <div className="workspace-header-copy">
             <div className="eyebrow">{eyebrow}</div>
             <h1>{title}</h1>
             <p>{description}</p>
           </div>
           <WorkspaceNotifications />
-        </header>
+        </header>}
         {children}
       </section>
       <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">

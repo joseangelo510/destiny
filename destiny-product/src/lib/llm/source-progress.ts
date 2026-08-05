@@ -113,7 +113,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     expectation: "You control this work. It improves source readiness but does not guarantee an AI citation.",
     tasks: [
       { key: "clarify-entity", title: "Clarify the business entity", description: "Review the homepage, About, service, contact, and author information so the same business facts appear consistently.", actionHref: "/content", actionLabel: "Review content" },
-      { key: "publish-source-page", title: "Publish one source-worthy answer", description: "Answer a high-value buyer question with original experience, examples, evidence, and cited primary sources.", actionHref: "/content", actionLabel: "Create answer", requiresProof: true, proofLabel: "Published page URL", proofPlaceholder: "https://yourwebsite.com/helpful-answer" },
+      { key: "publish-source-page", title: "Publish one source-worthy answer", description: "Answer a high-value buyer question with original experience, examples, evidence, and cited primary sources.", actionHref: "/content", actionLabel: "Create answer" },
       { key: "make-discoverable", title: "Make the answer discoverable", description: "Add descriptive headings, internal links, author context, structured data where appropriate, and confirm the page can be crawled.", actionHref: "/audits", actionLabel: "Review audit" },
     ],
   },
@@ -122,12 +122,13 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     name: "Reddit",
     domain: "reddit.com",
     category: "participatory",
-    summary: "Contribute first-hand expertise where customers already discuss the problem.",
-    expectation: "Help first. Follow community rules, disclose affiliation, and link only when it materially helps the reader.",
+    summary: "AI cites Reddit in 40% of answers. Real contributions in your niche build readiness.",
+    expectation: "Real contributions in your niche build readiness.",
     tasks: [
-      { key: "find-conversations", title: "Find relevant live conversations", description: "Choose threads where the business has specific, first-hand knowledge and the question is still useful to answer.", actionHref: "/distribution#community", actionLabel: "Find threads" },
-      { key: "write-helpful-answer", title: "Write a help-first answer", description: "Answer the question completely, disclose your connection to the business, and avoid promotional or repeated posting.", actionHref: "/distribution#community", actionLabel: "Draft answer" },
-      { key: "save-live-answer", title: "Publish and save the live answer", description: "Post only after review, then record the exact public URL so referral traffic and later citation evidence can be monitored.", actionHref: "/distribution#community", actionLabel: "Open distribution", requiresProof: true, proofLabel: "Reddit answer URL", proofPlaceholder: "https://www.reddit.com/r/.../comments/...", proofHostnames: ["reddit.com"] },
+      { key: "claim-username", title: "Claim your Reddit username", description: "Create or confirm the expert identity you will use to contribute helpfully.", actionHref: "/distribution#community", actionLabel: "Open Reddit plan" },
+      { key: "join-subreddits", title: "Join 3 subreddits in your niche", description: "Choose communities where your customers already discuss the problems you solve.", actionHref: "/distribution#community", actionLabel: "Find communities" },
+      { key: "answer-question", title: "Answer one question with genuine help", description: "Give a useful, first-hand answer without turning it into a sales pitch.", actionHref: "/distribution#community", actionLabel: "Draft answer" },
+      { key: "share-lesson", title: "Share one lesson from your business", description: "Contribute an original lesson that helps the community make a better decision.", actionHref: "/distribution#community", actionLabel: "Create lesson" },
     ],
   },
   {
@@ -139,7 +140,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     expectation: "Publishing creates a discoverable source. Destiny only calls it AI visibility when separate provider evidence detects a mention or citation.",
     tasks: [
       { key: "choose-question", title: "Choose one buyer question", description: "Select a decision-stage question customers repeatedly ask and outline a direct, experience-based answer.", actionHref: "/content", actionLabel: "Choose topic" },
-      { key: "publish-video", title: "Publish an answer-first video", description: "Use a descriptive title and opening, add chapters, accurate captions or a transcript, a useful description, and links to cited sources.", actionHref: "/integrations", actionLabel: "Connect YouTube", requiresProof: true, proofLabel: "YouTube public URL", proofPlaceholder: "https://www.youtube.com/watch?v=...", proofHostnames: ["youtube.com", "youtu.be"] },
+      { key: "publish-video", title: "Publish an answer-first video", description: "Use a descriptive title and opening, add chapters, accurate captions or a transcript, a useful description, and links to cited sources.", actionHref: "/integrations", actionLabel: "Connect YouTube" },
       { key: "embed-video", title: "Embed the video with its answer", description: "Embed the finished video on a relevant crawlable page and include a readable transcript or summary with supporting evidence.", actionHref: "/content", actionLabel: "Open content" },
     ],
   },
@@ -152,7 +153,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     expectation: "Relevance, originality, and consistent expertise matter more than chasing a viral post.",
     tasks: [
       { key: "complete-presence", title: "Complete the expert and company presence", description: "Align the founder profile and Company Page with accurate services, expertise, proof, and website links.", actionHref: "/distribution", actionLabel: "Open distribution" },
-      { key: "publish-expert-post", title: "Publish an original expert post", description: "Explain one customer problem with a clear point of view, first-hand detail, and a useful example or source.", actionHref: "/distribution", actionLabel: "Draft post", requiresProof: true, proofLabel: "LinkedIn post URL", proofPlaceholder: "https://www.linkedin.com/posts/...", proofHostnames: ["linkedin.com"] },
+      { key: "publish-expert-post", title: "Publish an original expert post", description: "Explain one customer problem with a clear point of view, first-hand detail, and a useful example or source.", actionHref: "/distribution", actionLabel: "Draft post" },
       { key: "sustain-topic", title: "Build a consistent topic trail", description: "Publish and engage around the same core topic over several weeks so expertise is coherent rather than isolated.", actionHref: "/growth-plan", actionLabel: "View plan" },
     ],
   },
@@ -166,7 +167,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     tasks: [
       { key: "find-question", title: "Find a customer question", description: "Choose a question closely tied to the audience problem, service, or purchase decision.", actionHref: "/distribution#community", actionLabel: "Find questions" },
       { key: "publish-complete-answer", title: "Publish a complete answer", description: "Give a practical, specific answer with examples and transparent affiliation; add a link only when it supplies needed evidence.", actionHref: "/distribution#community", actionLabel: "Draft answer" },
-      { key: "record-answer", title: "Record and monitor the answer", description: "Save the public answer URL and monitor referral visits and later AI evidence separately.", actionHref: "/analytics", actionLabel: "Open analytics", requiresProof: true, proofLabel: "Quora answer URL", proofPlaceholder: "https://www.quora.com/.../answer/...", proofHostnames: ["quora.com"] },
+      { key: "record-answer", title: "Record and monitor the answer", description: "Save the public answer URL and monitor referral visits and later AI evidence separately.", actionHref: "/analytics", actionLabel: "Open analytics" },
     ],
   },
   {
@@ -177,7 +178,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     summary: "Build accurate third-party profiles and invite honest, representative customer feedback.",
     expectation: "Use only platforms relevant to the business. Never buy, gate, or script positive reviews.",
     tasks: [
-      { key: "choose-platform", title: "Choose the relevant review source", description: "Select the review or directory platform customers in this industry actually use and complete the business profile accurately.", actionHref: "/reviews", actionLabel: "Open reviews", requiresProof: true, proofLabel: "Public review profile URL", proofPlaceholder: "https://review-platform.com/your-business" },
+      { key: "choose-platform", title: "Choose the relevant review source", description: "Select the review or directory platform customers in this industry actually use and complete the business profile accurately.", actionHref: "/reviews", actionLabel: "Open reviews" },
       { key: "request-honest-reviews", title: "Request honest reviews", description: "Invite real customers without incentives or review gating and make it easy for them to share their own experience.", actionHref: "/reviews", actionLabel: "Prepare requests" },
       { key: "respond-and-link", title: "Respond and connect the proof", description: "Respond constructively, keep profile information current, and link the relevant public profile from the website when appropriate.", actionHref: "/reviews", actionLabel: "Manage reviews" },
     ],

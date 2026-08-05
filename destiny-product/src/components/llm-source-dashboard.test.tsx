@@ -26,7 +26,7 @@ describe("LLM source dashboard", () => {
     expect(parseLlmTaskSyncMessage({ websiteId, task: { task_key: "missing-source" } }, websiteId)).toBeNull();
   });
 
-  it("renders an interactive source map, truthful progress, and model-specific benchmark lens", async () => {
+  it("matches Claude's compact seven-row Signal Skyline directive", async () => {
     const records = [{ source_key: "owned-site", task_key: "clarify-entity", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" }];
     const llmVisibility = { status: "available", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
@@ -36,55 +36,51 @@ describe("LLM source dashboard", () => {
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 
-    expect(html).toContain("Your AI visibility map");
-    expect(html).toContain("1 of 27 source-readiness actions complete");
-    expect(html).toContain("No provider-detected mentions yet");
-    expect(html).toContain("Live workspace updates");
-    expect(html).toContain('role="progressbar"');
-    expect(html).toContain('data-source-key="youtube"');
-    expect(html).toContain('data-source-key="wikipedia"');
-    expect(html).toContain('aria-controls="llm-source-playbook"');
-    expect(html).toContain("Signal Skyline");
-    expect(html).toContain("Build the sources AI trusts");
-    expect(html).toContain("Preview after your next task");
-    expect(html).toContain("Readiness preview only");
+    expect(html).toContain("AI visibility playboard");
+    expect(html).toContain("Ghost bars show how often AI cites each source. Your color shows your readiness.");
+    expect(html).toContain("Streak");
+    expect(html).toContain("Your readiness");
+    expect(html).toContain("AI citation benchmark");
+    expect(html).toContain("Verified AI citation");
+    expect(html.match(/data-signal-source=/g)).toHaveLength(7);
     expect(html).toContain('data-signal-source="reddit"');
-    expect(html).toContain('data-current-readiness="0"');
-    expect(html).toContain('data-preview-readiness="33"');
-    expect(html).toContain("ChatGPT");
-    expect(html).toContain("Gemini");
-    expect(html).toContain("Perplexity");
-    expect(html).toContain("Google AI Mode");
-    expect(html).toContain("Google AI Overviews");
-    expect(html).toContain("market benchmark, not your result");
-    expect(html).toContain("Open Reddit playbook");
-    expect(html).toContain('data-signal-source="earned-media"');
-    expect(html).toContain("Choose a source to open its action playbook");
-    expect(html).toContain("Three truthful progress states");
-    expect(html).toContain("Public proof attached");
-    expect(html).toContain("0 of 8 proof-bearing actions");
+    expect(html).toContain("Benchmark 40.1%");
+    expect(html).toContain("Benchmark 26.3%");
+    expect(html).toContain("Benchmark 23.5%");
+    expect(html).toContain("Benchmark 23.3%");
+    expect(html).toContain("Benchmark 21%");
+    expect(html).toContain("Benchmark 5.9%");
+    expect(html).toContain("Benchmark 4.6%");
+    expect(html).not.toContain("Your AI visibility map");
+    expect(html).not.toContain("Three truthful progress states");
+    expect(html).not.toContain("Preview after your next task");
+    expect(html).not.toContain("Google AI Overviews");
   });
 
-  it("shows the selected source checklist with effort states instead of claiming citations", async () => {
+  it("shows Claude's exact four-task Reddit drawer and one guide action", async () => {
     const llmVisibility = { status: "unavailable", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
       initialRecords={[]}
       initialProgress={await buildLlmSourceProgress({ records: [], llmVisibility })}
+      initialSelectedSource="reddit"
       llmVisibility={llmVisibility}
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 
-    expect(html).toContain('id="llm-source-playbook"');
-    expect(html).toContain("What completing this means");
-    expect(html).toContain("Mark done");
-    expect(html).toContain("Provider monitoring is not available yet");
-    expect(html).not.toContain("You are now AI visible");
-    expect(html).toContain("Public proof URL");
-    expect(html).toContain("Proof is user-attached and not provider verification");
+    expect(html).toContain('id="llm-source-drawer"');
+    expect(html).toContain("Reddit playbook");
+    expect(html).toContain("AI cites Reddit in 40% of answers. Real contributions in your niche build readiness.");
+    expect(html).toContain("Claim your Reddit username");
+    expect(html).toContain("Join 3 subreddits in your niche");
+    expect(html).toContain("Answer one question with genuine help");
+    expect(html).toContain("Share one lesson from your business");
+    expect(html).toContain("Ask Destiny for a step by step guide");
+    expect(html.match(/type="checkbox"/g)).toHaveLength(4);
+    expect(html).not.toContain("AI visibility gained");
   });
 
-  it("renders attached proof separately from a provider-detected citation", async () => {
-    const records = [{ source_key: "owned-site", task_key: "publish-source-page", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://example.com/buyer-guide", proof_attached_at: "2026-08-02T12:01:00.000Z" }];
+  it("keeps verified citation pills off until a supported provider integration exists", async () => {
+    const records = [{ source_key: "reddit", task_key: "claim-username", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" }];
     const llmVisibility = { status: "available", totalMentions: 0, platforms: [] };
     const html = renderToStaticMarkup(<LlmSourceDashboard
       initialRecords={records}
@@ -93,8 +89,8 @@ describe("LLM source dashboard", () => {
       websiteId="11111111-1111-4111-8111-111111111111"
     />);
 
-    expect(html).toContain("1 of 8 proof-bearing actions");
-    expect(html).toContain("Open attached proof");
-    expect(html).toContain("No provider-detected mentions yet");
+    expect(html).toContain("Verified AI citation");
+    expect(html).not.toContain("Verified citation</b>");
+    expect(html).toContain("You <strong>25%</strong> · Benchmark 40.1%");
   });
 });
