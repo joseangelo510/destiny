@@ -38,13 +38,7 @@ describe("LLM source progress", () => {
       "wikipedia",
       "medium",
     ]);
-    expect(LLM_SOURCE_PLAYBOOKS.find((source) => source.key === "reddit")?.tasks.map((task) => task.title)).toEqual([
-      "Claim your Reddit username",
-      "Join 3 subreddits in your niche",
-      "Answer one question with genuine help",
-      "Share one lesson from your business",
-    ]);
-    expect(LLM_SOURCE_PLAYBOOKS.filter((source) => source.key !== "reddit").every((source) => source.tasks.length === 3)).toBe(true);
+    expect(LLM_SOURCE_PLAYBOOKS.every((source) => source.tasks.length === 3)).toBe(true);
 
     const youtube = LLM_SOURCE_PLAYBOOKS.find((source) => source.key === "youtube");
     expect(youtube?.tasks.map((task) => task.title).join(" ")).toMatch(/buyer question/i);
@@ -59,7 +53,16 @@ describe("LLM source progress", () => {
     expect(wikipediaCopy).not.toMatch(/create a promotional|guarantee.*wikipedia/i);
 
     const proofTasks = LLM_SOURCE_PLAYBOOKS.flatMap((source) => source.tasks.filter((task) => task.requiresProof).map((task) => `${source.key}:${task.key}`));
-    expect(proofTasks).toEqual(["earned-media:earn-mention", "medium:publish-and-connect"]);
+    expect(proofTasks).toEqual([
+      "owned-site:publish-source-page",
+      "reddit:save-live-answer",
+      "youtube:publish-video",
+      "linkedin:publish-expert-post",
+      "quora:record-answer",
+      "reviews:choose-platform",
+      "earned-media:earn-mention",
+      "medium:publish-and-connect",
+    ]);
   });
 
   it("computes readiness from persisted source tasks and keeps provider evidence separate", async () => {
@@ -67,16 +70,16 @@ describe("LLM source progress", () => {
       records: [
         { source_key: "youtube", task_key: "choose-question", status: "complete", completed_at: "2026-08-02T12:00:00.000Z" },
         { source_key: "youtube", task_key: "publish-video", status: "complete", completed_at: "2026-08-02T12:05:00.000Z" },
-        { source_key: "reddit", task_key: "claim-username", status: "complete", completed_at: "2026-08-02T12:10:00.000Z" },
+        { source_key: "reddit", task_key: "find-conversations", status: "complete", completed_at: "2026-08-02T12:10:00.000Z" },
       ],
       llmVisibility: { status: "available", totalMentions: 0, platforms: [] },
     });
 
-    expect(result.readiness).toMatchObject({ completed: 3, total: 28, percent: 11 });
+    expect(result.readiness).toMatchObject({ completed: 3, total: 27, percent: 11 });
     expect(result.sources.find((source) => source.key === "youtube")).toMatchObject({ completed: 2, total: 3, state: "in_progress" });
-    expect(result.sources.find((source) => source.key === "reddit")).toMatchObject({ completed: 1, total: 4, percent: 25, state: "in_progress" });
+    expect(result.sources.find((source) => source.key === "reddit")).toMatchObject({ completed: 1, total: 3, state: "in_progress" });
     expect(result.verifiedVisibility).toMatchObject({ detected: false, evidenceAvailable: true, totalMentions: 0 });
-    expect(result.publicProof).toMatchObject({ attached: 0, possible: 2, percent: 0 });
+    expect(result.publicProof).toMatchObject({ attached: 0, possible: 8, percent: 0 });
     expect(result.readiness.label).toMatch(/readiness/i);
     expect(result.readiness.label).not.toMatch(/AI visibility score|AI-visible/i);
   });
@@ -90,7 +93,7 @@ describe("LLM source progress", () => {
     })));
     const result = await buildLlmSourceProgress({ records, llmVisibility: { status: "available", totalMentions: 0, platforms: [] } });
 
-    expect(result.readiness).toMatchObject({ completed: 28, total: 28, percent: 100 });
+    expect(result.readiness).toMatchObject({ completed: 27, total: 27, percent: 100 });
     expect(result.verifiedVisibility.detected).toBe(false);
     expect(result.verifiedVisibility.label).toMatch(/no provider-detected mentions/i);
   });
@@ -103,26 +106,28 @@ describe("LLM source progress", () => {
         sourceKey: "youtube",
         taskKey: "publish-video",
         status: "complete",
-        proofUrl: null,
+        proofUrl: "https://www.youtube.com/watch?v=proof123",
       },
     });
-    expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "complete" })).toMatchObject({ ok: true, value: { proofUrl: null } });
+    expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "complete" })).toMatchObject({ ok: false, error: expect.stringMatching(/public proof/i) });
+    expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "complete", proofUrl: "http://youtube.com/watch?v=insecure" })).toMatchObject({ ok: false });
+    expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "complete", proofUrl: "https://example.com/not-youtube" })).toMatchObject({ ok: false, error: expect.stringMatching(/YouTube/i) });
     expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "todo", proofUrl: "https://www.youtube.com/watch?v=proof123" })).toMatchObject({ ok: true, value: { proofUrl: null } });
     expect(parseLlmTaskUpdate({ websiteId: "not-a-uuid", sourceKey: "youtube", taskKey: "publish-video", status: "complete" })).toMatchObject({ ok: false });
     expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "wikipedia", taskKey: "publish-promotional-page", status: "complete" })).toMatchObject({ ok: false });
     expect(parseLlmTaskUpdate({ websiteId: "11111111-1111-4111-8111-111111111111", sourceKey: "youtube", taskKey: "publish-video", status: "verified" })).toMatchObject({ ok: false });
   });
 
-  it("keeps hidden proof tracking separate from the seven-row playboard", async () => {
+  it("tracks attached public proof without turning it into provider evidence", async () => {
     const result = await buildLlmSourceProgress({
       records: [
-        { source_key: "earned-media", task_key: "earn-mention", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://publisher.example/story", proof_attached_at: "2026-08-02T12:01:00.000Z" },
+        { source_key: "youtube", task_key: "publish-video", status: "complete", completed_at: "2026-08-02T12:00:00.000Z", proof_url: "https://youtu.be/proof123", proof_attached_at: "2026-08-02T12:01:00.000Z" },
       ],
       llmVisibility: { status: "available", totalMentions: 0, platforms: [] },
     });
 
-    expect(result.publicProof).toMatchObject({ attached: 1, possible: 2, percent: 50 });
-    expect(result.sources.find((source) => source.key === "earned-media")).toMatchObject({ proofAttached: 1, proofPossible: 1 });
+    expect(result.publicProof).toMatchObject({ attached: 1, possible: 8, percent: 13 });
+    expect(result.sources.find((source) => source.key === "youtube")).toMatchObject({ proofAttached: 1, proofPossible: 1 });
     expect(result.verifiedVisibility.detected).toBe(false);
   });
 
