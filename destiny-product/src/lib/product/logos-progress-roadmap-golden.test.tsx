@@ -33,7 +33,7 @@ describe("LOGOS progress and roadmap golden flow", () => {
     expect(roadmap.effortCompleted).toBe(2);
     expect(roadmap.currentTask?.state).toBe("current");
     expect(ai).toMatchObject({ readiness: { completed: 1, total: 3 }, verifiedVisibility: { detected: false, evidenceAvailable: true }, nextStep: { id: "trusted-platform-presence" } });
-    expect(sources).toMatchObject({ readiness: { completed: 0, total: 28, percent: 0 }, publicProof: { attached: 0, possible: 2, percent: 0 }, verifiedVisibility: { detected: false } });
+    expect(sources).toMatchObject({ readiness: { completed: 0, total: 27, percent: 0 }, publicProof: { attached: 0, possible: 8, percent: 0 }, verifiedVisibility: { detected: false } });
     expect(sources.nextTask).toMatchObject({ sourceKey: "owned-site", policyState: "current" });
     expect(html).toContain("Get ready to be found");
     expect(html).toContain("You are here");
