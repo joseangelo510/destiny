@@ -4,6 +4,7 @@ import { parseCompetitorEntries, validateCompetitorEntries } from "@/lib/onboard
 import { ONBOARDING_SEARCH_COUNTRY } from "@/lib/onboarding/market";
 import { onboardingBusinessColumns } from "@/lib/onboarding/persistence";
 import { createClient } from "@/lib/supabase/server";
+import { ACTIVE_WEBSITE_COOKIE, activeWebsiteCookieOptions } from "@/lib/workspace-selection";
 
 type OnboardingPayload = {
   businessName?: unknown;
@@ -109,11 +110,13 @@ export async function POST(request: Request) {
       body: { websiteId: savedWebsite.id },
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       organizationId,
       websiteId: savedWebsite.id,
       welcomeEmail: welcomeError ? { status: "failed", reason: welcomeError.message } : welcomeData?.delivery,
     });
+    response.cookies.set(ACTIVE_WEBSITE_COOKIE, savedWebsite.id, activeWebsiteCookieOptions);
+    return response;
   } catch (cause) {
     const message = cause instanceof Error
       ? cause.message

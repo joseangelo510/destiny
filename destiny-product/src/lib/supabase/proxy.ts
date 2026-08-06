@@ -1,9 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeInternalPath } from "@/lib/auth/redirect";
+import { ACTIVE_WEBSITE_COOKIE, activeWebsiteCookieOptions, isWebsiteId } from "@/lib/workspace-selection";
 import type { Database } from "./database.types";
 
 export async function updateSession(request: NextRequest) {
+  const requestedWebsiteId = request.nextUrl.searchParams.get("site");
+  if (isWebsiteId(requestedWebsiteId)) request.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId);
   let response = NextResponse.next({ request });
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,5 +50,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (data?.claims && isWebsiteId(requestedWebsiteId)) {
+    response.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId, activeWebsiteCookieOptions);
+  }
   return response;
 }

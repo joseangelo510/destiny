@@ -1,6 +1,9 @@
 import "server-only";
+import { cache } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ACTIVE_WEBSITE_COOKIE, activeWebsiteFrom } from "@/lib/workspace-selection";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -20,20 +23,22 @@ export async function requireWorkspaceClient() {
   return { supabase, userId };
 }
 
-export async function getWorkspaceContext() {
+export const getWorkspaceContext = cache(async function getWorkspaceContext() {
   const { supabase, userId } = await requireWorkspaceClient();
-  const [{ data: website }, { data: profile }] = await Promise.all([
+  const cookieStore = await cookies();
+  const [{ data: websites }, { data: profile }] = await Promise.all([
     supabase
       .from("websites")
       .select("*")
       .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .limit(100),
     supabase.from("profiles").select("first_name,last_name,contact_email,founder_why").eq("id", userId).maybeSingle(),
   ]);
+  const accessibleWebsites = websites ?? [];
+  const website = activeWebsiteFrom(accessibleWebsites, cookieStore.get(ACTIVE_WEBSITE_COOKIE)?.value);
 
   if (!website) {
-    return { supabase, userId, profile, website: null, audit: null, metrics: null, quests: [], competitors: [], integrations: [] };
+    return { supabase, userId, profile, websites: accessibleWebsites, website: null, audit: null, metrics: null, quests: [], competitors: [], integrations: [] };
   }
 
   const [{ data: audit }, { data: quests }, { data: competitors }, { data: integrations }] = await Promise.all([
@@ -51,6 +56,7 @@ export async function getWorkspaceContext() {
     supabase,
     userId,
     profile,
+    websites: accessibleWebsites,
     website,
     audit,
     metrics,
@@ -58,7 +64,7 @@ export async function getWorkspaceContext() {
     competitors: competitors ?? [],
     integrations: integrations ?? [],
   };
-}
+});
 
 export function providerResultFromMetrics(metrics: { raw_provider_payload: unknown } | null) {
   const raw = record(metrics?.raw_provider_payload);
