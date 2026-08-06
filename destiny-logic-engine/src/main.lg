@@ -1,0 +1,1522 @@
+# Destiny Logic Engine
+
+Deterministic rules for turning a completed SEO audit into the next clear
+customer action. This is intentionally small: LOGOS validates business rules;
+the customer-facing Destiny application, accounts, integrations, and hosting
+live in the web platform.
+
+## To native args () -> Seq of Text
+
+## To native parseInt (value: Text) -> Int
+
+## To ChooseDecisionCode (audit_complete: Int) and (critical_issues: Int) and (warnings: Int) and (new_keywords: Int) and (lost_keywords: Int) and (content_gaps: Int) and (review_count: Int) -> Text:
+
+    If audit_complete equals 0:
+        Return "audit_waiting".
+    If critical_issues is greater than 0:
+        Return "fix_technical".
+    If lost_keywords is greater than new_keywords:
+        Return "refresh_declining".
+    If content_gaps is greater than 0:
+        Return "publish_gap".
+    If review_count is less than 10:
+        Return "request_reviews".
+    If warnings is greater than 0:
+        Return "fix_warning".
+    Return "distribute_expertise".
+
+## To ChooseGrowthStage (audit_complete: Int) and (critical_issues: Int) and (ranking_keywords: Int) and (new_keywords: Int) and (lost_keywords: Int) and (content_gaps: Int) -> Text:
+
+    If audit_complete equals 0:
+        Return "audit_in_progress".
+    If critical_issues is greater than 0:
+        Return "fix_foundations".
+    If ranking_keywords is less than 10:
+        Return "build_search_coverage".
+    If lost_keywords is greater than new_keywords:
+        Return "build_search_coverage".
+    If content_gaps is greater than 0:
+        Return "build_search_coverage".
+    Return "compound_distribution".
+
+## To ChooseWeeklyQuest (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "Wait for the website audit to finish".
+    If decision_code equals "fix_technical":
+        Return "Fix the highest-impact technical issue".
+    If decision_code equals "refresh_declining":
+        Return "Refresh the page losing the most search visibility".
+    If decision_code equals "publish_gap":
+        Return "Publish the highest-opportunity page".
+    If decision_code equals "request_reviews":
+        Return "Ask three recent customers for a Google review".
+    If decision_code equals "fix_warning":
+        Return "Resolve the highest-impact on-page warning".
+    Return "Answer one relevant question on Reddit or Quora".
+
+## To ChooseQuestCategory (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "measurement".
+    If decision_code equals "fix_technical":
+        Return "technical".
+    If decision_code equals "fix_warning":
+        Return "technical".
+    If decision_code equals "refresh_declining":
+        Return "content".
+    If decision_code equals "publish_gap":
+        Return "content".
+    If decision_code equals "request_reviews":
+        Return "reviews".
+    Return "distribution".
+
+## To ChooseUrgency (decision_code: Text) and (critical_issues: Int) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "waiting".
+    If critical_issues is greater than 2:
+        Return "urgent".
+    If decision_code equals "fix_technical":
+        Return "high".
+    If decision_code equals "refresh_declining":
+        Return "high".
+    If decision_code equals "publish_gap":
+        Return "focused".
+    If decision_code equals "request_reviews":
+        Return "focused".
+    Return "routine".
+
+## To ChooseExplanation (decision_code: Text) -> Text:
+
+    If decision_code equals "audit_waiting":
+        Return "Destiny is collecting live search and website evidence before choosing your first task".
+    If decision_code equals "fix_technical":
+        Return "Critical technical issues can block crawling ranking and conversions so the highest-impact issue comes first".
+    If decision_code equals "refresh_declining":
+        Return "More keywords were lost than gained so refreshing the page with the largest decline is the clearest recovery move".
+    If decision_code equals "publish_gap":
+        Return "The audit found unanswered search demand so publishing the strongest content gap is the best next growth move".
+    If decision_code equals "request_reviews":
+        Return "The review base is still small so recent customer proof is the strongest local trust and conversion opportunity".
+    If decision_code equals "fix_warning":
+        Return "No critical blocker remains but an on-page warning is the clearest low-risk improvement to complete next".
+    Return "The foundation is healthy so distributing expertise on a relevant community question can compound visibility".
+
+## To ChooseKeywordVerdict (core_matches: Int) and (support_matches: Int) and (competitor_rankers: Int) and (blocklisted: Int) -> Text:
+
+    If blocklisted is greater than 0:
+        Return "reject".
+    If core_matches is greater than 0:
+        Return "accept".
+    If support_matches is greater than 1:
+        If competitor_rankers is greater than 0:
+            Return "review".
+    Return "reject".
+
+## To ChooseKeywordRule (core_matches: Int) and (support_matches: Int) and (competitor_rankers: Int) and (blocklisted: Int) -> Text:
+
+    If blocklisted is greater than 0:
+        Return "blocked_noise".
+    If core_matches is greater than 0:
+        If competitor_rankers is greater than 1:
+            Return "essential_gap".
+        Return "site_vocabulary_match".
+    If support_matches is greater than 0:
+        If competitor_rankers is greater than 0:
+            Return "borderline_gap".
+        Return "supporting_evidence".
+    Return "no_vocabulary_match".
+
+## To ChooseKeywordReason (keyword_rule: Text) -> Text:
+
+    If keyword_rule equals "blocked_noise":
+        Return "The phrase matches a blocked navigational or low-intent pattern".
+    If keyword_rule equals "essential_gap":
+        Return "The phrase matches the site's core vocabulary and at least two competitors rank for it".
+    If keyword_rule equals "site_vocabulary_match":
+        Return "The phrase is directly supported by the site's core vocabulary".
+    If keyword_rule equals "borderline_gap":
+        Return "The phrase has supporting site evidence and competitor demand but needs human review".
+    If keyword_rule equals "supporting_evidence":
+        Return "The phrase has supporting business evidence and remains a secondary opportunity for review".
+    Return "The phrase is not supported by enough inspectable site evidence".
+
+## To ChooseEssentialKeyword (keyword_rule: Text) -> Text:
+
+    If keyword_rule equals "essential_gap":
+        Return "true".
+    Return "false".
+
+## To ChooseWeeklyTaskCount (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "8".
+    If plan_tier equals 2:
+        Return "5".
+    Return "3".
+
+## To ChooseContentTaskCount (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "3".
+    If plan_tier equals 2:
+        Return "2".
+    Return "1".
+
+## To ChooseDistributionTaskCount (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "4".
+    If plan_tier equals 2:
+        Return "2".
+    Return "0".
+
+## To ChooseWeeklyTaskManifest (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "keyword_review,primary_quest,content_review,community_distribution,social_distribution,publisher_outreach,directory_growth,technical_review".
+    If plan_tier equals 2:
+        Return "keyword_review,primary_quest,content_review,community_distribution,social_distribution".
+    Return "keyword_review,primary_quest,content_review".
+
+## To ChooseWeeklyTaskApprovals (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "true,false,true,false,false,true,false,false".
+    If plan_tier equals 2:
+        Return "true,false,true,false,false".
+    Return "true,false,true".
+
+## To ChooseWeeklyTaskTiers (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "1,1,1,2,2,3,3,3".
+    If plan_tier equals 2:
+        Return "1,1,1,2,2".
+    Return "1,1,1".
+
+## To ChooseWeeklyTaskPriorities (plan_tier: Int) -> Text:
+
+    If plan_tier is greater than 2:
+        Return "1,1,1,2,2,3,3,3".
+    If plan_tier equals 2:
+        Return "1,1,1,2,2".
+    Return "1,1,1".
+
+## To ChooseIssueQuestCode (critical_render_blocking: Int) and (critical_high_loading: Int) and (critical_no_title: Int) and (critical_no_description: Int) and (critical_no_h1: Int) and (critical_no_alt: Int) and (warning_render_blocking: Int) and (warning_high_loading: Int) and (warning_no_title: Int) and (warning_no_description: Int) and (warning_no_h1: Int) and (warning_no_alt: Int) -> Text:
+
+    If critical_render_blocking is greater than 0:
+        Return "has_render_blocking_resources".
+    If critical_high_loading is greater than 0:
+        Return "high_loading_time".
+    If critical_no_title is greater than 0:
+        Return "no_title".
+    If critical_no_description is greater than 0:
+        Return "no_description".
+    If critical_no_h1 is greater than 0:
+        Return "no_h1_tag".
+    If critical_no_alt is greater than 0:
+        Return "no_image_alt".
+    If warning_render_blocking is greater than 0:
+        Return "has_render_blocking_resources".
+    If warning_high_loading is greater than 0:
+        Return "high_loading_time".
+    If warning_no_title is greater than 0:
+        Return "no_title".
+    If warning_no_description is greater than 0:
+        Return "no_description".
+    If warning_no_h1 is greater than 0:
+        Return "no_h1_tag".
+    If warning_no_alt is greater than 0:
+        Return "no_image_alt".
+    Return "none".
+
+## To ChooseQuestSource (issue_quest_code: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return "growth_action".
+    Return "issue_fix".
+
+## To ChooseIssueQuestCategory (issue_quest_code: Text) and (growth_category: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_category.
+    Return "technical".
+
+## To ChooseIssueQuestTitle (issue_quest_code: Text) and (growth_quest: Text) -> Text:
+
+    If issue_quest_code equals "has_render_blocking_resources":
+        Return "Make your homepage load faster for visitors".
+    If issue_quest_code equals "high_loading_time":
+        Return "Reduce the time visitors wait for your homepage".
+    If issue_quest_code equals "no_title":
+        Return "Give your homepage a clear search title".
+    If issue_quest_code equals "no_description":
+        Return "Add a clear search description to your homepage".
+    If issue_quest_code equals "no_h1_tag":
+        Return "Add one clear main heading to your homepage".
+    If issue_quest_code equals "no_image_alt":
+        Return "Describe important images for search and accessibility".
+    Return growth_quest.
+
+## To ChooseIssueQuestUrgency (issue_quest_code: Text) and (recognized_critical_issues: Int) and (growth_urgency: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_urgency.
+    If recognized_critical_issues is greater than 0:
+        Return "urgent".
+    Return "focused".
+
+## To ChooseIssueQuestExplanation (issue_quest_code: Text) and (growth_explanation: Text) -> Text:
+
+    If issue_quest_code equals "none":
+        Return growth_explanation.
+    Return "Destiny selected the highest-priority inspectable website issue so the first action removes a concrete search and visitor barrier".
+
+## To ChooseIssueDataQuality (issue_quest_code: Text) and (unknown_issue_count: Int) -> Text:
+
+    If issue_quest_code equals "none":
+        If unknown_issue_count is greater than 0:
+            Return "unknown_issue".
+    Return "complete".
+
+## To ChooseQuestTransitionAllowed (task_code: Int) and (current_status_code: Int) and (requested_status_code: Int) -> Text:
+
+    If current_status_code is greater than 2:
+        Return "false".
+    If requested_status_code is greater than 2:
+        Return "false".
+    If requested_status_code equals 2:
+        If task_code equals 2:
+            Return "false".
+        If task_code equals 3:
+            Return "false".
+    Return "true".
+
+## To ChooseQuestTransitionRule (task_code: Int) and (current_status_code: Int) and (requested_status_code: Int) -> Text:
+
+    If current_status_code is greater than 2:
+        Return "reject_unknown_current_status".
+    If requested_status_code is greater than 2:
+        Return "reject_unknown_requested_status".
+    If requested_status_code equals 2:
+        If task_code equals 2:
+            Return "reject_required_task_skip".
+        If task_code equals 3:
+            Return "reject_required_task_skip".
+    If current_status_code equals requested_status_code:
+        Return "allow_noop".
+    If requested_status_code equals 1:
+        Return "allow_complete".
+    If requested_status_code equals 0:
+        Return "allow_reopen".
+    Return "allow_skip".
+
+## To ChooseQuestVerificationStatus (task_code: Int) and (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        If task_code equals 1:
+            Return "verified".
+    Return "unverified".
+
+## To ChooseQuestSetCompletedAt (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        Return "true".
+    Return "false".
+
+## To ChooseQuestSetVerifiedAt (task_code: Int) and (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        If task_code equals 1:
+            Return "true".
+    Return "false".
+
+## To ChooseQuestClearEvidence (requested_status_code: Int) -> Text:
+
+    If requested_status_code equals 1:
+        Return "false".
+    Return "true".
+
+## To ChooseQuestCelebration (transition_allowed: Text) and (task_code: Int) and (requested_status_code: Int) and (remaining_after_completion: Int) and (verification_status: Text) -> Text:
+
+    If transition_allowed equals "false":
+        Return "none".
+    If requested_status_code equals 0:
+        Return "none".
+    If requested_status_code equals 2:
+        Return "none".
+    If requested_status_code is greater than 2:
+        Return "none".
+    If remaining_after_completion equals 0:
+        Return "perfect_week".
+    If verification_status equals "verified":
+        Return "verified_result".
+    If task_code equals 2:
+        Return "roadmap_unlock".
+    If task_code equals 4:
+        Return "roadmap_unlock".
+    Return "task_complete".
+
+## To HasActiveWeek (arguments: Seq of Text) and (week_count: Int) and (target_week: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Repeat for week_offset from 1 to week_count:
+        Let argument_index be 53 + week_offset.
+        Let saved_week be parseInt(item argument_index of arguments).
+        If saved_week equals target_week:
+            Return 1.
+    Return 0.
+
+## To ChooseCurrentWeeklyStreak (arguments: Seq of Text) and (current_week: Int) and (week_count: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Let cursor be current_week.
+    Let current_active be HasActiveWeek(arguments, week_count, cursor).
+    If current_active equals 0:
+        Set cursor to cursor - 1.
+    Let streak be 0.
+    Let keep_counting be HasActiveWeek(arguments, week_count, cursor).
+    While keep_counting equals 1:
+        Set streak to streak + 1.
+        Set cursor to cursor - 1.
+        Set keep_counting to HasActiveWeek(arguments, week_count, cursor).
+    Return streak.
+
+## To ChooseBestWeeklyStreak (arguments: Seq of Text) and (week_count: Int) -> Int:
+
+    If week_count equals 0:
+        Return 0.
+    Let best be 0.
+    Let running be 0.
+    Let previous be -999999999.
+    Repeat for week_offset from 1 to week_count:
+        Let argument_index be 53 + week_offset.
+        Let saved_week be parseInt(item argument_index of arguments).
+        If saved_week equals previous + 1:
+            Set running to running + 1.
+        Otherwise:
+            Set running to 1.
+        If running is greater than best:
+            Set best to running.
+        Set previous to saved_week.
+    Return best.
+
+## To ChoosePerfectWeekCount (arguments: Seq of Text) and (week_count: Int) and (plan_count: Int) -> Int:
+
+    If plan_count equals 0:
+        Return 0.
+    Let perfect_count be 0.
+    Let plan_start be 54 + week_count.
+    Repeat for plan_offset from 1 to plan_count:
+        Let total_index be plan_start + ((plan_offset - 1) * 2).
+        Let complete_index be total_index + 1.
+        Let total_tasks be parseInt(item total_index of arguments).
+        Let complete_tasks be parseInt(item complete_index of arguments).
+        If total_tasks is greater than 0:
+            If complete_tasks equals total_tasks:
+                Set perfect_count to perfect_count + 1.
+    Return perfect_count.
+
+## To ChooseKeywordRelevanceCode (core_matches: Int) and (support_matches: Int) -> Int:
+
+    If core_matches is greater than 0:
+        Return 2.
+    If support_matches is greater than 0:
+        Return 1.
+    Return 0.
+
+## To ChooseKeywordRelevanceTier (relevance_code: Int) -> Text:
+
+    If relevance_code equals 2:
+        Return "core".
+    If relevance_code equals 1:
+        Return "adjacent".
+    Return "none".
+
+## To ChooseKeywordEligibility (policy_enabled: Int) and (search_volume: Int) and (disqualifiers: Int) and (blocklisted: Int) and (relevance_code: Int) -> Text:
+
+    If policy_enabled equals 0:
+        Return "legacy".
+    If search_volume is less than 1:
+        Return "false".
+    If disqualifiers is greater than 0:
+        Return "false".
+    If blocklisted is greater than 0:
+        Return "false".
+    If relevance_code equals 0:
+        Return "false".
+    Return "true".
+
+## To ChooseKeywordSearchIntent (intent_code: Int) -> Text:
+
+    If intent_code equals 3:
+        Return "conversion".
+    If intent_code equals 2:
+        Return "consideration".
+    If intent_code equals 1:
+        Return "consideration".
+    Return "awareness".
+
+## To ChooseKeywordIntentPoints (intent_code: Int) -> Int:
+
+    If intent_code equals 3:
+        Return 25.
+    If intent_code equals 2:
+        Return 21.
+    If intent_code equals 1:
+        Return 6.
+    Return 8.
+
+## To RoundedWeight (value: Int) and (weight: Int) -> Int:
+
+    Return ((value * weight) + 50) divided by 100.
+
+## To ClampKeywordScore (score: Int) -> Int:
+
+    If score is less than 0:
+        Return 0.
+    If score is greater than 100:
+        Return 100.
+    Return score.
+
+## To ChooseVolumePoints (search_volume: Int) -> Int:
+
+    If search_volume is greater than 18835:
+        Return 10.
+    If search_volume is greater than 6682:
+        Return 9.
+    If search_volume is greater than 2370:
+        Return 8.
+    If search_volume is greater than 840:
+        Return 7.
+    If search_volume is greater than 297:
+        Return 6.
+    If search_volume is greater than 104:
+        Return 5.
+    If search_volume is greater than 36:
+        Return 4.
+    If search_volume is greater than 12:
+        Return 3.
+    If search_volume is greater than 3:
+        Return 2.
+    If search_volume is greater than 0:
+        Return 1.
+    Return 0.
+
+## To ChooseAttainabilityPoints (difficulty: Int) -> Int:
+
+    If difficulty is less than 0:
+        Return 5.
+    If difficulty is greater than 100:
+        Return 0.
+    Return (((100 - difficulty) * 5) + 50) divided by 100.
+
+## To ChooseValuePoints (cpc_cents: Int) -> Int:
+
+    If cpc_cents is greater than 3288:
+        Return 5.
+    If cpc_cents is greater than 1448:
+        Return 4.
+    If cpc_cents is greater than 607:
+        Return 3.
+    If cpc_cents is greater than 223:
+        Return 2.
+    If cpc_cents is greater than 47:
+        Return 1.
+    Return 0.
+
+## To ChooseOpportunityPoints (opportunity_code: Int) and (rank: Int) and (competitor_rankers: Int) and (direct_competitor_rankers: Int) -> Int:
+
+    If opportunity_code equals 1:
+        If rank is greater than 3:
+            If rank is less than 21:
+                Return 5.
+        Return 4.
+    If opportunity_code equals 2:
+        If direct_competitor_rankers is greater than 0:
+            Let direct_points be 3 + direct_competitor_rankers.
+            If direct_points is greater than 5:
+                Return 5.
+            Return direct_points.
+        Let competitor_points be 1 + ((competitor_rankers + 1) divided by 2).
+        If competitor_points is greater than 3:
+            Return 3.
+        Return competitor_points.
+    Return 2.
+
+## To ChooseKeywordPriorityScore (policy_enabled: Int) and (eligible: Text) and (intent_code: Int) and (business_fit_percent: Int) and (revenue_fit_percent: Int) and (search_volume: Int) and (difficulty: Int) and (cpc_cents: Int) and (opportunity_code: Int) and (rank: Int) and (competitor_rankers: Int) and (direct_competitor_rankers: Int) -> Int:
+
+    If policy_enabled equals 0:
+        Return 0.
+    If eligible equals "false":
+        Return 0.
+    Let intent_points be ChooseKeywordIntentPoints(intent_code).
+    Let business_points be RoundedWeight(business_fit_percent, 30).
+    Let revenue_points be RoundedWeight(revenue_fit_percent, 20).
+    Let volume_points be ChooseVolumePoints(search_volume).
+    Let attainability_points be ChooseAttainabilityPoints(difficulty).
+    Let value_points be ChooseValuePoints(cpc_cents).
+    Let opportunity_points be ChooseOpportunityPoints(opportunity_code, rank, competitor_rankers, direct_competitor_rankers).
+    Let demand_penalty be 0.
+    If search_volume is less than 20:
+        If intent_code is less than 3:
+            Set demand_penalty to 3.
+    Let score be intent_points + business_points + revenue_points + volume_points + attainability_points + value_points + opportunity_points - demand_penalty.
+    Return ClampKeywordScore(score).
+
+## To ChooseKeywordPriorityTier (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (revenue_fit_percent: Int) -> Int:
+
+    If policy_enabled equals 0:
+        Return 0.
+    If eligible equals "false":
+        Return 0.
+    If relevance_code equals 2:
+        If revenue_fit_percent is greater than 84:
+            Return 1.
+        If revenue_fit_percent is greater than 44:
+            Return 2.
+        Return 3.
+    Return 4.
+
+## To ChooseKeywordPolicyCode (policy_enabled: Int) and (search_volume: Int) and (disqualifiers: Int) and (blocklisted: Int) and (relevance_code: Int) and (intent_code: Int) -> Text:
+
+    If policy_enabled equals 0:
+        Return "legacy_keyword_policy".
+    If search_volume is less than 1:
+        Return "reject_no_demand".
+    If disqualifiers is greater than 0:
+        Return "reject_disqualified".
+    If blocklisted is greater than 0:
+        Return "reject_blocklisted".
+    If relevance_code equals 0:
+        Return "reject_no_relevance".
+    If relevance_code equals 2:
+        If intent_code equals 3:
+            Return "eligible_core_conversion".
+        If intent_code equals 2:
+            Return "eligible_core_consideration".
+        Return "eligible_core_awareness".
+    If intent_code equals 3:
+        Return "eligible_adjacent_conversion".
+    If intent_code equals 2:
+        Return "eligible_adjacent_consideration".
+    Return "eligible_adjacent_awareness".
+
+## To ChooseKeywordEssential (eligible: Text) and (relevance_code: Int) and (revenue_fit_percent: Int) and (intent_code: Int) and (direct_competitor_rankers: Int) -> Text:
+
+    If eligible equals "false":
+        Return "false".
+    If relevance_code is less than 2:
+        Return "false".
+    If revenue_fit_percent is less than 65:
+        Return "false".
+    If direct_competitor_rankers is greater than 0:
+        Return "true".
+    If intent_code equals 3:
+        Return "true".
+    Return "false".
+
+## To ChooseKeywordDataQuality (intent_known: Int) -> Text:
+
+    If intent_known equals 0:
+        Return "intent_missing".
+    Return "complete".
+
+## To ChooseKeywordRuleIds (policy_code: Text) and (keyword_rule: Text) -> Text:
+
+    If policy_code equals "reject_no_demand":
+        Return "reject_no_demand".
+    If policy_code equals "reject_disqualified":
+        Return "reject_disqualified".
+    If policy_code equals "reject_blocklisted":
+        Return "reject_blocklisted,blocked_noise".
+    If policy_code equals "reject_no_relevance":
+        Return "reject_no_relevance,no_vocabulary_match".
+    If keyword_rule equals "essential_gap":
+        Return "essential_gap".
+    If keyword_rule equals "site_vocabulary_match":
+        Return "site_vocabulary_match".
+    If keyword_rule equals "borderline_gap":
+        Return "borderline_gap".
+    If keyword_rule equals "supporting_evidence":
+        Return "supporting_evidence".
+    Return policy_code.
+
+## To ChoosePlanCanExport (identity_matches: Int) -> Text:
+
+    If identity_matches is greater than 0:
+        Return "true".
+    Return "false".
+
+## To ChoosePlanIdentityRule (identity_matches: Int) -> Text:
+
+    If identity_matches is greater than 0:
+        Return "confirmed_business_identity".
+    Return "blocked_identity_mismatch".
+
+## To ChoosePlanKeywordTargetLow (approved_keywords: Int) and (usable_keywords: Int) -> Int:
+
+    Let usable_floor be usable_keywords.
+    If usable_floor is greater than 12:
+        Set usable_floor to 12.
+    If approved_keywords is greater than usable_floor:
+        Return approved_keywords.
+    Return usable_floor.
+
+## To ChoosePlanKeywordTargetHigh (target_low: Int) and (usable_keywords: Int) -> Int:
+
+    Let target_ceiling be target_low + 12.
+    Let usable_ceiling be usable_keywords.
+    If usable_ceiling is greater than target_ceiling:
+        Set usable_ceiling to target_ceiling.
+    If target_low is greater than usable_ceiling:
+        Return target_low.
+    Return usable_ceiling.
+
+## To ChoosePlanForecastConfidence (data_quality_flags: Int) -> Text:
+
+    If data_quality_flags is greater than 0:
+        Return "limited".
+    Return "directional".
+
+## To ChooseEditorialIntentCode (conversion_language: Int) and (commercial_language: Int) and (provider_intent_code: Int) -> Int:
+
+    If conversion_language is greater than 0:
+        Return 3.
+    If commercial_language is greater than 0:
+        Return 2.
+    Return provider_intent_code.
+
+## To ChooseEditorialBusinessFit (business_model_code: Int) and (product_query: Int) and (service_query: Int) -> Int:
+
+    If business_model_code equals 1:
+        If service_query is greater than 0:
+            Return 2.
+        If product_query is greater than 0:
+            Return 0.
+        Return 1.
+    If product_query is greater than 0:
+        Return 2.
+    If service_query is greater than 0:
+        Return 0.
+    Return 1.
+
+## To ChooseEditorialOfferFit (theme_role_code: Int) and (offer_overlap: Int) -> Int:
+
+    If theme_role_code equals 1:
+        Return 0.
+    If theme_role_code equals 2:
+        Return 4.
+    If offer_overlap is greater than 1:
+        Return 3.
+    If offer_overlap equals 1:
+        Return 1.
+    Return 0.
+
+## To ChooseEditorialKeywordIndex (week_slot: Int) and (keyword_count: Int) -> Int:
+
+    If keyword_count is less than 1:
+        Return 0.
+    Let keyword_index be week_slot.
+    While keyword_index is greater than keyword_count:
+        Set keyword_index to keyword_index - keyword_count.
+    If keyword_index is less than 1:
+        Return 1.
+    Return keyword_index.
+
+## To ChooseEditorialAngleCode (week_slot: Int) -> Int:
+
+    If week_slot is less than 1:
+        Return 1.
+    If week_slot is greater than 12:
+        Return 12.
+    Return week_slot.
+
+## To ChooseEditorialBusinessModel (product_evidence: Int) and (service_evidence: Int) -> Int:
+
+    If product_evidence is greater than 0:
+        Return 2.
+    Return 1.
+
+## To ChooseProgressCurrentNode (foundation: Int) and (content: Int) and (impressions: Int) and (clicks: Int) and (page_two: Int) and (page_one: Int) and (key_events: Int) and (compounding: Int) -> Int:
+
+    If foundation equals 0:
+        Return 1.
+    If content equals 0:
+        Return 2.
+    If impressions equals 0:
+        Return 3.
+    If impressions equals 0:
+        Return 4.
+    If clicks equals 0:
+        Return 5.
+    If page_two equals 0:
+        Return 6.
+    If page_one equals 0:
+        Return 7.
+    If key_events equals 0:
+        Return 8.
+    If compounding equals 0:
+        Return 9.
+    Return 0.
+
+## To ChooseProgressCompounding (page_one: Int) and (clicks: Int) and (key_events: Int) -> Int:
+
+    If page_one equals 0:
+        Return 0.
+    If clicks is less than 25:
+        Return 0.
+    If key_events is less than 1:
+        Return 0.
+    Return 1.
+
+## To ChooseProgressTaskExcluded (task_code: Int) -> Text:
+
+    If task_code equals 1:
+        Return "true".
+    If task_code equals 5:
+        Return "true".
+    If task_code equals 7:
+        Return "true".
+    Return "false".
+
+## To ChooseProgressTaskPhase (task_code: Int) -> Text:
+
+    If task_code equals 8:
+        Return "visibility".
+    If task_code equals 9:
+        Return "visibility".
+    If task_code equals 10:
+        Return "visibility".
+    If task_code equals 11:
+        Return "growth".
+    If task_code equals 12:
+        Return "growth".
+    If task_code equals 13:
+        Return "growth".
+    Return "ready".
+
+## To ChooseProgressTaskState (status_code: Int) and (current_chosen: Int) and (any_in_progress: Int) -> Text:
+
+    If status_code equals 1:
+        Return "complete".
+    If status_code equals 2:
+        Return "future".
+    If status_code equals 3:
+        Return "current".
+    If any_in_progress is greater than 0:
+        Return "future".
+    If current_chosen equals 0:
+        Return "current".
+    Return "future".
+
+## To ChooseLlmEffortState (evidence_code: Int) -> Text:
+
+    If evidence_code equals 2:
+        Return "complete".
+    If evidence_code equals 1:
+        Return "in_progress".
+    Return "not_started".
+
+## To ChooseLlmOutcomeState (evidence_available: Int) and (mentions: Int) -> Text:
+
+    If evidence_available equals 0:
+        Return "not_started".
+    If mentions is greater than 0:
+        Return "verified".
+    Return "monitoring".
+
+## To ChooseLlmNextStep (content_state: Int) and (platform_state: Int) and (authority_state: Int) -> Int:
+
+    If content_state is less than 2:
+        Return 1.
+    If platform_state is less than 2:
+        Return 2.
+    If authority_state is less than 2:
+        Return 3.
+    Return 4.
+
+## To ChoosePercent (complete: Int) and (total: Int) -> Int:
+
+    If total is less than 1:
+        Return 0.
+    Return ((complete * 100) + (total divided by 2)) divided by total.
+
+## To ChooseSourceState (complete: Int) and (total: Int) -> Text:
+
+    If total is greater than 0:
+        If complete equals total:
+            Return "complete".
+    If complete is greater than 0:
+        Return "in_progress".
+    Return "not_started".
+
+## To ChooseCoachTaskOrder (task_code: Int) -> Int:
+
+    If task_code equals 3:
+        Return 0.
+    If task_code equals 2:
+        Return 1.
+    If task_code equals 4:
+        Return 2.
+    If task_code equals 8:
+        Return 3.
+    If task_code equals 9:
+        Return 3.
+    If task_code equals 10:
+        Return 4.
+    If task_code equals 11:
+        Return 5.
+    If task_code equals 12:
+        Return 6.
+    If task_code equals 13:
+        Return 6.
+    If task_code equals 14:
+        Return 7.
+    Return 99.
+
+## To ChooseCoachCategory (task_code: Int) and (category_code: Int) -> Text:
+
+    If task_code equals 3:
+        Return "research-strategy".
+    If task_code equals 4:
+        Return "content-creation".
+    If task_code equals 8:
+        Return "distribution".
+    If task_code equals 9:
+        Return "distribution".
+    If task_code equals 10:
+        Return "distribution".
+    If task_code equals 11:
+        Return "distribution".
+    If task_code equals 12:
+        Return "distribution".
+    If task_code equals 13:
+        Return "distribution".
+    If task_code equals 2:
+        If category_code equals 2:
+            Return "distribution".
+    Return "technical-seo".
+
+## To ChooseProgressDataQuality (provider_available: Int) -> Text:
+
+    If provider_available equals 0:
+        Return "provider_missing".
+    Return "complete".
+
+## To ClampPercent (value: Int) -> Int:
+
+    If value is less than 0:
+        Return 0.
+    If value is greater than 100:
+        Return 100.
+    Return value.
+
+## To ChooseOnboardingCurrentStage (step: Int) -> Int:
+
+    If step is less than 1:
+        Return 1.
+    If step is greater than 3:
+        Return 3.
+    Return step.
+
+## To ChooseAuditCompletedStages (percent: Int) -> Int:
+
+    If percent is greater than 99:
+        Return 6.
+    If percent is greater than 79:
+        Return 5.
+    If percent is greater than 64:
+        Return 4.
+    If percent is greater than 44:
+        Return 3.
+    If percent is greater than 29:
+        Return 2.
+    If percent is greater than 9:
+        Return 1.
+    Return 0.
+
+## To ChooseAuditCurrentStage (completed: Int) -> Int:
+
+    If completed is greater than 5:
+        Return 6.
+    Return completed + 1.
+
+## To ChooseTimingDelayed (status_code: Int) and (elapsed_seconds: Int) -> Text:
+
+    If status_code is greater than 0:
+        Return "false".
+    If elapsed_seconds is greater than 45:
+        Return "true".
+    Return "false".
+
+## To ChooseTimingSeconds (status_code: Int) and (progress: Int) and (delayed: Text) -> Int:
+
+    If status_code equals 1:
+        Return 0.
+    If status_code equals 2:
+        Return -1.
+    If delayed equals "true":
+        Return -1.
+    Let bounded be progress.
+    If bounded is greater than 99:
+        Set bounded to 99.
+    If bounded is less than 0:
+        Set bounded to 0.
+    Let blocks be ((6 * (100 - bounded)) + 99) divided by 100.
+    Let remaining be blocks * 5.
+    If remaining is less than 5:
+        Return 5.
+    Return remaining.
+
+## To ChooseRequiredStepReady (field_count: Int) and (required_count: Int) and (email_valid: Int) and (url_valid: Int) -> Text:
+
+    If field_count is less than required_count:
+        Return "false".
+    If email_valid equals 0:
+        Return "false".
+    If url_valid equals 0:
+        Return "false".
+    Return "true".
+
+## To ChooseSimpleStepReady (field_count: Int) and (required_count: Int) -> Text:
+
+    If field_count is less than required_count:
+        Return "false".
+    Return "true".
+
+## To ChooseAuditHealthScore (available: Int) and (score: Int) -> Int:
+
+    If available equals 0:
+        Return -1.
+    Return ClampPercent(score).
+
+## To ChooseAuditHealthCode (score: Int) -> Int:
+
+    If score is less than 0:
+        Return 0.
+    If score is greater than 89:
+        Return 4.
+    If score is greater than 74:
+        Return 3.
+    If score is greater than 49:
+        Return 2.
+    Return 1.
+
+## To ChooseAuditPartial (critical: Int) and (warnings: Int) and (visible_issues: Int) -> Text:
+
+    If critical + warnings is greater than visible_issues:
+        Return "true".
+    Return "false".
+
+## To ChooseRankReadingCode (status_code: Int) and (found_code: Int) and (position: Int) -> Int:
+
+    If status_code equals 2:
+        Return 0.
+    If status_code equals 0:
+        Return 1.
+    If found_code is less than 0:
+        Return 1.
+    If found_code equals 0:
+        Return 2.
+    If position is less than 1:
+        Return 2.
+    Return 3.
+
+## To ChooseRankMovementCode (status_code: Int) and (has_previous: Int) and (current_found: Int) and (current_position: Int) and (previous_found: Int) and (previous_position: Int) -> Int:
+
+    If status_code equals 0:
+        Return 0.
+    If status_code equals 2:
+        Return 0.
+    If has_previous equals 0:
+        If current_found equals 1:
+            Return 1.
+        Return 0.
+    If current_found equals 1:
+        If previous_found equals 0:
+            Return 2.
+    If current_found equals 0:
+        If previous_found equals 1:
+            Return 3.
+    If current_position is less than 1:
+        If previous_position is less than 1:
+            Return 0.
+        Return 3.
+    If previous_position is less than 1:
+        Return 1.
+    If current_position is less than previous_position:
+        Return 4.
+    If current_position is greater than previous_position:
+        Return 5.
+    Return 6.
+
+## To ChooseRankMovementDelta (current_position: Int) and (previous_position: Int) -> Int:
+
+    If current_position is less than 1:
+        Return 0.
+    If previous_position is less than 1:
+        Return 0.
+    Return previous_position - current_position.
+
+## To ChooseRankFreshnessCode (has_last_check: Int) and (age_hours: Int) and (age_days: Int) -> Int:
+
+    If has_last_check equals 0:
+        If age_hours is greater than 24:
+            Return 1.
+        Return 0.
+    If age_days is greater than 6:
+        Return 2.
+    Return 3.
+
+## To ChooseRankBucket (found: Int) and (position: Int) -> Int:
+
+    If found equals 0:
+        Return 0.
+    If position is less than 1:
+        Return 0.
+    If position is less than 4:
+        Return 1.
+    If position is less than 11:
+        Return 2.
+    If position is less than 21:
+        Return 3.
+    Return 4.
+
+## To ChooseArticleWordIssue (format_code: Int) and (word_count: Int) -> Text:
+
+    If format_code equals 1:
+        If word_count is less than 1900:
+            Return "true".
+        If word_count is greater than 3200:
+            Return "true".
+        Return "false".
+    If word_count is less than 700:
+        Return "true".
+    If word_count is greater than 2600:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleHeadingIssue (format_code: Int) and (h1_count: Int) and (h2_count: Int) and (h3_count: Int) and (skipped_level: Int) -> Text:
+
+    If h1_count is less than 1:
+        Return "true".
+    If h1_count is greater than 1:
+        Return "true".
+    If h3_count is less than 1:
+        Return "true".
+    If skipped_level equals 1:
+        Return "true".
+    If format_code equals 1:
+        If h2_count is less than 6:
+            Return "true".
+        If h2_count is greater than 9:
+            Return "true".
+        Return "false".
+    If h2_count is less than 3:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleBrigadeIssue (format_code: Int) and (brigade_count: Int) -> Text:
+
+    If format_code equals 1:
+        If brigade_count is less than 4:
+            Return "true".
+        If brigade_count is greater than 9:
+            Return "true".
+        Return "false".
+    If brigade_count is less than 1:
+        Return "true".
+    If brigade_count is greater than 6:
+        Return "true".
+    Return "false".
+
+## To ChooseArticleSourceIssue (format_code: Int) and (source_count: Int) and (cited_count: Int) -> Text:
+
+    Let required be 1.
+    If format_code equals 1:
+        Set required to 3.
+    If source_count is less than required:
+        Return "true".
+    If cited_count is less than required:
+        Return "true".
+    Return "false".
+
+## To ChooseAuthoritativeKeywordVerdict (policy_enabled: Int) and (eligible: Text) and (relevance_code: Int) and (legacy_verdict: Text) -> Text:
+
+    If policy_enabled equals 0:
+        Return legacy_verdict.
+    If eligible equals "false":
+        Return "reject".
+    If relevance_code equals 2:
+        Return "accept".
+    Return "review".
+
+## Main
+
+    Let arguments be args().
+    Let audit_complete be parseInt(item 2 of arguments).
+    Let critical_issues be parseInt(item 3 of arguments).
+    Let warnings be parseInt(item 4 of arguments).
+    Let ranking_keywords be parseInt(item 5 of arguments).
+    Let new_keywords be parseInt(item 6 of arguments).
+    Let lost_keywords be parseInt(item 7 of arguments).
+    Let content_gaps be parseInt(item 8 of arguments).
+    Let review_count be parseInt(item 9 of arguments).
+    Let keyword_core_matches be parseInt(item 10 of arguments).
+    Let keyword_support_matches be parseInt(item 11 of arguments).
+    Let competitor_rankers be parseInt(item 12 of arguments).
+    Let keyword_blocklisted be parseInt(item 13 of arguments).
+    Let plan_tier be parseInt(item 14 of arguments).
+    Let keyword_policy_enabled be parseInt(item 15 of arguments).
+    Let keyword_positive_demand be parseInt(item 16 of arguments).
+    Let keyword_disqualifiers be parseInt(item 17 of arguments).
+    Let keyword_intent_code be parseInt(item 18 of arguments).
+    Let keyword_relevance_code be parseInt(item 19 of arguments).
+    Let keyword_business_fit_percent be parseInt(item 20 of arguments).
+    Let keyword_revenue_fit_percent be parseInt(item 21 of arguments).
+    Let keyword_volume_points be parseInt(item 22 of arguments).
+    Let keyword_attainability_points be parseInt(item 23 of arguments).
+    Let keyword_value_points be parseInt(item 24 of arguments).
+    Let keyword_opportunity_points be parseInt(item 25 of arguments).
+    Let keyword_demand_penalty be parseInt(item 26 of arguments).
+    Let keyword_search_volume be parseInt(item 27 of arguments).
+    Let keyword_difficulty be parseInt(item 28 of arguments).
+    Let keyword_cpc_cents be parseInt(item 29 of arguments).
+    Let keyword_rank be parseInt(item 30 of arguments).
+    Let keyword_opportunity_code be parseInt(item 31 of arguments).
+    Let direct_competitor_rankers be parseInt(item 32 of arguments).
+    Let keyword_intent_known be parseInt(item 33 of arguments).
+    Let critical_render_blocking be parseInt(item 34 of arguments).
+    Let critical_high_loading be parseInt(item 35 of arguments).
+    Let critical_no_title be parseInt(item 36 of arguments).
+    Let critical_no_description be parseInt(item 37 of arguments).
+    Let critical_no_h1 be parseInt(item 38 of arguments).
+    Let critical_no_alt be parseInt(item 39 of arguments).
+    Let warning_render_blocking be parseInt(item 40 of arguments).
+    Let warning_high_loading be parseInt(item 41 of arguments).
+    Let warning_no_title be parseInt(item 42 of arguments).
+    Let warning_no_description be parseInt(item 43 of arguments).
+    Let warning_no_h1 be parseInt(item 44 of arguments).
+    Let warning_no_alt be parseInt(item 45 of arguments).
+    Let unknown_issue_count be parseInt(item 46 of arguments).
+    Let quest_task_code be parseInt(item 47 of arguments).
+    Let quest_current_status_code be parseInt(item 48 of arguments).
+    Let quest_requested_status_code be parseInt(item 49 of arguments).
+    Let quest_remaining_after_completion be parseInt(item 50 of arguments).
+    Let streak_current_week be parseInt(item 51 of arguments).
+    Let streak_week_count be parseInt(item 52 of arguments).
+    Let streak_plan_count be parseInt(item 53 of arguments).
+    Let planning_start be 54 + streak_week_count + (streak_plan_count * 2).
+    Let plan_identity_matches be parseInt(item planning_start of arguments).
+    Let plan_approved_keywords be parseInt(item (planning_start + 1) of arguments).
+    Let plan_usable_keywords be parseInt(item (planning_start + 2) of arguments).
+    Let plan_data_quality_flags be parseInt(item (planning_start + 3) of arguments).
+    Let editorial_conversion_language be parseInt(item (planning_start + 4) of arguments).
+    Let editorial_commercial_language be parseInt(item (planning_start + 5) of arguments).
+    Let editorial_provider_intent_code be parseInt(item (planning_start + 6) of arguments).
+    Let editorial_business_model_code be parseInt(item (planning_start + 7) of arguments).
+    Let editorial_product_query be parseInt(item (planning_start + 8) of arguments).
+    Let editorial_service_query be parseInt(item (planning_start + 9) of arguments).
+    Let editorial_theme_role_code be parseInt(item (planning_start + 10) of arguments).
+    Let editorial_offer_overlap be parseInt(item (planning_start + 11) of arguments).
+    Let editorial_week_slot be parseInt(item (planning_start + 12) of arguments).
+    Let editorial_keyword_count be parseInt(item (planning_start + 13) of arguments).
+    Let editorial_product_evidence be parseInt(item (planning_start + 14) of arguments).
+    Let editorial_service_evidence be parseInt(item (planning_start + 15) of arguments).
+    Let progress_audit_complete be parseInt(item (planning_start + 16) of arguments).
+    Let progress_foundation_status be parseInt(item (planning_start + 17) of arguments).
+    Let progress_content_status be parseInt(item (planning_start + 18) of arguments).
+    Let progress_impressions be parseInt(item (planning_start + 19) of arguments).
+    Let progress_clicks be parseInt(item (planning_start + 20) of arguments).
+    Let progress_page_one be parseInt(item (planning_start + 21) of arguments).
+    Let progress_page_two be parseInt(item (planning_start + 22) of arguments).
+    Let progress_key_events be parseInt(item (planning_start + 23) of arguments).
+    Let progress_task_code be parseInt(item (planning_start + 24) of arguments).
+    Let progress_task_status_code be parseInt(item (planning_start + 25) of arguments).
+    Let progress_current_chosen be parseInt(item (planning_start + 26) of arguments).
+    Let llm_content_state_code be parseInt(item (planning_start + 27) of arguments).
+    Let llm_platform_state_code be parseInt(item (planning_start + 28) of arguments).
+    Let llm_authority_state_code be parseInt(item (planning_start + 29) of arguments).
+    Let llm_evidence_available be parseInt(item (planning_start + 30) of arguments).
+    Let llm_mentions be parseInt(item (planning_start + 31) of arguments).
+    Let llm_platform_positive_count be parseInt(item (planning_start + 32) of arguments).
+    Let source_completed be parseInt(item (planning_start + 33) of arguments).
+    Let source_total be parseInt(item (planning_start + 34) of arguments).
+    Let source_proof_attached be parseInt(item (planning_start + 35) of arguments).
+    Let source_proof_possible be parseInt(item (planning_start + 36) of arguments).
+    Let progress_task_category_code be parseInt(item (planning_start + 37) of arguments).
+    Let progress_any_in_progress be parseInt(item (planning_start + 38) of arguments).
+    Let progress_provider_available be parseInt(item (planning_start + 39) of arguments).
+    Let momentum_onboarding_step be parseInt(item (planning_start + 40) of arguments).
+    Let momentum_audit_progress be parseInt(item (planning_start + 41) of arguments).
+    Let momentum_audit_status_code be parseInt(item (planning_start + 42) of arguments).
+    Let momentum_elapsed_seconds be parseInt(item (planning_start + 43) of arguments).
+    Let onboarding_one_fields be parseInt(item (planning_start + 44) of arguments).
+    Let onboarding_email_valid be parseInt(item (planning_start + 45) of arguments).
+    Let onboarding_url_valid be parseInt(item (planning_start + 46) of arguments).
+    Let onboarding_two_fields be parseInt(item (planning_start + 47) of arguments).
+    Let audit_health_available be parseInt(item (planning_start + 48) of arguments).
+    Let audit_health_raw be parseInt(item (planning_start + 49) of arguments).
+    Let audit_measured_critical be parseInt(item (planning_start + 50) of arguments).
+    Let audit_measured_warnings be parseInt(item (planning_start + 51) of arguments).
+    Let audit_visible_issues be parseInt(item (planning_start + 52) of arguments).
+    Let rank_status_code be parseInt(item (planning_start + 53) of arguments).
+    Let rank_found_code be parseInt(item (planning_start + 54) of arguments).
+    Let rank_current_position be parseInt(item (planning_start + 55) of arguments).
+    Let rank_has_previous be parseInt(item (planning_start + 56) of arguments).
+    Let rank_previous_found be parseInt(item (planning_start + 57) of arguments).
+    Let rank_previous_position be parseInt(item (planning_start + 58) of arguments).
+    Let rank_has_last_check be parseInt(item (planning_start + 59) of arguments).
+    Let rank_age_hours be parseInt(item (planning_start + 60) of arguments).
+    Let rank_age_days be parseInt(item (planning_start + 61) of arguments).
+    Let article_format_code be parseInt(item (planning_start + 62) of arguments).
+    Let article_word_count be parseInt(item (planning_start + 63) of arguments).
+    Let article_h1_count be parseInt(item (planning_start + 64) of arguments).
+    Let article_h2_count be parseInt(item (planning_start + 65) of arguments).
+    Let article_h3_count be parseInt(item (planning_start + 66) of arguments).
+    Let article_skipped_level be parseInt(item (planning_start + 67) of arguments).
+    Let article_title_keyword be parseInt(item (planning_start + 68) of arguments).
+    Let article_first_h2_keyword be parseInt(item (planning_start + 69) of arguments).
+    Let article_keyword_free_percent be parseInt(item (planning_start + 70) of arguments).
+    Let article_brigade_count be parseInt(item (planning_start + 71) of arguments).
+    Let article_first_brigade be parseInt(item (planning_start + 72) of arguments).
+    Let article_min_brigade_gap be parseInt(item (planning_start + 73) of arguments).
+    Let article_stock_phrase be parseInt(item (planning_start + 74) of arguments).
+    Let article_meta_count be parseInt(item (planning_start + 75) of arguments).
+    Let article_meta_overlength be parseInt(item (planning_start + 76) of arguments).
+    Let article_source_count be parseInt(item (planning_start + 77) of arguments).
+    Let article_cited_count be parseInt(item (planning_start + 78) of arguments).
+    Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
+    Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
+    Let growth_quest be ChooseWeeklyQuest(decision_code).
+    Let issue_quest_code be ChooseIssueQuestCode(critical_render_blocking, critical_high_loading, critical_no_title, critical_no_description, critical_no_h1, critical_no_alt, warning_render_blocking, warning_high_loading, warning_no_title, warning_no_description, warning_no_h1, warning_no_alt).
+    Let quest_source be ChooseQuestSource(issue_quest_code).
+    Let weekly_quest be ChooseIssueQuestTitle(issue_quest_code, growth_quest).
+    Let growth_category be ChooseQuestCategory(decision_code).
+    Let quest_category be ChooseIssueQuestCategory(issue_quest_code, growth_category).
+    Let growth_urgency be ChooseUrgency(decision_code, critical_issues).
+    Let recognized_critical_issues be critical_render_blocking + critical_high_loading + critical_no_title + critical_no_description + critical_no_h1 + critical_no_alt.
+    Let urgency be ChooseIssueQuestUrgency(issue_quest_code, recognized_critical_issues, growth_urgency).
+    Let growth_explanation be ChooseExplanation(decision_code).
+    Let explanation be ChooseIssueQuestExplanation(issue_quest_code, growth_explanation).
+    Let legacy_keyword_verdict be ChooseKeywordVerdict(keyword_core_matches, keyword_support_matches, competitor_rankers, keyword_blocklisted).
+    Let authoritative_relevance_code be ChooseKeywordRelevanceCode(keyword_core_matches, keyword_support_matches).
+    Let keyword_eligible be ChooseKeywordEligibility(keyword_policy_enabled, keyword_search_volume, keyword_disqualifiers, keyword_blocklisted, authoritative_relevance_code).
+    Let keyword_verdict be ChooseAuthoritativeKeywordVerdict(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, legacy_keyword_verdict).
+    Let keyword_rule_id be ChooseKeywordRule(keyword_core_matches, keyword_support_matches, competitor_rankers, keyword_blocklisted).
+    Let keyword_reason be ChooseKeywordReason(keyword_rule_id).
+    Let essential_keyword be ChooseEssentialKeyword(keyword_rule_id).
+    Let weekly_task_count be ChooseWeeklyTaskCount(plan_tier).
+    Let content_task_count be ChooseContentTaskCount(plan_tier).
+    Let distribution_task_count be ChooseDistributionTaskCount(plan_tier).
+    Let weekly_task_manifest be ChooseWeeklyTaskManifest(plan_tier).
+    Let weekly_task_approvals be ChooseWeeklyTaskApprovals(plan_tier).
+    Let weekly_task_tiers be ChooseWeeklyTaskTiers(plan_tier).
+    Let weekly_task_priorities be ChooseWeeklyTaskPriorities(plan_tier).
+    Let issue_data_quality be ChooseIssueDataQuality(issue_quest_code, unknown_issue_count).
+    Let quest_transition_allowed be ChooseQuestTransitionAllowed(quest_task_code, quest_current_status_code, quest_requested_status_code).
+    Let quest_transition_rule_id be ChooseQuestTransitionRule(quest_task_code, quest_current_status_code, quest_requested_status_code).
+    Let quest_verification_status be ChooseQuestVerificationStatus(quest_task_code, quest_requested_status_code).
+    Let quest_set_completed_at be ChooseQuestSetCompletedAt(quest_requested_status_code).
+    Let quest_set_verified_at be ChooseQuestSetVerifiedAt(quest_task_code, quest_requested_status_code).
+    Let quest_clear_evidence be ChooseQuestClearEvidence(quest_requested_status_code).
+    Let quest_celebration be ChooseQuestCelebration(quest_transition_allowed, quest_task_code, quest_requested_status_code, quest_remaining_after_completion, quest_verification_status).
+    Let streak_current be ChooseCurrentWeeklyStreak(arguments, streak_current_week, streak_week_count).
+    Let streak_best be ChooseBestWeeklyStreak(arguments, streak_week_count).
+    Let streak_perfect_weeks be ChoosePerfectWeekCount(arguments, streak_week_count, streak_plan_count).
+    Let keyword_search_intent be ChooseKeywordSearchIntent(keyword_intent_code).
+    Let keyword_priority_tier be ChooseKeywordPriorityTier(keyword_policy_enabled, keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent).
+    Let keyword_priority_score be ChooseKeywordPriorityScore(keyword_policy_enabled, keyword_eligible, keyword_intent_code, keyword_business_fit_percent, keyword_revenue_fit_percent, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
+    Let keyword_policy_code be ChooseKeywordPolicyCode(keyword_policy_enabled, keyword_search_volume, keyword_disqualifiers, keyword_blocklisted, authoritative_relevance_code, keyword_intent_code).
+    Let keyword_relevance_tier be ChooseKeywordRelevanceTier(authoritative_relevance_code).
+    Let keyword_essential be ChooseKeywordEssential(keyword_eligible, authoritative_relevance_code, keyword_revenue_fit_percent, keyword_intent_code, direct_competitor_rankers).
+    Let keyword_data_quality be ChooseKeywordDataQuality(keyword_intent_known).
+    Let keyword_rule_ids be ChooseKeywordRuleIds(keyword_policy_code, keyword_rule_id).
+    Let plan_can_export be ChoosePlanCanExport(plan_identity_matches).
+    Let plan_identity_rule_id be ChoosePlanIdentityRule(plan_identity_matches).
+    Let plan_keyword_target_low be ChoosePlanKeywordTargetLow(plan_approved_keywords, plan_usable_keywords).
+    Let plan_keyword_target_high be ChoosePlanKeywordTargetHigh(plan_keyword_target_low, plan_usable_keywords).
+    Let plan_forecast_confidence be ChoosePlanForecastConfidence(plan_data_quality_flags).
+    Let editorial_intent_code be ChooseEditorialIntentCode(editorial_conversion_language, editorial_commercial_language, editorial_provider_intent_code).
+    Let editorial_search_intent be ChooseKeywordSearchIntent(editorial_intent_code).
+    Let editorial_business_fit be ChooseEditorialBusinessFit(editorial_business_model_code, editorial_product_query, editorial_service_query).
+    Let editorial_offer_fit be ChooseEditorialOfferFit(editorial_theme_role_code, editorial_offer_overlap).
+    Let editorial_priority_tier be ChooseKeywordPriorityTier(1, keyword_eligible, authoritative_relevance_code, editorial_offer_fit * 25).
+    Let editorial_priority_score be ChooseKeywordPriorityScore(1, keyword_eligible, editorial_intent_code, editorial_business_fit * 50, editorial_offer_fit * 25, keyword_search_volume, keyword_difficulty, keyword_cpc_cents, keyword_opportunity_code, keyword_rank, competitor_rankers, direct_competitor_rankers).
+    Let editorial_keyword_index be ChooseEditorialKeywordIndex(editorial_week_slot, editorial_keyword_count).
+    Let editorial_angle_code be ChooseEditorialAngleCode(editorial_week_slot).
+    Let editorial_inferred_business_model_code be ChooseEditorialBusinessModel(editorial_product_evidence, editorial_service_evidence).
+    Let progress_compounding be ChooseProgressCompounding(progress_page_one, progress_clicks, progress_key_events).
+    Let progress_current_node be ChooseProgressCurrentNode(progress_foundation_status, progress_content_status, progress_impressions, progress_clicks, progress_page_two, progress_page_one, progress_key_events, progress_compounding).
+    Let progress_task_excluded be ChooseProgressTaskExcluded(progress_task_code).
+    Let progress_task_phase be ChooseProgressTaskPhase(progress_task_code).
+    Let progress_task_state be ChooseProgressTaskState(progress_task_status_code, progress_current_chosen, progress_any_in_progress).
+    Let llm_content_state be ChooseLlmEffortState(llm_content_state_code).
+    Let llm_platform_state be ChooseLlmEffortState(llm_platform_state_code).
+    Let llm_authority_state be ChooseLlmEffortState(llm_authority_state_code).
+    Let llm_outcome_state be ChooseLlmOutcomeState(llm_evidence_available, llm_mentions).
+    Let llm_next_step be ChooseLlmNextStep(llm_content_state_code, llm_platform_state_code, llm_authority_state_code).
+    Let source_progress_percent be ChoosePercent(source_completed, source_total).
+    Let source_proof_percent be ChoosePercent(source_proof_attached, source_proof_possible).
+    Let source_progress_state be ChooseSourceState(source_completed, source_total).
+    Let coach_task_order be ChooseCoachTaskOrder(progress_task_code).
+    Let coach_category be ChooseCoachCategory(progress_task_code, progress_task_category_code).
+    Let progress_data_quality be ChooseProgressDataQuality(progress_provider_available).
+    Let momentum_onboarding_current be ChooseOnboardingCurrentStage(momentum_onboarding_step).
+    Let momentum_onboarding_completed be momentum_onboarding_current - 1.
+    Let momentum_onboarding_percent be ((momentum_onboarding_completed * 100) + 1) divided by 3.
+    Let momentum_audit_percent be ClampPercent(momentum_audit_progress).
+    If momentum_audit_status_code equals 1:
+        Set momentum_audit_percent to 100.
+    Let momentum_audit_completed be ChooseAuditCompletedStages(momentum_audit_percent).
+    Let momentum_audit_current be ChooseAuditCurrentStage(momentum_audit_completed).
+    Let momentum_audit_ready be "false".
+    If momentum_audit_status_code equals 1:
+        If momentum_audit_percent equals 100:
+            Set momentum_audit_ready to "true".
+    Let momentum_timing_delayed be ChooseTimingDelayed(momentum_audit_status_code, momentum_elapsed_seconds).
+    Let momentum_timing_seconds be ChooseTimingSeconds(momentum_audit_status_code, momentum_audit_percent, momentum_timing_delayed).
+    Let onboarding_one_ready be ChooseRequiredStepReady(onboarding_one_fields, 5, onboarding_email_valid, onboarding_url_valid).
+    Let onboarding_two_ready be ChooseSimpleStepReady(onboarding_two_fields, 3).
+    Let audit_health_score be ChooseAuditHealthScore(audit_health_available, audit_health_raw).
+    Let audit_health_code be ChooseAuditHealthCode(audit_health_score).
+    Let audit_is_partial be ChooseAuditPartial(audit_measured_critical, audit_measured_warnings, audit_visible_issues).
+    Let rank_reading_code be ChooseRankReadingCode(rank_status_code, rank_found_code, rank_current_position).
+    Let rank_movement_code be ChooseRankMovementCode(rank_status_code, rank_has_previous, rank_found_code, rank_current_position, rank_previous_found, rank_previous_position).
+    Let rank_movement_delta be ChooseRankMovementDelta(rank_current_position, rank_previous_position).
+    Let rank_freshness_code be ChooseRankFreshnessCode(rank_has_last_check, rank_age_hours, rank_age_days).
+    Let rank_bucket be ChooseRankBucket(rank_found_code, rank_current_position).
+    Let article_word_issue be ChooseArticleWordIssue(article_format_code, article_word_count).
+    Let article_heading_issue be ChooseArticleHeadingIssue(article_format_code, article_h1_count, article_h2_count, article_h3_count, article_skipped_level).
+    Let article_heading_keyword_issue be "false".
+    If article_title_keyword equals 0:
+        Set article_heading_keyword_issue to "true".
+    If article_first_h2_keyword equals 0:
+        Set article_heading_keyword_issue to "true".
+    Let article_heading_variety_issue be "false".
+    If article_keyword_free_percent is less than 40:
+        Set article_heading_variety_issue to "true".
+    Let article_brigade_issue be ChooseArticleBrigadeIssue(article_format_code, article_brigade_count).
+    Let article_brigade_spacing_issue be "false".
+    If article_brigade_count is greater than 0:
+        If article_first_brigade is greater than 150:
+            Set article_brigade_spacing_issue to "true".
+        If article_brigade_count is greater than 1:
+            If article_min_brigade_gap is less than 100:
+                Set article_brigade_spacing_issue to "true".
+    Let article_stock_issue be "false".
+    If article_stock_phrase equals 1:
+        Set article_stock_issue to "true".
+    Let article_meta_issue be "false".
+    If article_meta_count is less than 2:
+        Set article_meta_issue to "true".
+    If article_meta_count is greater than 2:
+        Set article_meta_issue to "true".
+    If article_meta_overlength equals 1:
+        Set article_meta_issue to "true".
+    Let article_source_issue be ChooseArticleSourceIssue(article_format_code, article_source_count, article_cited_count).
+    Show growth_stage.
+    Show decision_code.
+    Show weekly_quest.
+    Show quest_category.
+    Show urgency.
+    Show explanation.
+    Show keyword_verdict.
+    Show keyword_rule_id.
+    Show keyword_reason.
+    Show essential_keyword.
+    Show weekly_task_count.
+    Show content_task_count.
+    Show distribution_task_count.
+    Show weekly_task_manifest.
+    Show keyword_eligible.
+    Show keyword_search_intent.
+    Show keyword_priority_tier.
+    Show keyword_priority_score.
+    Show keyword_policy_code.
+    Show keyword_relevance_tier.
+    Show keyword_essential.
+    Show keyword_data_quality.
+    Show keyword_rule_ids.
+    Show quest_source.
+    Show issue_quest_code.
+    Show issue_data_quality.
+    Show weekly_task_approvals.
+    Show weekly_task_tiers.
+    Show weekly_task_priorities.
+    Show quest_transition_allowed.
+    Show quest_transition_rule_id.
+    Show quest_verification_status.
+    Show quest_set_completed_at.
+    Show quest_set_verified_at.
+    Show quest_clear_evidence.
+    Show quest_celebration.
+    Show streak_current.
+    Show streak_best.
+    Show streak_perfect_weeks.
+    Show streak_week_count.
+    Show plan_can_export.
+    Show plan_identity_rule_id.
+    Show plan_keyword_target_low.
+    Show plan_keyword_target_high.
+    Show "foundation,content_engine,authority".
+    Show "initial_quarter".
+    Show plan_forecast_confidence.
+    Show editorial_intent_code.
+    Show editorial_search_intent.
+    Show editorial_business_fit.
+    Show editorial_offer_fit.
+    Show editorial_priority_tier.
+    Show editorial_priority_score.
+    Show editorial_keyword_index.
+    Show editorial_angle_code.
+    Show editorial_inferred_business_model_code.
+    Show progress_compounding.
+    Show progress_current_node.
+    Show progress_task_excluded.
+    Show progress_task_phase.
+    Show progress_task_state.
+    Show llm_content_state.
+    Show llm_platform_state.
+    Show llm_authority_state.
+    Show llm_outcome_state.
+    Show llm_next_step.
+    Show source_progress_percent.
+    Show source_proof_percent.
+    Show source_progress_state.
+    Show coach_task_order.
+    Show coach_category.
+    Show progress_data_quality.
+    Show momentum_onboarding_current.
+    Show momentum_onboarding_completed.
+    Show momentum_onboarding_percent.
+    Show momentum_audit_percent.
+    Show momentum_audit_completed.
+    Show momentum_audit_current.
+    Show momentum_audit_ready.
+    Show momentum_timing_delayed.
+    Show momentum_timing_seconds.
+    Show onboarding_one_ready.
+    Show onboarding_two_ready.
+    Show audit_health_score.
+    Show audit_health_code.
+    Show audit_is_partial.
+    Show rank_reading_code.
+    Show rank_movement_code.
+    Show rank_movement_delta.
+    Show rank_freshness_code.
+    Show article_word_issue.
+    Show article_heading_issue.
+    Show article_heading_keyword_issue.
+    Show article_heading_variety_issue.
+    Show article_brigade_issue.
+    Show article_brigade_spacing_issue.
+    Show article_stock_issue.
+    Show article_meta_issue.
+    Show article_source_issue.
+    Show rank_bucket.
