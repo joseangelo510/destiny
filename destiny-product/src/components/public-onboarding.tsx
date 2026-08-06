@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AuditMomentumProcessing } from "./audit-momentum-processing";
 import { CompassCompanion } from "./compass-companion";
 import { onboardingValidationFromPolicy, stepOneValidationFacts, stepTwoValidationFacts } from "../lib/onboarding/validation";
@@ -27,7 +27,7 @@ import {
 } from "../lib/product/momentum-journey";
 import { runDestinyLogic } from "../lib/logicaffeine";
 
-type VoiceField = "productsServices" | "problem" | "customer" | "audienceGoals" | "competitors" | "standout";
+type VoiceField = "productsServices" | "problem" | "customer" | "competitors" | "standout";
 
 type SpeechRecognitionConstructor = new () => DictationRecognition;
 
@@ -43,7 +43,6 @@ const emptyForm = {
   productsServices: "",
   problem: "",
   customer: "",
-  audienceGoals: "",
   competitors: "",
   standout: "",
   firstName: "",
@@ -86,7 +85,7 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
 
   const stepReady = useMemo(() => {
     if (step === 1) return stepOne.ready && stepOneFacts.fieldCount === 5 && stepOneFacts.emailValid && stepOneFacts.urlValid;
-    if (step === 2) return stepTwo.ready && stepTwoFacts.fieldCount === 4;
+    if (step === 2) return stepTwo.ready && stepTwoFacts.fieldCount === 3;
     return form.standout.trim().length > 0 && competitorValidation.ready;
   }, [competitorValidation.ready, form, step, stepOne.ready, stepOneFacts, stepTwo.ready, stepTwoFacts.fieldCount]);
 
@@ -306,12 +305,10 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
           </>}
 
           {step === 2 && <>
-            <h2>What do you offer, and who do you help?</h2>
-            <p className="lede">Tell Destiny what you provide, the problem it solves, and who you want to reach. Every response is required. Destiny uses the United States search database automatically.</p>
-            <VoiceTextarea field="productsServices" label="Tell us about your business and the products or services you provide" listening={listening} onChange={(value) => updateField("productsServices", value)} onDictate={dictate} placeholder="Describe your main products or services in clear, everyday language." value={form.productsServices} />
-            <VoiceTextarea field="problem" label="What problem are you solving with your products or services?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder="Describe the costly, frustrating, or important problem customers need you to solve." value={form.problem} />
-            <VoiceTextarea field="customer" label="Ideal customer" listening={listening} onChange={(value) => updateField("customer", value)} onDictate={dictate} placeholder="Describe who they are, what they need, and what makes them ready to buy." value={form.customer} />
-            <VoiceTextarea field="audienceGoals" label="What challenges and goals do you want to help your audience with?" listening={listening} onChange={(value) => updateField("audienceGoals", value)} onDictate={dictate} placeholder="Share what they are struggling with today and the outcome they want to achieve." value={form.audienceGoals} />
+            <h2>Customer &amp; market</h2>
+            <VoiceTextarea field="productsServices" label="What do you sell?" listening={listening} onChange={(value) => updateField("productsServices", value)} onDictate={dictate} placeholder="Like: tax prep, monthly accounting, payroll, CFO services." supportText="List each product or service in plain words." value={form.productsServices} />
+            <VoiceTextarea field="customer" label="Who are your customers?" listening={listening} onChange={(value) => updateField("customer", value)} onDictate={dictate} placeholder="Like: restaurants, contractors, ecommerce stores, law firms." supportText="You probably serve a few different types. List them." value={form.customer} />
+            <VoiceTextarea field="problem" label="What problem do you fix?" listening={listening} onChange={(value) => updateField("problem", value)} onDictate={dictate} placeholder={"Like: 'behind on the books,' 'tax deadline coming,' 'can't tell if we're profitable.'"} supportText="What do customers want fixed, found, or made better when they come to you?" value={form.problem} />
           </>}
 
           {step === 3 && <>
@@ -345,7 +342,23 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
   );
 }
 
-function VoiceTextarea({ field, label, listening, onChange, onDictate, optional = false, placeholder, value }: {
+function autosizeVoiceTextarea(textarea: HTMLTextAreaElement) {
+  if (typeof CSS !== "undefined" && CSS.supports?.("field-sizing", "content")) {
+    textarea.style.height = "";
+    textarea.style.overflowY = "auto";
+    return;
+  }
+  const styles = window.getComputedStyle(textarea);
+  const lineHeight = Number.parseFloat(styles.lineHeight) || Number.parseFloat(styles.fontSize) * 1.55;
+  const chrome = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
+    + Number.parseFloat(styles.borderTopWidth) + Number.parseFloat(styles.borderBottomWidth);
+  const maximumHeight = (lineHeight * 6) + chrome;
+  textarea.style.height = "auto";
+  textarea.style.height = `${Math.min(textarea.scrollHeight, maximumHeight)}px`;
+  textarea.style.overflowY = textarea.scrollHeight > maximumHeight ? "auto" : "hidden";
+}
+
+function VoiceTextarea({ field, label, listening, onChange, onDictate, optional = false, placeholder, supportText, value }: {
   field: VoiceField;
   label: string;
   listening: VoiceField | null;
@@ -353,10 +366,15 @@ function VoiceTextarea({ field, label, listening, onChange, onDictate, optional 
   onDictate: (field: VoiceField) => void;
   optional?: boolean;
   placeholder: string;
+  supportText?: string;
   value: string;
 }) {
   const active = listening === field;
   const inputId = `onboarding-${field}`;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (textareaRef.current) autosizeVoiceTextarea(textareaRef.current);
+  }, [value]);
   return <div className={active ? "voice-field listening" : "voice-field"}>
     <div className="label-row">
       <label htmlFor={inputId}>{label} {optional && <em>Optional</em>}</label>
@@ -365,7 +383,8 @@ function VoiceTextarea({ field, label, listening, onChange, onDictate, optional 
         <span>{active ? "Listening · tap to stop" : "Dictate"}</span>
       </button>
     </div>
-    <textarea id={inputId} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={!optional} rows={4} value={value} />
+    {supportText && <small className="voice-field-support">{supportText}</small>}
+    <textarea id={inputId} onChange={(event) => onChange(event.target.value)} onInput={(event) => autosizeVoiceTextarea(event.currentTarget)} placeholder={placeholder} ref={textareaRef} required={!optional} rows={2} style={{ fieldSizing: "content" } as CSSProperties} value={value} />
     <small aria-live="polite" className="voice-dictation-help">{active ? "Listening now. Tap stop when you are done." : "Click to dictate. Tap again when done,"} Destiny will finish after 5 seconds of silence.</small>
   </div>;
 }

@@ -149,8 +149,9 @@ button { cursor: pointer; }
 .voice-listening-bars i:nth-child(2) { animation-delay: .18s; height: 11px; }
 .voice-listening-bars i:nth-child(3) { animation-delay: .36s; height: 7px; }
 .voice-field { margin-top: 19px; }
-.voice-field > textarea { margin-top: 9px; }
+.voice-field > textarea { field-sizing: content; margin-top: 9px; max-height: calc(6 * 1.55em + 30px); min-height: calc(2 * 1.55em + 30px); overflow-y: auto; resize: none; }
 .voice-field .label-row > label { margin-top: 0; }
+.voice-field-support { color: var(--muted); display: block; font-size: 13px; font-weight: 400; line-height: 1.45; margin-top: 5px; }
 .voice-dictation-help { color: var(--muted); display: block; font-size: 12px; font-weight: 400; line-height: 1.45; margin-top: 7px; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
 .error-banner { background: #fbe8e4; border-radius: 10px; color: #9b3f2d; font-size: 13px; margin-top: 18px; padding: 13px; }

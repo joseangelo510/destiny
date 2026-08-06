@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
 import { parseCompetitorEntries, validateCompetitorEntries } from "@/lib/onboarding/competitors";
 import { ONBOARDING_SEARCH_COUNTRY } from "@/lib/onboarding/market";
+import { onboardingBusinessColumns } from "@/lib/onboarding/persistence";
 import { createClient } from "@/lib/supabase/server";
 
 type OnboardingPayload = {
   businessName?: unknown;
   competitors?: unknown;
   customer?: unknown;
-  audienceGoals?: unknown;
   email?: unknown;
   firstName?: unknown;
   lastName?: unknown;
@@ -32,12 +32,11 @@ export async function POST(request: Request) {
     const customer = text(body.customer, 4000);
     const productsServices = text(body.productsServices, 4000);
     const problem = text(body.problem, 4000);
-    const audienceGoals = text(body.audienceGoals, 4000);
     const standout = text(body.standout, 4000);
     const competitors = text(body.competitors, 4000);
     const website = normalizeWebsite(text(body.website, 2048));
 
-    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !productsServices || !problem || !customer || !audienceGoals || !standout) {
+    if (!firstName || !lastName || !businessName || !/^\S+@\S+\.\S+$/.test(email) || !productsServices || !problem || !customer || !standout) {
       return NextResponse.json({ error: "Complete every onboarding field." }, { status: 400 });
     }
     const competitorValidation = validateCompetitorEntries(competitors);
@@ -78,11 +77,7 @@ export async function POST(request: Request) {
       url: website.url,
       normalized_domain: website.domain,
       business_name: businessName,
-      products_services: productsServices,
-      problem_solved: problem,
-      ideal_customer: customer,
-      audience_challenges_goals: audienceGoals,
-      differentiation: standout,
+      ...onboardingBusinessColumns({ productsServices, customer, problem, standout }),
       market: ONBOARDING_SEARCH_COUNTRY,
       onboarding_completed_at: new Date().toISOString(),
     };

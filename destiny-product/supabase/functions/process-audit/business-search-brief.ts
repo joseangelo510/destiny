@@ -139,6 +139,13 @@ function clean(value: unknown, maximum = 220) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, maximum) : "";
 }
 
+export function synthesisBusinessSearchContext(context: BusinessSearchContext): BusinessSearchContext {
+  return {
+    ...context,
+    audienceChallengesGoals: clean(context.problemSolved, 4_000) || clean(context.audienceChallengesGoals, 4_000),
+  };
+}
+
 function uniqueStrings(value: unknown, limit: number, maximum = 160) {
   if (!Array.isArray(value)) return [];
   const seen = new Set<string>();
@@ -413,9 +420,10 @@ export async function createBusinessSearchBrief(
   config: BusinessSearchBriefConfig = {},
   fetcher: typeof fetch = fetch,
 ): Promise<BusinessSearchBrief> {
+  const synthesisContext = synthesisBusinessSearchContext(context);
   const apiKey = config.apiKey?.trim();
   const model = config.model?.trim() || "claude-opus-4-8";
-  if (!apiKey) return deterministicBusinessSearchBrief(context, "Claude Opus 4.8 keyword synthesis is not configured; Destiny used its conservative full-context fallback.");
+  if (!apiKey) return deterministicBusinessSearchBrief(synthesisContext, "Claude Opus 4.8 keyword synthesis is not configured; Destiny used its conservative full-context fallback.");
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.max(5_000, config.timeoutMs ?? 45_000));
@@ -436,7 +444,7 @@ export async function createBusinessSearchBrief(
           format: { type: "json_schema", schema: BRIEF_SCHEMA },
         },
         system: systemPrompt(),
-        messages: [{ role: "user", content: userPrompt(context, knownCompetitors) }],
+        messages: [{ role: "user", content: userPrompt(synthesisContext, knownCompetitors) }],
       }),
       signal: controller.signal,
     });
@@ -451,12 +459,12 @@ export async function createBusinessSearchBrief(
       ? [(block as Record<string, string>).text]
       : []).join("");
     if (!text) throw new Error("Claude did not return a structured business brief.");
-    return parseClaudeBrief(JSON.parse(text), context, model);
+    return parseClaudeBrief(JSON.parse(text), synthesisContext, model);
   } catch (cause) {
     const reason = cause instanceof Error && cause.name === "AbortError"
       ? "timed out"
       : cause instanceof Error ? cause.message : "was unavailable";
-    return deterministicBusinessSearchBrief(context, `Claude Opus 4.8 keyword synthesis failed (${reason}); Destiny used its conservative full-context fallback.`);
+    return deterministicBusinessSearchBrief(synthesisContext, `Claude Opus 4.8 keyword synthesis failed (${reason}); Destiny used its conservative full-context fallback.`);
   } finally {
     clearTimeout(timeout);
   }

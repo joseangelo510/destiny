@@ -1382,7 +1382,7 @@ live in the web platform.
     Let momentum_timing_delayed be ChooseTimingDelayed(momentum_audit_status_code, momentum_elapsed_seconds).
     Let momentum_timing_seconds be ChooseTimingSeconds(momentum_audit_status_code, momentum_audit_percent, momentum_timing_delayed).
     Let onboarding_one_ready be ChooseRequiredStepReady(onboarding_one_fields, 5, onboarding_email_valid, onboarding_url_valid).
-    Let onboarding_two_ready be ChooseSimpleStepReady(onboarding_two_fields, 4).
+    Let onboarding_two_ready be ChooseSimpleStepReady(onboarding_two_fields, 3).
     Let audit_health_score be ChooseAuditHealthScore(audit_health_available, audit_health_raw).
     Let audit_health_code be ChooseAuditHealthCode(audit_health_score).
     Let audit_is_partial be ChooseAuditPartial(audit_measured_critical, audit_measured_warnings, audit_visible_issues).

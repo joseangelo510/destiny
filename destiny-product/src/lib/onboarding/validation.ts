@@ -20,8 +20,8 @@ export function stepOneValidationFacts(input: StepOneInput) {
   return { fieldCount, emailValid, normalizedWebsite, urlValid: normalizedWebsite !== null };
 }
 
-export function stepTwoValidationFacts(input: { productsServices: string; problem: string; customer: string; audienceGoals: string }) {
-  return { fieldCount: [input.productsServices, input.problem, input.customer, input.audienceGoals].filter((value) => value.trim()).length };
+export function stepTwoValidationFacts(input: { productsServices: string; problem: string; customer: string }) {
+  return { fieldCount: [input.productsServices, input.customer, input.problem].filter((value) => value.trim()).length };
 }
 
 export function onboardingValidationFromPolicy(policy: Pick<DestinyLogicResult, "onboardingOneReady" | "onboardingTwoReady">, one: ReturnType<typeof stepOneValidationFacts>) {
@@ -34,7 +34,7 @@ export async function stepOneValidation(input: StepOneInput) {
   return { ready: policy.onboardingOneReady, normalizedWebsite: facts.normalizedWebsite };
 }
 
-export async function stepTwoValidation(input: { productsServices: string; problem: string; customer: string; audienceGoals: string }) {
+export async function stepTwoValidation(input: { productsServices: string; problem: string; customer: string }) {
   const facts = stepTwoValidationFacts(input);
   const policy = await runDestinyServerLogic({ auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0, onboardingTwoFields: facts.fieldCount });
   return { ready: policy.onboardingTwoReady };

@@ -359,7 +359,7 @@ describe("Destiny LOGOS parity", () => {
   it("owns the remaining onboarding, audit, rank, and article policy gates in both adapters", async () => {
     const { browser, worker } = await runBoth({
       auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
-      onboardingOneFields: 5, onboardingEmailValid: 1, onboardingUrlValid: 1, onboardingTwoFields: 4,
+      onboardingOneFields: 5, onboardingEmailValid: 1, onboardingUrlValid: 1, onboardingTwoFields: 3,
       auditHealthAvailable: 1, auditHealthRaw: 74, auditMeasuredCritical: 2, auditMeasuredWarnings: 4, auditVisibleIssues: 5,
       rankStatusCode: 1, rankFoundCode: 1, rankCurrentPosition: 7, rankHasPrevious: 1, rankPreviousFound: 1, rankPreviousPosition: 13,
       rankHasLastCheck: 1, rankAgeDays: 7,
