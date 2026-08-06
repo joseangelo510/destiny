@@ -1,7 +1,0 @@
-[package]
-name = "destiny-logic-engine"
-version = "0.1.0"
-authors = []
-entry = "src/main.lg"
-
-[dependencies]

@@ -1,2 +1,0 @@
-- [Editorial keyword safeguards](editorial-keyword-safeguards.md) — automatic exclusion rules need decisive signals (intent, competitor list, evidence); unknown-token heuristics over-filter.
-- [Supabase column grants](supabase-column-grants.md) — websites table uses column-scoped UPDATE grants; new user-editable columns need their own grant or saves fail despite RLS.
