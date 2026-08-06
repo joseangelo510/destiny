@@ -107,7 +107,11 @@ describe("live audit orchestration", () => {
         { keyword: "college admissions consultant pricing", keyword_info: { search_volume: 1_300, cpc: 18 }, keyword_properties: { keyword_difficulty: 36 }, search_intent_info: { main_intent: "transactional" } },
         { keyword: "top colleges to get into", keyword_info: { search_volume: 8_100, cpc: 1 }, keyword_properties: { keyword_difficulty: 45 }, search_intent_info: { main_intent: "informational" } },
       ] }));
-      if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ items: [
+      if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ seed_keyword_data: {
+        keyword: String(body.keyword),
+        keyword_info: { search_volume: 90, cpc: 5 },
+        keyword_properties: { keyword_difficulty: 27 },
+      }, items: [
         { keyword: "where to hire a private college counselor", keyword_info: { search_volume: 170, cpc: 22 }, keyword_properties: { keyword_difficulty: 31 } },
         { keyword: "best college counseling companies", keyword_info: { search_volume: 480, cpc: 19 }, keyword_properties: { keyword_difficulty: 39 } },
       ] }));
@@ -159,6 +163,7 @@ describe("live audit orchestration", () => {
       "where to hire a private college counselor",
       "best college counseling companies",
     ]));
+    expect(result.keywords.some((keyword) => keyword.searchVolume === 90)).toBe(true);
     expect(result.distributionOpportunities?.map((item) => item.platform)).toEqual(["Reddit", "Quora"]);
     expect(result.publisherOpportunities).toEqual([{ domain: "educationpublisher.example", title: "Admissions industry guide", url: "https://educationpublisher.example/admissions-guide", snippet: "A non-competing publisher ranking for the keyword.", keyword: "college admissions consultant pricing" }]);
     expect(result.llmVisibility).toMatchObject({ status: "available", totalMentions: 3, topCitedDomains: [{ domain: "example.edu" }] });
@@ -167,7 +172,7 @@ describe("live audit orchestration", () => {
     ]);
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"))).toHaveLength(2);
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/keyword_suggestions/live")).length).toBeGreaterThanOrEqual(1);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(2);
     const gapRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/domain_intersection/live"));
     expect(gapRequests.every(([, init]) => JSON.parse(String(init?.body || "[]"))[0].limit === 300)).toBe(true);
     expect(gapRequests.every(([, init]) => !JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword\""))).toBe(true);
@@ -224,8 +229,8 @@ describe("live audit orchestration", () => {
     expect(result.keywords.some((keyword) => keyword.keyword === "chevrons")).toBe(false);
     expect(result.keywords.some((keyword) => keyword.keyword === "map of globe")).toBe(false);
     expect(result.keywords.every((keyword) => typeof keyword.priorityScore === "number")).toBe(true);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/related_keywords/live"))).toHaveLength(3);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(2);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/keyword_suggestions/live")).length).toBeGreaterThanOrEqual(5);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(1);
     expect(result.notices.join(" ")).toMatch(/thin measured market/i);
   });
 });

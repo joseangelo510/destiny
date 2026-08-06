@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { rankKeywordOpportunities } from "./keyword-opportunity";
 import { buyerExpansionSeeds, keywordDiscoveryThemes } from "../../../supabase/functions/process-audit/business-search-brief";
-import { thinKeywordExpansionSeeds } from "../../../supabase/functions/process-audit/seo";
+import { MIN_RECOMMENDED_KEYWORDS, needsKeywordExpansion, thinKeywordExpansionSeeds } from "../../../supabase/functions/process-audit/seo";
 
 const RIGHTMODELER_CONTEXT = {
   productsServices: "We measure cheaper models against what you shipped and help you optimize costs",
@@ -69,6 +69,13 @@ const RIGHTMODELER_BRIEF = {
 };
 
 describe("RightModeler niche SaaS keyword regression", () => {
+  it("expands every pool below the 25-keyword product requirement", () => {
+    expect(MIN_RECOMMENDED_KEYWORDS).toBe(25);
+    expect(needsKeywordExpansion(6)).toBe(true);
+    expect(needsKeywordExpansion(24)).toBe(true);
+    expect(needsKeywordExpansion(25)).toBe(false);
+  });
+
   it("keeps a useful positive-demand pool without admitting the non-offer category", () => {
     const candidates = [
       ["llm cost optimization", 30, "transactional"],
@@ -84,6 +91,19 @@ describe("RightModeler niche SaaS keyword regression", () => {
       ["llm inference speed of light", 10, "informational"],
       ["llm observability", 1_300, "commercial"],
       ["llm monitoring tools", 2_400, "commercial"],
+      ["llm observability tools", 210, "informational"],
+      ["product cost formula", 210, "transactional"],
+      ["llm degree cost", 170, "transactional"],
+      ["llm harvard cost", 40, "transactional"],
+      ["llm cost in canada", 10, "transactional"],
+      ["llm optimization agency", 30, "commercial"],
+      ["llm search optimization", 140, "commercial"],
+      ["llm optimization seo", 40, "commercial"],
+      ["llm content optimization", 20, "commercial"],
+      ["sample efficient llm optimization with reset replay", 10, "commercial"],
+      ["llm training cost calculator", 10, "transactional"],
+      ["llm fine-tuning cost calculator", 10, "transactional"],
+      ["llm engine optimization", 20, "commercial"],
     ].map(([keyword, searchVolume, intent]) => ({
       keyword: String(keyword),
       searchVolume: Number(searchVolume),
@@ -95,12 +115,25 @@ describe("RightModeler niche SaaS keyword regression", () => {
 
     const ranked = rankKeywordOpportunities(candidates, RIGHTMODELER_CONTEXT, 35, RIGHTMODELER_BRIEF);
 
-    expect(ranked).toHaveLength(8);
+    expect(ranked).toHaveLength(9);
     expect(ranked.every((keyword) => Number(keyword.searchVolume) > 0)).toBe(true);
     expect(ranked.map((keyword) => keyword.keyword)).not.toEqual(expect.arrayContaining([
       "llm observability",
       "llm monitoring tools",
       "llm inference speed of light",
+      "llm observability tools",
+      "product cost formula",
+      "llm degree cost",
+      "llm harvard cost",
+      "llm cost in canada",
+      "llm optimization agency",
+      "llm search optimization",
+      "llm optimization seo",
+      "llm content optimization",
+      "sample efficient llm optimization with reset replay",
+      "llm training cost calculator",
+      "llm fine-tuning cost calculator",
+      "llm engine optimization",
     ]));
   });
 
@@ -135,13 +168,16 @@ describe("RightModeler niche SaaS keyword regression", () => {
       })),
       ["llm cost optimization", "autonomous llm optimization"],
       ["llm latency optimization", "speed up ai agents"],
-      3,
+      6,
     );
 
     expect(seeds).toEqual([
       "llm cost optimization",
-      "autonomous llm optimization",
-      "llm latency optimization",
+      "llm model cost comparison",
+      "llm api cost comparison",
+      "llm cost comparison",
+      "llm token cost",
+      "llm inference cost",
     ]);
   });
 });

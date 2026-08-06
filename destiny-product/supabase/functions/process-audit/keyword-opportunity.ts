@@ -65,6 +65,17 @@ const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|cheap|coach|co
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const PHYSICS_QUERY = /\bspeed of light\b/i;
+const LLM_BUSINESS = /\b(?:ai agents?|large language models?|llm|multiagent)\b/i;
+const LLM_KEYWORD_ANCHOR = /\b(?:ai|agents?|inference|llm|models?|tokens?)\b/i;
+const OBSERVABILITY_QUERY = /\bobservability\b/i;
+const OBSERVABILITY_COMPARISON = /\b(?:alternative|alternatives|compare|comparison|optimization|versus|vs\.?)\b/i;
+const LLM_ACADEMIC_NOISE = /\b(?:college|columbia|course|degree|harvard|lse|masters?|nyu|phd|program|stanford|students?|university|yale)\b/i;
+const LLM_ACADEMIC_LOCATION_COST = /\b(?:cost of llm in|llm cost in|llm in)\s+(?:australia|canada|india|ireland|new zealand|usa|united states)\b/i;
+const SERVICE_PROVIDER_QUERY = /\b(?:agency|consultants?|consulting|services?)\b/i;
+const LLM_VISIBILITY_QUERY = /(?:\bseo\b|\bsearch engine optimization\b|\bcontent optimization\b)/i;
+const LLM_RESEARCH_PAPER_NOISE = /\b(?:reset replay|sample efficient|survey and roofline)\b/i;
+const LLM_TRAINING_QUERY = /\b(?:fine[- ]?tuning|training)\b/i;
+const LLM_ENGINE_OPTIMIZATION = /\bllm engine optimization\b/i;
 const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
 const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|tools)\b/i;
 const BUYER_ACTION = /\b(?:book|buy|call|companies|company|consultation|cost|fees?|hire|near me|price|prices|pricing|quote|reviews?|schedule|sign up)\b/i;
@@ -389,8 +400,23 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
     if (isLowEvidenceSiteIdea(candidate, business.all)) return [];
     if (PHYSICS_QUERY.test(candidate.keyword) && !/\b(?:physics|photon|optics|light speed)\b/i.test(businessDescription)) return [];
+    if (LLM_BUSINESS.test(businessDescription) && candidate.opportunity !== "existing_rank"
+      && !LLM_KEYWORD_ANCHOR.test(candidate.keyword)) return [];
+    if (LLM_BUSINESS.test(businessDescription)
+      && (LLM_ACADEMIC_NOISE.test(candidate.keyword) || LLM_ACADEMIC_LOCATION_COST.test(candidate.keyword))) return [];
+    if (LLM_BUSINESS.test(businessDescription) && LLM_VISIBILITY_QUERY.test(candidate.keyword)
+      && !/\b(?:ai visibility|search engine optimization|seo)\b/i.test(businessDescription)) return [];
+    if (LLM_BUSINESS.test(businessDescription) && LLM_RESEARCH_PAPER_NOISE.test(candidate.keyword)) return [];
+    if (LLM_BUSINESS.test(businessDescription) && LLM_TRAINING_QUERY.test(candidate.keyword)
+      && !/\b(?:fine[- ]?tuning|training)\b/i.test(businessDescription)) return [];
+    if (LLM_BUSINESS.test(businessDescription) && LLM_ENGINE_OPTIMIZATION.test(candidate.keyword)
+      && !/\binference engine\b/i.test(businessDescription)) return [];
+    if (OBSERVABILITY_QUERY.test(candidate.keyword)
+      && /\bobservability\b/i.test(context.differentiation ?? "")
+      && !OBSERVABILITY_COMPARISON.test(candidate.keyword)) return [];
     if (hasContextualSemanticConflict(candidate, businessDescription, business.all)) return [];
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
+    if (businessOffersSoftware && !serviceBusiness && SERVICE_PROVIDER_QUERY.test(candidate.keyword)) return [];
     const productsServices = context.productsServices ?? "";
     if (RECURRING_COLLECTION_QUERY.test(candidate.keyword)
       && !/\b(?:garbage collection|rubbish collection|trash collection|trash pickup)\b/i.test(productsServices)) return [];
