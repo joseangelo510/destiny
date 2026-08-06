@@ -128,7 +128,7 @@ describe("business search brief", () => {
     expect(requestText).toContain("Rust");
     expect(requestText).toContain("4-8 distinct discovery seeds");
     expect(requestText).not.toContain('"minItems":4');
-    expect(requestText).toContain('"maxItems":8');
+    expect(requestText).not.toContain('"maxItems":8');
     expect(brief).toMatchObject({ source: "claude-opus-4-8", model: "claude-opus-4-8" });
     expect(brief.themes.map((theme) => theme.id)).toEqual(expect.arrayContaining([
       "programming-language",

@@ -64,6 +64,7 @@ const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hi
 const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
+const PHYSICS_QUERY = /\bspeed of light\b/i;
 const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
 const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|tools)\b/i;
 const BUYER_ACTION = /\b(?:book|buy|call|companies|company|consultation|cost|fees?|hire|near me|price|prices|pricing|quote|reviews?|schedule|sign up)\b/i;
@@ -387,6 +388,7 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
     if (isLowEvidenceSiteIdea(candidate, business.all)) return [];
+    if (PHYSICS_QUERY.test(candidate.keyword) && !/\b(?:physics|photon|optics|light speed)\b/i.test(businessDescription)) return [];
     if (hasContextualSemanticConflict(candidate, businessDescription, business.all)) return [];
     if (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(candidate.keyword)) return [];
     const productsServices = context.productsServices ?? "";

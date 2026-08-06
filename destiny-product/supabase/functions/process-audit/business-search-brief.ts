@@ -112,7 +112,7 @@ const BRIEF_SCHEMA = {
           label: { type: "string" },
           funnelRole: { type: "string", enum: ["conversion", "consideration", "awareness", "technical_authority"] },
           priority: { type: "string", enum: ["primary", "secondary", "supporting"] },
-          seedKeywords: { type: "array", maxItems: 8, items: { type: "string" } },
+          seedKeywords: { type: "array", items: { type: "string" } },
           requiredTerms: { type: "array", items: { type: "string" } },
           negativeTerms: { type: "array", items: { type: "string" } },
           evidence: {

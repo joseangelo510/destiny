@@ -81,6 +81,7 @@ describe("RightModeler niche SaaS keyword regression", () => {
       ["llm latency optimization", 210, "commercial"],
       ["llm inference speed optimization", 90, "commercial"],
       ["speed up ai agents", 50, "informational"],
+      ["llm inference speed of light", 10, "informational"],
       ["llm observability", 1_300, "commercial"],
       ["llm monitoring tools", 2_400, "commercial"],
     ].map(([keyword, searchVolume, intent]) => ({
@@ -99,6 +100,7 @@ describe("RightModeler niche SaaS keyword regression", () => {
     expect(ranked.map((keyword) => keyword.keyword)).not.toEqual(expect.arrayContaining([
       "llm observability",
       "llm monitoring tools",
+      "llm inference speed of light",
     ]));
   });
 
