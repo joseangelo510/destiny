@@ -33,17 +33,15 @@ describe("stepOneValidation", () => {
 });
 
 describe("stepTwoValidation", () => {
-  it("requires the offer, problem, ideal customer, and audience challenges and goals", async () => {
+  it("requires the offer, customer, and problem only", async () => {
     const valid = {
       productsServices: "SEO strategy and content services",
       problem: "Small businesses cannot afford an agency",
       customer: "Startup marketing teams",
-      audienceGoals: "Increase qualified traffic and reduce manual work",
     };
     await expect(stepTwoValidation(valid)).resolves.toEqual({ ready: true });
     await expect(stepTwoValidation({ ...valid, productsServices: "" })).resolves.toEqual({ ready: false });
     await expect(stepTwoValidation({ ...valid, problem: "" })).resolves.toEqual({ ready: false });
     await expect(stepTwoValidation({ ...valid, customer: "" })).resolves.toEqual({ ready: false });
-    await expect(stepTwoValidation({ ...valid, audienceGoals: "" })).resolves.toEqual({ ready: false });
   });
 });

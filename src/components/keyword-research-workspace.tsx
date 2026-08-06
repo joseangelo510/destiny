@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { KeywordResearchResult, KeywordResearchRow, SearchIntent } from "@/lib/seo/research";
+import { INITIAL_KEYWORD_VISIBLE_LIMIT, keywordDisclosureState } from "../lib/seo/keyword-disclosure";
 import { nextKeywordSort, sortKeywordRows, type KeywordSort, type KeywordSortKey } from "../lib/seo/keyword-sort";
 
 const numberFormat = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
@@ -116,13 +117,45 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "" }: 
   const [performanceMetric, setPerformanceMetric] = useState<"traffic" | "keywords">("traffic");
   const [tracked, setTracked] = useState<Set<string>>(() => new Set());
   const [tracking, setTracking] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const shouldFocusFirstRevealedRef = useRef(false);
+  const firstRevealedKeywordRef = useRef<HTMLTableCellElement | null>(null);
 
   const rows = useMemo(() => sortKeywordRows((result?.rows ?? [])
     .filter((row) => !search || row.keyword.toLowerCase().includes(search.toLowerCase()))
     .filter((row) => intent === "all" || row.intent === intent), sort), [intent, result, search, sort]);
+  const disclosure = keywordDisclosureState({
+    filteredCount: rows.length,
+    loadedCount: result?.rows.length ?? 0,
+    revealed,
+  });
+  const visibleRows = rows.slice(0, disclosure.visibleCount);
+
+  useEffect(() => {
+    if (!revealed || !shouldFocusFirstRevealedRef.current) return;
+    firstRevealedKeywordRef.current?.focus();
+    shouldFocusFirstRevealedRef.current = false;
+  }, [revealed, visibleRows.length]);
 
   function updateSort(key: KeywordSortKey) {
     setSort((current) => nextKeywordSort(current, key));
+  }
+
+  function updateSearch(value: string) {
+    shouldFocusFirstRevealedRef.current = false;
+    setSearch(value);
+    setRevealed(false);
+  }
+
+  function updateIntent(value: SearchIntent | "all") {
+    shouldFocusFirstRevealedRef.current = false;
+    setIntent(value);
+    setRevealed(false);
+  }
+
+  function revealKeywords() {
+    shouldFocusFirstRevealedRef.current = true;
+    setRevealed(true);
   }
 
   const intentCounts = useMemo(() => (result?.rows ?? []).reduce<Record<string, number>>((counts, row) => ({ ...counts, [row.intent]: (counts[row.intent] ?? 0) + 1 }), {}), [result]);
@@ -139,6 +172,8 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "" }: 
       });
       const payload = await response.json() as KeywordResearchResult & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Keyword research failed.");
+      shouldFocusFirstRevealedRef.current = false;
+      setRevealed(false);
       setResult(payload);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Keyword research failed.");
@@ -199,16 +234,17 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "" }: 
       </section>
       {result.mode === "domain" ? <PerformanceChart metric={performanceMetric} onMetricChange={setPerformanceMetric} points={result.performance ?? []} /> : null}
       <section className="research-overview-grid">
-        <article className="research-card"><div className="research-card-heading"><strong>Search intent</strong><span>Why people search</span></div><div className="intent-distribution">{(["transactional", "commercial", "informational", "navigational", "unknown"] as SearchIntent[]).map((item) => <button key={item} onClick={() => setIntent(item)} type="button"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></button>)}</div></article>
+        <article className="research-card"><div className="research-card-heading"><strong>Search intent</strong><span>Why people search</span></div><div className="intent-distribution">{(["transactional", "commercial", "informational", "navigational", "unknown"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type="button"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></button>)}</div></article>
         <article className="research-card research-guidance"><div className="research-card-heading"><strong>How to use this report</strong><span>Destiny guidance</span></div><ol><li>Start with transactional and commercial searches tied to a service or sale.</li><li>Confirm there is credible volume and a difficulty you can compete for.</li><li>Move approved opportunities into Keyword strategy for the three-month plan.</li></ol></article>
       </section>
       <section className="research-card research-table-card">
         <div className="research-toolbar">
-          <div><strong>Keyword ideas</strong><span>{rows.length} shown of {result.rows.length} loaded</span></div>
-          <input aria-label="Filter keywords" onChange={(event) => setSearch(event.target.value)} placeholder="Filter keywords" value={search} />
-          <select aria-label="Filter by intent" onChange={(event) => setIntent(event.target.value as SearchIntent | "all")} value={intent}><option value="all">All intent</option><option value="transactional">Transactional</option><option value="commercial">Commercial</option><option value="informational">Informational</option><option value="navigational">Navigational</option><option value="unknown">Unknown</option></select>
+          <div><strong>Keyword ideas</strong><span aria-live="polite">{disclosure.toolbarLabel}</span></div>
+          <input aria-label="Filter keywords" onChange={(event) => updateSearch(event.target.value)} placeholder="Filter keywords" value={search} />
+          <select aria-label="Filter by intent" onChange={(event) => updateIntent(event.target.value as SearchIntent | "all")} value={intent}><option value="all">All intent</option><option value="transactional">Transactional</option><option value="commercial">Commercial</option><option value="informational">Informational</option><option value="navigational">Navigational</option><option value="unknown">Unknown</option></select>
         </div>
-        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}<th>Rank tracker</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
+        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}<th>Rank tracker</th></tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
+        {disclosure.buttonLabel ? <div className="research-more-keywords"><button onClick={revealKeywords} type="button">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null}
         {!rows.length ? <p className="research-no-rows">No keywords match these filters.</p> : null}
       </section>
       <aside className="research-notices">{result.notices.map((notice) => <p key={notice}>ⓘ {notice}</p>)}</aside>

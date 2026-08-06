@@ -133,7 +133,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
             <div><span>Audience goals and challenges</span><p>{businessUnderstanding.audienceGoals}</p></div>
             <div className="wide"><span>What makes you stand out</span><p>{businessUnderstanding.differentiation}</p></div>
           </div>
-          <Link className="secondary-button" href="/onboarding">Update these details and run a new analysis</Link>
+          <Link className="secondary-button" href="/onboarding?new=1">Update these details and run a new analysis</Link>
         </div>
       </details>
 

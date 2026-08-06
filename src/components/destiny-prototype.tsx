@@ -475,7 +475,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
                 )) : <p className="empty-state notification-empty">Your audit updates will appear here.</p>}
               </div>
             )}
-            <Link className="primary-button" href="/onboarding">Audit a new website</Link>
+            <Link className="primary-button" href="/onboarding?new=1">Audit a new website</Link>
           </div>
         </header>
 

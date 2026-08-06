@@ -20,7 +20,7 @@ export function GamePlanView({
             <h2>Destiny found conflicting business details.</h2>
             <p>The website is shown as <strong>{plan.displayName}</strong>. Confirm the business name before exporting this plan so another name can never appear in a client-facing document.</p>
           </div>
-          <Link className="secondary-button" href="/onboarding">Confirm business details</Link>
+          <Link className="secondary-button" href="/onboarding?new=1">Confirm business details</Link>
         </section>
       )}
 

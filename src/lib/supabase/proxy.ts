@@ -29,9 +29,6 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const isPublicPath = request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname === "/onboarding" ||
-    request.nextUrl.pathname.startsWith("/onboarding/") ||
-    request.nextUrl.pathname === "/api/auth/anonymous" ||
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname.startsWith("/login/") ||
     request.nextUrl.pathname === "/auth" ||

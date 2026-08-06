@@ -3,8 +3,20 @@ import {
   buyerExpansionSeeds,
   createBusinessSearchBrief,
   deterministicBusinessSearchBrief,
+  synthesisBusinessSearchContext,
   type BusinessSearchContext,
 } from "./business-search-brief";
+
+describe("synthesisBusinessSearchContext", () => {
+  it("backfills the deprecated audience-goals slot from problem_solved", () => {
+    expect(synthesisBusinessSearchContext({
+      productsServices: "Monthly accounting",
+      idealCustomer: "Restaurants",
+      problemSolved: "Owners cannot tell if they are profitable",
+      audienceChallengesGoals: "Legacy answer that should no longer drive synthesis",
+    }).audienceChallengesGoals).toBe("Owners cannot tell if they are profitable");
+  });
+});
 
 const LOGICAFFEINE_CONTEXT: BusinessSearchContext = {
   businessName: "DatacenterDotDev Inc",
@@ -123,9 +135,13 @@ describe("business search brief", () => {
     expect(requestText).toContain(LOGICAFFEINE_CONTEXT.productsServices);
     expect(requestText).toContain(LOGICAFFEINE_CONTEXT.problemSolved);
     expect(requestText).toContain(LOGICAFFEINE_CONTEXT.idealCustomer);
-    expect(requestText).toContain(LOGICAFFEINE_CONTEXT.audienceChallengesGoals);
+    expect(requestText).not.toContain(LOGICAFFEINE_CONTEXT.audienceChallengesGoals);
+    expect(requestText.match(new RegExp(LOGICAFFEINE_CONTEXT.problemSolved!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"))?.length).toBeGreaterThanOrEqual(2);
     expect(requestText).toContain(LOGICAFFEINE_CONTEXT.differentiation);
     expect(requestText).toContain("Rust");
+    expect(requestText).toContain("4-8 distinct discovery seeds");
+    expect(requestText).not.toContain('"minItems":4');
+    expect(requestText).not.toContain('"maxItems":8');
     expect(brief).toMatchObject({ source: "claude-opus-4-8", model: "claude-opus-4-8" });
     expect(brief.themes.map((theme) => theme.id)).toEqual(expect.arrayContaining([
       "programming-language",
