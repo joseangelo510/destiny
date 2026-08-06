@@ -112,7 +112,7 @@ const BRIEF_SCHEMA = {
           label: { type: "string" },
           funnelRole: { type: "string", enum: ["conversion", "consideration", "awareness", "technical_authority"] },
           priority: { type: "string", enum: ["primary", "secondary", "supporting"] },
-          seedKeywords: { type: "array", items: { type: "string" } },
+          seedKeywords: { type: "array", maxItems: 8, items: { type: "string" } },
           requiredTerms: { type: "array", items: { type: "string" } },
           negativeTerms: { type: "array", items: { type: "string" } },
           evidence: {
@@ -305,7 +305,7 @@ function parseTheme(value: unknown, context: BusinessSearchContext, index: numbe
   const requiredTerms = uniqueStrings(row.requiredTerms, 6, 80)
     .filter((term) => phraseGroundedInOnboarding(context, term));
   if (!requiredTerms.length) return null;
-  const seedKeywords = uniqueStrings(row.seedKeywords, 5, 100).filter((seed) => {
+  const seedKeywords = uniqueStrings(row.seedKeywords, 8, 100).filter((seed) => {
     const words = normalizeEvidence(seed).split(/\s+/);
     return words.length >= 2 && words.length <= 10 && !GENERIC_SEEDS.has(normalizeEvidence(seed))
       && seedContainsAnchor(seed, requiredTerms);
@@ -392,7 +392,7 @@ Non-negotiable rules:
 2. Explicitly separate what the company SELLS from what its product ENABLES customers to build or accomplish. If a programming language enables customers to build software, do not infer that the company sells every category of software.
 3. Return 5-8 genuinely distinct search themes when the evidence supports them. Cover the primary offer, customer problems, audiences/use cases, differentiators, and technical authority. Do not create shallow word-order variations.
 4. Conversion and revenue matter, but they do not override semantic truth. Include consideration, awareness, and technical-authority themes when they create a credible path to demand or trust.
-5. Seed keywords are discovery inputs for DataForSEO, not measured facts. Never invent search volume, CPC, difficulty, ranking, or intent. DataForSEO owns those measurements.
+5. Give every theme 4-8 distinct discovery seeds. Prefer natural 2-4 word category, problem, comparison, and buyer phrases so DataForSEO can expand a niche market; avoid merely reordering the same phrase. Seeds are inputs, not measured facts. Never invent search volume, CPC, difficulty, ranking, or intent. DataForSEO owns those measurements.
 6. Every theme must cite at least one exact excerpt and its onboarding field. Do not introduce an offer, audience, capability, or competitor that is absent from the supplied record.
 7. Put misleading interpretations and unrelated categories in notTheOffer and/or negativeTerms.
 8. Prefer short, natural search phrases with a distinctive business anchor. Avoid generic seeds such as "build software", "services", or "solutions".`;
@@ -481,6 +481,16 @@ export function themeSeeds(brief: BusinessSearchBrief, limit = 16) {
   return seeds;
 }
 
+export function keywordDiscoveryThemes(brief: BusinessSearchBrief) {
+  return brief.themes.filter((theme) => {
+    const fields = new Set(theme.evidence.map((item) => item.field));
+    if (fields.has("productsServices") || fields.has("problemSolved")) return true;
+    return fields.has("differentiation")
+      && theme.priority === "primary"
+      && (theme.funnelRole === "consideration" || theme.funnelRole === "technical_authority");
+  });
+}
+
 export function buyerExpansionSeeds(brief: BusinessSearchBrief, limit = 8) {
   const suitable = (value: string, maximumWords: number) => {
     const words = normalizeEvidence(value).split(/\s+/).filter(Boolean);
@@ -496,8 +506,7 @@ export function buyerExpansionSeeds(brief: BusinessSearchBrief, limit = 8) {
       return [cleaned];
     });
   };
-  const offerThemes = brief.themes.filter((theme) =>
-    theme.evidence.some((item) => item.field === "productsServices"));
+  const offerThemes = keywordDiscoveryThemes(brief).filter((theme) => theme.funnelRole !== "awareness");
   const audienceThemes = brief.themes.filter((theme) =>
     theme.evidence.some((item) => item.field === "idealCustomer"));
   const offerQueues = offerThemes.map((theme) => [...theme.seedKeywords]);
@@ -509,8 +518,8 @@ export function buyerExpansionSeeds(brief: BusinessSearchBrief, limit = 8) {
     }
   }
   const offers = unique([
-    ...brief.offerVsEnablement.whatCompanySells,
     ...balancedOfferSeeds,
+    ...brief.offerVsEnablement.whatCompanySells,
   ], 8);
   const audiences = unique([
     ...audienceThemes.flatMap((theme) => theme.seedKeywords),

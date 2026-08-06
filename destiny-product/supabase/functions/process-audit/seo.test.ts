@@ -196,6 +196,7 @@ describe("live audit orchestration", () => {
         search_intent_info: { main_intent: "commercial" },
       }] }));
       if (url.endsWith("/keyword_suggestions/live")) return Response.json(payload({ items: [] }));
+      if (url.endsWith("/related_keywords/live")) return Response.json(payload({ items: [keywordRow("map of globe")] }));
       if (url.endsWith("/search_intent/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/historical_rank_overview/live")) return Response.json(payload({ items: [] }));
       if (url.endsWith("/on_page/content_parsing/live")) {
@@ -223,5 +224,8 @@ describe("live audit orchestration", () => {
     expect(result.keywords.some((keyword) => keyword.keyword === "chevrons")).toBe(false);
     expect(result.keywords.some((keyword) => keyword.keyword === "map of globe")).toBe(false);
     expect(result.keywords.every((keyword) => typeof keyword.priorityScore === "number")).toBe(true);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/related_keywords/live"))).toHaveLength(3);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/search_intent/live"))).toHaveLength(2);
+    expect(result.notices.join(" ")).toMatch(/thin measured market/i);
   });
 });

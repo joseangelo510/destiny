@@ -1,6 +1,7 @@
 import {
   buyerExpansionSeeds,
   createBusinessSearchBrief,
+  keywordDiscoveryThemes,
   themeSeeds,
   type BusinessSearchBrief,
   type BusinessSearchBriefConfig,
@@ -372,6 +373,13 @@ function parseGapKeywords(result: JsonRecord): StrategyKeyword[] {
   }).filter((keyword) => keyword.keyword);
 }
 
+function parseRelatedKeywords(result: JsonRecord): StrategyKeyword[] {
+  return parseGapKeywords(result).map((keyword) => ({
+    ...keyword,
+    opportunity: "site_idea" as const,
+  }));
+}
+
 function keywordIdentity(value: string) {
   return value
     .normalize("NFKC")
@@ -404,6 +412,26 @@ export function mergeKeywordStrategy(groups: StrategyKeyword[][], limit = 24) {
     }
   }
   return strategy;
+}
+
+export function thinKeywordExpansionSeeds(
+  ranked: StrategyKeyword[],
+  buyerSeeds: string[],
+  categorySeeds: string[],
+  limit = 3,
+) {
+  const values = [
+    ...ranked.map((keyword) => keyword.keyword),
+    ...buyerSeeds,
+    ...categorySeeds,
+  ];
+  const seen = new Set<string>();
+  return values.flatMap((value) => {
+    const key = keywordIdentity(value);
+    if (!key || seen.has(key)) return [];
+    seen.add(key);
+    return [value];
+  }).slice(0, limit);
 }
 
 const CONTEXT_STOP_WORDS = new Set([
@@ -535,9 +563,8 @@ export async function runDataForSeoAudit(
   const website = normalizeWebsite(websiteValue);
   const location = locationName.trim() || "United States";
   const businessSearchBrief = await createBusinessSearchBrief(businessContext ?? {}, knownCompetitors, strategyModel);
-  const searchSeedThemes = businessSearchBrief.themes.filter((theme) =>
-    theme.evidence.some((item) => item.field === "productsServices" || item.field === "problemSolved"));
-  const categorySeeds = themeSeeds({ ...businessSearchBrief, themes: searchSeedThemes }, 16);
+  const searchSeedThemes = keywordDiscoveryThemes(businessSearchBrief);
+  const categorySeeds = themeSeeds({ ...businessSearchBrief, themes: searchSeedThemes }, 24);
   const buyerSeeds = buyerExpansionSeeds(businessSearchBrief, 10);
   // LLM target metrics can be the slowest live endpoint. Start it alongside
   // the baseline audit and contain failure so it never blocks core SEO results.
@@ -706,39 +733,93 @@ export async function runDataForSeoAudit(
     (competitorRankCounts.get(keywordIdentity(b.keyword)) ?? 0) - (competitorRankCounts.get(keywordIdentity(a.keyword)) ?? 0)
       || b.searchVolume - a.searchVolume
       || a.keyword.localeCompare(b.keyword));
-  const strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, buyerKeywordIdeas, keywordIdeas, categoryKeywordIdeas], 500)
+  let strategyCandidates = mergeKeywordStrategy([rankedKeywords, gapKeywords, buyerKeywordIdeas, keywordIdeas, categoryKeywordIdeas], 500)
     .map((keyword) => ({
       ...keyword,
       competitorRankers: competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
       directCompetitorRankers: directCompetitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? 0,
     }));
-  const intentResult = strategyCandidates.length ? await dataForSeoPost("/v3/dataforseo_labs/google/search_intent/live", [{
-    keywords: strategyCandidates.slice(0, 500).map((keyword) => keyword.keyword),
-    language_name: "English",
-  }], login, password, 20_000).then(firstResult).catch(() => null) : null;
-  const intentByKeyword = new Map(array(intentResult?.items).flatMap((item) => {
-    const row = record(item);
-    const label = string(record(row.keyword_intent).label);
-    const key = keywordIdentity(string(row.keyword));
-    return key && label ? [[key, label] as const] : [];
-  }));
-  const intentEnrichedCandidates = strategyCandidates.map((keyword) => ({
-    ...keyword,
-    intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
-  }));
-  const legacyRankedKeywords = rankKeywordOpportunities(intentEnrichedCandidates, {
-    ...(businessContext ?? {}),
-    locationEvidence: pages.map((page) => page.text).join(" "),
-  }, 300, businessSearchBrief);
-  const rankedKeywordsForStrategy = keywordPolicyEngine() === "typescript"
-    ? legacyRankedKeywords
-    : await applyLogosKeywordPolicy(legacyRankedKeywords);
+  const evaluateKeywordPool = async (candidates: StrategyKeyword[]) => {
+    const intentResult = candidates.length ? await dataForSeoPost("/v3/dataforseo_labs/google/search_intent/live", [{
+      keywords: candidates.slice(0, 500).map((keyword) => keyword.keyword),
+      language_name: "English",
+    }], login, password, 20_000).then(firstResult).catch(() => null) : null;
+    const intentByKeyword = new Map(array(intentResult?.items).flatMap((item) => {
+      const row = record(item);
+      const label = string(record(row.keyword_intent).label);
+      const key = keywordIdentity(string(row.keyword));
+      return key && label ? [[key, label] as const] : [];
+    }));
+    const intentEnrichedCandidates = candidates.map((keyword) => ({
+      ...keyword,
+      intent: intentByKeyword.get(keywordIdentity(keyword.keyword)) || keyword.intent,
+    }));
+    const relevant = rankKeywordOpportunities(intentEnrichedCandidates, {
+      ...(businessContext ?? {}),
+      locationEvidence: pages.map((page) => page.text).join(" "),
+    }, 300, businessSearchBrief);
+    const evaluated = keywordPolicyEngine() === "typescript"
+      ? relevant
+      : await applyLogosKeywordPolicy(relevant);
+    return { relevant, evaluated };
+  };
+
+  let keywordEvaluation = await evaluateKeywordPool(strategyCandidates);
+  let expansionSeeds: string[] = [];
+  let expandedKeywordIdeas: StrategyKeyword[] = [];
+  if (keywordEvaluation.evaluated.length < 5) {
+    expansionSeeds = thinKeywordExpansionSeeds(keywordEvaluation.relevant, buyerSeeds, categorySeeds, 3);
+    const expansionResults = await Promise.allSettled(expansionSeeds.map((keyword) => dataForSeoPost(
+      "/v3/dataforseo_labs/google/related_keywords/live",
+      [{
+        keyword,
+        location_name: location,
+        language_name: "English",
+        depth: 2,
+        ignore_synonyms: false,
+        filters: ["keyword_data.keyword_info.search_volume", ">", 0],
+        order_by: ["keyword_data.keyword_info.search_volume,desc", "keyword_data.keyword_info.cpc,desc"],
+        limit: 100,
+      }],
+      login,
+      password,
+      20_000,
+    )));
+    expandedKeywordIdeas = expansionResults.flatMap((result) => result.status === "fulfilled"
+      ? parseRelatedKeywords(firstResult(result.value))
+      : []);
+    if (expandedKeywordIdeas.length) {
+      strategyCandidates = mergeKeywordStrategy([strategyCandidates, expandedKeywordIdeas], 500)
+        .map((keyword) => ({
+          ...keyword,
+          competitorRankers: competitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? keyword.competitorRankers ?? 0,
+          directCompetitorRankers: directCompetitorRankCounts.get(keywordIdentity(keyword.keyword)) ?? keyword.directCompetitorRankers ?? 0,
+        }));
+      keywordEvaluation = await evaluateKeywordPool(strategyCandidates);
+    }
+  }
+  const legacyRankedKeywords = keywordEvaluation.relevant;
+  const rankedKeywordsForStrategy = keywordEvaluation.evaluated;
   const logosFallbackCount = rankedKeywordsForStrategy.filter((keyword) =>
     "policyEngine" in keyword && keyword.policyEngine === "typescript-fallback").length;
   console.info(JSON.stringify({
-    event: "logos_keyword_policy",
-    candidates: legacyRankedKeywords.length,
+    event: "keyword_strategy_funnel",
+    themes: businessSearchBrief.themes.length,
+    discoveryThemes: searchSeedThemes.length,
+    categorySeeds: categorySeeds.length,
+    buyerSeeds: buyerSeeds.length,
+    providerCandidates: {
+      ranked: rankedKeywords.length,
+      competitorGaps: gapKeywords.length,
+      buyerSuggestions: buyerKeywordIdeas.length,
+      siteIdeas: keywordIdeas.length,
+      categoryIdeas: categoryKeywordIdeas.length,
+      relatedExpansion: expandedKeywordIdeas.length,
+    },
+    merged: strategyCandidates.length,
+    relevant: legacyRankedKeywords.length,
     evaluated: rankedKeywordsForStrategy.length,
+    expansionSeeds: expansionSeeds.length,
     fallbacks: logosFallbackCount,
   }));
   const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 35).map((keyword) => ({
@@ -751,6 +832,11 @@ export async function runDataForSeoAudit(
       : keyword.relevanceTier === "core" && Number(keyword.revenueFit ?? 0) >= 0.65
         && ((keyword.opportunity === "competitor_gap" && Number(keyword.directCompetitorRankers ?? 0) >= 1)
           || keyword.providerIntent === "transactional"),
+  }));
+  console.info(JSON.stringify({
+    event: "keyword_strategy_result",
+    published: keywords.length,
+    status: keywords.length < 5 ? "thin_market" : "ready",
   }));
   await onProgress(80);
 
@@ -816,6 +902,11 @@ export async function runDataForSeoAudit(
       businessSearchBrief.warning ?? "The semantic brief separates what the company sells from what its product enables customers to build.",
       buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} offer-led seed${buyerSeeds.length === 1 ? "" : "s"}, including service-plus-audience combinations, and reclassified with DataForSEO Search Intent.` : "No evidence-backed buyer seed could be derived from onboarding.",
       categorySeeds.length ? "Onboarding themes are used only to query DataForSEO. Every recommendation must return positive measured demand and pass Destiny's service-relevance gate." : "No usable product or customer-problem seed could be derived from the complete onboarding record.",
+      keywords.length < 5
+        ? `DataForSEO found only ${keywords.length} positively measured, business-relevant keyword${keywords.length === 1 ? "" : "s"} after Destiny ran a second related-search expansion. This is a thin measured market, not an incomplete report.`
+        : expansionSeeds.length
+          ? "Destiny ran one related-search expansion because the first measured keyword pool was thin; the same positive-demand and business-relevance gates remained in force."
+          : "The first measured keyword pass produced a sufficiently broad approval pool without fallback expansion.",
       distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],
