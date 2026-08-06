@@ -164,7 +164,7 @@ export function AuditMomentumProcessing({
             </li>)}
           </ol>
           <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
-          {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
+          {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding?new=1">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>
     </section>

@@ -176,8 +176,6 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
     setCompetitorSuggestionsLoading(true);
     setCompetitorSuggestionNotice("");
     try {
-      const sessionResponse = await fetch("/api/auth/anonymous", { method: "POST" });
-      if (!sessionResponse.ok) throw new Error("Destiny could not start competitor discovery.");
       const response = await fetch("/api/onboarding/competitors/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -216,10 +214,6 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
     setLoading(true);
     setError("");
     try {
-      const sessionResponse = await fetch("/api/auth/anonymous", { method: "POST" });
-      const sessionPayload = await sessionResponse.json() as { error?: string };
-      if (!sessionResponse.ok) throw new Error(sessionPayload.error || "Destiny could not start your workspace.");
-
       const onboardingResponse = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
