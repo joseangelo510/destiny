@@ -22,6 +22,8 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Current website");
     expect(html).toContain("Example Co");
     expect(html).toContain(`/roadmap?site=${site.id}`);
+    expect(html).toContain('href="/account"');
+    expect(html).toMatch(/>Account<.*>Sign out</s);
   });
 
   it("opens the tool disclosure when the user is already inside a secondary tool", () => {

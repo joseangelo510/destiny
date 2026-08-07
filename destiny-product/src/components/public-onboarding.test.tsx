@@ -18,7 +18,7 @@ describe("PublicOnboarding momentum experience", () => {
     expect(html).toContain("do not enter only your business name");
     expect(html).toContain("First name");
     expect(html).toContain("Last name");
-    expect(html).toContain("Contact email");
+    expect(html).toContain("Audit and contact email");
     expect(html).toContain("notification center");
     expect(html).toContain("Step 1 of 3");
     expect(source).toContain('label="What do you sell?"');
@@ -49,5 +49,14 @@ describe("PublicOnboarding momentum experience", () => {
     expect(html).toContain('aria-current="step"');
     expect(html).toContain("Sound off");
     expect(html).toContain("destiny-compass");
+  });
+
+  it("prefills the audit contact email from the authenticated login identity", async () => {
+    const initialMomentumPolicy = await runDestinyServerLogic({ auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0, momentumOnboardingStep: 1 });
+    const html = renderToStaticMarkup(<PublicOnboarding initialEmail="founder@example.com" initialMomentumPolicy={initialMomentumPolicy} />);
+
+    expect(html).toContain('value="founder@example.com"');
+    expect(html).toContain("Audit and contact email");
+    expect(html).toContain("Pre-filled from the email you use to sign in");
   });
 });

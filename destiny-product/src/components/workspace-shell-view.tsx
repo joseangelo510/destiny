@@ -36,7 +36,10 @@ export function WorkspaceShellView({ active, eyebrow, title, description, childr
       <nav aria-label="Destiny workspace"><span className="nav-section-label">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.label}</Link>)}</nav>
       <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
       <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
-      <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
+      <div className="sidebar-account-actions">
+        <Link className={`sidebar-account-link ${active === "/account" ? "active" : ""}`} href="/account">Account</Link>
+        <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
+      </div>
     </aside>
     <section className="dashboard workspace-page" data-active={active}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications /></header>{children}</section>
     <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">{PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</nav>
