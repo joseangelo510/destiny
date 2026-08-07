@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { safeInternalPath } from "@/lib/auth/redirect";
+import { siteRedirectUrl } from "@/lib/auth/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, url.origin));
+    if (!error) return NextResponse.redirect(siteRedirectUrl(process.env.NEXT_PUBLIC_SITE_URL, request.url, next));
   }
-  return NextResponse.redirect(new URL("/auth/error", url.origin));
+  return NextResponse.redirect(siteRedirectUrl(process.env.NEXT_PUBLIC_SITE_URL, request.url, "/auth/error"));
 }
