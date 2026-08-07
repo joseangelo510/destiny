@@ -1,256 +1,453 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import "./home.css";
 
-const startPath = "/onboarding";
-const signInPath = "/login?next=%2Fapp";
+import "./home.css";
 
 export const metadata: Metadata = {
   title: "Destiny — SEO momentum for founders",
   description: "Turn an expert SEO playbook into a focused three-month plan and one clear weekly action.",
 };
 
-const categoryTabs = [
-  { label: "Research & strategy", active: false },
-  { label: "Content creation", active: false },
-  { label: "Distribution", active: true },
-  { label: "Technical SEO", active: false },
-];
-
-const distributionTasks = [
-  { title: "Answer the Reddit thread comparing tools in your niche", meta: "r/smallbusiness · 12 min · draft ready for your review" },
-  { title: "Reply to the Quora question your customers keep asking", meta: "Quora · 9 min · written in your voice" },
-  { title: "Send two review invites to last month’s happiest customers", meta: "Email · 6 min · you approve before anything sends" },
-];
-
-const comparisonRows = [
-  ["Hands you 40 dashboards and wishes you luck", "Hands you one clear move at a time"],
-  ["Generates generic AI content that sounds like everyone", "Writes from your interviews, in your voice"],
-  ["Stops at publishing and calls it done", "Distributes where your buyers already ask questions"],
-  ["Charges agency prices for reports", "One founding plan a founder can actually justify"],
-  ["Assumes you have an SEO team", "Assumes you have twenty minutes"],
-];
-
-const howSteps = [
-  ["01", "Tell your story", "A guided interview captures your products, customers, competitors, opinions, and proof — the raw material only you have."],
-  ["02", "Get your game plan", "Destiny turns your story and live search evidence into a focused three-month strategy with priorities you approve."],
-  ["03", "Do this week. Just this week.", "Every Monday you get a small set of moves across the four categories. Finish them, feel the momentum, repeat."],
-];
-
-const fundamentals = [
-  ["Website audits", "Crawlability, indexing, structure, and performance issues turned into guided fixes."],
-  ["Keyword research", "Live demand, intent, difficulty, and rankings — filtered down to what fits your business."],
-  ["Content studio", "Briefs, articles, FAQs, and conversion copy drafted from your interviews."],
-  ["Weekly plan", "One focused loop that keeps all of it moving without a team."],
-];
-
-const extraMile = [
-  ["Distribution", "Reddit, Quora, outreach, and social snippets — reviewed by you before anything ships."],
-  ["Reviews", "Steady, polite review requests that build local trust on autopilot."],
-  ["Backlinks", "Referring domains, anchors, and broken-link opportunities worth your time."],
-  ["Rank tracker", "Positions that matter, tracked weekly, explained in plain language."],
-  ["LLM visibility", "See how ChatGPT-style assistants describe you — and improve it."],
-  ["Connections", "Search Console, Analytics, and Business Profile plugged in with owner approval."],
-];
-
-const personas = [
-  ["The local expert", "Realtors, clinics, trades. You win on trust — Destiny makes your expertise findable."],
-  ["The niche SaaS founder", "You can’t outspend incumbents. You can out-answer them where buyers compare."],
-  ["The service studio", "Agencies and consultants whose best marketing is what they know, not what they spend."],
-];
-
-const objections = [
-  ["“I don’t have time for SEO.”", "You have twenty minutes. That is the entire ask, once a week."],
-  ["“I tried tools. They just gave me dashboards.”", "Destiny gives you moves, not metrics. The data stays behind the plan."],
-  ["“AI content all sounds the same.”", "Ours starts with an interview. If it doesn’t sound like you, it doesn’t ship."],
-  ["“SEO takes forever.”", "Distribution moves — replies, reviews, outreach — start working the first week."],
-  ["“I’ll lose control of my brand.”", "Nothing publishes or sends without your approval. Ever."],
-];
-
-const outcomes = [
-  ["Week 1", "Your audit is done, your keyword strategy is approved, and your first distribution replies are live where buyers are already asking."],
-  ["Month 1", "A publishing rhythm in your voice, review momentum, and the first rankings you can point to."],
-  ["Month 3", "A finished three-month strategy: compounding content, real backlinks, and a weekly habit you actually kept."],
-];
-
-export default function MarketingHome() {
+export default function HomePage() {
   return (
-    <main className="lp">
-      <header className="lp-header">
-        <Link className="lp-brand" href="/" aria-label="Destiny homepage"><span className="lp-brand-mark">✦</span>Destiny</Link>
-        <nav aria-label="Homepage navigation">
-          <a href="#how">How it works</a>
-          <a href="#toolkit">Toolkit</a>
-          <a href="#who">Who it’s for</a>
-          <a href="#pricing">Pricing</a>
-        </nav>
-        <div className="lp-header-actions">
-          <Link className="lp-text-link" href={signInPath}>Sign in</Link>
-          <Link className="lp-button solid" href={startPath}>Get started</Link>
+    <div className="lp-root">
+      <header className="site">
+        <div className="wrap nav">
+          <a className="logo" href="#">
+            <span className="logo-mark">D</span>Destiny
+          </a>
+          <nav className="nav-links" aria-label="Primary">
+            <a href="#different">Why Destiny</a>
+            <a href="#how">How it works</a>
+            <a href="#tools">Tools</a>
+            <a href="#who">Who it&apos;s for</a>
+            <a href="#plan">Pricing</a>
+          </nav>
+          <div className="nav-right">
+            <a className="quiet" href="/login?next=%2Fapp">Open demo</a>
+            <a className="btn btn-forest btn-sm" href="#plan">Analyze a website</a>
+          </div>
         </div>
       </header>
 
-      <section className="lp-hero">
-        <div className="lp-hero-copy">
-          <p className="lp-kicker">A guided weekly SEO plan for founders</p>
-          <h1>Your week of SEO, <em>already planned.</em></h1>
-          <p className="lp-lede">Destiny turns an expert playbook into one guided weekly plan — research, content, technical fixes, and the edge most tools skip entirely: distribution where your buyers are already asking.</p>
-          <div className="lp-cta-row">
-            <Link className="lp-button solid" href={startPath}>Get started</Link>
-            <Link className="lp-button outline" href={signInPath}>Sign in</Link>
-          </div>
-        </div>
-        <div className="lp-hero-visual">
-          <article className="lp-week-card" aria-label="A Destiny distribution week">
-            <div className="lp-week-head"><span className="lp-week-eyebrow">This week</span><strong>Distribution week</strong></div>
-            <div className="lp-week-tabs" role="list" aria-label="Weekly plan categories">
-              {categoryTabs.map((tab) => <span className={tab.active ? "lp-week-tab active" : "lp-week-tab"} key={tab.label} role="listitem">{tab.label}</span>)}
+      {/* 1 · HERO */}
+      <div className="hero">
+        <div className="wrap hero-grid">
+          <div>
+            <span className="eyebrow">Guided SEO execution for founders</span>
+            <h1 className="display">
+              You built something worth finding. Now <em>get found.</em>
+            </h1>
+            <p className="lede">
+              Most tools stop at publish. Destiny takes you the extra mile, sharing your content where it matters:
+              Reddit, LinkedIn, creators, Product Hunt, and that&apos;s just the start.
+            </p>
+            <div className="hero-ctas">
+              <a className="btn btn-forest" href="/onboarding">Analyze my website</a>
+              <a className="btn btn-outline" href="#how">See how it works</a>
             </div>
-            <div className="lp-week-top-move">
-              <small>Top move</small>
-              <strong>Reply where your buyers are already asking</strong>
-            </div>
-            <ul className="lp-week-tasks">
-              {distributionTasks.map((task) => <li key={task.title}><span className="lp-task-dot" aria-hidden="true" /><div><strong>{task.title}</strong><small>{task.meta}</small></div></li>)}
-            </ul>
-            <div className="lp-week-proof" aria-label="Proof bar">
-              <span>✓ Every reply approved by you</span>
-              <span>✓ Written in your voice</span>
-              <span>✓ ~20 minutes total</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="lp-section lp-problems" aria-labelledby="problems-title">
-        <div className="lp-problems-copy">
-          <p className="lp-kicker">The founder’s reality</p>
-          <h2 id="problems-title">99 founder problems and SEO ain’t one</h2>
-          <p>You are already the support desk, the sales team, the bookkeeper, and the product. Destiny takes the one job that compounds — being found — off your plate and onto a plan.</p>
-          <div className="lp-plate" aria-hidden="true">
-            <div className="lp-plate-col">
-              <small>Your plate today</small>
-              <span>Invoices chasing you</span>
-              <span>A hiring decision</span>
-              <span>Support tickets</span>
-              <span>That supplier call</span>
-              <span>“Do SEO” — someday</span>
-            </div>
-            <div className="lp-plate-col lp-plate-plan">
-              <small>With Destiny</small>
-              <span>Invoices chasing you</span>
-              <span>A hiring decision</span>
-              <span>Support tickets</span>
-              <span>That supplier call</span>
-              <span className="lp-plate-done">SEO: this week’s 20 minutes ✓</span>
+            <div className="hero-notes">
+              <span>Your voice, not generic AI</span>
+              <span>You approve every move</span>
+              <span>No retainers</span>
             </div>
           </div>
-        </div>
-        <aside className="lp-offplate" aria-label="Off your plate, on your plan">
-          <span className="lp-offplate-title">Off your plate · On your plan</span>
-          <ul>
-            <li><strong>Research</strong><small>done for you, approved by you</small></li>
-            <li><strong>Writing</strong><small>drafted from your own words</small></li>
-            <li><strong>Distribution</strong><small>queued where buyers ask</small></li>
-            <li><strong>Tracking</strong><small>explained, not dashboarded</small></li>
-          </ul>
-        </aside>
-      </section>
 
-      <section className="lp-section lp-compare" aria-labelledby="compare-title">
-        <p className="lp-kicker">The honest comparison</p>
-        <h2 id="compare-title">Every other tool vs. Destiny</h2>
-        <div className="lp-compare-table" role="table" aria-label="Every other tool compared with Destiny">
-          <div className="lp-compare-row lp-compare-head" role="row"><span role="columnheader">Every other tool</span><span role="columnheader">Destiny</span></div>
-          {comparisonRows.map(([them, us]) => <div className="lp-compare-row" key={us} role="row"><span role="cell">{them}</span><span className="lp-compare-us" role="cell">{us}</span></div>)}
-        </div>
-      </section>
-
-      <section className="lp-section lp-how" id="how" aria-labelledby="how-title">
-        <p className="lp-kicker">How it works</p>
-        <h2 id="how-title">Three steps. One habit.</h2>
-        <div className="lp-how-grid">
-          {howSteps.map(([number, title, description]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}
-        </div>
-      </section>
-
-      <section className="lp-section lp-voice" aria-labelledby="voice-title">
-        <div>
-          <p className="lp-kicker">The important difference</p>
-          <h2 id="voice-title">Most tools produce more content. Destiny produces more of <em>you.</em></h2>
-        </div>
-        <div className="lp-voice-cards">
-          <article><small>Your Voice</small><h3>Interviews in, expertise out</h3><p>Short conversations become pages, articles, and replies built from your real opinions, customer stories, and hard-earned lessons. Automation handles the busywork without erasing the founder.</p></article>
-          <article><small>The Habit</small><h3>Twenty minutes that compound</h3><p>One weekly loop across four kinds of work keeps momentum visible. No binge-and-abandon cycles — just a small, finishable week, every week.</p></article>
-        </div>
-      </section>
-
-      <section className="lp-section lp-toolkit" id="toolkit" aria-labelledby="toolkit-title">
-        <p className="lp-kicker">The toolkit</p>
-        <h2 id="toolkit-title">The fundamentals, plus the extra mile.</h2>
-        <div className="lp-toolkit-group">
-          <h3>Fundamentals</h3>
-          <div className="lp-toolkit-grid">
-            {fundamentals.map(([title, description]) => <article key={title}><h4>{title}</h4><p>{description}</p></article>)}
+          <div
+            className="app-shot"
+            role="img"
+            aria-label="The Destiny workspace showing this week's distribution tasks: Reddit and Quora replies, LinkedIn and X shares, niche creators, and directory reviews"
+          >
+            <div className="app-topbar">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="crumb">clearcheck.app · Week 1</span>
+              <span className="streak">4 distribution tasks</span>
+            </div>
+            <div className="app-body">
+              <div className="app-week">This week</div>
+              <div className="app-week-sub">Four kinds of work build your visibility. This is the one everyone else skips.</div>
+              <div className="loop-tabs">
+                <div className="loop-tab"><span className="loop-ico ico-sage">⌕</span><b>Research &amp; strategy</b><span>1 task</span></div>
+                <div className="loop-tab"><span className="loop-ico ico-lime">✎</span><b>Content creation</b><span>1 task</span></div>
+                <div className="loop-tab active"><span className="loop-ico ico-cream">↗</span><b>Distribution</b><span>4 tasks</span></div>
+                <div className="loop-tab"><span className="loop-ico ico-mist">#</span><b>Technical SEO</b><span>2 tasks</span></div>
+              </div>
+              <div className="move-panel">
+                <span className="audit-pill"><i></i>Guided action</span>
+                <div className="move-eyebrow">Your clearest next move</div>
+                <h3>Reply where your buyers are already asking.</h3>
+                <p>
+                  Three Reddit and Quora discussions match your priority topics this week. Join them as yourself, with
+                  Destiny&apos;s guidance on what to say.
+                </p>
+                <span className="btn btn-lime btn-sm">Open guided step</span>
+              </div>
+              <div className="dlist" style={{ marginTop: "12px" }}>
+                <div className="dtask">
+                  <span className="task-num">2</span>
+                  <div className="dt-body">
+                    <b>Share this week&apos;s approved article on LinkedIn and X</b>
+                    <span>15 min · This moves you toward → Build visibility</span>
+                  </div>
+                  <span className="dt-chip">Ready to start</span>
+                </div>
+                <div className="dtask">
+                  <span className="task-num">3</span>
+                  <div className="dt-body">
+                    <b>Review three niche creators covering your priority topics</b>
+                    <span>30 min · Your confirmation required</span>
+                  </div>
+                  <span className="dt-chip">Ready to start</span>
+                </div>
+                <div className="dtask">
+                  <span className="task-num">4</span>
+                  <div className="dt-body">
+                    <b>Complete one directory profile or request three reviews</b>
+                    <span>25 min · This moves you toward → Grow what works</span>
+                  </div>
+                  <span className="dt-chip">Ready to start</span>
+                </div>
+              </div>
+              <div className="noticed">
+                <span className="check">✓</span>
+                <div>
+                  <b>Last week&apos;s article was shared.</b> <span>LinkedIn and X, saved to your record.</span>
+                </div>
+                <span className="verify">Verified by Destiny</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="lp-toolkit-group">
-          <h3>The extra mile</h3>
-          <div className="lp-toolkit-grid three">
-            {extraMile.map(([title, description]) => <article key={title}><h4>{title}</h4><p>{description}</p></article>)}
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <section className="lp-section lp-who" id="who" aria-labelledby="who-title">
-        <p className="lp-kicker">Who this is for</p>
-        <h2 id="who-title">Built for founders who are the product.</h2>
-        <div className="lp-persona-grid">
-          {personas.map(([title, description]) => <article key={title}><h3>{title}</h3><p>{description}</p></article>)}
-        </div>
-        <div className="lp-objections">
-          <h3>Five things founders tell us — answered straight.</h3>
-          <dl>
-            {objections.map(([objection, answer]) => <div key={objection}><dt>{objection}</dt><dd>{answer}</dd></div>)}
-          </dl>
-        </div>
-      </section>
-
-      <section className="lp-section lp-outcomes" aria-labelledby="outcomes-title">
-        <p className="lp-kicker">What to expect</p>
-        <h2 id="outcomes-title">Momentum you can put a date on.</h2>
-        <div className="lp-outcome-grid">
-          {outcomes.map(([when, description]) => <article key={when}><span>{when}</span><p>{description}</p></article>)}
-        </div>
-        <p className="lp-trust" aria-label="Trust">Live SEO analysis connected · Nothing publishes or sends without your approval · Google account and sending integrations require owner authorization.</p>
-      </section>
-
-      <section className="lp-pricing" id="pricing" aria-labelledby="pricing-title">
-        <div className="lp-pricing-card">
-          <small>Founding plan</small>
-          <h2 id="pricing-title"><strong>$39.99</strong><span>/month</span></h2>
-          <p>A complete weekly workflow for one business, including your first three-month strategy. When you finish it, upgrade to the Growth tier to unlock another three-month planning cycle.</p>
-          <Link className="lp-button solid" href={startPath}>Get started</Link>
-        </div>
-        <div className="lp-closer">
-          <h2>Your customers are searching. Your week is planned.</h2>
-          <p>Start with the guided interview — twenty minutes from now, Destiny will know your business well enough to plan your first week.</p>
-          <div className="lp-cta-row">
-            <Link className="lp-button cream" href={startPath}>Get started</Link>
-            <Link className="lp-button ghost" href={signInPath}>Sign in</Link>
+      {/* 2 · THE PROBLEM */}
+      <section className="band sec-tight">
+        <div className="wrap">
+          <div className="problem-grid">
+            <div className="problem">
+              <span className="eyebrow">The problem</span>
+              <h2 className="display">
+                99 founder problems and SEO <em>ain&apos;t one.</em>
+              </h2>
+              <p>
+                You&apos;ve got a product to build, customers to serve, and a business to run. Destiny handles the
+                fundamentals of <b>technical SEO, keywords strategy, and content creation</b>, then becomes your{" "}
+                <b>distribution superpower</b>: a moat your competitors can&apos;t copy and the next Google update
+                can&apos;t break.
+              </p>
+            </div>
+            <div className="plate" role="img" aria-label="A founder's plate of responsibilities with SEO crossed off, handled by Destiny">
+              <div className="plate-card">
+                <div className="plate-label">Your plate this week</div>
+                <div className="chips">
+                  <span className="p-chip">Ship v2</span>
+                  <span className="p-chip">Customer calls</span>
+                  <span className="p-chip">Hiring</span>
+                  <span className="p-chip">Cash flow</span>
+                  <span className="p-chip">Support tickets</span>
+                  <span className="p-chip">Investor update</span>
+                  <span className="p-chip">Partnerships</span>
+                  <span className="p-chip">Payroll</span>
+                  <span className="p-chip gone">SEO</span>
+                </div>
+              </div>
+              <div className="handled">
+                <div className="h-label">Off your plate · On your plan</div>
+                <ul>
+                  <li><span className="hk">✓</span>Technical SEO <span>· audited, fixes guided</span></li>
+                  <li><span className="hk">✓</span>Keyword strategy <span>· researched, you approve</span></li>
+                  <li><span className="hk">✓</span>Content creation <span>· drafted in your voice</span></li>
+                  <li><span className="hk">✓</span>Distribution <span>· planned into every week</span></li>
+                </ul>
+                <div className="moat">
+                  <b>The moat:</b> the extra mile your competitors skip and the next update can&apos;t break.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <footer className="lp-footer">
-        <div><Link className="lp-brand" href="/"><span className="lp-brand-mark">✦</span>Destiny</Link><p>Expert SEO, made accessible to founders.</p></div>
-        <nav aria-label="Footer navigation">
-          <a href="#how">How it works</a>
-          <a href="#toolkit">Toolkit</a>
-          <a href="#pricing">Pricing</a>
-          <Link href={signInPath}>Sign in</Link>
-        </nav>
+      {/* 3 · WHAT MAKES DESTINY DIFFERENT */}
+      <section id="different">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Why Destiny</span>
+            <h2 className="display">
+              Every SEO tool gives you data. Destiny gives you <em>execution.</em>
+            </h2>
+            <p>
+              The thousand tools out there were built for SEO managers with dashboards to read and teams to delegate to.
+              Destiny was built for the founder doing it alone.
+            </p>
+          </div>
+          <div className="compare">
+            <div className="compare-head"><div className="them">Every other tool</div><div className="us">Destiny</div></div>
+            <div className="compare-row"><div className="them">Hands you 500 keywords.</div><div className="us">Hands you this week&apos;s move.</div></div>
+            <div className="compare-row"><div className="them">Stops at publish.</div><div className="us">Distributes: Reddit, LinkedIn, creators, and beyond.</div></div>
+            <div className="compare-row"><div className="them">Sells shortcuts that die in the next update.</div><div className="us">Only builds what lasts.</div></div>
+            <div className="compare-row"><div className="them">Chases enterprise.</div><div className="us">Built for you.</div></div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4 · HOW IT WORKS */}
+      <section className="band" id="how">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">How it works</span>
+            <h2 className="display">
+              Tell Destiny your story. Get your <em>game plan.</em>
+            </h2>
+            <p>A short interview plus a live audit of your site becomes your three month plan. Then, one week at a time, you execute.</p>
+          </div>
+          <div className="loop-grid">
+            <div className="loop-card">
+              <span className="loop-step">1</span>
+              <h3>Tell your story</h3>
+              <p>
+                A guided interview captures your business, your customers, your competitors, and what makes you
+                different. Then Destiny audits your website live and finds the gaps.
+              </p>
+              <span className="chip cream">About 20 minutes, once</span>
+            </div>
+            <div className="loop-card">
+              <span className="loop-step">2</span>
+              <h3>Get your game plan</h3>
+              <p>
+                The interview and audit become a three month plan across research, content, distribution, and technical
+                SEO, with one clearest next move always on top. You approve the direction before anything starts.
+              </p>
+              <span className="chip">Your confirmation required</span>
+            </div>
+            <div className="loop-card">
+              <span className="loop-step">3</span>
+              <h3>Do this week. Just this week.</h3>
+              <p>
+                Every task shows how long it takes, why it matters, and what done looks like. Finish, and it lands in
+                your record, verified against real data. Next week, the plan updates.
+              </p>
+              <span className="chip">20 minutes and up, weekly</span>
+            </div>
+          </div>
+          <div className="loop-note">
+            <span className="mini">✓</span>
+            <div>Never wonder what to do next. Too much this week? One tap trims the plan down to what matters most.</div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5 · YOUR VOICE + THE HABIT */}
+      <section>
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">The important difference</span>
+            <h2 className="display">
+              Most tools produce more content. Destiny produces more of <em>you.</em>
+            </h2>
+            <p>
+              Your opinions, lessons, and real language become the raw material. A weekly rhythm keeps it coming, twenty
+              minutes at a time.
+            </p>
+          </div>
+          <div className="twoup">
+            <div className="twoup-card">
+              <span className="eyebrow">Your voice</span>
+              <h3>Content that sounds like you. Because it came from you.</h3>
+              <p>
+                Short interviews turn your stories into articles generic AI can&apos;t fake. You review every draft and
+                approve every word before anything moves.
+              </p>
+              <div className="voice-vs">
+                <div className="vq generic">
+                  <b>Generic AI</b>
+                  Work with a knowledgeable real estate agent who understands the local market and can help you find the
+                  right home.
+                </div>
+                <div className="vq yours">
+                  <b>Destiny · Maya&apos;s voice</b>
+                  &quot;A San Francisco home is more than square footage. The block, the light, the inspection, and the
+                  life your family will build there can change the entire decision.&quot;
+                  <span className="vtag">Agent interview · client informed</span>
+                </div>
+              </div>
+            </div>
+            <div className="twoup-card">
+              <span className="eyebrow">The habit</span>
+              <h3>Twenty minutes a week. Compounding for years.</h3>
+              <p>
+                SEO rewards showing up, so Destiny is built like a streak: finish this week&apos;s tasks, earn your
+                Perfect Week, and watch the record of everything you&apos;ve shipped grow.
+              </p>
+              <div className="habit-board" aria-label="A twelve week streak, five weeks complete">
+                <div className="habit-top">
+                  <span className="streak-pill">5-week streak</span>
+                  <span className="pw">Perfect Week ×2</span>
+                  <span className="ovr">♡ I&apos;m overwhelmed</span>
+                </div>
+                <div className="streak-strip" aria-hidden="true">
+                  <i className="on">✓</i><i className="on">✓</i><i className="on">✓</i><i className="on">✓</i><i className="on">✓</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i>
+                </div>
+                <div className="habit-cap"><span>Week 1</span><span>Small weeks stack into rankings that stay.</span><span>Week 12</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6 · CAPABILITIES */}
+      <section className="band" id="tools">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">The toolkit</span>
+            <h2 className="display">
+              The fundamentals, handled. The extra mile, <em>included.</em>
+            </h2>
+            <p>Eleven tools in one workspace. They stay out of the way until the task in front of you needs them.</p>
+          </div>
+
+          <div className="group-label first">The fundamentals</div>
+          <div className="cap-grid">
+            <div className="cap"><span className="cap-ico ico-sage">✓</span><h3>Website audits</h3><p>Find crawlability, indexing, and speed issues, then turn the clearest fix into a guided task.</p></div>
+            <div className="cap"><span className="cap-ico ico-sage">⌕</span><h3>Keyword strategy &amp; research</h3><p>Live demand, intent, and difficulty, turned into a direction you approve or decline.</p></div>
+            <div className="cap"><span className="cap-ico ico-lime">✎</span><h3>Content studio</h3><p>Three articles a week, built from your strategy and your voice, reviewed by you before delivery.</p></div>
+            <div className="cap"><span className="cap-ico ico-mist">#</span><h3>Guided technical fixes</h3><p>Plain English steps for every issue, sized so you or your developer can knock them out.</p></div>
+          </div>
+
+          <div className="group-label"><span className="accent">The extra mile</span></div>
+          <div className="cap-grid">
+            <div className="cap"><span className="cap-ico ico-cream">↗</span><h3>Distribution</h3><p>Reddit and Quora conversations, LinkedIn shares, creators in your space, and directory listings, planned into every week.</p></div>
+            <div className="cap"><span className="cap-ico ico-sage">☆</span><h3>Reviews</h3><p>Grow reviews across the directories where customers compare you.</p></div>
+            <div className="cap"><span className="cap-ico ico-mist">⤴</span><h3>Backlink analytics</h3><p>See who links to you, who links to competitors, and where honest opportunities are.</p></div>
+            <div className="cap"><span className="cap-ico ico-mist">▤</span><h3>Rank tracker</h3><p>Watch your positions move as the weeks stack up.</p></div>
+            <div className="cap"><span className="cap-ico ico-lime">◈</span><h3>LLM visibility</h3><p>See how you show up where AI answers, not just where Google ranks.</p></div>
+            <div className="cap"><span className="cap-ico ico-cream">⇄</span><h3>Connections</h3><p>Link Search Console, Analytics, Business Profile, and YouTube so results get verified with your own data. WordPress drafting included, more destinations coming.</p></div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7 · WHO THIS IS FOR + PROBLEMS */}
+      <section id="who">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Who this is for</span>
+            <h2 className="display">
+              Built for the founder doing <em>everything.</em>
+            </h2>
+            <p>If you can give SEO twenty minutes a week, consistently, you&apos;re exactly who this was built for.</p>
+          </div>
+          <div className="persona-grid">
+            <div className="persona"><h3>The bootstrapped founder</h3><p>Every dollar counts. You need agency level strategy at a price that doesn&apos;t touch payroll.</p></div>
+            <div className="persona"><h3>The solo operator</h3><p>You wear ten hats. You need SEO to be one task at a time, not a second job.</p></div>
+            <div className="persona"><h3>The long term player</h3><p>You&apos;re building a real business. You need rankings that survive every update, not spikes that vanish.</p></div>
+          </div>
+          <div className="honest-note">
+            <b>Not for you</b> if you want overnight rankings or someone to do it all without you. SEO compounds through
+            your consistency, and Destiny is how you keep it.
+          </div>
+
+          <div className="prob-list">
+            <div className="prob-row"><div className="q">&quot;I don&apos;t know where to start.&quot;</div><div className="a"><b>One clearest next move,</b> always on top of your plan.</div></div>
+            <div className="prob-row"><div className="q">&quot;I don&apos;t have time.&quot;</div><div className="a"><b>Tasks sized to your week,</b> twenty minutes and up.</div></div>
+            <div className="prob-row"><div className="q">&quot;I published content and nothing happened.&quot;</div><div className="a"><b>Distribution built into every week,</b> so your work actually gets seen.</div></div>
+            <div className="prob-row"><div className="q">&quot;I can&apos;t tell good advice from gaslighting.&quot;</div><div className="a"><b>Fifteen years of practice</b> behind every recommendation, and nothing that risks a penalty.</div></div>
+            <div className="prob-row"><div className="q">&quot;I can&apos;t keep it up.&quot;</div><div className="a"><b>Streaks, a trimmable weekly plan,</b> and a visible record of everything you&apos;ve shipped.</div></div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8 · OUTCOMES */}
+      <section className="band">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Outcomes</span>
+            <h2 className="display">
+              What changes when you <em>stick with it.</em>
+            </h2>
+          </div>
+          <div className="timeline">
+            <div className="tl-card">
+              <div className="when">Week 1</div>
+              <h3>Your audit becomes a plan</h3>
+              <p>Your site&apos;s gaps are found, your strategy is drafted, and you make your first move.</p>
+            </div>
+            <div className="tl-card">
+              <div className="when">Month 1</div>
+              <h3>The fundamentals are moving</h3>
+              <p>Your biggest site issues are fixed, your keyword direction is approved, and your first articles are live and shared.</p>
+            </div>
+            <div className="tl-card">
+              <div className="when">Month 3</div>
+              <h3>A full cycle, complete</h3>
+              <p>Content published and distributed, listings and reviews growing, and your rank tracker showing what your consistency earned.</p>
+            </div>
+          </div>
+          <div className="verify-line">
+            <span className="verify">Verified by Destiny</span>
+            Every result verified against your own Search Console and Analytics, not our word for it. SEO takes months.
+            Destiny makes sure the months add up.
+          </div>
+        </div>
+      </section>
+
+      {/* 9 · TRUST */}
+      <section className="honest">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Why trust us</span>
+            <h2 className="display">
+              15 years of SEO. Zero <em>shortcuts.</em>
+            </h2>
+            <p>
+              Destiny was built by SEOs who&apos;ve done this through every Google update since 2010. No bought
+              backlinks, no tricks that get you penalized, no advice you&apos;ll have to undo. And it doesn&apos;t just
+              claim progress: your work gets verified against real data from your own Search Console and Analytics.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 10 · PRICING */}
+      <section id="plan">
+        <div className="wrap">
+          <div className="plan">
+            <div>
+              <div className="plan-label">Founding plan</div>
+              <div className="price">
+                $39.99<small>/month</small>
+              </div>
+            </div>
+            <div>
+              <h2>Everything an agency does. None of the retainers.</h2>
+              <p>
+                The full system: your three month strategy, your weekly plan, content creation, distribution, and every
+                tool included. Agencies charge $1,500 a month for less involvement than this.
+              </p>
+            </div>
+            <a className="btn btn-forest" href="/onboarding">Start getting found</a>
+          </div>
+        </div>
+      </section>
+
+      {/* 11 · CLOSER */}
+      <div className="closer">
+        <div className="wrap">
+          <h2 className="display">
+            Being found is the next thing you <em>build.</em>
+          </h2>
+        </div>
+      </div>
+
+      <footer>
+        <div className="wrap foot">
+          <span className="logo">
+            <span className="logo-mark" style={{ width: "22px", height: "22px", fontSize: "12px" }}>D</span>Destiny
+          </span>
+          <span>Expert SEO, made accessible to founders.</span>
+          <span className="right">Live SEO analysis connected · Google account and sending integrations require owner authorization.</span>
+        </div>
       </footer>
-    </main>
+    </div>
   );
 }
