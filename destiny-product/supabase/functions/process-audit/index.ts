@@ -189,7 +189,7 @@ export default {
           .update({
             title: readyNotification.title,
             body: readyNotification.body,
-            destination_path: `/audits/${auditId}`,
+            destination_path: "/this-week",
           })
           .eq("user_id", userId)
           .eq("kind", "audit_ready")

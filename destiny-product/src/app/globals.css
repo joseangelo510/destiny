@@ -1930,6 +1930,8 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 .weekly-loop-task-pane .weekly-task > summary { padding-top: 34px; position: relative; }
 .weekly-loop-empty { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 22px; }
 .weekly-loop-empty p { color: var(--muted); margin: 6px 0 0; }
+.weekly-full-audit-link { color: var(--forest); display: block; font-size: 13px; font-weight: 850; padding: 0 30px 24px; text-decoration: none; }
+.weekly-full-audit-link:hover { text-decoration: underline; }
 .weekly-focus-mode { background: radial-gradient(circle at 88% 10%, rgba(216, 241, 126, .2), transparent 26%), linear-gradient(145deg, #f4f8f5, #edf4f0); border-top: 1px solid var(--line); padding: clamp(25px, 4vw, 40px); }
 .weekly-focus-mode > header { align-items: center; display: grid; gap: 18px; grid-template-columns: 54px minmax(0, 1fr) auto; margin-bottom: 22px; }
 .weekly-focus-orbit { align-items: center; background: var(--lime); border: 5px solid #eaf5af; border-radius: 50%; box-shadow: 0 0 0 1px #8da998; color: var(--forest-dark); display: flex; font-size: 22px; height: 52px; justify-content: center; width: 52px; }
