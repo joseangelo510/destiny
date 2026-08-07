@@ -198,6 +198,22 @@ Replit. After publishing, set `NEXT_PUBLIC_SITE_URL` and Supabase's
 `DESTINY_SITE_URL` to the final HTTPS URL, then add that URL to Supabase Auth's
 allowed redirect URLs.
 
+### Manual-port guardrail
+
+GitHub `main` is the canonical source even when the Replit workspace has
+intentional platform-specific differences. Before every Replit publish, port
+the exact GitHub commit/diff, then run:
+
+```bash
+pnpm port:preflight
+```
+
+The command compares Replit's acknowledged `.port/PORT_MANIFEST.md` to the
+canonical GitHub `PORT_MANIFEST.md` and exits non-zero if an approved product
+decision has not been reviewed in the local workspace. Do not bypass a failed
+preflight by editing the local manifest alone: apply the canonical change,
+then copy the canonical manifest in the same deployment.
+
 ## Verification
 
 ```bash
