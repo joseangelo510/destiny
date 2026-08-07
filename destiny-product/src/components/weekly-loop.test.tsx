@@ -77,6 +77,8 @@ describe("WeeklyLoop", () => {
     expect((html.match(/Content creation/g) ?? [])).toHaveLength(1);
     expect((html.match(/Technical SEO/g) ?? [])).toHaveLength(1);
     expect(html).not.toContain("Data analysis");
+    expect(html).toContain("See full audit details");
+    expect(html).toContain('href="/audits/audit-1"');
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {

@@ -145,6 +145,8 @@ export function WeeklyLoop({
       </>}
     </section>
 
+    <a className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</a>
+
     <button className="weekly-plan-replay" onClick={() => setRevealOpen(true)} type="button"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>
 
     {revealOpen && <div className="weekly-plan-reveal-backdrop" role="presentation">
@@ -156,7 +158,6 @@ export function WeeklyLoop({
         <p>Destiny turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
         <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className="weekly-plan-reveal-start-here">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div>
         <button className="primary-button" onClick={startFromReveal} type="button">{focusTask ? `Start: ${focusTask.title}` : "See your first task"}</button>
-        <a className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</a>
       </section>
     </div>}
   </>;
