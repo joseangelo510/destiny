@@ -52,4 +52,13 @@ describe("distribution recommendations", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ platform: "Medium", audience: "Audience size needs verification" });
   });
+
+  it("labels government and EU institution results as official sources", () => {
+    const rows = creatorProspects([
+      { domain: "digital-strategy.ec.europa.eu", url: "https://digital-strategy.ec.europa.eu/policies/regulatory-framework-ai", title: "AI Act" },
+      { domain: "example.gov.uk", url: "https://example.gov.uk/guidance", title: "Guidance" },
+    ]);
+
+    expect(rows.map((row) => row.platform)).toEqual(["Official source", "Official source"]);
+  });
 });

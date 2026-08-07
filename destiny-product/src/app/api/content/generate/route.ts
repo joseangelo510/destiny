@@ -19,7 +19,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
-const ARTICLE_GENERATION_TIMEOUT_MS = 240_000;
+// Keep this below the production proxy's idle request ceiling so users receive
+// Destiny's retry-safe response instead of a generic gateway failure.
+const ARTICLE_GENERATION_TIMEOUT_MS = 165_000;
 
 type GenerateRequest = {
   keyword?: unknown;
@@ -111,7 +113,7 @@ export async function POST(request: Request) {
     const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
     return NextResponse.json({
       error: timedOut
-        ? "Article generation took longer than four minutes. Your starter outline is safe—try again when you are ready."
+        ? "Article generation took longer than expected. Your starter outline is safe—try again when you are ready."
         : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
       code: timedOut ? "ARTICLE_GENERATION_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
     }, { status: timedOut ? 504 : 502 });

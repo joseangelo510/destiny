@@ -92,12 +92,21 @@ export function isPaidPlan(planTier: string | null | undefined): boolean {
 
 const majorMedia = /(^|\.)(forbes|nytimes|foxnews|cnn|bbc|wsj|washingtonpost|businessinsider)\.(com|co\.uk)$/i;
 
+function publisherPlatform(domain: string): string {
+  if (domain === "europa.eu" || domain.endsWith(".europa.eu") || domain.endsWith(".gov") || /\.gov\.[a-z]{2}$/i.test(domain)) return "Official source";
+  if (domain.includes("medium.com")) return "Medium";
+  if (domain.includes("youtube.com")) return "YouTube";
+  if (domain.includes("linkedin.com")) return "LinkedIn";
+  if (domain.includes("instagram.com")) return "Instagram";
+  return "Independent blog";
+}
+
 export function creatorProspects(rows: Array<Record<string, unknown>>): CreatorProspect[] {
   return rows.flatMap((row) => {
     const domain = String(row.domain ?? "").replace(/^www\./, "").toLowerCase();
     const url = String(row.url ?? "");
     if (!domain || !url || majorMedia.test(domain)) return [];
-    const platform = domain.includes("medium.com") ? "Medium" : domain.includes("youtube.com") ? "YouTube" : domain.includes("linkedin.com") ? "LinkedIn" : domain.includes("instagram.com") ? "Instagram" : "Independent blog";
+    const platform = publisherPlatform(domain);
     return [{
       name: String(row.name ?? domain),
       domain,
