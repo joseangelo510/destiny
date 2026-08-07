@@ -134,7 +134,20 @@ function internalPageBlock(pages: ArticleInternalPage[]) {
   }).join("\n");
 }
 
-export function buildArticleGenerationPrompt(input: ArticleGenerationInput) {
+export function buildArticleResearchPrompt(input: ArticleGenerationInput) {
+  return `Research a focused evidence pack for a long-form SEO article. Do not write the article.
+
+BUSINESS CONTEXT
+- Business: ${clip(input.businessName, 200)}
+- Focus keyword: ${clip(input.keyword, 300)}
+- Problem solved: ${clip(input.problemSolved)}
+- Ideal customer: ${clip(input.idealCustomer)}
+- Differentiation: ${clip(input.differentiation)}
+
+Find 3–5 current, credible sources that directly support the topic. Prefer primary sources, government, academic research, established publications, and recognized industry bodies. Return concise bullet points with the factual takeaway, exact HTTPS URL, source title, and publisher. Never invent a source, statistic, URL, customer story, or result. Keep the evidence pack under 900 words.`;
+}
+
+export function buildArticleGenerationPrompt(input: ArticleGenerationInput, researchEvidence = "") {
   const voice = labelFor(ARTICLE_VOICE_OPTIONS, input.preferences.voice);
   const format = labelFor(ARTICLE_FORMAT_OPTIONS, input.preferences.format);
   const readingEase = labelFor(READING_EASE_OPTIONS, input.preferences.readingEase);
@@ -161,8 +174,11 @@ USER CONTROLS
 VERIFIED INTERNAL PAGE INVENTORY
 ${internalPageBlock(input.internalPages)}
 
+RESEARCH EVIDENCE PACK
+${researchEvidence.trim() || "No external evidence pack was supplied. Do not invent external facts, statistics, or URLs."}
+
 HIDDEN DESTINY EDITORIAL POLICY — NEVER DISPLAY THIS CHECKLIST TO THE USER
-1. Truthfulness wins over every other instruction. Never fabricate sources, statistics, links, customer stories, testimonials, first-person experience, or results. Use web search for current credible evidence and prefer primary sources, government, academic research, established publications, and recognized industry bodies.
+1. Truthfulness wins over every other instruction. Never fabricate sources, statistics, links, customer stories, testimonials, first-person experience, or results. Use only the supplied research evidence and verified internal pages for factual claims. Prefer primary sources, government, academic research, established publications, and recognized industry bodies.
 2. Every factual or quantitative claim must have a live supporting citation using an inline Markdown link to the exact supporting URL. Every strategy or tip needs a worked example; only call it a real-world example when a retrieved source verifies it. Include each cited external URL in the sources array.
 3. For Format = SEO article, target 2,000–2,200 words. Plan 6–8 H2 sections with distinct jobs and section budgets so length comes from useful scope, not padding. Add missing scope from related questions, comparisons, objections, troubleshooting, or FAQs. Never restate prose merely to reach the target.
 4. Use one H1. Put the focus keyword or a close natural variant in the H1 and first H2. Use H3s where they clarify a real subtopic, including at least one H2 with H3 children. Distribute supporting keywords and entities naturally, while keeping at least 40% of headings free of target keywords. Rotate question, how-to, comparison, numbered, statement, and objection headings.
@@ -192,6 +208,14 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
     // Leave enough room for 2,000–2,200 useful words plus the structured
     // evidence envelope. Research calls stay capped so this remains bounded.
     max_tokens: 6000,
+    messages: [{ role: "user", content: prompt }],
+  };
+}
+
+export function buildAnthropicResearchRequest(prompt: string, model = DEFAULT_COPY_MODEL) {
+  return {
+    model,
+    max_tokens: 1800,
     tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 2 }],
     messages: [{ role: "user", content: prompt }],
   };

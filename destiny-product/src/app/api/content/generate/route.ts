@@ -6,7 +6,9 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
+  buildAnthropicResearchRequest,
   buildArticleGenerationPrompt,
+  buildArticleResearchPrompt,
   parseGeneratedArticlePayload,
   validateGeneratedArticle,
   type ArticleFormat,
@@ -19,7 +21,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
-const ARTICLE_GENERATION_TIMEOUT_MS = 240_000;
+const ARTICLE_RESEARCH_TIMEOUT_MS = 75_000;
+const ARTICLE_WRITING_TIMEOUT_MS = 165_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 const ARTICLE_GENERATION_KEEPALIVE_CHUNK = " ".repeat(2048);
 
@@ -96,8 +99,36 @@ export async function POST(request: Request) {
   }
 
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
-  const prompt = buildArticleGenerationPrompt(input);
   const generatePayload = async () => {
+    let researchResponse: Response;
+    try {
+      researchResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify(buildAnthropicResearchRequest(buildArticleResearchPrompt(input), model)),
+        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_RESEARCH_TIMEOUT_MS), request.signal]),
+      });
+    } catch (cause) {
+      const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
+      return {
+        error: timedOut
+          ? "Article research took longer than expected. Your starter outline is safe—try again when you are ready."
+          : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
+        code: timedOut ? "ARTICLE_GENERATION_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+      };
+    }
+
+    const researchPayload = await researchResponse.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
+    if (!researchResponse.ok) return { error: researchPayload.error?.message || `Claude research returned HTTP ${researchResponse.status}.`, code: "ANTHROPIC_RESEARCH_ERROR" };
+    const researchEvidence = (researchPayload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n").trim();
+    if (!researchEvidence || researchPayload.stop_reason === "max_tokens") {
+      return { error: "Claude could not finish the evidence check. Your starter outline is safe—try again.", code: "ARTICLE_RESEARCH_INCOMPLETE" };
+    }
+
     let response: Response;
     try {
       response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -107,21 +138,21 @@ export async function POST(request: Request) {
           "x-api-key": apiKey,
           "anthropic-version": "2023-06-01",
         },
-        body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
-        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_GENERATION_TIMEOUT_MS), request.signal]),
+        body: JSON.stringify(buildAnthropicArticleRequest(buildArticleGenerationPrompt(input, researchEvidence), model)),
+        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_WRITING_TIMEOUT_MS), request.signal]),
       });
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article generation took longer than expected. Your starter outline is safe—try again when you are ready."
+          ? "Article writing took longer than expected. Your researched starter outline is safe—try again when you are ready."
           : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
-        code: timedOut ? "ARTICLE_GENERATION_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+        code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
       };
     }
 
     const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
-    if (!response.ok) return { error: payload.error?.message || `Claude returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
+    if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
 
     try {
       const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");

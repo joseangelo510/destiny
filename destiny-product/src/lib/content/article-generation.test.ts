@@ -4,7 +4,9 @@ import {
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
   buildAnthropicArticleRequest,
+  buildAnthropicResearchRequest,
   buildArticleGenerationPrompt,
+  buildArticleResearchPrompt,
   renderInfographicSvg,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
@@ -84,12 +86,25 @@ describe("Destiny article generation policy", () => {
     expect(prompt).not.toContain("write like Neil Patel");
   });
 
-  it("configures Sonnet 4.6 with server-side web research instead of asking the model to invent sources", () => {
-    const request = buildAnthropicArticleRequest("Research and write the article.", "claude-sonnet-4-6");
+  it("separates bounded web research from the long-form writing request", () => {
+    const researchPrompt = buildArticleResearchPrompt({
+      keyword: "seo content strategy",
+      businessName: "Destiny",
+      problemSolved: "Founders need a repeatable organic growth system.",
+      idealCustomer: "Founder-led businesses",
+      differentiation: "Evidence-first coaching",
+      internalPages: [],
+      preferences: DEFAULT_ARTICLE_PREFERENCES,
+    });
+    const researchRequest = buildAnthropicResearchRequest(researchPrompt, "claude-sonnet-4-6");
+    expect(researchRequest.max_tokens).toBe(1800);
+    expect(researchRequest.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 2 }]);
+
+    const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-sonnet-4-6");
     expect(request.model).toBe("claude-sonnet-4-6");
     expect(request.max_tokens).toBe(6000);
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 2 }]);
-    expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
+    expect(request).not.toHaveProperty("tools");
+    expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
   });
 
   it("accepts a substantive SEO article and rejects short or stock-phrase drafts", async () => {
