@@ -4,9 +4,8 @@ import {
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
   buildAnthropicArticleRequest,
-  buildAnthropicResearchRequest,
   buildArticleGenerationPrompt,
-  buildArticleResearchPrompt,
+  buildSearchEvidencePack,
   renderInfographicSvg,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
@@ -86,20 +85,18 @@ describe("Destiny article generation policy", () => {
     expect(prompt).not.toContain("write like Neil Patel");
   });
 
-  it("separates bounded web research from the long-form writing request", () => {
-    const researchPrompt = buildArticleResearchPrompt({
-      keyword: "seo content strategy",
-      businessName: "Destiny",
-      problemSolved: "Founders need a repeatable organic growth system.",
-      idealCustomer: "Founder-led businesses",
-      differentiation: "Evidence-first coaching",
-      internalPages: [],
-      preferences: DEFAULT_ARTICLE_PREFERENCES,
+  it("builds a deterministic DataForSEO evidence pack before the tool-free writing request", () => {
+    const evidence = buildSearchEvidencePack({
+      status_code: 20000,
+      tasks: [{ status_code: 20000, result: [{ items: [1, 2, 3].map((index) => ({
+        type: "organic",
+        title: `Verified source ${index}`,
+        url: `https://example${index}.gov/guidance`,
+        description: `Evidence summary ${index}`,
+      })) }] }],
     });
-    const researchRequest = buildAnthropicResearchRequest(researchPrompt, "claude-sonnet-4-6");
-    expect(researchRequest.max_tokens).toBe(1800);
-    expect(researchRequest.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 2 }]);
-
+    expect(evidence).toContain("https://example1.gov/guidance");
+    expect(evidence).toContain("Evidence summary 3");
     const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-sonnet-4-6");
     expect(request.model).toBe("claude-sonnet-4-6");
     expect(request.max_tokens).toBe(6000);

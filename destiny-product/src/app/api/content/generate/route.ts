@@ -6,9 +6,8 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
-  buildAnthropicResearchRequest,
   buildArticleGenerationPrompt,
-  buildArticleResearchPrompt,
+  buildSearchEvidencePack,
   parseGeneratedArticlePayload,
   validateGeneratedArticle,
   type ArticleFormat,
@@ -21,8 +20,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
-const ARTICLE_RESEARCH_TIMEOUT_MS = 75_000;
-const ARTICLE_WRITING_TIMEOUT_MS = 165_000;
+const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
+const ARTICLE_WRITING_TIMEOUT_MS = 205_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 const ARTICLE_GENERATION_KEEPALIVE_CHUNK = " ".repeat(2048);
 
@@ -98,36 +97,44 @@ export async function POST(request: Request) {
     }, { status: 503 });
   }
 
+  const dataForSeoLogin = process.env.DATAFORSEO_LOGIN?.trim();
+  const dataForSeoPassword = process.env.DATAFORSEO_PASSWORD?.trim();
+  if (!dataForSeoLogin || !dataForSeoPassword) {
+    return NextResponse.json({
+      error: "Article evidence search is not configured yet. Add the server-side DataForSEO credentials before generating a researched article.",
+      code: "ARTICLE_EVIDENCE_NOT_CONFIGURED",
+    }, { status: 503 });
+  }
+
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   const generatePayload = async () => {
     let researchResponse: Response;
     try {
-      researchResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      researchResponse = await fetch("https://api.dataforseo.com/v3/serp/google/organic/live/advanced", {
         method: "POST",
         headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+          Authorization: `Basic ${Buffer.from(`${dataForSeoLogin}:${dataForSeoPassword}`).toString("base64")}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(buildAnthropicResearchRequest(buildArticleResearchPrompt(input), model)),
-        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_RESEARCH_TIMEOUT_MS), request.signal]),
+        body: JSON.stringify([{ keyword: input.keyword, location_name: "United States", language_code: "en", depth: 20 }]),
+        cache: "no-store",
+        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_EVIDENCE_TIMEOUT_MS), request.signal]),
       });
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article research took longer than expected. Your starter outline is safe—try again when you are ready."
-          : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
-        code: timedOut ? "ARTICLE_GENERATION_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+          ? "Article evidence search took longer than expected. Your starter outline is safe—try again when you are ready."
+          : "The evidence search could not be reached. Your starter outline is safe—try again in a moment.",
+        code: timedOut ? "ARTICLE_EVIDENCE_TIMEOUT" : "ARTICLE_EVIDENCE_UNAVAILABLE",
       };
     }
 
-    const researchPayload = await researchResponse.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
-    if (!researchResponse.ok) return { error: researchPayload.error?.message || `Claude research returned HTTP ${researchResponse.status}.`, code: "ANTHROPIC_RESEARCH_ERROR" };
-    const researchEvidence = (researchPayload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n").trim();
-    if (!researchEvidence || researchPayload.stop_reason === "max_tokens") {
-      return { error: "Claude could not finish the evidence check. Your starter outline is safe—try again.", code: "ARTICLE_RESEARCH_INCOMPLETE" };
-    }
+    const researchPayload = await researchResponse.json().catch(() => ({}));
+    if (!researchResponse.ok) return { error: `DataForSEO evidence search returned HTTP ${researchResponse.status}.`, code: "ARTICLE_EVIDENCE_ERROR" };
+    let researchEvidence = "";
+    try { researchEvidence = buildSearchEvidencePack(researchPayload); }
+    catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
     let response: Response;
     try {

@@ -134,19 +134,6 @@ function internalPageBlock(pages: ArticleInternalPage[]) {
   }).join("\n");
 }
 
-export function buildArticleResearchPrompt(input: ArticleGenerationInput) {
-  return `Research a focused evidence pack for a long-form SEO article. Do not write the article.
-
-BUSINESS CONTEXT
-- Business: ${clip(input.businessName, 200)}
-- Focus keyword: ${clip(input.keyword, 300)}
-- Problem solved: ${clip(input.problemSolved)}
-- Ideal customer: ${clip(input.idealCustomer)}
-- Differentiation: ${clip(input.differentiation)}
-
-Find 3–5 current, credible sources that directly support the topic. Prefer primary sources, government, academic research, established publications, and recognized industry bodies. Return concise bullet points with the factual takeaway, exact HTTPS URL, source title, and publisher. Never invent a source, statistic, URL, customer story, or result. Keep the evidence pack under 900 words.`;
-}
-
 export function buildArticleGenerationPrompt(input: ArticleGenerationInput, researchEvidence = "") {
   const voice = labelFor(ARTICLE_VOICE_OPTIONS, input.preferences.voice);
   const format = labelFor(ARTICLE_FORMAT_OPTIONS, input.preferences.format);
@@ -212,13 +199,36 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
   };
 }
 
-export function buildAnthropicResearchRequest(prompt: string, model = DEFAULT_COPY_MODEL) {
-  return {
-    model,
-    max_tokens: 1800,
-    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 2 }],
-    messages: [{ role: "user", content: prompt }],
-  };
+function evidenceRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function evidenceArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function evidenceText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function buildSearchEvidencePack(payload: unknown, limit = 5) {
+  const root = evidenceRecord(payload);
+  const task = evidenceRecord(evidenceArray(root.tasks)[0]);
+  if (Number(root.status_code) !== 20000 || Number(task.status_code) !== 20000) {
+    throw new Error(evidenceText(task.status_message) || evidenceText(root.status_message) || "DataForSEO evidence search failed.");
+  }
+  const result = evidenceRecord(evidenceArray(task.result)[0]);
+  const sources = evidenceArray(result.items).map(evidenceRecord).flatMap((item) => {
+    const url = evidenceText(item.url);
+    const title = evidenceText(item.title);
+    const description = evidenceText(item.description);
+    if (item.type !== "organic" || !title || !/^https:\/\//i.test(url)) return [];
+    let publisher = "";
+    try { publisher = new URL(url).hostname.replace(/^www\./, ""); } catch { /* URL was already validated above. */ }
+    return [{ title, url, publisher, description }];
+  }).slice(0, Math.max(1, limit));
+  if (sources.length < 3) throw new Error("DataForSEO did not return enough credible sources for this article yet.");
+  return sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}\nPublisher: ${source.publisher}\nSearch evidence: ${source.description || "Use the source title and URL only; do not infer unsupported facts."}`).join("\n\n");
 }
 
 export function markdownWordCount(markdown: string) {
