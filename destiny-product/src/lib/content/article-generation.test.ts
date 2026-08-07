@@ -4,6 +4,7 @@ import {
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
   buildAnthropicArticleRequest,
+  buildAnthropicArticleContinuationRequest,
   buildArticleEvidencePack,
   buildArticleGenerationPrompt,
   renderInfographicSvg,
@@ -118,6 +119,18 @@ describe("Destiny article generation policy", () => {
     expect(request.model).toBe("claude-opus-4-8");
     expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
     expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
+  });
+
+  it("continues a paused server-side research turn with the exact provider blocks", () => {
+    const pausedContent = [{ type: "server_tool_use", id: "toolu_1", name: "web_search", input: { query: "SEO evidence" } }];
+    const request = buildAnthropicArticleContinuationRequest("Research and write the article.", pausedContent, "claude-opus-4-8");
+
+    expect(request.model).toBe("claude-opus-4-8");
+    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
+    expect(request.messages).toEqual([
+      { role: "user", content: "Research and write the article." },
+      { role: "assistant", content: pausedContent },
+    ]);
   });
 
   it("accepts a substantive SEO article and rejects short or stock-phrase drafts", async () => {

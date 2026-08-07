@@ -198,6 +198,25 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
   };
 }
 
+/**
+ * Anthropic can pause a server-side web-search turn while it finishes research.
+ * Continuing with the exact returned blocks lets the provider resume that one
+ * turn instead of treating a still-valid draft as an empty response.
+ */
+export function buildAnthropicArticleContinuationRequest(
+  prompt: string,
+  priorContent: unknown,
+  model = DEFAULT_COPY_MODEL,
+) {
+  return {
+    ...buildAnthropicArticleRequest(prompt, model),
+    messages: [
+      { role: "user", content: prompt },
+      { role: "assistant", content: priorContent },
+    ],
+  };
+}
+
 function evidenceRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }

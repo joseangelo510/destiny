@@ -6,6 +6,7 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
+  buildAnthropicArticleContinuationRequest,
   buildArticleEvidencePack,
   buildArticleGenerationPrompt,
   parseGeneratedArticlePayload,
@@ -34,6 +35,14 @@ type GenerateRequest = {
   internalPages?: unknown;
   preferences?: unknown;
 };
+
+type AnthropicPayload = {
+  content?: Array<{ type?: unknown; text?: unknown; [key: string]: unknown }>;
+  error?: { message?: string };
+  stop_reason?: string;
+};
+
+const MAX_ARTICLE_RESEARCH_CONTINUATIONS = 2;
 
 function text(value: unknown, maximum: number) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -124,19 +133,23 @@ export async function POST(request: Request) {
     try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
     catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
+    const prompt = buildArticleGenerationPrompt(input, researchEvidence);
+    const writingDeadline = AbortSignal.timeout(ARTICLE_WRITING_TIMEOUT_MS);
+    const writeArticle = (payload: unknown) => fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.any([writingDeadline, request.signal]),
+    });
+
     let response: Response;
     try {
       onPhase("writing");
-      response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify(buildAnthropicArticleRequest(buildArticleGenerationPrompt(input, researchEvidence), model)),
-        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_WRITING_TIMEOUT_MS), request.signal]),
-      });
+      response = await writeArticle(buildAnthropicArticleRequest(prompt, model));
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
@@ -147,10 +160,29 @@ export async function POST(request: Request) {
       };
     }
 
-    const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
+    let payload = await response.json().catch(() => ({})) as AnthropicPayload;
     if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
 
     try {
+      for (let continuation = 0; payload.stop_reason === "pause_turn" && continuation < MAX_ARTICLE_RESEARCH_CONTINUATIONS; continuation += 1) {
+        if (!Array.isArray(payload.content) || payload.content.length === 0) throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
+        response = await writeArticle(buildAnthropicArticleContinuationRequest(prompt, payload.content, model));
+        payload = await response.json().catch(() => ({})) as AnthropicPayload;
+        if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
+      }
+    } catch (cause) {
+      const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
+      return {
+        error: timedOut
+          ? "Article research took longer than expected. Your brief is safe—try again when you are ready."
+          : "The article service could not finish its research. Your brief is safe—try again in a moment.",
+        code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+      };
+    }
+
+    try {
+      if (payload.stop_reason === "pause_turn") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
+      if (payload.stop_reason === "refusal") throw new Error("ARTICLE_RESPONSE_REFUSED");
       const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
       if (payload.stop_reason === "max_tokens") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
       const article = parseGeneratedArticlePayload(rawText);
