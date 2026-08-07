@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -9,6 +9,7 @@ type ResearchRequest = {
   target?: unknown;
   topics?: unknown;
   excludeDomains?: unknown;
+  keyword?: unknown;
 };
 
 function json(data: unknown, status = 200) {
@@ -112,7 +113,17 @@ export default {
         });
       }
 
-      return json({ error: "Select keyword, backlink, or creator research." }, 400);
+      if (body.kind === "article_evidence") {
+        const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 200) : "";
+        if (keyword.length < 2) return json({ error: "Choose a focus keyword before researching article evidence." }, 400);
+        const location = typeof body.locationName === "string" && body.locationName.trim() ? body.locationName.trim() : "United States";
+        const payload = await providerPost("/v3/serp/google/organic/live/advanced", [{ keyword, location_name: location, language_code: "en", depth: 20 }], login, password);
+        const rows = parseArticleEvidence(payload, 5);
+        if (rows.length < 3) return json({ error: "DataForSEO did not return enough credible sources for this article yet." }, 502);
+        return json({ sourceLabel: "Live DataForSEO article evidence", updatedAt: new Date().toISOString(), keyword, location, rows });
+      }
+
+      return json({ error: "Select keyword, backlink, creator, or article evidence research." }, 400);
     } catch (cause) {
       return json({ error: cause instanceof Error ? cause.message : "Destiny could not complete live SEO research." }, 502);
     }

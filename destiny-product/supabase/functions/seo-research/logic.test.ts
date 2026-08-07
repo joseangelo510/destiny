@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { creatorSearchRequests, organicHistoryWindowStart, parseCreatorSearchResults, parseOrganicPerformance } from "./logic";
+import { creatorSearchRequests, organicHistoryWindowStart, parseArticleEvidence, parseCreatorSearchResults, parseOrganicPerformance } from "./logic";
 
 const successfulPayload = (items: unknown[]) => ({
   status_code: 20000,
@@ -60,5 +60,19 @@ describe("creator discovery", () => {
       expect.objectContaining({ platform: "YouTube", audienceEstimate: null, audienceVerification: "required" }),
       expect.objectContaining({ platform: "Independent blog", domain: "localmovingwriter.example", audienceEstimate: null }),
     ]);
+  });
+});
+
+describe("article evidence", () => {
+  it("returns bounded, deduplicated organic sources with exact HTTPS URLs", () => {
+    const rows = parseArticleEvidence(successfulPayload([
+      { type: "organic", title: "Official guidance", url: "https://commission.europa.eu/guidance", description: "Article 50 guidance" },
+      { type: "organic", title: "Duplicate", url: "https://commission.europa.eu/guidance", description: "Duplicate" },
+      { type: "people_also_ask", title: "Not a source", url: "https://example.com/question" },
+      { type: "organic", title: "Regulation", url: "https://eur-lex.europa.eu/legal-content", description: "Primary law" },
+      { type: "organic", title: "Implementation notes", url: "https://digital-strategy.ec.europa.eu/policies", description: "Implementation context" },
+    ]));
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toEqual(expect.objectContaining({ publisher: "commission.europa.eu", url: "https://commission.europa.eu/guidance" }));
   });
 });

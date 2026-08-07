@@ -199,3 +199,19 @@ export function parseCreatorSearchResults(payload: unknown, excludedDomains: str
     });
   }).slice(0, 25);
 }
+
+export function parseArticleEvidence(payload: unknown, limit = 5) {
+  const result = firstResult(payload);
+  const seen = new Set<string>();
+  return array(result.items).flatMap((itemValue) => {
+    const item = record(itemValue);
+    if (string(item.type) !== "organic") return [];
+    const title = string(item.title).trim();
+    const url = string(item.url).trim();
+    if (!title || !/^https:\/\//i.test(url) || seen.has(url)) return [];
+    let publisher = "";
+    try { publisher = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
+    seen.add(url);
+    return [{ title, url, publisher, description: string(item.description).trim() }];
+  }).slice(0, Math.max(1, limit));
+}

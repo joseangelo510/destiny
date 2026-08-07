@@ -6,8 +6,8 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
+  buildArticleEvidencePack,
   buildArticleGenerationPrompt,
-  buildSearchEvidencePack,
   parseGeneratedArticlePayload,
   validateGeneratedArticle,
   type ArticleFormat,
@@ -97,29 +97,17 @@ export async function POST(request: Request) {
     }, { status: 503 });
   }
 
-  const dataForSeoLogin = process.env.DATAFORSEO_LOGIN?.trim();
-  const dataForSeoPassword = process.env.DATAFORSEO_PASSWORD?.trim();
-  if (!dataForSeoLogin || !dataForSeoPassword) {
-    return NextResponse.json({
-      error: "Article evidence search is not configured yet. Add the server-side DataForSEO credentials before generating a researched article.",
-      code: "ARTICLE_EVIDENCE_NOT_CONFIGURED",
-    }, { status: 503 });
-  }
-
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   const generatePayload = async () => {
-    let researchResponse: Response;
+    let researchData: unknown;
+    let evidenceTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
-      researchResponse = await fetch("https://api.dataforseo.com/v3/serp/google/organic/live/advanced", {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${dataForSeoLogin}:${dataForSeoPassword}`).toString("base64")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([{ keyword: input.keyword, location_name: "United States", language_code: "en", depth: 20 }]),
-        cache: "no-store",
-        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_EVIDENCE_TIMEOUT_MS), request.signal]),
-      });
+      const result = await Promise.race([
+        supabase.functions.invoke("seo-research", { body: { kind: "article_evidence", keyword: input.keyword, locationName: "United States" } }),
+        new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
+      ]);
+      if (result.error || !result.data) throw new Error(result.error?.message || "Destiny could not retrieve article evidence.");
+      researchData = result.data;
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
@@ -128,12 +116,12 @@ export async function POST(request: Request) {
           : "The evidence search could not be reached. Your starter outline is safe—try again in a moment.",
         code: timedOut ? "ARTICLE_EVIDENCE_TIMEOUT" : "ARTICLE_EVIDENCE_UNAVAILABLE",
       };
+    } finally {
+      if (evidenceTimeout) clearTimeout(evidenceTimeout);
     }
 
-    const researchPayload = await researchResponse.json().catch(() => ({}));
-    if (!researchResponse.ok) return { error: `DataForSEO evidence search returned HTTP ${researchResponse.status}.`, code: "ARTICLE_EVIDENCE_ERROR" };
     let researchEvidence = "";
-    try { researchEvidence = buildSearchEvidencePack(researchPayload); }
+    try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
     catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
     let response: Response;

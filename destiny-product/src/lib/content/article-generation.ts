@@ -226,6 +226,16 @@ export function buildSearchEvidencePack(payload: unknown, limit = 5) {
     let publisher = "";
     try { publisher = new URL(url).hostname.replace(/^www\./, ""); } catch { /* URL was already validated above. */ }
     return [{ title, url, publisher, description }];
+  });
+  return buildArticleEvidencePack(sources, limit);
+}
+
+export function buildArticleEvidencePack(value: unknown, limit = 5) {
+  const sources = evidenceArray(value).map(evidenceRecord).flatMap((source) => {
+    const url = evidenceText(source.url);
+    const title = evidenceText(source.title);
+    if (!title || !/^https:\/\//i.test(url)) return [];
+    return [{ title, url, publisher: evidenceText(source.publisher), description: evidenceText(source.description) }];
   }).slice(0, Math.max(1, limit));
   if (sources.length < 3) throw new Error("DataForSEO did not return enough credible sources for this article yet.");
   return sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}\nPublisher: ${source.publisher}\nSearch evidence: ${source.description || "Use the source title and URL only; do not infer unsupported facts."}`).join("\n\n");
