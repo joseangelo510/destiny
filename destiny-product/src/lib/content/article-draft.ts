@@ -67,7 +67,6 @@ export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const difference = (input.differentiation.trim() || "practical experience and a clear point of view").replace(/[.!?]+$/, "");
   const metaDescriptions = [
     fitMetaDescription(`A practical ${keyword} guide for ${audience}, with key questions, tradeoffs, useful proof, and a clear next step.`),
-    fitMetaDescription(`Learn how to approach ${keyword} with credible evidence, a worked example, and practical advice for ${audience}.`),
   ];
   const body = `# ${titleKeyword}: A Practical Guide
 
@@ -121,7 +120,7 @@ Review this draft for accuracy, add a real example from your experience, and rep
     generationStatus: "starter",
     qualityIssues: [{ code: "generation_required", message: "This is a starter outline. Generate the full SEO article before approval." }],
     optimization: [
-      { label: "Starter outline", detail: "Generate the evidence-backed 2,000–3,000-word article before approval." },
+      { label: "Starter outline", detail: "Generate the evidence-backed 2,000–2,200-word article before approval." },
       { label: "Focus keyword", detail: `Use “${keyword}” naturally in the title, introduction, and varied subheadings.` },
       { label: "Human proof", detail: "Add one customer example, firsthand lesson, or result before publishing." },
       { label: "Conversion", detail: "End with one clear next step that matches the reader’s intent." },

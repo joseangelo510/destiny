@@ -27,10 +27,7 @@ function validLongFormPayload(): GeneratedArticlePayload {
   });
   return {
     title: "SEO Content Strategy: A Practical Growth Guide",
-    metaDescriptions: [
-      "Build an SEO content strategy with credible research, useful examples, and a clear publishing plan.",
-      "Learn how an SEO content strategy connects search intent, original insight, and measurable business growth.",
-    ],
+    metaDescriptions: ["Build an SEO content strategy with credible research, useful examples, and a clear publishing plan."],
     bodyMarkdown: ["# SEO Content Strategy: A Practical Growth Guide", "", ...paragraphs].join("\n"),
     bucketBrigades: sections.map((_, index) => ({ text: `So what should you do with section ${index + 1}?`, afterWord: 100 + index * 330 })),
     sources: [1, 2, 3].map((index) => ({

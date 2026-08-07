@@ -173,7 +173,7 @@ HIDDEN DESTINY EDITORIAL POLICY — NEVER DISPLAY THIS CHECKLIST TO THE USER
 6. Use 4–9 contextual bucket brigades across a long SEO article, roughly one per H2 section and about one per 300 words. Put one within the first 150 words. Keep brigades at least 100 words apart. Each bridge must reference the adjacent idea; never copy a stock phrase.
 7. Open with a strong hook: a verified statistic, metaphor, brief story, defensible strong opinion, or short properly attributed quote. If research does not support a numeric hook, use a non-numeric hook.
 8. Use occasional bullets and bold or italic emphasis. Keep every paragraph to four sentences or fewer. Include at least three verified internal links from the inventory and at least two relevant CTAs.
-9. Supply two meta-description options of 150 characters or fewer, each using the focus keyword or a close supporting phrase. Write accessibility-first alt text that states the graphic's actual takeaway; include keywords only when they are naturally descriptive.
+9. Supply exactly one meta description of 150 characters or fewer using the focus keyword or a close supporting phrase. Write accessibility-first alt text that states the graphic's actual takeaway; include keywords only when they are naturally descriptive.
 10. ${infographicRule}
 11. Use 0–2 genuinely helpful, API-verifiable YouTube references when available. A forced irrelevant video is worse than no video.
 12. Finish with an answer-first summary, useful FAQ coverage, and a clear next action. Preserve the customer's own voice and never manufacture first-person experience.
@@ -181,7 +181,7 @@ HIDDEN DESTINY EDITORIAL POLICY — NEVER DISPLAY THIS CHECKLIST TO THE USER
 Return one JSON object only with this shape:
 {
   "title": "...",
-  "metaDescriptions": ["...", "..."],
+  "metaDescriptions": ["..."],
   "bodyMarkdown": "# ...",
   "bucketBrigades": [{"text":"...","afterWord":120}],
   "sources": [{"id":"source-1","title":"...","url":"https://...","publisher":"..."}],
@@ -204,7 +204,7 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
           required: ["title", "metaDescriptions", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
           properties: {
             title: { type: "string" },
-            metaDescriptions: { type: "array", minItems: 1, maxItems: 2, items: { type: "string" } },
+            metaDescriptions: { type: "array", minItems: 1, maxItems: 1, items: { type: "string" } },
             bodyMarkdown: { type: "string" },
             bucketBrigades: {
               type: "array",
@@ -353,7 +353,7 @@ export function articleQualityIssuesFromPolicy(policy: Pick<DestinyLogicResult, 
   if (policy.articleBrigadeIssue) issues.push({ code: "brigade_count", message: `Use ${format === "seo_article" ? "4–9" : "1–6"} contextual transitions for this format.` });
   if (policy.articleBrigadeSpacingIssue) issues.push({ code: "brigade_spacing", message: "Place the first bridge early and keep later bridges at least 100 words apart." });
   if (policy.articleStockIssue) issues.push({ code: "stock_phrase", message: "Replace stock bucket-brigade or AI phrases with a transition tied to the local point." });
-  if (policy.articleMetaIssue) issues.push({ code: "meta_descriptions", message: "Supply exactly two meta descriptions of 150 characters or fewer." });
+  if (facts.metaCount !== 1 || facts.metaOverlength > 0) issues.push({ code: "meta_descriptions", message: "Supply exactly one meta description of 150 characters or fewer." });
   if (policy.articleSourceIssue) issues.push({ code: "source_coverage", message: `Use at least ${format === "seo_article" ? 3 : 1} verified sources and cite each one inline where it supports a claim.` });
   return issues;
 }

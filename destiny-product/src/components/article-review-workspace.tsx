@@ -37,7 +37,7 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
     ? saved.generationStatus
     : fallback.generationStatus;
   const metaDescriptions = Array.isArray(saved.metaDescriptions) && saved.metaDescriptions.length
-    ? saved.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 2).map(fitMetaDescription)
+    ? saved.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 1).map(fitMetaDescription)
     : fallback.metaDescriptions;
   return {
     ...fallback,
@@ -159,7 +159,7 @@ export function ArticleReviewWorkspace({
   const updateMetaDescription = (index: number, value: string) => {
     updateDraft((current) => {
       const metaDescriptions = [...current.metaDescriptions];
-      while (metaDescriptions.length < 2) metaDescriptions.push("");
+      while (metaDescriptions.length < 1) metaDescriptions.push("");
       metaDescriptions[index] = value;
       return { ...current, metaDescriptions, metaDescription: metaDescriptions[0], approved: false };
     });
@@ -289,7 +289,7 @@ export function ArticleReviewWorkspace({
       <div className="article-draft-divider"><span>{draft.generationStatus === "generated" ? "Generated article" : "Editable starter outline"}</span><strong>{wordCount.toLocaleString()} words</strong></div>
       <label>SEO title<input value={draft.title} onChange={(event) => updateText("title", event.target.value)} /></label>
       <div className="article-meta-grid">
-        {[0, 1].map((index) => <label key={index}>Meta description {index + 1}<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? ""} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? "").length}/150 characters</small></label>)}
+        {[0].map((index) => <label key={index}>Meta description<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? ""} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? "").length}/150 characters</small></label>)}
       </div>
       <label>Article draft<textarea className="article-body-editor" rows={32} value={draft.body} onChange={(event) => updateText("body", event.target.value)} /></label>
 
