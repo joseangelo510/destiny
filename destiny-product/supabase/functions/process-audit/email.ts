@@ -79,7 +79,7 @@ export async function sendAuditReadyEmail(input: AuditReadyEmailInput): Promise<
     return { status: "skipped", reason: "The profile does not contain a valid contact email." };
   }
 
-  const resultsUrl = `${siteUrl}/audits/${encodeURIComponent(input.auditId)}`;
+  const weeklyPlanUrl = `${siteUrl}/this-week`;
   const greeting = input.firstName.trim() ? `Hi ${escapeHtml(input.firstName.trim())},` : "Hi,";
   const domain = escapeHtml(input.domain);
   const quest = escapeHtml(input.weeklyQuest);
@@ -90,8 +90,8 @@ export async function sendAuditReadyEmail(input: AuditReadyEmailInput): Promise<
     to: input.recipient,
     subject: `Your Destiny audit for ${input.domain} is ready`,
     idempotencyKey: `destiny-audit-ready-${input.auditId}`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Your Destiny audit is ready.</h1><p>We analyzed <strong>${domain}</strong> and selected one clear action to begin improving your search visibility.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><small style="color:#275f4e;font-weight:700;text-transform:uppercase">Your first weekly quest</small><h2 style="margin:8px 0 0">${quest}</h2></div><p><a href="${escapeHtml(resultsUrl)}" style="background:#275f4e;color:white;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">View my audit results</a></p><p style="color:#71807a;margin-top:32px">Destiny turns SEO into one focused habit at a time.</p></div>`,
-    text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nYour Destiny audit for ${input.domain} is ready.\n\nYour first weekly quest: ${input.weeklyQuest}\n\nView your results: ${resultsUrl}\n\nDestiny turns SEO into one focused habit at a time.`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Your Destiny plan is ready.</h1><p>We analyzed <strong>${domain}</strong> and turned the evidence into one useful next step for this week.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><small style="color:#275f4e;font-weight:700;text-transform:uppercase">Your first weekly step</small><h2 style="margin:8px 0 0">${quest}</h2></div><p><a href="${escapeHtml(weeklyPlanUrl)}" style="background:#275f4e;color:white;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">Open my week 1 plan</a></p><p style="color:#71807a;margin-top:32px">Destiny turns SEO into one focused habit at a time.</p></div>`,
+    text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nYour Destiny plan for ${input.domain} is ready.\n\nYour first weekly step: ${input.weeklyQuest}\n\nOpen your week 1 plan: ${weeklyPlanUrl}\n\nDestiny turns SEO into one focused habit at a time.`,
   });
 }
 

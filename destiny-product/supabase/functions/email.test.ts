@@ -21,7 +21,7 @@ describe("Destiny transactional email", () => {
     expect(result.status).toBe("skipped");
   });
 
-  it("sends an audit-ready email with an idempotency key and saved-results link", async () => {
+  it("sends an audit-ready email with an idempotency key and weekly-plan link", async () => {
     stubSecrets({
       RESEND_API_KEY: "test-key",
       DESTINY_FROM_EMAIL: "Destiny <hello@destiny.example>",
@@ -42,6 +42,6 @@ describe("Destiny transactional email", () => {
     const [url, request] = fetchMock.mock.calls[0];
     expect(url).toBe("https://api.resend.com/emails");
     expect(request?.headers).toMatchObject({ "Idempotency-Key": "destiny-audit-ready-audit-id" });
-    expect(String(request?.body)).toContain("https://app.destiny.example/audits/audit-id");
+    expect(String(request?.body)).toContain("https://app.destiny.example/this-week");
   });
 });

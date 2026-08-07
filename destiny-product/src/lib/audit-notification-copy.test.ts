@@ -4,8 +4,8 @@ import { auditReadyNotificationCopy } from "../../supabase/functions/process-aud
 describe("audit-ready notification copy", () => {
   it("identifies the audited website when a workspace contains multiple businesses", () => {
     expect(auditReadyNotificationCopy("lawnlove.com")).toEqual({
-      title: "Your Destiny results for lawnlove.com are ready",
-      body: "Review lawnlove.com’s clearest opportunity, approve the initial keyword strategy, and start the categorized weekly plan.",
+      title: "Your Destiny plan for lawnlove.com is ready",
+      body: "Your audit is complete. Start this week’s one useful step, then move through the rest of your guided plan.",
     });
   });
 });

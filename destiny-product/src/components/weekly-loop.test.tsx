@@ -68,6 +68,7 @@ describe("WeeklyLoop", () => {
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} remainingTasks={2} />);
 
     expect(html).toContain("Your weekly SEO loop");
+    expect(html).toContain('href="/audits/audit-1"');
     expect(html).toContain("Four kinds of work build your visibility");
     expect(html).toContain("Approve your priority keywords");
     expect(html).not.toContain("Review your first article");
@@ -83,8 +84,9 @@ describe("WeeklyLoop", () => {
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} initialRevealOpen remainingTasks={2} />);
 
     expect(html).toContain("Your audit is complete");
-    expect(html).toContain("Your path to being found has four parts");
-    expect(html).toContain("See my week 1 plan");
+    expect(html).toContain("Your audit is done. Here’s your plan.");
+    expect(html).toContain("Start with Approve your priority keywords");
+    expect(html).toContain("Choose the opportunities most likely to bring qualified customers.");
     expect(html).toContain("Replay plan reveal");
   });
 

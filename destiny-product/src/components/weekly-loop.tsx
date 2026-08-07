@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { WeeklyTaskList } from "./weekly-task-list";
 
 type WeeklyLoopTask = {
@@ -126,12 +127,13 @@ export function WeeklyLoop({
       </div>
 
       {activeGroup && <section aria-labelledby={`weekly-loop-tab-${activeGroup.id}`} className="weekly-loop-task-pane" id="weekly-loop-task-pane" role="tabpanel">
-        <div className="weekly-loop-pane-intro"><span className="eyebrow">Now viewing</span><p>{activeGroup.description}</p></div>
+        <div className="weekly-loop-pane-intro"><span className="eyebrow">{activeGroup.tasks.some((task) => task.id === focusTask?.id) ? "Start here" : "Now viewing"}</span><p>{activeGroup.tasks.some((task) => task.id === focusTask?.id) ? "Destiny selected this as the clearest next move based on your audit. " : ""}{activeGroup.description}</p></div>
         {activeGroup.tasks.length > 0
           ? <WeeklyTaskList openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
           : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
       </section>}
       </>}
+      <Link className="weekly-full-audit-link" href={`/audits/${encodeURIComponent(auditId)}`}>See full audit details</Link>
     </section>
 
     <button className="weekly-plan-replay" onClick={() => setRevealOpen(true)} type="button"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>
@@ -141,10 +143,10 @@ export function WeeklyLoop({
         <button aria-label="Close plan reveal" className="weekly-plan-reveal-close" onClick={closeReveal} type="button">×</button>
         <div className="weekly-plan-reveal-compass" aria-hidden="true">✦</div>
         <span className="eyebrow">Your audit is complete</span>
-        <h2 id="weekly-plan-reveal-title">Your path to being found has four parts.</h2>
-        <p>Destiny turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
-        <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.tasks.length} {group.tasks.length === 1 ? "task" : "tasks"} ready this week</small></p></div>)}</div>
-        <button className="primary-button" onClick={closeReveal} type="button">See my week 1 plan</button>
+        <h2 id="weekly-plan-reveal-title">Your audit is done. Here’s your plan.</h2>
+        <p>We turned your audit into a four-part journey. You’ll work through it one useful step at a time, starting this week.</p>
+        <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small></p></div>)}</div>
+        <button className="primary-button" onClick={closeReveal} type="button">{focusTask ? `Start with ${focusTask.title}` : "See your first task"}</button>
       </section>
     </div>}
   </>;
