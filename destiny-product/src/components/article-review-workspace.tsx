@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   buildWordDocument,
@@ -21,6 +21,7 @@ import {
 } from "@/lib/content/article-generation";
 
 type EditableDraft = ArticleDraft & { approved: boolean };
+const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 250_000;
 
 export type ArticleGenerationContext = {
   businessName: string;
@@ -88,7 +89,10 @@ export function ArticleReviewWorkspace({
   const [selected, setSelected] = useState(0);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
+  const generationControllerRef = useRef<AbortController | null>(null);
+  const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
 
   useEffect(() => {
@@ -135,6 +139,15 @@ export function ArticleReviewWorkspace({
     return () => { cancelled = true; };
   }, [draft, qualitySignature]);
 
+  useEffect(() => {
+    if (!generating) return;
+    const startedAt = Date.now();
+    const interval = window.setInterval(() => setGenerationSeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => window.clearInterval(interval);
+  }, [generating]);
+
+  useEffect(() => () => generationControllerRef.current?.abort(), []);
+
   const updateDraft = (change: (current: EditableDraft) => EditableDraft) => {
     setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));
   };
@@ -163,6 +176,14 @@ export function ArticleReviewWorkspace({
 
   const generate = async () => {
     if (!draft || generating) return;
+    const controller = new AbortController();
+    generationControllerRef.current = controller;
+    generationAbortReasonRef.current = null;
+    const timeout = window.setTimeout(() => {
+      generationAbortReasonRef.current = "timeout";
+      controller.abort();
+    }, ARTICLE_GENERATION_CLIENT_TIMEOUT_MS);
+    setGenerationSeconds(0);
     setGenerating(true);
     setError("");
     try {
@@ -174,15 +195,28 @@ export function ArticleReviewWorkspace({
           ...generationContext,
           preferences: draft.preferences,
         }),
+        signal: controller.signal,
       });
       const payload = await response.json().catch(() => ({})) as { draft?: ArticleDraft; error?: string };
       if (!response.ok || !payload.draft) throw new Error(payload.error || "Destiny could not generate this article.");
       updateDraft(() => ({ ...payload.draft!, approved: false }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not generate this article.");
+      setError(generationAbortReasonRef.current === "cancelled"
+        ? "Generation cancelled. Your starter outline and edits are still here."
+        : generationAbortReasonRef.current === "timeout"
+        ? "Generation took longer than expected. Your starter outline is safe—try again when you are ready."
+        : cause instanceof Error ? cause.message : "Destiny could not generate this article.");
     } finally {
+      window.clearTimeout(timeout);
+      generationControllerRef.current = null;
       setGenerating(false);
     }
+  };
+
+  const cancelGeneration = () => {
+    if (!generationControllerRef.current) return;
+    generationAbortReasonRef.current = "cancelled";
+    generationControllerRef.current.abort();
   };
 
   const toggleApproved = () => {
@@ -230,7 +264,7 @@ export function ArticleReviewWorkspace({
   };
 
   if (!drafts.length || !draft) return null;
-  return <section className="article-review-workspace">
+  return <section className="article-review-workspace" id="article-review-workspace">
     <div className="article-topic-rail">
       <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div>
       {drafts.map((item, index) => <button className={index === selected ? "active" : ""} key={item.keyword} onClick={() => { setSelected(index); setError(""); }} type="button"><span>{item.approved ? "✓" : index + 1}</span><div><strong>{item.title}</strong><small>{item.generationStatus === "generated" ? "Full draft" : item.generationStatus === "needs_generation" ? "Regenerate with new settings" : "Starter outline"} · {item.keyword}</small></div></button>)}
@@ -246,7 +280,8 @@ export function ArticleReviewWorkspace({
         </div>
         <label>Special instructions<textarea rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
         <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>
+        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
+        {generating && <div className="configuration-note" role="status"><strong>{generationSeconds < 30 ? "Researching current sources" : generationSeconds < 90 ? "Writing the long-form draft" : "Finishing and checking the article"}</strong><p>A researched 2,000–3,000-word article can take a few minutes. {generationSeconds}s elapsed. You can cancel without losing the starter outline or your edits.</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Starter outline available</strong><p>Full AI article generation is not active yet. You can edit or download the starter outline while the writing model is being connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}
       </section>

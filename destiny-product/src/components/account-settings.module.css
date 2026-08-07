@@ -8,6 +8,13 @@
 .identityList dt { color: var(--muted); font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .identityList dd { color: var(--forest-dark); font-size: 18px; font-weight: 800; margin: 7px 0; overflow-wrap: anywhere; }
 .identityList p { color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0; }
+.emailEditor { display: grid; gap: 7px; margin-top: 18px; }
+.emailEditor span { color: var(--muted); font-size: 13px; font-weight: 800; }
+.emailEditor input { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 48px; padding: 0 14px; }
+.emailEditor input:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(48, 112, 88, .13); outline: 0; }
+.saveButton { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 800; margin-top: 12px; min-height: 44px; padding: 0 17px; }
+.saveButton:disabled { cursor: not-allowed; opacity: .42; }
+.success { color: var(--forest) !important; font-weight: 750; margin-top: 10px !important; }
 .danger { border-color: #efd8d5; }
 .danger .heading span { color: #a43f38; }
 .confirmation { display: grid; font-size: 15px; gap: 9px; margin-top: 26px; }

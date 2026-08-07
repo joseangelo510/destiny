@@ -33,7 +33,7 @@ export default async function DistributionPage() {
 
   return (
     <WorkspaceShell active="/distribution" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Distribute this week’s work" description="Use four practical channels: helpful community replies, social sharing, creator outreach, and trusted directory or review profiles.">
-      <FeatureJourneyCallout milestone="Build visibility" description="Helpful replies and relevant outreach make your business easier to discover. Search Console remains the source of truth for impressions and clicks." />
+      <FeatureJourneyCallout actionHref="#community" actionLabel="Open one verified conversation" milestone="Build visibility" description="Contribute one helpful answer where a real customer is already looking." doneLooksLike="A useful response, share, outreach draft, or saved public profile is recorded." evidence="An attached URL or saved draft; Search Console separately confirms impressions and clicks." />
       {!context.audit ? <WorkspaceEmpty title="Run an audit first" description="Destiny needs your search context before it can recommend relevant distribution opportunities." /> : (
         <div className="distribution-sections">
           <section className="workspace-card distribution-section" id="community">

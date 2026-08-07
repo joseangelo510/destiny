@@ -659,6 +659,8 @@ export type Database = {
         Row: {
           action_path: string
           audit_id: string | null
+          blocker_owner: string | null
+          blocker_reason: string | null
           category: string
           completed_at: string | null
           created_at: string
@@ -666,6 +668,8 @@ export type Database = {
           due_at: string | null
           estimated_minutes: number
           external_url: string | null
+          follow_up_at: string | null
+          guidance_state: string
           id: string
           min_plan_tier: number
           priority: number
@@ -684,6 +688,8 @@ export type Database = {
         Insert: {
           action_path?: string
           audit_id?: string | null
+          blocker_owner?: string | null
+          blocker_reason?: string | null
           category: string
           completed_at?: string | null
           created_at?: string
@@ -691,6 +697,8 @@ export type Database = {
           due_at?: string | null
           estimated_minutes?: number
           external_url?: string | null
+          follow_up_at?: string | null
+          guidance_state?: string
           id?: string
           min_plan_tier?: number
           priority?: number
@@ -709,6 +717,8 @@ export type Database = {
         Update: {
           action_path?: string
           audit_id?: string | null
+          blocker_owner?: string | null
+          blocker_reason?: string | null
           category?: string
           completed_at?: string | null
           created_at?: string
@@ -716,6 +726,8 @@ export type Database = {
           due_at?: string | null
           estimated_minutes?: number
           external_url?: string | null
+          follow_up_at?: string | null
+          guidance_state?: string
           id?: string
           min_plan_tier?: number
           priority?: number

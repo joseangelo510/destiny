@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { rankKeywordOpportunities } from "./keyword-opportunity";
 import { buyerExpansionSeeds, keywordDiscoveryThemes } from "../../../supabase/functions/process-audit/business-search-brief";
-import { MIN_RECOMMENDED_KEYWORDS, needsKeywordExpansion, thinKeywordExpansionSeeds } from "../../../supabase/functions/process-audit/seo";
+import { buildStrategicSiteExpansionSeeds, MIN_RECOMMENDED_KEYWORDS, needsKeywordExpansion, thinKeywordExpansionSeeds } from "../../../supabase/functions/process-audit/seo";
 
 const RIGHTMODELER_CONTEXT = {
   productsServices: "We measure cheaper models against what you shipped and help you optimize costs",
@@ -114,7 +114,6 @@ describe("RightModeler niche SaaS keyword regression", () => {
     }));
 
     const ranked = rankKeywordOpportunities(candidates, RIGHTMODELER_CONTEXT, 35, RIGHTMODELER_BRIEF);
-
     expect(ranked).toHaveLength(9);
     expect(ranked.every((keyword) => Number(keyword.searchVolume) > 0)).toBe(true);
     expect(ranked.map((keyword) => keyword.keyword)).not.toEqual(expect.arrayContaining([
@@ -179,5 +178,30 @@ describe("RightModeler niche SaaS keyword regression", () => {
       "llm token cost",
       "llm inference cost",
     ]);
+  });
+
+  it("builds compliance-specific expansion seeds from verified site evidence", () => {
+    const seeds = buildStrategicSiteExpansionSeeds(`
+      AI-generated images and synthetic media must carry a machine-readable label.
+      EU AI Act Article 50 and California SB 942 require disclosure.
+      We embed C2PA / XMP metadata, provenance, a signed certificate, and verifiable proof.
+      A digital watermark alone is not enough.
+    `);
+
+    expect(seeds).toHaveLength(23);
+    expect(seeds).toEqual(expect.arrayContaining([
+      "ai content labeling",
+      "eu ai act article 50",
+      "california sb 942",
+      "c2pa metadata",
+      "xmp metadata",
+      "machine readable ai label",
+      "ai content provenance",
+      "ai compliance certificate",
+      "ai content verification",
+      "digital watermarking",
+      "synthetic media disclosure",
+      "signed ai content proof",
+    ]));
   });
 });

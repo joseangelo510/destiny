@@ -92,7 +92,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
     else setKeywords((current) => current.map((item) => item.id === id ? { ...item, listId } : item));
   }
 
-  return <div className="rank-tracker-workspace">
+  return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
     <section className="rank-tracker-intro">
       <div><span className="research-kicker">Weekly Google rank tracking</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context every week so movement is comparable—not guessed.</p></div>
       <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>

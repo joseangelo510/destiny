@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { AuditIssueExplorer } from "@/components/audit-issue-explorer";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildAuditDashboard, type AuditIssueInput } from "@/lib/seo/audit-dashboard";
@@ -80,6 +81,7 @@ export default async function AuditsPage() {
   const scoreLabel = dashboard.healthScore === null ? "Score unavailable" : `${dashboard.healthScore}% initial site health`;
 
   return <WorkspaceShell active="/audits" eyebrow={website.normalized_domain} title="Website audits" description="Understand your website health, fix the most important technical issues, and verify improvements over time.">
+    <FeatureJourneyCallout actionHref="#technical-priority" actionLabel="Review the highest-impact fix" milestone="Get ready to be found" description="Use the latest audit to choose one technical change before exploring the full report." doneLooksLike="The next website fix is chosen and its follow-up task is opened in This Week." evidence="A saved audit with its provider and scan scope shown." />
     {latestAudit.id !== completedAudit.id && <CurrentAuditState audit={latestAudit} />}
 
     <section className="audit-health-dashboard">
@@ -95,11 +97,11 @@ export default async function AuditsPage() {
       <div className="audit-dashboard-meta"><span><b>{sourceLabel(completedAudit)}</b> · completed {new Date(completedAudit.completed_at ?? completedAudit.created_at).toLocaleString()}</span><div><Link className="secondary-button" href={`/audits/${completedAudit.id}`}>Open saved strategy</Link><Link className="primary-button" href="/this-week">Start the next fix</Link></div></div>
     </section>
 
-    {dashboard.priorityIssue ? <section className="audit-priority-card">
+    {dashboard.priorityIssue ? <section className="audit-priority-card" id="technical-priority">
       <div className="audit-priority-heading"><span className="eyebrow">Fix these first</span><h2>The changes that will do the most for your technical foundation</h2><p>Destiny ordered these by severity so you know where to begin.</p></div>
       <div className="audit-priority-list">{dashboard.priorityIssues.map((issue, index) => <article key={`${issue.code}-${index}`}><div className="audit-priority-icon">{index + 1}</div><div><h3>{issue.label}</h3><p>{issue.whyItMatters}</p><div className="audit-priority-next"><strong>Next action</strong><span>{issue.nextAction}</span></div></div></article>)}</div>
       <a className="secondary-button" href="#all-technical-issues">View every technical issue</a>
-    </section> : <section className="audit-priority-card clear"><div className="audit-priority-icon">✓</div><div><span className="eyebrow">No saved technical issues</span><h2>This initial scan did not return a problem to fix</h2><p>Keep monitoring. A deeper crawl can still uncover issues beyond the homepage evidence used here.</p></div></section>}
+    </section> : <section className="audit-priority-card clear" id="technical-priority"><div className="audit-priority-icon">✓</div><div><span className="eyebrow">No saved technical issues</span><h2>This initial scan did not return a problem to fix</h2><p>Keep monitoring. A deeper crawl can still uncover issues beyond the homepage evidence used here.</p></div></section>}
 
     <section className="audit-category-overview">
       <div className="audit-section-heading"><div><span className="eyebrow">Where to focus</span><h2>Technical health by category</h2><p>Start with red, then work through amber. A zero means no issue was detected in this scan—not that every page was fully cleared.</p></div></div>

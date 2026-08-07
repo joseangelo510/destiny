@@ -19,6 +19,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
+const ARTICLE_GENERATION_TIMEOUT_MS = 240_000;
 
 type GenerateRequest = {
   keyword?: unknown;
@@ -94,15 +95,27 @@ export async function POST(request: Request) {
 
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   const prompt = buildArticleGenerationPrompt(input);
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
-  });
+  let response: Response;
+  try {
+    response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
+      signal: AbortSignal.timeout(ARTICLE_GENERATION_TIMEOUT_MS),
+    });
+  } catch (cause) {
+    const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
+    return NextResponse.json({
+      error: timedOut
+        ? "Article generation took longer than four minutes. Your starter outline is safe—try again when you are ready."
+        : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
+      code: timedOut ? "ARTICLE_GENERATION_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+    }, { status: timedOut ? 504 : 502 });
+  }
 
   const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string } };
   if (!response.ok) {

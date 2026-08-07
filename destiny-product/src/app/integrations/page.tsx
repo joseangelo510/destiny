@@ -33,7 +33,7 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
   const connectedProvider = params.provider ? providerNames[params.provider] : undefined;
   return (
     <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Connect the SEO data Destiny measures and the destination where approved content should be drafted. Credentials remain server-side.">
-      <FeatureJourneyCallout milestone="Signs it’s working" description="Search Console and Analytics let Destiny confirm real impressions, clicks, rankings, and conversions." />
+      <FeatureJourneyCallout actionHref="#google-setup" actionLabel="Connect one source" milestone="Signs it’s working" description="Connect the data source Destiny needs to confirm business outcomes." doneLooksLike="A selected resource has completed a successful sync." evidence="A timestamped, source-labeled sync snapshot." />
       {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Destiny needs a saved website before an external account can be connected to it." /> : (
         <>
         <section className="integration-list" id="google-setup">

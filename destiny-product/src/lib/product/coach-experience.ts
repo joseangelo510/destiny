@@ -1,4 +1,5 @@
 import { runDestinyServerLogic } from "../logicaffeine-server";
+import { isActionableGuidanceState } from "../quests/guidance-state";
 
 export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
@@ -29,6 +30,8 @@ type CoachTask = {
   category?: string | null;
   status: string;
   verification_status?: string | null;
+  guidance_state?: string | null;
+  follow_up_at?: string | null;
   priority: number;
 };
 
@@ -71,8 +74,10 @@ function coachStatusCode(status: string) {
 }
 
 export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expanded = true) {
-  const anyInProgress = tasks.some((task) => task.status === "in_progress") ? 1 : 0;
-  const evaluated = await Promise.all(tasks.map(async (task) => {
+  const activeTasks = tasks.filter((task) => task.status === "complete" || isActionableGuidanceState(task.guidance_state, task.follow_up_at));
+  const pausedTasks = tasks.filter((task) => task.status !== "complete" && !isActionableGuidanceState(task.guidance_state, task.follow_up_at));
+  const anyInProgress = activeTasks.some((task) => task.status === "in_progress") ? 1 : 0;
+  const evaluated = await Promise.all(activeTasks.map(async (task) => {
     const policy = await runDestinyServerLogic({
       auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
       progressTaskCode: coachTaskCode(task.task_type), progressTaskStatusCode: coachStatusCode(task.status),
@@ -101,6 +106,7 @@ export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expande
   }));
   return {
     actionable,
+    pausedTasks,
     window,
     currentTask: resolved.find((item) => item.state === "current")?.task ?? null,
     groups: categories.filter((category) => category.tasks.length > 0),

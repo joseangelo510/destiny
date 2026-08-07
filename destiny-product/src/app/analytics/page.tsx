@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SeoHistoryChart } from "@/components/seo-history-chart";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { VerifiedResultSpotlight, selectVerifiedResult } from "@/components/verified-result-spotlight";
@@ -38,6 +39,7 @@ export default async function AnalyticsPage() {
   });
   return (
     <WorkspaceShell active="/analytics" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="SEO analytics" description="Real SEO metrics with their source shown—never an unexplained composite visibility score.">
+      <FeatureJourneyCallout actionHref="#first-party-measurement" actionLabel="Check one source-backed signal" milestone="Signs it’s working" description="Use a trusted movement to decide whether to continue, adjust, or connect missing measurement." doneLooksLike="A metric is interpreted with its source and period visible." evidence="DataForSEO history or a timestamped connected-data snapshot." />
       {!metrics ? <WorkspaceEmpty title="Analytics begin after your audit" description="Run an audit to save keyword, traffic-estimate, content-gap, and technical metrics." /> : (
         <>
           <VerifiedResultSpotlight result={verifiedResult} />
@@ -78,7 +80,7 @@ export default async function AnalyticsPage() {
               </>}
             </section>
           </>}
-          <section className="workspace-card connection-callout"><div><strong>First-party measurement</strong><p>Connect Search Console, Google Analytics, Business Profile, and YouTube to add clicks, impressions, conversions, reviews, and video discovery.</p></div><Link className="primary-button workspace-action" href="/integrations">Manage connections</Link></section>
+          <section className="workspace-card connection-callout" id="first-party-measurement"><div><strong>First-party measurement</strong><p>Connect Search Console, Google Analytics, Business Profile, and YouTube to add clicks, impressions, conversions, reviews, and video discovery.</p></div><Link className="primary-button workspace-action" href="/integrations">Manage connections</Link></section>
         </>
       )}
     </WorkspaceShell>

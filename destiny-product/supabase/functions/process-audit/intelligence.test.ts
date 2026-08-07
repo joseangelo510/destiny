@@ -30,6 +30,19 @@ describe("audit-worker intelligence parity", () => {
     ]);
   });
 
+  it("keeps unclassified internal landing pages after the known strategic roles", () => {
+    expect(selectImportantPageLinks("https://certify.example/article50", [
+      "https://certify.example/article50",
+      "https://certify.example/certify-full",
+      "https://certify.example/about",
+    ])).toEqual([
+      { url: "https://certify.example/", role: "homepage" },
+      { url: "https://certify.example/about", role: "about" },
+      { url: "https://certify.example/article50", role: "other" },
+      { url: "https://certify.example/certify-full", role: "other" },
+    ]);
+  });
+
   it("bounds large page evidence while preserving the beginning and end", () => {
     const input = Array.from({ length: 2_000 }, (_, index) => `word${index}`).join(" ");
     const worker = boundedEvidenceTokens(input);

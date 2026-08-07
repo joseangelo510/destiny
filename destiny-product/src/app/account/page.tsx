@@ -4,11 +4,18 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Account — Destiny", description: "Review your Destiny login identity and account settings." };
+
+export const metadata: Metadata = {
+  title: "Account — Destiny",
+  description: "Review your Destiny login identity and account settings.",
+};
 
 export default async function AccountPage() {
   const context = await getWorkspaceContext();
   const { data } = await context.supabase.auth.getUser();
   const loginEmail = data.user?.email ?? "Email unavailable";
-  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and where Destiny sends your audit updates."><AccountSettings loginEmail={loginEmail} notificationEmail={context.profile?.contact_email ?? null} /></WorkspaceShell>;
+
+  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and where Destiny sends your audit updates.">
+    <AccountSettings loginEmail={loginEmail} notificationEmail={context.profile?.contact_email ?? null} />
+  </WorkspaceShell>;
 }

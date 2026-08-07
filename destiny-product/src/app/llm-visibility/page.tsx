@@ -1,4 +1,5 @@
 import { LlmSourceDashboard } from "@/components/llm-source-dashboard";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { LlmSignalPlayboard } from "@/components/llm-signal-playboard";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
@@ -31,6 +32,7 @@ export default async function LlmVisibilityPage() {
   const initialProgress = await buildLlmSourceProgress({ records: initialRecords, llmVisibility });
 
   return <WorkspaceShell active="/llm-visibility" eyebrow={context.website.normalized_domain} title="LLM visibility" description="Build source readiness through small actions, then verify company mentions and citations with separate provider evidence.">
+    <FeatureJourneyCallout actionHref="#llm-source-playbook" actionLabel="Open the next source playbook" milestone="Build visibility" description="Complete one source-readiness action and attach public proof where the task requires it." doneLooksLike="The readiness action is saved with its proof, without claiming a detected citation." evidence="User-attached proof and provider-detected visibility are always shown separately." />
     <LlmSourceDashboard
       initialRecords={initialRecords}
       initialProgress={initialProgress}

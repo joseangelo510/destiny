@@ -1,4 +1,5 @@
 import { RankTrackerWorkspace, type RankTrackerKeyword } from "@/components/rank-tracker-workspace";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext } from "@/lib/workspace-context";
@@ -48,6 +49,7 @@ export default async function RankTrackerPage() {
   }));
 
   return <WorkspaceShell active="/rank-tracker" eyebrow={context.website.normalized_domain} title="Rank tracker" description="Follow the keywords you approved, organize them into lists, and compare evidence-backed Google positions on a consistent weekly cadence.">
+    <FeatureJourneyCallout actionHref="#rank-tracker-workspace" actionLabel="Track one approved keyword" milestone="Signs it’s working" description="Measure the customer searches your strategy says matter." doneLooksLike="A saved keyword has a fresh observation, or clearly says it is still pending." evidence="Timestamped provider reading, location, device, and result URL." />
     <RankTrackerWorkspace initialKeywords={rows} initialLists={lists ?? []} websiteId={context.website.id} />
   </WorkspaceShell>;
 }

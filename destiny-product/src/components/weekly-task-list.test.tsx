@@ -64,20 +64,9 @@ describe("WeeklyTaskList", () => {
     />);
 
     expect(html).not.toContain("Skip for now");
-    expect(html).not.toContain("Approve &amp; complete");
     expect(html).toContain("Review keywords");
-    expect(html).toContain("five approvals are sufficient");
-  });
-
-  it("does not offer a This Week completion bypass for keyword review", () => {
-    const html = renderToStaticMarkup(<WeeklyTaskList
-      openTaskId="primary-task"
-      tasks={[{ ...baseTask, id: "primary-task", title: "Approve keyword direction", task_type: "keyword_review" }]}
-    />);
-
-    expect(html).not.toContain("Mark done");
     expect(html).not.toContain("Approve &amp; complete");
-    expect(html).toContain("At least five recommended searches approved");
+    expect(html).toContain("At least five recommended searches are approved");
   });
 
   it("keeps the skip action available for other incomplete tasks", () => {

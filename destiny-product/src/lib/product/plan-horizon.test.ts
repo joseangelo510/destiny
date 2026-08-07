@@ -13,7 +13,7 @@ describe("Destiny starter plan horizon", () => {
     expect(INITIAL_PLAN_WEEKS).toBe(12);
   });
 
-  it("lets the customer finish after exactly five approved keywords", () => {
+  it("starts the plan after five approved keywords", () => {
     expect(INITIAL_KEYWORD_APPROVAL_TARGET).toBe(5);
   });
 });
