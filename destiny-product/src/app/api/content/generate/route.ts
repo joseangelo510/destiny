@@ -6,6 +6,7 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
+  buildArticleEvidencePack,
   buildArticleGenerationPrompt,
   parseGeneratedArticlePayload,
   validateGeneratedArticle,
@@ -17,8 +18,12 @@ import {
   type ReadingEase,
 } from "@/lib/content/article-generation";
 import { createClient } from "@/lib/supabase/server";
+import { encodeArticleGenerationEvent, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 
 export const maxDuration = 300;
+const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
+const ARTICLE_WRITING_TIMEOUT_MS = 205_000;
+const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 
 type GenerateRequest = {
   keyword?: unknown;
@@ -87,58 +92,133 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({
-      error: "Opus 4.8 article generation is not configured yet. Add ANTHROPIC_API_KEY to the server environment; the key must never be placed in browser code.",
+      error: "Article generation is not configured yet. Add ANTHROPIC_API_KEY to the server environment; the key must never be placed in browser code.",
       code: "ANTHROPIC_NOT_CONFIGURED",
     }, { status: 503 });
   }
 
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
-  const prompt = buildArticleGenerationPrompt(input);
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  const generatePayload = async (onPhase: (phase: ArticleGenerationPhase) => void) => {
+    let researchData: unknown;
+    let evidenceTimeout: ReturnType<typeof setTimeout> | null = null;
+    try {
+      const result = await Promise.race([
+        supabase.functions.invoke("seo-research", { body: { kind: "article_evidence", keyword: input.keyword, locationName: "United States" } }),
+        new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
+      ]);
+      if (result.error || !result.data) throw new Error(result.error?.message || "Destiny could not retrieve article evidence.");
+      researchData = result.data;
+    } catch (cause) {
+      const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
+      return {
+        error: timedOut
+          ? "Article evidence search took longer than expected. Your starter outline is safe—try again when you are ready."
+          : "The evidence search could not be reached. Your starter outline is safe—try again in a moment.",
+        code: timedOut ? "ARTICLE_EVIDENCE_TIMEOUT" : "ARTICLE_EVIDENCE_UNAVAILABLE",
+      };
+    } finally {
+      if (evidenceTimeout) clearTimeout(evidenceTimeout);
+    }
+
+    let researchEvidence = "";
+    try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
+    catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
+
+    let response: Response;
+    try {
+      onPhase("writing");
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify(buildAnthropicArticleRequest(buildArticleGenerationPrompt(input, researchEvidence), model)),
+        signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_WRITING_TIMEOUT_MS), request.signal]),
+      });
+    } catch (cause) {
+      const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
+      return {
+        error: timedOut
+          ? "Article writing took longer than expected. Your researched starter outline is safe—try again when you are ready."
+          : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
+        code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
+      };
+    }
+
+    const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
+    if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
+
+    try {
+      const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
+      if (payload.stop_reason === "max_tokens") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
+      const article = parseGeneratedArticlePayload(rawText);
+      const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
+      return {
+        draft: {
+          keyword: input.keyword,
+          title: article.title,
+          metaDescription: article.metaDescriptions[0] ?? "",
+          metaDescriptions: article.metaDescriptions,
+          body: article.bodyMarkdown,
+          sources: article.sources,
+          infographics: article.infographics,
+          bucketBrigades: article.bucketBrigades,
+          preferences: input.preferences,
+          generationStatus: "generated",
+          generatedBy: model,
+          qualityIssues,
+          optimization: qualityIssues.length
+            ? qualityIssues.map((issue) => ({ label: issue.code.replaceAll("_", " "), detail: issue.message }))
+            : [
+              { label: "Long-form SEO", detail: "The draft passed Destiny's word-count and heading-structure checks." },
+              { label: "Writing rhythm", detail: "Contextual transitions and stock-phrase checks passed." },
+              { label: "Human review", detail: "Review the article, sources, graphics, and business claims before publishing." },
+            ],
+        },
+        quality: { passed: qualityIssues.length === 0, issues: qualityIssues },
+        model,
+      };
+    } catch (cause) {
+      console.error("article_generation_parse", { error: cause instanceof Error ? cause.message : "unknown" });
+      return {
+        error: "Claude returned an incomplete article draft. Your starter outline is safe—try again.",
+        code: "ARTICLE_RESPONSE_INCOMPLETE",
+      };
+    }
+  };
+
+  const encoder = new TextEncoder();
+  let cancelled = false;
+  let keepalive: ReturnType<typeof setInterval> | null = null;
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const write = (event: Parameters<typeof encodeArticleGenerationEvent>[0]) => controller.enqueue(encoder.encode(encodeArticleGenerationEvent(event)));
+      write({ type: "phase", phase: "researching" });
+      keepalive = setInterval(() => {
+        if (!cancelled) write({ type: "keepalive" });
+      }, ARTICLE_GENERATION_KEEPALIVE_MS);
+      void generatePayload((phase) => write({ type: "phase", phase })).then((payload) => {
+        if (!cancelled) write({ type: "result", payload });
+      }).catch((cause) => {
+        if (!cancelled) write({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Destiny could not generate this article." } });
+      }).finally(() => {
+        if (keepalive) clearInterval(keepalive);
+        if (!cancelled) controller.close();
+      });
     },
-    body: JSON.stringify(buildAnthropicArticleRequest(prompt, model)),
+    cancel() {
+      cancelled = true;
+      if (keepalive) clearInterval(keepalive);
+    },
   });
 
-  const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string } };
-  if (!response.ok) {
-    return NextResponse.json({ error: payload.error?.message || `Claude returned HTTP ${response.status}.` }, { status: response.status >= 400 && response.status < 500 ? response.status : 502 });
-  }
-
-  try {
-    const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
-    const article = parseGeneratedArticlePayload(rawText);
-    const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
-    return NextResponse.json({
-      draft: {
-        keyword: input.keyword,
-        title: article.title,
-        metaDescription: article.metaDescriptions[0] ?? "",
-        metaDescriptions: article.metaDescriptions,
-        body: article.bodyMarkdown,
-        sources: article.sources,
-        infographics: article.infographics,
-        bucketBrigades: article.bucketBrigades,
-        preferences: input.preferences,
-        generationStatus: "generated",
-        generatedBy: model,
-        qualityIssues,
-        optimization: qualityIssues.length
-          ? qualityIssues.map((issue) => ({ label: issue.code.replaceAll("_", " "), detail: issue.message }))
-          : [
-            { label: "Long-form SEO", detail: "The draft passed Destiny's word-count and heading-structure checks." },
-            { label: "Writing rhythm", detail: "Contextual transitions and stock-phrase checks passed." },
-            { label: "Human review", detail: "Review the article, sources, graphics, and business claims before publishing." },
-          ],
-      },
-      quality: { passed: qualityIssues.length === 0, issues: qualityIssues },
-      model,
-    });
-  } catch (cause) {
-    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Claude returned an unreadable article draft." }, { status: 502 });
-  }
+  return new Response(stream, {
+    headers: {
+      "Cache-Control": "no-cache, no-transform",
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }
