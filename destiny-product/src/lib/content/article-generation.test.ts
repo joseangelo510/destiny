@@ -87,7 +87,7 @@ describe("Destiny article generation policy", () => {
   it("configures Opus 4.8 with server-side web research instead of asking the model to invent sources", () => {
     const request = buildAnthropicArticleRequest("Research and write the article.", "claude-opus-4-8");
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.max_tokens).toBe(5200);
+    expect(request.max_tokens).toBe(7600);
     expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 4 }]);
     expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
   });

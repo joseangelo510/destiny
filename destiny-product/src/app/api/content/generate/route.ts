@@ -119,13 +119,14 @@ export async function POST(request: Request) {
     }, { status: timedOut ? 504 : 502 });
   }
 
-  const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string } };
+  const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
   if (!response.ok) {
     return NextResponse.json({ error: payload.error?.message || `Claude returned HTTP ${response.status}.` }, { status: response.status >= 400 && response.status < 500 ? response.status : 502 });
   }
 
   try {
     const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
+    if (payload.stop_reason === "max_tokens") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
     const article = parseGeneratedArticlePayload(rawText);
     const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
     return NextResponse.json({
@@ -154,6 +155,10 @@ export async function POST(request: Request) {
       model,
     });
   } catch (cause) {
-    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Claude returned an unreadable article draft." }, { status: 502 });
+    console.error("article_generation_parse", { error: cause instanceof Error ? cause.message : "unknown" });
+    return NextResponse.json({
+      error: "Claude returned an incomplete article draft. Your starter outline is safe—try again.",
+      code: "ARTICLE_RESPONSE_INCOMPLETE",
+    }, { status: 502 });
   }
 }

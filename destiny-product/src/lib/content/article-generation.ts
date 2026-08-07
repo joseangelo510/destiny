@@ -189,9 +189,9 @@ Return one JSON object only with this shape:
 export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COPY_MODEL) {
   return {
     model,
-    // 5,200 tokens is enough for the requested 2,000–3,000 useful words plus
-    // structured evidence, while keeping an investor-demo request bounded.
-    max_tokens: 5200,
+    // Leave enough room for 2,000–3,000 useful words plus the structured
+    // evidence envelope. Research calls stay capped so this remains bounded.
+    max_tokens: 7600,
     tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 4 }],
     messages: [{ role: "user", content: prompt }],
   };
