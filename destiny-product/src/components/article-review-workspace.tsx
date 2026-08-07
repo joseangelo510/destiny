@@ -6,10 +6,9 @@ import { useRouter } from "next/navigation";
 import {
   buildWordDocument,
   currentArticleQualityIssues,
-  fitMetaDescription,
-  normalizeArticleBody,
   type ArticleDraft,
 } from "@/lib/content/article-draft";
+import { normalizeSavedArticleDraft } from "@/lib/content/saved-draft-hydration";
 import {
   ARTICLE_FORMAT_OPTIONS,
   ARTICLE_VOICE_OPTIONS,
@@ -32,29 +31,8 @@ export type ArticleGenerationContext = {
   internalPages: ArticleInternalPage[];
 };
 
-function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
-  const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
-  const generationStatus = saved.generationStatus === "generated" || saved.generationStatus === "needs_generation" || saved.generationStatus === "starter"
-    ? saved.generationStatus
-    : fallback.generationStatus;
-  const metaDescriptions = Array.isArray(saved.metaDescriptions) && saved.metaDescriptions.length
-    ? saved.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 1).map(fitMetaDescription)
-    : fallback.metaDescriptions;
-  return {
-    ...fallback,
-    ...saved,
-    metaDescription: metaDescriptions[0] ?? fallback.metaDescription,
-    metaDescriptions,
-    body: typeof saved.body === "string" ? normalizeArticleBody(saved.body) : fallback.body,
-    sources: Array.isArray(saved.sources) ? saved.sources : fallback.sources,
-    infographics: Array.isArray(saved.infographics) ? saved.infographics : fallback.infographics,
-    bucketBrigades: Array.isArray(saved.bucketBrigades) ? saved.bucketBrigades : fallback.bucketBrigades,
-    preferences: { ...fallback.preferences, ...(saved.preferences ?? {}) },
-    generationStatus,
-    qualityIssues: Array.isArray(saved.qualityIssues) ? saved.qualityIssues : fallback.qualityIssues,
-    approved: saved.approved === true && generationStatus === "generated",
-    failureReason: typeof saved.failureReason === "string" ? saved.failureReason : undefined,
-  };
+export function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
+  return normalizeSavedArticleDraft(value, fallback);
 }
 
 function issueCategory(code: string) {
