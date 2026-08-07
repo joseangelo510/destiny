@@ -21,7 +21,7 @@ import {
 } from "@/lib/content/article-generation";
 
 type EditableDraft = ArticleDraft & { approved: boolean };
-const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 175_000;
+const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 250_000;
 
 export type ArticleGenerationContext = {
   businessName: string;
