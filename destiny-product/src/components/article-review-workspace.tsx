@@ -33,9 +33,23 @@ export type ArticleGenerationContext = {
 
 function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
   const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
-  const generationStatus = saved.generationStatus === "generated" || saved.generationStatus === "needs_generation" || saved.generationStatus === "starter"
+  // Only trust a completed-generation status when the record carries generation
+  // provenance a starter can never have. Otherwise keep only the brief/settings.
+  const hasGenerationProvenance = typeof saved.generatedBy === "string" && saved.generatedBy.trim().length > 0
+    && typeof saved.body === "string" && saved.body.trim().length > 0;
+  const generationStatus = (saved.generationStatus === "generated" || saved.generationStatus === "needs_generation") && hasGenerationProvenance
     ? saved.generationStatus
+    : saved.generationStatus === "starter" || !hasGenerationProvenance
+    ? "starter"
     : fallback.generationStatus;
+  if (generationStatus === "starter") {
+    return {
+      ...fallback,
+      preferences: { ...fallback.preferences, ...(saved.preferences ?? {}) },
+      generationStatus: "starter",
+      approved: false,
+    };
+  }
   const metaDescriptions = Array.isArray(saved.metaDescriptions) && saved.metaDescriptions.length
     ? saved.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 1).map(fitMetaDescription)
     : fallback.metaDescriptions;
@@ -89,6 +103,7 @@ export function ArticleReviewWorkspace({
   const [selected, setSelected] = useState(0);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generationPhase, setGenerationPhase] = useState<"researching" | "writing">("researching");
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
   const generationControllerRef = useRef<AbortController | null>(null);
@@ -117,6 +132,7 @@ export function ArticleReviewWorkspace({
   }, [drafts, storageKey, storageReady]);
 
   const draft = drafts[selected];
+  const reviewReady = draft ? draft.generationStatus === "generated" || draft.generationStatus === "needs_generation" : false;
   const qualitySignature = draft ? JSON.stringify([draft.title, draft.body, draft.metaDescriptions, draft.bucketBrigades, draft.sources, draft.preferences.format, draft.generationStatus]) : "";
   const qualityIssues = qualityCheck.signature === qualitySignature ? qualityCheck.issues : [];
   const qualityVerified = qualityCheck.signature === qualitySignature;
@@ -184,6 +200,7 @@ export function ArticleReviewWorkspace({
       controller.abort();
     }, ARTICLE_GENERATION_CLIENT_TIMEOUT_MS);
     setGenerationSeconds(0);
+    setGenerationPhase("researching");
     setGenerating(true);
     setError("");
     try {
@@ -197,14 +214,38 @@ export function ArticleReviewWorkspace({
         }),
         signal: controller.signal,
       });
-      const payload = await response.json().catch(() => ({})) as { draft?: ArticleDraft; error?: string };
-      if (!response.ok || !payload.draft) throw new Error(payload.error || "Destiny could not generate this article.");
-      updateDraft(() => ({ ...payload.draft!, approved: false }));
+      if (!response.ok || !response.body) {
+        const failure = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(failure.error || "Destiny could not generate this article.");
+      }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffered = "";
+      let result: { draft?: ArticleDraft; error?: string } | null = null;
+      const handleLine = (line: string) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        let event: { event?: string; phase?: string; draft?: ArticleDraft; error?: string };
+        try { event = JSON.parse(trimmed) as typeof event; } catch { return; }
+        if (event.event === "phase" && (event.phase === "researching" || event.phase === "writing")) setGenerationPhase(event.phase);
+        else if (event.event === "result") result = { draft: event.draft, error: event.error };
+      };
+      for (;;) {
+        const { value, done } = await reader.read();
+        buffered += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+        const lines = buffered.split("\n");
+        buffered = done ? "" : lines.pop() ?? "";
+        for (const line of lines) handleLine(line);
+        if (done) { if (buffered) handleLine(buffered); break; }
+      }
+      const settled = result as { draft?: ArticleDraft; error?: string } | null;
+      if (!settled || !settled.draft) throw new Error(settled?.error || "Destiny did not receive a complete article. Your brief and settings are saved—try again.");
+      updateDraft(() => ({ ...settled.draft!, approved: false }));
     } catch (cause) {
       setError(generationAbortReasonRef.current === "cancelled"
-        ? "Generation cancelled. Your starter outline and edits are still here."
+        ? "Generation cancelled. Your brief and settings are saved."
         : generationAbortReasonRef.current === "timeout"
-        ? "Generation took longer than expected. Your starter outline is safe—try again when you are ready."
+        ? "Generation took longer than expected. Your brief and settings are saved—try again when you are ready."
         : cause instanceof Error ? cause.message : "Destiny could not generate this article.");
     } finally {
       window.clearTimeout(timeout);
@@ -267,26 +308,28 @@ export function ArticleReviewWorkspace({
   return <section className="article-review-workspace" id="article-review-workspace">
     <div className="article-topic-rail">
       <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div>
-      {drafts.map((item, index) => <button className={index === selected ? "active" : ""} key={item.keyword} onClick={() => { setSelected(index); setError(""); }} type="button"><span>{item.approved ? "✓" : index + 1}</span><div><strong>{item.title}</strong><small>{item.generationStatus === "generated" ? "Full draft" : item.generationStatus === "needs_generation" ? "Regenerate with new settings" : "Starter outline"} · {item.keyword}</small></div></button>)}
+      {drafts.map((item, index) => <button className={index === selected ? "active" : ""} disabled={generating} key={item.keyword} onClick={() => { setSelected(index); setError(""); }} type="button"><span>{item.approved ? "✓" : index + 1}</span><div><strong>{item.generationStatus === "starter" ? item.keyword : item.title}</strong><small>{item.generationStatus === "generated" ? "Full draft" : item.generationStatus === "needs_generation" ? "Regenerate with new settings" : "Not generated yet"} · {item.keyword}</small></div></button>)}
     </div>
 
     <div className="article-editor workspace-card">
       <section className="article-generation-controls" aria-labelledby="article-generation-heading">
         <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–2,200 useful words.</p></div><span className="model-chip">{generationAvailable ? generationModelLabel : "Article model unavailable"}</span></div>
+        <p className="article-brief-keyword"><strong>Focus keyword:</strong> {draft.keyword}</p>
         <div className="article-preference-grid">
-          <label>Voice<select value={draft.preferences.voice} onChange={(event) => updatePreference("voice", event.target.value as ArticleGenerationPreferences["voice"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label>
-          <label>Format<select value={draft.preferences.format} onChange={(event) => updatePreference("format", event.target.value as ArticleGenerationPreferences["format"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label>
-          <label>Reading ease<select value={draft.preferences.readingEase} onChange={(event) => updatePreference("readingEase", event.target.value as ArticleGenerationPreferences["readingEase"])}>{READING_EASE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{READING_EASE_OPTIONS.find((option) => option.value === draft.preferences.readingEase)?.description}</small></label>
+          <label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference("voice", event.target.value as ArticleGenerationPreferences["voice"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label>
+          <label>Format<select disabled={generating} value={draft.preferences.format} onChange={(event) => updatePreference("format", event.target.value as ArticleGenerationPreferences["format"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label>
+          <label>Reading ease<select disabled={generating} value={draft.preferences.readingEase} onChange={(event) => updatePreference("readingEase", event.target.value as ArticleGenerationPreferences["readingEase"])}>{READING_EASE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{READING_EASE_OPTIONS.find((option) => option.value === draft.preferences.readingEase)?.description}</small></label>
         </div>
-        <label>Special instructions<textarea rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
-        <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "starter" ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
-        {generating && <div className="configuration-note" role="status"><strong>{generationSeconds < 30 ? "Finding and verifying search sources" : generationSeconds < 190 ? "Writing from the evidence pack" : "Finishing and checking the article"}</strong><p>Destiny verifies DataForSEO search evidence first, then Claude writes the focused 2,000–2,200-word article. {generationSeconds}s elapsed. You can cancel without losing the starter outline or your edits.</p></div>}
-        {!generationAvailable && <div className="configuration-note" role="status"><strong>Starter outline available</strong><p>Full AI article generation is not active yet. You can edit or download the starter outline while the writing model is being connected.</p></div>}
+        <label>Special instructions<textarea disabled={generating} rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
+        <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} disabled={generating} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
+        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : !reviewReady ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
+        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Researching sources" : "Writing draft"}</strong><p>Destiny verifies search evidence first, then Claude writes the focused 2,000–2,200-word article. {generationSeconds}s elapsed. You can cancel without losing your brief or settings.</p></div>}
+        {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not active yet</strong><p>Your brief and settings are saved. Full AI article generation will be available once the writing model is connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}
       </section>
 
-      <div className="article-draft-divider"><span>{draft.generationStatus === "generated" ? "Generated article" : "Editable starter outline"}</span><strong>{wordCount.toLocaleString()} words</strong></div>
+      {reviewReady && <>
+      <div className="article-draft-divider"><span>{draft.generationStatus === "generated" ? "Generated article" : "Generated article — regenerate to apply new settings"}</span><strong>{wordCount.toLocaleString()} words</strong></div>
       <label>SEO title<input value={draft.title} onChange={(event) => updateText("title", event.target.value)} /></label>
       <div className="article-meta-grid">
         {[0].map((index) => <label key={index}>Meta description<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? ""} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? "").length}/150 characters</small></label>)}
@@ -297,9 +340,10 @@ export function ArticleReviewWorkspace({
       {draft.infographics.length > 0 && <section className="article-infographic-list"><h3>Original graphics</h3><p>Download and place these in the suggested sections of the article.</p>{draft.infographics.map((graphic, index) => <article className="article-infographic-card" key={graphic.id}><div className="article-infographic-preview" dangerouslySetInnerHTML={{ __html: renderInfographicSvg(graphic) }} /><div><strong>{graphic.title}</strong><p>{graphic.insight}</p><small>{graphic.sourceLabel}</small><button className="secondary-button" onClick={() => downloadInfographic(index)} type="button">Download SVG</button></div></article>)}</section>}
 
       <div className="article-editor-actions"><button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button><button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button></div>
+      </>}
     </div>
 
-    <aside className="article-optimization workspace-card">
+    {reviewReady && <aside className="article-optimization workspace-card">
       <span className="eyebrow">Editorial status</span>
       <div className={`article-quality-state ${canApprove ? "ready" : "needs-work"}`}><strong>{canApprove ? "Ready for human review" : draft.generationStatus === "generated" ? "Needs another pass" : "Full article not generated"}</strong><span>{wordCount.toLocaleString()} words</span></div>
       <p>Destiny checks the draft privately for depth, structure, research, and writing quality. This is not a promise of rankings.</p>
@@ -307,6 +351,6 @@ export function ArticleReviewWorkspace({
       {draft.generatedBy && <small className="article-generated-by">Generated by {draft.generatedBy}</small>}
       <Link className="secondary-button" href="/integrations">Connect CMS</Link>
       <button className="primary-button" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
-    </aside>
+    </aside>}
   </section>;
 }

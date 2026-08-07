@@ -23,7 +23,6 @@ export const maxDuration = 300;
 const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
 const ARTICLE_WRITING_TIMEOUT_MS = 205_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
-const ARTICLE_GENERATION_KEEPALIVE_CHUNK = " ".repeat(2048);
 
 type GenerateRequest = {
   keyword?: unknown;
@@ -98,7 +97,7 @@ export async function POST(request: Request) {
   }
 
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
-  const generatePayload = async () => {
+  const generatePayload = async (onWritingPhase: () => void) => {
     let researchData: unknown;
     let evidenceTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
@@ -112,8 +111,8 @@ export async function POST(request: Request) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article evidence search took longer than expected. Your starter outline is safe—try again when you are ready."
-          : "The evidence search could not be reached. Your starter outline is safe—try again in a moment.",
+          ? "Article evidence search took longer than expected. Your brief and settings are saved—try again when you are ready."
+          : "The evidence search could not be reached. Your brief and settings are saved—try again in a moment.",
         code: timedOut ? "ARTICLE_EVIDENCE_TIMEOUT" : "ARTICLE_EVIDENCE_UNAVAILABLE",
       };
     } finally {
@@ -124,6 +123,7 @@ export async function POST(request: Request) {
     try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
     catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
+    onWritingPhase();
     let response: Response;
     try {
       response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -140,8 +140,8 @@ export async function POST(request: Request) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article writing took longer than expected. Your researched starter outline is safe—try again when you are ready."
-          : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
+          ? "Article writing took longer than expected. Your brief and settings are saved—try again when you are ready."
+          : "The article service could not be reached. Your brief and settings are saved—try again in a moment.",
         code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
       };
     }
@@ -182,7 +182,7 @@ export async function POST(request: Request) {
     } catch (cause) {
       console.error("article_generation_parse", { error: cause instanceof Error ? cause.message : "unknown" });
       return {
-        error: "Claude returned an incomplete article draft. Your starter outline is safe—try again.",
+        error: "Claude returned an incomplete article draft. Your brief and settings are saved—try again.",
         code: "ARTICLE_RESPONSE_INCOMPLETE",
       };
     }
@@ -193,14 +193,16 @@ export async function POST(request: Request) {
   let keepalive: ReturnType<typeof setInterval> | null = null;
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(encoder.encode(ARTICLE_GENERATION_KEEPALIVE_CHUNK));
-      keepalive = setInterval(() => {
-        if (!cancelled) controller.enqueue(encoder.encode(ARTICLE_GENERATION_KEEPALIVE_CHUNK));
-      }, ARTICLE_GENERATION_KEEPALIVE_MS);
-      void generatePayload().then((payload) => {
-        if (!cancelled) controller.enqueue(encoder.encode(JSON.stringify(payload)));
+      const send = (event: Record<string, unknown>) => {
+        if (cancelled) return;
+        try { controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`)); } catch { cancelled = true; }
+      };
+      send({ event: "phase", phase: "researching" });
+      keepalive = setInterval(() => send({ event: "keepalive" }), ARTICLE_GENERATION_KEEPALIVE_MS);
+      void generatePayload(() => send({ event: "phase", phase: "writing" })).then((payload) => {
+        send({ event: "result", ...payload });
       }).catch((cause) => {
-        if (!cancelled) controller.enqueue(encoder.encode(JSON.stringify({ error: cause instanceof Error ? cause.message : "Destiny could not generate this article." })));
+        send({ event: "result", error: cause instanceof Error ? cause.message : "Destiny could not generate this article." });
       }).finally(() => {
         if (keepalive) clearInterval(keepalive);
         if (!cancelled) controller.close();
@@ -215,7 +217,7 @@ export async function POST(request: Request) {
   return new Response(stream, {
     headers: {
       "Cache-Control": "no-cache, no-transform",
-      "Content-Type": "application/json; charset=utf-8",
+      "Content-Type": "application/x-ndjson; charset=utf-8",
       "X-Accel-Buffering": "no",
     },
   });
