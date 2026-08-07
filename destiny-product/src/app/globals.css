@@ -155,6 +155,13 @@ button { cursor: pointer; }
 .voice-dictation-help { color: var(--muted); display: block; font-size: 12px; font-weight: 400; line-height: 1.45; margin-top: 7px; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; }
 .error-banner { background: #fbe8e4; border-radius: 10px; color: #9b3f2d; font-size: 13px; margin-top: 18px; padding: 13px; }
+.success-banner { background: #e5f6ec; border-radius: 10px; color: #1d6b40; font-size: 14px; margin-bottom: 18px; padding: 13px 16px; }
+.strategy-approval-progress { display: flex; flex-direction: column; text-align: right; }
+.strategy-approval-progress small { color: #6b7280; font-size: 12px; margin-top: 2px; }
+.strategy-approval-note { color: #4b5563; font-size: 13px; margin: 10px 0 0; }
+.task-inline-note { align-self: center; color: #6b7280; font-size: 12px; }
+.keyword-research-return { align-items: center; display: flex; gap: 16px; justify-content: space-between; }
+.keyword-research-return p { margin: 0; }
 @keyframes pulse { 50% { opacity: .55; } }
 @keyframes voice-wave { from { transform: scaleY(.55); } to { transform: scaleY(1.2); } }
 

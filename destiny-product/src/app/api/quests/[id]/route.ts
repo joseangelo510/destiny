@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildQuestCompletionUpdate, isStreakActionableTask, questTransitionInput, type QuestStatus } from "../../../../lib/quests/completion";
 import { createClient } from "../../../../lib/supabase/server";
 import { runDestinyServerLogic } from "../../../../lib/logicaffeine-server";
+import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../../../../lib/product/plan-horizon";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,6 +24,28 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .maybeSingle();
   if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
   if (!existingQuest) return NextResponse.json({ error: "Quest not found." }, { status: 404 });
+
+  if (body.status === "complete" && existingQuest.task_type === "keyword_review") {
+    if (!existingQuest.audit_id) {
+      return NextResponse.json({ error: "Destiny could not verify keyword approvals for this task.", approvedCount: 0, requiredApprovals: INITIAL_KEYWORD_APPROVAL_TARGET, remaining: INITIAL_KEYWORD_APPROVAL_TARGET }, { status: 409 });
+    }
+    const { count, error: approvalError } = await supabase
+      .from("keyword_decisions")
+      .select("keyword", { count: "exact", head: true })
+      .eq("audit_id", existingQuest.audit_id)
+      .eq("decision", "approved");
+    if (approvalError) return NextResponse.json({ error: approvalError.message }, { status: 500 });
+    const approvedCount = count ?? 0;
+    if (approvedCount < INITIAL_KEYWORD_APPROVAL_TARGET) {
+      const remaining = INITIAL_KEYWORD_APPROVAL_TARGET - approvedCount;
+      return NextResponse.json({
+        error: `Approve ${remaining} more keyword${remaining === 1 ? "" : "s"} to finish the keyword review.`,
+        approvedCount,
+        requiredApprovals: INITIAL_KEYWORD_APPROVAL_TARGET,
+        remaining,
+      }, { status: 409 });
+    }
+  }
 
   let remainingAfterCompletion = -1;
   if (body.status === "complete" && isStreakActionableTask(existingQuest.task_type) && existingQuest.audit_id) {

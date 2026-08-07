@@ -10,9 +10,11 @@ import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-hori
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
-export default async function ContentPage() {
+export default async function ContentPage({ searchParams }: { searchParams?: Promise<{ site?: string; strategy?: string }> }) {
+  const params = searchParams ? await searchParams : {};
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
+  const strategyJustSaved = params.strategy === "complete" && (!params.site || params.site === context.website?.id);
   const providerResult = providerResultFromMetrics(context.metrics);
   const keywordRecords = list(providerResult.keywords).map(record);
   const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
@@ -65,6 +67,7 @@ export default async function ContentPage() {
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
+      {strategyJustSaved && <div className="success-banner" role="status"><strong>Keyword strategy saved.</strong> Your approved searches now power the 12-week content plan below.</div>}
       <FeatureJourneyCallout milestone="Get ready to be found" description="Reviewing and approving a useful article moves your work forward. Destiny separately verifies when search engines begin showing it." />
       {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
