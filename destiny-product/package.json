@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "logos:embed": "node scripts/embed-logos-wasm.mjs",
+    "port:preflight": "bash scripts/check-replit-port-manifest.sh",
     "test": "vitest run"
   },
   "dependencies": {
