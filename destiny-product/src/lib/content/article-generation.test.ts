@@ -113,7 +113,7 @@ describe("Destiny article generation policy", () => {
     const request = buildAnthropicArticleContinuationRequest("Research and write the article.", pausedContent, "claude-opus-4-8");
 
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
+    expect(request.tools).toBeUndefined();
     expect(request.messages).toEqual([
       { role: "user", content: "Research and write the article." },
       { role: "assistant", content: pausedContent },
