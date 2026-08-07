@@ -73,8 +73,8 @@ describe("Destiny article generation policy", () => {
       preferences: { ...DEFAULT_ARTICLE_PREFERENCES, specialInstructions: "Mention the free strategy call once." },
     });
 
-    expect(prompt).toContain("2,000–3,000 words");
-    expect(prompt).toContain("6–9 H2 sections");
+    expect(prompt).toContain("2,000–2,200 words");
+    expect(prompt).toContain("6–8 H2 sections");
     expect(prompt).toContain("4–9 contextual bucket brigades");
     expect(prompt).toContain("first 150 words");
     expect(prompt).toContain("at least 40% of headings");
@@ -87,8 +87,8 @@ describe("Destiny article generation policy", () => {
   it("configures Sonnet 4.6 with server-side web research instead of asking the model to invent sources", () => {
     const request = buildAnthropicArticleRequest("Research and write the article.", "claude-sonnet-4-6");
     expect(request.model).toBe("claude-sonnet-4-6");
-    expect(request.max_tokens).toBe(7600);
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 4 }]);
+    expect(request.max_tokens).toBe(6000);
+    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 2 }]);
     expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
   });
 
