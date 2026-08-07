@@ -194,7 +194,58 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
     model,
     // Leave enough room for 2,000–2,200 useful words plus the structured
     // evidence envelope. Research calls stay capped so this remains bounded.
-    max_tokens: 6000,
+    max_tokens: 9000,
+    output_config: {
+      format: {
+        type: "json_schema",
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["title", "metaDescriptions", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
+          properties: {
+            title: { type: "string" },
+            metaDescriptions: { type: "array", minItems: 2, maxItems: 2, items: { type: "string" } },
+            bodyMarkdown: { type: "string" },
+            bucketBrigades: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["text", "afterWord"],
+                properties: { text: { type: "string" }, afterWord: { type: "integer" } },
+              },
+            },
+            sources: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["id", "title", "url", "publisher"],
+                properties: { id: { type: "string" }, title: { type: "string" }, url: { type: "string" }, publisher: { type: "string" } },
+              },
+            },
+            infographics: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["id", "template", "title", "insight", "items", "sourceLabel", "sourceIds", "altText"],
+                properties: {
+                  id: { type: "string" },
+                  template: { type: "string", enum: ["steps", "comparison", "stat", "timeline", "checklist"] },
+                  title: { type: "string" },
+                  insight: { type: "string" },
+                  items: { type: "array", items: { type: "string" } },
+                  sourceLabel: { type: "string" },
+                  sourceIds: { type: "array", items: { type: "string" } },
+                  altText: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     messages: [{ role: "user", content: prompt }],
   };
 }

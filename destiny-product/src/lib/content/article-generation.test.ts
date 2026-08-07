@@ -99,8 +99,10 @@ describe("Destiny article generation policy", () => {
     expect(evidence).toContain("Evidence summary 3");
     const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-sonnet-4-6");
     expect(request.model).toBe("claude-sonnet-4-6");
-    expect(request.max_tokens).toBe(6000);
+    expect(request.max_tokens).toBe(9000);
     expect(request).not.toHaveProperty("tools");
+    expect(request.output_config.format.type).toBe("json_schema");
+    expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["bodyMarkdown", "sources", "infographics"]));
     expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
   });
 
