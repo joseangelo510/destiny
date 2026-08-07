@@ -4,6 +4,7 @@ import {
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
   buildAnthropicArticleRequest,
+  buildArticleEvidencePack,
   buildArticleGenerationPrompt,
   renderInfographicSvg,
   validateGeneratedArticle,
@@ -42,6 +43,19 @@ function validLongFormPayload(): GeneratedArticlePayload {
 }
 
 describe("Destiny article generation policy", () => {
+  it("formats only a sufficient set of valid evidence sources for the streaming writer", () => {
+    const evidence = buildArticleEvidencePack([
+      { title: "Primary source", url: "https://example.com/primary", publisher: "example.com", description: "Verified context" },
+      { title: "Research source", url: "https://example.org/research", publisher: "example.org" },
+      { title: "Industry source", url: "https://example.net/industry", publisher: "example.net" },
+      { title: "Invalid source", url: "http://not-accepted.example" },
+    ]);
+
+    expect(evidence).toContain("Primary source — https://example.com/primary");
+    expect(evidence).toContain("Use the source title and URL only");
+    expect(() => buildArticleEvidencePack([{ title: "Only one", url: "https://example.com/one" }])).toThrow("enough credible sources");
+  });
+
   it("keeps Jose's approved controls and SEO-article defaults", () => {
     expect(DEFAULT_ARTICLE_PREFERENCES).toEqual({
       voice: "punchy_coach",
@@ -82,6 +96,21 @@ describe("Destiny article generation policy", () => {
     expect(prompt).toContain("Mention the free strategy call once.");
     expect(prompt).toContain("Never fabricate");
     expect(prompt).not.toContain("write like Neil Patel");
+  });
+
+  it("includes verified research when the streaming writer supplies it", () => {
+    const prompt = buildArticleGenerationPrompt({
+      keyword: "seo content strategy",
+      businessName: "Destiny",
+      problemSolved: "Founders need a repeatable organic growth system.",
+      idealCustomer: "Founder-led businesses",
+      differentiation: "A guided SEO operating system",
+      internalPages: [],
+      preferences: DEFAULT_ARTICLE_PREFERENCES,
+    }, "1. Primary source — https://example.com/source");
+
+    expect(prompt).toContain("VERIFIED EXTERNAL RESEARCH");
+    expect(prompt).toContain("https://example.com/source");
   });
 
   it("configures Opus 4.8 with server-side web research instead of asking the model to invent sources", () => {
