@@ -1,11 +1,11 @@
-export const DEFAULT_COPY_MODEL = "claude-opus-4-8";
+export const DEFAULT_COPY_MODEL = "claude-sonnet-4-6";
 
 export function articleGenerationCapability(apiKey: string | undefined, configuredModel?: string) {
   const model = configuredModel?.trim() || DEFAULT_COPY_MODEL;
   return {
     available: Boolean(apiKey?.trim()),
     model,
-    label: model === "claude-opus-4-8" ? "Claude Opus 4.8" : model,
+    label: model === "claude-sonnet-4-6" ? "Claude Sonnet 4.6" : model === "claude-opus-4-8" ? "Claude Opus 4.8" : model,
   };
 }
 

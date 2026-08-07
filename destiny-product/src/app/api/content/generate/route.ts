@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({
-      error: "Opus 4.8 article generation is not configured yet. Add ANTHROPIC_API_KEY to the server environment; the key must never be placed in browser code.",
+      error: "Article generation is not configured yet. Add ANTHROPIC_API_KEY to the server environment; the key must never be placed in browser code.",
       code: "ANTHROPIC_NOT_CONFIGURED",
     }, { status: 503 });
   }
