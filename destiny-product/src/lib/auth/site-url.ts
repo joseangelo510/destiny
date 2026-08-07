@@ -11,3 +11,18 @@ export function siteOrigin(configuredSiteUrl: string | undefined, requestOrigin:
   }
   return "http://localhost:3000";
 }
+
+/** Build a browser-facing redirect without leaking an internal reverse-proxy origin. */
+export function siteRedirectUrl(
+  configuredSiteUrl: string | undefined,
+  requestUrl: string,
+  destination: string,
+) {
+  let requestOrigin: string | null = null;
+  try {
+    requestOrigin = new URL(requestUrl).origin;
+  } catch {
+    // siteOrigin will use the configured public URL or its local fallback.
+  }
+  return new URL(destination, siteOrigin(configuredSiteUrl, requestOrigin));
+}
