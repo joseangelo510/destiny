@@ -204,7 +204,7 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
           required: ["title", "metaDescriptions", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
           properties: {
             title: { type: "string" },
-            metaDescriptions: { type: "array", minItems: 2, maxItems: 2, items: { type: "string" } },
+            metaDescriptions: { type: "array", minItems: 1, maxItems: 2, items: { type: "string" } },
             bodyMarkdown: { type: "string" },
             bucketBrigades: {
               type: "array",
