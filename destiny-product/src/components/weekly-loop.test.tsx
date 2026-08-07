@@ -83,8 +83,12 @@ describe("WeeklyLoop", () => {
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} initialRevealOpen remainingTasks={2} />);
 
     expect(html).toContain("Your audit is complete");
-    expect(html).toContain("Your path to being found has four parts");
-    expect(html).toContain("See my week 1 plan");
+    expect(html).toContain("Your audit is done. Here’s your plan.");
+    expect(html).not.toContain("ready this week");
+    expect(html).toContain("Start: Approve your priority keywords");
+    expect(html).toContain("Start here — your next move is based on what the audit found.");
+    expect(html).toContain("See full audit details");
+    expect(html).toContain('href="/audits/audit-1"');
     expect(html).toContain("Replay plan reveal");
   });
 

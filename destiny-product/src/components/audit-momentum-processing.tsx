@@ -77,7 +77,7 @@ export function AuditMomentumProcessing({
         setProgress(100);
         setStatus("complete");
         void playDestinySound("verified_result");
-        window.setTimeout(() => window.location.reload(), 1100);
+        window.setTimeout(() => window.location.assign("/this-week"), 1100);
       } else if (payload.audit?.status === "failed") {
         setStatus("failed");
         setError(payload.audit.failure_message || "Destiny could not complete this audit.");
@@ -133,7 +133,7 @@ export function AuditMomentumProcessing({
         <section className="momentum-processing-hero">
           <div className="eyebrow">{failed ? "Research paused" : complete ? "Route ready" : "Live research in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
-          <p>{failed ? error : complete ? "Destiny saved the evidence and built your first coaching plan. Taking you to the results now." : "You finished the onboarding. Destiny is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
+          <p>{failed ? error : complete ? "Destiny saved the evidence and built your first coaching plan. Taking you to your weekly plan now." : "You finished the onboarding. Destiny is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
           <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachMessage}</strong></p></div>
           <CompassCompanion
             ariaLabel={`Research compass showing ${journey.completedCount} of ${AUDIT_MOMENTUM_STAGES.length} saved stages`}
@@ -148,9 +148,9 @@ export function AuditMomentumProcessing({
             <p aria-live="polite">{journey.statusLine}</p>
           </div>
           {!failed && <div aria-live="polite" className="audit-time-estimate">
-            <span>{complete ? "Report completed" : "Estimated completion"}</span>
-            <strong>{complete ? "Your report is ready" : timing.delayed ? "Taking longer than usual" : `About ${timing.secondsRemaining} seconds remaining`}</strong>
-            <small>{complete ? "Opening your saved results now." : `Most reports finish in about ${timing.normalSeconds} seconds. Live provider response times can vary.`}</small>
+            <span>{complete ? "Audit completed" : "Estimated completion"}</span>
+            <strong>{complete ? "Your weekly plan is ready" : timing.delayed ? "Taking longer than usual" : `About ${timing.secondsRemaining} seconds remaining`}</strong>
+            <small>{complete ? "Opening your weekly plan now." : `Most reports finish in about ${timing.normalSeconds} seconds. Live provider response times can vary.`}</small>
           </div>}
           {!failed && <div className="founder-encouragement"><span>Small steps. Real evidence.</span><strong>You do not need an SEO team to build search momentum.</strong></div>}
         </section>
@@ -163,7 +163,7 @@ export function AuditMomentumProcessing({
               <div><strong>{stage.title}</strong><p>{stage.state === "active" ? stage.activeMessage : stage.description}</p><small>{stage.state === "complete" ? "Research saved" : stage.state === "active" ? "Working now" : stage.state === "failed" ? "Needs attention" : "Up next"}</small></div>
             </li>)}
           </ol>
-          <div className="configuration-note"><strong>{complete ? "Opening your results" : "It is safe to step away"}</strong><p>{complete ? "Your evidence, weekly tasks, and results are saved." : "Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
+          <div className="configuration-note"><strong>{complete ? "Opening your weekly plan" : "It is safe to step away"}</strong><p>{complete ? "Your evidence and weekly plan are saved." : "Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
           {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding?new=1">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>

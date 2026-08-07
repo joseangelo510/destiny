@@ -91,6 +91,13 @@ export function WeeklyLoop({
     }
   };
 
+  const focusGroup = focusTask ? groups.find((group) => group.tasks.some((task) => task.id === focusTask.id)) ?? null : null;
+
+  const startFromReveal = () => {
+    if (focusGroup) setActiveGroupId(focusGroup.id);
+    closeReveal();
+  };
+
   const openTaskId = activeGroup?.tasks.find((task) => task.id === currentTaskId)?.id
     ?? activeGroup?.tasks.find((task) => task.status === "in_progress")?.id
     ?? activeGroup?.tasks.find((task) => task.status === "todo")?.id
@@ -130,7 +137,7 @@ export function WeeklyLoop({
       </div>
 
       {activeGroup && <section aria-labelledby={`weekly-loop-tab-${activeGroup.id}`} className="weekly-loop-task-pane" id="weekly-loop-task-pane" role="tabpanel">
-        <div className="weekly-loop-pane-intro"><span className="eyebrow">Now viewing</span><p>{activeGroup.description}</p></div>
+        <div className="weekly-loop-pane-intro"><span className="eyebrow">{focusGroup && activeGroup.id === focusGroup.id ? "Start here" : "Now viewing"}</span><p>{activeGroup.description}</p>{focusGroup && activeGroup.id === focusGroup.id && <small className="weekly-loop-start-here-note">Your next move is based on what the audit found.</small>}</div>
         {activeGroup.tasks.length > 0
           ? <WeeklyTaskList openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
           : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
@@ -145,10 +152,11 @@ export function WeeklyLoop({
         <button aria-label="Close plan reveal" className="weekly-plan-reveal-close" onClick={closeReveal} type="button">×</button>
         <div className="weekly-plan-reveal-compass" aria-hidden="true">✦</div>
         <span className="eyebrow">Your audit is complete</span>
-        <h2 id="weekly-plan-reveal-title">Your path to being found has four parts.</h2>
+        <h2 id="weekly-plan-reveal-title">Your audit is done. Here’s your plan.</h2>
         <p>Destiny turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
-        <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.tasks.length} {group.tasks.length === 1 ? "task" : "tasks"} ready this week</small></p></div>)}</div>
-        <button className="primary-button" onClick={closeReveal} type="button">See my week 1 plan</button>
+        <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className="weekly-plan-reveal-start-here">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div>
+        <button className="primary-button" onClick={startFromReveal} type="button">{focusTask ? `Start: ${focusTask.title}` : "See your first task"}</button>
+        <a className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</a>
       </section>
     </div>}
   </>;
