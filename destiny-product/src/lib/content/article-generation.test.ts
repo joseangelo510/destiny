@@ -100,6 +100,10 @@ describe("Destiny article generation policy", () => {
     expect(request).not.toHaveProperty("tools");
     expect(request.output_config.format.type).toBe("json_schema");
     expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["bodyMarkdown", "sources", "infographics"]));
+    expect(request.output_config.format.schema.required).toContain("metaDescription");
+    expect(request.output_config.format.schema.required).not.toContain("metaDescriptions");
+    expect(request.output_config.format.schema.properties.metaDescription).toEqual({ type: "string" });
+    expect(request.output_config.format.schema.properties).not.toHaveProperty("metaDescriptions");
     expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
   });
 

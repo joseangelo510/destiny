@@ -181,7 +181,7 @@ HIDDEN DESTINY EDITORIAL POLICY — NEVER DISPLAY THIS CHECKLIST TO THE USER
 Return one JSON object only with this shape:
 {
   "title": "...",
-  "metaDescriptions": ["..."],
+  "metaDescription": "...",
   "bodyMarkdown": "# ...",
   "bucketBrigades": [{"text":"...","afterWord":120}],
   "sources": [{"id":"source-1","title":"...","url":"https://...","publisher":"..."}],
@@ -201,10 +201,10 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
         schema: {
           type: "object",
           additionalProperties: false,
-          required: ["title", "metaDescriptions", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
+          required: ["title", "metaDescription", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
           properties: {
             title: { type: "string" },
-            metaDescriptions: { type: "array", minItems: 1, maxItems: 1, items: { type: "string" } },
+            metaDescription: { type: "string" },
             bodyMarkdown: { type: "string" },
             bucketBrigades: {
               type: "array",
@@ -429,7 +429,10 @@ export function parseGeneratedArticlePayload(raw: string): GeneratedArticlePaylo
   }) : [];
   const title = typeof parsed.title === "string" ? parsed.title.trim() : "";
   const bodyMarkdown = typeof parsed.bodyMarkdown === "string" ? parsed.bodyMarkdown.trim() : "";
-  const metaDescriptions = stringArray(parsed.metaDescriptions).map((description) => description.trim()).filter(Boolean);
+  const singleMeta = typeof parsed.metaDescription === "string" ? parsed.metaDescription.trim() : "";
+  const metaDescriptions = singleMeta
+    ? [singleMeta]
+    : stringArray(parsed.metaDescriptions).map((description) => description.trim()).filter(Boolean).slice(0, 1);
   if (!title || !bodyMarkdown) throw new Error("Claude did not return a complete article draft.");
   return { title, metaDescriptions, bodyMarkdown, bucketBrigades, sources, infographics };
 }
