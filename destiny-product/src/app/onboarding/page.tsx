@@ -19,7 +19,10 @@ type OnboardingPageProps = {
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
+  const [{ data: claimsData }, { data: userData }] = await Promise.all([
+    supabase.auth.getClaims(),
+    supabase.auth.getUser(),
+  ]);
   const userId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : null;
   const { data: website } = userId
     ? await supabase.from("websites").select("id").limit(1).maybeSingle()
@@ -36,5 +39,5 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
     momentumOnboardingStep: 1,
   });
-  return <PublicOnboarding initialMomentumPolicy={initialMomentumPolicy} />;
+  return <PublicOnboarding initialEmail={userData.user?.email ?? ""} initialMomentumPolicy={initialMomentumPolicy} />;
 }

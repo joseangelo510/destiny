@@ -50,9 +50,9 @@ const emptyForm = {
   email: "",
 };
 
-export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPolicy: MomentumPolicy }) {
+export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: { initialMomentumPolicy: MomentumPolicy; initialEmail?: string }) {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => ({ ...emptyForm, email: initialEmail.trim() }));
   const [listening, setListening] = useState<VoiceField | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -293,7 +293,7 @@ export function PublicOnboarding({ initialMomentumPolicy }: { initialMomentumPol
               <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
               <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
             </div>
-            <label>Contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Destiny will request welcome and audit-ready updates for this address. You can always find the same results in the notification center.</small></label>
+            <label>Audit and contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Business website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://www.yourbusiness.com" required type="text" value={form.website} /><small id="website-help">Enter your business’s website address, such as https://www.yourbusiness.com; do not enter only your business name.</small></label>
           </>}
