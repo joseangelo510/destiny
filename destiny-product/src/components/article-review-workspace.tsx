@@ -34,14 +34,18 @@ export type ArticleGenerationContext = {
 function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
   const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
   // Only trust a completed-generation status when the record carries generation
-  // provenance a starter can never have. Otherwise keep only the brief/settings.
-  const hasGenerationProvenance = typeof saved.generatedBy === "string" && saved.generatedBy.trim().length > 0
-    && typeof saved.body === "string" && saved.body.trim().length > 0;
-  const generationStatus = (saved.generationStatus === "generated" || saved.generationStatus === "needs_generation") && hasGenerationProvenance
+  // provenance a starter can never have, recorded no quality issues at
+  // generation time, and holds a full-length article body. Anything else —
+  // legacy incomplete drafts included — is demoted to the brief/retry state.
+  const savedBody = typeof saved.body === "string" ? saved.body : "";
+  const savedFormat = (saved.preferences ?? fallback.preferences).format ?? fallback.preferences.format;
+  const hasGenerationProvenance = typeof saved.generatedBy === "string" && saved.generatedBy.trim().length > 0 && savedBody.trim().length > 0;
+  const passedQualityAtGeneration = Array.isArray(saved.qualityIssues) && saved.qualityIssues.length === 0;
+  const hasSufficientWords = markdownWordCount(savedBody) >= (savedFormat === "seo_article" ? 1800 : 600);
+  const generationStatus = (saved.generationStatus === "generated" || saved.generationStatus === "needs_generation")
+    && hasGenerationProvenance && passedQualityAtGeneration && hasSufficientWords
     ? saved.generationStatus
-    : saved.generationStatus === "starter" || !hasGenerationProvenance
-    ? "starter"
-    : fallback.generationStatus;
+    : "starter";
   if (generationStatus === "starter") {
     return {
       ...fallback,
