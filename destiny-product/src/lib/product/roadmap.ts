@@ -167,8 +167,8 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
       description: "Google begins showing at least one of your pages in search results.",
       typicalRange: "Typically 2–8 weeks after publishing",
       evidence: hasSearchAppearance ? `${impressions.toLocaleString()} Search Console impressions confirm pages appeared in Google.` : "Waiting for connected Search Console evidence.",
-      actionHref: "/integrations",
-      actionLabel: "Connect Search Console",
+      actionHref: hasSearchAppearance ? "/analytics" : "/integrations",
+      actionLabel: hasSearchAppearance ? "View search data" : "Connect Search Console",
     },
     {
       id: "first-impressions",
