@@ -115,13 +115,19 @@ export function RoadmapExperience({ roadmap, season, weekly }: RoadmapExperience
                 {phase.tasks.length > 0 ? phase.tasks.map((task) => <article className={`apple-roadmap-task-row ${task.state}`} key={task.id}>
                   <span className="apple-roadmap-row-mark" aria-hidden="true">{task.state === "complete" ? "✓" : task.state === "current" ? "→" : ""}</span>
                   <div><small>Week {task.weekNumber} · Your task</small><strong>{task.label}</strong>{task.state === "current" && <p>{task.detail}</p>}</div>
-                  <span className="apple-roadmap-row-state">{task.state === "complete" ? "Done" : task.state === "current" ? "Current" : "Upcoming"}</span>
+                  <div className="apple-roadmap-row-actions">
+                    <span className="apple-roadmap-row-state">{task.state === "complete" ? "Done" : task.state === "current" ? "Current" : "Upcoming"}</span>
+                    {phase.id === "ready" && <Link className={`apple-roadmap-row-action ${task.state}`} data-roadmap-action={task.id} href={task.actionHref}>{task.state === "complete" ? "Review" : task.state === "current" ? "Do this step" : "Open step"}</Link>}
+                  </div>
                 </article>) : <p className="apple-roadmap-phase-empty">Your next plan will add the tasks for this phase.</p>}
 
                 {phase.signals.map((signal) => <article className={`apple-roadmap-signal-row ${signal.state === "complete" ? "verified" : "waiting"}`} key={signal.id}>
                   <span className="apple-roadmap-signal-mark" aria-hidden="true">◇</span>
                   <div><small>Sign it’s working</small><strong>{signal.label}</strong><p>{signal.evidence}</p></div>
-                  <span className="apple-roadmap-row-state">{signal.state === "complete" ? "Verified" : "Not yet"}</span>
+                  <div className="apple-roadmap-row-actions">
+                    <span className="apple-roadmap-row-state">{signal.state === "complete" ? "Verified" : "Not yet"}</span>
+                    {phase.id === "ready" && <Link className="apple-roadmap-row-action signal" data-roadmap-signal-action={signal.id} href={signal.actionHref}>{signal.actionLabel}</Link>}
+                  </div>
                 </article>)}
               </div>
             </div>
