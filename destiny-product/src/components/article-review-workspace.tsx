@@ -57,6 +57,16 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
   };
 }
 
+function mergeSavedDrafts(fallbacks: ArticleDraft[], saved: unknown) {
+  if (!Array.isArray(saved)) return fallbacks.map((item) => ({ ...item, approved: false }));
+  const byKeyword = new Map(saved.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const keyword = (item as Partial<EditableDraft>).keyword;
+    return typeof keyword === "string" ? [[keyword, item] as const] : [];
+  }));
+  return fallbacks.map((fallback) => normalizeSavedDraft(byKeyword.get(fallback.keyword), fallback));
+}
+
 function issueCategory(code: string) {
   if (code === "generation_required") return "Full article generation";
   if (code === "incomplete_output") return "Article completion";
@@ -106,25 +116,47 @@ export function ArticleReviewWorkspace({
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
 
   useEffect(() => {
-    const hydrate = window.setTimeout(() => {
+    let cancelled = false;
+    const hydrate = async () => {
+      let hydrated = initialDrafts.map((item) => ({ ...item, approved: false }));
       try {
         const saved = window.localStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved) as unknown;
-          if (Array.isArray(parsed)) {
-            setDrafts(initialDrafts.map((fallback, index) => normalizeSavedDraft(parsed[index], fallback)));
-          }
-        }
+        if (saved) hydrated = mergeSavedDrafts(initialDrafts, JSON.parse(saved) as unknown);
       } catch { /* Browser storage is a convenience, never an approval gate. */ }
-      setStorageReady(true);
-    }, 0);
-    return () => window.clearTimeout(hydrate);
-  }, [initialDrafts, storageKey]);
+
+      try {
+        const response = await fetch(`/api/content/drafts?websiteId=${encodeURIComponent(websiteId)}&auditId=${encodeURIComponent(auditId)}`);
+        const payload = await response.json() as { drafts?: unknown };
+        if (response.ok && Array.isArray(payload.drafts) && payload.drafts.length) {
+          hydrated = mergeSavedDrafts(hydrated, payload.drafts);
+        }
+      } catch { /* Offline editing can continue from the local copy. */ }
+
+      if (!cancelled) {
+        setDrafts(hydrated);
+        setStorageReady(true);
+      }
+    };
+    void hydrate();
+    return () => { cancelled = true; };
+  }, [auditId, initialDrafts, storageKey, websiteId]);
 
   useEffect(() => {
     if (!storageReady) return;
     try { window.localStorage.setItem(storageKey, JSON.stringify(drafts)); } catch { /* Keep editing even if storage is unavailable. */ }
-  }, [drafts, storageKey, storageReady]);
+    const save = window.setTimeout(() => {
+      void fetch("/api/content/drafts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId, auditId, drafts }),
+      }).then(async (response) => {
+        if (response.ok) return;
+        const payload = await response.json().catch(() => ({})) as { error?: string };
+        setError(payload.error || "Destiny could not save the article draft yet.");
+      }).catch(() => setError("Destiny could not save the article draft yet."));
+    }, 500);
+    return () => window.clearTimeout(save);
+  }, [auditId, drafts, storageKey, storageReady, websiteId]);
 
   const draft = drafts[selected];
   const qualitySignature = draft ? JSON.stringify([draft.title, draft.body, draft.metaDescriptions, draft.bucketBrigades, draft.sources, draft.preferences.format, draft.generationStatus]) : "";
