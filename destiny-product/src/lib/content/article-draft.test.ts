@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody } from "./article-draft";
+import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody, renderArticleMarkdownToHtml } from "./article-draft";
 
 describe("article review workspace", () => {
   it("creates an editable, business-specific article and Word-compatible document", async () => {
@@ -24,5 +24,42 @@ describe("article review workspace", () => {
     expect(document).toContain("Meta description 2");
     expect(fitMetaDescription("A very long saved description ".repeat(12)).length).toBeLessThanOrEqual(150);
     expect(normalizeArticleBody("Local experience.. That matters because it is specific.")).toBe("Local experience. That matters because it is specific.");
+  });
+
+  it("renders generated Markdown as clean Word formatting instead of visible syntax", () => {
+    const html = renderArticleMarkdownToHtml(`# A useful guide
+
+This is **important**, *helpful*, and links to [the source](https://example.com/report).
+
+## What to do
+
+- First useful step
+- Second **important** step
+
+1. Review the evidence
+2. Publish the update
+
+### Final note
+
+Copy this into your CMS editor.`);
+
+    expect(html).toContain("<h1>A useful guide</h1>");
+    expect(html).toContain("<h2>What to do</h2>");
+    expect(html).toContain("<h3>Final note</h3>");
+    expect(html).toContain("<strong>important</strong>");
+    expect(html).toContain("<em>helpful</em>");
+    expect(html).toContain('<a href="https://example.com/report">the source</a>');
+    expect(html).toContain("<ul><li>First useful step</li><li>Second <strong>important</strong> step</li></ul>");
+    expect(html).toContain("<ol><li>Review the evidence</li><li>Publish the update</li></ol>");
+    expect(html).not.toMatch(/(^|>)#{1,6}\s/m);
+    expect(html).not.toContain("**");
+    expect(html).not.toContain("[the source](https://example.com/report)");
+  });
+
+  it("does not allow Markdown links to inject WordPress HTML attributes", () => {
+    const html = renderArticleMarkdownToHtml('[unsafe](https://example.com/"onmouseover="alert(1))');
+
+    expect(html).toContain("&quot;");
+    expect(html).not.toContain('onmouseover="alert(1)"');
   });
 });

@@ -263,7 +263,7 @@ export async function POST(request: Request) {
           infographics: article.infographics,
           bucketBrigades: article.bucketBrigades,
           preferences: input.preferences,
-          generationStatus: "generated",
+          generationStatus: recoveryIssue ? "needs_generation" : "generated",
           generatedBy: model,
           qualityIssues,
           optimization: qualityIssues.length
