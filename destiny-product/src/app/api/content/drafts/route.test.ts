@@ -109,4 +109,24 @@ describe("/api/content/drafts", () => {
     expect(response.status).toBe(400);
     expect(upsertRows).not.toHaveBeenCalled();
   });
+
+  it("never downgrades a generated article to a starter draft", async () => {
+    const starterDraft = {
+      ...generatedDraft,
+      title: "Content marketing service",
+      body: "",
+      generationStatus: "starter",
+    };
+    selectRows.mockResolvedValue({ data: [{ keyword: generatedDraft.keyword, draft: generatedDraft }], error: null });
+
+    const response = await PUT(new Request("http://localhost/api/content/drafts", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ websiteId, auditId, drafts: [starterDraft] }),
+    }));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ saved: 0, protected: 1 });
+    expect(upsertRows).not.toHaveBeenCalled();
+  });
 });

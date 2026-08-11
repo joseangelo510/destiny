@@ -130,6 +130,8 @@ export function ArticleReviewWorkspace({
   const [wordpressDrafts, setWordpressDrafts] = useState<Record<string, string>>({});
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
+  const draftRevisionRef = useRef(0);
+  const persistedDraftRevisionRef = useRef(0);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
 
   useEffect(() => {
@@ -161,13 +163,18 @@ export function ArticleReviewWorkspace({
   useEffect(() => {
     if (!storageReady) return;
     try { window.localStorage.setItem(storageKey, JSON.stringify(drafts)); } catch { /* Keep editing even if storage is unavailable. */ }
+    if (draftRevisionRef.current <= persistedDraftRevisionRef.current) return;
+    const revision = draftRevisionRef.current;
     const save = window.setTimeout(() => {
       void fetch("/api/content/drafts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ websiteId, auditId, drafts }),
       }).then(async (response) => {
-        if (response.ok) return;
+        if (response.ok) {
+          persistedDraftRevisionRef.current = Math.max(persistedDraftRevisionRef.current, revision);
+          return;
+        }
         const payload = await response.json().catch(() => ({})) as { error?: string };
         setError(payload.error || "Destiny could not save the article draft yet.");
       }).catch(() => setError("Destiny could not save the article draft yet."));
@@ -209,6 +216,7 @@ export function ArticleReviewWorkspace({
   useEffect(() => () => generationControllerRef.current?.abort(), []);
 
   const updateDraft = (change: (current: EditableDraft) => EditableDraft) => {
+    draftRevisionRef.current += 1;
     setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));
   };
 
