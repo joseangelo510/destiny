@@ -49,7 +49,7 @@ describe("Destiny article generation policy", () => {
       specialInstructions: "",
       addInfographics: true,
     });
-    expect(DEFAULT_COPY_MODEL).toBe("claude-sonnet-4-6");
+    expect(DEFAULT_COPY_MODEL).toBe("claude-opus-4-8");
   });
 
   it("reports the real article model capability instead of advertising an unavailable model", () => {
@@ -72,8 +72,8 @@ describe("Destiny article generation policy", () => {
       preferences: { ...DEFAULT_ARTICLE_PREFERENCES, specialInstructions: "Mention the free strategy call once." },
     });
 
-    expect(prompt).toContain("2,000–2,200 words");
-    expect(prompt).toContain("6–8 H2 sections");
+    expect(prompt).toContain("2,000–3,000 words");
+    expect(prompt).toContain("6–9 H2 sections");
     expect(prompt).toContain("4–9 contextual bucket brigades");
     expect(prompt).toContain("first 150 words");
     expect(prompt).toContain("at least 40% of headings");
@@ -95,8 +95,8 @@ describe("Destiny article generation policy", () => {
     });
     expect(evidence).toContain("https://example1.gov/guidance");
     expect(evidence).toContain("Evidence summary 3");
-    const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-sonnet-4-6");
-    expect(request.model).toBe("claude-sonnet-4-6");
+    const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-opus-4-8");
+    expect(request.model).toBe("claude-opus-4-8");
     expect(request.max_tokens).toBe(9000);
     expect(request).not.toHaveProperty("tools");
     expect(request.output_config.format.type).toBe("json_schema");

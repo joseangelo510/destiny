@@ -19,9 +19,10 @@ import {
   type ArticleGenerationPreferences,
   type ArticleInternalPage,
 } from "@/lib/content/article-generation";
+import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 
 type EditableDraft = ArticleDraft & { approved: boolean };
-const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 250_000;
+const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
 
 export type ArticleGenerationContext = {
   businessName: string;
@@ -75,6 +76,7 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
 
 function issueCategory(code: string) {
   if (code === "generation_required") return "Full article generation";
+  if (code === "incomplete_output") return "Article completion";
   if (code === "word_count") return "Article depth";
   if (code.startsWith("heading_")) return "Heading structure";
   if (code.startsWith("brigade_") || code === "stock_phrase") return "Writing rhythm";
@@ -107,7 +109,7 @@ export function ArticleReviewWorkspace({
   const [selected, setSelected] = useState(0);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generationPhase, setGenerationPhase] = useState<"researching" | "writing">("researching");
+  const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
   const generationControllerRef = useRef<AbortController | null>(null);
@@ -222,29 +224,11 @@ export function ArticleReviewWorkspace({
         const failure = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(failure.error || "Destiny could not generate this article.");
       }
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffered = "";
-      let result: { draft?: ArticleDraft; error?: string } | null = null;
-      const handleLine = (line: string) => {
-        const trimmed = line.trim();
-        if (!trimmed) return;
-        let event: { event?: string; phase?: string; draft?: ArticleDraft; error?: string };
-        try { event = JSON.parse(trimmed) as typeof event; } catch { return; }
-        if (event.event === "phase" && (event.phase === "researching" || event.phase === "writing")) setGenerationPhase(event.phase);
-        else if (event.event === "result") result = { draft: event.draft, error: event.error };
-      };
-      for (;;) {
-        const { value, done } = await reader.read();
-        buffered += decoder.decode(value ?? new Uint8Array(), { stream: !done });
-        const lines = buffered.split("\n");
-        buffered = done ? "" : lines.pop() ?? "";
-        for (const line of lines) handleLine(line);
-        if (done) { if (buffered) handleLine(buffered); break; }
-      }
-      const settled = result as { draft?: ArticleDraft; error?: string } | null;
-      if (!settled || !settled.draft) throw new Error(settled?.error || "Destiny did not receive a complete article. Your brief and settings are saved—try again.");
-      updateDraft(() => ({ ...settled.draft!, approved: false }));
+      const settled = await readArticleGenerationStream<{ draft?: ArticleDraft; error?: string }>(response.body, setGenerationPhase)
+        .catch((cause: unknown) => { throw new Error(cause instanceof Error ? cause.message : "Destiny did not receive a complete article. Your brief and settings are saved—try again."); });
+      if (!settled.draft) throw new Error(settled.error || "Destiny did not receive a complete article. Your brief and settings are saved—try again.");
+      const generated = settled.draft;
+      updateDraft(() => ({ ...generated, approved: false }));
     } catch (cause) {
       setError(generationAbortReasonRef.current === "cancelled"
         ? "Generation cancelled. Your brief and settings are saved."
@@ -317,7 +301,7 @@ export function ArticleReviewWorkspace({
 
     <div className="article-editor workspace-card">
       <section className="article-generation-controls" aria-labelledby="article-generation-heading">
-        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–2,200 useful words.</p></div><span className="model-chip">{generationAvailable ? generationModelLabel : "Article model unavailable"}</span></div>
+        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–3,000 useful words.</p></div><span className="model-chip">{generationAvailable ? generationModelLabel : "Article model unavailable"}</span></div>
         <p className="article-brief-keyword"><strong>Focus keyword:</strong> {draft.keyword}</p>
         <div className="article-preference-grid">
           <label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference("voice", event.target.value as ArticleGenerationPreferences["voice"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label>
@@ -326,8 +310,8 @@ export function ArticleReviewWorkspace({
         </div>
         <label>Special instructions<textarea disabled={generating} rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
         <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} disabled={generating} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : !reviewReady ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
-        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Researching sources" : "Writing draft"}</strong><p>Destiny verifies search evidence first, then Claude writes the focused 2,000–2,200-word article. {generationSeconds}s elapsed. You can cancel without losing your brief or settings.</p></div>}
+        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? generationPhase === "finishing" ? "Finishing the article…" : "Researching and writing…" : !reviewReady ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
+        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Researching sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing draft"}</strong><p>Destiny verifies search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Destiny performs one bounded completion pass. {generationSeconds}s elapsed. You can cancel without losing your brief or settings.</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not active yet</strong><p>Your brief and settings are saved. Full AI article generation will be available once the writing model is connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}
       </section>
