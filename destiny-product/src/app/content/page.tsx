@@ -1,9 +1,10 @@
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import Link from "next/link";
-import { buildArticleDraft } from "@/lib/content/article-draft";
+import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
@@ -64,6 +65,14 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
   }));
+  const { data: savedArticleDraftRows } = context.audit && context.website
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("article_drafts")
+      .select("draft")
+      .eq("website_id", context.website.id)
+      .eq("audit_id", context.audit.id)
+    : { data: [] };
+  const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDrafts, (savedArticleDraftRows ?? []).map((row) => row.draft));
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
@@ -89,7 +98,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           }}
           generationAvailable={generationCapability.available}
           generationModelLabel={generationCapability.label}
-          initialDrafts={articleDrafts}
+          initialDrafts={hydratedArticleDrafts}
           questId={approvalQuest?.id}
           questStatus={approvalQuest?.status}
         />
