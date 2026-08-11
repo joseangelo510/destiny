@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, normalizeArticleBody, renderArticleMarkdownToHtml } from "./article-draft";
+import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, mergePersistedArticleDrafts, normalizeArticleBody, renderArticleMarkdownToHtml } from "./article-draft";
 
 describe("article review workspace", () => {
   it("creates an editable, business-specific article and Word-compatible document", async () => {
@@ -61,5 +61,24 @@ Copy this into your CMS editor.`);
 
     expect(html).toContain("&quot;");
     expect(html).not.toContain('onmouseover="alert(1)"');
+  });
+
+  it("restores a generated server draft over its starter article on page load", () => {
+    const starter = buildArticleDraft({
+      keyword: "content marketing service",
+      businessName: "Jose Angelo Studios",
+      problemSolved: "Founders need qualified traffic.",
+      idealCustomer: "Small-business founders",
+      differentiation: "Hands-on strategy",
+    });
+    const generated = {
+      ...starter,
+      title: "How to Choose a Content Marketing Service",
+      body: "# Generated article\n\nA complete, persisted article.",
+      generationStatus: "generated" as const,
+      generatedBy: "claude-opus-4-8",
+    };
+
+    expect(mergePersistedArticleDrafts([starter], [generated])).toEqual([generated]);
   });
 });

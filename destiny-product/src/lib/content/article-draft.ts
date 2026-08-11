@@ -59,6 +59,42 @@ export function normalizeArticleBody(value: string) {
   return value.replace(/\.{2,}(\s+That matters\b)/g, ".$1");
 }
 
+export function mergePersistedArticleDrafts(fallbacks: ArticleDraft[], saved: unknown): ArticleDraft[] {
+  if (!Array.isArray(saved)) return fallbacks;
+  const byKeyword = new Map(saved.flatMap((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const keyword = (value as Partial<ArticleDraft>).keyword;
+    return typeof keyword === "string" ? [[keyword, value as Partial<ArticleDraft>] as const] : [];
+  }));
+
+  return fallbacks.map((fallback) => {
+    const candidate = byKeyword.get(fallback.keyword);
+    const generationStatus = candidate?.generationStatus;
+    if (!candidate
+      || (generationStatus !== "starter" && generationStatus !== "needs_generation" && generationStatus !== "generated")
+      || typeof candidate.title !== "string"
+      || typeof candidate.body !== "string") return fallback;
+    const metaDescriptions = Array.isArray(candidate.metaDescriptions)
+      ? candidate.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 1).map(fitMetaDescription)
+      : fallback.metaDescriptions;
+    return {
+      ...fallback,
+      ...candidate,
+      keyword: fallback.keyword,
+      metaDescription: metaDescriptions[0] ?? fallback.metaDescription,
+      metaDescriptions,
+      body: normalizeArticleBody(candidate.body),
+      sources: Array.isArray(candidate.sources) ? candidate.sources : fallback.sources,
+      infographics: Array.isArray(candidate.infographics) ? candidate.infographics : fallback.infographics,
+      bucketBrigades: Array.isArray(candidate.bucketBrigades) ? candidate.bucketBrigades : fallback.bucketBrigades,
+      preferences: { ...fallback.preferences, ...(candidate.preferences ?? {}) },
+      qualityIssues: Array.isArray(candidate.qualityIssues) ? candidate.qualityIssues : fallback.qualityIssues,
+      optimization: Array.isArray(candidate.optimization) ? candidate.optimization : fallback.optimization,
+      generationStatus,
+    };
+  });
+}
+
 export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const keyword = input.keyword.trim() || "your customer’s search question";
   const titleKeyword = titleCase(keyword);
