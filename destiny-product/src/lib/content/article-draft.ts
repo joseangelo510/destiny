@@ -75,17 +75,20 @@ export function mergePersistedArticleDrafts(fallbacks: ArticleDraft[], saved: un
       || (generationStatus !== "starter" && generationStatus !== "needs_generation" && generationStatus !== "generated")
       || typeof candidate.title !== "string"
       || typeof candidate.body !== "string") return fallback;
-    if (generationStatus !== "starter") {
-      // Replit hardening: mirror the client-side normalizeSavedDraft gate so an
-      // unqualified persisted draft can never reach the client as generated
-      // (and become approvable) when client rehydration is unavailable.
+    // Replit hardening: approval stays fail-closed without hiding real work.
+    // A saved article always keeps its content on reload; but it may only claim
+    // "generated" status when it has provenance, enough depth, and is not
+    // incomplete — otherwise it is demoted to needs_generation so it cannot be
+    // approved until regenerated. QA warnings (e.g. heading structure) do not
+    // hide the article: currentArticleQualityIssues blocks approval client-side.
+    let safeStatus = generationStatus;
+    if (generationStatus === "generated") {
       const savedFormat = (candidate.preferences ?? fallback.preferences).format ?? fallback.preferences.format;
       const hasGenerationProvenance = typeof candidate.generatedBy === "string" && candidate.generatedBy.trim().length > 0 && candidate.body.trim().length > 0;
-      const passedQualityAtGeneration = Array.isArray(candidate.qualityIssues) && candidate.qualityIssues.length === 0;
       const hasSufficientWords = markdownWordCount(candidate.body) >= (savedFormat === "seo_article" ? 1800 : 600);
-      if (!hasGenerationProvenance || !passedQualityAtGeneration || !hasSufficientWords) {
-        return { ...fallback, preferences: { ...fallback.preferences, ...(candidate.preferences ?? {}) } };
-      }
+      const isIncomplete = Array.isArray(candidate.qualityIssues)
+        && candidate.qualityIssues.some((issue) => issue?.code === "incomplete_output" || issue?.code === "generation_required");
+      if (!hasGenerationProvenance || !hasSufficientWords || isIncomplete) safeStatus = "needs_generation";
     }
     const metaDescriptions = Array.isArray(candidate.metaDescriptions)
       ? candidate.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 1).map(fitMetaDescription)
@@ -103,7 +106,7 @@ export function mergePersistedArticleDrafts(fallbacks: ArticleDraft[], saved: un
       preferences: { ...fallback.preferences, ...(candidate.preferences ?? {}) },
       qualityIssues: Array.isArray(candidate.qualityIssues) ? candidate.qualityIssues : fallback.qualityIssues,
       optimization: Array.isArray(candidate.optimization) ? candidate.optimization : fallback.optimization,
-      generationStatus,
+      generationStatus: safeStatus,
     };
   });
 }

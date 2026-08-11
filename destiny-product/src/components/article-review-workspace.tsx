@@ -34,19 +34,24 @@ export type ArticleGenerationContext = {
 
 function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
   const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
-  // Only trust a completed-generation status when the record carries generation
-  // provenance a starter can never have, recorded no quality issues at
-  // generation time, and holds a full-length article body. Anything else —
-  // legacy incomplete drafts included — is demoted to the brief/retry state.
+  // A saved article keeps its content, but may only claim "generated" status
+  // when it carries generation provenance a starter can never have, holds a
+  // full-length body, and is not incomplete — otherwise it is demoted to
+  // needs_generation so approval stays fail-closed. QA warnings (e.g. heading
+  // structure) do not hide the article; currentArticleQualityIssues blocks
+  // approval and surfaces the warning instead.
   const savedBody = typeof saved.body === "string" ? saved.body : "";
   const savedFormat = (saved.preferences ?? fallback.preferences).format ?? fallback.preferences.format;
   const hasGenerationProvenance = typeof saved.generatedBy === "string" && saved.generatedBy.trim().length > 0 && savedBody.trim().length > 0;
-  const passedQualityAtGeneration = Array.isArray(saved.qualityIssues) && saved.qualityIssues.length === 0;
   const hasSufficientWords = markdownWordCount(savedBody) >= (savedFormat === "seo_article" ? 1800 : 600);
-  const generationStatus = (saved.generationStatus === "generated" || saved.generationStatus === "needs_generation")
-    && hasGenerationProvenance && passedQualityAtGeneration && hasSufficientWords
+  const isIncomplete = Array.isArray(saved.qualityIssues)
+    && saved.qualityIssues.some((issue) => issue?.code === "incomplete_output" || issue?.code === "generation_required");
+  let generationStatus: EditableDraft["generationStatus"] = saved.generationStatus === "generated" || saved.generationStatus === "needs_generation"
     ? saved.generationStatus
     : "starter";
+  if (generationStatus === "generated" && (!hasGenerationProvenance || !hasSufficientWords || isIncomplete)) {
+    generationStatus = "needs_generation";
+  }
   if (generationStatus === "starter") {
     return {
       ...fallback,

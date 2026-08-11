@@ -47,7 +47,7 @@ describe("article review workspace", () => {
     expect(mergePersistedArticleDrafts([starter], [generated])).toEqual([generated]);
   });
 
-  it("demotes unqualified persisted drafts back to the starter article", () => {
+  it("keeps a generated article with a QA warning visible without implicit approval", () => {
     const starter = buildArticleDraft({
       keyword: "content marketing service",
       businessName: "Jose Angelo Studios",
@@ -56,14 +56,43 @@ describe("article review workspace", () => {
       differentiation: "Hands-on strategy",
     });
     const longBody = `# Generated article\n\n${"Substantial paragraph content that comfortably clears the word-count requirement for a full article. ".repeat(140)}`;
-    const noProvenance = { ...starter, body: longBody, generationStatus: "generated" as const, qualityIssues: [] as typeof starter.qualityIssues };
-    const failedQuality = { ...noProvenance, generatedBy: "claude-opus-4-8", qualityIssues: [{ code: "incomplete_output", detail: "cut off" }] as typeof starter.qualityIssues };
+    const warned = {
+      ...starter,
+      title: "How to Choose a Content Marketing Service",
+      body: longBody,
+      sources: [{ title: "Industry study", url: "https://example.com/study" }],
+      generationStatus: "generated" as const,
+      generatedBy: "claude-opus-4-8",
+      qualityIssues: [{ code: "heading_h2_count", detail: "Add more H2 sections." }] as typeof starter.qualityIssues,
+    };
+
+    const [merged] = mergePersistedArticleDrafts([starter], [warned]);
+    expect(merged.generationStatus).toBe("generated");
+    expect(merged.body).toBe(normalizeArticleBody(longBody));
+    expect(merged.title).toBe(warned.title);
+    expect(merged.sources).toEqual(warned.sources);
+    expect(merged.qualityIssues).toEqual(warned.qualityIssues);
+    expect("approved" in merged && (merged as { approved?: boolean }).approved === true).toBe(false);
+  });
+
+  it("keeps unqualified article content but demotes it to needs_generation", () => {
+    const starter = buildArticleDraft({
+      keyword: "content marketing service",
+      businessName: "Jose Angelo Studios",
+      problemSolved: "Founders need qualified traffic.",
+      idealCustomer: "Small-business founders",
+      differentiation: "Hands-on strategy",
+    });
+    const longBody = `# Generated article\n\n${"Substantial paragraph content that comfortably clears the word-count requirement for a full article. ".repeat(140)}`;
+    const noProvenance = { ...starter, title: "Saved article", body: longBody, generationStatus: "generated" as const, qualityIssues: [] as typeof starter.qualityIssues };
+    const incomplete = { ...noProvenance, generatedBy: "claude-opus-4-8", qualityIssues: [{ code: "incomplete_output", detail: "cut off" }] as typeof starter.qualityIssues };
     const tooShort = { ...noProvenance, generatedBy: "claude-opus-4-8", body: "# Generated article\n\nToo short." };
 
-    for (const unsafe of [noProvenance, failedQuality, tooShort]) {
+    for (const unsafe of [noProvenance, incomplete, tooShort]) {
       const [merged] = mergePersistedArticleDrafts([starter], [unsafe]);
-      expect(merged.generationStatus).toBe("starter");
-      expect(merged.body).toBe(starter.body);
+      expect(merged.generationStatus).toBe("needs_generation");
+      expect(merged.title).toBe(unsafe.title);
+      expect(merged.body).toBe(normalizeArticleBody(unsafe.body));
     }
   });
 });
