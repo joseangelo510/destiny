@@ -74,7 +74,26 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "The website or audit is not available to this account." }, { status: 404 });
   }
 
-  const rows = (drafts as SavedArticleDraft[]).map((item) => ({
+  const articleDrafts = (supabase as unknown as SupabaseClient).from("article_drafts");
+  const { data: existingRows, error: existingError } = await articleDrafts
+    .select("keyword,draft")
+    .eq("website_id", websiteId)
+    .eq("audit_id", auditId);
+  if (existingError) {
+    return NextResponse.json({ error: "Destiny could not safely compare the saved article drafts." }, { status: 500 });
+  }
+  const generatedKeywords = new Set((existingRows ?? []).flatMap((row) => {
+    const saved = row.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
+      ? row.draft as Record<string, unknown>
+      : null;
+    return saved?.generationStatus === "generated" && typeof row.keyword === "string" ? [row.keyword] : [];
+  }));
+  const safeDrafts = (drafts as SavedArticleDraft[]).filter((item) => (
+    item.generationStatus !== "starter" || !generatedKeywords.has(item.keyword.trim())
+  ));
+  const protectedCount = drafts.length - safeDrafts.length;
+
+  const rows = safeDrafts.map((item) => ({
     organization_id: website.organization_id,
     website_id: websiteId,
     audit_id: auditId,
@@ -83,8 +102,10 @@ export async function PUT(request: Request) {
     draft: item as Json,
     updated_at: new Date().toISOString(),
   }));
-  const { error } = await (supabase as unknown as SupabaseClient).from("article_drafts").upsert(rows, { onConflict: "website_id,audit_id,keyword" });
+  if (rows.length === 0) return NextResponse.json({ saved: 0, protected: protectedCount });
+
+  const { error } = await articleDrafts.upsert(rows, { onConflict: "website_id,audit_id,keyword" });
   if (error) return NextResponse.json({ error: "Destiny generated the article but could not save it yet." }, { status: 500 });
 
-  return NextResponse.json({ saved: rows.length });
+  return NextResponse.json(protectedCount ? { saved: rows.length, protected: protectedCount } : { saved: rows.length });
 }
