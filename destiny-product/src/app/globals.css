@@ -1730,6 +1730,7 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 .apple-roadmap-task-row.current { background: white; border: 2px solid #729f8b; box-shadow: 0 9px 25px rgba(31, 74, 61, .09); }
 .apple-roadmap-phase.future .apple-roadmap-task-row.future,
 .apple-roadmap-signal-row.waiting { opacity: .58; }
+.apple-roadmap-signal-row.waiting.actionable { opacity: 1; }
 .apple-roadmap-row-mark,
 .apple-roadmap-signal-mark { align-items: center; background: #eef3f0; border: 1px solid #b5c7be; border-radius: 50%; color: var(--forest); display: flex; font-size: 13px; font-weight: 900; height: 28px; justify-content: center; width: 28px; }
 .apple-roadmap-task-row.complete .apple-roadmap-row-mark { background: var(--forest); border-color: var(--forest); color: white; }

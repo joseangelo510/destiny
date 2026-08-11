@@ -90,6 +90,19 @@ describe("truthful SEO adventure roadmap", () => {
     ]);
     expect(roadmap.currentNode?.id).toBe("compounding-authority");
     expect(roadmap.nodes.find((node) => node.id === "first-clicks")?.evidence).toContain("12 clicks");
+    expect(roadmap.nodes.find((node) => node.id === "pages-indexed")).toMatchObject({
+      actionHref: "/analytics",
+      actionLabel: "View search data",
+    });
+  });
+
+  it("routes the first search-evidence action to connection setup until data exists", async () => {
+    const roadmap = await buildSeoRoadmap({ auditComplete: true, quests: [], searchConsole: null, analytics: null });
+
+    expect(roadmap.nodes.find((node) => node.id === "pages-indexed")).toMatchObject({
+      actionHref: "/integrations",
+      actionLabel: "Connect Search Console",
+    });
   });
 
   it("requires multiple verified signals before claiming compounding authority", async () => {
