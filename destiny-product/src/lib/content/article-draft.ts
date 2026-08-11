@@ -155,6 +155,68 @@ function escapeHtml(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
+function escapeHtmlAttribute(value: string) {
+  return escapeHtml(value).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+function safeLinkHref(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function renderInlineMarkdown(value: string) {
+  return escapeHtml(value)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (match, text: string, url: string) => {
+      const href = safeLinkHref(url);
+      return href ? `<a href="${escapeHtmlAttribute(href)}">${text}</a>` : text;
+    })
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
+export function renderArticleMarkdownToHtml(markdown: string) {
+  const lines = markdown.replace(/```[\s\S]*?```/g, "").split("\n");
+  const blocks: string[] = [];
+  let list: string[] = [];
+  let paragraph: string[] = [];
+  const flushList = () => {
+    if (list.length) blocks.push(`<ul>${list.map((item) => `<li>${item}</li>`).join("")}</ul>`);
+    list = [];
+  };
+  const flushParagraph = () => {
+    if (paragraph.length) blocks.push(`<p>${paragraph.join(" ")}</p>`);
+    paragraph = [];
+  };
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) { flushList(); flushParagraph(); continue; }
+    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (heading) {
+      flushList();
+      flushParagraph();
+      const level = heading[1].length;
+      blocks.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+    const listItem = /^[-*]\s+(.*)$/.exec(line);
+    if (listItem) {
+      flushParagraph();
+      list.push(renderInlineMarkdown(listItem[1]));
+      continue;
+    }
+    flushList();
+    paragraph.push(renderInlineMarkdown(line));
+  }
+  flushList();
+  flushParagraph();
+  return blocks.join("");
+}
+
 export function buildWordDocument(draft: ArticleDraft) {
   const paragraphs = escapeHtml(draft.body)
     .split("\n")

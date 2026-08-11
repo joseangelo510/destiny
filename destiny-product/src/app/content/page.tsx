@@ -56,6 +56,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     editorialContext,
   );
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
+  const wordpress = context.integrations.find((integration) => integration.provider === "wordpress");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
@@ -73,6 +74,8 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
+          websiteId={context.website?.id ?? ""}
+          wordpressConnected={wordpress?.status === "connected"}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
