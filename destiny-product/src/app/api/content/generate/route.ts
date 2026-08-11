@@ -19,10 +19,18 @@ import {
 } from "@/lib/content/article-generation";
 import { createClient } from "@/lib/supabase/server";
 import { encodeArticleGenerationEvent, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
+import {
+  articleContinuationDecision,
+  buildAnthropicArticleContinuationRequest,
+  buildArticleContinuationPrompt,
+  mergeArticleContinuation,
+  parseArticleContinuation,
+} from "@/lib/content/article-recovery";
 
 export const maxDuration = 300;
 const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
-const ARTICLE_WRITING_TIMEOUT_MS = 205_000;
+const ARTICLE_WRITING_TIMEOUT_MS = 170_000;
+const ARTICLE_CONTINUATION_TIMEOUT_MS = 70_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 
 type GenerateRequest = {
@@ -34,6 +42,20 @@ type GenerateRequest = {
   internalPages?: unknown;
   preferences?: unknown;
 };
+
+type AnthropicMessagePayload = {
+  content?: Array<{ type?: string; text?: string }>;
+  error?: { message?: string };
+  stop_reason?: string;
+  usage?: { input_tokens?: number; output_tokens?: number };
+};
+
+function anthropicText(payload: AnthropicMessagePayload) {
+  return (payload.content ?? [])
+    .filter((block) => block.type === "text" && typeof block.text === "string")
+    .map((block) => block.text)
+    .join("\n");
+}
 
 function text(value: unknown, maximum: number) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -147,14 +169,89 @@ export async function POST(request: Request) {
       };
     }
 
-    const payload = await response.json().catch(() => ({})) as { content?: Array<{ type?: string; text?: string }>; error?: { message?: string }; stop_reason?: string };
+    const payload = await response.json().catch(() => ({})) as AnthropicMessagePayload;
     if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
 
     try {
-      const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
-      if (payload.stop_reason === "max_tokens") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
-      const article = parseGeneratedArticlePayload(rawText);
+      if (payload.stop_reason === "refusal") throw new Error("ARTICLE_RESPONSE_REFUSED");
+      let article = parseGeneratedArticlePayload(anthropicText(payload));
+      const initialDecision = articleContinuationDecision(article.bodyMarkdown, input.preferences.format, payload.stop_reason);
+      console.info("article_generation_initial", {
+        model,
+        stopReason: payload.stop_reason ?? "unknown",
+        inputTokens: payload.usage?.input_tokens ?? null,
+        outputTokens: payload.usage?.output_tokens ?? null,
+        wordCount: initialDecision.wordCount,
+        cleanEnding: initialDecision.cleanEnding,
+        continuationReason: initialDecision.reason,
+        finalCharacters: article.bodyMarkdown.slice(-160),
+      });
+
+      let recoveryIssue: { code: "incomplete_output"; message: string } | null = null;
+      if (initialDecision.needed) {
+        onPhase("finishing");
+        try {
+          const continuationPrompt = buildArticleContinuationPrompt({
+            bodyMarkdown: article.bodyMarkdown,
+            researchEvidence,
+            targetMinimumWords: input.preferences.format === "seo_article" ? 2_000 : Math.max(700, initialDecision.wordCount + 400),
+            targetMaximumWords: input.preferences.format === "seo_article" ? 3_000 : Math.max(1_200, initialDecision.wordCount + 1_000),
+          });
+          const continuationResponse = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-api-key": apiKey,
+              "anthropic-version": "2023-06-01",
+            },
+            body: JSON.stringify(buildAnthropicArticleContinuationRequest(continuationPrompt, model)),
+            signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_CONTINUATION_TIMEOUT_MS), request.signal]),
+          });
+          const continuationPayload = await continuationResponse.json().catch(() => ({})) as AnthropicMessagePayload;
+          if (!continuationResponse.ok) throw new Error(continuationPayload.error?.message || `Claude completion returned HTTP ${continuationResponse.status}.`);
+          if (continuationPayload.stop_reason === "max_tokens" || continuationPayload.stop_reason === "refusal") {
+            throw new Error(`Claude completion stopped with ${continuationPayload.stop_reason}.`);
+          }
+
+          article = {
+            ...article,
+            bodyMarkdown: mergeArticleContinuation(article.bodyMarkdown, parseArticleContinuation(anthropicText(continuationPayload))),
+          };
+          const completedDecision = articleContinuationDecision(article.bodyMarkdown, input.preferences.format, continuationPayload.stop_reason);
+          console.info("article_generation_recovery", {
+            model,
+            attempted: true,
+            stopReason: continuationPayload.stop_reason ?? "unknown",
+            inputTokens: continuationPayload.usage?.input_tokens ?? null,
+            outputTokens: continuationPayload.usage?.output_tokens ?? null,
+            wordCount: completedDecision.wordCount,
+            cleanEnding: completedDecision.cleanEnding,
+            remainingReason: completedDecision.reason,
+            finalCharacters: article.bodyMarkdown.slice(-160),
+          });
+          if (completedDecision.needed) {
+            recoveryIssue = {
+              code: "incomplete_output",
+              message: "Destiny completed one bounded finishing pass, but the combined article still ended before it met the completion requirements. Generate again before approval.",
+            };
+          }
+        } catch (cause) {
+          console.error("article_generation_recovery", {
+            model,
+            attempted: true,
+            error: cause instanceof Error ? cause.message : "unknown",
+            preservedWordCount: initialDecision.wordCount,
+            finalCharacters: article.bodyMarkdown.slice(-160),
+          });
+          recoveryIssue = {
+            code: "incomplete_output",
+            message: "The first article response ended early and Destiny's single finishing pass could not complete it. The partial draft is preserved, but it cannot be approved.",
+          };
+        }
+      }
+
       const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
+      if (recoveryIssue && !qualityIssues.some((issue) => issue.code === "incomplete_output")) qualityIssues.unshift(recoveryIssue);
       return {
         draft: {
           keyword: input.keyword,
@@ -177,7 +274,7 @@ export async function POST(request: Request) {
               { label: "Human review", detail: "Review the article, sources, graphics, and business claims before publishing." },
             ],
         },
-        quality: { passed: qualityIssues.length === 0, issues: qualityIssues },
+        quality: { passed: qualityIssues.length === 0, issues: qualityIssues, recovered: initialDecision.needed && !recoveryIssue },
         model,
       };
     } catch (cause) {

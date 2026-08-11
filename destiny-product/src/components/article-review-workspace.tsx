@@ -22,7 +22,7 @@ import {
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 
 type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
-const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 250_000;
+const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
 
 export type ArticleGenerationContext = {
   businessName: string;
@@ -59,6 +59,7 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
 
 function issueCategory(code: string) {
   if (code === "generation_required") return "Full article generation";
+  if (code === "incomplete_output") return "Article completion";
   if (code === "word_count") return "Article depth";
   if (code.startsWith("heading_")) return "Heading structure";
   if (code.startsWith("brigade_") || code === "stock_phrase") return "Writing rhythm";
@@ -289,8 +290,8 @@ export function ArticleReviewWorkspace({
         </div>
         <label>Special instructions<textarea disabled={generating} rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
         <label className="article-infographic-toggle"><input disabled={generating} type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? "Researching and writing…" : draft.generationStatus === "generated" ? "Generate a new article" : `Generate with ${generationModelLabel}`}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
-        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : "Writing from the evidence pack"}</strong><p>Destiny verifies DataForSEO search evidence first, then Claude writes the focused 2,000–2,200-word article. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
+        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? generationPhase === "finishing" ? "Finishing the article…" : "Researching and writing…" : draft.generationStatus === "generated" ? "Generate a new article" : `Generate with ${generationModelLabel}`}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
+        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Destiny verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Destiny performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
         {!generating && draft.generationStatus !== "generated" && <div className="configuration-note" role="status"><strong>{draft.failureReason ? "Generation did not complete" : "Brief saved"}</strong><p>{draft.failureReason || "Set the direction above, then generate the complete article. There is no outline to review first."}</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not configured</strong><p>Your brief is still saved and ready to run once the writing model is connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}

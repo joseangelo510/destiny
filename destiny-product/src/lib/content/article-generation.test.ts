@@ -5,6 +5,7 @@ import {
   articleGenerationCapability,
   buildAnthropicArticleRequest,
   buildArticleGenerationPrompt,
+  buildSearchEvidencePack,
   renderInfographicSvg,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
@@ -26,10 +27,7 @@ function validLongFormPayload(): GeneratedArticlePayload {
   });
   return {
     title: "SEO Content Strategy: A Practical Growth Guide",
-    metaDescriptions: [
-      "Build an SEO content strategy with credible research, useful examples, and a clear publishing plan.",
-      "Learn how an SEO content strategy connects search intent, original insight, and measurable business growth.",
-    ],
+    metaDescriptions: ["Build an SEO content strategy with credible research, useful examples, and a clear publishing plan."],
     bodyMarkdown: ["# SEO Content Strategy: A Practical Growth Guide", "", ...paragraphs].join("\n"),
     bucketBrigades: sections.map((_, index) => ({ text: `So what should you do with section ${index + 1}?`, afterWord: 100 + index * 330 })),
     sources: [1, 2, 3].map((index) => ({
@@ -84,11 +82,28 @@ describe("Destiny article generation policy", () => {
     expect(prompt).not.toContain("write like Neil Patel");
   });
 
-  it("configures Opus 4.8 with server-side web research instead of asking the model to invent sources", () => {
-    const request = buildAnthropicArticleRequest("Research and write the article.", "claude-opus-4-8");
+  it("builds a deterministic DataForSEO evidence pack before the tool-free writing request", () => {
+    const evidence = buildSearchEvidencePack({
+      status_code: 20000,
+      tasks: [{ status_code: 20000, result: [{ items: [1, 2, 3].map((index) => ({
+        type: "organic",
+        title: `Verified source ${index}`,
+        url: `https://example${index}.gov/guidance`,
+        description: `Evidence summary ${index}`,
+      })) }] }],
+    });
+    expect(evidence).toContain("https://example1.gov/guidance");
+    expect(evidence).toContain("Evidence summary 3");
+    const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-opus-4-8");
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
-    expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
+    expect(request.max_tokens).toBe(9000);
+    expect(request).not.toHaveProperty("tools");
+    expect(request.output_config.format.type).toBe("json_schema");
+    expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["bodyMarkdown", "sources", "infographics"]));
+    expect(request.output_config.format.schema.required).toContain("metaDescription");
+    expect(request.output_config.format.schema.properties.metaDescription).toEqual({ type: "string" });
+    expect(request.output_config.format.schema.properties).not.toHaveProperty("metaDescriptions");
+    expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
   });
 
   it("accepts a substantive SEO article and rejects short or stock-phrase drafts", async () => {
