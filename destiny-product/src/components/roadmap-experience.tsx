@@ -121,7 +121,7 @@ export function RoadmapExperience({ roadmap, season, weekly }: RoadmapExperience
                   </div>
                 </article>) : <p className="apple-roadmap-phase-empty">Your next plan will add the tasks for this phase.</p>}
 
-                {phase.signals.map((signal) => <article className={`apple-roadmap-signal-row ${signal.state === "complete" ? "verified" : "waiting"}`} key={signal.id}>
+                {phase.signals.map((signal) => <article className={`apple-roadmap-signal-row ${signal.state === "complete" ? "verified" : "waiting"} ${phase.id === "ready" ? "actionable" : ""}`} key={signal.id}>
                   <span className="apple-roadmap-signal-mark" aria-hidden="true">◇</span>
                   <div><small>Sign it’s working</small><strong>{signal.label}</strong><p>{signal.evidence}</p></div>
                   <div className="apple-roadmap-row-actions">
