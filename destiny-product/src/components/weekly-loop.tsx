@@ -123,7 +123,7 @@ export function WeeklyLoop({
       {focusMode && focusTask ? <section aria-labelledby="focus-mode-title" className="weekly-focus-mode">
         <header><span className="weekly-focus-orbit" aria-hidden="true">✦</span><div><span className="eyebrow">One small step is enough</span><h3 id="focus-mode-title">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className="text-button" onClick={() => setFocusMode(false)} type="button">Show my full week</button></header>
         <div className="weekly-focus-time"><span>One step</span><strong>about {focusTask.estimated_minutes} minutes</strong></div>
-        <WeeklyTaskList openTaskId={focusTask.id} remainingTasks={remainingTasks} tasks={[focusTask]} />
+        <WeeklyTaskList auditId={auditId} openTaskId={focusTask.id} remainingTasks={remainingTasks} tasks={[focusTask]} />
       </section> : <>
       <div className="weekly-loop-tabs" role="tablist" aria-label="Weekly SEO work">
         {groups.map((group, index) => {
@@ -139,7 +139,7 @@ export function WeeklyLoop({
       {activeGroup && <section aria-labelledby={`weekly-loop-tab-${activeGroup.id}`} className="weekly-loop-task-pane" id="weekly-loop-task-pane" role="tabpanel">
         <div className="weekly-loop-pane-intro"><span className="eyebrow">{focusGroup && activeGroup.id === focusGroup.id ? "Start here" : "Now viewing"}</span><p>{activeGroup.description}</p>{focusGroup && activeGroup.id === focusGroup.id && <small className="weekly-loop-start-here-note">Your next move is based on what the audit found.</small>}</div>
         {activeGroup.tasks.length > 0
-          ? <WeeklyTaskList openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
+          ? <WeeklyTaskList auditId={auditId} openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
           : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
       </section>}
       </>}

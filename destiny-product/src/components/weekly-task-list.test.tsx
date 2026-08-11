@@ -31,6 +31,7 @@ describe("WeeklyTaskList", () => {
 
   it("opens only the task selected by the coach instead of the first task in every category", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
       openTaskId="task-2"
       tasks={[
         { ...baseTask, id: "task-1", title: "First task" },
@@ -45,6 +46,7 @@ describe("WeeklyTaskList", () => {
 
   it("keeps a category collapsed when its tasks are not the selected focus", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
       openTaskId="task-from-another-category"
       tasks={[{ ...baseTask, id: "task-1", title: "Later task" }]}
     />);
@@ -54,6 +56,7 @@ describe("WeeklyTaskList", () => {
 
   it("does not let users skip either required Research & strategy decision", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
       openTaskId="primary-task"
       tasks={[{
         ...baseTask,
@@ -65,16 +68,20 @@ describe("WeeklyTaskList", () => {
 
     expect(html).not.toContain("Skip for now");
     expect(html).toContain("Review keywords");
+    expect(html).toContain("Approve Destiny’s 5");
     expect(html).not.toContain("Approve &amp; complete");
+    expect(html).not.toContain("finish this right now");
     expect(html).toContain("At least five recommended searches are approved");
   });
 
   it("keeps the skip action available for other incomplete tasks", () => {
     const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
       openTaskId="content-task"
       tasks={[{ ...baseTask, id: "content-task", title: "Review content", task_type: "content_review" }]}
     />);
 
     expect(html).toContain("Skip for now");
+    expect(html).not.toContain("finish this right now");
   });
 });
