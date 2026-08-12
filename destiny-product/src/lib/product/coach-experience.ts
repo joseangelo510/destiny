@@ -110,7 +110,8 @@ export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expande
 
 type DestinyLogicCategory = (typeof COACH_CATEGORIES)[number]["id"];
 
-export function guidedTaskPath(task: { task_type: string; action_path: string }) {
+export function guidedTaskPath(task: { task_type: string; action_path: string; category?: string | null }) {
+  if (task.category === "reviews" || task.task_type === "reviews") return "/reviews";
   if (task.task_type !== "primary_quest" || task.action_path.includes("#")) return task.action_path;
   return `${task.action_path.replace(/\/$/, "")}#recommended-fix`;
 }

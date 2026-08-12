@@ -84,4 +84,51 @@ describe("WeeklyTaskList", () => {
     expect(html).toContain("Skip for now");
     expect(html).not.toContain("finish this right now");
   });
+
+  it("renders the Reviews destination for a review-led primary task", () => {
+    const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
+      openTaskId="review-task"
+      tasks={[{
+        ...baseTask,
+        id: "review-task",
+        title: "Ask recent customers for a Google review",
+        category: "reviews",
+        task_type: "primary_quest",
+        action_path: "/audits/audit-1#recommended-fix",
+      }]}
+    />);
+
+    expect(html).toContain('href="/reviews"');
+    expect(html).toContain("Open guided step");
+    expect(html).not.toContain('href="/audits/audit-1#recommended-fix"');
+  });
+
+  it("renders a working destination for every guided Game Plan task", () => {
+    const html = renderToStaticMarkup(<WeeklyTaskList
+      auditId="audit-1"
+      openTaskId="keywords"
+      tasks={[
+        { ...baseTask, id: "keywords", title: "Review keywords", category: "content", task_type: "keyword_review", action_path: "/keywords" },
+        { ...baseTask, id: "content", title: "Review content", category: "content", task_type: "content_review", action_path: "/content" },
+        { ...baseTask, id: "community", title: "Join a discussion", category: "distribution", task_type: "community_distribution", action_path: "/distribution#community" },
+        { ...baseTask, id: "social", title: "Share an article", category: "distribution", task_type: "social_distribution", action_path: "/distribution#social" },
+        { ...baseTask, id: "outreach", title: "Contact a creator", category: "distribution", task_type: "publisher_outreach", action_path: "/distribution#outreach" },
+        { ...baseTask, id: "directories", title: "Complete a directory", category: "distribution", task_type: "directory_growth", action_path: "/distribution#directories" },
+        { ...baseTask, id: "reviews", title: "Request Google reviews", category: "reviews", task_type: "primary_quest", action_path: "/audits/audit-1#recommended-fix" },
+        { ...baseTask, id: "technical", title: "Review technical evidence", category: "technical", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" },
+      ]}
+    />);
+
+    for (const href of [
+      "/keywords",
+      "/content",
+      "/distribution#community",
+      "/distribution#social",
+      "/distribution#outreach",
+      "/distribution#directories",
+      "/reviews",
+      "/audits/audit-1#technical-evidence",
+    ]) expect(html).toContain(`href="${href}"`);
+  });
 });
