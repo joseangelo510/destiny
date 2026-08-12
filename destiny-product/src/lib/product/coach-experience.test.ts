@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_WEEKLY_TASK_LIMIT,
@@ -108,6 +109,33 @@ describe("Destiny SEO coach experience", () => {
       ],
     });
     expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
+  });
+
+  it("sends review-led guided work to Reviews while preserving every other task destination", () => {
+    expect(guidedTaskPath({ task_type: "primary_quest", category: "reviews", action_path: "/audits/abc#recommended-fix" })).toBe("/reviews");
+    expect(guidedTaskPath({ task_type: "reviews", category: "reviews", action_path: "/this-week" })).toBe("/reviews");
+    expect(guidedTaskPath({ task_type: "keyword_review", category: "content", action_path: "/keywords" })).toBe("/keywords");
+    expect(guidedTaskPath({ task_type: "content_review", category: "content", action_path: "/content" })).toBe("/content");
+    expect(guidedTaskPath({ task_type: "community_distribution", category: "distribution", action_path: "/distribution#community" })).toBe("/distribution#community");
+    expect(guidedTaskPath({ task_type: "social_distribution", category: "distribution", action_path: "/distribution#social" })).toBe("/distribution#social");
+    expect(guidedTaskPath({ task_type: "publisher_outreach", category: "distribution", action_path: "/distribution#outreach" })).toBe("/distribution#outreach");
+    expect(guidedTaskPath({ task_type: "directory_growth", category: "distribution", action_path: "/distribution#directories" })).toBe("/distribution#directories");
+    expect(guidedTaskPath({ task_type: "technical_review", category: "technical", action_path: "/audits/abc#technical-evidence" })).toBe("/audits/abc#technical-evidence");
+  });
+
+  it("backs every guided destination with a real page and every deep link with a real section", () => {
+    expect(existsSync(new URL("../../app/keywords/page.tsx", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../../app/content/page.tsx", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../../app/reviews/page.tsx", import.meta.url))).toBe(true);
+
+    const distribution = readFileSync(new URL("../../app/distribution/page.tsx", import.meta.url), "utf8");
+    for (const id of ["community", "social", "outreach", "directories"]) {
+      expect(distribution).toContain(`id="${id}"`);
+    }
+
+    const audit = readFileSync(new URL("../../app/audits/[id]/page.tsx", import.meta.url), "utf8");
+    expect(audit).toContain('id="recommended-fix"');
+    expect(audit).toContain('id="technical-evidence"');
   });
 
   it("distinguishes self-reported completion from Destiny verification", () => {

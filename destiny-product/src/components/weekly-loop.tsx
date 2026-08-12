@@ -7,6 +7,7 @@ type WeeklyLoopTask = {
   id: string;
   title: string;
   description: string;
+  category?: string | null;
   status: string;
   action_path: string;
   estimated_minutes: number;
