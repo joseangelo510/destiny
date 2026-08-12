@@ -90,7 +90,18 @@ export function isPaidPlan(planTier: string | null | undefined): boolean {
   return planTier === "moderate" || planTier === "super_growth";
 }
 
-const majorMedia = /(^|\.)(forbes|nytimes|foxnews|cnn|bbc|wsj|washingtonpost|businessinsider)\.(com|co\.uk)$/i;
+const ineligibleCreatorHosts = [
+  "wikipedia.org", "wikimedia.org", "britannica.com", "fandom.com", "imdb.com",
+  "amazon.com", "amazon.co.uk", "amazon.ca", "amazon.de", "amazon.fr", "amazon.es", "amazon.it", "amazon.in", "amazon.co.jp", "amazon.com.au", "amazon.com.br", "amazon.com.mx",
+  "forbes.com", "yahoo.com", "yahoo.co.uk", "yahoo.co.jp", "nytimes.com", "foxnews.com", "cnn.com", "bbc.com", "bbc.co.uk", "wsj.com", "washingtonpost.com", "businessinsider.com", "bloomberg.com", "reuters.com", "apnews.com", "cnbc.com", "theguardian.com", "usatoday.com",
+  "google.com", "bing.com", "microsoft.com", "apple.com", "walmart.com", "ebay.com", "etsy.com",
+  "yelp.com", "bbb.org", "tripadvisor.com", "zillow.com", "realtor.com", "yellowpages.com",
+  "reddit.com", "quora.com", "stackoverflow.com",
+] as const;
+
+function isIneligibleCreatorDomain(domain: string): boolean {
+  return ineligibleCreatorHosts.some((host) => domain === host || domain.endsWith(`.${host}`));
+}
 
 function publisherPlatform(domain: string): string {
   if (domain === "europa.eu" || domain.endsWith(".europa.eu") || domain.endsWith(".gov") || /\.gov\.[a-z]{2}$/i.test(domain)) return "Official source";
@@ -105,7 +116,7 @@ export function creatorProspects(rows: Array<Record<string, unknown>>): CreatorP
   return rows.flatMap((row) => {
     const domain = String(row.domain ?? "").replace(/^www\./, "").toLowerCase();
     const url = String(row.url ?? "");
-    if (!domain || !url || majorMedia.test(domain)) return [];
+    if (!domain || !url || isIneligibleCreatorDomain(domain)) return [];
     const platform = publisherPlatform(domain);
     return [{
       name: String(row.name ?? domain),

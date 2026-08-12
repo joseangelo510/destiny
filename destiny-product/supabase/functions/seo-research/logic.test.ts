@@ -52,6 +52,10 @@ describe("creator discovery", () => {
         ] }] },
         { status_code: 20000, data: { keyword: "junk removal independent blog" }, result: [{ items: [
           { type: "organic", title: "Major media", url: "https://forbes.com/sites/example", description: "Too broad" },
+          { type: "organic", title: "Reference result", url: "https://en.wikipedia.org/wiki/Junk_removal", description: "Not an outreach prospect" },
+          { type: "organic", title: "Marketplace result", url: "https://amazon.com/example", description: "Not a creator" },
+          { type: "organic", title: "Mass media result", url: "https://news.yahoo.com/example", description: "Not niche" },
+          { type: "organic", title: "Community result", url: "https://reddit.com/r/example", description: "Belongs in community distribution" },
           { type: "organic", title: "Bay Area moving notes", url: "https://localmovingwriter.example/junk-guide", description: "Niche local article" },
         ] }] },
       ],
