@@ -39,11 +39,11 @@ describe("98junkit LOGOS editorial and game-plan golden flow", () => {
     ]));
     expect(gamePlan).toMatchObject({
       canExport: true,
-      months: [{ theme: "Build the foundation" }, { theme: "Build the content engine" }, { theme: "Expand authority" }],
+      months: [{ theme: "Foundation" }, { theme: "Content and demand" }, { theme: "Trust signals" }],
     });
     expect(gamePlan.forecasts[0].expectedRange).toBe(`12–${Math.min(eligible.length, 24)} priority themes actively targeted`);
-    expect(rendered).toContain("98 Junk It’s 90-Day SEO Game Plan");
-    expect(rendered).toContain("Three months at a glance");
+    expect(rendered).toContain("Your 90-day SEO game plan");
+    expect(rendered).toContain("What to expect, month by month");
     expect(log).toHaveBeenCalledWith(expect.stringContaining('"event":"logos_editorial_plan"'));
     expect(log).toHaveBeenCalledWith(expect.stringContaining('"fallbacks":0'));
   });
