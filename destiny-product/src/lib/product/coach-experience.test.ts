@@ -121,6 +121,8 @@ describe("Destiny SEO coach experience", () => {
     expect(guidedTaskPath({ task_type: "publisher_outreach", category: "distribution", action_path: "/distribution#outreach" })).toBe("/distribution#outreach");
     expect(guidedTaskPath({ task_type: "directory_growth", category: "distribution", action_path: "/distribution#directories" })).toBe("/distribution#directories");
     expect(guidedTaskPath({ task_type: "technical_review", category: "technical", action_path: "/audits/abc#technical-evidence" })).toBe("/audits/abc#technical-evidence");
+    expect(guidedTaskPath({ task_type: "primary_quest", category: "technical", action_path: "/this-week" })).toBe("/this-week");
+    expect(guidedTaskPath({ task_type: "primary_quest", category: "technical", action_path: "/results" })).toBe("/results");
   });
 
   it("backs every guided destination with a real page and every deep link with a real section", () => {
