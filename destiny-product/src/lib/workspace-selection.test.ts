@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeWebsiteFrom,
   isWebsiteId,
+  shouldPersistWebsiteSelection,
   siteScopedHref,
 } from "./workspace-selection";
 
@@ -28,5 +29,11 @@ describe("workspace website selection", () => {
   it("adds the selected website to internal navigation while preserving query and hash", () => {
     expect(siteScopedHref("/keywords", websites[0].id)).toBe(`/keywords?site=${websites[0].id}`);
     expect(siteScopedHref("/onboarding?new=1#start", websites[1].id)).toBe(`/onboarding?new=1&site=${websites[1].id}#start`);
+  });
+
+  it("never lets a background prefetch persist a different active website", () => {
+    expect(shouldPersistWebsiteSelection(new Headers())).toBe(true);
+    expect(shouldPersistWebsiteSelection(new Headers({ "next-router-prefetch": "1" }))).toBe(false);
+    expect(shouldPersistWebsiteSelection(new Headers({ purpose: "prefetch" }))).toBe(false);
   });
 });

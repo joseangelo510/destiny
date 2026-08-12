@@ -20,7 +20,7 @@ function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId:
   return <details className={styles.siteContext}>
     <summary aria-label={`Current website: ${siteLabel(current)}. Choose another website.`}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></summary>
     <div className={styles.siteMenu}>
-      {websites.map((website) => <Link className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : ""}`} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</Link>)}
+      {websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : ""}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)}
       <Link className={styles.addSite} href="/onboarding?new=1">+ Add another website</Link>
     </div>
   </details>;
@@ -37,11 +37,11 @@ export function WorkspaceShellView({ active, eyebrow, title, description, childr
       <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
       <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
       <div className="sidebar-account-actions">
-        <Link className={`sidebar-account-link ${active === "/account" ? "active" : ""}`} href="/account">Account</Link>
+        <Link className={`sidebar-account-link ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link>
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </div>
     </aside>
-    <section className="dashboard workspace-page" data-active={active}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications /></header>{children}</section>
+    <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications /></header>{children}</section>
     <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">{PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</nav>
   </main>;
 }

@@ -1,11 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeInternalPath } from "@/lib/auth/redirect";
-import { ACTIVE_WEBSITE_COOKIE, activeWebsiteCookieOptions, isWebsiteId } from "@/lib/workspace-selection";
+import {
+  ACTIVE_WEBSITE_COOKIE,
+  activeWebsiteCookieOptions,
+  isWebsiteId,
+  shouldPersistWebsiteSelection,
+} from "@/lib/workspace-selection";
 import type { Database } from "./database.types";
 
 export async function updateSession(request: NextRequest) {
   const requestedWebsiteId = request.nextUrl.searchParams.get("site");
+  const persistWebsiteSelection = isWebsiteId(requestedWebsiteId)
+    && shouldPersistWebsiteSelection(request.headers);
   if (isWebsiteId(requestedWebsiteId)) request.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId);
   let response = NextResponse.next({ request });
   const supabase = createServerClient<Database>(
@@ -50,7 +57,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (data?.claims && isWebsiteId(requestedWebsiteId)) {
+  if (data?.claims && persistWebsiteSelection) {
     response.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId, activeWebsiteCookieOptions);
   }
   return response;

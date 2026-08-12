@@ -22,7 +22,7 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Current website");
     expect(html).toContain("Example Co");
     expect(html).toContain(`/roadmap?site=${site.id}`);
-    expect(html).toContain('href="/account"');
+    expect(html).toContain(`href="/account?site=${site.id}"`);
     expect(html).toMatch(/>Account<.*>Sign out</s);
   });
 
@@ -40,6 +40,8 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Choose another website");
     expect(html).toContain("Second Co");
     expect(html).toContain(`/this-week?site=${secondSite.id}`);
+    expect(html).toContain(`data-site-switch="${secondSite.id}"`);
+    expect(html).toContain(`data-workspace-website="${site.id}"`);
     expect(html).toContain("+ Add another website");
   });
 
