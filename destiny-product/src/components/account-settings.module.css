@@ -15,6 +15,27 @@
 .saveButton { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 800; margin-top: 12px; min-height: 44px; padding: 0 17px; }
 .saveButton:disabled { cursor: not-allowed; opacity: .42; }
 .success { color: var(--forest) !important; font-weight: 750; margin-top: 10px !important; }
+.websiteList { border: 1px solid #e4e9e4; border-radius: 18px; display: grid; margin-top: 28px; overflow: hidden; }
+.websiteRow { align-items: center; background: #fff; display: flex; gap: 18px; justify-content: space-between; padding: 18px 20px; }
+.websiteRow + .websiteRow { border-top: 1px solid #e4e9e4; }
+.websiteIdentity { display: grid; gap: 5px; min-width: 0; }
+.websiteIdentity > span { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.websiteTitleLine { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; }
+.websiteTitleLine strong { color: var(--forest-dark); font-size: 17px; }
+.currentBadge { background: #e8f4ee; border-radius: 999px; color: var(--forest); font-size: 11px; font-weight: 850; letter-spacing: .04em; padding: 5px 9px; text-transform: uppercase; }
+.websiteDeleteButton { background: transparent; border: 1px solid #d9b7b3; border-radius: 10px; color: #923c36; cursor: pointer; flex: 0 0 auto; font-size: 14px; font-weight: 800; min-height: 42px; padding: 0 14px; }
+.websiteDeleteButton:hover { background: #fff6f5; }
+.websiteDeleteButton:disabled { cursor: not-allowed; opacity: .45; }
+.websiteSafety, .emptyWebsites { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 14px 2px 0; }
+.emptyWebsites { background: #f6f8f5; border-radius: 14px; margin-top: 24px; padding: 18px; }
+.websiteDeletePanel { background: #fff7f6; border: 1px solid #e9c9c5; border-radius: 16px; display: grid; gap: 18px; margin-top: 22px; padding: 22px; }
+.websiteDeletePanel > div:first-child > strong { color: #7e302b; font-size: 19px; }
+.websiteDeletePanel > div:first-child > p { color: #735b59; font-size: 15px; line-height: 1.55; margin: 7px 0 0; }
+.websiteDeletePanel .confirmation { margin-top: 0; }
+.websiteDeleteActions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+.websiteDeleteActions .deleteButton { margin-top: 0; }
+.cancelButton { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--forest-dark); cursor: pointer; font-size: 15px; font-weight: 800; min-height: 48px; padding: 0 18px; }
+.cancelButton:disabled { cursor: not-allowed; opacity: .45; }
 .danger { border-color: #efd8d5; }
 .danger .heading span { color: #a43f38; }
 .confirmation { display: grid; font-size: 15px; gap: 9px; margin-top: 26px; }
@@ -23,4 +44,4 @@
 .deleteButton { background: #a43f38; border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 15px; font-weight: 800; margin-top: 17px; min-height: 48px; padding: 0 20px; }
 .deleteButton:disabled { cursor: not-allowed; opacity: .42; }
 .error { color: #a43f38; font-size: 14px; margin: 14px 0 0; }
-@media (max-width: 640px) { .card { border-radius: 18px; } }
+@media (max-width: 640px) { .card { border-radius: 18px; } .websiteRow { align-items: stretch; flex-direction: column; } .websiteDeleteButton { align-self: flex-start; } .websiteDeleteActions > button { width: 100%; } }

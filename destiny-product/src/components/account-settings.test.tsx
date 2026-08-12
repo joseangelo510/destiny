@@ -4,12 +4,23 @@ import { AccountSettings } from "./account-settings";
 
 describe("AccountSettings", () => {
   it("makes the login and notification identities explicit", () => {
-    const html = renderToStaticMarkup(<AccountSettings loginEmail="login@example.com" notificationEmail="reports@example.com" />);
+    const html = renderToStaticMarkup(<AccountSettings activeWebsiteId="11111111-1111-4111-8111-111111111111" loginEmail="login@example.com" notificationEmail="reports@example.com" websites={[
+      { id: "11111111-1111-4111-8111-111111111111", businessName: "Example Co", normalizedDomain: "example.com" },
+      { id: "22222222-2222-4222-8222-222222222222", businessName: "Second Co", normalizedDomain: "second.example" },
+    ]} />);
 
     expect(html).toContain("login@example.com");
     expect(html).toContain("reports@example.com");
     expect(html).toContain("Login email");
     expect(html).toContain("Audit and contact email");
+    expect(html).toContain("Your websites");
+    expect(html).toContain("Example Co");
+    expect(html).toContain("example.com");
+    expect(html).toContain("Second Co");
+    expect(html).toContain("second.example");
+    expect(html).toContain("Current website");
+    expect(html.match(/Delete website/g)).toHaveLength(2);
+    expect(html).toContain("Deleting a website does not delete your Destiny account");
     expect(html).toContain("Save notification email");
     expect(html).toContain('type="email"');
     expect(html).toContain("Delete account");

@@ -16,6 +16,6 @@ export default async function AccountPage() {
   const loginEmail = data.user?.email ?? "Email unavailable";
 
   return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and where Destiny sends your audit updates.">
-    <AccountSettings loginEmail={loginEmail} notificationEmail={context.profile?.contact_email ?? null} />
+    <AccountSettings activeWebsiteId={context.website?.id ?? null} loginEmail={loginEmail} notificationEmail={context.profile?.contact_email ?? null} websites={context.websites.map((website) => ({ id: website.id, businessName: website.business_name, normalizedDomain: website.normalized_domain }))} />
   </WorkspaceShell>;
 }
