@@ -105,6 +105,36 @@ describe("truthful SEO adventure roadmap", () => {
     });
   });
 
+  it("routes every Roadmap task to the feature where the work is completed", async () => {
+    const roadmap = await buildSeoRoadmap({
+      auditComplete: true,
+      quests: [
+        { id: "keywords", category: "content", action_path: "/keywords", task_type: "keyword_review", status: "complete", week_number: 1, priority: 1 },
+        { id: "content", category: "content", action_path: "/content", task_type: "content_review", status: "todo", week_number: 1, priority: 2 },
+        { id: "reviews", category: "reviews", action_path: "/results", task_type: "primary_quest", status: "todo", week_number: 1, priority: 3 },
+        { id: "community", category: "distribution", action_path: "/distribution#community", task_type: "community_distribution", status: "todo", week_number: 2, priority: 4 },
+        { id: "social", category: "distribution", action_path: "/distribution#social", task_type: "social_distribution", status: "todo", week_number: 2, priority: 5 },
+        { id: "outreach", category: "distribution", action_path: "/distribution#outreach", task_type: "publisher_outreach", status: "todo", week_number: 3, priority: 6 },
+        { id: "directories", category: "distribution", action_path: "/distribution#directories", task_type: "directory_growth", status: "todo", week_number: 3, priority: 7 },
+        { id: "technical", category: "technical", action_path: "/audits/audit-1#technical-evidence", task_type: "technical_review", status: "todo", week_number: 4, priority: 8 },
+      ],
+      searchConsole: null,
+      analytics: null,
+    });
+    const destinations = Object.fromEntries(roadmap.phases.flatMap((phase) => phase.tasks).map((task) => [task.id, task.actionHref]));
+
+    expect(destinations).toEqual({
+      keywords: "/keywords",
+      content: "/content",
+      reviews: "/reviews",
+      community: "/distribution#community",
+      social: "/distribution#social",
+      outreach: "/distribution#outreach",
+      directories: "/distribution#directories",
+      technical: "/audits/audit-1#technical-evidence",
+    });
+  });
+
   it("requires multiple verified signals before claiming compounding authority", async () => {
     const roadmap = await buildSeoRoadmap({
       auditComplete: true,

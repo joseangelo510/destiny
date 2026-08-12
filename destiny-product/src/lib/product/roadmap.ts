@@ -5,6 +5,7 @@ export type RoadmapQuest = {
   id?: string;
   title?: string;
   description?: string;
+  category?: string | null;
   action_path?: string;
   task_type: string;
   status: string;
@@ -271,7 +272,11 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
     label: quest.title?.trim() || "Complete the recommended task",
     detail: quest.description?.trim() || "Complete this step to move your work forward.",
     state,
-    actionHref: quest.action_path?.trim() || "/this-week",
+    actionHref: guidedTaskPath({
+      task_type: quest.task_type,
+      category: quest.category,
+      action_path: quest.action_path?.trim() || "/this-week",
+    }),
     weekNumber: Math.max(1, quest.week_number ?? 1),
     phaseId,
   }));
@@ -301,3 +306,4 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   };
 }
 import { runDestinyServerLogic } from "../logicaffeine-server";
+import { guidedTaskPath } from "./coach-experience";
