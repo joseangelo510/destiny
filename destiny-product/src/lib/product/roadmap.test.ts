@@ -37,7 +37,25 @@ describe("truthful SEO adventure roadmap", () => {
     expect(withoutEvidence.phases.map((phase) => phase.tasks.map((task) => task.label))).toEqual([
       ["Approve priority keywords", "Publish your first guide"],
       ["Answer a relevant Reddit question"],
-      ["Request three customer reviews"],
+      ["Get reviews"],
+    ]);
+  });
+
+  it("normalizes legacy review-led task titles and routes them to Reviews", async () => {
+    const roadmap = await buildSeoRoadmap({
+      auditComplete: true,
+      quests: [
+        { id: "legacy-google", title: "Ask three recent customers for a Google review", description: "Build proof.", action_path: "/audits/audit-1#recommended-fix", task_type: "primary_quest", status: "todo", week_number: 1, priority: 1 },
+        { id: "legacy-request", title: "Request reviews from happy clients", description: "Build proof.", category: null, action_path: "/results", task_type: "directory_growth", status: "todo", week_number: 2, priority: 2 },
+      ],
+      searchConsole: null,
+      analytics: null,
+    });
+    const tasks = roadmap.phases.flatMap((phase) => phase.tasks);
+
+    expect(tasks.map((task) => [task.id, task.label, task.actionHref])).toEqual([
+      ["legacy-google", "Get reviews", "/reviews"],
+      ["legacy-request", "Get reviews", "/reviews"],
     ]);
   });
 

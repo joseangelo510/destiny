@@ -269,12 +269,13 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   const effortProgress = effortTotal ? Math.round((effortCompleted / effortTotal) * 100) : 0;
   const journeyTasks = evaluatedQuests.map(({ quest, state, phaseId }, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => ({
     id: quest.id ?? `${quest.task_type}-${index}`,
-    label: quest.title?.trim() || "Complete the recommended task",
+    label: isReviewTask(quest) ? "Get reviews" : quest.title?.trim() || "Complete the recommended task",
     detail: quest.description?.trim() || "Complete this step to move your work forward.",
     state,
     actionHref: guidedTaskPath({
       task_type: quest.task_type,
       category: quest.category,
+      title: quest.title,
       action_path: quest.action_path?.trim() || "/this-week",
     }),
     weekNumber: Math.max(1, quest.week_number ?? 1),
@@ -306,4 +307,4 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   };
 }
 import { runDestinyServerLogic } from "../logicaffeine-server";
-import { guidedTaskPath } from "./coach-experience";
+import { guidedTaskPath, isReviewTask } from "./coach-experience";

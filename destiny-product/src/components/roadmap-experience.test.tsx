@@ -34,6 +34,8 @@ describe("RoadmapExperience hierarchy", () => {
     expect(html).toContain('data-roadmap-action="content" href="/content">Do this step</a>');
     expect(html).toContain('data-roadmap-action="technical" href="/audits/audit-1">Open step</a>');
     expect(html).toContain('data-roadmap-action="reviews" href="/reviews">Open step</a>');
+    expect(html).toContain("Get reviews");
+    expect(html).not.toContain("Ask three customers for a Google review");
     expect(html).toContain('data-roadmap-signal-action="pages-indexed" href="/integrations">Connect Search Console</a>');
     expect(html).not.toContain('data-roadmap-action="reddit"');
     expect(html).not.toContain('data-roadmap-signal-action="first-impressions"');

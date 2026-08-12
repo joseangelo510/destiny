@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { WeeklyTaskList } from "./weekly-task-list";
+import { displayTaskTitle } from "../lib/product/coach-experience";
 
 type WeeklyLoopTask = {
   id: string;
@@ -158,7 +159,7 @@ export function WeeklyLoop({
         <h2 id="weekly-plan-reveal-title">Your audit is done. Here’s your plan.</h2>
         <p>Destiny turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
         <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className="weekly-plan-reveal-start-here">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div>
-        <button className="primary-button" onClick={startFromReveal} type="button">{focusTask ? `Start: ${focusTask.title}` : "See your first task"}</button>
+        <button className="primary-button" onClick={startFromReveal} type="button">{focusTask ? `Start: ${displayTaskTitle(focusTask)}` : "See your first task"}</button>
       </section>
     </div>}
   </>;

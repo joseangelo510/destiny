@@ -50,7 +50,7 @@ live in the web platform.
     If decision_code equals "publish_gap":
         Return "Publish the highest-opportunity page".
     If decision_code equals "request_reviews":
-        Return "Ask three recent customers for a Google review".
+        Return "Get reviews".
     If decision_code equals "fix_warning":
         Return "Resolve the highest-impact on-page warning".
     Return "Answer one relevant question on Reddit or Quora".
@@ -98,7 +98,7 @@ live in the web platform.
     If decision_code equals "publish_gap":
         Return "The audit found unanswered search demand so publishing the strongest content gap is the best next growth move".
     If decision_code equals "request_reviews":
-        Return "The review base is still small so recent customer proof is the strongest local trust and conversion opportunity".
+        Return "The review base is still small so recent customer proof is the strongest trust and conversion opportunity".
     If decision_code equals "fix_warning":
         Return "No critical blocker remains but an on-page warning is the clearest low-risk improvement to complete next".
     Return "The foundation is healthy so distributing expertise on a relevant community question can compound visibility".
