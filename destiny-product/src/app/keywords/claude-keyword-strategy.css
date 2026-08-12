@@ -300,12 +300,12 @@ main.app-shell[data-design="claude-keyword-strategy"] .workspace-notification-ce
 .claude-ks-table-scroll { overflow-x: auto; }
 .claude-ks-panel table { border-collapse: collapse; table-layout: fixed; width: 100%; }
 .claude-ks-panel th { background: #fbfaf5; border-bottom: 1px solid var(--claude-line); color: var(--claude-ink-soft); font-size: 11px; font-weight: 600; letter-spacing: .07em; padding: 13px 16px; text-align: left; text-transform: uppercase; white-space: nowrap; }
-.claude-ks-panel th:nth-child(1) { width: 30%; }
+.claude-ks-panel th:nth-child(1) { width: 28%; }
 .claude-ks-panel th:nth-child(2) { width: 13%; }
 .claude-ks-panel th:nth-child(3) { width: 14%; }
 .claude-ks-panel th:nth-child(4) { width: 13%; }
-.claude-ks-panel th:nth-child(5) { width: 20%; }
-.claude-ks-panel th:nth-child(6) { width: 10%; }
+.claude-ks-panel th:nth-child(5) { width: 18%; }
+.claude-ks-panel th:nth-child(6) { width: 14%; }
 .claude-ks-panel th:last-child { text-align: right; }
 .claude-ks-panel td { border-bottom: 1px solid #f0ede3; font-size: 13.5px; padding: 13px 16px; vertical-align: middle; white-space: nowrap; }
 .claude-ks-panel tbody tr:last-child td { border-bottom: 0; }
@@ -352,10 +352,12 @@ main.app-shell[data-design="claude-keyword-strategy"] .workspace-notification-ce
   font-weight: 600;
   padding: 6px 12px;
 }
-.claude-ks-row-actions button + button { margin-left: 6px; }
+.claude-ks-row-actions button { box-sizing: border-box; display: block; margin-left: auto; min-width: 104px; width: 100%; }
+.claude-ks-row-actions button + button { margin-left: auto; margin-top: 6px; }
 .claude-ks-row-actions button:hover, .claude-ks-decline button:hover { background: var(--claude-sage); border-color: var(--claude-sage-deep); color: var(--claude-forest); }
 .claude-ks-row-actions button.primary { background: var(--claude-forest); border-color: var(--claude-forest); color: #fff; }
 .claude-ks-row-actions button.primary:hover { background: var(--claude-forest-deep); color: #fff; }
+.claude-ks-row-actions button:focus-visible { outline: 3px solid var(--claude-amber); outline-offset: 2px; }
 .claude-ks-row-actions button:disabled, .claude-ks-decline button:disabled { cursor: wait; opacity: .55; }
 .claude-ks-decline { background: #fbfaf5; white-space: normal !important; }
 .claude-ks-decline > strong { display: block; margin-bottom: 9px; }
@@ -435,6 +437,7 @@ main.app-shell[data-design="claude-keyword-strategy"] > .dashboard > .workspace-
 @media (max-width: 1080px) {
   .claude-ks-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .claude-ks-next-step { grid-column: 1 / -1; }
+  .claude-ks-panel th:last-child, .claude-ks-panel td:last-child { padding-left: 12px; padding-right: 12px; }
 }
 
 @media (max-width: 900px) {
@@ -461,6 +464,7 @@ main.app-shell[data-design="claude-keyword-strategy"] > .dashboard > .workspace-
   .claude-ks-review-context, .claude-ks-finish, .claude-ks-table-foot { align-items: stretch; flex-direction: column; }
   .claude-ks-panel th:nth-child(5), .claude-ks-panel td:nth-child(5) { display: none; }
   .claude-ks-keyword > small { display: none; }
+  .claude-ks-row-actions button { min-height: 36px; padding: 8px 12px; }
   .claude-ks-page-types, .claude-ks-defend-grid, .claude-ks-overlap-pages { grid-template-columns: 1fr; }
   .claude-ks-drawer-action { align-items: stretch; flex-direction: column; }
 }

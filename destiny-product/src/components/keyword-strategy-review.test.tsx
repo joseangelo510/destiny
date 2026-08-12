@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { KeywordStrategyReview } from "./keyword-strategy-review";
@@ -79,6 +81,50 @@ describe("KeywordStrategyReview planning horizon", () => {
     expect(html).toContain("13.2");
     expect(html).toContain("/services");
     expect(html).toContain("Re-optimize");
+  });
+
+  it("keeps Claude's primary and decline actions together for every verdict", () => {
+    const verdictRows = [
+      { ...keywords[0], keyword: "create test", verdict: "create" as const, verdictDescription: "Create", rankingUrl: "", rankingUrls: [] },
+      { ...keywords[0], keyword: "improve test", verdict: "improve" as const, verdictDescription: "Improve" },
+      { ...keywords[0], keyword: "defend test", verdict: "defend" as const, verdictDescription: "Defend" },
+      { ...keywords[0], keyword: "overlap test", verdict: "overlap" as const, verdictDescription: "Overlap", rankingUrls: ["https://example.com/a", "https://example.com/b"] },
+    ];
+    const html = renderToStaticMarkup(<KeywordStrategyReview
+      auditId="audit-1"
+      initialDecisions={{}}
+      initialReasons={{}}
+      initialTab="review"
+      keywords={verdictRows}
+      moreKeywordsHref="/keyword-research?from=strategy"
+      nextHref="/content?strategy=complete"
+      nextAction={{ code: "review_keywords", href: "#keyword-strategy-tabs", label: "Review keyword recommendations", description: "Choose the searches that match the business." }}
+      questId="quest-1"
+      questStatus="todo"
+    />);
+
+    for (const [keyword, primaryLabel] of [["create test", "Approve"], ["improve test", "Re-optimize"], ["defend test", "Protect"], ["overlap test", "Resolve overlap"]]) {
+      const rowStart = html.indexOf(`<strong>${keyword}</strong>`);
+      const rowEnd = html.indexOf("</tr>", rowStart);
+      const row = html.slice(rowStart, rowEnd);
+      expect(row).toContain(`class="primary"`);
+      expect(row).toContain(`>${primaryLabel}</button>`);
+      expect(row).toContain(">Decline</button>");
+      expect(row.indexOf(`>${primaryLabel}</button>`)).toBeLessThan(row.indexOf(">Decline</button>"));
+    }
+  });
+
+  it("guards Claude's action-column proportions and vertical button stack", () => {
+    const stylesheet = readFileSync(resolve(process.cwd(), "src/app/keywords/claude-keyword-strategy.css"), "utf8");
+    expect(stylesheet).toContain(".claude-ks-panel th:nth-child(1) { width: 28%; }");
+    expect(stylesheet).toContain(".claude-ks-panel th:nth-child(5) { width: 18%; }");
+    expect(stylesheet).toContain(".claude-ks-panel th:nth-child(6) { width: 14%; }");
+    expect(stylesheet).toContain("min-width: 104px; width: 100%;");
+    expect(stylesheet).toContain("margin-top: 6px;");
+    expect(stylesheet).toContain("padding-left: 12px; padding-right: 12px;");
+    expect(stylesheet).toContain("min-height: 36px; padding: 8px 12px;");
+    expect(stylesheet).toContain("outline: 3px solid var(--claude-amber)");
+    expect(stylesheet).not.toContain("button + button { margin-left: 6px");
   });
 
   it("turns a completed strategy into a working summary with the next useful action", () => {
