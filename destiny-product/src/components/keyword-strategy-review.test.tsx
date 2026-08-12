@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { KeywordStrategyReview } from "./keyword-strategy-review";
@@ -115,7 +115,7 @@ describe("KeywordStrategyReview planning horizon", () => {
   });
 
   it("guards Claude's action-column proportions and vertical button stack", () => {
-    const stylesheet = readFileSync(resolve(process.cwd(), "src/app/keywords/claude-keyword-strategy.css"), "utf8");
+    const stylesheet = readFileSync(fileURLToPath(new URL("../app/keywords/claude-keyword-strategy.css", import.meta.url)), "utf8");
     expect(stylesheet).toContain(".claude-ks-panel th:nth-child(1) { width: 28%; }");
     expect(stylesheet).toContain(".claude-ks-panel th:nth-child(5) { width: 18%; }");
     expect(stylesheet).toContain(".claude-ks-panel th:nth-child(6) { width: 14%; }");
