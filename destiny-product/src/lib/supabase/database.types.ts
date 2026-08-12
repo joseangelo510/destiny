@@ -137,6 +137,7 @@ export type Database = {
           decision: string
           id: string
           keyword: string
+          reason: string | null
           updated_at: string
           user_id: string
           website_id: string
@@ -147,6 +148,7 @@ export type Database = {
           decision: string
           id?: string
           keyword: string
+          reason?: string | null
           updated_at?: string
           user_id: string
           website_id: string
@@ -157,6 +159,7 @@ export type Database = {
           decision?: string
           id?: string
           keyword?: string
+          reason?: string | null
           updated_at?: string
           user_id?: string
           website_id?: string
@@ -171,6 +174,91 @@ export type Database = {
           },
           {
             foreignKeyName: "keyword_decisions_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keyword_preferences: {
+        Row: {
+          created_at: string
+          decision: string
+          difficulty: number | null
+          id: string
+          keyword: string
+          normalized_keyword: string
+          organization_id: string
+          priority_score: number | null
+          provider_intent: string | null
+          reason: string | null
+          search_intent: string | null
+          search_volume: number | null
+          source_audit_id: string | null
+          theme_id: string | null
+          theme_label: string | null
+          updated_at: string
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          difficulty?: number | null
+          id?: string
+          keyword: string
+          normalized_keyword: string
+          organization_id: string
+          priority_score?: number | null
+          provider_intent?: string | null
+          reason?: string | null
+          search_intent?: string | null
+          search_volume?: number | null
+          source_audit_id?: string | null
+          theme_id?: string | null
+          theme_label?: string | null
+          updated_at?: string
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          difficulty?: number | null
+          id?: string
+          keyword?: string
+          normalized_keyword?: string
+          organization_id?: string
+          priority_score?: number | null
+          provider_intent?: string | null
+          reason?: string | null
+          search_intent?: string | null
+          search_volume?: number | null
+          source_audit_id?: string | null
+          theme_id?: string | null
+          theme_label?: string | null
+          updated_at?: string
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keyword_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keyword_preferences_source_audit_id_fkey"
+            columns: ["source_audit_id"]
+            isOneToOne: false
+            referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keyword_preferences_website_id_fkey"
             columns: ["website_id"]
             isOneToOne: false
             referencedRelation: "websites"
@@ -659,6 +747,8 @@ export type Database = {
         Row: {
           action_path: string
           audit_id: string | null
+          blocker_owner: string | null
+          blocker_reason: string | null
           category: string
           completed_at: string | null
           created_at: string
@@ -666,6 +756,8 @@ export type Database = {
           due_at: string | null
           estimated_minutes: number
           external_url: string | null
+          follow_up_at: string | null
+          guidance_state: string
           id: string
           min_plan_tier: number
           priority: number
@@ -684,6 +776,8 @@ export type Database = {
         Insert: {
           action_path?: string
           audit_id?: string | null
+          blocker_owner?: string | null
+          blocker_reason?: string | null
           category: string
           completed_at?: string | null
           created_at?: string
@@ -691,6 +785,8 @@ export type Database = {
           due_at?: string | null
           estimated_minutes?: number
           external_url?: string | null
+          follow_up_at?: string | null
+          guidance_state?: string
           id?: string
           min_plan_tier?: number
           priority?: number
@@ -709,6 +805,8 @@ export type Database = {
         Update: {
           action_path?: string
           audit_id?: string | null
+          blocker_owner?: string | null
+          blocker_reason?: string | null
           category?: string
           completed_at?: string | null
           created_at?: string
@@ -716,6 +814,8 @@ export type Database = {
           due_at?: string | null
           estimated_minutes?: number
           external_url?: string | null
+          follow_up_at?: string | null
+          guidance_state?: string
           id?: string
           min_plan_tier?: number
           priority?: number

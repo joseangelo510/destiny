@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { GamePlanView } from "@/components/game-plan-view";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildGamePlan } from "@/lib/product/game-plan";
@@ -23,9 +24,9 @@ export default async function ResultsPage() {
   const raw = record(context.metrics?.raw_provider_payload);
   const savedKeywords = list(raw.keywordStrategy);
   const { data: keywordDecisions } = await context.supabase
-    .from("keyword_decisions")
+    .from("keyword_preferences")
     .select("decision")
-    .eq("audit_id", context.audit.id);
+    .eq("website_id", context.website.id);
   const approvedKeywords = (keywordDecisions ?? []).filter((decision) => decision.decision === "approved").length;
   const plan = await buildGamePlan({
     approvedKeywords,
@@ -51,6 +52,7 @@ export default async function ResultsPage() {
       title="90-Day SEO Game Plan"
       description="What Destiny will prioritize, why it matters, and what progress could realistically look like this quarter."
     >
+      <FeatureJourneyCallout actionHref="/this-week" actionLabel="Start the first weekly action" milestone="90-Day SEO Game Plan" description="Use the strategy to choose the first priority, then execute it in This Week." doneLooksLike="The plan produces one current task rather than a separate to-do list." evidence="Audit evidence explains the plan; completion lives in the guided task." />
       <GamePlanView auditHref={`/audits/${context.audit.id}`} lastUpdated={lastUpdated} plan={plan} />
     </WorkspaceShell>
   );

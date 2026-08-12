@@ -102,6 +102,8 @@ export type DestinyLogicInput = {
   articleFormatCode?: number; articleWordCount?: number; articleH1Count?: number; articleH2Count?: number; articleH3Count?: number; articleSkippedLevel?: number;
   articleTitleKeyword?: number; articleFirstH2Keyword?: number; articleKeywordFreePercent?: number; articleBrigadeCount?: number; articleFirstBrigade?: number;
   articleMinBrigadeGap?: number; articleStockPhrase?: number; articleMetaCount?: number; articleMetaOverlength?: number; articleSourceCount?: number; articleCitedCount?: number;
+  keywordStrategyComplete?: number; keywordPendingRecommendations?: number; keywordApprovedDecisions?: number; keywordDeclinedDecisions?: number;
+  keywordArticleDrafts?: number; keywordContentComplete?: number;
 };
 
 export type DestinyLogicResult = {
@@ -190,6 +192,8 @@ export type DestinyLogicResult = {
   auditHealthScore: number; auditHealthCode: number; auditIsPartial: boolean;
   rankReadingCode: number; rankMovementCode: number; rankMovementDelta: number; rankFreshnessCode: number;
   rankBucket: number;
+  keywordWorkspaceTab: "review" | "approved" | "declined";
+  keywordNextStep: "review_keywords" | "create_first_article" | "review_weekly_content" | "track_progress";
   articleWordIssue: boolean; articleHeadingIssue: boolean; articleHeadingKeywordIssue: boolean; articleHeadingVarietyIssue: boolean;
   articleBrigadeIssue: boolean; articleBrigadeSpacingIssue: boolean; articleStockIssue: boolean; articleMetaIssue: boolean; articleSourceIssue: boolean;
 };
@@ -327,6 +331,8 @@ export async function runDestinyLogicFromBytes(
     String(input.articleFormatCode ?? 0), String(input.articleWordCount ?? 0), String(input.articleH1Count ?? 0), String(input.articleH2Count ?? 0), String(input.articleH3Count ?? 0), String(input.articleSkippedLevel ?? 0),
     String(input.articleTitleKeyword ?? 0), String(input.articleFirstH2Keyword ?? 0), String(input.articleKeywordFreePercent ?? 0), String(input.articleBrigadeCount ?? 0), String(input.articleFirstBrigade ?? 0),
     String(input.articleMinBrigadeGap ?? 0), String(input.articleStockPhrase ?? 0), String(input.articleMetaCount ?? 0), String(input.articleMetaOverlength ?? 0), String(input.articleSourceCount ?? 0), String(input.articleCitedCount ?? 0),
+    String(input.keywordStrategyComplete ?? 0), String(input.keywordPendingRecommendations ?? 0), String(input.keywordApprovedDecisions ?? 0), String(input.keywordDeclinedDecisions ?? 0),
+    String(input.keywordArticleDrafts ?? 0), String(input.keywordContentComplete ?? 0),
   ];
 
   const imports = {
@@ -374,7 +380,7 @@ export async function runDestinyLogicFromBytes(
   runtimeRef.current = instantiated.instance.exports as unknown as LogicExports;
   runtimeRef.current.main();
 
-  if (output.length < 100) {
+  if (output.length < 102) {
     throw new Error("LOGOS returned an incomplete Destiny recommendation.");
   }
 
@@ -479,5 +485,7 @@ export async function runDestinyLogicFromBytes(
     articleMetaIssue: output[97] === "true",
     articleSourceIssue: output[98] === "true",
     rankBucket: Number.parseInt(output[99], 10),
+    keywordWorkspaceTab: output[100] as DestinyLogicResult["keywordWorkspaceTab"],
+    keywordNextStep: output[101] as DestinyLogicResult["keywordNextStep"],
   };
 }
