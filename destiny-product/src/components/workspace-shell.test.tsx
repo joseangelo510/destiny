@@ -33,6 +33,14 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Keyword strategy");
   });
 
+  it("exposes the approved Claude design scope only when the keyword workspace requests it", () => {
+    const html = renderToStaticMarkup(<WorkspaceShellView active="/keywords" activeWebsiteId={site.id} design="claude-keyword-strategy" description="100 keywords reviewed." eyebrow="Keyword strategy" title="Your strategy is set." websites={[site]}><p>Work</p></WorkspaceShellView>);
+
+    expect(html).toContain('data-design="claude-keyword-strategy"');
+    expect(html).toContain("Your strategy is set.");
+    expect(html).toContain("100 keywords reviewed.");
+  });
+
   it("offers an explicit website switcher when the account has multiple websites", () => {
     const secondSite = { id: "22222222-2222-4222-8222-222222222222", business_name: "Second Co", normalized_domain: "second.example" };
     const html = renderToStaticMarkup(<WorkspaceShellView active="/this-week" activeWebsiteId={site.id} description="One useful step." eyebrow="example.com" title="This week" websites={[site, secondSite]}><p>Work</p></WorkspaceShellView>);

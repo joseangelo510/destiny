@@ -1,6 +1,5 @@
 import { KeywordStrategyReview } from "@/components/keyword-strategy-review";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
@@ -8,6 +7,7 @@ import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { keywordHasGeographicConflict, rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
+import "./claude-keyword-strategy.css";
 
 const providerIntent = (value: unknown): "transactional" | "commercial" | "navigational" | "informational" => {
   const intent = String(value || "informational");
@@ -131,8 +131,17 @@ export default async function KeywordsPage() {
     track_progress: { code: "track_progress" as const, href: `/rank-tracker${websiteQuery}`, label: "Track keyword progress", description: "See how the approved searches are moving after the content work is live." },
   };
   const nextAction = nextActions[keywordPolicy.keywordNextStep];
-  return <WorkspaceShell active="/keywords" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Keyword strategy" description="Approve the customer searches that should guide the three-month plan. Commercial and transactional opportunities with credible demand appear first, while useful learning topics remain visible for supporting authority.">
-    <FeatureJourneyCallout actionHref="#keyword-strategy-review" actionLabel="Review keyword decisions" milestone="Get ready to be found" description="Approve the searches that should drive the next content task." doneLooksLike="At least five recommended searches are approved for the first content plan." evidence="Saved keyword decisions; rankings appear only after connected data confirms them." />
+  const strategyComplete = keywordQuest?.status === "complete" && approvedCount >= INITIAL_KEYWORD_APPROVAL_TARGET;
+  const reviewedCount = approvedCount + declinedCount;
+  const auditDate = context.audit?.created_at ? new Date(context.audit.created_at) : null;
+  const nextAuditDate = auditDate && !Number.isNaN(auditDate.getTime()) ? new Date(auditDate.getTime() + 28 * 24 * 60 * 60 * 1000) : null;
+  const dateLabel = (date: Date | null) => date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+  const auditMeta = [
+    `${reviewedCount} keyword${reviewedCount === 1 ? "" : "s"} reviewed`,
+    dateLabel(auditDate) ? `Last audit ${dateLabel(auditDate)}` : null,
+    dateLabel(nextAuditDate) ? `Next audit suggested ${dateLabel(nextAuditDate)}` : null,
+  ].filter(Boolean).join(" · ");
+  return <WorkspaceShell active="/keywords" design="claude-keyword-strategy" eyebrow="Keyword strategy" title={strategyComplete ? "Your strategy is set." : "Choose your keyword strategy."} description={auditMeta}>
     {!vocabulary.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run a live audit so Destiny can inspect up to five important pages and build the initial recommendations." /> : <>
       {context.audit && <KeywordStrategyReview auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialReasons={initialReasons} initialTab={keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKeywordsHref={`/keyword-research?site=${context.website?.id ?? ""}&from=strategy`} nextAction={nextAction} nextHref={`/content?site=${context.website?.id ?? ""}&strategy=complete`} questId={keywordQuest?.id} questStatus={keywordQuest?.status} />}
       <section className="workspace-card"><div className="workspace-card-heading"><div><strong>Verified pages inspected</strong><small>Only real strategic pages from the live site; blog posts and guessed URLs are excluded</small></div><span>{pages.length} page{pages.length === 1 ? "" : "s"}</span></div><div className="evidence-page-list">{pages.map((page, index) => <a href={String(page.url)} key={`${String(page.url)}-${index}`} rel="noreferrer" target="_blank"><span>{String(page.role).replaceAll("_", " ")}</span><strong>{String(page.title || page.url)}</strong><small>{String(page.url)}</small></a>)}</div></section>
