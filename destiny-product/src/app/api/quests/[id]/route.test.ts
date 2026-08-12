@@ -15,13 +15,17 @@ vi.mock("../../../../lib/logicaffeine-server", () => ({ runDestinyServerLogic })
 vi.mock("../../../../lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getClaims: async () => ({ data: { claims: { sub: "user-zero" } } }) },
-    from: (table: string) => table === "keyword_decisions"
+    from: (table: string) => table === "keyword_preferences"
       ? {
         select: () => ({
           eq: () => ({
             eq: async () => ({ data: Array.from({ length: state.approvedKeywordCount }, (_, index) => ({ keyword: `keyword-${index + 1}` })), error: null }),
           }),
         }),
+      }
+      : table === "audits"
+      ? {
+        select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { website_id: "site-1" }, error: null }) }) }),
       }
       : {
         select: (columns: string) => columns.startsWith("id,task_type,status,audit_id")

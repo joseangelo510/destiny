@@ -9,6 +9,7 @@ import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
+import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string }> }) {
@@ -41,8 +42,12 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     market: context.website?.market ?? "",
     locationEvidence,
   }, 50);
-  const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
-  const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
+  const { data: savedKeywordPreferences } = context.website ? await context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision").eq("website_id", context.website.id) : { data: [] };
+  const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
+  const keywordDecisions = Object.fromEntries(rankedKeywords.flatMap((keyword) => {
+    const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
+    return preference?.decision === "approved" || preference?.decision === "declined" ? [[keyword.keyword, preference.decision]] : [];
+  })) as Record<string, "approved" | "declined">;
   const editorialContext = {
     productsServices: context.website?.products_services ?? "",
     locationEvidence,
@@ -76,7 +81,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
-      {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the 12-week content plan below.</p></div>}
+      {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
       {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>

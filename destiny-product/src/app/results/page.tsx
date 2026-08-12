@@ -24,9 +24,9 @@ export default async function ResultsPage() {
   const raw = record(context.metrics?.raw_provider_payload);
   const savedKeywords = list(raw.keywordStrategy);
   const { data: keywordDecisions } = await context.supabase
-    .from("keyword_decisions")
+    .from("keyword_preferences")
     .select("decision")
-    .eq("audit_id", context.audit.id);
+    .eq("website_id", context.website.id);
   const approvedKeywords = (keywordDecisions ?? []).filter((decision) => decision.decision === "approved").length;
   const plan = await buildGamePlan({
     approvedKeywords,

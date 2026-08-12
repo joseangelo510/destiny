@@ -1156,6 +1156,30 @@ live in the web platform.
         Return "accept".
     Return "review".
 
+## To ChooseKeywordWorkspaceTab (strategy_complete: Int) and (pending_recommendations: Int) and (approved_decisions: Int) and (declined_decisions: Int) -> Text:
+
+    If strategy_complete equals 0:
+        Return "review".
+    If approved_decisions is greater than 0:
+        Return "approved".
+    If pending_recommendations is greater than 0:
+        Return "review".
+    If declined_decisions is greater than 0:
+        Return "declined".
+    Return "review".
+
+## To ChooseKeywordNextStep (strategy_complete: Int) and (approved_decisions: Int) and (article_drafts: Int) and (content_complete: Int) -> Text:
+
+    If strategy_complete equals 0:
+        Return "review_keywords".
+    If approved_decisions is less than 1:
+        Return "review_keywords".
+    If article_drafts is less than 1:
+        Return "create_first_article".
+    If content_complete equals 0:
+        Return "review_weekly_content".
+    Return "track_progress".
+
 ## Main
 
     Let arguments be args().
@@ -1291,6 +1315,12 @@ live in the web platform.
     Let article_meta_overlength be parseInt(item (planning_start + 76) of arguments).
     Let article_source_count be parseInt(item (planning_start + 77) of arguments).
     Let article_cited_count be parseInt(item (planning_start + 78) of arguments).
+    Let keyword_strategy_complete be parseInt(item (planning_start + 79) of arguments).
+    Let keyword_pending_recommendations be parseInt(item (planning_start + 80) of arguments).
+    Let keyword_approved_decisions be parseInt(item (planning_start + 81) of arguments).
+    Let keyword_declined_decisions be parseInt(item (planning_start + 82) of arguments).
+    Let keyword_article_drafts be parseInt(item (planning_start + 83) of arguments).
+    Let keyword_content_complete be parseInt(item (planning_start + 84) of arguments).
     Let decision_code be ChooseDecisionCode(audit_complete, critical_issues, warnings, new_keywords, lost_keywords, content_gaps, review_count).
     Let growth_stage be ChooseGrowthStage(audit_complete, critical_issues, ranking_keywords, new_keywords, lost_keywords, content_gaps).
     Let growth_quest be ChooseWeeklyQuest(decision_code).
@@ -1420,6 +1450,8 @@ live in the web platform.
     If article_meta_overlength equals 1:
         Set article_meta_issue to "true".
     Let article_source_issue be ChooseArticleSourceIssue(article_format_code, article_source_count, article_cited_count).
+    Let keyword_workspace_tab be ChooseKeywordWorkspaceTab(keyword_strategy_complete, keyword_pending_recommendations, keyword_approved_decisions, keyword_declined_decisions).
+    Let keyword_next_step be ChooseKeywordNextStep(keyword_strategy_complete, keyword_approved_decisions, keyword_article_drafts, keyword_content_complete).
     Show growth_stage.
     Show decision_code.
     Show weekly_quest.
@@ -1520,3 +1552,5 @@ live in the web platform.
     Show article_meta_issue.
     Show article_source_issue.
     Show rank_bucket.
+    Show keyword_workspace_tab.
+    Show keyword_next_step.

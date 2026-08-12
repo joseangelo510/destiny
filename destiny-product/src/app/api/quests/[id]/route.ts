@@ -34,9 +34,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (body.status === "complete" && existingQuest.task_type === "keyword_review") {
     if (!existingQuest.audit_id) return NextResponse.json({ error: "This keyword review is not connected to an audit. Run the audit again before completing it." }, { status: 409 });
-    const { data: approvedKeywords, error: decisionsError } = await supabase.from("keyword_decisions")
+    const { data: audit, error: auditError } = await supabase.from("audits")
+      .select("website_id")
+      .eq("id", existingQuest.audit_id)
+      .maybeSingle();
+    if (auditError || !audit) return NextResponse.json({ error: auditError?.message || "This keyword review is not connected to a website." }, { status: 409 });
+    const { data: approvedKeywords, error: decisionsError } = await supabase.from("keyword_preferences")
       .select("keyword")
-      .eq("audit_id", existingQuest.audit_id)
+      .eq("website_id", audit.website_id)
       .eq("decision", "approved");
     if (decisionsError) return NextResponse.json({ error: decisionsError.message }, { status: 500 });
     const approvedCount = approvedKeywords?.length ?? 0;
