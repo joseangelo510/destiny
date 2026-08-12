@@ -5,6 +5,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { keywordHasGeographicConflict, rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
+import { keywordStrategyAction } from "@/lib/seo/keyword-strategy-actions";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 import "./claude-keyword-strategy.css";
@@ -45,6 +46,7 @@ export default async function KeywordsPage() {
     directCompetitorRankers: Number(keyword.directCompetitorRankers ?? 0),
     opportunity: String(keyword.opportunity ?? "site_idea"),
     rank: Number(keyword.rank ?? 0),
+    rankingUrl: String(keyword.url ?? ""),
     cpc: Number(keyword.cpc ?? 0),
     intent: String(keyword.intent ?? keyword.providerIntent ?? "informational"),
     essential: Boolean(keyword.essential),
@@ -69,9 +71,13 @@ export default async function KeywordsPage() {
       competitorRankers: Number(keyword.competitorRankers ?? 0),
       essential: keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational",
     }));
-  const { data: savedPreferences } = context.website
-    ? await context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,reason,search_volume,difficulty,priority_score,provider_intent,search_intent,theme_id,theme_label").eq("website_id", context.website.id)
-    : { data: [] };
+  const [{ data: savedPreferences }, { data: trackedKeywords }, { data: rankObservations }] = context.website
+    ? await Promise.all([
+      context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,reason,search_volume,difficulty,priority_score,provider_intent,search_intent,theme_id,theme_label").eq("website_id", context.website.id),
+      context.supabase.from("tracked_keywords").select("id,normalized_keyword,last_checked_at,status").eq("website_id", context.website.id).neq("status", "paused"),
+      context.supabase.from("rank_observations").select("tracked_keyword_id,observed_at,found,position,result_url").eq("website_id", context.website.id).order("observed_at", { ascending: false }).limit(2000),
+    ])
+    : [{ data: [] }, { data: [] }, { data: [] }];
   const preferenceByNormalized = new Map((savedPreferences ?? []).map((preference) => [preference.normalized_keyword, preference]));
   const currentNormalizedKeywords = new Set(usableKeywords.map((keyword) => normalizeTrackedKeyword(keyword.keyword)));
   const archivedKeywords = (savedPreferences ?? []).flatMap((preference) => currentNormalizedKeywords.has(preference.normalized_keyword) ? [] : [{
@@ -80,6 +86,7 @@ export default async function KeywordsPage() {
     difficulty: Number(preference.difficulty ?? 0),
     competitorRankers: 0,
     rank: 0,
+    rankingUrl: "",
     cpc: 0,
     opportunity: "saved_strategy",
     providerIntent: providerIntent(preference.provider_intent),
@@ -91,7 +98,63 @@ export default async function KeywordsPage() {
     themeRole: "saved",
     essential: false,
   }]);
-  const workspaceKeywords = [...usableKeywords, ...archivedKeywords];
+  const latestObservationByTrackedId = new Map<string, NonNullable<typeof rankObservations>[number]>();
+  for (const observation of rankObservations ?? []) {
+    if (!latestObservationByTrackedId.has(observation.tracked_keyword_id)) latestObservationByTrackedId.set(observation.tracked_keyword_id, observation);
+  }
+  const trackedByNormalized = new Map((trackedKeywords ?? []).map((tracked) => [tracked.normalized_keyword, tracked]));
+  const providerUrlsByNormalized = keywords.reduce<Map<string, string[]>>((grouped, keyword) => {
+    const normalized = normalizeTrackedKeyword(String(keyword.keyword ?? ""));
+    const url = String(keyword.url ?? "").trim();
+    if (!normalized || !url) return grouped;
+    grouped.set(normalized, [...new Set([...(grouped.get(normalized) ?? []), url])]);
+    return grouped;
+  }, new Map());
+  const searchConsoleIntegration = context.integrations.find((item) => item.provider === "google_search_console" && item.status === "connected" && item.last_synced_at);
+  const searchConsoleMetadata = searchConsoleIntegration ? record(searchConsoleIntegration.metadata) : {};
+  const gscByNormalized = new Map(list(searchConsoleMetadata.topQueries).map(record).flatMap((query) => {
+    const normalized = normalizeTrackedKeyword(String(query.query ?? ""));
+    return normalized ? [[normalized, query] as const] : [];
+  }));
+  const workspaceKeywords = await Promise.all([...usableKeywords, ...archivedKeywords].map(async (keyword) => {
+    const normalized = normalizeTrackedKeyword(keyword.keyword);
+    const tracked = trackedByNormalized.get(normalized);
+    const observation = tracked ? latestObservationByTrackedId.get(tracked.id) : null;
+    const observedRank = observation?.found && observation.position ? Number(observation.position) : 0;
+    const rank = observedRank || Number(keyword.rank ?? 0);
+    const rankingUrls = [...new Set([
+      ...(providerUrlsByNormalized.get(normalized) ?? []),
+      String(keyword.rankingUrl ?? ""),
+      observation?.found ? String(observation.result_url ?? "") : "",
+    ].filter(Boolean))];
+    const rankPolicy = await runDestinyServerLogic({
+      auditComplete: 1,
+      criticalIssues: 0,
+      warnings: 0,
+      rankingKeywords: 0,
+      newKeywords: 0,
+      lostKeywords: 0,
+      contentGaps: 0,
+      reviewCount: 0,
+      rankStatusCode: rank > 0 ? 1 : 0,
+      rankFoundCode: rank > 0 ? 1 : 0,
+      rankCurrentPosition: rank,
+    });
+    const action = keywordStrategyAction({ rank, rankBucket: rankPolicy.rankBucket, rankingUrls });
+    const gsc = gscByNormalized.get(normalized);
+    return {
+      ...keyword,
+      rank,
+      rankingUrls,
+      rankingUrl: rankingUrls[0] ?? "",
+      verdict: action.verdict,
+      verdictDescription: action.description,
+      gscPosition: Number(gsc?.position ?? 0),
+      gscImpressions: Number(gsc?.impressions ?? 0),
+      gscClicks: Number(gsc?.clicks ?? 0),
+      rankCheckedAt: observation?.observed_at ?? tracked?.last_checked_at ?? null,
+    };
+  }));
   const initialDecisions = Object.fromEntries(workspaceKeywords.flatMap((keyword) => {
     const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
     return preference?.decision === "approved" || preference?.decision === "declined" ? [[keyword.keyword, preference.decision]] : [];
@@ -134,12 +197,12 @@ export default async function KeywordsPage() {
   const strategyComplete = keywordQuest?.status === "complete" && approvedCount >= INITIAL_KEYWORD_APPROVAL_TARGET;
   const reviewedCount = approvedCount + declinedCount;
   const auditDate = context.audit?.created_at ? new Date(context.audit.created_at) : null;
-  const nextAuditDate = auditDate && !Number.isNaN(auditDate.getTime()) ? new Date(auditDate.getTime() + 28 * 24 * 60 * 60 * 1000) : null;
   const dateLabel = (date: Date | null) => date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
+  const latestRankCheck = workspaceKeywords.flatMap((keyword) => keyword.rankCheckedAt ? [new Date(keyword.rankCheckedAt)] : []).filter((date) => !Number.isNaN(date.getTime())).sort((left, right) => right.getTime() - left.getTime())[0] ?? null;
   const auditMeta = [
     `${reviewedCount} keyword${reviewedCount === 1 ? "" : "s"} reviewed`,
     dateLabel(auditDate) ? `Last audit ${dateLabel(auditDate)}` : null,
-    dateLabel(nextAuditDate) ? `Next audit suggested ${dateLabel(nextAuditDate)}` : null,
+    dateLabel(latestRankCheck) ? `Rankings checked ${dateLabel(latestRankCheck)}` : "Rank readings begin after approval",
   ].filter(Boolean).join(" · ");
   return <WorkspaceShell active="/keywords" design="claude-keyword-strategy" eyebrow="Keyword strategy" title={strategyComplete ? "Your strategy is set." : "Choose your keyword strategy."} description={auditMeta}>
     {!vocabulary.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run a live audit so Destiny can inspect up to five important pages and build the initial recommendations." /> : <>
