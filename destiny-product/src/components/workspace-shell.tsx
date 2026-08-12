@@ -7,14 +7,16 @@ export async function WorkspaceShell({
   eyebrow,
   title,
   description,
+  design,
   children,
 }: {
   active: string;
   eyebrow: string;
   title: string;
   description: string;
+  design?: "claude-keyword-strategy";
   children: ReactNode;
 }) {
   const context = await getWorkspaceContext();
-  return <WorkspaceShellView active={active} activeWebsiteId={context.website?.id ?? null} description={description} eyebrow={eyebrow} title={title} websites={context.websites}>{children}</WorkspaceShellView>;
+  return <WorkspaceShellView active={active} activeWebsiteId={context.website?.id ?? null} description={description} design={design} eyebrow={eyebrow} title={title} websites={context.websites}>{children}</WorkspaceShellView>;
 }

@@ -26,10 +26,10 @@ function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId:
   </details>;
 }
 
-export function WorkspaceShellView({ active, eyebrow, title, description, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
+export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
   const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
   const href = (path: string) => siteScopedHref(path, activeWebsiteId);
-  return <main className="app-shell">
+  return <main className="app-shell" data-design={design}>
     <aside className="sidebar">
       <Link aria-label="Destiny homepage" className="brand sidebar-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
       <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />

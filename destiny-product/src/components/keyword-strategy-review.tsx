@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../lib/product/plan-horizon";
 
 type KeywordRecommendation = {
@@ -56,7 +56,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   questStatus?: string;
 }) {
   const router = useRouter();
-  const firstUnreviewedRef = useRef<HTMLElement | null>(null);
+  const firstUnreviewedRef = useRef<HTMLTableRowElement | null>(null);
   const [activeTab, setActiveTab] = useState<KeywordTab>(initialTab);
   const [decisions, setDecisions] = useState(initialDecisions);
   const [reasons, setReasons] = useState(initialReasons);
@@ -64,19 +64,26 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const approvedKeywords = keywords.filter((keyword) => decisions[keyword.keyword] === "approved");
   const declinedKeywords = keywords.filter((keyword) => decisions[keyword.keyword] === "declined");
   const reviewKeywords = keywords.filter((keyword) => !decisions[keyword.keyword]);
   const approved = approvedKeywords.length;
   const declined = declinedKeywords.length;
-  const reviewed = approved + declined;
   const firstUnreviewedKeyword = reviewKeywords[0]?.keyword;
   const approvalsRemaining = Math.max(0, INITIAL_KEYWORD_APPROVAL_TARGET - approved);
   const canComplete = approvalsRemaining === 0;
   const strategyComplete = questStatus === "complete" && canComplete;
   const recommendedUnreviewed = reviewKeywords.slice(0, approvalsRemaining);
   const visibleKeywords = activeTab === "approved" ? approvedKeywords : activeTab === "declined" ? declinedKeywords : reviewKeywords;
+  const displayedKeywords = showAll ? visibleKeywords : visibleKeywords.slice(0, 10);
+
+  const selectTab = (tab: KeywordTab) => {
+    setActiveTab(tab);
+    setShowAll(false);
+    setPendingDecline("");
+  };
 
   const themeCoverage = Object.values(keywords.reduce<Record<string, { label: string; count: number }>>((themes, keyword) => {
     const id = keyword.themeId || "evidence-based";
@@ -181,41 +188,50 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     }
   };
 
-  return <section className="workspace-card keyword-strategy-review" id="keyword-strategy-review">
-    {strategyComplete ? <div className="keyword-strategy-ready">
-      <div><span className="eyebrow">Strategy saved</span><h2>Your keyword strategy is ready</h2><p>Destiny remembers these choices for this website and uses them to keep the content plan focused.</p></div>
-      <div className="keyword-strategy-stats"><span><strong>{approved}</strong> approved</span><span><strong>{declined}</strong> declined</span><span><strong>{reviewKeywords.length}</strong> to review</span></div>
-      <div className="keyword-strategy-powered"><span>✓ Three-month editorial calendar</span><span>✓ Weekly content assignments</span><span>✓ Weekly rank tracking</span></div>
-      <div className="keyword-next-action"><div><small>YOUR NEXT STEP</small><strong>{nextAction.label}</strong><p>{nextAction.description}</p></div><Link className="primary-button" href={nextAction.href}>{nextAction.label}</Link></div>
-    </div> : <div className="strategy-review-heading"><div><span className="eyebrow">Your decision</span><h2>Choose at least five keywords for your first plan</h2><p>Approve the searches that fit the business. You do not need to approve or review all {keywords.length}; unreviewed ideas stay available for later.</p></div><div><strong>{approved} of {INITIAL_KEYWORD_APPROVAL_TARGET}</strong><span>approved</span></div></div>}
+  return <section className="keyword-strategy-review" id="keyword-strategy-review">
+    {strategyComplete ? <section aria-label="Strategy summary" className="claude-ks-summary">
+      <div className={`claude-ks-stat ${reviewKeywords.length === 0 ? "zero" : ""}`}><strong>{reviewKeywords.length}</strong><span>To review</span><small>{reviewKeywords.length === 0 ? "You’re all caught up" : "Ready when you are"}</small></div>
+      <div className="claude-ks-stat"><strong>{approved}</strong><span>Approved</span><small>In your 12-week calendar</small></div>
+      <div className="claude-ks-stat"><strong>{declined}</strong><span>Declined</span><small>Saved · restorable anytime</small></div>
+      <div className="claude-ks-next-step"><div><small>Next step</small><strong>{nextAction.code === "create_first_article" && approvedKeywords[0] ? <>Your first article is ready to plan: <em>{approvedKeywords[0].keyword}</em>.</> : nextAction.description}</strong></div><Link href={nextAction.href}>{nextAction.label}</Link></div>
+    </section> : <section className="claude-ks-decision-heading">
+      <div><span className="eyebrow">Your decision</span><h2>Choose at least five keywords for your first plan</h2><p>Approve the searches that fit the business. You do not need to approve or review all {keywords.length}; unreviewed ideas stay available for later.</p></div>
+      <div><strong>{approved} of {INITIAL_KEYWORD_APPROVAL_TARGET}</strong><span>approved</span></div>
+    </section>}
 
-    <div aria-label="Keyword decision lists" className="keyword-strategy-tabs" id="keyword-strategy-tabs" role="tablist">
-      <button aria-selected={activeTab === "review"} className={activeTab === "review" ? "active" : ""} onClick={() => setActiveTab("review")} role="tab" type="button">To Review <span>{reviewKeywords.length}</span></button>
-      <button aria-selected={activeTab === "approved"} className={activeTab === "approved" ? "active" : ""} onClick={() => setActiveTab("approved")} role="tab" type="button">Approved <span>{approved}</span></button>
-      <button aria-selected={activeTab === "declined"} className={activeTab === "declined" ? "active" : ""} onClick={() => setActiveTab("declined")} role="tab" type="button">Declined <span>{declined}</span></button>
+    <div aria-label="Keyword decision lists" className="claude-ks-tabs" id="keyword-strategy-tabs" role="tablist">
+      <button aria-selected={activeTab === "review"} className={activeTab === "review" ? "active" : ""} onClick={() => selectTab("review")} role="tab" type="button">To Review <span>{reviewKeywords.length}</span></button>
+      <button aria-selected={activeTab === "approved"} className={activeTab === "approved" ? "active" : ""} onClick={() => selectTab("approved")} role="tab" type="button">Approved <span>{approved}</span></button>
+      <button aria-selected={activeTab === "declined"} className={activeTab === "declined" ? "active" : ""} onClick={() => selectTab("declined")} role="tab" type="button">Declined <span>{declined}</span></button>
     </div>
 
-    {activeTab === "review" && reviewKeywords.length > 0 ? <>
-      <div className="strategy-theme-coverage"><div><strong>{themeCoverage.length} distinct search themes</strong><span>No single phrase family can consume the whole strategy.</span></div><div>{themeCoverage.map((theme) => <span key={theme.label}><b>{theme.label}</b><small>{theme.count} keyword{theme.count === 1 ? "" : "s"}</small></span>)}</div></div>
-      <div className="keyword-bulk-actions"><div><strong>{canComplete ? "Your first plan is ready" : "Get to five faster"}</strong><span>{canComplete ? `You can continue now, approve more, or explore alternatives. ${reviewed} of ${keywords.length} recommendations reviewed.` : `Approve ${approvalsRemaining} more recommended keyword${approvalsRemaining === 1 ? "" : "s"} in one step, then adjust any choice from Approved.`}</span></div>{!canComplete && <button className="secondary-button" disabled={!recommendedUnreviewed.length || saving === "batch"} onClick={() => void approveMany(recommendedUnreviewed)} type="button">Approve next {approvalsRemaining}</button>}<Link className="secondary-button" href={moreKeywordsHref}>Find more keywords</Link></div>
-    </> : null}
+    {activeTab === "review" && reviewKeywords.length > 0 ? <div className="claude-ks-review-context">
+      <div><strong>{themeCoverage.length} distinct search themes</strong><span>No single phrase family can consume the whole strategy.</span></div>
+      <div className="claude-ks-review-actions">{!canComplete && <button disabled={!recommendedUnreviewed.length || saving === "batch"} onClick={() => void approveMany(recommendedUnreviewed)} type="button">Approve next {approvalsRemaining}</button>}<Link href={moreKeywordsHref}>Find more keywords</Link></div>
+    </div> : null}
 
     {status && <div aria-live="polite" className="integration-banner success keyword-decision-status" role="status"><strong>Decision saved</strong><p>{status}</p></div>}
 
-    {!visibleKeywords.length ? <div className="keyword-tab-empty"><span>✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "New recommendations arrive when Destiny completes fresh keyword research. Your saved choices remain available in Approved and Declined." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline will remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button className="secondary-button" onClick={() => setActiveTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link className="secondary-button" href={auditHref}>Run a new audit</Link> : null}<Link className="secondary-button" href={moreKeywordsHref}>Find more keywords</Link></div></div> : <div className="strategy-keyword-list" role="tabpanel">{visibleKeywords.map((keyword) => {
-      const decision = decisions[keyword.keyword];
-      const reason = reasons[keyword.keyword];
-      return <article className={decision ?? "pending"} key={keyword.keyword} ref={keyword.keyword === firstUnreviewedKeyword ? firstUnreviewedRef : undefined} tabIndex={keyword.keyword === firstUnreviewedKeyword ? -1 : undefined}>
-        <div><div className="strategy-keyword-topline"><span className="strategy-keyword-label">{keyword.themeLabel || "Evidence-based opportunity"}</span><span className="strategy-keyword-source">{keyword.essential ? "Priority gap" : keyword.opportunity.replaceAll("_", " ")}</span><strong className={`intent-chip ${keyword.searchIntent}`}>{keyword.providerIntent}</strong><b>{keyword.priorityScore}/100 priority</b></div><h3>{keyword.keyword}</h3><p>{keyword.priorityReason}</p><small>{keyword.searchVolume.toLocaleString()} monthly searches · difficulty {keyword.difficulty} · advertisers pay ~${keyword.cpc.toFixed(2)}/click{keyword.rank > 0 ? ` · current rank #${keyword.rank}` : ""} · {keyword.competitorRankers} competitor rankers</small>
-          {decision === "approved" ? <div className="keyword-working-status"><strong>In three-month plan · Tracking rank weekly</strong><span>Moving this back to review removes it from the active calendar but keeps existing drafts and rank history.</span></div> : null}
-          {decision === "declined" ? <div className="keyword-working-status declined"><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : "No reason added"}</strong><span>Destiny keeps this feedback for future recommendations. You can restore the keyword anytime.</span></div> : null}
-          {pendingDecline === keyword.keyword ? <div className="keyword-decline-reasons"><strong>Why decline? <small>Optional</small></strong><div>{(Object.keys(REASON_LABELS) as KeywordReason[]).map((code) => <button disabled={saving === keyword.keyword} key={code} onClick={() => void saveDecision(keyword.keyword, "declined", code)} type="button">{REASON_LABELS[code]}</button>)}</div><button className="text-button" disabled={saving === keyword.keyword} onClick={() => void saveDecision(keyword.keyword, "declined")} type="button">Decline without a reason</button><button className="text-button" onClick={() => setPendingDecline("")} type="button">Cancel</button></div> : null}
-        </div>
-        <div className="keyword-card-actions">{activeTab === "review" ? <><button className="primary-button" disabled={saving === keyword.keyword || saving === "batch"} onClick={() => void saveDecision(keyword.keyword, "approved")} type="button">Approve</button><button className="decline-button" disabled={saving === keyword.keyword || saving === "batch"} onClick={() => setPendingDecline(keyword.keyword)} type="button">Decline</button></> : <button className="secondary-button" disabled={saving === keyword.keyword} onClick={() => void restoreToReview(keyword.keyword)} type="button">{activeTab === "declined" ? "Restore to review" : "Move to review"}</button>}</div>
-      </article>;
-    })}</div>}
+    {!visibleKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button onClick={() => selectTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link href={auditHref}>Run a new audit</Link> : null}{!auditHref && activeTab === "review" ? <Link href={moreKeywordsHref}>Find more keywords</Link> : null}</div></div></section> : <section className="claude-ks-panel" role="tabpanel">
+      <div className="claude-ks-table-scroll"><table><thead><tr><th>Keyword</th><th>Intent</th><th>Monthly searches</th><th>Opportunity</th><th>Plan status</th><th>Action</th></tr></thead><tbody>{displayedKeywords.map((keyword) => {
+        const decision = decisions[keyword.keyword];
+        const reason = reasons[keyword.keyword];
+        const opportunityLabel = keyword.priorityScore >= 70 ? "High" : keyword.priorityScore >= 50 ? "Good" : "Fair";
+        const opportunityWidth = `${Math.max(12, Math.min(100, keyword.priorityScore))}%`;
+        const intentLabel = keyword.providerIntent.charAt(0).toUpperCase() + keyword.providerIntent.slice(1);
+        return <Fragment key={keyword.keyword}><tr className={decision ?? "pending"} ref={keyword.keyword === firstUnreviewedKeyword ? firstUnreviewedRef : undefined} tabIndex={keyword.keyword === firstUnreviewedKeyword ? -1 : undefined}>
+          <td className="claude-ks-keyword"><strong>{keyword.keyword}</strong><small>{keyword.priorityReason}</small></td>
+          <td><span className={`claude-ks-intent ${keyword.providerIntent}`}>{intentLabel}</span></td>
+          <td className="claude-ks-number">{keyword.searchVolume.toLocaleString()}</td>
+          <td><div className="claude-ks-opportunity" title={`${keyword.priorityScore} out of 100`}><span><i style={{ width: opportunityWidth }} /></span><b>{opportunityLabel}</b></div></td>
+          <td className="claude-ks-plan-status">{decision === "approved" ? <><strong>In three-month plan</strong> · Tracking rank weekly</> : decision === "declined" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : "Saved feedback"}</strong> · Restorable</> : <><strong>Ready to decide</strong></>}</td>
+          <td className="claude-ks-row-actions">{activeTab === "review" ? <><button disabled={saving === keyword.keyword || saving === "batch"} onClick={() => void saveDecision(keyword.keyword, "approved")} type="button">Approve</button><button disabled={saving === keyword.keyword || saving === "batch"} onClick={() => setPendingDecline(keyword.keyword)} type="button">Decline</button></> : <button disabled={saving === keyword.keyword} onClick={() => void restoreToReview(keyword.keyword)} type="button">{activeTab === "declined" ? "Restore to review" : "Unapprove"}</button>}</td>
+        </tr>{pendingDecline === keyword.keyword ? <tr><td className="claude-ks-decline" colSpan={6}><strong>Why decline? <small>Optional</small></strong><div>{(Object.keys(REASON_LABELS) as KeywordReason[]).map((code) => <button disabled={saving === keyword.keyword} key={code} onClick={() => void saveDecision(keyword.keyword, "declined", code)} type="button">{REASON_LABELS[code]}</button>)}</div><button disabled={saving === keyword.keyword} onClick={() => void saveDecision(keyword.keyword, "declined")} type="button">Decline without a reason</button><button onClick={() => setPendingDecline("")} type="button">Cancel</button></td></tr> : null}</Fragment>;
+      })}</tbody></table></div>
+      <footer className="claude-ks-table-foot"><span>Showing {displayedKeywords.length} of {visibleKeywords.length} {activeTab === "review" ? "keywords to review" : `${activeTab} keywords`}{activeTab === "declined" ? " · Restoring sends a keyword back to To Review" : ""}</span>{visibleKeywords.length > 10 ? <button onClick={() => setShowAll((current) => !current)} type="button">{showAll ? "Show first 10" : `View all ${visibleKeywords.length}`} <span aria-hidden="true">→</span></button> : null}</footer>
+    </section>}
 
-    {!strategyComplete ? <div className="strategy-review-finish"><div><strong>{canComplete ? "Ready to build your three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? "Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker." : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disabled={!canComplete || !questId} className="primary-button" disabled={saving === "quest"} onClick={() => void finish()} type="button">{saving === "quest" ? "Building your plan…" : canComplete ? "Build my three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</button></div> : null}
+    {!strategyComplete ? <div className="claude-ks-finish"><div><strong>{canComplete ? "Ready to build your three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? "Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker." : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disabled={!canComplete || !questId} disabled={saving === "quest"} onClick={() => void finish()} type="button">{saving === "quest" ? "Building your plan…" : canComplete ? "Build my three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</button></div> : null}
     {error && <div aria-live="polite" className="error-banner">{error}</div>}
   </section>;
 }
