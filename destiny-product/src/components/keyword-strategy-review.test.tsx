@@ -22,6 +22,13 @@ const keywords = Array.from({ length: 25 }, (_, index) => ({
   themeLabel: `Theme ${(index % 4) + 1}`,
   themeRole: "revenue",
   essential: index < 3,
+  verdict: index === 0 ? "improve" as const : "create" as const,
+  verdictDescription: index === 0 ? "Page two · a practical quick win" : "No page is verified for this search",
+  rankingUrl: index === 0 ? "https://example.com/services" : "",
+  rankingUrls: index === 0 ? ["https://example.com/services"] : [],
+  gscPosition: index === 0 ? 13.2 : 0,
+  gscImpressions: index === 0 ? 1850 : 0,
+  gscClicks: index === 0 ? 12 : 0,
 }));
 
 describe("KeywordStrategyReview planning horizon", () => {
@@ -47,9 +54,31 @@ describe("KeywordStrategyReview planning horizon", () => {
     expect(html).toContain("To Review");
     expect(html).toContain("Approved");
     expect(html).toContain("Declined");
-    expect(html).toContain("In three-month plan");
-    expect(html).toContain("Tracking rank weekly");
+    expect(html).toContain("In plan · tracking weekly");
+    expect(html).toContain("Checked against your site:");
     expect(html).not.toContain("Decline unreviewed");
+  });
+
+  it("shows Claude's separate OBS and GSC evidence with an improvement diagnostic", () => {
+    const html = renderToStaticMarkup(<KeywordStrategyReview
+      auditId="audit-1"
+      initialDecisions={{}}
+      initialReasons={{}}
+      initialTab="review"
+      keywords={keywords.slice(0, 1)}
+      moreKeywordsHref="/keyword-research?from=strategy"
+      nextHref="/content?strategy=complete"
+      nextAction={{ code: "review_keywords", href: "#keyword-strategy-tabs", label: "Review keyword recommendations", description: "Choose the searches that match the business." }}
+      questId="quest-1"
+      questStatus="todo"
+    />);
+
+    expect(html).toContain("Improve · quick wins");
+    expect(html).toContain("OBS");
+    expect(html).toContain("GSC");
+    expect(html).toContain("13.2");
+    expect(html).toContain("/services");
+    expect(html).toContain("Re-optimize");
   });
 
   it("turns a completed strategy into a working summary with the next useful action", () => {
