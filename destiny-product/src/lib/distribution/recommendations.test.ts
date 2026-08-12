@@ -52,4 +52,19 @@ describe("distribution recommendations", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ platform: "Medium", audience: "Audience size needs verification" });
   });
+
+  it("filters reference sites, marketplaces, and giant publications from creator prospects", () => {
+    const rows = creatorProspects([
+      { domain: "en.wikipedia.org", title: "Reference result", url: "https://en.wikipedia.org/wiki/Junk_removal" },
+      { domain: "amazon.com", title: "Marketplace result", url: "https://amazon.com/example" },
+      { domain: "news.yahoo.com", title: "Mass media result", url: "https://news.yahoo.com/example" },
+      { domain: "reddit.com", title: "Community result", url: "https://reddit.com/r/example" },
+      { domain: "bayareamovingguide.com", title: "Independent local publisher", url: "https://bayareamovingguide.com/junk-removal" },
+    ]);
+
+    expect(rows).toEqual([
+      expect.objectContaining({ domain: "bayareamovingguide.com", platform: "Independent blog" }),
+    ]);
+  });
+
 });
