@@ -52,12 +52,49 @@ export type CmsDeliveryProvider = {
   draftEndpoint: string;
 };
 
+export type CmsFieldReportEntry = {
+  field: string;
+  label: string;
+  status: "transferred" | "needs_review" | "unavailable";
+  note: string;
+};
+
+export type CmsDraftResult = {
+  url: string;
+  updated: boolean;
+  fieldReport?: CmsFieldReportEntry[];
+};
+
+export type CmsTransferState = {
+  provider: string;
+  articleKey: string;
+  status: string;
+  remoteEditUrl: string | null;
+  fieldReport: CmsFieldReportEntry[] | null;
+};
+
+/** Rebuild the per-article delivery state (Update vs Send, readiness checklist) from persisted transfers after a reload. */
+export function hydrateCmsDrafts(transfers: CmsTransferState[], auditId: string) {
+  const drafts: Record<string, CmsDraftResult> = {};
+  for (const transfer of transfers) {
+    if (transfer.status !== "succeeded" || !transfer.remoteEditUrl) continue;
+    const prefix = `${auditId}:`;
+    if (!transfer.articleKey.startsWith(prefix)) continue;
+    const keyword = transfer.articleKey.slice(prefix.length);
+    const key = `${transfer.provider}:${keyword}`;
+    if (drafts[key]) continue;
+    drafts[key] = { url: transfer.remoteEditUrl, updated: true, fieldReport: transfer.fieldReport ?? undefined };
+  }
+  return drafts;
+}
+
 export function ArticleReviewWorkspace({
   auditId,
   websiteId,
   wordpressConnected,
   webflowConnected = false,
   initialDrafts,
+  initialCmsTransfers = [],
   generationContext,
   generationAvailable,
   generationModelLabel,
@@ -69,6 +106,7 @@ export function ArticleReviewWorkspace({
   wordpressConnected: boolean;
   webflowConnected?: boolean;
   initialDrafts: ArticleDraft[];
+  initialCmsTransfers?: CmsTransferState[];
   generationContext: ArticleGenerationContext;
   generationAvailable: boolean;
   generationModelLabel: string;
@@ -86,7 +124,7 @@ export function ArticleReviewWorkspace({
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [error, setError] = useState("");
   const [delivering, setDelivering] = useState("");
-  const [cmsDrafts, setCmsDrafts] = useState<Record<string, string>>({});
+  const [cmsDrafts, setCmsDrafts] = useState<Record<string, CmsDraftResult>>(() => hydrateCmsDrafts(initialCmsTransfers, auditId));
 
   const cmsProviders: CmsDeliveryProvider[] = [
     { id: "wordpress", label: "WordPress", connected: wordpressConnected, draftEndpoint: "/api/integrations/cms/wordpress/draft" },
@@ -271,13 +309,14 @@ export function ArticleReviewWorkspace({
           title: draft.title,
           body: draft.body,
           metaDescription: draft.metaDescription,
+          infographics: draft.infographics,
           approved: draft.approved,
           generationStatus: draft.generationStatus,
         }),
       });
-      const payload = await response.json() as { error?: string; remoteEditUrl?: string };
+      const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[] };
       if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Destiny could not create the ${provider.label} draft.`);
-      setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: payload.remoteEditUrl! }));
+      setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport } }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : `Destiny could not create the ${provider.label} draft.`);
     } finally {
@@ -338,14 +377,33 @@ export function ArticleReviewWorkspace({
       <div className="article-editor-actions">
         <button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button>
         <button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button>
-        {draft.approved && connectedProviders.map((provider) => cmsDrafts[`${provider.id}:${draft.keyword}`]
-          ? <a className="primary-button" href={cmsDrafts[`${provider.id}:${draft.keyword}`]} key={provider.id} rel="noreferrer" target="_blank">Review in {provider.label}</a>
-          : <button className="primary-button" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Creating ${provider.label} draft…` : `Send to ${provider.label}`}</button>)}
+        {draft.approved && connectedProviders.map((provider) => {
+          const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
+          return result
+            ? <span className="cms-draft-actions" key={provider.id}>
+                <button className="primary-button" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Updating ${provider.label} draft…` : `Update ${provider.label} draft`}</button>
+                <a className="secondary-button" href={result.url} rel="noreferrer" target="_blank">Review in {provider.label}</a>
+              </span>
+            : <button className="primary-button" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Creating ${provider.label} draft…` : `Send to ${provider.label}`}</button>;
+        })}
       </div>
       {draft.approved && !connectedProviders.length && <div className="configuration-note"><strong>Connect a CMS to send this draft</strong><p>Connect WordPress or Webflow once, then return here and send approved articles directly to your CMS as drafts.</p><Link className="secondary-button" href="/integrations#publishing-destinations">Connect a CMS</Link></div>}
-      {connectedProviders.map((provider) => cmsDrafts[`${provider.id}:${draft.keyword}`]
-        ? <div className="integration-banner success" key={provider.id} role="status"><strong>Draft created in {provider.label}</strong><p>Nothing is live. Review the formatting in {provider.label}, then publish it when you are ready.</p></div>
-        : null)}
+      {connectedProviders.map((provider) => {
+        const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
+        if (!result) return null;
+        const transferred = result.fieldReport?.filter((entry) => entry.status === "transferred") ?? [];
+        const needsReview = result.fieldReport?.filter((entry) => entry.status === "needs_review") ?? [];
+        const unavailable = result.fieldReport?.filter((entry) => entry.status === "unavailable") ?? [];
+        return <div className="integration-banner success" key={provider.id} role="status">
+          <strong>{result.updated ? `Draft updated in ${provider.label}` : `Draft created in ${provider.label}`}</strong>
+          <p>Nothing is live. Review the formatting in {provider.label}, then publish it when you are ready.</p>
+          {result.fieldReport?.length ? <div className="cms-field-report">
+            {transferred.length > 0 && <><strong>Transferred by Destiny</strong><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
+            {needsReview.length > 0 && <><strong>Still needs your review in {provider.label}</strong><ul>{needsReview.map((entry) => <li key={`r-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
+            {unavailable.length > 0 && <><strong>No matching field in your collection</strong><ul>{unavailable.map((entry) => <li key={`u-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
+          </div> : null}
+        </div>;
+      })}
       </>}
     </div>
 

@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
@@ -64,6 +65,10 @@ export default async function ContentPage() {
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
   }));
+  const { data: cmsTransferRows } = context.website
+    ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
+    : { data: [] };
+  const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
@@ -76,6 +81,7 @@ export default async function ContentPage() {
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
           webflowConnected={webflow?.status === "connected"}
+          initialCmsTransfers={initialCmsTransfers}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",

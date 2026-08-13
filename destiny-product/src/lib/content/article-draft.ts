@@ -184,9 +184,10 @@ export function renderArticleMarkdownToHtml(markdown: string) {
   const lines = markdown.replace(/```[\s\S]*?```/g, "").split("\n");
   const blocks: string[] = [];
   let list: string[] = [];
+  let listTag: "ul" | "ol" = "ul";
   let paragraph: string[] = [];
   const flushList = () => {
-    if (list.length) blocks.push(`<ul>${list.map((item) => `<li>${item}</li>`).join("")}</ul>`);
+    if (list.length) blocks.push(`<${listTag}>${list.map((item) => `<li>${item}</li>`).join("")}</${listTag}>`);
     list = [];
   };
   const flushParagraph = () => {
@@ -206,8 +207,18 @@ export function renderArticleMarkdownToHtml(markdown: string) {
     }
     const listItem = /^[-*]\s+(.*)$/.exec(line);
     if (listItem) {
+      if (listTag !== "ul") flushList();
+      listTag = "ul";
       flushParagraph();
       list.push(renderInlineMarkdown(listItem[1]));
+      continue;
+    }
+    const orderedItem = /^\d{1,3}[.)]\s+(.*)$/.exec(line);
+    if (orderedItem) {
+      if (listTag !== "ol") flushList();
+      listTag = "ol";
+      flushParagraph();
+      list.push(renderInlineMarkdown(orderedItem[1]));
       continue;
     }
     flushList();
