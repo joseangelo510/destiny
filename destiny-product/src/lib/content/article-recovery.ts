@@ -2,6 +2,46 @@ import { markdownWordCount, type ArticleFormat } from "./article-generation";
 
 export type ArticleContinuationReason = "max_tokens" | "short" | "unclean" | "short_and_unclean";
 
+// Policy: SEO articles must land in 2,000–3,000 words with 6–9 H2 sections.
+// Finishing passes aim inside a buffered band so tokenizer and word-counting
+// differences can never leave the combined article straddling the policy
+// boundaries. Validation itself still checks the published 2,000/3,000 and
+// 6–9 limits — these constants only steer generation, never weaken checks.
+export const SEO_ARTICLE_H2_LIMIT = 9;
+export const SEO_ARTICLE_RECOVERY_MIN_WORDS = 2_200;
+export const SEO_ARTICLE_RECOVERY_MAX_WORDS = 2_900;
+
+// Markdown-aware H2 scan: recognizes ATX H2 headings (0–3 leading spaces per
+// CommonMark) while ignoring fenced code blocks and indented code, so a code
+// example containing "## comment" is never counted as an article section or
+// rewritten by the clamp.
+export function scanArticleH2LineIndexes(markdown: string) {
+  const lines = markdown.split("\n");
+  const indexes: number[] = [];
+  let openFence: string | null = null;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const fenceMatch = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    if (openFence) {
+      // CommonMark closing fence: same character, at least the opening
+      // length, and nothing but whitespace after the run.
+      if (fenceMatch && fenceMatch[1][0] === openFence[0] && fenceMatch[1].length >= openFence.length && fenceMatch[2].trim() === "") openFence = null;
+      continue;
+    }
+    if (fenceMatch) {
+      openFence = fenceMatch[1];
+      continue;
+    }
+    if (/^(?: {4,}|\t)/.test(line)) continue; // indented code block
+    if (/^ {0,3}##(?:\s|$)/.test(line) && !/^ {0,3}###/.test(line)) indexes.push(index);
+  }
+  return indexes;
+}
+
+export function countH2Sections(markdown: string) {
+  return scanArticleH2LineIndexes(markdown).length;
+}
+
 export type ArticleContinuationDecision = {
   needed: boolean;
   reason: ArticleContinuationReason | null;
@@ -50,8 +90,17 @@ export function buildArticleContinuationPrompt({
 }) {
   const existing = bodyMarkdown.trim().slice(-20_000);
   const evidence = researchEvidence.trim().slice(0, 12_000);
-  const existingH2Count = bodyMarkdown.split("\n").filter((line) => /^##\s+/.test(line.trim())).length;
-  const remainingH2Count = Math.max(0, 9 - existingH2Count);
+  const existingWordCount = markdownWordCount(bodyMarkdown);
+  // Bound the pass by what the article can still absorb relative to the
+  // buffered maximum: a near-ceiling draft that only needs a clean ending
+  // must never be told it may expand past the policy ceiling. When almost no
+  // capacity remains, the pass is restricted to a single closing sentence.
+  const newWordAllowance = Math.max(0, targetMaximumWords - existingWordCount);
+  const wordBudgetRule = newWordAllowance < 60
+    ? "The existing article has no remaining word capacity. Finish it with one complete closing sentence only — add no new sections, coverage, or scope."
+    : `Add at most ${numberLabel(newWordAllowance)} new words. If the existing article already meets the word target, only finish the ending cleanly — do not expand its scope.`;
+  const existingH2Count = countH2Sections(bodyMarkdown);
+  const remainingH2Count = Math.max(0, SEO_ARTICLE_H2_LIMIT - existingH2Count);
   const h2BudgetRule = remainingH2Count === 0
     ? "Do not add another H2 section. Use H3 subsections or paragraphs to finish missing material."
     : `Add at most ${remainingH2Count} new H2 section${remainingH2Count === 1 ? "" : "s"}. Use H3 subsections or paragraphs for any additional detail.`;
@@ -59,6 +108,7 @@ export function buildArticleContinuationPrompt({
 
 RECOVERY RULES
 - Bring the combined article to ${numberLabel(targetMinimumWords)}–${numberLabel(targetMaximumWords)} total words through useful coverage, not padding.
+- The existing article already contains ${numberLabel(existingWordCount)} words. ${wordBudgetRule}
 - Do not repeat the H1, introduction, completed sections, or existing paragraphs.
 - The existing article already contains ${numberLabel(existingH2Count)} H2 sections. The combined SEO article must stay within Destiny's Logos policy of 6–9 H2 sections. ${h2BudgetRule}
 - If the draft ends mid-sentence, begin with a complete replacement sentence or paragraph. Do not continue a broken fragment.
@@ -134,9 +184,23 @@ function removeLineOverlap(existing: string, continuation: string) {
   return continuationLines.join("\n").trim();
 }
 
+// Deterministic guarantee: a finishing pass can never push the combined
+// article past the H2 limit, regardless of what the model returns. Any new
+// H2 heading beyond the remaining budget is demoted to an H3 subsection,
+// which preserves the content and keeps heading levels contiguous (the
+// demoted section always follows an existing H2).
+export function clampContinuationHeadings(existingMarkdown: string, continuationMarkdown: string) {
+  const remaining = Math.max(0, SEO_ARTICLE_H2_LIMIT - countH2Sections(existingMarkdown));
+  const excessIndexes = new Set(scanArticleH2LineIndexes(continuationMarkdown).slice(remaining));
+  if (excessIndexes.size === 0) return continuationMarkdown;
+  return continuationMarkdown.split("\n").map((line, index) => (
+    excessIndexes.has(index) ? line.replace(/^( {0,3})##/, "$1###") : line
+  )).join("\n");
+}
+
 export function mergeArticleContinuation(bodyMarkdown: string, continuationMarkdown: string) {
   const existing = trimIncompleteTail(bodyMarkdown);
   const continuation = removeLineOverlap(existing, stripRepeatedHeading(parseArticleContinuation(continuationMarkdown)));
   if (!continuation) return existing;
-  return `${existing}\n\n${continuation}`.trim();
+  return `${existing}\n\n${clampContinuationHeadings(existing, continuation)}`.trim();
 }

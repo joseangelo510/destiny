@@ -20,6 +20,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { encodeArticleGenerationEvent, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 import {
+  SEO_ARTICLE_RECOVERY_MAX_WORDS,
+  SEO_ARTICLE_RECOVERY_MIN_WORDS,
   articleContinuationDecision,
   buildAnthropicArticleContinuationRequest,
   buildArticleContinuationPrompt,
@@ -198,8 +200,12 @@ export async function POST(request: Request) {
           const continuationPrompt = buildArticleContinuationPrompt({
             bodyMarkdown: article.bodyMarkdown,
             researchEvidence,
-            targetMinimumWords: input.preferences.format === "seo_article" ? 2_000 : Math.max(700, initialDecision.wordCount + 400),
-            targetMaximumWords: input.preferences.format === "seo_article" ? 3_000 : Math.max(1_200, initialDecision.wordCount + 1_000),
+            // Buffered band: aiming at the bare 2,000-word policy floor left
+            // finished drafts at 1,994–2,025 words, where counting variance
+            // flips them to incomplete. The finishing pass now targets
+            // 2,200–2,900 so the result clears both policy boundaries.
+            targetMinimumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MIN_WORDS : Math.max(700, initialDecision.wordCount + 400),
+            targetMaximumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MAX_WORDS : Math.max(1_200, initialDecision.wordCount + 1_000),
           });
           const continuationResponse = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",

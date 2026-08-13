@@ -75,6 +75,11 @@ describe("Destiny article generation policy", () => {
 
     expect(prompt).toContain("2,000–3,000 words");
     expect(prompt).toContain("6–9 H2 sections");
+    // Structural headroom: initial generation must aim inside the policy
+    // band, reserving word and H2 budget for the bounded finishing pass.
+    expect(prompt).toContain("2,300–2,800 words");
+    expect(prompt).toContain("exactly 6–8 H2 sections");
+    expect(prompt).toContain("never plan 9 or more");
     expect(prompt).toContain("4–9 contextual bucket brigades");
     expect(prompt).toContain("first 150 words");
     expect(prompt).toContain("at least 40% of headings");
