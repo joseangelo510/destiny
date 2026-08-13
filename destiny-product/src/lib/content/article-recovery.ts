@@ -82,11 +82,13 @@ export function buildArticleContinuationPrompt({
   researchEvidence,
   targetMinimumWords,
   targetMaximumWords,
+  reason,
 }: {
   bodyMarkdown: string;
   researchEvidence: string;
   targetMinimumWords: number;
   targetMaximumWords: number;
+  reason?: ArticleContinuationReason | null;
 }) {
   const existing = bodyMarkdown.trim().slice(-20_000);
   const evidence = researchEvidence.trim().slice(0, 12_000);
@@ -96,19 +98,30 @@ export function buildArticleContinuationPrompt({
   // must never be told it may expand past the policy ceiling. When almost no
   // capacity remains, the pass is restricted to a single closing sentence.
   const newWordAllowance = Math.max(0, targetMaximumWords - existingWordCount);
+  // A cleanly ended but under-length article must be EXPANDED, not
+  // "finished": telling the model to only complete missing material invites
+  // an "already complete" refusal instead of new copy. The expansion pass
+  // states the computed word deficit and demands new in-article H3 coverage.
+  const expansionPass = reason === "short" && newWordAllowance >= 60;
+  const missingWords = Math.max(0, targetMinimumWords - existingWordCount);
   const wordBudgetRule = newWordAllowance < 60
     ? "The existing article has no remaining word capacity. Finish it with one complete closing sentence only — add no new sections, coverage, or scope."
-    : `Add at most ${numberLabel(newWordAllowance)} new words. If the existing article already meets the word target, only finish the ending cleanly — do not expand its scope.`;
+    : expansionPass
+      ? `The article reads complete but is at least ${numberLabel(missingWords)} words below Destiny's minimum. It is NOT complete until it reaches the target. Add ${numberLabel(missingWords)}–${numberLabel(newWordAllowance)} new words of genuinely useful in-article coverage as H3 subsections under the most relevant existing H2 sections: worked examples, objection handling, comparisons, troubleshooting, or FAQ entries the article does not cover yet. Never state or imply that the article is already complete.`
+      : `Add at most ${numberLabel(newWordAllowance)} new words. If the existing article already meets the word target, only finish the ending cleanly — do not expand its scope.`;
   const existingH2Count = countH2Sections(bodyMarkdown);
   const remainingH2Count = Math.max(0, SEO_ARTICLE_H2_LIMIT - existingH2Count);
   const h2BudgetRule = remainingH2Count === 0
     ? "Do not add another H2 section. Use H3 subsections or paragraphs to finish missing material."
     : `Add at most ${remainingH2Count} new H2 section${remainingH2Count === 1 ? "" : "s"}. Use H3 subsections or paragraphs for any additional detail.`;
-  return `Continue and finish the existing SEO article below. Return only the new Markdown that should be appended.
+  return `${expansionPass
+    ? "Expand the existing SEO article below with new, useful in-article content. Return only the new Markdown that should be appended."
+    : "Continue and finish the existing SEO article below. Return only the new Markdown that should be appended."}
 
 RECOVERY RULES
 - Bring the combined article to ${numberLabel(targetMinimumWords)}–${numberLabel(targetMaximumWords)} total words through useful coverage, not padding.
 - The existing article already contains ${numberLabel(existingWordCount)} words. ${wordBudgetRule}
+- Return only article Markdown. Never return commentary about the article, its completeness, or this task.
 - Do not repeat the H1, introduction, completed sections, or existing paragraphs.
 - The existing article already contains ${numberLabel(existingH2Count)} H2 sections. The combined SEO article must stay within Destiny's Logos policy of 6–9 H2 sections. ${h2BudgetRule}
 - If the draft ends mid-sentence, begin with a complete replacement sentence or paragraph. Do not continue a broken fragment.
@@ -132,12 +145,45 @@ export function buildAnthropicArticleContinuationRequest(prompt: string, model: 
   };
 }
 
+// Deterministic refusal guard: a continuation that talks ABOUT the article
+// instead of being article copy must never be merged. Rejecting here routes
+// into the existing fail-closed recovery error path, which preserves the
+// unpolluted draft and keeps it non-approvable.
+// Openers that are refusals on their own, with no plausible article-copy reading.
+// "No additional …" is NOT a standalone opener: legitimate copy can begin
+// "No additional consent is necessary…". The refusal reading ("No additional
+// content is needed") is covered by the contextual phrase fallback below.
+// "Nothing …" stems must name an explicit completion action ("to add") —
+// copy can legitimately open "Nothing more than a signed consent form…" or
+// "There is nothing illegal about…". First-person inability stems stay
+// standalone: article copy is never written in the writer's first person.
+const CONTINUATION_REFUSAL_OPENERS = /^(?:(?:there is )?nothing (?:more |else |further )?(?:left )?to (?:add|append|write|expand|continue)|i cannot|i can't|i am unable|i'm unable|i won't|i will not)\b/i;
+// Openers that merely reference the article; these are only refusals when the
+// same opening line also carries completeness/refusal semantics, because
+// legitimate copy can begin "This article helps hiring managers…".
+const CONTINUATION_ARTICLE_OPENERS = /^(?:the (?:existing |current )?article|this article|the draft)\b/i;
+// Every phrase must carry explicit completion/no-further-content semantics;
+// generic fragments like "requires no" or a bare "no additional content"
+// appear in legitimate domain prose and must not trip the fallback.
+const CONTINUATION_REFUSAL_PHRASES = /\b(?:already complete|already meets the (?:word )?target|is complete as|complete as written|no additional content (?:is )?(?:needed|required|necessary)|no (?:additional|further) content should be (?:added|appended)|nothing (?:more |else )?(?:to|should be) (?:add|append)(?:ed|ing)?|should be appended|does not need (?:additional|more|further|new|expansion)|(?:cannot|requires no) (?:be )?(?:further )?(?:add|expand|extend|expansion)(?:ed|ing)?s?\b)/i;
+
+export function isContinuationRefusal(value: string) {
+  const opening = value.split("\n").map((line) => line.trim()).find(Boolean) ?? "";
+  if (CONTINUATION_REFUSAL_OPENERS.test(opening)) return true;
+  if (CONTINUATION_ARTICLE_OPENERS.test(opening) && CONTINUATION_REFUSAL_PHRASES.test(opening)) return true;
+  const wordCount = markdownWordCount(value);
+  const hasHeading = /^ {0,3}#{1,6}\s+/m.test(value);
+  return wordCount < 60 && !hasHeading && CONTINUATION_REFUSAL_PHRASES.test(value);
+}
+
 export function parseArticleContinuation(raw: string) {
   const fenced = /^```(?:markdown|md)?\s*([\s\S]*?)\s*```$/i.exec(raw.trim())?.[1];
   const value = (fenced ?? raw).trim();
   if (!value) throw new Error("Claude returned an empty continuation.");
   if (/^\s*[{[]/.test(value)) throw new Error("Claude did not return the continuation as plain Markdown.");
-  return value.replace(/^\s*(?:Here(?:'s| is) the continuation:?|Continuation:)\s*/i, "").trim();
+  const cleaned = value.replace(/^\s*(?:Here(?:'s| is) the continuation:?|Continuation:)\s*/i, "").trim();
+  if (isContinuationRefusal(cleaned)) throw new Error("Claude returned commentary about the article instead of a continuation.");
+  return cleaned;
 }
 
 function trimIncompleteTail(markdown: string) {

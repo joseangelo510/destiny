@@ -206,6 +206,9 @@ export async function POST(request: Request) {
             // 2,200–2,900 so the result clears both policy boundaries.
             targetMinimumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MIN_WORDS : Math.max(700, initialDecision.wordCount + 400),
             targetMaximumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MAX_WORDS : Math.max(1_200, initialDecision.wordCount + 1_000),
+            // A cleanly ended but short article gets the expansion framing so
+            // the model adds H3 coverage instead of declaring it complete.
+            reason: initialDecision.reason,
           });
           const continuationResponse = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",

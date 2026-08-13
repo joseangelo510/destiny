@@ -5,6 +5,7 @@ import {
   articleContinuationDecision,
   clampContinuationHeadings,
   countH2Sections,
+  isContinuationRefusal,
   articleHasCleanEnding,
   buildAnthropicArticleContinuationRequest,
   buildArticleContinuationPrompt,
@@ -233,6 +234,91 @@ describe("bounded article recovery", () => {
     expect(clamped).toContain("### Existing H3 stays");
     expect(clamped).toContain("Plain prose stays.");
     expect(clampContinuationHeadings(existing, continuation)).toBe(clamped);
+  });
+
+  it("regression: cleanly ended 1,755- and 1,760-word drafts get the expansion framing with computed missing words", () => {
+    // Live failures: "background screening services" (1,755 words) and
+    // "volunteer background check service" (1,760 words) ended cleanly, so
+    // the finishing pass declared them complete instead of expanding them.
+    for (const total of [1_755, 1_760]) {
+      const body = `# Guide\n\n${Array.from({ length: 7 }, (_, index) => `## Section ${index + 1}\n\n${words(Math.floor(total / 7) - 3)}. This section ends cleanly.`).join("\n\n")}`;
+      const decision = articleContinuationDecision(body, "seo_article", "end_turn");
+      expect(decision).toMatchObject({ needed: true, reason: "short", cleanEnding: true });
+
+      const prompt = buildArticleContinuationPrompt({
+        bodyMarkdown: body,
+        researchEvidence: "",
+        targetMinimumWords: SEO_ARTICLE_RECOVERY_MIN_WORDS,
+        targetMaximumWords: SEO_ARTICLE_RECOVERY_MAX_WORDS,
+        reason: decision.reason,
+      });
+      expect(prompt).toContain("Expand the existing SEO article");
+      expect(prompt).toContain("H3 subsections under the most relevant existing H2 sections");
+      expect(prompt).toContain("Never state or imply that the article is already complete");
+      expect(prompt).toContain("Return only article Markdown");
+      expect(prompt).not.toContain("only finish the ending cleanly");
+      // Computed deficit: 2,200 minimum minus the existing word count.
+      const existingWords = decision.wordCount;
+      expect(prompt).toContain(`is at least ${(2_200 - existingWords).toLocaleString("en-US")} words below Destiny's minimum`);
+    }
+  });
+
+  it("regression: a 1,995-word boundary draft still gets the short expansion pass, not the finish framing", () => {
+    // Live failure: "criminal background check for employees" ended around
+    // 1,995 words and stayed incomplete after recovery.
+    const body = `# Guide\n\n${Array.from({ length: 8 }, (_, index) => `## Section ${index + 1}\n\n${words(244)}. Ends cleanly.`).join("\n\n")}`;
+    const decision = articleContinuationDecision(body, "seo_article", "end_turn");
+    expect(decision.reason).toBe("short");
+
+    const prompt = buildArticleContinuationPrompt({
+      bodyMarkdown: body,
+      researchEvidence: "",
+      targetMinimumWords: SEO_ARTICLE_RECOVERY_MIN_WORDS,
+      targetMaximumWords: SEO_ARTICLE_RECOVERY_MAX_WORDS,
+      reason: decision.reason,
+    });
+    expect(prompt).toContain("Expand the existing SEO article");
+    expect(prompt).toContain("It is NOT complete until it reaches the target");
+  });
+
+  it("regression: deterministically rejects the observed refusal instead of merging it", () => {
+    // Exact live meta-commentary that was appended to articles.
+    const refusal = "The existing article is already complete... No additional content should be appended.";
+    expect(isContinuationRefusal(refusal)).toBe(true);
+    expect(() => parseArticleContinuation(refusal)).toThrow(/commentary about the article/);
+    expect(() => mergeArticleContinuation("# Guide\n\n## Section\n\nComplete sentence.", refusal)).toThrow(/commentary about the article/);
+
+    for (const variant of [
+      "This article covers everything required. Nothing more should be added.",
+      "No additional content is needed; the draft already meets the target.",
+      "I cannot add more without repeating existing sections.",
+      "Nothing else to append.",
+      "The draft requires no further expansion.",
+    ]) {
+      expect(isContinuationRefusal(variant), variant).toBe(true);
+    }
+  });
+
+  it("does not misclassify genuine article copy as a refusal", () => {
+    for (const copy of [
+      "### When a screening is already complete\n\nEmployers still verify records before extending offers.",
+      "Employers often ask what happens when the article of incorporation is missing. The answer starts with the county clerk.",
+      "Short closing sentence that wraps up the guide with a clear next step for readers.",
+      // Legitimate prose may open by referencing the article without refusing.
+      "This article helps hiring managers compare screening policies across state lines and pick a compliant provider.",
+      "The article's evidence shows turnaround times vary widely, so plan volunteer onboarding around the slowest county check.",
+      "The draft guidance above applies to staffing agencies too, with one extra consent form required in California.",
+      // Generic fragments in short, unheaded domain prose must not trip the fallback.
+      "A basic name check requires no additional content from applicants.",
+      "This article requires no subscription to follow the steps.",
+      "Most county searches require no additional content beyond a signed consent form.",
+      "No additional consent is necessary when the check relies on publicly available records.",
+      "No additional documentation is needed for a county-only search, which keeps volunteer onboarding fast.",
+      "Nothing more than a signed consent form is needed for this check.",
+      "There is nothing illegal about using a county-record search.",
+    ]) {
+      expect(isContinuationRefusal(copy), copy).toBe(false);
+    }
   });
 
   it("removes an unfinished tail and repeated overlap before joining the continuation", () => {
