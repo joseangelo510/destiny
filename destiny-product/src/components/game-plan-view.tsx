@@ -22,7 +22,7 @@ export function GamePlanView({
       <header className="game-plan-hero">
         <div>
           <span className="eyebrow">{plan.domain} · {plan.period}</span>
-          <h1>Your 90-day SEO game plan</h1>
+          <h2 className="game-plan-hero-title">Your 90-day SEO game plan</h2>
           <p>Where you’re starting, the four bets we’re making, and what progress should look like by the end of this quarter.</p>
         </div>
         <div className="game-plan-hero-actions">

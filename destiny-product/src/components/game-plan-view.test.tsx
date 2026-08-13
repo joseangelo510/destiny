@@ -43,6 +43,13 @@ describe("GamePlanView", () => {
     expect(html).not.toContain("Review keyword strategy");
   });
 
+  it("leaves the single page H1 to the workspace shell by rendering its hero heading as an H2", async () => {
+    const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={await buildGamePlan(input)} />);
+
+    expect(html).not.toContain("<h1");
+    expect(html).toContain('<h2 class="game-plan-hero-title">Your 90-day SEO game plan</h2>');
+  });
+
   it("moves conflicting business identity confirmation into the share flow", async () => {
     const plan = await buildGamePlan({ ...input, businessName: "DatacenterDotDev Inc." });
     const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={plan} />);

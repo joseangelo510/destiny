@@ -16,3 +16,10 @@
 .singleSite { align-items: center; display: flex; gap: 0.62rem; padding: 0.55rem 0.1rem; }
 .singleSite .siteCopy { flex: 1; }
 .singleSiteAdd { color: #296d57; display: inline-block; font-size: 0.76rem; font-weight: 800; margin: 0.1rem 0 0.85rem 2.72rem; text-decoration: none; }
+
+/* Compact header (<=760px): the site selector must shrink instead of widening the document. */
+@media (max-width: 760px) {
+  .siteContext { flex: 1 1 auto; margin: 0; min-width: 0; }
+  .siteContext summary { min-width: 0; }
+  .singleSite { min-width: 0; }
+}

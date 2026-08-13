@@ -4,8 +4,8 @@ import { buildSeasonSnapshot, buildWitnessLog, selectDiscoveryMoment } from "./f
 describe("founder journey truth layer", () => {
   it("uses the strongest connected first-party signal without inventing timing or identity", () => {
     expect(selectDiscoveryMoment({ organicKeyEvents: 0, searchClicks: 7, searchImpressions: 240 })).toEqual({
-      detail: "Google Search sent 7 visits to your website in the latest connected period.",
-      label: "search visits",
+      detail: "Google Search recorded 7 clicks to your website in the latest connected period.",
+      label: "search clicks",
       source: "Google Search Console",
       title: "Someone found you.",
       value: "7",
