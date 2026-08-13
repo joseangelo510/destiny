@@ -6,7 +6,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 describe("Founder journey surfaces", () => {
   it("renders a quiet truthful discovery celebration", () => {
-    const html = renderToStaticMarkup(<DiscoveryMomentCard moment={{ title: "Someone found you.", detail: "Google Search sent 7 visits in the latest connected period.", value: "7", label: "search visits", source: "Google Search Console" }} />);
+    const html = renderToStaticMarkup(<DiscoveryMomentCard moment={{ title: "Someone found you.", detail: "Google Search recorded 7 clicks in the latest connected period.", value: "7", label: "search clicks", source: "Google Search Console" }} />);
     expect(html).toContain("Someone found you");
     expect(html).toContain("Google Search Console");
     expect(html).toContain("Verified connected data");

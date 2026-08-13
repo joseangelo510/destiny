@@ -52,9 +52,9 @@ export function selectDiscoveryMoment({
   };
   if (clicks > 0) return {
     title: "Someone found you.",
-    detail: `Google Search sent ${Math.round(clicks).toLocaleString("en-US")} visit${Math.round(clicks) === 1 ? "" : "s"} to your website in the latest connected period.`,
+    detail: `Google Search recorded ${Math.round(clicks).toLocaleString("en-US")} click${Math.round(clicks) === 1 ? "" : "s"} to your website in the latest connected period.`,
     value: Math.round(clicks).toLocaleString("en-US"),
-    label: "search visits",
+    label: "search clicks",
     source: "Google Search Console",
   };
   if (impressions > 0) return {

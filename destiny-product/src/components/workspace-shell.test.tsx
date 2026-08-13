@@ -51,4 +51,24 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain('class="workspace-notification-icon"');
     expect(html).toContain('aria-label="Open notifications"');
   });
+
+  it("keeps the compact (≤760px) header inside the viewport: account actions hidden, site selector shrinkable", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+    const moduleCss = await readFile(new URL("./workspace-shell.module.css", import.meta.url), "utf8");
+
+    const mobileBlocks = globals.split("@media (max-width: 760px)").slice(1);
+    // Desktop Account/Sign out actions are hidden in the compact header…
+    expect(mobileBlocks.some((block) => /\.sidebar \.sidebar-account-actions\s*\{[^}]*display:\s*none/.test(block) || /,\s*\.sidebar \.sidebar-account-actions\s*\{[^}]*display:\s*none/.test(block))).toBe(true);
+    // …while Account and Sign out remain reachable inside the mobile Tools & reports menu.
+    const html = renderToStaticMarkup(<WorkspaceShellView active="/this-week" activeWebsiteId={site.id} description="One useful step." eyebrow="example.com" title="This week" websites={[site]}><p>Work</p></WorkspaceShellView>);
+    expect(html).toMatch(/mobile-feature-menu.*mobile-menu-account[^>]*>Account<.*mobile-menu-signout[^>]*>Sign out<\/button>/s);
+    // The header row itself may never widen the document.
+    expect(mobileBlocks.some((block) => /\.sidebar\s*\{[^}]*max-width:\s*100vw/.test(block))).toBe(true);
+    expect(mobileBlocks.some((block) => /\.sidebar > \*\s*\{[^}]*min-width:\s*0/.test(block))).toBe(true);
+    // The site selector shrinks with the viewport instead of forcing overflow.
+    const moduleMobile = moduleCss.split("@media (max-width: 760px)")[1] ?? "";
+    expect(moduleMobile).toMatch(/\.siteContext\s*\{[^}]*min-width:\s*0/);
+    expect(moduleMobile).toMatch(/\.siteContext summary\s*\{[^}]*min-width:\s*0/);
+  });
 });
