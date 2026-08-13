@@ -14,7 +14,7 @@ export type WebsitePlatform = {
 
 export const WEBSITE_PLATFORMS: readonly WebsitePlatform[] = [
   { id: "wix", label: "Wix", liveConnection: false },
-  { id: "webflow", label: "Webflow", liveConnection: false },
+  { id: "webflow", label: "Webflow", liveConnection: true },
   { id: "squarespace", label: "Squarespace", liveConnection: false },
   { id: "shopify", label: "Shopify", liveConnection: false },
   { id: "lovable", label: "Lovable", liveConnection: false },

@@ -1,8 +1,8 @@
+import { WebflowIntegrationAction } from "./webflow-integration-action";
 import { WordPressIntegrationAction } from "./wordpress-integration-action";
 
 const CMS_DESTINATIONS = [
   { name: "Shopify", mark: "S", description: "Send approved articles to your Shopify blog as unpublished content." },
-  { name: "Webflow", mark: "W", description: "Create approved content inside the correct Webflow CMS collection." },
   { name: "Wix", mark: "W", description: "Move approved articles into the Wix Blog workflow." },
   { name: "Squarespace", mark: "S", description: "Prepare a complete publishing handoff for your Squarespace blog." },
   { name: "GoDaddy Website Builder", mark: "G", description: "Prepare approved content for your GoDaddy website editor." },
@@ -37,13 +37,22 @@ export function PublishingDestinations({
   wordpressConnected,
   wordpressDisplayName,
   wordpressSiteUrl,
+  webflowConnected,
+  webflowSiteName,
+  webflowCollectionName,
   websiteId,
 }: {
   wordpressConnected: boolean;
   wordpressDisplayName?: string;
   wordpressSiteUrl?: string;
+  webflowConnected: boolean;
+  webflowSiteName?: string;
+  webflowCollectionName?: string;
   websiteId: string;
 }) {
+  const webflowSummary = webflowConnected && (webflowSiteName || webflowCollectionName)
+    ? [webflowSiteName, webflowCollectionName].filter(Boolean).join(" · ")
+    : undefined;
   return <section className="publishing-destinations" id="publishing-destinations">
     <div className="workspace-card-heading integration-section-heading"><div><strong>Publishing destinations</strong><small>Choose where Destiny should place content after you review and approve it. Destiny will create drafts—not publish without you.</small></div></div>
 
@@ -52,6 +61,13 @@ export function PublishingDestinations({
       <div><strong>WordPress</strong><p>Verify a revocable Application Password. Draft transfer is the first live publishing workflow Destiny is completing.</p><p className="integration-summary">{wordpressConnected ? `${wordpressDisplayName || "WordPress editor"} · ${wordpressSiteUrl || "Verified site"}` : "Connect your WordPress site securely."}</p></div>
       <span className={`status-chip ${wordpressConnected ? "" : "amber"}`}>{wordpressConnected ? "Verified" : "Available now"}</span>
       <WordPressIntegrationAction connected={wordpressConnected} savedSiteUrl={wordpressSiteUrl} websiteId={websiteId} />
+    </div>
+
+    <div className="publishing-destination-featured integration-row">
+      <span className="integration-logo">W</span>
+      <div><strong>Webflow</strong><p>Verify a site API token with CMS access, then choose the collection where Destiny creates draft items—never published items.</p><p className="integration-summary">{webflowConnected ? webflowSummary || "Verified Webflow CMS collection" : "Connect your Webflow site securely."}</p></div>
+      <span className={`status-chip ${webflowConnected ? "" : "amber"}`}>{webflowConnected ? "Verified" : "Available now"}</span>
+      <WebflowIntegrationAction connected={webflowConnected} savedSummary={webflowSummary} websiteId={websiteId} />
     </div>
 
     <div className="publishing-destination-group">

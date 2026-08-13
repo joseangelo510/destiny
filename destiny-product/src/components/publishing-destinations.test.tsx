@@ -7,7 +7,7 @@ import { PublishingDestinations } from "./publishing-destinations";
 
 describe("PublishingDestinations", () => {
   const render = () => renderToStaticMarkup(
-    <PublishingDestinations wordpressConnected={false} websiteId="w1" />,
+    <PublishingDestinations webflowConnected={false} wordpressConnected={false} websiteId="w1" />,
   );
 
   it("shows the major CMS and code publishing options in one section", () => {
@@ -25,7 +25,8 @@ describe("PublishingDestinations", () => {
   it("keeps WordPress actionable and labels every unbuilt connector honestly", () => {
     const html = render();
     expect(html).toContain("Connect WordPress");
-    expect(html.match(/Coming soon/g)).toHaveLength(18);
+    expect(html).toContain("Connect Webflow");
+    expect(html.match(/Coming soon/g)).toHaveLength(17);
     expect(html).toContain("Available now");
   });
 
