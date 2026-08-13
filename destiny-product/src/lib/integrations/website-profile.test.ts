@@ -24,7 +24,7 @@ describe("website platform registry", () => {
 
   it("invariant: only platforms with a live connection implementation may render Connect", () => {
     for (const platform of WEBSITE_PLATFORMS) {
-      expect(platformConnectAllowed(platform.id)).toBe(platform.id === "wordpress");
+      expect(platformConnectAllowed(platform.id)).toBe(platform.id === "wordpress" || platform.id === "webflow");
     }
     expect(platformConnectAllowed("wix")).toBe(false);
     expect(platformConnectAllowed("unknown")).toBe(false);

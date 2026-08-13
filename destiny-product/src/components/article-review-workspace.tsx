@@ -100,10 +100,18 @@ function issueCategory(code: string) {
   return "Editorial quality";
 }
 
+export type CmsDeliveryProvider = {
+  id: string;
+  label: string;
+  connected: boolean;
+  draftEndpoint: string;
+};
+
 export function ArticleReviewWorkspace({
   auditId,
   websiteId,
   wordpressConnected,
+  webflowConnected = false,
   initialDrafts,
   generationContext,
   generationAvailable,
@@ -114,6 +122,7 @@ export function ArticleReviewWorkspace({
   auditId: string;
   websiteId: string;
   wordpressConnected: boolean;
+  webflowConnected?: boolean;
   initialDrafts: ArticleDraft[];
   generationContext: ArticleGenerationContext;
   generationAvailable: boolean;
@@ -131,8 +140,14 @@ export function ArticleReviewWorkspace({
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
-  const [delivering, setDelivering] = useState(false);
-  const [wordpressDrafts, setWordpressDrafts] = useState<Record<string, string>>({});
+  const [delivering, setDelivering] = useState("");
+  const [cmsDrafts, setCmsDrafts] = useState<Record<string, string>>({});
+
+  const cmsProviders: CmsDeliveryProvider[] = [
+    { id: "wordpress", label: "WordPress", connected: wordpressConnected, draftEndpoint: "/api/integrations/cms/wordpress/draft" },
+    { id: "webflow", label: "Webflow", connected: webflowConnected, draftEndpoint: "/api/integrations/cms/webflow/draft" },
+  ];
+  const connectedProviders = cmsProviders.filter((provider) => provider.connected);
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
   const draftRevisionRef = useRef(0);
@@ -328,12 +343,12 @@ export function ArticleReviewWorkspace({
     URL.revokeObjectURL(url);
   };
 
-  const sendToWordPress = async () => {
-    if (!draft?.approved || delivering || !wordpressConnected) return;
-    setDelivering(true);
+  const sendToCms = async (provider: CmsDeliveryProvider) => {
+    if (!draft?.approved || delivering || !provider.connected) return;
+    setDelivering(provider.id);
     setError("");
     try {
-      const response = await fetch("/api/integrations/cms/wordpress/draft", {
+      const response = await fetch(provider.draftEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -348,12 +363,12 @@ export function ArticleReviewWorkspace({
         }),
       });
       const payload = await response.json() as { error?: string; remoteEditUrl?: string };
-      if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || "Destiny could not create the WordPress draft.");
-      setWordpressDrafts((current) => ({ ...current, [draft.keyword]: payload.remoteEditUrl! }));
+      if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Destiny could not create the ${provider.label} draft.`);
+      setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: payload.remoteEditUrl! }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not create the WordPress draft.");
+      setError(cause instanceof Error ? cause.message : `Destiny could not create the ${provider.label} draft.`);
     } finally {
-      setDelivering(false);
+      setDelivering("");
     }
   };
 
@@ -410,11 +425,14 @@ export function ArticleReviewWorkspace({
       <div className="article-editor-actions">
         <button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button>
         <button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button>
-        {draft.approved && wordpressConnected && !wordpressDrafts[draft.keyword] && <button className="primary-button" disabled={delivering} onClick={() => void sendToWordPress()} type="button">{delivering ? "Creating WordPress draft…" : "Send to WordPress"}</button>}
-        {wordpressDrafts[draft.keyword] && <a className="primary-button" href={wordpressDrafts[draft.keyword]} rel="noreferrer" target="_blank">Review in WordPress</a>}
+        {draft.approved && connectedProviders.map((provider) => cmsDrafts[`${provider.id}:${draft.keyword}`]
+          ? <a className="primary-button" href={cmsDrafts[`${provider.id}:${draft.keyword}`]} key={provider.id} rel="noreferrer" target="_blank">Review in {provider.label}</a>
+          : <button className="primary-button" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Creating ${provider.label} draft…` : `Send to ${provider.label}`}</button>)}
       </div>
-      {draft.approved && !wordpressConnected && <div className="configuration-note"><strong>Connect WordPress to send this draft</strong><p>Connect it once, then return here and send approved articles directly to the WordPress editor.</p><Link className="secondary-button" href="/integrations#publishing-destinations">Connect WordPress</Link></div>}
-      {wordpressDrafts[draft.keyword] && <div className="integration-banner success" role="status"><strong>Draft created in WordPress</strong><p>Nothing is live. Review the formatting in WordPress, then publish it when you are ready.</p></div>}
+      {draft.approved && !connectedProviders.length && <div className="configuration-note"><strong>Connect a CMS to send this draft</strong><p>Connect WordPress or Webflow once, then return here and send approved articles directly to your CMS as drafts.</p><Link className="secondary-button" href="/integrations#publishing-destinations">Connect a CMS</Link></div>}
+      {connectedProviders.map((provider) => cmsDrafts[`${provider.id}:${draft.keyword}`]
+        ? <div className="integration-banner success" key={provider.id} role="status"><strong>Draft created in {provider.label}</strong><p>Nothing is live. Review the formatting in {provider.label}, then publish it when you are ready.</p></div>
+        : null)}
       </>}
     </div>
 

@@ -53,10 +53,15 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
         {(() => {
           const wordpress = context.integrations.find((item) => item.provider === "wordpress");
           const metadata = record(wordpress?.metadata);
+          const webflow = context.integrations.find((item) => item.provider === "webflow");
+          const webflowMetadata = record(webflow?.metadata);
           return <PublishingDestinations
             wordpressConnected={wordpress?.status === "connected"}
             wordpressDisplayName={typeof metadata.display_name === "string" ? metadata.display_name : undefined}
             wordpressSiteUrl={typeof metadata.site_url === "string" ? metadata.site_url : undefined}
+            webflowConnected={webflow?.status === "connected"}
+            webflowSiteName={typeof webflowMetadata.site_name === "string" ? webflowMetadata.site_name : undefined}
+            webflowCollectionName={typeof webflowMetadata.collection_name === "string" ? webflowMetadata.collection_name : undefined}
             websiteId={context.website.id}
           />;
         })()}

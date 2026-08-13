@@ -63,6 +63,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   );
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const wordpress = context.integrations.find((integration) => integration.provider === "wordpress");
+  const webflow = context.integrations.find((integration) => integration.provider === "webflow");
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
@@ -90,6 +91,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
+          webflowConnected={webflow?.status === "connected"}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
