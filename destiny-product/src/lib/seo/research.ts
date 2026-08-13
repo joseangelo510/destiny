@@ -72,6 +72,30 @@ export type BacklinkResearchResult = {
   notices: string[];
 };
 
+export type ReoptimizationResearchResult = {
+  sourceLabel: string;
+  keyword: string;
+  pageUrl: string;
+  location: string;
+  updatedAt: string;
+  providerCost: number;
+  serp: {
+    organic: Array<{ rank: number; title: string; url: string; domain: string; description: string }>;
+    peopleAlsoAsk: string[];
+    relatedSearches: string[];
+    features: string[];
+  };
+  currentPage: { title: string; description: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; links: Array<{ url: string; anchor: string }> };
+  competitorPages: Array<{ rank: number; title: string; url: string; domain: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; backlinkRank: number; referringDomains: number }>;
+  queries: {
+    currentRankings: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number; position: number; url: string }>;
+    related: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number }>;
+  };
+  onPage: { score: number; checks: string[]; loadTimeMs: number; sizeBytes: number };
+  backlinks: { rank: number; backlinks: number; referringDomains: number; brokenBacklinks: number };
+  notices: string[];
+};
+
 function record(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {};
 }
@@ -98,6 +122,130 @@ function firstResult(payload: unknown) {
     throw new Error(`DataForSEO rejected the research request: ${message}`);
   }
   return record(array(task.result)[0]);
+}
+
+function providerCost(...payloads: unknown[]) {
+  return payloads.reduce<number>((total, payload) => total + array(record(payload).tasks).reduce<number>((sum, task) => sum + number(record(task).cost), 0), 0);
+}
+
+function domain(value: string) {
+  try { return new URL(value).hostname.replace(/^www\./, ""); } catch { return ""; }
+}
+
+function stringsByKey(value: unknown, accepted: Set<string>, output: string[] = []): string[] {
+  if (Array.isArray(value)) {
+    for (const item of value) stringsByKey(item, accepted, output);
+    return output;
+  }
+  const row = record(value);
+  for (const [key, item] of Object.entries(row)) {
+    if (accepted.has(key) && typeof item === "string" && item.trim()) output.push(tidyResearchText(item));
+    if (item && typeof item === "object") stringsByKey(item, accepted, output);
+  }
+  return output;
+}
+
+function tidyResearchText(value: string) {
+  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function parsedContent(payload: unknown) {
+  const result = firstResult(payload);
+  const item = record(array(result.items)[0]);
+  const meta = record(item.meta);
+  const markdown = string(item.page_as_markdown) || string(record(item.page_content).page_as_markdown);
+  const textParts = stringsByKey(item.page_content, new Set(["text"]));
+  const text = tidyResearchText(markdown || textParts.join(" ")).slice(0, 30_000);
+  const headingStructure = markdown
+    ? markdown.split("\n").flatMap((line) => {
+      const match = /^(#{1,6})\s+(.+)$/.exec(line.trim());
+      const text = match?.[2]?.trim();
+      return match && text ? [{ level: match[1].length as 1 | 2 | 3 | 4 | 5 | 6, text }] : [];
+    })
+    : [];
+  const headings = headingStructure.length
+    ? headingStructure.map((heading) => heading.text)
+    : stringsByKey(item.page_content, new Set(["h1", "h2", "h3", "heading"]));
+  const links: Array<{ url: string; anchor: string }> = [];
+  const collectLinks = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(collectLinks);
+    const row = record(value);
+    const url = string(row.url);
+    const anchor = string(row.anchor_text);
+    if (/^https?:\/\//i.test(url)) links.push({ url, anchor: tidyResearchText(anchor) });
+    Object.values(row).forEach((item) => { if (item && typeof item === "object") collectLinks(item); });
+  };
+  collectLinks(item.page_content);
+  return {
+    title: string(meta.title) || string(item.title) || stringsByKey(item.page_content, new Set(["h_title"]))[0] || "",
+    description: string(meta.description),
+    headings: [...new Set(headings.filter(Boolean))].slice(0, 80),
+    headingStructure: headingStructure.filter((heading, index) => headingStructure.findIndex((candidate) => candidate.level === heading.level && candidate.text === heading.text) === index).slice(0, 80),
+    text,
+    wordCount: text.split(/\s+/).filter(Boolean).length,
+    links: links.filter((link, index) => links.findIndex((candidate) => candidate.url === link.url && candidate.anchor === link.anchor) === index).slice(0, 200),
+  };
+}
+
+export function parseReoptimizationResearch(input: {
+  keyword: string;
+  pageUrl: string;
+  location: string;
+  serpPayload: unknown;
+  currentPayload: unknown;
+  instantPayload: unknown;
+  backlinksPayload: unknown;
+  currentRankingsPayload?: unknown;
+  relatedKeywordsPayload?: unknown;
+  competitorPayloads: unknown[];
+  competitorBacklinkPayloads?: unknown[];
+}): ReoptimizationResearchResult {
+  const targetDomain = domain(input.pageUrl);
+  const serpResult = firstResult(input.serpPayload);
+  const serpItems = array(serpResult.items).map(record);
+  const organic = serpItems.flatMap((item) => item.type === "organic" && /^https?:\/\//i.test(string(item.url)) ? [{
+    rank: number(item.rank_group) || number(item.rank_absolute), title: string(item.title), url: string(item.url), domain: domain(string(item.url)), description: string(item.description),
+  }] : []).slice(0, 10);
+  const peopleAlsoAsk = [...new Set(serpItems.filter((item) => item.type === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"])) ))].slice(0, 12);
+  const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"])) ))].slice(0, 12);
+  const features = [...new Set(serpItems.map((item) => string(item.type)).filter((type) => type && type !== "organic"))];
+  const currentPage = parsedContent(input.currentPayload);
+  const competitorRows = organic.filter((item) => item.domain && item.domain !== targetDomain).slice(0, input.competitorPayloads.length);
+  const competitorPages = input.competitorPayloads.flatMap((payload, index) => {
+    try {
+      const content = parsedContent(payload);
+      const serp = competitorRows[index];
+      const authority = input.competitorBacklinkPayloads?.[index] ? firstResult(input.competitorBacklinkPayloads[index]) : {};
+      return serp ? [{ ...content, rank: serp.rank, title: content.title || serp.title, url: serp.url, domain: serp.domain, backlinkRank: number(authority.rank), referringDomains: number(authority.referring_domains) }] : [];
+    } catch { return []; }
+  });
+  const instant = record(array(firstResult(input.instantPayload).items)[0]);
+  const backlinks = firstResult(input.backlinksPayload);
+  const currentRankings = input.currentRankingsPayload ? parseKeywordResearch(input.currentRankingsPayload).map((row) => ({ keyword: row.keyword, intent: row.intent, volume: row.volume, difficulty: row.difficulty, position: row.position, url: row.url })) : [];
+  const related = input.relatedKeywordsPayload ? parseKeywordResearch(input.relatedKeywordsPayload).map((row) => ({ keyword: row.keyword, intent: row.intent, volume: row.volume, difficulty: row.difficulty })) : [];
+  return {
+    sourceLabel: "Live DataForSEO re-optimization evidence",
+    keyword: input.keyword,
+    pageUrl: input.pageUrl,
+    location: input.location,
+    updatedAt: new Date().toISOString(),
+    providerCost: providerCost(input.serpPayload, input.currentPayload, input.instantPayload, input.backlinksPayload, input.currentRankingsPayload, input.relatedKeywordsPayload, ...input.competitorPayloads, ...(input.competitorBacklinkPayloads ?? [])),
+    serp: { organic, peopleAlsoAsk, relatedSearches, features },
+    currentPage,
+    competitorPages,
+    queries: { currentRankings, related },
+    onPage: {
+      score: number(instant.onpage_score),
+      checks: Object.entries(record(instant.checks)).flatMap(([check, active]) => active === true ? [check] : []),
+      loadTimeMs: number(record(instant.page_timing).duration_time),
+      sizeBytes: number(instant.size),
+    },
+    backlinks: { rank: number(backlinks.rank), backlinks: number(backlinks.backlinks), referringDomains: number(backlinks.referring_domains), brokenBacklinks: number(backlinks.broken_backlinks) },
+    notices: [
+      "Rankings, volumes, backlink counts, and competitor pages are third-party DataForSEO observations.",
+      "Recommendations must preserve the current URL and material that already earns rankings or links unless consolidation is explicitly justified.",
+    ],
+  };
 }
 
 function intent(value: unknown): SearchIntent {
@@ -272,6 +420,35 @@ export class DataForSeoResearchClient {
       this.post("/v3/backlinks/backlinks/live", [{ target, include_subdomains: true, backlinks_status_type: "all", order_by: ["domain_from_rank,desc", "rank,desc"], limit: 100 }]),
     ]);
     return parseBacklinkResearch(summaryPayload, linksPayload, target);
+  }
+
+  async reoptimizationResearch(input: { keyword: string; pageUrl: string; locationName?: string }): Promise<ReoptimizationResearchResult> {
+    const keyword = input.keyword.trim().slice(0, 200);
+    const pageUrl = normalizeWebsite(input.pageUrl).url;
+    const location = input.locationName?.trim() || "United States";
+    if (keyword.length < 2) throw new Error("Choose a valid focus keyword before re-optimizing.");
+    const [serpPayload, currentPayload, instantPayload, backlinksPayload, currentRankingsPayload, relatedKeywordsPayload] = await Promise.all([
+      this.post("/v3/serp/google/organic/live/advanced", [{ keyword, location_name: location, language_code: "en", depth: 20 }]),
+      this.post("/v3/on_page/content_parsing/live", [{ url: pageUrl, markdown_view: true, enable_javascript: true }]),
+      this.post("/v3/on_page/instant_pages", [{ url: pageUrl, enable_javascript: true, enable_xhr: true }]),
+      this.post("/v3/backlinks/summary/live", [{ target: pageUrl, include_subdomains: false, backlinks_status_type: "all", internal_list_limit: 10 }]),
+      this.post("/v3/dataforseo_labs/google/ranked_keywords/live", [{ target: pageUrl, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }]),
+      this.post("/v3/dataforseo_labs/google/related_keywords/live", [{ keyword, location_name: location, language_name: "English", depth: 2, include_seed_keyword: true, filters: ["keyword_data.keyword_info.search_volume", ">", 0], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 50 }]),
+    ]);
+    const targetDomain = domain(pageUrl);
+    const organic = array(firstResult(serpPayload).items).map(record).flatMap((item) => item.type === "organic" && /^https?:\/\//i.test(string(item.url)) && domain(string(item.url)) !== targetDomain ? [string(item.url)] : []).slice(0, 3);
+    const competitorResearch = await Promise.all(organic.map(async (url) => {
+      const [content, authority] = await Promise.all([
+        this.post("/v3/on_page/content_parsing/live", [{ url, markdown_view: true, enable_javascript: true }]).catch(() => null),
+        this.post("/v3/backlinks/summary/live", [{ target: url, include_subdomains: false, backlinks_status_type: "all", internal_list_limit: 10 }]).catch(() => null),
+      ]);
+      return { content, authority };
+    }));
+    return parseReoptimizationResearch({
+      keyword, pageUrl, location, serpPayload, currentPayload, instantPayload, backlinksPayload, currentRankingsPayload, relatedKeywordsPayload,
+      competitorPayloads: competitorResearch.map((item) => item.content),
+      competitorBacklinkPayloads: competitorResearch.map((item) => item.authority),
+    });
   }
 }
 

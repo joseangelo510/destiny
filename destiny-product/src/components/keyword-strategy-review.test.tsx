@@ -81,6 +81,7 @@ describe("KeywordStrategyReview planning horizon", () => {
     expect(html).toContain("13.2");
     expect(html).toContain("/services");
     expect(html).toContain("Re-optimize");
+    expect(html).toContain("Approve + create change doc");
   });
 
   it("keeps Claude's primary and decline actions together for every verdict", () => {
@@ -172,6 +173,28 @@ describe("KeywordStrategyReview planning horizon", () => {
     expect(html).toContain("Unapprove");
     expect(html).toContain(approvedKeywords[9].keyword);
     expect(html).not.toContain(approvedKeywords[10].keyword);
+  });
+
+  it("keeps a generated change document available from the Approved tab", () => {
+    const approvedKeyword = keywords[0];
+    const html = renderToStaticMarkup(<KeywordStrategyReview
+      auditId="audit-1"
+      initialDecisions={{ [approvedKeyword.keyword]: "approved" }}
+      initialDocumentLinks={{ [approvedKeyword.keyword]: "/reoptimization/doc-1" }}
+      initialReasons={{}}
+      initialTab="approved"
+      keywords={[approvedKeyword]}
+      moreKeywordsHref="/keyword-research?from=strategy"
+      nextHref="/content?strategy=complete"
+      nextAction={{ code: "review_keywords", href: "#keyword-strategy-tabs", label: "Review keyword recommendations", description: "Choose the searches that match the business." }}
+      questId="quest-1"
+      questStatus="todo"
+    />);
+
+    expect(html).toContain("In plan · re-optimizing /services");
+    expect(html).toContain('href="/reoptimization/doc-1"');
+    expect(html).toContain("Change doc");
+    expect(html).toContain("Unapprove");
   });
 
   it("explains the exact approval gap instead of showing a silent disabled finish button", () => {
