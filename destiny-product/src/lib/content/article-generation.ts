@@ -366,7 +366,12 @@ export function articleQualityFacts(payload: GeneratedArticlePayload, keyword: s
 export function articleQualityIssuesFromPolicy(policy: Pick<DestinyLogicResult, "articleWordIssue" | "articleHeadingIssue" | "articleHeadingKeywordIssue" | "articleHeadingVarietyIssue" | "articleBrigadeIssue" | "articleBrigadeSpacingIssue" | "articleStockIssue" | "articleMetaIssue" | "articleSourceIssue">, facts: ReturnType<typeof articleQualityFacts>, format: ArticleFormat): ArticleQualityIssue[] {
   const issues: ArticleQualityIssue[] = [];
   if (policy.articleWordIssue) issues.push({ code: "word_count", message: `Draft is ${facts.wordCount.toLocaleString()} words; ${format === "seo_article" ? "SEO articles should target 2,000–3,000 words" : "the selected format is outside its useful length band"}.` });
-  if (policy.articleHeadingIssue) issues.push({ code: "heading_structure", message: "Use one H1, a useful H2 outline, at least one H3, and no skipped heading levels." });
+  if (policy.articleHeadingIssue) {
+    const message = format === "seo_article" && facts.h2Count > 9
+      ? `Consolidate the outline to 6–9 H2 sections; this draft has ${facts.h2Count}.`
+      : "Use one H1, a useful H2 outline, at least one H3, and no skipped heading levels.";
+    issues.push({ code: "heading_structure", message });
+  }
   if (policy.articleHeadingKeywordIssue) issues.push({ code: "heading_keyword", message: "The title and first H2 need the focus keyword or a close natural variant." });
   if (policy.articleHeadingVarietyIssue) issues.push({ code: "heading_variety", message: "Keep at least 40% of headings free of target-keyword language." });
   if (policy.articleBrigadeIssue) issues.push({ code: "brigade_count", message: `Use ${format === "seo_article" ? "4–9" : "1–6"} contextual transitions for this format.` });

@@ -3,6 +3,7 @@ import {
   DEFAULT_ARTICLE_PREFERENCES,
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
+  articleQualityIssuesFromPolicy,
   buildAnthropicArticleRequest,
   buildAnthropicArticleContinuationRequest,
   buildArticleGenerationPrompt,
@@ -137,6 +138,40 @@ describe("Destiny article generation policy", () => {
       "source_coverage",
       "stock_phrase",
     ]));
+  });
+
+  it("explains an over-fragmented H2 outline instead of showing a generic hierarchy warning", () => {
+    const issues = articleQualityIssuesFromPolicy({
+      articleWordIssue: false,
+      articleHeadingIssue: true,
+      articleHeadingKeywordIssue: false,
+      articleHeadingVarietyIssue: false,
+      articleBrigadeIssue: false,
+      articleBrigadeSpacingIssue: false,
+      articleStockIssue: false,
+      articleMetaIssue: false,
+      articleSourceIssue: false,
+    }, {
+      formatCode: 1,
+      wordCount: 2_400,
+      h1Count: 1,
+      h2Count: 13,
+      h3Count: 8,
+      skippedLevel: 0,
+      titleKeyword: 1,
+      firstH2Keyword: 1,
+      keywordFreePercent: 50,
+      brigadeCount: 6,
+      firstBrigade: 120,
+      minBrigadeGap: 140,
+      stockPhrase: 0,
+      metaCount: 1,
+      metaOverlength: 0,
+      sourceCount: 4,
+      citedCount: 4,
+    }, "seo_article");
+
+    expect(issues).toEqual([{ code: "heading_structure", message: "Consolidate the outline to 6–9 H2 sections; this draft has 13." }]);
   });
 
   it("renders an original, source-labeled SVG instead of reusing a third-party infographic", () => {
