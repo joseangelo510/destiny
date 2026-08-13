@@ -79,6 +79,10 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("audit_id", context.audit.id)
     : { data: [] };
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDrafts, (savedArticleDraftRows ?? []).map((row) => row.draft));
+  const { data: cmsTransferRows } = context.website
+    ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
+    : { data: [] };
+  const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
@@ -92,6 +96,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
           webflowConnected={webflow?.status === "connected"}
+          initialCmsTransfers={initialCmsTransfers}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
