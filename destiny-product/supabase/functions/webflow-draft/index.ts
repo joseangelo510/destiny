@@ -6,6 +6,8 @@ import {
   findItemIdBySlug,
   planWebflowFieldData,
   prepareDraftBody,
+  applyImageFallbackToReport,
+  stripEmbeddedGraphics,
   stripImageFieldData,
   webflowCollectionEndpoint,
   webflowCreateItemEndpoint,
@@ -111,17 +113,25 @@ export default {
 
     // Original Destiny graphics: host them so Webflow can ingest them with alt text.
     const graphicReport: FieldReportEntry[] = [];
-    const hostedGraphics: Array<{ url: string; alt: string }> = [];
+    // Positional: a null keeps the ordinal of a graphic that failed to host,
+    // so the first *original* graphic alone may claim main/thumbnail fields.
+    const hostedGraphics: Array<{ url: string; alt: string } | null> = [];
     for (const [index, graphic] of draft.graphics.entries()) {
       const path = `${integrationId}/${slug}/graphic-${index + 1}.svg`;
       const { error: uploadError } = await context.supabaseAdmin.storage.from(GRAPHICS_BUCKET)
         .upload(path, new Blob([graphic.svg], { type: "image/svg+xml" }), { contentType: "image/svg+xml", upsert: true });
       if (uploadError) {
         graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Destiny could not host this graphic — download it from the article workspace and add it in Webflow." });
+        hostedGraphics.push(null);
         continue;
       }
       const { data: publicUrl } = context.supabaseAdmin.storage.from(GRAPHICS_BUCKET).getPublicUrl(path);
-      if (publicUrl?.publicUrl) hostedGraphics.push({ url: publicUrl.publicUrl, alt: graphic.alt });
+      if (publicUrl?.publicUrl) {
+        hostedGraphics.push({ url: publicUrl.publicUrl, alt: graphic.alt });
+      } else {
+        graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Destiny could not host this graphic — download it from the article workspace and add it in Webflow." });
+        hostedGraphics.push(null);
+      }
     }
 
     const established = {
@@ -264,12 +274,14 @@ export default {
       response = await sendToWebflow(plan.fieldData);
       // Webflow can reject externally hosted images; deliver everything else
       // rather than silently failing, and say so in the report.
-      if (response.status === 400 && plan.imageFieldSlugs.length) {
-        response = await sendToWebflow(stripImageFieldData(plan.fieldData, plan.imageFieldSlugs));
+      if (response.status === 400 && (plan.imageFieldSlugs.length || plan.embeddedGraphicCount)) {
+        const fallbackFieldData = stripImageFieldData(plan.fieldData, plan.imageFieldSlugs);
+        if (plan.embeddedGraphicCount && typeof fallbackFieldData[bodyField] === "string") {
+          fallbackFieldData[bodyField] = stripEmbeddedGraphics(fallbackFieldData[bodyField] as string);
+        }
+        response = await sendToWebflow(fallbackFieldData);
         if (response.ok) {
-          fieldReport = fieldReport.map((entry) => plan.imageFieldSlugs.includes(entry.field)
-            ? { ...entry, status: "needs_review" as const, note: "Webflow rejected the hosted image — add it manually in Webflow." }
-            : entry);
+          fieldReport = applyImageFallbackToReport(fieldReport, plan.imageFieldSlugs, plan.embeddedGraphicCount);
         }
       }
     } catch (error) {

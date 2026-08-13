@@ -132,7 +132,12 @@ export type WebflowArticleContent = {
   metaDescription: string;
   wordCount: number;
   publishDateIso: string;
-  graphics: Array<{ url: string; alt: string }>;
+  /**
+   * Hosted graphics in their original order; a null keeps the ordinal of a
+   * graphic whose hosting failed, so the first *original* graphic (and only
+   * it) can claim the main/thumbnail image fields.
+   */
+  graphics: Array<{ url: string; alt: string } | null>;
 };
 
 export type WebflowFieldPlan = {
@@ -140,8 +145,57 @@ export type WebflowFieldPlan = {
   /** fieldData minus volatile values (publish date, slug) so identical content hashes identically across days. */
   stableFieldData: Record<string, unknown>;
   imageFieldSlugs: string[];
+  /** Graphics beyond the first, embedded as figures inside the rich-text body. */
+  embeddedGraphicCount: number;
   report: FieldReportEntry[];
 };
+
+function escapeHtml(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+const EMBEDDED_FIGURE_CLASS = "destiny-article-graphic";
+
+function figureHtml(graphic: { url: string; alt: string }) {
+  const alt = escapeHtml(graphic.alt);
+  return `<figure class="${EMBEDDED_FIGURE_CLASS}"><img src="${escapeHtml(graphic.url)}" alt="${alt}" loading="lazy"><figcaption>${alt}</figcaption></figure>`;
+}
+
+/**
+ * Insert hosted graphics as accessible, captioned figures at natural H2
+ * section boundaries (never before the intro). When the article has no later
+ * H2 to anchor on, the figures are appended as a clearly separated visual
+ * section at the end. Deterministic, so identical content hashes identically.
+ */
+export function embedGraphicsInBody(contentHtml: string, graphics: Array<{ url: string; alt: string }>) {
+  if (!graphics.length) return contentHtml;
+  const boundaries: number[] = [];
+  const headingPattern = /<h2[\s>]/gi;
+  let match: RegExpExecArray | null;
+  while ((match = headingPattern.exec(contentHtml))) boundaries.push(match.index);
+  // Skip the first heading so a figure never lands ahead of the introduction.
+  const anchors = boundaries.slice(1);
+  if (!anchors.length) return contentHtml + graphics.map(figureHtml).join("");
+  const insertions = new Map<number, string[]>();
+  for (const [index, graphic] of graphics.entries()) {
+    const anchor = anchors[Math.min(anchors.length - 1, Math.floor(((index + 1) * anchors.length) / (graphics.length + 1)))];
+    insertions.set(anchor, [...(insertions.get(anchor) ?? []), figureHtml(graphic)]);
+  }
+  let result = "";
+  let cursor = 0;
+  for (const anchor of anchors) {
+    const figures = insertions.get(anchor);
+    if (!figures) continue;
+    result += contentHtml.slice(cursor, anchor) + figures.join("");
+    cursor = anchor;
+  }
+  return result + contentHtml.slice(cursor);
+}
+
+/** Remove Destiny-embedded figures so an image-rejecting Webflow still gets the full article text. */
+export function stripEmbeddedGraphics(contentHtml: string) {
+  return contentHtml.replace(new RegExp(`<figure class="${EMBEDDED_FIGURE_CLASS}">.*?</figure>`, "gs"), "");
+}
 
 /**
  * Schema-aware mapping: populate every compatible field the selected
@@ -159,9 +213,12 @@ export function planWebflowFieldData(input: {
 }): WebflowFieldPlan {
   const { article } = input;
   const titleField = input.titleField || "name";
+  const mainGraphic = article.graphics[0] ?? null;
+  const extraGraphics = article.graphics.slice(1).flatMap((graphic) => graphic ? [graphic] : []);
+  const bodyHtml = embedGraphicsInBody(article.contentHtml, extraGraphics);
   const fieldData: Record<string, unknown> = {
     [titleField]: article.title.slice(0, 256),
-    [input.bodyField]: article.contentHtml,
+    [input.bodyField]: bodyHtml,
   };
   if (input.includeSlug) fieldData.slug = input.slug;
   const imageFieldSlugs: string[] = [];
@@ -211,7 +268,9 @@ export function planWebflowFieldData(input: {
       continue;
     }
     if (field.type === "Image" && /thumb|main|hero|feature|cover|image|photo/.test(text)) {
-      const graphic = article.graphics[0];
+      // Only the first original graphic may claim the main/thumbnail slot; if
+      // its hosting failed, later graphics stay in the body, never promoted.
+      const graphic = mainGraphic;
       if (graphic) {
         fieldData[field.slug] = { url: graphic.url, alt: graphic.alt };
         imageFieldSlugs.push(field.slug);
@@ -248,24 +307,37 @@ export function planWebflowFieldData(input: {
       }
       continue;
     }
+    // Category as a Reference to another collection: reuse only a referenced
+    // item ID already established in this collection (or configured on the
+    // connection) — never invent one or borrow across clients.
+    if ((field.type === "Reference" || field.type === "ItemRef") && /categor|topic|tag|type|section/.test(text)) {
+      const referenceId = resolveReferenceValue(establishedValue);
+      if (referenceId) {
+        fieldData[field.slug] = referenceId;
+        report.push({ field: field.slug, label: field.label, status: "transferred", note: "Category reused from your existing collection items." });
+      } else {
+        report.push({ field: field.slug, label: field.label, status: "needs_review", note: "Pick a category in Webflow — Destiny only reuses categories already established in this collection." });
+      }
+      continue;
+    }
     report.push({ field: field.slug, label: field.label, status: "needs_review", note: "Destiny has no matching article content for this field — review it in Webflow." });
   }
 
   if (article.metaDescription && !metaDescriptionMapped) {
     report.push({ field: "", label: "Meta description", status: "unavailable", note: "This collection has no summary/description field to receive it." });
   }
-  if (article.graphics.length && !graphicsMapped) {
+  if ((mainGraphic || extraGraphics.length) && !graphicsMapped) {
     report.push({ field: "", label: "Article graphics", status: "unavailable", note: "This collection has no image field to receive Destiny's graphics." });
   }
-  if (article.graphics.length > 1) {
-    report.push({ field: "", label: `Additional graphics (${article.graphics.length - 1})`, status: "needs_review", note: "Download the remaining Destiny graphics and place them in the article body in Webflow." });
+  if (extraGraphics.length) {
+    report.push({ field: input.bodyField, label: `Additional graphics (${extraGraphics.length})`, status: "transferred", note: "Inserted into the article body as captioned figures with alt text." });
   }
 
   const stableFieldData: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(fieldData)) {
     if (!volatileSlugs.has(key)) stableFieldData[key] = value;
   }
-  return { fieldData, stableFieldData, imageFieldSlugs, report };
+  return { fieldData, stableFieldData, imageFieldSlugs, embeddedGraphicCount: extraGraphics.length, report };
 }
 
 function resolveOptionValue(established: unknown, options: Array<{ id: string; name: string }>) {
@@ -273,6 +345,35 @@ function resolveOptionValue(established: unknown, options: Array<{ id: string; n
   if (options.some((option) => option.id === established)) return established;
   const byName = options.find((option) => option.name.toLowerCase() === established.toLowerCase());
   return byName ? byName.id : "";
+}
+
+/** A referenced item ID sampled from existing items (string) or configured as an object with an id. */
+function resolveReferenceValue(established: unknown) {
+  if (typeof established === "string" && established) return established;
+  if (established && typeof established === "object") {
+    const record = established as Record<string, unknown>;
+    for (const key of ["_id", "id", "itemId"]) {
+      if (typeof record[key] === "string" && record[key]) return record[key] as string;
+    }
+  }
+  return "";
+}
+
+/**
+ * After a successful image-stripped fallback send, the report must describe
+ * what was actually delivered: image fields and body figures downgraded to
+ * needs_review with manual instructions.
+ */
+export function applyImageFallbackToReport(report: FieldReportEntry[], imageFieldSlugs: string[], embeddedGraphicCount: number): FieldReportEntry[] {
+  return report.map((entry) => {
+    if (imageFieldSlugs.includes(entry.field) && entry.field) {
+      return { ...entry, status: "needs_review", note: "Webflow rejected the hosted image — add it manually in Webflow." };
+    }
+    if (embeddedGraphicCount && entry.label.startsWith("Additional graphics")) {
+      return { ...entry, status: "needs_review", note: "Webflow rejected the hosted images — download the remaining Destiny graphics and place them in the article body in Webflow." };
+    }
+    return entry;
+  });
 }
 
 /** Drop image fields from a payload so a Webflow rejection of an external image URL can fall back without losing the transfer. */

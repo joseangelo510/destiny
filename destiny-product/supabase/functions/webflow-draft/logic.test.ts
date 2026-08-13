@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   PENDING_LEASE_MS,
+  applyImageFallbackToReport,
   canReclaimPendingTransfer,
   classifyWebflowFailure,
+  embedGraphicsInBody,
   establishedFieldValues,
   findItemIdBySlug,
   planWebflowFieldData,
   prepareDraftBody,
   readingTimeMinutes,
+  stripEmbeddedGraphics,
   stripImageFieldData,
   webflowCollectionEndpoint,
   webflowCreateItemEndpoint,
@@ -239,6 +242,127 @@ describe("Webflow draft Edge Function logic", () => {
     expect(sanitized.wordCount).toBe(0);
     expect(sanitized.graphics).toHaveLength(1);
     expect(sanitized.graphics[0].alt).toBe("Good alt");
+  });
+
+  it("reuses an established referenced category for Reference and ItemRef fields", () => {
+    for (const type of ["Reference", "ItemRef"]) {
+      const fields = blogPostFields.map((field) => field.slug === "category" ? { slug: "category", displayName: "Category", type, isEditable: true } : field);
+      const { fieldData, report } = plan({ fields, established: { ...established, category: "cat-item-background-check" } });
+      expect(fieldData.category).toBe("cat-item-background-check");
+      expect(report.find((entry) => entry.field === "category")?.status).toBe("transferred");
+    }
+    // Established values sampled as objects still resolve to the referenced item id.
+    const refFields = blogPostFields.map((field) => field.slug === "category" ? { slug: "category", displayName: "Category", type: "Reference", isEditable: true } : field);
+    expect(plan({ fields: refFields, established: { ...established, category: { _id: "cat-item-1" } } }).fieldData.category).toBe("cat-item-1");
+  });
+
+  it("never invents a referenced category when none is established", () => {
+    const refFields = blogPostFields.map((field) => field.slug === "category" ? { slug: "category", displayName: "Category", type: "Reference", isEditable: true } : field);
+    const { fieldData, report } = plan({ fields: refFields, established: { "author-name": "Dana Reviewer" } });
+    expect(fieldData).not.toHaveProperty("category");
+    expect(report.find((entry) => entry.field === "category")?.status).toBe("needs_review");
+    expect(JSON.stringify(fieldData)).not.toMatch(/background|destiny-default/i);
+  });
+
+  const sectionedHtml = [
+    "<h2>Introduction</h2><p>Opening paragraph.</p>",
+    "<h2>How it works</h2><ol><li>First</li><li>Second</li></ol>",
+    "<h2>What to check</h2><ul><li>One</li><li>Two</li></ul><p>See <a href=\"https://example.com\">the guide</a>.</p>",
+    "<h2>Conclusion</h2><p>Closing paragraph.</p>",
+  ].join("");
+  const extraGraphics = [
+    { url: "https://cdn.example.com/graphic-2.svg", alt: "Cost comparison chart" },
+    { url: "https://cdn.example.com/graphic-3.svg", alt: "Vetting checklist" },
+  ];
+
+  it("inserts additional graphics as captioned figures at H2 boundaries, preserving structure", () => {
+    const body = embedGraphicsInBody(sectionedHtml, extraGraphics);
+    const figures = body.match(/<figure class="destiny-article-graphic">/g) ?? [];
+    expect(figures).toHaveLength(2);
+    expect(body).toContain('<img src="https://cdn.example.com/graphic-2.svg" alt="Cost comparison chart"');
+    expect(body).toContain("<figcaption>Vetting checklist</figcaption>");
+    // Figures land immediately before later H2 headings, never before the intro.
+    expect(body.indexOf("<figure")).toBeGreaterThan(body.indexOf("<h2>Introduction</h2>"));
+    expect(/<\/figure><h2>/.test(body)).toBe(true);
+    // Headings, ordered/bulleted lists, and links survive untouched.
+    for (const fragment of ["<h2>How it works</h2>", "<ol><li>First</li>", "<ul><li>One</li>", '<a href="https://example.com">the guide</a>', "<h2>Conclusion</h2>"]) {
+      expect(body).toContain(fragment);
+    }
+    expect(stripEmbeddedGraphics(body)).toBe(sectionedHtml);
+  });
+
+  it("appends a separated visual section when no suitable H2 boundaries exist", () => {
+    const flat = "<p>" + "Just paragraphs of prose. ".repeat(5) + "</p>";
+    const body = embedGraphicsInBody(flat, extraGraphics);
+    expect(body.startsWith(flat)).toBe(true);
+    expect(body.match(/<figure class="destiny-article-graphic">/g)).toHaveLength(2);
+    expect(embedGraphicsInBody(flat, [])).toBe(flat);
+  });
+
+  it("escapes alt text and captions in embedded figures", () => {
+    const body = embedGraphicsInBody(sectionedHtml, [{ url: "https://cdn.example.com/g.svg", alt: 'Costs <up> & "down"' }]);
+    expect(body).toContain('alt="Costs &lt;up&gt; &amp; &quot;down&quot;"');
+    expect(body).toContain("<figcaption>Costs &lt;up&gt; &amp; &quot;down&quot;</figcaption>");
+    expect(body).not.toContain("<up>");
+  });
+
+  it("embeds graphics beyond the first into the body and reports them as transferred", () => {
+    const richArticle = { ...article, contentHtml: sectionedHtml, graphics: [article.graphics[0], ...extraGraphics] };
+    const { fieldData, report, embeddedGraphicCount } = plan({ article: richArticle });
+    expect(embeddedGraphicCount).toBe(2);
+    expect(fieldData["main-image"]).toEqual({ url: article.graphics[0].url, alt: article.graphics[0].alt });
+    const bodyHtml = String(fieldData["post-body"]);
+    expect(bodyHtml.match(/<figure class="destiny-article-graphic">/g)).toHaveLength(2);
+    expect(bodyHtml).not.toContain(article.graphics[0].url);
+    const extras = report.find((entry) => entry.label === "Additional graphics (2)");
+    expect(extras?.status).toBe("transferred");
+    expect(extras?.note).toContain("Inserted into the article body");
+    expect(extras?.note).not.toMatch(/manual|download/i);
+  });
+
+  it("hashes embedded-graphics bodies stably across days", () => {
+    const richArticle = { ...article, contentHtml: sectionedHtml, graphics: [article.graphics[0], ...extraGraphics] };
+    const first = plan({ article: richArticle });
+    const second = plan({ article: { ...richArticle, publishDateIso: "2026-08-14T12:00:00.000Z" } });
+    expect(JSON.stringify(first.stableFieldData)).toBe(JSON.stringify(second.stableFieldData));
+  });
+
+  it("strips embedded figures for the image fallback without touching other markup", () => {
+    const richArticle = { ...article, contentHtml: sectionedHtml, graphics: [article.graphics[0], ...extraGraphics] };
+    const { fieldData, imageFieldSlugs } = plan({ article: richArticle });
+    const strippedBody = stripEmbeddedGraphics(String(fieldData["post-body"]));
+    expect(strippedBody).toBe(sectionedHtml);
+    const stripped = stripImageFieldData(fieldData, imageFieldSlugs);
+    expect(stripped).not.toHaveProperty("main-image");
+    expect(stripped["post-summary"]).toBe(article.metaDescription);
+  });
+
+  it("never promotes a later graphic to the image fields when the first fails to host", () => {
+    const richArticle = { ...article, contentHtml: sectionedHtml, graphics: [null, ...extraGraphics] };
+    const { fieldData, report, embeddedGraphicCount } = plan({ article: richArticle });
+    expect(fieldData).not.toHaveProperty("main-image");
+    expect(fieldData).not.toHaveProperty("thumbnail-image");
+    expect(report.find((entry) => entry.field === "main-image")?.status).toBe("needs_review");
+    // Both surviving graphics stay in the body, in their original order.
+    expect(embeddedGraphicCount).toBe(2);
+    const bodyHtml = String(fieldData["post-body"]);
+    expect(bodyHtml.indexOf("graphic-2.svg")).toBeGreaterThan(-1);
+    expect(bodyHtml.indexOf("graphic-2.svg")).toBeLessThan(bodyHtml.indexOf("graphic-3.svg"));
+  });
+
+  it("downgrades image fields and embedded figures truthfully after the image fallback", () => {
+    const richArticle = { ...article, contentHtml: sectionedHtml, graphics: [article.graphics[0], ...extraGraphics] };
+    const { report, imageFieldSlugs, embeddedGraphicCount } = plan({ article: richArticle });
+    const downgraded = applyImageFallbackToReport(report, imageFieldSlugs, embeddedGraphicCount);
+    for (const slug of ["main-image", "thumbnail-image", "author-avatar"]) {
+      expect(downgraded.find((entry) => entry.field === slug)?.status).toBe("needs_review");
+    }
+    const extras = downgraded.find((entry) => entry.label === "Additional graphics (2)");
+    expect(extras?.status).toBe("needs_review");
+    expect(extras?.note).toMatch(/download/i);
+    // Non-image entries keep their delivered status.
+    expect(downgraded.find((entry) => entry.field === "post-summary")?.status).toBe("transferred");
+    expect(downgraded.find((entry) => entry.field === "name")?.status).toBe("transferred");
   });
 
   it("classifies API failures and builds the review link", () => {
