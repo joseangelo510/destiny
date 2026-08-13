@@ -57,6 +57,30 @@ describe("bounded article recovery", () => {
     expect(request.messages).toEqual([{ role: "user", content: prompt }]);
   });
 
+  it("preserves the Logos 6–9 H2 policy during a finishing pass", () => {
+    const prompt = buildArticleContinuationPrompt({
+      bodyMarkdown: [
+        "# Existing guide",
+        "",
+        "## One", "Text.",
+        "## Two", "Text.",
+        "## Three", "Text.",
+        "## Four", "Text.",
+        "## Five", "Text.",
+        "## Six", "Text.",
+        "## Seven", "Text.",
+        "## Eight", "Text.",
+      ].join("\n"),
+      researchEvidence: "",
+      targetMinimumWords: 2_000,
+      targetMaximumWords: 3_000,
+    });
+
+    expect(prompt).toContain("already contains 8 H2 sections");
+    expect(prompt).toContain("Add at most 1 new H2 section");
+    expect(prompt).toContain("Use H3 subsections or paragraphs");
+  });
+
   it("removes an unfinished tail and repeated overlap before joining the continuation", () => {
     const original = "# Guide\n\n## Existing section\n\nA complete sentence. This unfinished thought";
     const continuation = "A complete sentence.\n\n## Next section\n\nThis is the finished article.";

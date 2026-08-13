@@ -50,11 +50,17 @@ export function buildArticleContinuationPrompt({
 }) {
   const existing = bodyMarkdown.trim().slice(-20_000);
   const evidence = researchEvidence.trim().slice(0, 12_000);
+  const existingH2Count = bodyMarkdown.split("\n").filter((line) => /^##\s+/.test(line.trim())).length;
+  const remainingH2Count = Math.max(0, 9 - existingH2Count);
+  const h2BudgetRule = remainingH2Count === 0
+    ? "Do not add another H2 section. Use H3 subsections or paragraphs to finish missing material."
+    : `Add at most ${remainingH2Count} new H2 section${remainingH2Count === 1 ? "" : "s"}. Use H3 subsections or paragraphs for any additional detail.`;
   return `Continue and finish the existing SEO article below. Return only the new Markdown that should be appended.
 
 RECOVERY RULES
 - Bring the combined article to ${numberLabel(targetMinimumWords)}–${numberLabel(targetMaximumWords)} total words through useful coverage, not padding.
 - Do not repeat the H1, introduction, completed sections, or existing paragraphs.
+- The existing article already contains ${numberLabel(existingH2Count)} H2 sections. The combined SEO article must stay within Destiny's Logos policy of 6–9 H2 sections. ${h2BudgetRule}
 - If the draft ends mid-sentence, begin with a complete replacement sentence or paragraph. Do not continue a broken fragment.
 - Complete the missing H2/H3 sections, practical examples, FAQ, answer-first summary, and final call to action where they are not already present.
 - Keep paragraphs to four sentences or fewer and preserve the established voice.
