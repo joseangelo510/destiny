@@ -21,6 +21,9 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.functions.invoke<{
     delivered?: boolean;
     remoteEditUrl?: string;
+    updated?: boolean;
+    reused?: boolean;
+    fieldReport?: Array<{ field: string; label: string; status: string; note: string }>;
     error?: string;
   }>("webflow-draft", { body: draft });
 
