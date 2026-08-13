@@ -47,6 +47,8 @@ function issueCategory(code: string) {
 
 export function ArticleReviewWorkspace({
   auditId,
+  websiteId,
+  wordpressConnected,
   initialDrafts,
   generationContext,
   generationAvailable,
@@ -55,6 +57,8 @@ export function ArticleReviewWorkspace({
   questStatus,
 }: {
   auditId: string;
+  websiteId: string;
+  wordpressConnected: boolean;
   initialDrafts: ArticleDraft[];
   generationContext: ArticleGenerationContext;
   generationAvailable: boolean;
@@ -72,6 +76,8 @@ export function ArticleReviewWorkspace({
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [error, setError] = useState("");
+  const [delivering, setDelivering] = useState(false);
+  const [wordpressDrafts, setWordpressDrafts] = useState<Record<string, string>>({});
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
@@ -235,6 +241,35 @@ export function ArticleReviewWorkspace({
     URL.revokeObjectURL(url);
   };
 
+  const sendToWordPress = async () => {
+    if (!draft?.approved || delivering || !wordpressConnected) return;
+    setDelivering(true);
+    setError("");
+    try {
+      const response = await fetch("/api/integrations/cms/wordpress/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          websiteId,
+          auditId,
+          keyword: draft.keyword,
+          title: draft.title,
+          body: draft.body,
+          metaDescription: draft.metaDescription,
+          approved: draft.approved,
+          generationStatus: draft.generationStatus,
+        }),
+      });
+      const payload = await response.json() as { error?: string; remoteEditUrl?: string };
+      if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || "Destiny could not create the WordPress draft.");
+      setWordpressDrafts((current) => ({ ...current, [draft.keyword]: payload.remoteEditUrl! }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not create the WordPress draft.");
+    } finally {
+      setDelivering(false);
+    }
+  };
+
   const finish = async () => {
     if (!questId || approvedCount !== drafts.length) return;
     setSaving(true);
@@ -285,7 +320,14 @@ export function ArticleReviewWorkspace({
       {draft.sources.length > 0 && <section className="article-evidence-panel"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel="noreferrer" target="_blank">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>}
       {draft.infographics.length > 0 && <section className="article-infographic-list"><h3>Original graphics</h3><p>Download and place these in the suggested sections of the article.</p>{draft.infographics.map((graphic, index) => <article className="article-infographic-card" key={graphic.id}><div className="article-infographic-preview" dangerouslySetInnerHTML={{ __html: renderInfographicSvg(graphic) }} /><div><strong>{graphic.title}</strong><p>{graphic.insight}</p><small>{graphic.sourceLabel}</small><button className="secondary-button" onClick={() => downloadInfographic(index)} type="button">Download SVG</button></div></article>)}</section>}
 
-        <div className="article-editor-actions"><button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button><button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button></div>
+      <div className="article-editor-actions">
+        <button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button>
+        <button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button>
+        {draft.approved && wordpressConnected && !wordpressDrafts[draft.keyword] && <button className="primary-button" disabled={delivering} onClick={() => void sendToWordPress()} type="button">{delivering ? "Creating WordPress draft…" : "Send to WordPress"}</button>}
+        {wordpressDrafts[draft.keyword] && <a className="primary-button" href={wordpressDrafts[draft.keyword]} rel="noreferrer" target="_blank">Review in WordPress</a>}
+      </div>
+      {draft.approved && !wordpressConnected && <div className="configuration-note"><strong>Connect WordPress to send this draft</strong><p>Connect it once, then return here and send approved articles directly to the WordPress editor.</p><Link className="secondary-button" href="/integrations#publishing-destinations">Connect WordPress</Link></div>}
+      {wordpressDrafts[draft.keyword] && <div className="integration-banner success" role="status"><strong>Draft created in WordPress</strong><p>Nothing is live. Review the formatting in WordPress, then publish it when you are ready.</p></div>}
       </>}
     </div>
 
