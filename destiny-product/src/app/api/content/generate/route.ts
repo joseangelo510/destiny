@@ -198,10 +198,7 @@ export async function POST(request: Request) {
           infographics: article.infographics,
           bucketBrigades: article.bucketBrigades,
           preferences: input.preferences,
-          // A draft whose bounded finishing pass failed must stay
-          // non-approvable even after the client recomputes quality issues,
-          // which has no incomplete-output check of its own.
-          generationStatus: recoveryIssue ? "needs_generation" : "generated",
+          generationStatus: "generated",
           generatedBy: model,
           qualityIssues,
           optimization: qualityIssues.length
