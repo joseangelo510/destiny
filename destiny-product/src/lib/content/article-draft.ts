@@ -103,7 +103,6 @@ export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const difference = (input.differentiation.trim() || "practical experience and a clear point of view").replace(/[.!?]+$/, "");
   const metaDescriptions = [
     fitMetaDescription(`A practical ${keyword} guide for ${audience}, with key questions, tradeoffs, useful proof, and a clear next step.`),
-    fitMetaDescription(`Learn how to approach ${keyword} with credible evidence, a worked example, and practical advice for ${audience}.`),
   ];
   const body = `# ${titleKeyword}: A Practical Guide
 

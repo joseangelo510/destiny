@@ -43,10 +43,27 @@ export default {
 
     const [{ data: website }, { data: integration }] = await Promise.all([
       context.supabase.from("websites").select("id,normalized_domain").eq("id", body.websiteId).maybeSingle(),
-      context.supabase.from("integrations").select("id,provider,status,scopes").eq("website_id", body.websiteId).eq("provider", body.provider).maybeSingle(),
+      context.supabase.from("integrations").select("id,provider,status,scopes,updated_at").eq("website_id", body.websiteId).eq("provider", body.provider).maybeSingle(),
     ]);
     if (!website) return json({ error: "You do not have access to that website." }, 403);
-    if (!integration || integration.status !== "connected") return json({ error: "Connect this Google product before syncing it." }, 409);
+    if (!integration) return json({ error: "Connect this Google product before syncing it." }, 409);
+    if (integration.status === "syncing") {
+      const startedAt = new Date(integration.updated_at).getTime();
+      if (Number.isFinite(startedAt) && Date.now() - startedAt < 10 * 60 * 1000) {
+        return json({ error: "This connection is already syncing. Wait for it to finish before trying again." }, 409);
+      }
+      await context.supabaseAdmin.from("integrations").update({ status: "connected" }).eq("id", integration.id).eq("status", "syncing");
+    } else if (integration.status !== "connected") {
+      return json({ error: "Reconnect this Google product before syncing it." }, 409);
+    }
+
+    const { data: claimed } = await context.supabaseAdmin.from("integrations")
+      .update({ status: "syncing", updated_at: new Date().toISOString() })
+      .eq("id", integration.id)
+      .eq("status", "connected")
+      .select("id")
+      .maybeSingle();
+    if (!claimed) return json({ error: "This connection is already syncing. Wait for it to finish before trying again." }, 409);
 
     try {
       const { data: tokenData, error: tokenError } = await context.supabaseAdmin.rpc("read_google_oauth_credentials", {
@@ -55,6 +72,13 @@ export default {
       });
       if (tokenError || !tokenData || typeof tokenData !== "object" || Array.isArray(tokenData)) throw new Error("Google credentials were not found. Reconnect this account.");
       const { accessToken, refreshedToken } = await freshAccessToken(tokenData as Record<string, unknown>);
+      const result = integration.provider === "google_search_console"
+        ? await syncSearchConsole(accessToken, website.normalized_domain)
+        : integration.provider === "google_analytics"
+        ? await syncGoogleAnalytics(accessToken)
+        : integration.provider === "google_business_profile"
+        ? await syncBusinessProfile(accessToken, website.normalized_domain)
+        : await syncYouTube(accessToken);
       if (refreshedToken) {
         const { error: refreshStoreError } = await context.supabaseAdmin.rpc("store_google_oauth_connection", {
           p_user_id: userId,
@@ -65,14 +89,6 @@ export default {
         });
         if (refreshStoreError) throw new Error("Destiny could not rotate the Google credential.");
       }
-
-      const result = integration.provider === "google_search_console"
-        ? await syncSearchConsole(accessToken, website.normalized_domain)
-        : integration.provider === "google_analytics"
-        ? await syncGoogleAnalytics(accessToken)
-        : integration.provider === "google_business_profile"
-        ? await syncBusinessProfile(accessToken, website.normalized_domain)
-        : await syncYouTube(accessToken);
       const syncedAt = new Date().toISOString();
       const { error: updateError } = await context.supabaseAdmin.from("integrations").update({
         external_account_id: result.externalAccountId,
@@ -85,6 +101,8 @@ export default {
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Destiny could not sync this Google connection.";
       console.error("Google sync failed", integration.provider, message);
+      const reconnectRequired = /authorization|credentials|expired|reconnect|revoked/i.test(message);
+      await context.supabaseAdmin.from("integrations").update({ status: reconnectRequired ? "reconnect_required" : "connected" }).eq("id", integration.id);
       return json({ error: message }, 502);
     }
   }),

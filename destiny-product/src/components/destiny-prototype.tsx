@@ -146,6 +146,8 @@ const seededLogic: DestinyLogicResult = {
   articleStockIssue: false,
   articleMetaIssue: true,
   articleSourceIssue: true,
+  keywordWorkspaceTab: "review",
+  keywordNextStep: "review_keywords",
 };
 
 const seededAudit: SeoAuditResult = {

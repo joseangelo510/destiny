@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import type { GamePlan } from "../lib/product/game-plan";
 import { PrintGamePlanButton } from "./print-game-plan-button";
 

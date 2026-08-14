@@ -93,14 +93,16 @@ describe("WeeklyTaskList", () => {
         ...baseTask,
         id: "review-task",
         title: "Ask recent customers for a Google review",
-        category: "reviews",
+        category: null,
         task_type: "primary_quest",
         action_path: "/audits/audit-1#recommended-fix",
       }]}
     />);
 
     expect(html).toContain('href="/reviews"');
-    expect(html).toContain("Open guided step");
+    expect(html).toContain("Get reviews");
+    expect(html).not.toContain("Google review");
+    expect(html).toContain("Open reviews");
     expect(html).not.toContain('href="/audits/audit-1#recommended-fix"');
   });
 
@@ -130,5 +132,7 @@ describe("WeeklyTaskList", () => {
       "/reviews",
       "/audits/audit-1#technical-evidence",
     ]) expect(html).toContain(`href="${href}"`);
+    expect(html).toContain("Get reviews");
+    expect(html).not.toContain("Google reviews");
   });
 });

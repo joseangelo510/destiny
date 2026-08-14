@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildBuyerSeedKeywords, buildContextSeedKeywords, dataForSeoPost, parseHistoricalRankOverview, runDataForSeoAudit } from "./seo";
+import { auditSearchLocation, buildBuyerSeedKeywords, buildContextSeedKeywords, dataForSeoPost, parseHistoricalRankOverview, renderedPageLinks, runDataForSeoAudit } from "./seo";
 
 function payload(result: unknown) {
   return { status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] };
@@ -67,6 +67,19 @@ describe("live audit orchestration", () => {
       "college admissions counseling",
       "college admissions counselor",
     ]);
+  });
+
+  it("uses country-code domains instead of the US onboarding default", () => {
+    expect(auditSearchLocation("certify.hardinai.co.uk", "United States")).toBe("United Kingdom");
+    expect(auditSearchLocation("example.com", "United States")).toBe("United States");
+    expect(auditSearchLocation("example.co.uk", "Canada")).toBe("Canada");
+  });
+
+  it("reads browser-rendered internal links from DataForSEO", () => {
+    expect(renderedPageLinks({ custom_js_response: JSON.stringify([
+      "https://example.com/article50",
+      "mailto:team@example.com",
+    ]) })).toEqual(["https://example.com/article50"]);
   });
 
   it("keeps college-admissions context in every buyer seed and drops ambiguous application guidance", () => {
@@ -148,12 +161,12 @@ describe("live audit orchestration", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const progress: number[] = [];
-    const result = await runDataForSeoAudit("https://example.com", "United States", "login", "password", {
+    const result = await runDataForSeoAudit("https://example.com/start", "United States", "login", "password", {
       productsServices: "College admissions counseling and application coaching",
       idealCustomer: "Families with high school students",
     }, [], async (value) => { progress.push(value); });
 
-    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product"]);
+    expect(result.pages?.map((page) => page.role)).toEqual(["homepage", "product", "other"]);
     expect(result.siteVocabulary?.some((term) => term.normalized === "college admission")).toBe(true);
     expect(result.keywords.find((keyword) => keyword.keyword === "college admissions counseling")).toMatchObject({ competitorRankers: 2, providerIntent: "commercial", searchIntent: "consideration" });
     expect(result.keywords.find((keyword) => keyword.keyword === "college admissions consultant pricing")?.priorityScore).toBeGreaterThan(
@@ -178,8 +191,20 @@ describe("live audit orchestration", () => {
     expect(gapRequests.every(([, init]) => !JSON.stringify(JSON.parse(String(init?.body || "[]"))[0].filters).includes("keyword_data.keyword\""))).toBe(true);
     const rankedRequest = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/ranked_keywords/live"));
     const siteIdeasRequest = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/keywords_for_site/live"));
+    const instantRequest = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/on_page/instant_pages"));
+    const contentRequests = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/on_page/content_parsing/live"));
     expect(JSON.parse(String(rankedRequest?.[1]?.body || "[]"))[0].limit).toBeGreaterThanOrEqual(100);
     expect(JSON.parse(String(siteIdeasRequest?.[1]?.body || "[]"))[0].limit).toBeGreaterThanOrEqual(100);
+    expect(JSON.parse(String(instantRequest?.[1]?.body || "[]"))[0]).toMatchObject({
+      url: "https://example.com/",
+      enable_javascript: true,
+      enable_xhr: true,
+      custom_js: expect.stringContaining("/sitemap.xml"),
+    });
+    expect(contentRequests.map(([, init]) => JSON.parse(String(init?.body || "[]"))[0].url)).toEqual(expect.arrayContaining([
+      "https://example.com/",
+      "https://example.com/start",
+    ]));
     expect(progress).toEqual([30, 45, 65, 80, 90]);
     const calledUrls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(calledUrls.indexOf(calledUrls.find((url) => url.endsWith("/llm_mentions/target_metrics/live")) ?? "missing"))

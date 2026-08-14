@@ -162,4 +162,14 @@ describe("Destiny SEO coach experience", () => {
     expect((await buildCoachTaskSet(tasks)).currentTask?.id).toBe("keywords");
     expect((await buildCoachTaskSet(tasks.map((task) => ({ ...task, status: "complete" })))).currentTask).toBeNull();
   });
+
+  it("keeps future waiting and blocked work out of the one-task focus while preserving it for follow-up", async () => {
+    const coach = await buildCoachTaskSet([
+      { id: "waiting", task_type: "keyword_review", status: "todo", verification_status: "unverified", guidance_state: "waiting", follow_up_at: "2999-01-01T00:00:00.000Z", priority: 1 },
+      { id: "blocked", task_type: "content_review", status: "todo", verification_status: "unverified", guidance_state: "blocked", priority: 2 },
+      { id: "current", task_type: "primary_quest", status: "todo", verification_status: "unverified", guidance_state: "active", priority: 1 },
+    ]);
+    expect(coach.currentTask?.id).toBe("current");
+    expect(coach.pausedTasks.map((task) => task.id)).toEqual(["waiting", "blocked"]);
+  });
 });

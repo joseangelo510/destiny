@@ -202,7 +202,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "" }: 
     }
   }
 
-  return <div className="research-workspace">
+  return <div className="research-workspace" id="keyword-research-workspace">
     <section className="research-search-panel">
       <div>
         <span className="research-kicker">Destiny Research Lab</span>

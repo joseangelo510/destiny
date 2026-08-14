@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "../lib/product/coach-experience";
 import { siteScopedHref } from "../lib/workspace-selection";
 import { WorkspaceNotifications } from "./workspace-notifications";
+import { WorkspaceWebsiteProvider } from "./workspace-link";
 import styles from "./workspace-shell.module.css";
 
 export type WorkspaceSite = { id: string; business_name: string | null; normalized_domain: string };
@@ -29,9 +30,9 @@ function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId:
 export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
   const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
   const href = (path: string) => siteScopedHref(path, activeWebsiteId);
-  return <main className="app-shell" data-design={design}>
+  return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell" data-design={design}>
     <aside className="sidebar">
-      <Link aria-label="Destiny homepage" className="brand sidebar-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
+      <Link aria-label="Destiny workspace home" className="brand sidebar-brand" href={href("/app")}><span className="brand-mark">D</span><span>Destiny</span></Link>
       <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />
       <nav aria-label="Destiny workspace"><span className="nav-section-label">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.label}</Link>)}</nav>
       <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
@@ -41,7 +42,7 @@ export function WorkspaceShellView({ active, eyebrow, title, description, design
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </div>
     </aside>
-    <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications /></header>{children}</section>
+    <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications key={activeWebsiteId ?? "none"} websiteId={activeWebsiteId} /></header>{children}</section>
     <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">{PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</nav>
-  </main>;
+  </main></WorkspaceWebsiteProvider>;
 }

@@ -58,6 +58,8 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
     return { tracked: keywords.length, measured: measured.length, top3: measured.filter((row) => row.policyView?.bucket === 1).length, top10: measured.filter((row) => row.policyView && row.policyView.bucket > 0 && row.policyView.bucket < 3).length, averagePosition: ranked.length ? Math.round(ranked.reduce((sum, row) => sum + (row.currentPosition ?? 0), 0) / ranked.length) : null };
   }, [keywords]);
   const visible = useMemo(() => activeList === "all" ? keywords : activeList === "general" ? keywords.filter((item) => !item.listId) : keywords.filter((item) => item.listId === activeList), [activeList, keywords]);
+  const planKeywordCount = keywords.filter((item) => item.source === "strategy").length;
+  const watchlistCount = keywords.length - planKeywordCount;
 
   async function addKeyword(event: FormEvent) {
     event.preventDefault();
@@ -92,7 +94,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
     else setKeywords((current) => current.map((item) => item.id === id ? { ...item, listId } : item));
   }
 
-  return <div className="rank-tracker-workspace">
+  return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
     <section className="rank-tracker-intro">
       <div><span className="research-kicker">Weekly Google rank tracking</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context every week so movement is comparable—not guessed.</p></div>
       <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>
@@ -103,6 +105,12 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
       <article><span>Top 3</span><strong>{summary.top3}</strong><small>Confirmed positions</small></article>
       <article><span>Top 10</span><strong>{summary.top10}</strong><small>Confirmed positions</small></article>
       <article><span>Average position</span><strong>{summary.averagePosition ?? "—"}</strong><small>Ranked keywords only</small></article>
+    </section>
+
+    <section aria-label="Keyword tracking sources" className="rank-source-summary">
+      <div><strong>{planKeywordCount}</strong><span>Plan keywords</span><small>Approved in Keyword strategy</small></div>
+      <div><strong>{watchlistCount}</strong><span>Watchlist</span><small>Added from research or manually</small></div>
+      <p>Plan keywords measure the strategy you approved. Your watchlist lets you monitor extra searches without changing that plan.</p>
     </section>
 
     <section className="rank-tracker-layout">

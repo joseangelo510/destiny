@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { guidedTaskPath, taskRoadmapTarget } from "../lib/product/coach-experience";
 
 export type WeeklyFocusTask = {

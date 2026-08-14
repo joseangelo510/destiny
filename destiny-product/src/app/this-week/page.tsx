@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { CelebrationControls } from "@/components/celebration-controls";
+import { PausedWorkList } from "@/components/paused-work-list";
 import { DiscoveryMomentCard, FounderWhyVault, WitnessLog } from "@/components/founder-journey";
 import { WeeklyLoop } from "@/components/weekly-loop";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
@@ -44,6 +45,7 @@ export default async function ThisWeekPage() {
   return <WorkspaceShell active="/this-week" eyebrow={`${context.website.normalized_domain} · Week 1`} title="This week" description="Complete one useful task to maintain your weekly streak. Finish the full plan to earn a Perfect Week.">
     <DiscoveryMomentCard moment={discoveryMoment} />
     <WeeklyLoop auditId={context.audit.id} currentStreak={weekly.currentStreak} currentTaskId={currentTask?.id ?? null} groups={groups} remainingTasks={remainingTasks} />
+    <PausedWorkList tasks={coach.pausedTasks} />
     <WitnessLog entries={witnessEntries} />
     <FounderWhyVault initialWhy={context.profile?.founder_why ?? ""} />
     <details className="weekly-momentum-drawer">

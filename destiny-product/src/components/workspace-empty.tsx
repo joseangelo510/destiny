@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 
 export function WorkspaceEmpty({ title, description }: { title: string; description: string }) {
   return (

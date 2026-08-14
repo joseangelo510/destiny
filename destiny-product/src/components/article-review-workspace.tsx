@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  buildWordDocument,
   currentArticleQualityIssues,
   fitMetaDescription,
   normalizeArticleBody,
@@ -110,6 +109,7 @@ export function ArticleReviewWorkspace({
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [error, setError] = useState("");
   const [delivering, setDelivering] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [wordpressDrafts, setWordpressDrafts] = useState<Record<string, string>>({});
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
@@ -281,15 +281,32 @@ export function ArticleReviewWorkspace({
     updateDraft((current) => ({ ...current, approved: !current.approved }));
   };
 
-  const downloadWordDocument = () => {
-    if (!draft) return;
-    const blob = new Blob([buildWordDocument(draft)], { type: "application/msword;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.doc`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const downloadWordDocument = async () => {
+    if (!draft || exporting) return;
+    setExporting(true);
+    setError("");
+    try {
+      const response = await fetch("/api/content/word", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId, draft }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(payload.error || "Destiny could not create the Word document.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not create the Word document.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const downloadInfographic = (index: number) => {
@@ -385,7 +402,7 @@ export function ArticleReviewWorkspace({
 
         <div className="article-editor-actions">
           <button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button>
-          <button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button>
+          <button className="secondary-button" disabled={exporting} onClick={() => void downloadWordDocument()} type="button">{exporting ? "Creating Word document…" : "Download editable Word document"}</button>
           {draft.approved && wordpressConnected && !wordpressDrafts[draft.keyword] && <button className="primary-button" disabled={delivering} onClick={() => void sendToWordPress()} type="button">{delivering ? "Creating WordPress draft…" : "Send to WordPress"}</button>}
           {wordpressDrafts[draft.keyword] && <a className="primary-button" href={wordpressDrafts[draft.keyword]} rel="noreferrer" target="_blank">Review in WordPress</a>}
         </div>

@@ -10,7 +10,7 @@ describe("RoadmapExperience hierarchy", () => {
       { id: "keywords", title: "Approve priority keywords", description: "Choose the strongest opportunities.", action_path: "/keywords", task_type: "keyword_review", status: "complete", verification_status: "unverified", week_number: 1, priority: 1 },
       { id: "content", title: "Publish your first guide", description: "Create the next useful page.", action_path: "/content", task_type: "content_review", status: "in_progress", verification_status: "unverified", week_number: 1, priority: 2 },
       { id: "technical", title: "Fix the first technical issue", description: "Complete the guided website fix.", action_path: "/audits/audit-1", task_type: "technical_review", status: "todo", verification_status: "unverified", week_number: 2, priority: 3 },
-      { id: "reviews", title: "Ask three customers for a Google review", description: "Build visible proof.", category: "reviews", action_path: "/results", task_type: "primary_quest", status: "todo", verification_status: "unverified", week_number: 3, priority: 4 },
+      { id: "reviews", title: "Ask three customers for a Google review", description: "Build visible proof.", category: null, action_path: "/results", task_type: "primary_quest", status: "todo", verification_status: "unverified", week_number: 3, priority: 4 },
       { id: "reddit", title: "Answer a relevant Reddit thread", description: "Help someone with a useful answer.", action_path: "/distribution", task_type: "community_distribution", status: "todo", verification_status: "unverified", week_number: 5, priority: 5 },
     ], searchConsole: null, analytics: null });
     const weekly = await buildWeeklyProgressSummary([]);
@@ -34,6 +34,8 @@ describe("RoadmapExperience hierarchy", () => {
     expect(html).toContain('data-roadmap-action="content" href="/content">Do this step</a>');
     expect(html).toContain('data-roadmap-action="technical" href="/audits/audit-1">Open step</a>');
     expect(html).toContain('data-roadmap-action="reviews" href="/reviews">Open step</a>');
+    expect(html).toContain("Get reviews");
+    expect(html).not.toContain("Google review");
     expect(html).toContain('data-roadmap-signal-action="pages-indexed" href="/integrations">Connect Search Console</a>');
     expect(html).not.toContain('data-roadmap-action="reddit"');
     expect(html).not.toContain('data-roadmap-signal-action="first-impressions"');

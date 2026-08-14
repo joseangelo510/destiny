@@ -37,7 +37,7 @@ describe("truthful SEO adventure roadmap", () => {
     expect(withoutEvidence.phases.map((phase) => phase.tasks.map((task) => task.label))).toEqual([
       ["Approve priority keywords", "Publish your first guide"],
       ["Answer a relevant Reddit question"],
-      ["Request three customer reviews"],
+      ["Get reviews"],
     ]);
   });
 

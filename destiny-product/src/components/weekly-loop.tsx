@@ -17,6 +17,10 @@ type WeeklyLoopTask = {
   verification_status: string;
   verification_method: string | null;
   verified_at: string | null;
+  guidance_state?: string | null;
+  follow_up_at?: string | null;
+  blocker_reason?: string | null;
+  blocker_owner?: string | null;
 };
 
 export type WeeklyLoopGroup = {

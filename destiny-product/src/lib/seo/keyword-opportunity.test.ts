@@ -504,6 +504,67 @@ describe("keyword opportunity ranking", () => {
     expect(ranked[0]).toMatchObject({ keyword: "admissions counseling", relevanceTier: "core", priorityTier: 1 });
   });
 
+  it("rejects cross-industry price phrases from a generic ClearCheck differentiator", () => {
+    const clearCheckBrief = {
+      source: "deterministic" as const,
+      model: null,
+      businessSummary: "ClearCheck provides fast online background checks.",
+      offerVsEnablement: {
+        whatCompanySells: ["online and fast background checks", "fast background checks"],
+        whatProductEnables: ["provide fast background checks at low price"],
+        notTheOffer: [],
+      },
+      audiences: ["employers", "small business", "human resources managers", "tenants"],
+      problems: ["provide fast background checks at low price"],
+      differentiators: ["affordable price"],
+      themes: [
+        { id: "products-and-services", label: "Products and services", funnelRole: "conversion" as const, priority: "primary" as const, seedKeywords: ["online and fast background checks", "fast background checks"], requiredTerms: ["background checks", "fast background checks"], negativeTerms: [], evidence: [{ field: "productsServices" as const, quote: "online and fast background checks" }] },
+        { id: "problem-and-demand", label: "Problem and demand", funnelRole: "awareness" as const, priority: "primary" as const, seedKeywords: ["provide fast background checks low price"], requiredTerms: ["provide fast background checks low price"], negativeTerms: [], evidence: [{ field: "problemSolved" as const, quote: "provide fast background checks at low price" }] },
+        { id: "differentiated-capabilities", label: "Differentiated capabilities", funnelRole: "technical_authority" as const, priority: "primary" as const, seedKeywords: ["affordable price"], requiredTerms: ["affordable price"], negativeTerms: [], evidence: [{ field: "differentiation" as const, quote: "affordable price" }] },
+      ],
+    };
+    const invalidKeywords = [
+      "affordable price",
+      "best laptop at affordable price",
+      "best mattress affordable price",
+      "affordable braces price",
+      "how to get wegovy at an affordable price",
+      "affordable oil price",
+      "affordable dental price list",
+      "affordable phone price",
+      "smartphone affordable price",
+      "affordable tesla price",
+      "tablet affordable price",
+    ];
+    const ranked = rankKeywordOpportunities([
+      ...invalidKeywords.map((keyword, index) => ({
+        keyword,
+        intent: "transactional",
+        searchVolume: 10 + index * 10,
+        difficulty: 10,
+        cpc: 5,
+        opportunity: "site_idea",
+      })),
+      { keyword: "employee background check service", intent: "commercial", searchVolume: 2_400, difficulty: 67, cpc: 128, opportunity: "site_idea" },
+      { keyword: "how much does a background check cost", intent: "transactional", searchVolume: 170, difficulty: 9, cpc: 15, opportunity: "site_idea" },
+      { keyword: "criminal background check cost", intent: "transactional", searchVolume: 90, difficulty: 14, cpc: 7, opportunity: "site_idea" },
+    ], {
+      productsServices: "online and fast background checks",
+      problemSolved: "provide fast background checks at low price",
+      idealCustomer: "employers, small business, human resources managers, and tenants",
+      differentiation: "affordable price",
+      market: "United States",
+    }, 50, clearCheckBrief);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "employee background check service",
+      "how much does a background check cost",
+      "criminal background check cost",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining(invalidKeywords));
+    expect(ranked.every((item) => item.relevanceTier === "core")).toBe(true);
+  });
+
   it("can retain a broad three-month approval pool without padding it with noise", () => {
     const candidates = Array.from({ length: 60 }, (_, index) => ({
       keyword: index % 2 ? `college admissions counseling topic${index}` : `college application coaching guide${index}`,
@@ -546,6 +607,8 @@ describe("keyword opportunity ranking", () => {
       "build a house software",
       "cloud based HR software",
     ]));
+    expect(ranked.find((item) => item.keyword === "SAT solver hardware verification")?.relevanceTier).toBe("adjacent");
+    expect(ranked.find((item) => item.keyword === "System Verilog Assertions")?.relevanceTier).toBe("adjacent");
     expect(new Set(ranked.map((item) => item.themeId)).size).toBeGreaterThanOrEqual(4);
   });
 
@@ -594,5 +657,108 @@ describe("keyword opportunity ranking", () => {
     }));
 
     expect(selectDiversifiedKeywordOpportunities(ranked, 35)).toHaveLength(35);
+  });
+
+  it("fills a required 25-keyword pool with measured variants after preferred deduplication", () => {
+    const suffixes = [
+      "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india", "juliet",
+      "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo", "sierra", "tango",
+      "uniform", "victor", "whiskey", "xray", "yankee",
+    ];
+    const ranked = suffixes.map((suffix, index) => ({
+      keyword: `ai image content compliance disclosure label verification certificate detector ${suffix}`,
+      searchVolume: 100 - index,
+      priorityTier: 4 as const,
+      priorityScore: 60 - index,
+      businessFit: 0.7,
+      revenueFit: 0.2,
+      relevanceTier: "adjacent" as const,
+      providerIntent: "informational" as const,
+      searchIntent: "awareness" as const,
+      priorityReason: "Measured supporting opportunity",
+      themeId: "ai-compliance",
+      themeLabel: "AI compliance",
+      themeRole: "awareness" as const,
+    }));
+
+    expect(selectDiversifiedKeywordOpportunities(ranked, 25)).toHaveLength(25);
+  });
+
+  it("keeps measured AI compliance vocabulary even when provider wording differs from the generated seeds", () => {
+    const brief = {
+      source: "claude-opus-4-8" as const,
+      model: "claude-opus-4-8",
+      businessSummary: "AI content labeling and compliance for publishers.",
+      offerVsEnablement: {
+        whatCompanySells: ["AI content labeling compliance", "AI disclosure and certification"],
+        whatProductEnables: ["EU AI Act compliance", "verifiable AI content provenance"],
+        notTheOffer: ["AI image generator", "steganography for copyright piracy"],
+      },
+      audiences: ["publishers using AI images and video"],
+      problems: ["AI transparency law compliance"],
+      differentiators: ["cryptographic certification and verification"],
+      themes: [{
+        id: "ai-labeling",
+        label: "AI content labeling compliance",
+        funnelRole: "conversion" as const,
+        priority: "primary" as const,
+        seedKeywords: ["ai image labeling compliance", "ai content disclosure service", "ai transparency compliance"],
+        requiredTerms: ["ai"],
+        negativeTerms: ["image generator"],
+        evidence: [{ field: "productsServices" as const, quote: "labeling AI created image and video" }],
+      }],
+    };
+    const ranked = rankKeywordOpportunities([
+      { keyword: "ai watermarking", intent: "commercial", searchVolume: 320, opportunity: "site_idea" },
+      { keyword: "artificial intelligence watermarking", intent: "commercial", searchVolume: 210, opportunity: "site_idea" },
+      { keyword: "ai content authenticity", intent: "commercial", searchVolume: 170, opportunity: "site_idea" },
+      { keyword: "c2pa metadata", intent: "informational", searchVolume: 140, opportunity: "site_idea" },
+      { keyword: "content credentials", intent: "commercial", searchVolume: 110, opportunity: "site_idea" },
+      { keyword: "digital watermarking", intent: "informational", searchVolume: 90, opportunity: "competitor_gap" },
+      { keyword: "what is a digital watermark", intent: "informational", searchVolume: 480, opportunity: "competitor_gap" },
+      { keyword: "ai generated images", intent: "informational", searchVolume: 14_800, opportunity: "site_idea" },
+      { keyword: "ai detection", intent: "informational", searchVolume: 12_100, opportunity: "site_idea" },
+      { keyword: "ai image detector", intent: "informational", searchVolume: 9_900, opportunity: "site_idea" },
+      { keyword: "ai image checker", intent: "informational", searchVolume: 4_400, opportunity: "site_idea" },
+      { keyword: "ai image generator", intent: "commercial", searchVolume: 12_000, opportunity: "site_idea" },
+      { keyword: "meta ai", intent: "informational", searchVolume: 49_500, opportunity: "site_idea" },
+      { keyword: "what is ai", intent: "informational", searchVolume: 33_100, opportunity: "site_idea" },
+      { keyword: "ai website builder", intent: "commercial", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "legal ai", intent: "commercial", searchVolume: 3_600, opportunity: "site_idea" },
+      { keyword: "branding and content marketing", intent: "commercial", searchVolume: 70, opportunity: "competitor_gap" },
+      { keyword: "how does ai work", intent: "informational", searchVolume: 4_400, opportunity: "site_idea" },
+      { keyword: "who created ai", intent: "informational", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "scale ai", intent: "informational", searchVolume: 6_600, opportunity: "site_idea" },
+      { keyword: "acting ai", intent: "informational", searchVolume: 2_900, opportunity: "site_idea" },
+    ], {
+      productsServices: "AI content labeling, watermarking, disclosure, certification, C2PA metadata, and content credentials",
+      problemSolved: "AI transparency compliance and content authenticity",
+      locationEvidence: "Cryptographic verification, provenance, digital watermarking, C2PA metadata, AI detection and checks, generated images, Google and Meta ad monitoring for websites",
+    }, 35, brief);
+
+    expect(ranked.map((item) => item.keyword)).toEqual(expect.arrayContaining([
+      "ai watermarking",
+      "ai content authenticity",
+      "c2pa metadata",
+      "content credentials",
+      "digital watermarking",
+      "ai generated images",
+      "ai detection",
+      "ai image detector",
+      "ai image checker",
+    ]));
+    expect(ranked.map((item) => item.keyword)).not.toContain("artificial intelligence watermarking");
+    expect(ranked.map((item) => item.keyword)).not.toEqual(expect.arrayContaining([
+      "ai image generator",
+      "meta ai",
+      "what is ai",
+      "ai website builder",
+      "legal ai",
+      "branding and content marketing",
+      "how does ai work",
+      "who created ai",
+      "scale ai",
+      "acting ai",
+    ]));
   });
 });

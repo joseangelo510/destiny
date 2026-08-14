@@ -3,6 +3,7 @@ import {
   buyerExpansionSeeds,
   createBusinessSearchBrief,
   deterministicBusinessSearchBrief,
+  keywordDiscoveryThemes,
   synthesisBusinessSearchContext,
   type BusinessSearchContext,
 } from "./business-search-brief";
@@ -225,6 +226,25 @@ describe("business search brief", () => {
       "same day pickup",
     ]));
     expect([...offers, ...productThemeSeeds].join(" | ")).not.toMatch(/san francisco bay area|served fremont|five.star reviews|property managers|finish moves|united states/i);
+  });
+
+  it("does not use generic differentiators as standalone discovery seeds", () => {
+    for (const differentiation of ["affordable price", "fast service", "trusted experience", "high quality", "lower cost"]) {
+      const brief = deterministicBusinessSearchBrief({
+        businessName: "ClearCheck",
+        productsServices: "online and fast background checks",
+        problemSolved: "provide fast background checks at low price",
+        idealCustomer: "employers, small business, human resources managers, and tenants",
+        differentiation,
+        market: "United States",
+      });
+
+      expect(keywordDiscoveryThemes(brief).map((theme) => theme.label)).toEqual([
+        "Products and services",
+        "Problems and demand",
+      ]);
+      expect(buyerExpansionSeeds(brief, 10)).not.toContain(differentiation);
+    }
   });
 
   it("builds buyer expansion seeds from offers and offer-plus-audience combinations only", () => {

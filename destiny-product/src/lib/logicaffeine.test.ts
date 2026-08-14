@@ -316,7 +316,7 @@ describe("Destiny LOGOS parity", () => {
     expect(browser).toEqual(worker);
     expect(browser.keywordEligible).toBe(false);
     expect(browser.questSource).toBe("growth_action");
-    expect(browser.weeklyQuest).toBe("Ask three recent customers for a Google review");
+    expect(browser.weeklyQuest).toBe("Get reviews");
     expect(browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
     expect(browser.weeklyTaskManifest).toHaveLength(browser.weeklyTaskCount);
   });
