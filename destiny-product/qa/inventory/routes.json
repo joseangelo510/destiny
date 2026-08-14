@@ -1,0 +1,272 @@
+[
+  {
+    "kind": "page",
+    "route": "/",
+    "file": "src/app/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/account",
+    "file": "src/app/account/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/analytics",
+    "file": "src/app/analytics/page.tsx"
+  },
+  {
+    "kind": "api",
+    "route": "/api/account",
+    "file": "src/app/api/account/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/audits",
+    "file": "src/app/api/audits/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/audits/[id]",
+    "file": "src/app/api/audits/[id]/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/drafts",
+    "file": "src/app/api/content/drafts/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/generate",
+    "file": "src/app/api/content/generate/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/word",
+    "file": "src/app/api/content/word/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/directory-profiles",
+    "file": "src/app/api/directory-profiles/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/directory-profiles/check",
+    "file": "src/app/api/directory-profiles/check/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/distribution/creators",
+    "file": "src/app/api/distribution/creators/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/founder-why",
+    "file": "src/app/api/founder-why/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/integrations/cms/wordpress",
+    "file": "src/app/api/integrations/cms/wordpress/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/integrations/cms/wordpress/draft",
+    "file": "src/app/api/integrations/cms/wordpress/draft/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/integrations/google/start",
+    "file": "src/app/api/integrations/google/start/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/integrations/google/sync",
+    "file": "src/app/api/integrations/google/sync/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/keywords/decisions",
+    "file": "src/app/api/keywords/decisions/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/llm-visibility/tasks",
+    "file": "src/app/api/llm-visibility/tasks/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/notifications",
+    "file": "src/app/api/notifications/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/onboarding",
+    "file": "src/app/api/onboarding/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/onboarding/competitors/suggest",
+    "file": "src/app/api/onboarding/competitors/suggest/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/quests/[id]",
+    "file": "src/app/api/quests/[id]/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/rank-tracker/keywords",
+    "file": "src/app/api/rank-tracker/keywords/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/rank-tracker/lists",
+    "file": "src/app/api/rank-tracker/lists/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/reoptimization-documents",
+    "file": "src/app/api/reoptimization-documents/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/reoptimization-documents/[id]/download",
+    "file": "src/app/api/reoptimization-documents/[id]/download/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/research/backlinks",
+    "file": "src/app/api/research/backlinks/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/research/keywords",
+    "file": "src/app/api/research/keywords/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/website-profile",
+    "file": "src/app/api/website-profile/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/websites/[id]",
+    "file": "src/app/api/websites/[id]/route.ts"
+  },
+  {
+    "kind": "page",
+    "route": "/app",
+    "file": "src/app/app/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/audits",
+    "file": "src/app/audits/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/audits/[id]",
+    "file": "src/app/audits/[id]/page.tsx"
+  },
+  {
+    "kind": "api",
+    "route": "/auth/confirm",
+    "file": "src/app/auth/confirm/route.ts"
+  },
+  {
+    "kind": "page",
+    "route": "/auth/error",
+    "file": "src/app/auth/error/page.tsx"
+  },
+  {
+    "kind": "api",
+    "route": "/auth/signout",
+    "file": "src/app/auth/signout/route.ts"
+  },
+  {
+    "kind": "page",
+    "route": "/backlinks",
+    "file": "src/app/backlinks/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/content",
+    "file": "src/app/content/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/distribution",
+    "file": "src/app/distribution/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/growth-plan",
+    "file": "src/app/growth-plan/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/integrations",
+    "file": "src/app/integrations/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/keyword-research",
+    "file": "src/app/keyword-research/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/keywords",
+    "file": "src/app/keywords/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/llm-visibility",
+    "file": "src/app/llm-visibility/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/login",
+    "file": "src/app/login/page.tsx"
+  },
+  {
+    "kind": "server-actions",
+    "route": "/login",
+    "file": "src/app/login/actions.ts"
+  },
+  {
+    "kind": "page",
+    "route": "/onboarding",
+    "file": "src/app/onboarding/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/rank-tracker",
+    "file": "src/app/rank-tracker/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/reoptimization/[id]",
+    "file": "src/app/reoptimization/[id]/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/results",
+    "file": "src/app/results/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/reviews",
+    "file": "src/app/reviews/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/roadmap",
+    "file": "src/app/roadmap/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/this-week",
+    "file": "src/app/this-week/page.tsx"
+  }
+]
