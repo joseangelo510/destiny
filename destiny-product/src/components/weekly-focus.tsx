@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { displayTaskTitle, guidedTaskPath, isReviewTask, taskRoadmapTarget } from "../lib/product/coach-experience";
+import { WorkspaceLink as Link } from "./workspace-link";
+import { coachingTaskCopy, guidedTaskPath, isReviewTask, taskRoadmapTarget } from "../lib/product/coach-experience";
 
 export type WeeklyFocusTask = {
   id: string;
@@ -46,8 +46,8 @@ export function WeeklyFocus({
   return <section className="weekly-focus">
     <div className="weekly-focus-copy">
       <span className="eyebrow">Your next useful step</span>
-      <h2>{displayTaskTitle(task)}</h2>
-      <p>{task.description}</p>
+      <h2>{coachingTaskCopy(task).title}</h2>
+      <p>{coachingTaskCopy(task).description}</p>
       <div className="weekly-focus-meta"><span>{task.estimated_minutes} minutes</span><span>Moves you toward {taskRoadmapTarget(task.task_type)}</span></div>
       <div className="weekly-focus-actions"><Link className="primary-button" href={guidedTaskPath(task)}>{isReviewTask(task) ? "Open reviews" : "Begin this step"}</Link><a className="text-button" href="#weekly-checklist">See the full week</a></div>
     </div>

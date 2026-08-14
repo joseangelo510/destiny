@@ -18,6 +18,7 @@ describe("distribution recommendations", () => {
       "G2",
       "Capterra",
     ]);
+    expect(baseDirectories.find((item) => item.key === "capterra")?.href).toBe("https://www.capterra.com/vendors/");
   });
 
   it("recommends industry-specific directories instead of a generic list", () => {
@@ -59,6 +60,7 @@ describe("distribution recommendations", () => {
       { domain: "amazon.com", title: "Marketplace result", url: "https://amazon.com/example" },
       { domain: "news.yahoo.com", title: "Mass media result", url: "https://news.yahoo.com/example" },
       { domain: "reddit.com", title: "Community result", url: "https://reddit.com/r/example" },
+      { domain: "adp.com", title: "Enterprise vendor", url: "https://adp.com/resources/background-checks" },
       { domain: "bayareamovingguide.com", title: "Independent local publisher", url: "https://bayareamovingguide.com/junk-removal" },
     ]);
 
@@ -75,4 +77,5 @@ describe("distribution recommendations", () => {
 
     expect(rows.map((row) => row.platform)).toEqual(["Official source", "Official source"]);
   });
+
 });

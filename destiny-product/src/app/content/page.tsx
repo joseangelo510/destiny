@@ -3,7 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import Link from "next/link";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
+import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
 import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
@@ -42,7 +43,10 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     market: context.website?.market ?? "",
     locationEvidence,
   }, 50);
-  const { data: savedKeywordPreferences } = context.website ? await context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision").eq("website_id", context.website.id) : { data: [] };
+  const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }] = context.website ? await Promise.all([
+    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision").eq("website_id", context.website.id),
+    context.supabase.from("tracked_keywords").select("source").eq("website_id", context.website.id).neq("status", "paused"),
+  ]) : [{ data: [] }, { data: [] }];
   const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
   const keywordDecisions = Object.fromEntries(rankedKeywords.flatMap((keyword) => {
     const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
@@ -83,9 +87,12 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
   const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
+  const approvedKeywordCount = (savedKeywordPreferences ?? []).filter((item) => item.decision === "approved").length;
+  const watchlistCount = (pipelineTrackedKeywords ?? []).filter((item) => item.source !== "strategy").length;
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
+      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={hydratedArticleDrafts.length} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
       {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (

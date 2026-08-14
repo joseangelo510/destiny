@@ -93,36 +93,17 @@ describe("WeeklyTaskList", () => {
         ...baseTask,
         id: "review-task",
         title: "Ask recent customers for a Google review",
-        category: "reviews",
+        category: null,
         task_type: "primary_quest",
         action_path: "/audits/audit-1#recommended-fix",
       }]}
     />);
 
     expect(html).toContain('href="/reviews"');
-    expect(html).toContain("Open reviews");
     expect(html).toContain("Get reviews");
     expect(html).not.toContain("Google review");
+    expect(html).toContain("Open reviews");
     expect(html).not.toContain('href="/audits/audit-1#recommended-fix"');
-  });
-
-  it("normalizes legacy Google-review titles with missing or null category and routes them to Reviews", () => {
-    const html = renderToStaticMarkup(<WeeklyTaskList
-      auditId="audit-1"
-      openTaskId="legacy-google"
-      tasks={[
-        { ...baseTask, id: "legacy-google", title: "Ask three recent customers for a Google review", task_type: "primary_quest", action_path: "/audits/audit-1#recommended-fix" },
-        { ...baseTask, id: "legacy-request", title: "Request reviews from recent clients", category: null, task_type: "directory_growth", action_path: "/distribution#directories" },
-        { ...baseTask, id: "modern", title: "Get reviews", category: null, task_type: "reviews", action_path: "/this-week" },
-      ]}
-    />);
-
-    expect((html.match(/Get reviews/g) ?? []).length).toBeGreaterThanOrEqual(3);
-    expect((html.match(/Open reviews/g) ?? [])).toHaveLength(3);
-    expect((html.match(/href="\/reviews"/g) ?? [])).toHaveLength(3);
-    expect(html).not.toContain("Google review");
-    expect(html).not.toContain('href="/audits/audit-1#recommended-fix"');
-    expect(html).not.toContain('href="/distribution#directories"');
   });
 
   it("renders a working destination for every guided Game Plan task", () => {
@@ -151,5 +132,7 @@ describe("WeeklyTaskList", () => {
       "/reviews",
       "/audits/audit-1#technical-evidence",
     ]) expect(html).toContain(`href="${href}"`);
+    expect(html).toContain("Get reviews");
+    expect(html).not.toContain("Google reviews");
   });
 });

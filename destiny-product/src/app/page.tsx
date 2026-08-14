@@ -61,7 +61,7 @@ export default function HomePage() {
               <span className="dot"></span>
               <span className="dot"></span>
               <span className="dot"></span>
-              <span className="crumb">clearcheck.app · Week 1</span>
+              <span className="crumb">brightpath-example.com · Week 1</span>
               <span className="streak">4 distribution tasks</span>
             </div>
             <div className="app-body">

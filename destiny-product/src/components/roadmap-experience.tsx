@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { CelebrationControls } from "./celebration-controls";
 import { SeasonRecap } from "./founder-journey";
 import type { SeasonSnapshot } from "../lib/product/founder-journey";

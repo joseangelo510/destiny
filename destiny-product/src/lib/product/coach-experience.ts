@@ -11,7 +11,7 @@ export const PRIMARY_NAVIGATION = [
 ] as const;
 
 export const FEATURE_NAVIGATION = [
-  { label: "Home", href: "/" },
+  { label: "Home", href: "/app" },
   { label: "Website audits", href: "/audits" },
   { label: "Content studio", href: "/content" },
   { label: "Keyword strategy", href: "/keywords" },
@@ -116,25 +116,32 @@ export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expande
 
 type DestinyLogicCategory = (typeof COACH_CATEGORIES)[number]["id"];
 
-const REVIEW_TITLE_PATTERN = /^(get reviews|request reviews)\b/i;
-
-export function isReviewTask(task: { task_type?: string | null; category?: string | null; title?: string | null }) {
-  if (task.category === "reviews" || task.task_type === "reviews") return true;
-  // Title matching is a legacy fallback only: an explicit non-review category wins.
-  if (task.category != null && task.category !== "") return false;
-  const title = (task.title ?? "").trim();
-  return /google review/i.test(title) || REVIEW_TITLE_PATTERN.test(title);
-}
-
-export function displayTaskTitle(task: { task_type?: string | null; category?: string | null; title?: string | null }) {
-  return isReviewTask(task) ? "Get reviews" : (task.title ?? "").trim();
-}
-
 export function guidedTaskPath(task: { task_type: string; action_path: string; category?: string | null; title?: string | null }) {
   if (isReviewTask(task)) return "/reviews";
   const opensAuditDetail = /^\/audits\/[^/?#]+\/?$/.test(task.action_path);
   if (task.task_type !== "primary_quest" || task.action_path.includes("#") || !opensAuditDetail) return task.action_path;
   return `${task.action_path.replace(/\/$/, "")}#recommended-fix`;
+}
+
+export function isReviewTask(task: { task_type: string; category?: string | null; title?: string | null }) {
+  const title = task.title?.trim() || "";
+  return task.category === "reviews"
+    || task.task_type === "reviews"
+    || /\bGoogle reviews?\b/i.test(title)
+    || /^(?:get|request) reviews?\b/i.test(title);
+}
+
+export function coachingTaskCopy(task: { title?: string | null; description?: string | null; task_type: string; category?: string | null }) {
+  if (!isReviewTask(task)) return {
+    title: task.title?.trim() || "Complete the recommended task",
+    description: task.description?.trim() || "Complete this step to move your work forward.",
+  };
+  return {
+    title: "Get reviews",
+    description: (task.description?.trim() || "Build customer trust with reviews on the platforms that matter for your business.")
+      .replace(/\bGoogle reviews?\b/gi, "reviews")
+      .replace(/\blocal trust\b/gi, "customer trust"),
+  };
 }
 
 const TASK_ROADMAP_TARGETS: Record<string, string> = {

@@ -4,7 +4,7 @@ import { normalizeWebsite } from "@/lib/seo/url";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({})) as { websiteId?: unknown; directoryKey?: unknown; profileUrl?: unknown };
+  const body = await request.json().catch(() => ({})) as { websiteId?: unknown; directoryKey?: unknown; profileUrl?: unknown; remove?: unknown };
   const websiteId = typeof body.websiteId === "string" ? body.websiteId : "";
   const directoryKey = typeof body.directoryKey === "string" ? body.directoryKey : "";
   const rawUrl = typeof body.profileUrl === "string" ? body.profileUrl.trim() : "";
@@ -12,8 +12,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a supported directory." }, { status: 400 });
   }
 
+  const remove = body.remove === true;
+  if (!rawUrl && !remove) return NextResponse.json({ error: "Paste the public profile URL before saving." }, { status: 400 });
+
   let profileUrl: string | null = null;
-  if (rawUrl) {
+  if (!remove) {
     try { profileUrl = normalizeWebsite(rawUrl).url; }
     catch { return NextResponse.json({ error: "Enter a valid public profile URL." }, { status: 400 }); }
     if (!directoryProfileMatches(directoryKey, profileUrl)) return NextResponse.json({ error: `Enter the matching ${baseDirectories.find((item) => item.key === directoryKey)?.name ?? "directory"} profile URL.` }, { status: 400 });

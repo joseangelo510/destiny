@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { renderReoptimizationWordDocument, type ReoptimizationManifest } from "@/lib/seo/reoptimization-document";
 import { createClient } from "@/lib/supabase/server";
-
-const safeName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "seo-change-document";
+import { createDocxFromHtml, safeDocumentName } from "@/lib/word-document";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,10 +15,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const stored = data.manifest as Partial<ReoptimizationManifest>;
   if (stored.version !== 4 || !stored.strategy || !stored.research) return NextResponse.json({ error: "This older draft was retired. Regenerate it from Keyword Strategy to use Destiny's simplified heading and keyword framework." }, { status: 409 });
   const manifest = stored as ReoptimizationManifest;
-  return new NextResponse(renderReoptimizationWordDocument(manifest), {
+  const document = await createDocxFromHtml(renderReoptimizationWordDocument(manifest), `${manifest.keyword} re-optimization plan`);
+  return new NextResponse(new Uint8Array(document), {
     headers: {
-      "Content-Type": "application/msword; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${safeName(manifest.keyword)}-reoptimization.doc"`,
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="${safeDocumentName(manifest.keyword)}-reoptimization.docx"`,
       "Cache-Control": "private, no-store",
     },
   });

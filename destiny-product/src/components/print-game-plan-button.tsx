@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { useRef } from "react";
 
 export function PrintGamePlanButton({

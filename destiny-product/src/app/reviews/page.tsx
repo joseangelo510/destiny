@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { DirectoryProfileRegistry, type DirectoryProfile } from "@/components/directory-profile-registry";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";

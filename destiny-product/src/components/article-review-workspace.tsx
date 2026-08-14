@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  buildWordDocument,
   currentArticleQualityIssues,
   fitMetaDescription,
   normalizeArticleBody,
@@ -21,7 +20,7 @@ import {
 } from "@/lib/content/article-generation";
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 
-type EditableDraft = ArticleDraft & { approved: boolean };
+type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
 const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
 
 export type ArticleGenerationContext = {
@@ -179,6 +178,7 @@ export function ArticleReviewWorkspace({
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
   const [delivering, setDelivering] = useState("");
+  const [exporting, setExporting] = useState(false);
   const [cmsDrafts, setCmsDrafts] = useState<Record<string, CmsDraftResult>>(() => hydrateCmsDrafts(initialCmsTransfers, auditId));
 
   const cmsProviders: CmsDeliveryProvider[] = [
@@ -358,15 +358,32 @@ export function ArticleReviewWorkspace({
     updateDraft((current) => ({ ...current, approved: !current.approved }));
   };
 
-  const downloadWordDocument = () => {
-    if (!draft) return;
-    const blob = new Blob([buildWordDocument(draft)], { type: "application/msword;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.doc`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const downloadWordDocument = async () => {
+    if (!draft || exporting) return;
+    setExporting(true);
+    setError("");
+    try {
+      const response = await fetch("/api/content/word", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId, draft }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(payload.error || "Destiny could not create the Word document.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not create the Word document.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const downloadInfographic = (index: number) => {
@@ -443,10 +460,11 @@ export function ArticleReviewWorkspace({
           <label>Reading ease<select disabled={generating} value={draft.preferences.readingEase} onChange={(event) => updatePreference("readingEase", event.target.value as ArticleGenerationPreferences["readingEase"])}>{READING_EASE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{READING_EASE_OPTIONS.find((option) => option.value === draft.preferences.readingEase)?.description}</small></label>
         </div>
         <label>Special instructions<textarea disabled={generating} rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
-        <label className="article-infographic-toggle"><input type="checkbox" checked={draft.preferences.addInfographics} disabled={generating} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
-        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? generationPhase === "finishing" ? "Finishing the article…" : "Researching and writing…" : !reviewReady ? `Generate with ${generationModelLabel}` : "Regenerate full article"}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
-        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Researching sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing draft"}</strong><p>Destiny verifies search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Destiny performs one bounded completion pass. {generationSeconds}s elapsed. You can cancel without losing your brief or settings.</p></div>}
-        {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not active yet</strong><p>Your brief and settings are saved. Full AI article generation will be available once the writing model is connected.</p></div>}
+        <label className="article-infographic-toggle"><input disabled={generating} type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
+        <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? generationPhase === "finishing" ? "Finishing the article…" : "Researching and writing…" : draft.generationStatus === "generated" ? "Generate a new article" : `Generate with ${generationModelLabel}`}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
+        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Destiny verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Destiny performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
+        {!generating && draft.generationStatus !== "generated" && <div className="configuration-note" role="status"><strong>{draft.failureReason ? "Generation did not complete" : "Brief saved"}</strong><p>{draft.failureReason || "Set the direction above, then generate the complete article. There is no outline to review first."}</p></div>}
+        {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not configured</strong><p>Your brief is still saved and ready to run once the writing model is connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}
       </section>
 
@@ -463,7 +481,7 @@ export function ArticleReviewWorkspace({
 
       <div className="article-editor-actions">
         <button className={draft.approved ? "secondary-button" : "primary-button"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type="button">{draft.approved ? "Reopen this draft" : canApprove ? "Approve this draft" : "Generate and review before approval"}</button>
-        <button className="secondary-button" onClick={downloadWordDocument} type="button">Download editable Word document</button>
+        <button className="secondary-button" disabled={exporting} onClick={() => void downloadWordDocument()} type="button">{exporting ? "Creating Word document…" : "Download editable Word document"}</button>
         {draft.approved && connectedProviders.map((provider) => {
           const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
           return result

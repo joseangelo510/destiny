@@ -8,6 +8,7 @@ import {
   shouldPersistWebsiteSelection,
 } from "@/lib/workspace-selection";
 import type { Database } from "./database.types";
+import { workspaceRedirectHref } from "@/lib/workspace-routes";
 
 export async function updateSession(request: NextRequest) {
   const requestedWebsiteId = request.nextUrl.searchParams.get("site");
@@ -59,6 +60,24 @@ export async function updateSession(request: NextRequest) {
 
   if (data?.claims && persistWebsiteSelection) {
     response.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId, activeWebsiteCookieOptions);
+  }
+
+  const workspaceRedirect = data?.claims && request.method === "GET" && shouldPersistWebsiteSelection(request.headers)
+    ? workspaceRedirectHref({
+      activeWebsiteId: request.cookies.get(ACTIVE_WEBSITE_COOKIE)?.value,
+      pathname: request.nextUrl.pathname,
+      requestedWebsiteId,
+      search: request.nextUrl.search,
+    })
+    : null;
+  if (workspaceRedirect) {
+    const redirectUrl = request.nextUrl.clone();
+    const target = new URL(workspaceRedirect, request.url);
+    redirectUrl.pathname = target.pathname;
+    redirectUrl.search = target.search;
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
   return response;
 }

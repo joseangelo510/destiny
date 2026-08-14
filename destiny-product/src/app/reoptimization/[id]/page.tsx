@@ -24,7 +24,7 @@ export default async function ReoptimizationDocumentPage({ params }: { params: P
   const otherChanges = manifest.changes.filter((change) => !["structure", "query-coverage", "snippet"].includes(change.id));
 
   return <WorkspaceShell active="/keywords" eyebrow="Re-optimization document" title={`Improve “${manifest.keyword}”`} description="Copy-ready changes in page order. Destiny never publishes these edits without your review.">
-    <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download for Word</a></div>
+    <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download editable Word document</a></div>
     {manifest.warning ? <div className={styles.warning}><strong>Verify before editing</strong><p>{manifest.warning}</p></div> : null}
     <section className={styles.hero}><div><span>Target page</span><a href={manifest.pageUrl} rel="noreferrer" target="_blank">{manifest.pageUrl}</a></div><p>{manifest.strategy.summary}</p></section>
     <section className={styles.simpleSection}><h2>1. Page title</h2><p>Review the title before working on the rest of the page.</p><div className={styles.simpleComparison}><article><strong>Before</strong><p>{currentTitle}</p></article><article><strong>After</strong><p>{recommendedTitle}</p></article></div></section>

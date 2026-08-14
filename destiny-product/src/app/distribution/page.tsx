@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { CreatorDiscovery } from "@/components/creator-discovery";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
@@ -54,7 +54,7 @@ export default async function DistributionPage() {
           </section>
 
           <section className="workspace-card distribution-section" id="outreach">
-            <div className="distribution-section-heading"><div><span className="eyebrow">3 · Creator outreach</span><h2>Find niche creators already covering your priority topics</h2><p>Review creators, authors, and smaller publications across blogs, Medium, YouTube, Instagram, and LinkedIn. Destiny excludes major media and never invents contact information.</p></div><strong>Goal: 3 relevant contacts</strong></div>
+            <div className="distribution-section-heading"><div><span className="eyebrow">3 · Creator outreach <b className="beta-badge">Beta</b></span><h2>Find niche creators already covering your priority topics</h2><p>Review public sources before outreach. Destiny filters out major media and vendor websites, but audience size and contact details still require confirmation.</p></div><strong>Goal: 3 verified contacts</strong></div>
             <CreatorDiscovery initialCreators={visibleCreators} paid={paid} topics={creatorTopics} websiteId={context.website!.id} />
           </section>
 

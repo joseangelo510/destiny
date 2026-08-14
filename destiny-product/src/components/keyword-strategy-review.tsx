@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { WorkspaceLink as Link } from "./workspace-link";
 import { useRouter } from "next/navigation";
 import { Fragment, useRef, useState } from "react";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../lib/product/plan-horizon";

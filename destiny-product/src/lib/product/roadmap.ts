@@ -267,20 +267,23 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   const effortCompleted = effortQuests.filter((quest) => quest.status === "complete").length;
   const effortTotal = effortQuests.length;
   const effortProgress = effortTotal ? Math.round((effortCompleted / effortTotal) * 100) : 0;
-  const journeyTasks = evaluatedQuests.map(({ quest, state, phaseId }, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => ({
-    id: quest.id ?? `${quest.task_type}-${index}`,
-    label: isReviewTask(quest) ? "Get reviews" : quest.title?.trim() || "Complete the recommended task",
-    detail: quest.description?.trim() || "Complete this step to move your work forward.",
-    state,
-    actionHref: guidedTaskPath({
-      task_type: quest.task_type,
-      category: quest.category,
-      title: quest.title,
-      action_path: quest.action_path?.trim() || "/this-week",
-    }),
-    weekNumber: Math.max(1, quest.week_number ?? 1),
-    phaseId,
-  }));
+  const journeyTasks = evaluatedQuests.map(({ quest, state, phaseId }, index): SeoJourneyTask & { phaseId: SeoRoadmapPhase["id"] } => {
+    const copy = coachingTaskCopy(quest);
+    return {
+      id: quest.id ?? `${quest.task_type}-${index}`,
+      label: copy.title,
+      detail: copy.description,
+      state,
+      actionHref: guidedTaskPath({
+        task_type: quest.task_type,
+        category: quest.category,
+        title: quest.title,
+        action_path: quest.action_path?.trim() || "/this-week",
+      }),
+      weekNumber: Math.max(1, quest.week_number ?? 1),
+      phaseId,
+    };
+  });
   const phases: SeoRoadmapPhase[] = phaseDefinitions.map(({ signalIds, ...phase }) => ({
     ...phase,
     tasks: journeyTasks.filter((task) => task.phaseId === phase.id),
@@ -307,4 +310,4 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
   };
 }
 import { runDestinyServerLogic } from "../logicaffeine-server";
-import { guidedTaskPath, isReviewTask } from "./coach-experience";
+import { coachingTaskCopy, guidedTaskPath } from "./coach-experience";

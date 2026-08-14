@@ -90,4 +90,41 @@ describe("Content Studio article recovery route", () => {
     expect(payload.quality?.recovered).toBe(true);
     expect(payload.draft?.qualityIssues.some((issue) => issue.code === "incomplete_output")).toBe(false);
   });
+
+  it("keeps an article non-approvable when the bounded continuation is still incomplete", async () => {
+    const shortArticle = {
+      title: "Junk Removal Services: A Practical Guide",
+      metaDescription: "Compare junk removal services, pricing considerations, and the right questions to ask before booking.",
+      bodyMarkdown: `# Junk Removal Services: A Practical Guide\n\n## Junk Removal Services and Search Intent\n\n${wordSequence(392, "first")} this unfinished thought`,
+      bucketBrigades: [],
+      sources: [1, 2, 3].map((index) => ({ id: `source-${index}`, title: `Verified source ${index}`, url: `https://example${index}.gov/research`, publisher: `example${index}.gov` })),
+      infographics: [],
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(messageResponse(JSON.stringify(shortArticle)))
+      .mockResolvedValueOnce(messageResponse(`## Still incomplete\n\n${wordSequence(120, "continued")} another unfinished thought`));
+    vi.stubGlobal("fetch", fetchMock);
+    const { POST } = await import("./route");
+
+    const response = await POST(new Request("http://localhost/api/content/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        keyword: "junk removal services",
+        businessName: "98 Junk It",
+        problemSolved: "Fast removal of unwanted household and commercial items.",
+        idealCustomer: "Homeowners and property managers",
+        differentiation: "Local team with transparent service",
+        internalPages: [],
+        preferences: { voice: "punchy_coach", format: "seo_article", readingEase: "simple_clear", specialInstructions: "", addInfographics: false },
+      }),
+    }));
+    const payload = await readArticleGenerationStream<{
+      draft?: { generationStatus: string; qualityIssues: Array<{ code: string }> };
+    }>(response.body, () => undefined);
+
+    expect(response.status).toBe(200);
+    expect(payload.draft?.generationStatus).toBe("needs_generation");
+    expect(payload.draft?.qualityIssues.some((issue) => issue.code === "incomplete_output")).toBe(true);
+  });
 });

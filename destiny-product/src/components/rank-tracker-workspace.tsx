@@ -58,6 +58,8 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
     return { tracked: keywords.length, measured: measured.length, top3: measured.filter((row) => row.policyView?.bucket === 1).length, top10: measured.filter((row) => row.policyView && row.policyView.bucket > 0 && row.policyView.bucket < 3).length, averagePosition: ranked.length ? Math.round(ranked.reduce((sum, row) => sum + (row.currentPosition ?? 0), 0) / ranked.length) : null };
   }, [keywords]);
   const visible = useMemo(() => activeList === "all" ? keywords : activeList === "general" ? keywords.filter((item) => !item.listId) : keywords.filter((item) => item.listId === activeList), [activeList, keywords]);
+  const planKeywordCount = keywords.filter((item) => item.source === "strategy").length;
+  const watchlistCount = keywords.length - planKeywordCount;
 
   async function addKeyword(event: FormEvent) {
     event.preventDefault();
@@ -103,6 +105,12 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
       <article><span>Top 3</span><strong>{summary.top3}</strong><small>Confirmed positions</small></article>
       <article><span>Top 10</span><strong>{summary.top10}</strong><small>Confirmed positions</small></article>
       <article><span>Average position</span><strong>{summary.averagePosition ?? "—"}</strong><small>Ranked keywords only</small></article>
+    </section>
+
+    <section aria-label="Keyword tracking sources" className="rank-source-summary">
+      <div><strong>{planKeywordCount}</strong><span>Plan keywords</span><small>Approved in Keyword strategy</small></div>
+      <div><strong>{watchlistCount}</strong><span>Watchlist</span><small>Added from research or manually</small></div>
+      <p>Plan keywords measure the strategy you approved. Your watchlist lets you monitor extra searches without changing that plan.</p>
     </section>
 
     <section className="rank-tracker-layout">

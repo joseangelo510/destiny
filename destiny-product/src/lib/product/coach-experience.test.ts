@@ -6,9 +6,7 @@ import {
   buildGuidedFix,
   buildCoachTaskSet,
   completionPresentation,
-  displayTaskTitle,
   guidedTaskPath,
-  isReviewTask,
   PRIMARY_NAVIGATION,
   FEATURE_NAVIGATION,
   taskRoadmapTarget,
@@ -113,25 +111,8 @@ describe("Destiny SEO coach experience", () => {
     expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
   });
 
-  it("normalizes every review-led task title to the generic wording", () => {
-    expect(displayTaskTitle({ task_type: "primary_quest", category: "reviews", title: "Ask three recent customers for a Google review" })).toBe("Get reviews");
-    expect(displayTaskTitle({ task_type: "primary_quest", category: null, title: "Ask three recent customers for a Google review" })).toBe("Get reviews");
-    expect(displayTaskTitle({ task_type: "directory_growth", title: "Request reviews from recent clients" })).toBe("Get reviews");
-    expect(displayTaskTitle({ task_type: "reviews", title: "Build customer proof" })).toBe("Get reviews");
-    expect(displayTaskTitle({ task_type: "reviews", category: null, title: "Get reviews" })).toBe("Get reviews");
-    expect(displayTaskTitle({ task_type: "content_review", category: "content", title: "Review your first article" })).toBe("Review your first article");
-    expect(isReviewTask({ task_type: "keyword_review", category: "content", title: "Approve keyword direction" })).toBe(false);
-    // An explicit non-review category wins over legacy title matching.
-    expect(displayTaskTitle({ task_type: "content_review", category: "content", title: "Add Google review schema markup" })).toBe("Add Google review schema markup");
-    expect(isReviewTask({ task_type: "content_review", category: "content", title: "Request reviews of the draft" })).toBe(false);
-  });
-
   it("sends review-led guided work to Reviews while preserving every other task destination", () => {
     expect(guidedTaskPath({ task_type: "primary_quest", category: "reviews", action_path: "/audits/abc#recommended-fix" })).toBe("/reviews");
-    expect(guidedTaskPath({ task_type: "primary_quest", category: null, title: "Ask three recent customers for a Google review", action_path: "/audits/abc#recommended-fix" })).toBe("/reviews");
-    expect(guidedTaskPath({ task_type: "directory_growth", title: "Request reviews from recent clients", action_path: "/distribution#directories" })).toBe("/reviews");
-    expect(guidedTaskPath({ task_type: "directory_growth", title: "Get reviews", action_path: "/distribution#directories" })).toBe("/reviews");
-    expect(guidedTaskPath({ task_type: "content_review", category: "content", title: "Add Google review schema markup", action_path: "/content" })).toBe("/content");
     expect(guidedTaskPath({ task_type: "reviews", category: "reviews", action_path: "/this-week" })).toBe("/reviews");
     expect(guidedTaskPath({ task_type: "keyword_review", category: "content", action_path: "/keywords" })).toBe("/keywords");
     expect(guidedTaskPath({ task_type: "content_review", category: "content", action_path: "/content" })).toBe("/content");

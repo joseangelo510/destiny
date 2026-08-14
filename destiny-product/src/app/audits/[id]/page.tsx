@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { notFound, redirect } from "next/navigation";
 import { AuditMomentumProcessing } from "@/components/audit-momentum-processing";
 import { WeeklyTaskList } from "@/components/weekly-task-list";

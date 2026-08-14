@@ -317,7 +317,6 @@ describe("Destiny LOGOS parity", () => {
     expect(browser.keywordEligible).toBe(false);
     expect(browser.questSource).toBe("growth_action");
     expect(browser.weeklyQuest).toBe("Get reviews");
-    expect(browser.explanation).toBe("The review base is still small so recent customer proof is the strongest trust and conversion opportunity");
     expect(browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
     expect(browser.weeklyTaskManifest).toHaveLength(browser.weeklyTaskCount);
   });

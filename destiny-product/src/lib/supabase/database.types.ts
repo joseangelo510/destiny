@@ -605,6 +605,7 @@ export type Database = {
           read_at: string | null
           title: string
           user_id: string
+          website_id: string | null
         }
         Insert: {
           body?: string
@@ -616,6 +617,7 @@ export type Database = {
           read_at?: string | null
           title: string
           user_id: string
+          website_id?: string | null
         }
         Update: {
           body?: string
@@ -627,6 +629,7 @@ export type Database = {
           read_at?: string | null
           title?: string
           user_id?: string
+          website_id?: string | null
         }
         Relationships: [
           {
@@ -634,6 +637,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
             referencedColumns: ["id"]
           },
           {

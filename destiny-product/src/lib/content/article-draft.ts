@@ -211,86 +211,112 @@ function escapeHtmlAttribute(value: string) {
   return escapeHtml(value).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
-function safeLinkHref(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
-    return parsed.toString();
-  } catch {
-    return null;
-  }
-}
-
 function renderInlineMarkdown(value: string) {
-  return escapeHtml(value)
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (match, text: string, url: string) => {
-      const href = safeLinkHref(url);
-      return href ? `<a href="${escapeHtmlAttribute(href)}">${text}</a>` : text;
-    })
+  const links: string[] = [];
+  const withLinkTokens = value.replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/gi, (_match, label: string, url: string) => {
+    const token = `DESTINYWORDLINK${links.length}TOKEN`;
+    const linkedLabel = escapeHtml(label)
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_]+)__/g, "<strong>$1</strong>");
+    links.push(`<a href="${escapeHtmlAttribute(url)}">${linkedLabel}</a>`);
+    return token;
+  });
+
+  let rendered = escapeHtml(withLinkTokens)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,!?;:)]|$)/g, "$1<em>$2</em>")
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,!?;:)]|$)/g, "$1<em>$2</em>");
+
+  links.forEach((link, index) => {
+    rendered = rendered.replace(`DESTINYWORDLINK${index}TOKEN`, link);
+  });
+  return rendered;
 }
 
 export function renderArticleMarkdownToHtml(markdown: string) {
-  const lines = markdown.replace(/```[\s\S]*?```/g, "").split("\n");
   const blocks: string[] = [];
-  let list: string[] = [];
-  let listTag: "ul" | "ol" = "ul";
-  let paragraph: string[] = [];
-  const flushList = () => {
-    if (list.length) blocks.push(`<${listTag}>${list.map((item) => `<li>${item}</li>`).join("")}</${listTag}>`);
-    list = [];
-  };
+  const paragraph: string[] = [];
+  let listType: "ul" | "ol" | null = null;
+
   const flushParagraph = () => {
-    if (paragraph.length) blocks.push(`<p>${paragraph.join(" ")}</p>`);
-    paragraph = [];
+    if (!paragraph.length) return;
+    blocks.push(`<p>${paragraph.map(renderInlineMarkdown).join(" ")}</p>`);
+    paragraph.length = 0;
   };
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line) { flushList(); flushParagraph(); continue; }
-    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
-    if (heading) {
-      flushList();
+  const closeList = () => {
+    if (!listType) return;
+    blocks.push(`</${listType}>`);
+    listType = null;
+  };
+  const openList = (type: "ul" | "ol") => {
+    flushParagraph();
+    if (listType === type) return;
+    closeList();
+    blocks.push(`<${type}>`);
+    listType = type;
+  };
+
+  markdown.replace(/\r\n?/g, "\n").split("\n").forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) {
       flushParagraph();
+      closeList();
+      return;
+    }
+
+    const heading = /^(#{1,6})\s+(.+)$/.exec(line);
+    if (heading) {
+      flushParagraph();
+      closeList();
       const level = heading[1].length;
       blocks.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
-      continue;
+      return;
     }
-    const listItem = /^[-*]\s+(.*)$/.exec(line);
-    if (listItem) {
-      if (listTag !== "ul") flushList();
-      listTag = "ul";
-      flushParagraph();
-      list.push(renderInlineMarkdown(listItem[1]));
-      continue;
+
+    const unorderedItem = /^[-+*]\s+(.+)$/.exec(line);
+    if (unorderedItem) {
+      openList("ul");
+      blocks.push(`<li>${renderInlineMarkdown(unorderedItem[1])}</li>`);
+      return;
     }
-    const orderedItem = /^\d{1,3}[.)]\s+(.*)$/.exec(line);
+
+    const orderedItem = /^\d+[.)]\s+(.+)$/.exec(line);
     if (orderedItem) {
-      if (listTag !== "ol") flushList();
-      listTag = "ol";
-      flushParagraph();
-      list.push(renderInlineMarkdown(orderedItem[1]));
-      continue;
+      openList("ol");
+      blocks.push(`<li>${renderInlineMarkdown(orderedItem[1])}</li>`);
+      return;
     }
-    flushList();
-    paragraph.push(renderInlineMarkdown(line));
-  }
-  flushList();
+
+    const quote = /^>\s?(.+)$/.exec(line);
+    if (quote) {
+      flushParagraph();
+      closeList();
+      blocks.push(`<blockquote>${renderInlineMarkdown(quote[1])}</blockquote>`);
+      return;
+    }
+
+    if (/^([-*_])\1{2,}$/.test(line)) {
+      flushParagraph();
+      closeList();
+      blocks.push("<hr>");
+      return;
+    }
+
+    closeList();
+    paragraph.push(line);
+  });
+
   flushParagraph();
+  closeList();
   return blocks.join("");
 }
 
 export function buildWordDocument(draft: ArticleDraft) {
-  const paragraphs = escapeHtml(draft.body)
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => line.startsWith("# ") ? `<h1>${line.slice(2)}</h1>`
-      : line.startsWith("## ") ? `<h2>${line.slice(3)}</h2>`
-      : line.startsWith("### ") ? `<h3>${line.slice(4)}</h3>`
-      : `<p>${line}</p>`)
-    .join("\n");
+  const paragraphs = renderArticleMarkdownToHtml(draft.body);
   const metaDescriptions = draft.metaDescriptions.map((description, index) => `<p><strong>Meta description ${index + 1}:</strong> ${escapeHtml(description)}</p>`).join("");
   const sources = draft.sources.length ? `<h2>Sources used</h2><ul>${draft.sources.map((source) => `<li><a href="${escapeHtml(source.url)}">${escapeHtml(source.title)}</a>${source.publisher ? ` — ${escapeHtml(source.publisher)}` : ""}</li>`).join("")}</ul>` : "";
   const infographics = draft.infographics.length ? `<h2>Original infographic specifications</h2>${draft.infographics.map((graphic) => `<h3>${escapeHtml(graphic.title)}</h3><p>${escapeHtml(graphic.insight)}</p><p><strong>Alt text:</strong> ${escapeHtml(graphic.altText)}</p><p>${escapeHtml(graphic.sourceLabel)}</p>`).join("")}` : "";
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.title)}</title></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p>${metaDescriptions}${paragraphs}${sources}${infographics}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.title)}</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#1f342d;line-height:1.6;max-width:760px;margin:40px auto}h1{font-size:30px;line-height:1.2;margin:28px 0 14px}h2{font-size:23px;line-height:1.3;margin:26px 0 10px}h3{font-size:19px;line-height:1.35;margin:22px 0 8px}h4,h5,h6{font-size:16px;margin:20px 0 8px}p{margin:0 0 14px}ul,ol{margin:0 0 16px;padding-left:28px}li{margin:0 0 7px}blockquote{border-left:4px solid #8fc5b0;margin:18px 0;padding:8px 18px;color:#48645a}a{color:#176b51;text-decoration:underline}code{background:#f1f5f3;padding:1px 4px}</style></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p>${metaDescriptions}${paragraphs}${sources}${infographics}</body></html>`;
 }
