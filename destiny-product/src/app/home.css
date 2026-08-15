@@ -10,7 +10,7 @@
   --card:#FFFFFF;
   --ink:#20302A;
   --ink-soft:#55645C;
-  --ink-faint:#7C8A82;
+  --ink-faint:#5C6B63;
   --forest:#234437;
   --forest-deep:#1D3A2E;
   --forest-ink:#2C5443;
@@ -252,6 +252,7 @@ html:has(.lp-root){scroll-behavior:smooth}
 .lp-root .honest h2{color:#F7F9F4}
 .lp-root .honest .sec-head p{color:#BFCEC2}
 .lp-root .honest .sec-head{margin-bottom:0}
+.lp-root .honest h2 em{color:#CFE3A8}
 
 /* pricing */
 .lp-root .plan{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr auto;gap:34px;align-items:center;padding:34px 38px}
