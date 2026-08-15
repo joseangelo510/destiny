@@ -20,4 +20,6 @@ This recovery branch imports that snapshot on top of the latest GitHub `main` br
 - ESLint passed.
 - Vitest passed: 109 files and 557 tests.
 - Next.js production build passed: 43 static pages and 56 total application routes inventoried.
-- Browser tests require a configured Supabase environment and will run against the disposable staging branch before release.
+- A disposable Supabase staging branch was configured and reconciled without copying production data.
+- Playwright public tests passed on desktop and mobile: 6 passed; authenticated production checks remain a separate release gate.
+- See `docs/recovery/staging-reconciliation-2026-08-14.md` for the database, tenant-isolation, and staging worker evidence.

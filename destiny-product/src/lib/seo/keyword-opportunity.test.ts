@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
+import { applyKeywordPreferenceSignals, rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity";
 
 const EMPOWERLY_CONTEXT = {
   productsServices: "College admissions counseling, application strategy, essay coaching, and college planning for high school students",
@@ -99,6 +99,35 @@ describe("keyword opportunity ranking", () => {
     ], EMPOWERLY_CONTEXT);
 
     expect(ranked[0]).toMatchObject({ providerIntent: "informational", searchIntent: "awareness" });
+  });
+
+  it("corrects provider intent for agency and expert searches", () => {
+    const ranked = rankKeywordOpportunities([
+      { keyword: "youtube ad agency", intent: "informational", searchVolume: 260, opportunity: "existing_rank", rank: 13 },
+      { keyword: "youtube seo experts", intent: "informational", searchVolume: 90, opportunity: "existing_rank", rank: 9 },
+    ], {
+      productsServices: "YouTube advertising agency and YouTube SEO expert services",
+      idealCustomer: "Companies hiring help to grow YouTube channels",
+    });
+
+    expect(ranked).toHaveLength(2);
+    expect(ranked.every((item) => item.providerIntent === "commercial" && item.searchIntent === "consideration")).toBe(true);
+  });
+
+  it("uses durable keyword feedback without overgeneralizing unrelated phrases", () => {
+    const ranked = [
+      { keyword: "college admissions consultant", searchVolume: 500, priorityTier: 2 as const, priorityScore: 75, businessFit: .9, revenueFit: .9, relevanceTier: "core" as const, providerIntent: "commercial" as const, searchIntent: "consideration" as const, priorityReason: "Core service", themeId: "admissions", themeLabel: "Admissions", themeRole: "consideration" as const },
+      { keyword: "mba admissions consultant", searchVolume: 300, priorityTier: 2 as const, priorityScore: 72, businessFit: .8, revenueFit: .8, relevanceTier: "core" as const, providerIntent: "commercial" as const, searchIntent: "consideration" as const, priorityReason: "Core service", themeId: "admissions", themeLabel: "Admissions", themeRole: "consideration" as const },
+      { keyword: "college application strategy", searchVolume: 200, priorityTier: 3 as const, priorityScore: 65, businessFit: .8, revenueFit: .5, relevanceTier: "core" as const, providerIntent: "commercial" as const, searchIntent: "consideration" as const, priorityReason: "Core service", themeId: "applications", themeLabel: "Applications", themeRole: "consideration" as const },
+    ];
+
+    const personalized = applyKeywordPreferenceSignals(ranked, [
+      { normalizedKeyword: "mba admissions consultant", decision: "declined", reason: "wrong_audience", updatedAt: "2026-08-14T00:00:00Z" },
+      { normalizedKeyword: "college application strategy", decision: "approved", updatedAt: "2026-08-14T00:00:00Z" },
+    ], new Date("2026-08-14T12:00:00Z"));
+
+    expect(personalized.map((item) => item.keyword)).toEqual(["college application strategy", "college admissions consultant"]);
+    expect(personalized[0]).toMatchObject({ priorityTier: 2, priorityScore: 77 });
   });
 
   it("rejects unmeasured onboarding fragments and proof points instead of padding the pool", () => {

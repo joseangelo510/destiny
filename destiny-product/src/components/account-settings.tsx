@@ -67,14 +67,14 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
   const notificationEmailChanged = normalizedNotificationDraft !== savedNotificationEmail.toLowerCase();
 
   async function saveNotificationEmail() {
-    if (!notificationEmailValid || !notificationEmailChanged || savingNotificationEmail) return;
+    if (!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail) return;
     setSavingNotificationEmail(true);
     setNotificationMessage("");
     try {
       const response = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationEmail: normalizedNotificationDraft }),
+        body: JSON.stringify({ notificationEmail: normalizedNotificationDraft, websiteId: activeWebsiteId }),
       });
       const result = await response.json().catch(() => ({})) as { error?: string; notificationEmail?: string };
       if (!response.ok || !result.notificationEmail) throw new Error(result.error || "Destiny could not save this email.");
@@ -112,7 +112,7 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
       <div className={styles.heading}><span>Identity</span><h2>Your Destiny account</h2><p>These addresses can be different. One controls sign-in; the other receives website reports and updates.</p></div>
       <dl className={styles.identityList}>
         <div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div>
-        <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links go here. Update it here whenever those reports should go somewhere else.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
+        <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
       </dl>
     </section>
 

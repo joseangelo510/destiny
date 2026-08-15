@@ -14,6 +14,7 @@
     "logos:embed": "node scripts/embed-logos-wasm.mjs",
     "port:preflight": "bash scripts/check-replit-port-manifest.sh",
     "test": "vitest run",
+    "qa:migrations": "node scripts/qa-migrations.mjs",
     "qa:inventory": "node scripts/qa-inventory.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",

@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { notificationRecipient } from "../notification-recipient.ts";
 import { sendWelcomeEmail } from "./email.ts";
 
 function json(data: unknown, status = 200) {
@@ -24,7 +25,7 @@ export default {
         .maybeSingle(),
       context.supabase
         .from("websites")
-        .select("id,normalized_domain")
+        .select("id,normalized_domain,notification_email")
         .eq("id", body.websiteId)
         .maybeSingle(),
     ]);
@@ -34,7 +35,7 @@ export default {
       userId,
       websiteId: website.id,
       firstName: profile.first_name,
-      recipient: profile.contact_email,
+      recipient: notificationRecipient(website.notification_email, profile.contact_email),
       domain: website.normalized_domain,
     }).catch((cause) => ({
       status: "failed" as const,
