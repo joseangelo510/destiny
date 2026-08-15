@@ -13,6 +13,7 @@ import {
   ARTICLE_FORMAT_OPTIONS,
   ARTICLE_VOICE_OPTIONS,
   READING_EASE_OPTIONS,
+  estimateMetaTitleWidth,
   markdownWordCount,
   renderInfographicSvg,
   type ArticleGenerationPreferences,
@@ -65,6 +66,8 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
   return {
     ...fallback,
     ...saved,
+    metaTitle: typeof saved.metaTitle === "string" && saved.metaTitle.trim() ? saved.metaTitle : typeof saved.title === "string" ? saved.title : fallback.metaTitle,
+    titleCandidates: Array.isArray(saved.titleCandidates) ? saved.titleCandidates : fallback.titleCandidates,
     metaDescription: metaDescriptions[0] ?? fallback.metaDescription,
     metaDescriptions,
     body: typeof saved.body === "string" ? normalizeArticleBody(saved.body) : fallback.body,
@@ -74,7 +77,11 @@ function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDr
     preferences: { ...fallback.preferences, ...(saved.preferences ?? {}) },
     generationStatus,
     qualityIssues: Array.isArray(saved.qualityIssues) ? saved.qualityIssues : fallback.qualityIssues,
-    approved: saved.approved === true && generationStatus === "generated",
+    approved: saved.approved === true
+      && generationStatus === "generated"
+      && typeof saved.metaTitle === "string"
+      && Array.isArray(saved.titleCandidates)
+      && saved.titleCandidates.length === 6,
   };
 }
 
@@ -93,6 +100,7 @@ function issueCategory(code: string) {
   if (code === "incomplete_output") return "Article completion";
   if (code === "word_count") return "Article depth";
   if (code.startsWith("heading_")) return "Heading structure";
+  if (code.startsWith("meta_title") || code.startsWith("title_")) return "Headline and search title";
   if (code.startsWith("brigade_") || code === "stock_phrase") return "Writing rhythm";
   if (code === "source_coverage") return "Research and citations";
   if (code === "meta_descriptions") return "Search metadata";
@@ -242,7 +250,7 @@ export function ArticleReviewWorkspace({
 
   const draft = drafts[selected];
   const reviewReady = draft ? draft.generationStatus === "generated" || draft.generationStatus === "needs_generation" : false;
-  const qualitySignature = draft ? JSON.stringify([draft.title, draft.body, draft.metaDescriptions, draft.bucketBrigades, draft.sources, draft.preferences.format, draft.generationStatus]) : "";
+  const qualitySignature = draft ? JSON.stringify([draft.title, draft.metaTitle, draft.titleCandidates, draft.body, draft.metaDescriptions, draft.bucketBrigades, draft.sources, draft.preferences.format, draft.generationStatus]) : "";
   const qualityIssues = qualityCheck.signature === qualitySignature ? qualityCheck.issues : [];
   const qualityVerified = qualityCheck.signature === qualitySignature;
   const approvedCount = drafts.filter((item) => item.approved).length;
@@ -278,8 +286,25 @@ export function ArticleReviewWorkspace({
     setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));
   };
 
-  const updateText = (field: "title" | "body", value: string) => {
-    updateDraft((current) => ({ ...current, [field]: value, approved: false }));
+  const updateText = (field: "title" | "metaTitle" | "body", value: string) => {
+    updateDraft((current) => {
+      if (field !== "title") return { ...current, [field]: value, approved: false };
+      const body = /^#\s+.*$/m.test(current.body)
+        ? current.body.replace(/^#\s+.*$/m, `# ${value}`)
+        : `# ${value}\n\n${current.body}`;
+      return { ...current, title: value, body, approved: false };
+    });
+  };
+
+  const chooseTitleCandidate = (candidateIndex: number) => {
+    const candidate = draft?.titleCandidates[candidateIndex];
+    if (!candidate) return;
+    updateDraft((current) => {
+      const body = /^#\s+.*$/m.test(current.body)
+        ? current.body.replace(/^#\s+.*$/m, `# ${candidate.headline}`)
+        : `# ${candidate.headline}\n\n${current.body}`;
+      return { ...current, title: candidate.headline, metaTitle: candidate.metaTitle, body, approved: false };
+    });
   };
 
   const updateMetaDescription = (index: number, value: string) => {
@@ -411,6 +436,8 @@ export function ArticleReviewWorkspace({
           auditId,
           keyword: draft.keyword,
           title: draft.title,
+          metaTitle: draft.metaTitle,
+          titleCandidates: draft.titleCandidates,
           body: draft.body,
           metaDescription: draft.metaDescription,
           infographics: draft.infographics,
@@ -470,7 +497,11 @@ export function ArticleReviewWorkspace({
 
       {reviewReady && <>
       <div className="article-draft-divider"><span>{draft.generationStatus === "generated" ? "Generated article" : "Generated article — regenerate to apply new settings"}</span><strong>{wordCount.toLocaleString()} words</strong></div>
-      <label>SEO title<input value={draft.title} onChange={(event) => updateText("title", event.target.value)} /></label>
+      <div className="article-meta-grid">
+        <label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText("title", event.target.value)} /><small>{draft.title.trim().split(/\s+/).filter(Boolean).length} words · normally 8–13</small></label>
+        <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText("metaTitle", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label>
+      </div>
+      {draft.titleCandidates.length > 0 && <details className="article-title-candidates"><summary>Compare six researched title directions</summary><div>{draft.titleCandidates.map((candidate, index) => <button className={candidate.headline === draft.title && candidate.metaTitle === draft.metaTitle ? "active" : ""} key={`${candidate.format}-${index}`} onClick={() => chooseTitleCandidate(index)} type="button"><span>{candidate.format.replaceAll("_", " ")} · {candidate.score}/100</span><strong>{candidate.headline}</strong><small>{candidate.metaTitle}</small><em>{candidate.rationale}</em></button>)}</div></details>}
       <div className="article-meta-grid">
         {[0].map((index) => <label key={index}>Meta description<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? ""} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? "").length}/150 characters</small></label>)}
       </div>

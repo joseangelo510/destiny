@@ -7,7 +7,12 @@ import {
   type BusinessSearchBriefConfig,
   type BusinessSearchContext,
 } from "./business-search-brief.ts";
-import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity.ts";
+import {
+  applyKeywordPreferenceSignals,
+  rankKeywordOpportunities,
+  selectDiversifiedKeywordOpportunities,
+  type KeywordPreferenceSignal,
+} from "./keyword-opportunity.ts";
 import { applyLogosKeywordPolicy } from "./logos-keyword-policy.ts";
 import {
   extractSiteVocabulary,
@@ -701,6 +706,7 @@ export async function runDataForSeoAudit(
   knownCompetitors: Array<{ name: string; url?: string | null }> = [],
   onProgress: (progress: number) => Promise<void> | void = () => undefined,
   strategyModel: BusinessSearchBriefConfig = {},
+  keywordPreferences: KeywordPreferenceSignal[] = [],
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
   const submittedUrl = website.url;
@@ -917,7 +923,7 @@ export async function runDataForSeoAudit(
     const evaluated = keywordPolicyEngine() === "typescript"
       ? relevant
       : await applyLogosKeywordPolicy(relevant);
-    return { relevant, evaluated };
+    return { relevant, evaluated: applyKeywordPreferenceSignals(evaluated, keywordPreferences) };
   };
 
   let keywordEvaluation = await evaluateKeywordPool(strategyCandidates);
@@ -1132,9 +1138,10 @@ export async function runSeoAudit(input: {
   knownCompetitors?: Array<{ name: string; url?: string | null }>;
   onProgress?: (progress: number) => Promise<void> | void;
   strategyModel?: BusinessSearchBriefConfig;
+  keywordPreferences?: KeywordPreferenceSignal[];
 }) {
   if (input.login && input.password) {
-    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress, input.strategyModel);
+    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress, input.strategyModel, input.keywordPreferences);
   }
   await input.onProgress?.(90);
   return runDemoAudit(input.website, input.businessContext);

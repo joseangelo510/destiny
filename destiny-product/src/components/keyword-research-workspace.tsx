@@ -117,8 +117,8 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   const [performanceMetric, setPerformanceMetric] = useState<"traffic" | "keywords">("traffic");
   const [tracked, setTracked] = useState<Set<string>>(() => new Set());
   const [tracking, setTracking] = useState("");
-  const [savedToStrategy, setSavedToStrategy] = useState<Set<string>>(() => new Set());
-  const [savingToStrategy, setSavingToStrategy] = useState("");
+  const [strategized, setStrategized] = useState<Set<string>>(() => new Set());
+  const [savingStrategy, setSavingStrategy] = useState("");
   const [revealed, setRevealed] = useState(false);
   const shouldFocusFirstRevealedRef = useRef(false);
   const firstRevealedKeywordRef = useRef<HTMLTableCellElement | null>(null);
@@ -205,8 +205,8 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   }
 
   async function addToStrategy(row: KeywordResearchRow) {
-    if (!auditId || savedToStrategy.has(row.keyword)) return;
-    setSavingToStrategy(row.keyword);
+    if (!auditId || strategized.has(row.keyword)) return;
+    setSavingStrategy(row.keyword);
     setError("");
     try {
       const response = await fetch("/api/keywords/decisions", {
@@ -216,16 +216,17 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
           auditId,
           keyword: row.keyword,
           decision: "approved",
-          evidence: { providerIntent: row.intent, searchVolume: row.volume, difficulty: row.difficulty },
+          evidence: { intent: row.intent, volume: row.volume, difficulty: row.difficulty },
         }),
       });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not add this keyword to your strategy.");
-      setSavedToStrategy((current) => new Set([...current, row.keyword]));
+      if (!response.ok) throw new Error(payload.error || "Destiny could not add this keyword to the strategy.");
+      setStrategized((current) => new Set([...current, row.keyword]));
+      setTracked((current) => new Set([...current, row.keyword]));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not add this keyword to your strategy.");
+      setError(cause instanceof Error ? cause.message : "Destiny could not add this keyword to the strategy.");
     } finally {
-      setSavingToStrategy("");
+      setSavingStrategy("");
     }
   }
 
@@ -270,7 +271,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
           <input aria-label="Filter keywords" onChange={(event) => updateSearch(event.target.value)} placeholder="Filter keywords" value={search} />
           <select aria-label="Filter by intent" onChange={(event) => updateIntent(event.target.value as SearchIntent | "all")} value={intent}><option value="all">All intent</option><option value="transactional">Transactional</option><option value="commercial">Commercial</option><option value="informational">Informational</option><option value="navigational">Navigational</option><option value="unknown">Unknown</option></select>
         </div>
-        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}{auditId ? <th>Strategy</th> : null}<th>Rank tracker</th></tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}{auditId ? <td><button className={`track-keyword-button ${savedToStrategy.has(row.keyword) ? "tracked" : ""}`} disabled={savingToStrategy === row.keyword || savedToStrategy.has(row.keyword)} onClick={() => void addToStrategy(row)} type="button">{savedToStrategy.has(row.keyword) ? "In strategy ✓" : savingToStrategy === row.keyword ? "Saving…" : "Add to strategy"}</button></td> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
+        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}{auditId ? <th>Strategy</th> : null}<th>Rank tracker</th></tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}{auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? "tracked" : ""}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type="button">{strategized.has(row.keyword) ? "In strategy ✓" : savingStrategy === row.keyword ? "Adding…" : "Add to strategy"}</button></td> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
         {disclosure.buttonLabel ? <div className="research-more-keywords"><button onClick={revealKeywords} type="button">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null}
         {!rows.length ? <p className="research-no-rows">No keywords match these filters.</p> : null}
       </section>

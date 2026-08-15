@@ -1,4 +1,5 @@
 import { createClient } from "../../../lib/supabase/server";
+import { isWebsiteId } from "../../../lib/workspace-selection";
 
 function validEmail(value: unknown) {
   if (typeof value !== "string") return null;
@@ -11,18 +12,19 @@ export async function PATCH(request: Request) {
   const { data, error: userError } = await supabase.auth.getUser();
   if (userError || !data.user) return Response.json({ error: "Sign in again to manage this account." }, { status: 401 });
 
-  const body = await request.json().catch(() => ({})) as { notificationEmail?: unknown };
+  const body = await request.json().catch(() => ({})) as { notificationEmail?: unknown; websiteId?: unknown };
   const notificationEmail = validEmail(body.notificationEmail);
   if (!notificationEmail) return Response.json({ error: "Enter a valid audit and contact email." }, { status: 400 });
+  if (!isWebsiteId(body.websiteId)) return Response.json({ error: "Choose a website before changing its notification email." }, { status: 400 });
 
-  const { data: profile, error } = await supabase.from("profiles")
-    .update({ contact_email: notificationEmail, updated_at: new Date().toISOString() })
-    .eq("id", data.user.id)
-    .select("contact_email")
+  const { data: website, error } = await supabase.from("websites")
+    .update({ notification_email: notificationEmail, updated_at: new Date().toISOString() })
+    .eq("id", body.websiteId)
+    .select("notification_email")
     .maybeSingle();
   if (error) return Response.json({ error: error.message }, { status: 500 });
-  if (!profile) return Response.json({ error: "Destiny could not find this account profile." }, { status: 404 });
-  return Response.json({ notificationEmail: profile.contact_email });
+  if (!website) return Response.json({ error: "Destiny could not find that website in this account." }, { status: 404 });
+  return Response.json({ notificationEmail: website.notification_email });
 }
 
 export async function DELETE(request: Request) {

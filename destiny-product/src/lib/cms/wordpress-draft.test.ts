@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { prepareWordPressDraft } from "./wordpress-draft";
 
+const titleCandidates = ["numbered", "how_to", "second_person", "question", "descriptive", "benefit"].map((format, index) => ({ format, headline: `Candidate ${index + 1}`, metaTitle: `Junk Removal Services Candidate ${index + 1} Guide`, score: 90 - index, rationale: "Accurate." }));
+
 const validDraft = {
   websiteId: "website-1",
   auditId: "audit-1",
   keyword: "junk removal services",
   title: "Junk Removal Services: A Practical Guide",
-  body: `# Junk Removal Services\n\n${"A useful paragraph about choosing a reliable local junk removal service. ".repeat(4)}\n\n## What to compare\n\n- Transparent pricing\n- Local experience`,
+  metaTitle: "Junk Removal Services: A Practical Guide",
+  titleCandidates,
+  body: `# Junk Removal Services: A Practical Guide\n\n${"A useful paragraph about choosing a reliable local junk removal service. ".repeat(4)}\n\n## What to compare\n\n- Transparent pricing\n- Local experience`,
   metaDescription: "Compare local junk removal services and choose the right provider.",
   approved: true,
   generationStatus: "generated",
@@ -18,6 +22,7 @@ describe("WordPress draft preparation", () => {
       websiteId: "website-1",
       articleKey: "audit-1:junk removal services",
       title: validDraft.title,
+      metaTitle: validDraft.metaTitle,
       excerpt: validDraft.metaDescription,
       contentHtml: expect.stringContaining("<p>A useful paragraph"),
     }));
@@ -33,13 +38,17 @@ describe("WordPress draft preparation", () => {
   ])("rejects an incomplete or unapproved transfer", (input) => {
     expect(() => prepareWordPressDraft(input)).toThrow();
   });
+
+  it("blocks a previously approved legacy draft without researched title candidates", () => {
+    expect(() => prepareWordPressDraft({ ...validDraft, titleCandidates: [] })).toThrow(/headline and SEO\/meta title/i);
+  });
 });
 
 describe("WordPress draft HTML safety", () => {
   it("does not allow attribute injection through hostile Markdown links", () => {
     const hostile = prepareWordPressDraft({
       ...validDraft,
-      body: `# Title\n\n${"Padding sentence for the minimum body length requirement. ".repeat(4)}[click](https://example.com/a"onmouseover="alert(1)) and [ok](https://example.com/safe)`,
+      body: `# Junk Removal Services: A Practical Guide\n\n${"Padding sentence for the minimum body length requirement. ".repeat(4)}[click](https://example.com/a"onmouseover="alert(1)) and [ok](https://example.com/safe)`,
     });
     expect(hostile.contentHtml).not.toContain('onmouseover="alert');
     expect(hostile.contentHtml).toContain('<a href="https://example.com/safe">ok</a>');

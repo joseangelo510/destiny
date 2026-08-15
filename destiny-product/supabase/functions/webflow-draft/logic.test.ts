@@ -26,6 +26,7 @@ const draft = prepareDraftBody({
   websiteId: "website-1",
   articleKey: "audit-1:junk removal",
   title: "A Useful Article",
+  metaTitle: "A Useful Article | Practical Guide",
   contentHtml: `<p>${"Safe article content. ".repeat(8)}</p>`,
   metaDescription: "A concise meta description for the article.",
   wordCount: 2350,
@@ -51,6 +52,7 @@ const blogPostFields: WebflowFieldSchema[] = [
 
 const article = {
   title: draft.title,
+  metaTitle: draft.metaTitle,
   contentHtml: draft.contentHtml,
   metaDescription: draft.metaDescription,
   wordCount: draft.wordCount,
@@ -78,6 +80,11 @@ function plan(overrides: Partial<Parameters<typeof planWebflowFieldData>[0]> = {
 }
 
 describe("Webflow draft Edge Function logic", () => {
+  it("maps a separate SEO/meta title only when the collection exposes a matching field", () => {
+    const { fieldData, report } = plan({ fields: [...blogPostFields, { slug: "seo-title", displayName: "SEO Title", type: "PlainText", isEditable: true }] });
+    expect(fieldData["seo-title"]).toBe(article.metaTitle);
+    expect(report).toContainEqual(expect.objectContaining({ label: "SEO Title", status: "transferred" }));
+  });
   it("always creates draft items — publishing is structurally impossible", () => {
     const payload = webflowItemPayload(plan().fieldData);
     expect(payload.isDraft).toBe(true);
@@ -138,7 +145,7 @@ describe("Webflow draft Edge Function logic", () => {
     expect(report.find((entry) => entry.label === "Meta description")?.status).toBe("unavailable");
   });
 
-  it("never writes the description into look-alike fields such as Meta Keywords or SEO Title", () => {
+  it("maps the separate meta title without writing the description into look-alike fields", () => {
     const trickyFields = [
       ...blogPostFields,
       { slug: "meta-keywords", displayName: "Meta Keywords", type: "PlainText", isEditable: true },
@@ -147,7 +154,9 @@ describe("Webflow draft Edge Function logic", () => {
     ];
     const { fieldData, report } = plan({ fields: trickyFields });
     expect(fieldData["post-summary"]).toBe(article.metaDescription);
-    for (const slug of ["meta-keywords", "seo-title", "author-description"]) {
+    expect(fieldData["seo-title"]).toBe(article.metaTitle);
+    expect(report.find((entry) => entry.field === "seo-title")?.status).toBe("transferred");
+    for (const slug of ["meta-keywords", "author-description"]) {
       expect(fieldData).not.toHaveProperty(slug);
       expect(report.find((entry) => entry.field === slug)?.status).toBe("needs_review");
     }

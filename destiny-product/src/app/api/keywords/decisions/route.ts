@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { keywordEvidenceFromResearch } from "@/lib/content/saved-keyword-merge";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { selectQuickKeywordApprovals } from "@/lib/seo/quick-keyword-approval";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
@@ -8,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 const DECISION_REASONS = new Set(["wrong_audience", "not_offered", "too_competitive", "already_covered", "not_now"]);
 const PROVIDER_INTENTS = new Set(["transactional", "commercial", "navigational", "informational"]);
 const SEARCH_INTENTS = new Set(["conversion", "consideration", "awareness"]);
-type KeywordDecision = { keyword: string; decision: "approved" | "declined"; reason: string | null };
+type KeywordEvidence = { intent?: unknown; volume?: unknown; difficulty?: unknown };
+type KeywordDecision = { keyword: string; decision: "approved" | "declined"; reason: string | null; evidence?: KeywordEvidence };
 const record = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const boundedMetric = (value: unknown, minimum: number, maximum: number) => {
   const metric = Number(value);
@@ -20,8 +20,7 @@ const allowedValue = (value: unknown, allowed: Set<string>) => {
 };
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({})) as { auditId?: unknown; action?: unknown; approveRecommended?: unknown; keyword?: unknown; decision?: unknown; reason?: unknown; decisions?: unknown; evidence?: unknown };
-  const researchEvidence = keywordEvidenceFromResearch(body.evidence);
+  const body = await request.json().catch(() => ({})) as { auditId?: unknown; action?: unknown; approveRecommended?: unknown; keyword?: unknown; decision?: unknown; reason?: unknown; evidence?: unknown; decisions?: unknown };
   const auditId = typeof body.auditId === "string" ? body.auditId : "";
   const restore = body.action === "restore";
   const approveRecommended = body.approveRecommended === true;
@@ -30,13 +29,14 @@ export async function POST(request: Request) {
   const reason = typeof body.reason === "string" && DECISION_REASONS.has(body.reason) ? body.reason : null;
   const batch = Array.isArray(body.decisions) ? body.decisions.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
-    const candidate = item as { keyword?: unknown; decision?: unknown; reason?: unknown };
+    const candidate = item as { keyword?: unknown; decision?: unknown; reason?: unknown; evidence?: unknown };
     const batchKeyword = typeof candidate.keyword === "string" ? candidate.keyword.trim().slice(0, 500) : "";
     const batchDecision = candidate.decision === "approved" || candidate.decision === "declined" ? candidate.decision : null;
     const batchReason = typeof candidate.reason === "string" && DECISION_REASONS.has(candidate.reason) ? candidate.reason : null;
-    return batchKeyword && batchDecision ? [{ keyword: batchKeyword, decision: batchDecision as "approved" | "declined", reason: batchReason }] : [];
+    const batchEvidence = record(candidate.evidence);
+    return batchKeyword && batchDecision ? [{ keyword: batchKeyword, decision: batchDecision as "approved" | "declined", reason: batchReason, evidence: batchEvidence }] : [];
   }).slice(0, 50) : [];
-  let requestedDecisions: KeywordDecision[] = batch.length ? batch : keyword && decision ? [{ keyword, decision, reason }] : [];
+  let requestedDecisions: KeywordDecision[] = batch.length ? batch : keyword && decision ? [{ keyword, decision, reason, evidence: record(body.evidence) }] : [];
   if (!auditId || (!restore && !approveRecommended && !requestedDecisions.length) || (restore && !keyword)) return NextResponse.json({ error: "Choose approve, decline, or restore for at least one valid keyword." }, { status: 400 });
 
   const supabase = await createClient();
@@ -101,15 +101,11 @@ export async function POST(request: Request) {
   const providerKeywords = Array.isArray(providerResult.keywords) ? providerResult.keywords.map(record) : [];
   const preferenceRows = requestedDecisions.map((item) => {
     const normalizedKeyword = normalizeTrackedKeyword(item.keyword);
-    const poolEvidence = providerKeywords.find((candidate) => normalizeTrackedKeyword(String(candidate.keyword || "")) === normalizedKeyword);
-    // Preserve live research evidence for phrases approved from Keyword Research
-    // that were never part of the audit recommendation pool.
-    const fromResearch = !poolEvidence && requestedDecisions.length === 1 && researchEvidence ? {
-      providerIntent: researchEvidence.providerIntent ?? undefined,
-      searchVolume: researchEvidence.searchVolume ?? undefined,
-      difficulty: researchEvidence.difficulty ?? undefined,
-    } : {};
-    const evidence = poolEvidence ?? fromResearch as Record<string, unknown>;
+    const auditEvidence = providerKeywords.find((candidate) => normalizeTrackedKeyword(String(candidate.keyword || "")) === normalizedKeyword) ?? {};
+    const evidence = Object.keys(auditEvidence).length ? auditEvidence : record(item.evidence);
+    const savedProviderIntent = allowedValue(evidence.providerIntent ?? evidence.intent, PROVIDER_INTENTS);
+    const savedSearchIntent = allowedValue(evidence.searchIntent, SEARCH_INTENTS)
+      ?? (savedProviderIntent === "transactional" ? "conversion" : savedProviderIntent === "commercial" ? "consideration" : savedProviderIntent ? "awareness" : null);
     return {
       organization_id: website.organization_id,
       website_id: audit.website_id,
@@ -121,9 +117,9 @@ export async function POST(request: Request) {
       reason: item.reason,
       theme_id: typeof evidence.themeId === "string" ? evidence.themeId : null,
       theme_label: typeof evidence.themeLabel === "string" ? evidence.themeLabel : null,
-      provider_intent: allowedValue(evidence.providerIntent ?? evidence.intent, PROVIDER_INTENTS),
-      search_intent: allowedValue(evidence.searchIntent, SEARCH_INTENTS),
-      search_volume: boundedMetric(evidence.searchVolume, 0, 2_147_483_647),
+      provider_intent: savedProviderIntent,
+      search_intent: savedSearchIntent,
+      search_volume: boundedMetric(evidence.searchVolume ?? evidence.volume, 0, 2_147_483_647),
       difficulty: boundedMetric(evidence.difficulty, 0, 100),
       priority_score: boundedMetric(evidence.priorityScore, 0, 100),
     };

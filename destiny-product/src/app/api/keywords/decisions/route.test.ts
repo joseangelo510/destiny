@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { decisionRows, existingDecisions, preferenceRows, deletedPreferences, providerKeywords, trackedRows } = vi.hoisted(() => ({
   decisionRows: [] as Array<{ keyword: string; normalized_keyword?: string; decision: string; reason?: string | null }>,
   existingDecisions: [] as Array<{ keyword: string; decision: "approved" | "declined" }>,
-  preferenceRows: [] as Array<{ keyword: string; normalized_keyword: string; decision: string; reason?: string | null }>,
+  preferenceRows: [] as Array<{ keyword: string; normalized_keyword: string; decision: string; reason?: string | null; search_volume?: number | null; difficulty?: number | null; provider_intent?: string | null; search_intent?: string | null }>,
   deletedPreferences: [] as string[],
   providerKeywords: [] as Array<Record<string, unknown>>,
   trackedRows: [] as Array<{ keyword: string }>,
@@ -110,6 +110,33 @@ describe("POST /api/keywords/decisions quick approval", () => {
     expect(response.status).toBe(200);
     expect(decisionRows).toContainEqual(expect.objectContaining({ keyword: "wrong service phrase", decision: "declined", reason: "wrong_audience" }));
     expect(preferenceRows).toContainEqual(expect.objectContaining({ normalized_keyword: "wrong service phrase", decision: "declined", reason: "wrong_audience" }));
+  });
+
+  it("preserves live Keyword Research evidence when a researched phrase is added to strategy", async () => {
+    const response = await POST(new Request("http://localhost/api/keywords/decisions", {
+      method: "POST",
+      body: JSON.stringify({
+        auditId: "audit-1",
+        keyword: "background check fcra compliance",
+        decision: "approved",
+        evidence: {
+          intent: "transactional",
+          volume: 1300,
+          difficulty: 18,
+        },
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(preferenceRows).toContainEqual(expect.objectContaining({
+      keyword: "background check fcra compliance",
+      normalized_keyword: "background check fcra compliance",
+      decision: "approved",
+      provider_intent: "transactional",
+      search_intent: "conversion",
+      search_volume: 1300,
+      difficulty: 18,
+    }));
   });
 
   it("does not re-approve a keyword the website declined during an earlier audit", async () => {

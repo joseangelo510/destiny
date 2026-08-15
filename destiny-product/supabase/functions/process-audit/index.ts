@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { notificationRecipient } from "../notification-recipient.ts";
 import { sendAuditReadyEmailWithRetry, withEmailDelivery } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
 import { auditReadyNotificationCopy } from "./notifications.ts";
@@ -65,10 +66,10 @@ export default {
     const userId = context.userClaims?.id;
     if (!userId) return json({ error: "Sign in again to continue." }, 401);
 
-    const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }] = await Promise.all([
+    const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }, { data: keywordPreferences }] = await Promise.all([
       context.supabase
         .from("websites")
-        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market")
+        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market,notification_email")
         .eq("id", body.websiteId)
         .maybeSingle(),
       context.supabase
@@ -79,6 +80,10 @@ export default {
       context.supabase
         .from("competitors")
         .select("name,url")
+        .eq("website_id", body.websiteId),
+      context.supabase
+        .from("keyword_preferences")
+        .select("normalized_keyword,decision,reason,updated_at")
         .eq("website_id", body.websiteId),
     ]);
 
@@ -134,6 +139,15 @@ export default {
             model: keywordModel,
             timeoutMs: 45_000,
           },
+          keywordPreferences: (keywordPreferences ?? []).flatMap((preference) => {
+            if (preference.decision !== "approved" && preference.decision !== "declined") return [];
+            return [{
+              normalizedKeyword: preference.normalized_keyword,
+              decision: preference.decision,
+              reason: preference.reason,
+              updatedAt: preference.updated_at,
+            }];
+          }),
           onProgress: async (progress) => {
             await context.supabaseAdmin.from("audits").update({ progress }).eq("id", auditId).eq("status", "running");
           },
@@ -190,7 +204,7 @@ export default {
             title: readyNotification.title,
             body: readyNotification.body,
             destination_path: `/audits/${auditId}`,
-            website_id: websiteId,
+            website_id: website.id,
           })
           .eq("user_id", userId)
           .eq("kind", "audit_ready")
@@ -199,7 +213,7 @@ export default {
         const emailDelivery = await sendAuditReadyEmailWithRetry({
           auditId,
           firstName: profile?.first_name ?? "",
-          recipient: profile?.contact_email ?? "",
+          recipient: notificationRecipient(website.notification_email, profile?.contact_email),
           domain: result.domain,
           weeklyQuest: logic.weeklyQuest,
         });

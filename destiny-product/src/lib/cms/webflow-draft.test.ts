@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { prepareWebflowDraft } from "./webflow-draft";
 
+const titleCandidates = ["numbered", "how_to", "second_person", "question", "descriptive", "benefit"].map((format, index) => ({ format, headline: `Candidate ${index + 1}`, metaTitle: `Junk Removal Services Candidate ${index + 1} Guide`, score: 90 - index, rationale: "Accurate." }));
+
 const validDraft = {
   websiteId: "website-1",
   auditId: "audit-1",
   keyword: "junk removal services",
   title: "Junk Removal Services: A Practical Guide",
-  body: `# Junk Removal Services\n\n${"A useful paragraph about choosing a reliable local junk removal service. ".repeat(4)}\n\n## What to compare\n\n- Transparent pricing\n- Local experience`,
+  metaTitle: "Junk Removal Services: A Practical Guide",
+  titleCandidates,
+  body: `# Junk Removal Services: A Practical Guide\n\n${"A useful paragraph about choosing a reliable local junk removal service. ".repeat(4)}\n\n## What to compare\n\n- Transparent pricing\n- Local experience`,
   metaDescription: "Compare local junk removal services with clear pricing signals.",
   infographics: [{
     id: "graphic-1",
@@ -28,6 +32,7 @@ describe("Webflow draft preparation", () => {
       websiteId: "website-1",
       articleKey: "audit-1:junk removal services",
       title: validDraft.title,
+      metaTitle: validDraft.metaTitle,
       contentHtml: expect.stringContaining("<p>A useful paragraph"),
     }));
     expect(prepared.contentHtml).not.toContain("<h1>");
@@ -50,7 +55,7 @@ describe("Webflow draft preparation", () => {
   });
 
   it("preserves ordered and unordered lists and H2/H3 hierarchy in the transferred body", () => {
-    const body = `# Title\n\n${"Intro paragraph long enough to satisfy the length gate. ".repeat(3)}\n\n## Steps\n\n1. First step\n2. Second step\n3. Third step\n\n### Details\n\n- Point one\n- Point two`;
+    const body = `# Junk Removal Services: A Practical Guide\n\n${"Intro paragraph long enough to satisfy the length gate. ".repeat(3)}\n\n## Steps\n\n1. First step\n2. Second step\n3. Third step\n\n### Details\n\n- Point one\n- Point two`;
     const prepared = prepareWebflowDraft({ ...validDraft, body });
     expect(prepared.contentHtml).toContain("<ol><li>First step</li><li>Second step</li><li>Third step</li></ol>");
     expect(prepared.contentHtml).toContain("<ul><li>Point one</li><li>Point two</li></ul>");
@@ -74,5 +79,9 @@ describe("Webflow draft preparation", () => {
     { ...validDraft, body: "Too short" },
   ])("rejects an incomplete or unapproved transfer", (input) => {
     expect(() => prepareWebflowDraft(input)).toThrow();
+  });
+
+  it("blocks a previously approved legacy draft without researched title candidates", () => {
+    expect(() => prepareWebflowDraft({ ...validDraft, titleCandidates: [] })).toThrow(/headline and SEO\/meta title/i);
   });
 });

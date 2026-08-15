@@ -869,6 +869,7 @@ export type Database = {
           ideal_customer: string
           market: string
           normalized_domain: string
+          notification_email: string | null
           onboarding_completed_at: string | null
           organization_id: string
           plan_selected_at: string | null
@@ -888,6 +889,7 @@ export type Database = {
           ideal_customer?: string
           market?: string
           normalized_domain: string
+          notification_email?: string | null
           onboarding_completed_at?: string | null
           organization_id: string
           plan_selected_at?: string | null
@@ -907,6 +909,7 @@ export type Database = {
           ideal_customer?: string
           market?: string
           normalized_domain?: string
+          notification_email?: string | null
           onboarding_completed_at?: string | null
           organization_id?: string
           plan_selected_at?: string | null

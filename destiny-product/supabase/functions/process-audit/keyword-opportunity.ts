@@ -27,6 +27,13 @@ export type KeywordBusinessContext = {
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
 export type CustomerIntent = "conversion" | "consideration" | "awareness";
 
+export type KeywordPreferenceSignal = {
+  normalizedKeyword: string;
+  decision: "approved" | "declined";
+  reason?: "wrong_audience" | "not_offered" | "too_competitive" | "already_covered" | "not_now" | null;
+  updatedAt?: string | null;
+};
+
 export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandidate> = T & {
   providerIntent: ProviderIntent;
   searchIntent: CustomerIntent;
@@ -71,7 +78,7 @@ const TOKEN_FAMILIES: Record<string, string> = {
 };
 
 const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hire|near me|order|price|prices|pricing|promo code|quote|schedule|sign up|subscribe)\b/i;
-const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
+const COMMERCIAL = /\b(?:affordable|agency|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|expert|experts|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const PHYSICS_QUERY = /\bspeed of light\b/i;
@@ -81,7 +88,7 @@ const OBSERVABILITY_QUERY = /\bobservability\b/i;
 const OBSERVABILITY_COMPARISON = /\b(?:alternative|alternatives|compare|comparison|optimization|versus|vs\.?)\b/i;
 const LLM_ACADEMIC_NOISE = /\b(?:college|columbia|course|degree|harvard|lse|masters?|nyu|phd|program|stanford|students?|university|yale)\b/i;
 const LLM_ACADEMIC_LOCATION_COST = /\b(?:cost of llm in|llm cost in|llm in)\s+(?:australia|canada|india|ireland|new zealand|usa|united states)\b/i;
-const SERVICE_PROVIDER_QUERY = /\b(?:agency|consultants?|consulting|services?)\b/i;
+const SERVICE_PROVIDER_QUERY = /\b(?:agency|consultants?|consulting|experts?|services?)\b/i;
 const LLM_VISIBILITY_QUERY = /(?:\bseo\b|\bsearch engine optimization\b|\bllm search optimization\b|\bcontent optimization\b)/i;
 const LLM_RESEARCH_PAPER_NOISE = /\b(?:reset replay|sample efficient|survey and roofline)\b/i;
 const LLM_TRAINING_QUERY = /\b(?:fine[- ]?tuning|training)\b/i;
@@ -250,6 +257,10 @@ function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   // These are awareness topics unless the phrase also expresses a buyer action.
   if (INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword)
     && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return "informational";
+  // A provider may label service-provider phrases as informational. In a
+  // strategy product, agency, expert, consultant, and services searches are
+  // consideration intent unless the phrase has a stronger buying action.
+  if (SERVICE_PROVIDER_QUERY.test(candidate.keyword)) return "commercial";
   const supplied = String(candidate.intent ?? "").toLowerCase();
   if (supplied.includes("transaction") || supplied.includes("conversion")) return "transactional";
   if (supplied.includes("commercial") || supplied.includes("consideration")) return "commercial";
@@ -258,6 +269,56 @@ function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   if (COMMERCIAL.test(candidate.keyword)) return "commercial";
   if (INFORMATIONAL.test(candidate.keyword)) return "informational";
   return "informational";
+}
+
+function preferenceIdentity(value: string) {
+  return canonicalTokens(value).join(" ");
+}
+
+function preferenceSimilarity(left: string, right: string) {
+  const leftTokens = new Set(canonicalTokens(left));
+  const rightTokens = new Set(canonicalTokens(right));
+  if (!leftTokens.size || !rightTokens.size) return 0;
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return intersection / new Set([...leftTokens, ...rightTokens]).size;
+}
+
+export function applyKeywordPreferenceSignals<T extends RankedKeywordOpportunity>(
+  ranked: T[],
+  signals: KeywordPreferenceSignal[] = [],
+  now = new Date(),
+): T[] {
+  if (!signals.length) return ranked;
+  const activeSignals = signals.flatMap((signal) => {
+    const identity = preferenceIdentity(signal.normalizedKeyword);
+    if (!identity) return [];
+    if (signal.decision === "declined" && signal.reason === "not_now") {
+      const updatedAt = Date.parse(signal.updatedAt ?? "");
+      if (Number.isFinite(updatedAt) && now.getTime() - updatedAt > 90 * 24 * 60 * 60 * 1000) return [];
+    }
+    return [{ ...signal, identity }];
+  });
+
+  return ranked.flatMap((keyword) => {
+    const identity = preferenceIdentity(keyword.keyword);
+    const approved = activeSignals.find((signal) => signal.decision === "approved" && signal.identity === identity);
+    const declined = activeSignals.find((signal) => signal.decision === "declined" && (
+      signal.identity === identity
+      || (["wrong_audience", "not_offered"].includes(signal.reason ?? "")
+        && preferenceSimilarity(signal.normalizedKeyword, keyword.keyword) >= 0.75)
+    ));
+    if (declined) return [];
+    if (!approved) return [keyword];
+    return [{
+      ...keyword,
+      priorityTier: Math.min(keyword.priorityTier, 2) as 1 | 2,
+      priorityScore: Math.min(100, keyword.priorityScore + 12),
+      priorityReason: `${keyword.priorityReason} · previously approved`,
+    }];
+  }).sort((left, right) => left.priorityTier - right.priorityTier
+    || right.priorityScore - left.priorityScore
+    || Number(right.searchVolume ?? 0) - Number(left.searchVolume ?? 0)
+    || left.keyword.localeCompare(right.keyword));
 }
 
 function customerIntent(intent: ProviderIntent): CustomerIntent {

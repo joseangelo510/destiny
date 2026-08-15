@@ -13,6 +13,7 @@ describe("AccountSettings", () => {
     expect(html).toContain("reports@example.com");
     expect(html).toContain("Login email");
     expect(html).toContain("Audit and contact email");
+    expect(html).toContain("Each website can use a different address");
     expect(html).toContain("Your websites");
     expect(html).toContain("Example Co");
     expect(html).toContain("example.com");

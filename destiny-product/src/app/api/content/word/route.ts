@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildWordDocument, type ArticleDraft } from "@/lib/content/article-draft";
+import { articleTitleQualityIssues } from "@/lib/content/article-generation";
 import { createClient } from "@/lib/supabase/server";
 import { isWebsiteId } from "@/lib/workspace-selection";
 import { createDocxFromHtml, safeDocumentName } from "@/lib/word-document";
@@ -12,6 +13,8 @@ function articleDraft(value: unknown): ArticleDraft | null {
   return {
     keyword: draft.keyword,
     title: draft.title,
+    metaTitle: typeof draft.metaTitle === "string" && draft.metaTitle.trim() ? draft.metaTitle : draft.title,
+    titleCandidates: Array.isArray(draft.titleCandidates) ? draft.titleCandidates : [],
     body: draft.body,
     metaDescription: typeof draft.metaDescription === "string" ? draft.metaDescription : "",
     metaDescriptions: Array.isArray(draft.metaDescriptions) ? draft.metaDescriptions.filter((item): item is string => typeof item === "string").slice(0, 2) : [],
@@ -31,6 +34,8 @@ export async function POST(request: Request) {
   if (!isWebsiteId(payload.websiteId)) return NextResponse.json({ error: "Choose the website for this document." }, { status: 400 });
   const draft = articleDraft(payload.draft);
   if (!draft) return NextResponse.json({ error: "This article is incomplete and cannot be exported yet." }, { status: 400 });
+  const titleIssues = articleTitleQualityIssues({ title: draft.title, metaTitle: draft.metaTitle, titleCandidates: draft.titleCandidates, bodyMarkdown: draft.body }, draft.keyword);
+  if (titleIssues.length) return NextResponse.json({ error: `Review the headline and SEO/meta title before exporting: ${titleIssues[0].message}` }, { status: 400 });
 
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();

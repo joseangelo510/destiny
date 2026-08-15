@@ -3,6 +3,7 @@ import {
   SEARCH_INTENT_DEFINITIONS,
   buildEditorialCalendar,
   inferBusinessModel,
+  mergeApprovedSavedKeywords,
   prioritizeEditorialKeywords,
   selectKeywordsForCalendar,
 } from "./editorial-calendar";
@@ -168,6 +169,23 @@ describe("three-month editorial calendar", () => {
       "college admissions consultant",
       "college counselor pricing",
     ]);
+  });
+
+  it("adds approved live-research keywords to the calendar pool without duplicating audit keywords", () => {
+    const merged = mergeApprovedSavedKeywords([
+      { keyword: "existing audit keyword", intent: "commercial", searchVolume: 900, difficulty: 30 },
+    ], [
+      { keyword: "existing audit keyword", normalized_keyword: "existing audit keyword", decision: "approved", provider_intent: "commercial", search_volume: 900, difficulty: 30 },
+      { keyword: "background check fcra compliance", normalized_keyword: "background check fcra compliance", decision: "approved", provider_intent: "transactional", search_volume: 1300, difficulty: 18 },
+      { keyword: "clear view risk", normalized_keyword: "clear view risk", decision: "approved", provider_intent: "informational", search_volume: 0, difficulty: 0 },
+      { keyword: "declined idea", normalized_keyword: "declined idea", decision: "declined", provider_intent: "commercial", search_volume: 500, difficulty: 20 },
+    ]);
+
+    expect(merged.map((item) => item.keyword)).toEqual([
+      "existing audit keyword",
+      "background check fcra compliance",
+    ]);
+    expect(merged[1]).toMatchObject({ intent: "transactional", searchVolume: 1300, difficulty: 18, opportunity: "saved_strategy" });
   });
 
   it("keeps unreviewed automatic calendars on demand-backed keywords", async () => {

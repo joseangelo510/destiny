@@ -7,9 +7,8 @@ import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
 import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
-import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, mergeApprovedSavedKeywords, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
-import { mergeSavedApprovedKeywords } from "@/lib/content/saved-keyword-merge";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -45,13 +44,11 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     locationEvidence,
   }, 50);
   const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }] = context.website ? await Promise.all([
-    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,provider_intent,search_volume,difficulty").eq("website_id", context.website.id),
+    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,provider_intent,search_volume,difficulty,theme_id,theme_label").eq("website_id", context.website.id),
     context.supabase.from("tracked_keywords").select("source").eq("website_id", context.website.id).neq("status", "paused"),
   ]) : [{ data: [] }, { data: [] }];
   const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
-  // Approved website preferences saved from later Keyword Research join the audit
-  // pool here; declined and zero-volume saved phrases never reach the calendar.
-  const calendarKeywordPool = mergeSavedApprovedKeywords(rankedKeywords, savedKeywordPreferences ?? []);
+  const calendarKeywordPool = mergeApprovedSavedKeywords(rankedKeywords, savedKeywordPreferences ?? []);
   const keywordDecisions = Object.fromEntries(calendarKeywordPool.flatMap((keyword) => {
     const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
     return preference?.decision === "approved" || preference?.decision === "declined" ? [[keyword.keyword, preference.decision]] : [];
@@ -64,7 +61,10 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const keywords = selectKeywordsForCalendar(calendarKeywordPool, keywordDecisions, editorialContext);
   const businessModel = await inferBusinessModel(context.website?.products_services ?? "");
   const calendar = await buildEditorialCalendar(
-    keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })),
+    keywords.map((keyword) => ({
+      ...keyword,
+      intent: "providerIntent" in keyword ? String(keyword.providerIntent) : keyword.intent,
+    })),
     INITIAL_PLAN_WEEKS,
     businessModel,
     editorialContext,
@@ -99,7 +99,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={hydratedArticleDrafts.length} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
-      {!calendarKeywordPool.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool, or approve keywords from Keyword research." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
+      {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <ArticleReviewWorkspace
