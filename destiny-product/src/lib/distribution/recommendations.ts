@@ -23,7 +23,7 @@ export const baseDirectories: DirectoryRecommendation[] = [
   { key: "apple-maps", name: "Apple Maps", href: "https://businessconnect.apple.com/", detail: "Claim your place card through Apple Business Connect." },
   { key: "product-hunt", name: "Product Hunt", href: "https://www.producthunt.com/posts/new", detail: "Launch or update your product listing." },
   { key: "g2", name: "G2", href: "https://www.g2.com/products/new", detail: "Create a product profile and invite verified customers." },
-  { key: "capterra", name: "Capterra", href: "https://www.capterra.com/vendors/sign-up", detail: "Add your software or service to the buyer directory." },
+  { key: "capterra", name: "Capterra", href: "https://www.capterra.com/vendors/", detail: "Start with Capterra’s vendor page, then continue through the G2 Digital Markets flow." },
 ];
 
 const directoryHosts: Record<string, string[]> = {
@@ -60,7 +60,7 @@ const contextualDirectories: Array<{ terms: RegExp; items: DirectoryRecommendati
   { terms: /software|saas|app\b|platform|technology/i, items: [
     { key: "product-hunt", name: "Product Hunt", href: "https://www.producthunt.com/posts/new", detail: "Launch or update your product listing.", reason: "Product buyers and early adopters discover new software here." },
     { key: "g2", name: "G2", href: "https://www.g2.com/products/new", detail: "Create a product profile.", reason: "G2 captures high-intent software comparison searches." },
-    { key: "capterra", name: "Capterra", href: "https://www.capterra.com/vendors/sign-up", detail: "Create a vendor profile.", reason: "Capterra reaches buyers comparing software categories." },
+    { key: "capterra", name: "Capterra", href: "https://www.capterra.com/vendors/", detail: "Start a vendor profile through G2 Digital Markets.", reason: "Capterra reaches buyers comparing software categories." },
   ] },
   { terms: /real estate|realtor|property|home buyer|home seller/i, items: [
     { key: "zillow", name: "Zillow", href: "https://www.zillow.com/professionals/real-estate-agent-reviews/", detail: "Complete your agent profile.", reason: "Home buyers use Zillow to research local agents." },
@@ -90,14 +90,35 @@ export function isPaidPlan(planTier: string | null | undefined): boolean {
   return planTier === "moderate" || planTier === "super_growth";
 }
 
-const majorMedia = /(^|\.)(forbes|nytimes|foxnews|cnn|bbc|wsj|washingtonpost|businessinsider)\.(com|co\.uk)$/i;
+const ineligibleCreatorHosts = [
+  "wikipedia.org", "wikimedia.org", "britannica.com", "fandom.com", "imdb.com",
+  "amazon.com", "amazon.co.uk", "amazon.ca", "amazon.de", "amazon.fr", "amazon.es", "amazon.it", "amazon.in", "amazon.co.jp", "amazon.com.au", "amazon.com.br", "amazon.com.mx",
+  "forbes.com", "yahoo.com", "yahoo.co.uk", "yahoo.co.jp", "nytimes.com", "foxnews.com", "cnn.com", "bbc.com", "bbc.co.uk", "wsj.com", "washingtonpost.com", "businessinsider.com", "bloomberg.com", "reuters.com", "apnews.com", "cnbc.com", "theguardian.com", "usatoday.com",
+  "google.com", "bing.com", "microsoft.com", "apple.com", "walmart.com", "ebay.com", "etsy.com",
+  "yelp.com", "bbb.org", "tripadvisor.com", "zillow.com", "realtor.com", "yellowpages.com",
+  "reddit.com", "quora.com", "stackoverflow.com",
+  "adp.com", "bib.com", "goodhire.com", "checkr.com", "sterlingcheck.com", "hireright.com", "accurate.com", "backgroundchecks.com",
+] as const;
+
+function isIneligibleCreatorDomain(domain: string): boolean {
+  return ineligibleCreatorHosts.some((host) => domain === host || domain.endsWith(`.${host}`));
+}
+
+function publisherPlatform(domain: string): string {
+  if (domain === "europa.eu" || domain.endsWith(".europa.eu") || domain.endsWith(".gov") || /\.gov\.[a-z]{2}$/i.test(domain)) return "Official source";
+  if (domain.includes("medium.com")) return "Medium";
+  if (domain.includes("youtube.com")) return "YouTube";
+  if (domain.includes("linkedin.com")) return "LinkedIn";
+  if (domain.includes("instagram.com")) return "Instagram";
+  return "Independent blog";
+}
 
 export function creatorProspects(rows: Array<Record<string, unknown>>): CreatorProspect[] {
   return rows.flatMap((row) => {
     const domain = String(row.domain ?? "").replace(/^www\./, "").toLowerCase();
     const url = String(row.url ?? "");
-    if (!domain || !url || majorMedia.test(domain)) return [];
-    const platform = domain.includes("medium.com") ? "Medium" : domain.includes("youtube.com") ? "YouTube" : domain.includes("linkedin.com") ? "LinkedIn" : domain.includes("instagram.com") ? "Instagram" : "Independent blog";
+    if (!domain || !url || isIneligibleCreatorDomain(domain)) return [];
+    const platform = publisherPlatform(domain);
     return [{
       name: String(row.name ?? domain),
       domain,

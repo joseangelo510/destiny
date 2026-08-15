@@ -64,7 +64,7 @@ export function selectImportantPageLinks(homepage: string, links: string[], limi
   }
   for (const candidate of candidates.values()) {
     if (selected.length >= limit) break;
-    if (candidate.role !== "other" && !selected.some((page) => page.url === candidate.url)) selected.push(candidate);
+    if (!selected.some((page) => page.url === candidate.url)) selected.push(candidate);
   }
   return selected;
 }

@@ -13,16 +13,24 @@
     "lint": "eslint",
     "logos:embed": "node scripts/embed-logos-wasm.mjs",
     "port:preflight": "bash scripts/check-replit-port-manifest.sh",
-    "test": "vitest run"
+    "test": "vitest run",
+    "qa:inventory": "node scripts/qa-inventory.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
+    "test:links": "playwright test qa/e2e/links.spec.ts",
+    "gate": "pnpm qa:inventory && pnpm lint && pnpm test && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.111.0",
+    "html-to-docx": "1.8.0",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

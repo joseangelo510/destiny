@@ -68,7 +68,6 @@ describe("WeeklyLoop", () => {
     const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} remainingTasks={2} />);
 
     expect(html).toContain("Your weekly SEO loop");
-    expect(html).toContain('href="/audits/audit-1"');
     expect(html).toContain("Four kinds of work build your visibility");
     expect(html).toContain("Approve your priority keywords");
     expect(html).not.toContain("Review your first article");
@@ -78,6 +77,8 @@ describe("WeeklyLoop", () => {
     expect((html.match(/Content creation/g) ?? [])).toHaveLength(1);
     expect((html.match(/Technical SEO/g) ?? [])).toHaveLength(1);
     expect(html).not.toContain("Data analysis");
+    expect(html).toContain("See full audit details");
+    expect(html).toContain('href="/audits/audit-1"');
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {
@@ -85,8 +86,11 @@ describe("WeeklyLoop", () => {
 
     expect(html).toContain("Your audit is complete");
     expect(html).toContain("Your audit is done. Here’s your plan.");
-    expect(html).toContain("Start with Approve your priority keywords");
-    expect(html).toContain("Choose the opportunities most likely to bring qualified customers.");
+    expect(html).not.toContain("ready this week");
+    expect(html).toContain("Start: Approve your priority keywords");
+    expect(html).toContain("Start here — your next move is based on what the audit found.");
+    expect(html).toContain("See full audit details");
+    expect(html).toContain('href="/audits/audit-1"');
     expect(html).toContain("Replay plan reveal");
   });
 

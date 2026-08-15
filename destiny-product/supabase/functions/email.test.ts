@@ -43,5 +43,6 @@ describe("Destiny transactional email", () => {
     expect(url).toBe("https://api.resend.com/emails");
     expect(request?.headers).toMatchObject({ "Idempotency-Key": "destiny-audit-ready-audit-id" });
     expect(String(request?.body)).toContain("https://app.destiny.example/this-week");
+    expect(String(request?.body)).toContain("Open my week 1 plan");
   });
 });

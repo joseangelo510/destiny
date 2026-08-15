@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { RoadmapExperience } from "@/components/roadmap-experience";
+import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildSeasonSnapshot } from "@/lib/product/founder-journey";
 import { buildSeoRoadmap, type RoadmapAnalytics, type RoadmapSearchConsole } from "@/lib/product/roadmap";
@@ -30,6 +31,7 @@ export default async function RoadmapPage() {
   });
 
   return <WorkspaceShell active="/roadmap" eyebrow={context.website.normalized_domain} title="Your visibility journey" description="See where you are, where you are going, and the one useful step to take next.">
+    <FeatureJourneyCallout actionHref="/this-week" actionLabel="Open this week’s next step" milestone="Your visibility journey" description="Use the roadmap to understand sequence, then return to one concrete action." doneLooksLike="The current milestone points to one open task rather than a new dashboard choice." evidence="Saved task state and connected outcome evidence remain separate." />
     <RoadmapExperience roadmap={roadmap} season={season} weekly={weekly} />
   </WorkspaceShell>;
 }

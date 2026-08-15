@@ -3,10 +3,11 @@ import {
   DEFAULT_ARTICLE_PREFERENCES,
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
+  articleQualityIssuesFromPolicy,
   buildAnthropicArticleRequest,
   buildAnthropicArticleContinuationRequest,
-  buildArticleEvidencePack,
   buildArticleGenerationPrompt,
+  buildSearchEvidencePack,
   renderInfographicSvg,
   validateGeneratedArticle,
   type GeneratedArticlePayload,
@@ -28,10 +29,7 @@ function validLongFormPayload(): GeneratedArticlePayload {
   });
   return {
     title: "SEO Content Strategy: A Practical Growth Guide",
-    metaDescriptions: [
-      "Build an SEO content strategy with credible research, useful examples, and a clear publishing plan.",
-      "Learn how an SEO content strategy connects search intent, original insight, and measurable business growth.",
-    ],
+    metaDescriptions: ["Build an SEO content strategy with credible research, useful examples, and a clear publishing plan."],
     bodyMarkdown: ["# SEO Content Strategy: A Practical Growth Guide", "", ...paragraphs].join("\n"),
     bucketBrigades: sections.map((_, index) => ({ text: `So what should you do with section ${index + 1}?`, afterWord: 100 + index * 330 })),
     sources: [1, 2, 3].map((index) => ({
@@ -44,19 +42,6 @@ function validLongFormPayload(): GeneratedArticlePayload {
 }
 
 describe("Destiny article generation policy", () => {
-  it("formats only a sufficient set of valid evidence sources for the streaming writer", () => {
-    const evidence = buildArticleEvidencePack([
-      { title: "Primary source", url: "https://example.com/primary", publisher: "example.com", description: "Verified context" },
-      { title: "Research source", url: "https://example.org/research", publisher: "example.org" },
-      { title: "Industry source", url: "https://example.net/industry", publisher: "example.net" },
-      { title: "Invalid source", url: "http://not-accepted.example" },
-    ]);
-
-    expect(evidence).toContain("Primary source — https://example.com/primary");
-    expect(evidence).toContain("Use the source title and URL only");
-    expect(() => buildArticleEvidencePack([{ title: "Only one", url: "https://example.com/one" }])).toThrow("enough credible sources");
-  });
-
   it("keeps Jose's approved controls and SEO-article defaults", () => {
     expect(DEFAULT_ARTICLE_PREFERENCES).toEqual({
       voice: "punchy_coach",
@@ -90,6 +75,11 @@ describe("Destiny article generation policy", () => {
 
     expect(prompt).toContain("2,000–3,000 words");
     expect(prompt).toContain("6–9 H2 sections");
+    // Structural headroom: initial generation must aim inside the policy
+    // band, reserving word and H2 budget for the bounded finishing pass.
+    expect(prompt).toContain("2,300–2,800 words");
+    expect(prompt).toContain("exactly 6–8 H2 sections");
+    expect(prompt).toContain("never plan 9 or more");
     expect(prompt).toContain("4–9 contextual bucket brigades");
     expect(prompt).toContain("first 150 words");
     expect(prompt).toContain("at least 40% of headings");
@@ -99,26 +89,29 @@ describe("Destiny article generation policy", () => {
     expect(prompt).not.toContain("write like Neil Patel");
   });
 
-  it("includes verified research when the streaming writer supplies it", () => {
-    const prompt = buildArticleGenerationPrompt({
-      keyword: "seo content strategy",
-      businessName: "Destiny",
-      problemSolved: "Founders need a repeatable organic growth system.",
-      idealCustomer: "Founder-led businesses",
-      differentiation: "A guided SEO operating system",
-      internalPages: [],
-      preferences: DEFAULT_ARTICLE_PREFERENCES,
-    }, "1. Primary source — https://example.com/source");
-
-    expect(prompt).toContain("VERIFIED EXTERNAL RESEARCH");
-    expect(prompt).toContain("https://example.com/source");
-  });
-
-  it("configures Opus 4.8 with server-side web research instead of asking the model to invent sources", () => {
-    const request = buildAnthropicArticleRequest("Research and write the article.", "claude-opus-4-8");
+  it("builds a deterministic DataForSEO evidence pack before the tool-free writing request", () => {
+    const evidence = buildSearchEvidencePack({
+      status_code: 20000,
+      tasks: [{ status_code: 20000, result: [{ items: [1, 2, 3].map((index) => ({
+        type: "organic",
+        title: `Verified source ${index}`,
+        url: `https://example${index}.gov/guidance`,
+        description: `Evidence summary ${index}`,
+      })) }] }],
+    });
+    expect(evidence).toContain("https://example1.gov/guidance");
+    expect(evidence).toContain("Evidence summary 3");
+    const request = buildAnthropicArticleRequest("Write from this verified evidence pack.", "claude-opus-4-8");
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
-    expect(request.messages[0]).toEqual({ role: "user", content: "Research and write the article." });
+    expect(request.max_tokens).toBe(9000);
+    expect(request).not.toHaveProperty("tools");
+    expect(request.output_config.format.type).toBe("json_schema");
+    expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["bodyMarkdown", "sources", "infographics"]));
+    expect(request.output_config.format.schema.required).toContain("metaDescription");
+    expect(request.output_config.format.schema.required).not.toContain("metaDescriptions");
+    expect(request.output_config.format.schema.properties.metaDescription).toEqual({ type: "string" });
+    expect(request.output_config.format.schema.properties).not.toHaveProperty("metaDescriptions");
+    expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
   });
 
   it("continues a paused server-side research turn with the exact provider blocks", () => {
@@ -126,7 +119,7 @@ describe("Destiny article generation policy", () => {
     const request = buildAnthropicArticleContinuationRequest("Research and write the article.", pausedContent, "claude-opus-4-8");
 
     expect(request.model).toBe("claude-opus-4-8");
-    expect(request.tools).toEqual([{ type: "web_search_20260209", name: "web_search", max_uses: 8 }]);
+    expect(request.tools).toBeUndefined();
     expect(request.messages).toEqual([
       { role: "user", content: "Research and write the article." },
       { role: "assistant", content: pausedContent },
@@ -150,6 +143,40 @@ describe("Destiny article generation policy", () => {
       "source_coverage",
       "stock_phrase",
     ]));
+  });
+
+  it("explains an over-fragmented H2 outline instead of showing a generic hierarchy warning", () => {
+    const issues = articleQualityIssuesFromPolicy({
+      articleWordIssue: false,
+      articleHeadingIssue: true,
+      articleHeadingKeywordIssue: false,
+      articleHeadingVarietyIssue: false,
+      articleBrigadeIssue: false,
+      articleBrigadeSpacingIssue: false,
+      articleStockIssue: false,
+      articleMetaIssue: false,
+      articleSourceIssue: false,
+    }, {
+      formatCode: 1,
+      wordCount: 2_400,
+      h1Count: 1,
+      h2Count: 13,
+      h3Count: 8,
+      skippedLevel: 0,
+      titleKeyword: 1,
+      firstH2Keyword: 1,
+      keywordFreePercent: 50,
+      brigadeCount: 6,
+      firstBrigade: 120,
+      minBrigadeGap: 140,
+      stockPhrase: 0,
+      metaCount: 1,
+      metaOverlength: 0,
+      sourceCount: 4,
+      citedCount: 4,
+    }, "seo_article");
+
+    expect(issues).toEqual([{ code: "heading_structure", message: "Consolidate the outline to 6–9 H2 sections; this draft has 13." }]);
   });
 
   it("renders an original, source-labeled SVG instead of reusing a third-party infographic", () => {

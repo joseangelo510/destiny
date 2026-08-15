@@ -4,6 +4,7 @@ import { PublishingDestinations } from "@/components/publishing-destinations";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
+import { connectionHealth } from "@/lib/integrations/connection-health";
 
 const providers = [
   { id: "google_search_console", name: "Google Search Console", description: "Queries, clicks, impressions, positions, and indexed pages" },
@@ -33,7 +34,7 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
   const connectedProvider = params.provider ? providerNames[params.provider] : undefined;
   return (
     <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Connect the SEO data Destiny measures and the destination where approved content should be drafted. Credentials remain server-side.">
-      <FeatureJourneyCallout milestone="Signs it’s working" description="Search Console and Analytics let Destiny confirm real impressions, clicks, rankings, and conversions." />
+      <FeatureJourneyCallout actionHref="#google-setup" actionLabel="Connect one source" milestone="Signs it’s working" description="Connect the data source Destiny needs to confirm business outcomes." doneLooksLike="A selected resource has completed a successful sync." evidence="A timestamped, source-labeled sync snapshot." />
       {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Destiny needs a saved website before an external account can be connected to it." /> : (
         <>
         <section className="integration-list" id="google-setup">
@@ -44,9 +45,10 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
           {params.google === "failed" && <div className="integration-banner error"><strong>Google connection was not completed</strong><p>Please try again. If this repeats, review the Google consent-screen and redirect-URL configuration.</p></div>}
           {providers.map((provider) => {
             const saved = context.integrations.find((item) => item.provider === provider.id);
-            const connected = saved?.status === "connected";
+            const health = connectionHealth(saved?.status, saved?.last_synced_at);
+            const connected = health.connected;
             const href = `/api/integrations/google/start?provider=${provider.id}&websiteId=${context.website.id}`;
-            return <article className="integration-row" key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata)}</p>{saved?.last_synced_at && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${connected ? "" : "amber"}`}>{saved?.status ?? "Not connected"}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
+            return <article className={`integration-row ${health.needsAttention ? "needs-attention" : ""}`} key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata)}</p><small>{health.detail}</small>{saved?.last_synced_at && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${health.needsAttention || !connected ? "amber" : ""}`}>{health.label}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
           })}
           <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Destiny never reports a connection as live until Google completes authorization.</p></div>
         </section>

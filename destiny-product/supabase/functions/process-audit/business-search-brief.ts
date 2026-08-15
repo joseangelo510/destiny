@@ -84,6 +84,13 @@ const GENERIC_SEEDS = new Set([
   "solve problems",
 ]);
 
+const GENERIC_DIFFERENTIATION_TOKENS = new Set([
+  "affordable", "best", "better", "cheap", "cheaper", "company", "cost", "costs", "efficient", "experience",
+  "fast", "faster", "fastest", "free", "good", "great", "high", "low", "lower", "lowest", "price", "prices", "pricing",
+  "quality", "quick", "reliable", "review", "reviews", "service", "services", "solution", "solutions", "team",
+  "top", "trusted", "trustworthy", "value", "year", "years",
+]);
+
 const BRIEF_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -164,6 +171,12 @@ function slug(value: string, fallback: string) {
 
 function normalizeEvidence(value: string) {
   return value.normalize("NFKC").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function themeHasSpecificDifferentiationEvidence(theme: KeywordTheme) {
+  return [...theme.requiredTerms, ...theme.seedKeywords].some((phrase) => normalizeEvidence(phrase)
+    .split(/\s+/)
+    .some((token) => token.length >= 3 && !/^\d+$/.test(token) && !GENERIC_DIFFERENTIATION_TOKENS.has(token)));
 }
 
 function fieldValue(context: BusinessSearchContext, field: BusinessSearchField) {
@@ -495,7 +508,8 @@ export function keywordDiscoveryThemes(brief: BusinessSearchBrief) {
     if (fields.has("productsServices") || fields.has("problemSolved")) return true;
     return fields.has("differentiation")
       && theme.priority === "primary"
-      && (theme.funnelRole === "consideration" || theme.funnelRole === "technical_authority");
+      && (theme.funnelRole === "consideration" || theme.funnelRole === "technical_authority")
+      && themeHasSpecificDifferentiationEvidence(theme);
   });
 }
 

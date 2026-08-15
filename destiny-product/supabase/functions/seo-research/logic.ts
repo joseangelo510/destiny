@@ -151,7 +151,18 @@ export function normalizeDomain(value: string) {
 }
 
 const CREATOR_PLATFORMS = ["medium.com", "youtube.com", "linkedin.com", "instagram.com"] as const;
-const MAJOR_MEDIA = /(^|\.)(forbes|nytimes|foxnews|cnn|bbc|wsj|washingtonpost|businessinsider)\.(com|co\.uk)$/i;
+const INELIGIBLE_CREATOR_HOSTS = [
+  "wikipedia.org", "wikimedia.org", "britannica.com", "fandom.com", "imdb.com",
+  "amazon.com", "amazon.co.uk", "amazon.ca", "amazon.de", "amazon.fr", "amazon.es", "amazon.it", "amazon.in", "amazon.co.jp", "amazon.com.au", "amazon.com.br", "amazon.com.mx",
+  "forbes.com", "yahoo.com", "yahoo.co.uk", "yahoo.co.jp", "nytimes.com", "foxnews.com", "cnn.com", "bbc.com", "bbc.co.uk", "wsj.com", "washingtonpost.com", "businessinsider.com", "bloomberg.com", "reuters.com", "apnews.com", "cnbc.com", "theguardian.com", "usatoday.com",
+  "google.com", "bing.com", "microsoft.com", "apple.com", "walmart.com", "ebay.com", "etsy.com",
+  "yelp.com", "bbb.org", "tripadvisor.com", "zillow.com", "realtor.com", "yellowpages.com",
+  "reddit.com", "quora.com", "stackoverflow.com",
+] as const;
+
+function isIneligibleCreatorDomain(domain: string): boolean {
+  return INELIGIBLE_CREATOR_HOSTS.some((host) => domain === host || domain.endsWith(`.${host}`));
+}
 
 export function creatorSearchRequests(topics: string[], locationName = "United States") {
   const topic = topics.map((item) => item.trim()).find((item) => item.length >= 2)?.slice(0, 160) ?? "";
@@ -178,7 +189,7 @@ export function parseCreatorSearchResults(payload: unknown, excludedDomains: str
       const url = string(item.url);
       let domain = "";
       try { domain = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
-      if (!domain || excluded.has(domain) || [...excluded].some((value) => domain.endsWith(`.${value}`)) || MAJOR_MEDIA.test(domain) || seen.has(url)) return [];
+      if (!domain || excluded.has(domain) || [...excluded].some((value) => domain.endsWith(`.${value}`)) || isIneligibleCreatorDomain(domain) || seen.has(url)) return [];
       seen.add(url);
       const platform = domain.includes("medium.com") ? "Medium"
         : domain.includes("youtube.com") ? "YouTube"
@@ -198,4 +209,20 @@ export function parseCreatorSearchResults(payload: unknown, excludedDomains: str
       }];
     });
   }).slice(0, 25);
+}
+
+export function parseArticleEvidence(payload: unknown, limit = 5) {
+  const result = firstResult(payload);
+  const seen = new Set<string>();
+  return array(result.items).flatMap((itemValue) => {
+    const item = record(itemValue);
+    if (string(item.type) !== "organic") return [];
+    const title = string(item.title).trim();
+    const url = string(item.url).trim();
+    if (!title || !/^https:\/\//i.test(url) || seen.has(url)) return [];
+    let publisher = "";
+    try { publisher = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
+    seen.add(url);
+    return [{ title, url, publisher, description: string(item.description).trim() }];
+  }).slice(0, Math.max(1, limit));
 }

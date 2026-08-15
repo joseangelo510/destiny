@@ -88,6 +88,14 @@ function monthLabel(start: Date, offset: number) {
   return value.toLocaleDateString("en-US", { month: "long", timeZone: "UTC", year: "numeric" });
 }
 
+function startingLine(displayName: string, rankingKeywords: number) {
+  const rankings = Math.max(0, rankingKeywords);
+  if (rankings === 0) return `${displayName} has not begun earning measurable search visibility yet. That is the honest starting line, and it gives this plan a clear job.`;
+  if (rankings < 10) return `${displayName} has very little search visibility today. That is the honest starting line, and it is also why the upside is large.`;
+  if (rankings < 50) return `${displayName} has begun earning search visibility, but most of the opportunity is still ahead. This quarter will turn that early footprint into focused momentum.`;
+  return `${displayName} already has a meaningful search footprint. This quarter will protect that foundation and focus effort on the opportunities most likely to create growth.`;
+}
+
 export async function buildGamePlan(input: GamePlanInput) {
   const identityMatches = businessIdentityMatchCount(input);
   const policy = await runDestinyServerLogic({
@@ -117,16 +125,30 @@ export async function buildGamePlan(input: GamePlanInput) {
   const keywordTargetLow = policy.planKeywordTargetLow;
   const keywordTargetHigh = policy.planKeywordTargetHigh;
   const themeCopy = {
-    foundation: { theme: "Build the foundation", milestones: ["Confirm the priority keyword direction", "Resolve the highest-impact technical issues", "Improve the most important existing pages", "Validate measurement and indexing"] },
-    content_engine: { theme: "Build the content engine", milestones: ["Publish high-intent service and decision pages", "Create supporting educational content", "Strengthen internal links between related pages", "Begin repeatable review and distribution work"] },
-    authority: { theme: "Expand authority", milestones: ["Distribute the strongest content", "Earn credible citations and mentions", "Refresh pages showing early traction", "Use verified results to choose the next quarter"] },
+    foundation: {
+      theme: "Foundation",
+      summary: "Technical fixes ship and target searches are locked. Rankings may barely move yet—that is expected.",
+      milestones: ["Confirm the priority keyword direction", "Resolve the highest-impact technical issues", "Improve the most important existing pages", "Validate measurement and indexing"],
+    },
+    content_engine: {
+      theme: "Content and demand",
+      summary: "New pages go live and begin getting indexed. Early impressions and new keyword movement can start to appear.",
+      milestones: ["Publish high-intent service and decision pages", "Create supporting educational content", "Strengthen internal links between related pages", "Begin repeatable review and distribution work"],
+    },
+    authority: {
+      theme: "Trust signals",
+      summary: "Distribution, reviews, links, and mentions accumulate while Destiny uses early evidence to shape the next quarter.",
+      milestones: ["Distribute the strongest content", "Earn credible citations and mentions", "Refresh pages showing early traction", "Use verified results to choose the next quarter"],
+    },
   } as const;
 
   return {
     ...identity,
+    domain: input.normalizedDomain,
     title: `${identity.displayName}’s 90-Day SEO Game Plan`,
     period: `${monthLabel(start, 0)}–${monthLabel(start, 2)}`,
     thesis: `Build a stronger search foundation, focus on valuable customer demand, and earn the trust signals ${identity.displayName} needs to become easier to find.`,
+    startingLine: startingLine(identity.displayName, input.rankingKeywords),
     taskProgress,
     baseline: [
       { label: "Ranking keywords", value: Math.max(0, input.rankingKeywords).toLocaleString() },
@@ -135,28 +157,28 @@ export async function buildGamePlan(input: GamePlanInput) {
     ],
     plays: [
       {
-        title: "Own valuable customer searches",
-        description: "Prioritize buying, comparison, and problem-aware searches that have a credible path to revenue.",
+        title: "Fix the foundation",
+        description: "Make every important page easy for search engines to read and index, so everything else in the plan has a stable place to grow.",
         evidence: `${input.approvedKeywords} approved · ${input.usableKeywords} researched`,
-        href: "/keywords",
-        linkLabel: "Review keyword strategy",
-      },
-      {
-        title: "Answer the questions customers ask",
-        description: "Turn priority searches into useful service pages, articles, FAQs, and decision-support content.",
-        evidence: `${contentProgress.complete} of ${contentProgress.total} planning milestones complete`,
-        href: "/content",
-        linkLabel: "Open content strategy",
-      },
-      {
-        title: "Strengthen the website foundation",
-        description: "Improve crawlability, indexing, page structure, internal links, and performance before scaling content.",
-        evidence: `${technicalProgress.complete} of ${technicalProgress.total} foundation milestones complete`,
         href: "/audits",
         linkLabel: "Review technical evidence",
       },
       {
-        title: "Build trust across the web",
+        title: "Chase real customer demand",
+        description: "Target the buying, comparison, and problem-aware searches your customers actually use—not broad vanity keywords.",
+        evidence: `${contentProgress.complete} of ${contentProgress.total} planning milestones complete`,
+        href: "/keywords",
+        linkLabel: "Review keyword strategy",
+      },
+      {
+        title: "Publish pages that answer",
+        description: "Turn priority searches into a focused set of useful service pages, articles, FAQs, and decision-support content.",
+        evidence: `${technicalProgress.complete} of ${technicalProgress.total} foundation milestones complete`,
+        href: "/content",
+        linkLabel: "Open content strategy",
+      },
+      {
+        title: "Earn trust signals",
         description: "Earn reviews, citations, links, community visibility, and credible source mentions that support search and AI discovery.",
         evidence: `${trustProgress.complete} of ${trustProgress.total} authority milestones complete`,
         href: "/distribution",

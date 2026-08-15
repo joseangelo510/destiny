@@ -137,6 +137,8 @@ const seededLogic: DestinyLogicResult = {
   rankMovementDelta: 0,
   rankFreshnessCode: 0,
   rankBucket: 0,
+  keywordWorkspaceTab: "review",
+  keywordNextStep: "review_keywords",
   articleWordIssue: true,
   articleHeadingIssue: true,
   articleHeadingKeywordIssue: true,

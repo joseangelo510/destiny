@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { notFound, redirect } from "next/navigation";
 import { AuditMomentumProcessing } from "@/components/audit-momentum-processing";
 import { WeeklyTaskList } from "@/components/weekly-task-list";
@@ -118,7 +118,7 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
 
       <section className="results-checklist">
         <div className="results-checklist-heading"><div><span className="eyebrow">Your coaching plan</span><h2>See what to do next</h2><p>Destiny completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
-        <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList openTaskId={currentCoachTask?.id ?? null} remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
+        <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList auditId={id} openTaskId={currentCoachTask?.id ?? null} remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
       </section>
 
       <details className="business-context-review">
