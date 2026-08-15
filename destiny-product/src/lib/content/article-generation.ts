@@ -87,6 +87,10 @@ export type InfographicSpec = {
   sourceLabel: string;
   sourceIds?: string[];
   altText: string;
+  /** Exact H2/H3 text after which this graphic belongs. */
+  placementAfterHeading?: string;
+  /** Visible attribution/caption carried into the CMS figure. */
+  caption?: string;
 };
 
 export type ArticleTitleCandidate = {
@@ -203,7 +207,7 @@ Return one JSON object only with this shape:
   "bodyMarkdown": "# ...",
   "bucketBrigades": [{"text":"...","afterWord":120}],
   "sources": [{"id":"source-1","title":"...","url":"https://...","publisher":"..."}],
-  "infographics": [{"id":"graphic-1","template":"steps|comparison|stat|timeline|checklist","title":"...","insight":"...","items":["..."],"sourceLabel":"Source: ...","sourceIds":["source-1"],"altText":"..."}]
+  "infographics": [{"id":"graphic-1","template":"steps|comparison|stat|timeline|checklist","title":"...","insight":"...","items":["..."],"sourceLabel":"Source: ...","sourceIds":["source-1"],"altText":"...","placementAfterHeading":"Exact H2 or H3 text","caption":"Source: ..."}]
 }`;
 }
 
@@ -265,7 +269,7 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
               items: {
                 type: "object",
                 additionalProperties: false,
-                required: ["id", "template", "title", "insight", "items", "sourceLabel", "sourceIds", "altText"],
+                required: ["id", "template", "title", "insight", "items", "sourceLabel", "sourceIds", "altText", "placementAfterHeading", "caption"],
                 properties: {
                   id: { type: "string" },
                   template: { type: "string", enum: ["steps", "comparison", "stat", "timeline", "checklist"] },
@@ -275,6 +279,8 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
                   sourceLabel: { type: "string" },
                   sourceIds: { type: "array", items: { type: "string" } },
                   altText: { type: "string" },
+                  placementAfterHeading: { type: "string" },
+                  caption: { type: "string" },
                 },
               },
             },
@@ -537,6 +543,24 @@ export function renderInfographicSvg(spec: InfographicSpec) {
   return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(spec.altText)}" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="36" fill="#f4f8f6"/><rect width="18" height="${height}" fill="#b8e455"/><text x="70" y="92" fill="#183f33" font-family="Arial, sans-serif" font-size="50" font-weight="750">${escapeXml(spec.title.slice(0, 48))}</text><text x="70" y="148" fill="#5e746d" font-family="Arial, sans-serif" font-size="26">${escapeXml(spec.insight.slice(0, 80))}</text><g font-family="Arial, sans-serif">${rows}</g><text x="70" y="${height - 42}" fill="#71827c" font-family="Arial, sans-serif" font-size="20">${escapeXml(spec.sourceLabel.slice(0, 120))}</text></svg>`;
 }
 
+function featuredTitleLines(value: string) {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  for (const word of words) {
+    const current = lines.at(-1) ?? "";
+    if (!current || `${current} ${word}`.length > 31) lines.push(word);
+    else lines[lines.length - 1] = `${current} ${word}`;
+  }
+  return lines.slice(0, 3);
+}
+
+/** A deterministic social/featured asset, deliberately separate from tall inline infographics. */
+export function renderFeaturedImageSvg(title: string, keyword: string) {
+  const lines = featuredTitleLines(title);
+  const titleSvg = lines.map((line, index) => `<text x="82" y="${210 + index * 78}" fill="#f9fbfa" font-family="Georgia, serif" font-size="62" font-weight="700">${escapeXml(line)}</text>`).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(`${title} featured image`)}" viewBox="0 0 1200 630" width="1200" height="630"><rect width="1200" height="630" fill="#183f33"/><circle cx="1080" cy="72" r="250" fill="#2f6b5a" opacity=".72"/><circle cx="1060" cy="590" r="310" fill="#b8e455" opacity=".18"/><rect x="82" y="90" width="86" height="8" rx="4" fill="#b8e455"/><text x="82" y="145" fill="#b8e455" font-family="Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="3">DESTINY GUIDE</text>${titleSvg}<text x="82" y="552" fill="#cfe1da" font-family="Arial, sans-serif" font-size="25">${escapeXml(keyword.slice(0, 72))}</text><path d="M1015 215c43 0 78 35 78 78 0 66-78 143-78 143s-78-77-78-143c0-43 35-78 78-78Z" fill="#b8e455"/><circle cx="1015" cy="292" r="30" fill="#183f33"/></svg>`;
+}
+
 function object(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -577,6 +601,8 @@ export function parseGeneratedArticlePayload(raw: string): GeneratedArticlePaylo
       sourceLabel: typeof graphic.sourceLabel === "string" ? graphic.sourceLabel : "Source: article research",
       sourceIds: stringArray(graphic.sourceIds),
       altText,
+      placementAfterHeading: typeof graphic.placementAfterHeading === "string" ? graphic.placementAfterHeading.trim() : "",
+      caption: typeof graphic.caption === "string" && graphic.caption.trim() ? graphic.caption.trim() : (typeof graphic.sourceLabel === "string" ? graphic.sourceLabel.trim() : ""),
     } satisfies InfographicSpec];
   }) : [];
   const title = typeof parsed.title === "string" ? parsed.title.trim() : "";

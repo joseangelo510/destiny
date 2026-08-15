@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { fingerprintMatches, plainText, publicationState, verifyPublicPage } from "./logic.ts";
+import { fingerprintFromRemote, fingerprintMatches, plainText, publicationState, verifyPublicPage } from "./logic.ts";
 
 type ConnectionSecret = { integration_id?: unknown; credentials?: unknown };
 
@@ -34,7 +34,7 @@ export default {
     if (credentialError || !integrationId || !siteUrl || !username || !password) return json({ error: "Reconnect WordPress before checking this article." }, 409);
 
     const { data: transfer } = await context.supabaseAdmin.from("cms_transfers")
-      .select("id,remote_id,remote_permalink,delivered_fingerprint,publication_status,verified_live_at")
+      .select("id,remote_id,remote_permalink,delivered_fingerprint,publication_status,verified_live_at,featured_media_id,media_ids")
       .eq("website_id", websiteId).eq("integration_id", integrationId).eq("article_key", articleKey).maybeSingle();
     if (!transfer?.remote_id) return json({ error: "Send this article to WordPress before checking its status." }, 409);
 
@@ -57,7 +57,10 @@ export default {
     const remoteStatus = remote.status;
     const permalink = typeof remote.link === "string" ? remote.link : typeof transfer.remote_permalink === "string" ? transfer.remote_permalink : "";
     const content = typeof remote.content?.rendered === "string" ? remote.content.rendered : "";
-    const fingerprint = typeof transfer.delivered_fingerprint === "string" ? transfer.delivered_fingerprint : "";
+    const remoteTitle = typeof remote.title?.rendered === "string" ? remote.title.rendered : "";
+    const fingerprint = typeof transfer.delivered_fingerprint === "string" && transfer.delivered_fingerprint.trim()
+      ? transfer.delivered_fingerprint
+      : fingerprintFromRemote(remoteTitle, content);
     const contentMatches = fingerprintMatches(content, fingerprint);
     let evidence: Record<string, unknown> = { remoteStatus, contentMatches, checkedAt: new Date().toISOString() };
     let state = publicationState(remoteStatus, contentMatches);
@@ -69,7 +72,10 @@ export default {
       try {
         const publicResponse = await fetch(permalink, { headers: { Accept: "text/html" }, redirect: "follow", signal: AbortSignal.timeout(20_000) });
         const html = await publicResponse.text();
-        const verification = verifyPublicPage({ status: publicResponse.status, html, permalink, fingerprint });
+        const mediaIds = Array.isArray(transfer.media_ids) ? transfer.media_ids : [];
+        const featuredImageRequired = transfer.featured_media_id !== null && transfer.featured_media_id !== undefined;
+        const expectedInlineImages = Math.max(0, mediaIds.length - (featuredImageRequired ? 1 : 0));
+        const verification = verifyPublicPage({ status: publicResponse.status, html, permalink, fingerprint, featuredImageRequired, expectedInlineImages });
         renderedTitle = verification.renderedTitle;
         evidence = { ...evidence, ...verification };
         state = publicationState(remoteStatus, contentMatches, verification.verified);
@@ -87,6 +93,7 @@ export default {
       remote_permalink: permalink || null,
       remote_modified_at: typeof remote.modified_gmt === "string" && remote.modified_gmt ? `${remote.modified_gmt}Z` : null,
       remote_content_hash: await sha256(plainText(content)),
+      delivered_fingerprint: fingerprint || null,
       scheduled_for: remoteStatus === "future" && typeof remote.date_gmt === "string" && remote.date_gmt ? `${remote.date_gmt}Z` : null,
       last_reconciled_at: now,
       verified_live_at: verifiedLiveAt,

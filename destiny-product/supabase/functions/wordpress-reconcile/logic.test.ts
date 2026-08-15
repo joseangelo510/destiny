@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fingerprintMatches, publicationState, verifyPublicPage } from "./logic";
+import { fingerprintFromRemote, fingerprintMatches, publicationState, verifyPublicPage } from "./logic";
 
 describe("WordPress reconciliation", () => {
   it.each([
@@ -17,6 +17,11 @@ describe("WordPress reconciliation", () => {
     expect(fingerprintMatches("<h1>A useful guide</h1><p>Practical opening paragraph.</p>", "a useful guide practical opening paragraph")).toBe(true);
   });
 
+  it("builds a bounded legacy fingerprint from the authenticated WordPress article", () => {
+    expect(fingerprintFromRemote("FCRA-Compliant Background Checks", "<p>A practical employer guide.</p>"))
+      .toBe("fcra compliant background checks a practical employer guide");
+  });
+
   it("verifies the public page using canonical, fingerprint, and robots evidence", () => {
     expect(verifyPublicPage({
       status: 200,
@@ -24,5 +29,30 @@ describe("WordPress reconciliation", () => {
       fingerprint: "a useful guide practical opening paragraph",
       html: '<title>A Useful Guide - Example</title><link rel="canonical" href="https://example.com/useful-guide/"><h1>A useful guide</h1><p>Practical opening paragraph.</p>',
     })).toMatchObject({ verified: true, renderedTitle: "A Useful Guide - Example" });
+  });
+
+  it("fails closed when a new transfer is missing its required featured or inline media", () => {
+    const result = verifyPublicPage({
+      status: 200,
+      permalink: "https://example.com/useful-guide/",
+      fingerprint: "a useful guide practical opening paragraph",
+      expectedInlineImages: 1,
+      featuredImageRequired: true,
+      html: '<title>A Useful Guide</title><link rel="canonical" href="https://example.com/useful-guide/"><h1>A useful guide</h1><p>Practical opening paragraph.</p>',
+    });
+    expect(result).toMatchObject({ verified: false, mediaVerified: false });
+    expect(result.reason).toMatch(/featured image/i);
+  });
+
+  it("verifies featured metadata, inline image count, and alt text for new transfers", () => {
+    const result = verifyPublicPage({
+      status: 200,
+      permalink: "https://example.com/useful-guide/",
+      fingerprint: "a useful guide practical opening paragraph",
+      expectedInlineImages: 1,
+      featuredImageRequired: true,
+      html: '<title>A Useful Guide</title><link rel="canonical" href="https://example.com/useful-guide/"><meta property="og:image" content="https://example.com/featured.webp"><h1>A useful guide</h1><p>Practical opening paragraph.</p><div class="entry-content"><figure class="wp-block-image destiny-article-figure"><img src="https://example.com/inline.webp" alt="Useful diagram"></figure></div>',
+    });
+    expect(result).toMatchObject({ verified: true, mediaVerified: true, inlineImageCount: 1 });
   });
 });

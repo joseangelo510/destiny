@@ -3519,9 +3519,18 @@
     "context": "<p>{destination.description}</p> <button className=\"secondary-button\" disabled type=\"button\">Coming soon</button> </article>;"
   },
   {
-    "control_id": "src/components/publishing-destinations.tsx:82:summary:1",
+    "control_id": "src/components/publishing-destinations.tsx:64:a:1",
     "file": "src/components/publishing-destinations.tsx",
-    "line": 82,
+    "line": 64,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<WordPressIntegrationAction connected={wordpressConnected} savedSiteUrl={wordpressSiteUrl} websiteId={websiteId} /> <a className=\"secondary-button\" href=\"/destiny-article-style.zip\" download>Download WordPress article style</a> </div>"
+  },
+  {
+    "control_id": "src/components/publishing-destinations.tsx:83:summary:1",
+    "file": "src/components/publishing-destinations.tsx",
+    "line": 83,
     "type": "summary",
     "route": "component",
     "side_effect_class": 3,

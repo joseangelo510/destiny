@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contentFingerprint, insertWordPressFigures, prepareDraftBody, wordpressDraftPayload, wordpressEditUrl } from "./logic";
+import { contentFingerprint, insertWordPressFigures, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl } from "./logic";
 
 describe("WordPress draft Edge Function logic", () => {
   it("hard-codes draft status and creates the editor link", () => {
@@ -17,7 +17,7 @@ describe("WordPress draft Edge Function logic", () => {
     expect(wordpressEditUrl("https://example.com/", "42")).toBe("https://example.com/wp-admin/post.php?post=42&action=edit");
   });
 
-  it("adds uploaded graphics after article sections and uses the first as featured media", () => {
+  it("sets the dedicated featured image and anchors captioned inline graphics to their sections", () => {
     const draft = prepareDraftBody({
       websiteId: "website-1",
       articleKey: "audit-1:keyword",
@@ -26,14 +26,45 @@ describe("WordPress draft Edge Function logic", () => {
       excerpt: "A concise summary.",
     });
     const media = [
-      { id: 20, sourceUrl: "https://example.com/uploads/first.webp", alt: "First graphic" },
-      { id: 21, sourceUrl: "https://example.com/uploads/second.webp", alt: "Second graphic" },
+      { id: 20, sourceUrl: "https://example.com/uploads/featured.webp", alt: "Featured graphic", role: "featured" as const, caption: "", placementAfterHeading: "" },
+      { id: 21, sourceUrl: "https://example.com/uploads/second.webp", alt: "Second graphic", role: "inline" as const, caption: "Source: Destiny research", placementAfterHeading: "Second section" },
     ];
     const content = insertWordPressFigures(draft.contentHtml, media);
-    expect(content).toContain('<figure class="wp-block-image"><img src="https://example.com/uploads/first.webp" alt="First graphic" /></figure>');
-    expect(content.indexOf("first.webp")).toBeGreaterThan(content.indexOf("First section"));
+    expect(content).not.toContain("featured.webp");
+    expect(content).toContain('<!-- wp:image {"id":21,"sizeSlug":"large"} -->');
+    expect(content).toContain('<figcaption class="wp-element-caption">Source: Destiny research</figcaption>');
     expect(content.indexOf("second.webp")).toBeGreaterThan(content.indexOf("Second section"));
     expect(wordpressDraftPayload(draft, media)).toMatchObject({ status: "draft", featured_media: 20, content });
+  });
+
+  it("falls back to the next unused H2 when an inline image has no matching anchor", () => {
+    const draft = prepareDraftBody({
+      websiteId: "website-1",
+      articleKey: "audit-1:keyword",
+      title: "A useful article",
+      contentHtml: `<p>${"Opening content. ".repeat(8)}</p><h2>First section</h2><p>One</p>`,
+    });
+    const content = insertWordPressFigures(draft.contentHtml, [{
+      id: 22,
+      sourceUrl: "https://example.com/uploads/inline.webp",
+      alt: "Inline graphic",
+      role: "inline",
+      caption: "Destiny original",
+      placementAfterHeading: "Missing section",
+    }]);
+    expect(content.indexOf("inline.webp")).toBeGreaterThan(content.indexOf("First section"));
+  });
+
+  it("verifies WordPress saved the featured image and every inline attachment", () => {
+    const media = [
+      { id: 20, sourceUrl: "https://example.com/featured.webp", alt: "Featured", role: "featured" as const, caption: "", placementAfterHeading: "" },
+      { id: 21, sourceUrl: "https://example.com/inline.webp", alt: "Useful diagram", role: "inline" as const, caption: "Source", placementAfterHeading: "First section" },
+    ];
+    expect(verifyDeliveredDraftMedia({
+      featuredMedia: 20,
+      contentHtml: '<figure class="destiny-article-figure"><img class="wp-image-21" src="https://example.com/inline.webp" alt="Useful diagram"></figure>',
+    }, media)).toEqual({ verified: true, reason: "" });
+    expect(verifyDeliveredDraftMedia({ featuredMedia: 0, contentHtml: "" }, media)).toMatchObject({ verified: false });
   });
 
   it("creates a stable, short fingerprint from the article text", () => {

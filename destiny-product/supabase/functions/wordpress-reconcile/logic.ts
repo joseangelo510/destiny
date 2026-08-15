@@ -3,6 +3,8 @@ export type PublicVerificationInput = {
   html: string;
   permalink: string;
   fingerprint: string;
+  expectedInlineImages?: number;
+  featuredImageRequired?: boolean;
 };
 
 function normalizedUrl(value: string) {
@@ -35,6 +37,10 @@ export function fingerprintMatches(html: string, fingerprint: string) {
   return terms.length > 0 && terms.filter((term) => text.includes(term)).length / terms.length >= 0.8;
 }
 
+export function fingerprintFromRemote(titleHtml: string, contentHtml: string) {
+  return plainText(`${titleHtml} ${contentHtml}`).split(" ").slice(0, 28).join(" ");
+}
+
 export function verifyPublicPage(input: PublicVerificationInput) {
   const renderedTitle = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(input.html)?.[1]?.replace(/\s+/g, " ").trim() ?? "";
   const canonical = /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=["']([^"']+)["'][^>]*>/i.exec(input.html)?.[1]
@@ -44,12 +50,27 @@ export function verifyPublicPage(input: PublicVerificationInput) {
   const indexable = !/\bnoindex\b/i.test(robots);
   const canonicalMatches = Boolean(canonical) && normalizedUrl(canonical) === normalizedUrl(input.permalink);
   const contentMatches = fingerprintMatches(input.html, input.fingerprint);
+  const inlineFigures = Array.from(input.html.matchAll(/<figure\b[^>]*class=["'][^"']*destiny-article-figure[^"']*["'][^>]*>([\s\S]*?)<\/figure>/gi));
+  const inlineImageCount = inlineFigures.length;
+  const inlineAltComplete = inlineFigures.every((match) => /<img\b[^>]*alt=["'][^"']+[^>]*>/i.test(match[1]));
+  const featuredImagePresent = /<meta\b[^>]*property=["']og:image(?::url)?["'][^>]*content=["'][^"']+["'][^>]*>/i.test(input.html)
+    || /<meta\b[^>]*content=["'][^"']+["'][^>]*property=["']og:image(?::url)?["'][^>]*>/i.test(input.html);
+  const expectedInlineImages = Math.max(0, input.expectedInlineImages ?? 0);
+  const mediaVerificationRequired = Boolean(input.featuredImageRequired) || expectedInlineImages > 0;
+  const mediaVerified = !mediaVerificationRequired || (
+    (!input.featuredImageRequired || featuredImagePresent)
+    && inlineImageCount >= expectedInlineImages
+    && inlineAltComplete
+  );
   let reason = "";
   if (input.status < 200 || input.status >= 300) reason = `The public URL returned HTTP ${input.status}.`;
   else if (!indexable) reason = "The published page is marked noindex.";
   else if (!canonicalMatches) reason = "The canonical URL does not match the WordPress permalink.";
   else if (!contentMatches) reason = "The public page does not contain the delivered article fingerprint.";
-  return { verified: !reason, reason, renderedTitle, canonical, canonicalMatches, contentMatches, indexable, httpStatus: input.status };
+  else if (input.featuredImageRequired && !featuredImagePresent) reason = "The published page is missing its required featured image metadata.";
+  else if (inlineImageCount < expectedInlineImages) reason = `The published page contains ${inlineImageCount} of ${expectedInlineImages} required inline images.`;
+  else if (!inlineAltComplete) reason = "At least one published inline image is missing alt text.";
+  return { verified: !reason, reason, renderedTitle, canonical, canonicalMatches, contentMatches, indexable, httpStatus: input.status, mediaVerified, featuredImagePresent, inlineImageCount, inlineAltComplete };
 }
 
 export function publicationState(remoteStatus: string, contentMatches: boolean, publicVerified?: boolean) {
