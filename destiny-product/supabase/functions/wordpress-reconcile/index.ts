@@ -34,7 +34,7 @@ export default {
     if (credentialError || !integrationId || !siteUrl || !username || !password) return json({ error: "Reconnect WordPress before checking this article." }, 409);
 
     const { data: transfer } = await context.supabaseAdmin.from("cms_transfers")
-      .select("id,remote_id,remote_permalink,delivered_fingerprint,publication_status,verified_live_at")
+      .select("id,remote_id,remote_permalink,delivered_fingerprint,publication_status,verified_live_at,featured_media_id,media_ids")
       .eq("website_id", websiteId).eq("integration_id", integrationId).eq("article_key", articleKey).maybeSingle();
     if (!transfer?.remote_id) return json({ error: "Send this article to WordPress before checking its status." }, 409);
 
@@ -72,7 +72,10 @@ export default {
       try {
         const publicResponse = await fetch(permalink, { headers: { Accept: "text/html" }, redirect: "follow", signal: AbortSignal.timeout(20_000) });
         const html = await publicResponse.text();
-        const verification = verifyPublicPage({ status: publicResponse.status, html, permalink, fingerprint });
+        const mediaIds = Array.isArray(transfer.media_ids) ? transfer.media_ids : [];
+        const featuredImageRequired = transfer.featured_media_id !== null && transfer.featured_media_id !== undefined;
+        const expectedInlineImages = Math.max(0, mediaIds.length - (featuredImageRequired ? 1 : 0));
+        const verification = verifyPublicPage({ status: publicResponse.status, html, permalink, fingerprint, featuredImageRequired, expectedInlineImages });
         renderedTitle = verification.renderedTitle;
         evidence = { ...evidence, ...verification };
         state = publicationState(remoteStatus, contentMatches, verification.verified);

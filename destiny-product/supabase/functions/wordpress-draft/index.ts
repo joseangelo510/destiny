@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { contentFingerprint, prepareDraftBody, wordpressDraftPayload, wordpressEditUrl, type UploadedWordPressMedia, type WordPressMediaInput } from "./logic.ts";
+import { contentFingerprint, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl, type UploadedWordPressMedia, type WordPressMediaInput } from "./logic.ts";
 
 type ConnectionSecret = {
   integration_id?: unknown;
@@ -28,7 +28,12 @@ function wordpressFieldReport(metaTitle: string, titleSuffix: string, mediaCount
     { field: "title", label: "Article headline", status: "transferred", note: "Used as the WordPress post title." },
     { field: "", label: "SEO/meta title", status: "needs_review", note: `Copy “${metaTitle}” into the connected WordPress SEO plugin. Estimated rendered title: “${rendered}” (${width}px${width > 580 ? "; shorten before publishing" : ""}). Destiny verifies the actual title after publication.` },
     { field: "excerpt", label: "Meta description", status: "transferred", note: "Transferred as the WordPress excerpt; confirm your SEO plugin also uses it." },
-    ...(mediaCount ? [{ field: "featured_media", label: `${mediaCount} original graphic${mediaCount === 1 ? "" : "s"}`, status: "transferred", note: "Uploaded to the WordPress media library, placed in the article, and the first graphic was set as the featured image." }] : []),
+    ...(mediaCount ? [{
+      field: "featured_media",
+      label: mediaCount === 1 ? "Dedicated featured image" : `Featured image + ${mediaCount - 1} inline graphic${mediaCount === 2 ? "" : "s"}`,
+      status: "transferred",
+      note: "Destiny uploaded a separate social-ready featured image and placed each captioned inline graphic in its intended article section.",
+    }] : []),
   ];
 }
 
@@ -67,11 +72,11 @@ async function uploadWordPressMedia(siteUrl: string, authorization: string, plan
       const metadata = await fetch(`${siteUrl}/wp-json/wp/v2/media/${remote.id}`, {
         method: "POST",
         headers: { Authorization: authorization, Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ alt_text: item.alt }),
+        body: JSON.stringify({ alt_text: item.alt, ...(item.caption ? { caption: item.caption } : {}) }),
         signal: AbortSignal.timeout(15_000),
       });
       if (!metadata.ok) throw new Error(`WordPress could not save graphic alt text (${metadata.status}).`);
-      uploaded.push({ id: remote.id, sourceUrl: remote.source_url, alt: item.alt });
+      uploaded.push({ id: remote.id, sourceUrl: remote.source_url, alt: item.alt, role: item.role, caption: item.caption, placementAfterHeading: item.placementAfterHeading });
     }
     return uploaded;
   } catch (cause) {
@@ -169,7 +174,7 @@ export default {
       return json({ error: "Destiny could not reach WordPress. Test the connection and try again." }, 502);
     }
 
-    const remote = await response.json().catch(() => ({})) as { id?: unknown; link?: unknown; status?: unknown; modified_gmt?: unknown };
+    const remote = await response.json().catch(() => ({})) as { id?: unknown; link?: unknown; status?: unknown; modified_gmt?: unknown; featured_media?: unknown; content?: { rendered?: unknown } };
     if (!response.ok || (typeof remote.id !== "number" && typeof remote.id !== "string")) {
       await deleteUploadedMedia(siteUrl, authorization, uploadedMedia.map((item) => item.id));
       const errorClass = response.status === 401 || response.status === 403 ? "authorization_failed" : "wordpress_rejected";
@@ -180,6 +185,26 @@ export default {
     const remoteId = String(remote.id);
     const remoteEditUrl = wordpressEditUrl(siteUrl, remoteId);
     const fieldReport = wordpressFieldReport(draft.metaTitle, titleSuffix, uploadedMedia.length);
+    const draftMediaVerification = verifyDeliveredDraftMedia({
+      featuredMedia: typeof remote.featured_media === "number" ? remote.featured_media : 0,
+      contentHtml: typeof remote.content?.rendered === "string" ? remote.content.rendered : "",
+    }, uploadedMedia);
+    if (!draftMediaVerification.verified) {
+      await context.supabaseAdmin.from("cms_transfers").update({
+        status: "failed",
+        publication_status: "delivery_failed",
+        remote_id: remoteId,
+        remote_edit_url: remoteEditUrl,
+        remote_permalink: typeof remote.link === "string" ? remote.link : null,
+        error_class: "media_readback_failed",
+        error_detail: draftMediaVerification.reason,
+        featured_media_id: uploadedMedia.find((item) => item.role === "featured")?.id ?? null,
+        media_ids: uploadedMedia.map((item) => item.id),
+        verification_evidence: { draftMediaVerified: false, reason: draftMediaVerification.reason },
+        updated_at: new Date().toISOString(),
+      }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
+      return json({ error: "WordPress created a draft but did not preserve every required image. Destiny blocked it from being marked ready.", remoteEditUrl }, 502);
+    }
     const { error: completionError } = await context.supabaseAdmin.from("cms_transfers").update({
       status: "succeeded",
       publication_status: "delivered_draft",
@@ -189,9 +214,10 @@ export default {
       remote_status: typeof remote.status === "string" ? remote.status : "draft",
       remote_modified_at: typeof remote.modified_gmt === "string" ? remote.modified_gmt : null,
       delivered_fingerprint: contentFingerprint(draft.title, wordpressDraftPayload(draft, uploadedMedia).content),
-      featured_media_id: uploadedMedia[0]?.id ?? null,
+      featured_media_id: uploadedMedia.find((item) => item.role === "featured")?.id ?? null,
       media_ids: uploadedMedia.map((item) => item.id),
       field_report: fieldReport,
+      verification_evidence: { draftMediaVerified: true, featuredMediaId: uploadedMedia.find((item) => item.role === "featured")?.id ?? null, inlineMediaIds: uploadedMedia.filter((item) => item.role === "inline").map((item) => item.id) },
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);

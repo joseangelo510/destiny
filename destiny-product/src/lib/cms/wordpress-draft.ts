@@ -1,5 +1,5 @@
 import { renderArticleMarkdownToHtml } from "@/lib/content/article-draft";
-import { articleTitleQualityIssues, renderInfographicSvg, type InfographicSpec } from "@/lib/content/article-generation";
+import { articleTitleQualityIssues, renderFeaturedImageSvg, renderInfographicSvg, type InfographicSpec } from "@/lib/content/article-generation";
 
 export type WordPressDraftRequest = {
   websiteId?: unknown;
@@ -15,8 +15,19 @@ export type WordPressDraftRequest = {
   generationStatus?: unknown;
 };
 
-function prepareInfographics(value: unknown) {
-  if (!Array.isArray(value)) return [] as Array<{ name: string; svg: string; alt: string }>;
+function slug(value: string) {
+  return value.replace(/[^a-z0-9-]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase();
+}
+
+function articleHeadings(markdown: string) {
+  return markdown.split("\n").flatMap((line) => {
+    const match = /^#{2,3}\s+(.+?)\s*$/.exec(line);
+    return match ? [match[1].replace(/[*_`]/g, "").trim()] : [];
+  });
+}
+
+function prepareInfographics(value: unknown, headings: string[]) {
+  if (!Array.isArray(value)) return [] as Array<{ name: string; svg: string; alt: string; role: "inline"; caption: string; placementAfterHeading: string }>;
   return value.slice(0, 3).flatMap((entry, index) => {
     if (!entry || typeof entry !== "object") return [];
     const graphic = entry as Partial<InfographicSpec>;
@@ -30,9 +41,36 @@ function prepareInfographics(value: unknown) {
       items: graphic.items.filter((item): item is string => typeof item === "string").slice(0, 8),
       sourceLabel: graphic.sourceLabel.trim(),
       altText: graphic.altText.trim(),
+      placementAfterHeading: typeof graphic.placementAfterHeading === "string" ? graphic.placementAfterHeading.trim() : "",
+      caption: typeof graphic.caption === "string" ? graphic.caption.trim() : "",
     };
-    return [{ name: spec.id.replace(/[^a-z0-9-]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || `graphic-${index + 1}`, svg: renderInfographicSvg(spec), alt: spec.altText }];
+    const placementAfterHeading = spec.placementAfterHeading || headings[index] || headings[0] || "";
+    return [{
+      name: slug(spec.id) || `graphic-${index + 1}`,
+      svg: renderInfographicSvg(spec),
+      alt: spec.altText,
+      role: "inline" as const,
+      caption: spec.caption || spec.sourceLabel,
+      placementAfterHeading,
+    }];
   });
+}
+
+function wordpressArticleBlocks(contentHtml: string) {
+  const blocks = Array.from(contentHtml.matchAll(/<(h[2-6]|p|ul|ol|blockquote)\b[^>]*>[\s\S]*?<\/\1>/gi)).map((match) => {
+    const tag = match[1].toLocaleLowerCase();
+    let html = match[0];
+    if (tag === "p") {
+      const callout = /^<p><strong>(Practical tip|A worked example|Worked example|Key takeaway|Why this matters):<\/strong>/i.test(html);
+      if (callout) html = html.replace(/^<p>/, '<p class="destiny-callout">');
+      return `<!-- wp:paragraph${callout ? ' {"className":"destiny-callout"}' : ""} -->${html}<!-- /wp:paragraph -->`;
+    }
+    if (/^h[2-6]$/.test(tag)) return `<!-- wp:heading {"level":${tag.slice(1)}} -->${html}<!-- /wp:heading -->`;
+    if (tag === "ul") return `<!-- wp:list -->${html}<!-- /wp:list -->`;
+    if (tag === "ol") return `<!-- wp:list {"ordered":true} -->${html}<!-- /wp:list -->`;
+    return `<!-- wp:quote -->${html}<!-- /wp:quote -->`;
+  }).join("");
+  return `<!-- wp:group {"className":"destiny-article"} --><div class="wp-block-group destiny-article">${blocks}</div><!-- /wp:group -->`;
 }
 
 export function prepareWordPressDraft(input: WordPressDraftRequest) {
@@ -55,8 +93,19 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
   const titleIssues = articleTitleQualityIssues({ title, metaTitle, titleCandidates: input.titleCandidates, bodyMarkdown: body }, keyword);
   if (titleIssues.length) throw new Error(`Review the headline and SEO/meta title before sending this article: ${titleIssues[0].message}`);
 
-  const contentHtml = renderArticleMarkdownToHtml(body).replace(/^<h1>.*?<\/h1>/, "");
+  const renderedHtml = renderArticleMarkdownToHtml(body).replace(/^<h1>.*?<\/h1>/, "");
+  const contentHtml = wordpressArticleBlocks(renderedHtml);
   if (!contentHtml) throw new Error("The approved article has no content to send.");
+
+  const featuredName = `${slug(title) || "destiny-article"}-featured`;
+  const featuredGraphic = {
+    name: featuredName,
+    svg: renderFeaturedImageSvg(title, keyword),
+    alt: `${title} featured image`,
+    role: "featured" as const,
+    caption: "",
+    placementAfterHeading: "",
+  };
 
   return {
     websiteId: input.websiteId.trim(),
@@ -65,6 +114,7 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
     metaTitle,
     contentHtml,
     excerpt,
-    graphics: prepareInfographics(input.infographics),
+    featuredGraphic,
+    graphics: prepareInfographics(input.infographics, articleHeadings(body)),
   };
 }

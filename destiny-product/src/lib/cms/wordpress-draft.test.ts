@@ -37,8 +37,24 @@ describe("WordPress draft preparation", () => {
     }));
     expect(prepareWordPressDraft(validDraft).contentHtml).not.toContain("<h1>");
     expect(prepareWordPressDraft(validDraft).contentHtml).toContain("<ul><li>Transparent pricing</li>");
+    expect(prepareWordPressDraft(validDraft).contentHtml).toContain("destiny-article");
+    expect(prepareWordPressDraft(validDraft).contentHtml).toContain('<!-- wp:heading {"level":2} -->');
+    expect(prepareWordPressDraft(validDraft).contentHtml).toContain('<!-- wp:list -->');
+    expect(prepareWordPressDraft(validDraft).featuredGraphic).toEqual(expect.objectContaining({
+      name: "junk-removal-services-a-practical-guide-featured",
+      role: "featured",
+      alt: "Junk Removal Services: A Practical Guide featured image",
+      svg: expect.stringContaining('viewBox="0 0 1200 630"'),
+    }));
     expect(prepareWordPressDraft(validDraft).graphics).toEqual([
-      expect.objectContaining({ name: "comparison-guide", alt: "Checklist for comparing junk removal services", svg: expect.stringContaining("<svg") }),
+      expect.objectContaining({
+        name: "comparison-guide",
+        role: "inline",
+        alt: "Checklist for comparing junk removal services",
+        caption: "Source: Destiny article research",
+        placementAfterHeading: "What to compare",
+        svg: expect.stringContaining("<svg"),
+      }),
     ]);
   });
 
@@ -68,5 +84,14 @@ describe("WordPress draft HTML safety", () => {
     for (const anchor of hostile.contentHtml.match(/<a [^>]*>/g) ?? []) {
       expect(anchor).toMatch(/^<a href="[^"]*">$/);
     }
+  });
+
+  it("turns named editorial asides into explicit callouts instead of pseudo-headings", () => {
+    const prepared = prepareWordPressDraft({
+      ...validDraft,
+      body: `# Junk Removal Services: A Practical Guide\n\n${"Opening context for the reader and the decision they need to make. ".repeat(4)}\n\n## What to compare\n\n**Practical tip:** Ask for the written price before pickup.`,
+    });
+    expect(prepared.contentHtml).toContain("destiny-callout");
+    expect(prepared.contentHtml).toContain("Practical tip:");
   });
 });

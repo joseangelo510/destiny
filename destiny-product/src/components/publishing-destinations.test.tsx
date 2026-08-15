@@ -25,6 +25,7 @@ describe("PublishingDestinations", () => {
   it("keeps WordPress actionable and labels every unbuilt connector honestly", () => {
     const html = render();
     expect(html).toContain("Connect WordPress");
+    expect(html).toContain("Download WordPress article style");
     expect(html).toContain("Connect Webflow");
     expect(html.match(/Coming soon/g)).toHaveLength(17);
     expect(html).toContain("Available now");
