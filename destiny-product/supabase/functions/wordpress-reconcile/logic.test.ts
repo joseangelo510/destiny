@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fingerprintMatches, publicationState, verifyPublicPage } from "./logic";
+import { fingerprintFromRemote, fingerprintMatches, publicationState, verifyPublicPage } from "./logic";
 
 describe("WordPress reconciliation", () => {
   it.each([
@@ -15,6 +15,11 @@ describe("WordPress reconciliation", () => {
 
   it("recognizes the delivered content after WordPress formatting changes", () => {
     expect(fingerprintMatches("<h1>A useful guide</h1><p>Practical opening paragraph.</p>", "a useful guide practical opening paragraph")).toBe(true);
+  });
+
+  it("builds a bounded legacy fingerprint from the authenticated WordPress article", () => {
+    expect(fingerprintFromRemote("FCRA-Compliant Background Checks", "<p>A practical employer guide.</p>"))
+      .toBe("fcra compliant background checks a practical employer guide");
   });
 
   it("verifies the public page using canonical, fingerprint, and robots evidence", () => {

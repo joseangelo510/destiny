@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { fingerprintMatches, plainText, publicationState, verifyPublicPage } from "./logic.ts";
+import { fingerprintFromRemote, fingerprintMatches, plainText, publicationState, verifyPublicPage } from "./logic.ts";
 
 type ConnectionSecret = { integration_id?: unknown; credentials?: unknown };
 
@@ -57,7 +57,10 @@ export default {
     const remoteStatus = remote.status;
     const permalink = typeof remote.link === "string" ? remote.link : typeof transfer.remote_permalink === "string" ? transfer.remote_permalink : "";
     const content = typeof remote.content?.rendered === "string" ? remote.content.rendered : "";
-    const fingerprint = typeof transfer.delivered_fingerprint === "string" ? transfer.delivered_fingerprint : "";
+    const remoteTitle = typeof remote.title?.rendered === "string" ? remote.title.rendered : "";
+    const fingerprint = typeof transfer.delivered_fingerprint === "string" && transfer.delivered_fingerprint.trim()
+      ? transfer.delivered_fingerprint
+      : fingerprintFromRemote(remoteTitle, content);
     const contentMatches = fingerprintMatches(content, fingerprint);
     let evidence: Record<string, unknown> = { remoteStatus, contentMatches, checkedAt: new Date().toISOString() };
     let state = publicationState(remoteStatus, contentMatches);
@@ -87,6 +90,7 @@ export default {
       remote_permalink: permalink || null,
       remote_modified_at: typeof remote.modified_gmt === "string" && remote.modified_gmt ? `${remote.modified_gmt}Z` : null,
       remote_content_hash: await sha256(plainText(content)),
+      delivered_fingerprint: fingerprint || null,
       scheduled_for: remoteStatus === "future" && typeof remote.date_gmt === "string" && remote.date_gmt ? `${remote.date_gmt}Z` : null,
       last_reconciled_at: now,
       verified_live_at: verifiedLiveAt,

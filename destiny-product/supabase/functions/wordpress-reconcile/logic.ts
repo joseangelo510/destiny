@@ -35,6 +35,10 @@ export function fingerprintMatches(html: string, fingerprint: string) {
   return terms.length > 0 && terms.filter((term) => text.includes(term)).length / terms.length >= 0.8;
 }
 
+export function fingerprintFromRemote(titleHtml: string, contentHtml: string) {
+  return plainText(`${titleHtml} ${contentHtml}`).split(" ").slice(0, 28).join(" ");
+}
+
 export function verifyPublicPage(input: PublicVerificationInput) {
   const renderedTitle = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(input.html)?.[1]?.replace(/\s+/g, " ").trim() ?? "";
   const canonical = /<link\b[^>]*rel=["'][^"']*canonical[^"']*["'][^>]*href=["']([^"']+)["'][^>]*>/i.exec(input.html)?.[1]
