@@ -269,6 +269,8 @@ export async function POST(request: Request) {
         draft: {
           keyword: input.keyword,
           title: article.title,
+          metaTitle: article.metaTitle,
+          titleCandidates: article.titleCandidates,
           metaDescription: article.metaDescriptions[0] ?? "",
           metaDescriptions: article.metaDescriptions,
           body: article.bodyMarkdown,

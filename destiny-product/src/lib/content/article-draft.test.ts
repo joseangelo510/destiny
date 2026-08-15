@@ -11,6 +11,7 @@ describe("article review workspace", () => {
       differentiation: "Fifteen years of practical SEO experience",
     });
     expect(draft.title).toContain("SaaS Content Marketing Agency");
+    expect(draft.metaTitle).toContain("SaaS Content Marketing Agency");
     expect(draft.body).toContain("Jose Angelo Studios");
     expect(draft.body).toContain("Founder-led service businesses");
     expect(draft.generationStatus).toBe("starter");
@@ -22,6 +23,7 @@ describe("article review workspace", () => {
     const document = buildWordDocument(draft);
     expect(document).toContain("application-ready Destiny article");
     expect(document).toContain("Meta description 1");
+    expect(document).toContain("SEO/meta title");
     expect(document).not.toContain("Meta description 2");
     expect(fitMetaDescription("A very long saved description ".repeat(12)).length).toBeLessThanOrEqual(150);
     expect(normalizeArticleBody("Local experience.. That matters because it is specific.")).toBe("Local experience. That matters because it is specific.");

@@ -16,6 +16,14 @@ async function contentHash(value: string) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function wordpressFieldReport(metaTitle: string) {
+  return [
+    { field: "title", label: "Article headline", status: "transferred", note: "Used as the WordPress post title." },
+    { field: "", label: "SEO/meta title", status: "needs_review", note: `Copy “${metaTitle}” into the connected WordPress SEO plugin's title field. Until then, the live title tag will usually follow the post title or theme template.` },
+    { field: "excerpt", label: "Meta description", status: "transferred", note: "Transferred as the WordPress excerpt; confirm your SEO plugin also uses it." },
+  ];
+}
+
 export default {
   fetch: withSupabase({ auth: "user" }, async (request, context) => {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -54,7 +62,7 @@ export default {
       .maybeSingle();
     if (existing?.status === "succeeded") {
       if (existing.content_hash === hash && existing.remote_edit_url) {
-        return json({ delivered: true, remoteEditUrl: existing.remote_edit_url, reused: true });
+        return json({ delivered: true, remoteEditUrl: existing.remote_edit_url, reused: true, fieldReport: wordpressFieldReport(draft.metaTitle) });
       }
       return json({ error: "This article is already in WordPress. Open the existing draft to continue editing.", remoteEditUrl: existing.remote_edit_url }, 409);
     }
@@ -108,6 +116,6 @@ export default {
     }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
     if (completionError) return json({ error: "The WordPress draft was created, but Destiny could not save its editor link. Check WordPress before trying again." }, 502);
 
-    return json({ delivered: true, remoteEditUrl });
+    return json({ delivered: true, remoteEditUrl, fieldReport: wordpressFieldReport(draft.metaTitle) });
   }),
 };

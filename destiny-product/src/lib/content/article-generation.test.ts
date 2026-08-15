@@ -29,6 +29,15 @@ function validLongFormPayload(): GeneratedArticlePayload {
   });
   return {
     title: "SEO Content Strategy: A Practical Growth Guide",
+    metaTitle: "SEO Content Strategy: A Practical Growth Guide",
+    titleCandidates: [
+      ["numbered", "7 SEO Content Strategy Steps for Sustainable Growth", "7 SEO Content Strategy Steps for Growth"],
+      ["how_to", "How to Build an SEO Content Strategy That Converts", "How to Build an SEO Content Strategy"],
+      ["second_person", "Your Practical SEO Content Strategy for Sustainable Growth", "Your Practical SEO Content Strategy"],
+      ["question", "What Makes an SEO Content Strategy Actually Work?", "What Makes an SEO Content Strategy Work?"],
+      ["descriptive", "SEO Content Strategy: A Practical Growth Guide", "SEO Content Strategy: A Practical Guide"],
+      ["benefit", "Build an SEO Content Strategy That Drives Qualified Demand", "SEO Content Strategy for Qualified Demand"],
+    ].map(([format, headline, metaTitle], index) => ({ format, headline, metaTitle, score: 95 - index, rationale: "Matches the verified search intent without unsupported claims." })) as GeneratedArticlePayload["titleCandidates"],
     metaDescriptions: ["Build an SEO content strategy with credible research, useful examples, and a clear publishing plan."],
     bodyMarkdown: ["# SEO Content Strategy: A Practical Growth Guide", "", ...paragraphs].join("\n"),
     bucketBrigades: sections.map((_, index) => ({ text: `So what should you do with section ${index + 1}?`, afterWord: 100 + index * 330 })),
@@ -86,6 +95,9 @@ describe("Destiny article generation policy", () => {
     expect(prompt).toContain("original infographic");
     expect(prompt).toContain("Mention the free strategy call once.");
     expect(prompt).toContain("Never fabricate");
+    expect(prompt).toContain("Generate exactly six title candidates");
+    expect(prompt).toContain("40–60 characters");
+    expect(prompt).toContain("do not copy a competitor title");
     expect(prompt).not.toContain("write like Neil Patel");
   });
 
@@ -106,12 +118,70 @@ describe("Destiny article generation policy", () => {
     expect(request.max_tokens).toBe(9000);
     expect(request).not.toHaveProperty("tools");
     expect(request.output_config.format.type).toBe("json_schema");
-    expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["bodyMarkdown", "sources", "infographics"]));
+    expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["metaTitle", "titleCandidates", "bodyMarkdown", "sources", "infographics"]));
     expect(request.output_config.format.schema.required).toContain("metaDescription");
     expect(request.output_config.format.schema.required).not.toContain("metaDescriptions");
     expect(request.output_config.format.schema.properties.metaDescription).toEqual({ type: "string" });
     expect(request.output_config.format.schema.properties).not.toHaveProperty("metaDescriptions");
     expect(request.messages[0]).toEqual({ role: "user", content: "Write from this verified evidence pack." });
+  });
+
+  it("rejects misaligned or overlong meta titles and stacked headline hype", async () => {
+    const valid = validLongFormPayload();
+    const issues = await validateGeneratedArticle({
+      ...valid,
+      title: "The Ultimate Proven Easy SEO Content Strategy Guide",
+      metaTitle: "A Completely Different Topic With a Needlessly Long Search Title That Will Be Truncated",
+    }, "seo content strategy", "seo_article");
+
+    expect(issues.map((issue) => issue.code)).toEqual(expect.arrayContaining([
+      "meta_title_length",
+      "title_alignment",
+      "title_hype",
+    ]));
+  });
+
+  it("keeps the same honest list number in the headline and meta title", async () => {
+    const valid = validLongFormPayload();
+    const issues = await validateGeneratedArticle({
+      ...valid,
+      title: "7 SEO Content Strategy Steps for Sustainable Growth",
+      metaTitle: "10 SEO Content Strategy Steps for Growth",
+    }, "seo content strategy", "seo_article");
+
+    expect(issues.map((issue) => issue.code)).toContain("title_number");
+  });
+
+  it("requires the article H1 to match the selected blog headline", async () => {
+    const valid = validLongFormPayload();
+    const issues = await validateGeneratedArticle({
+      ...valid,
+      bodyMarkdown: valid.bodyMarkdown.replace(/^# .+$/m, "# A Different Article Headline"),
+    }, "seo content strategy", "seo_article");
+
+    expect(issues.map((issue) => issue.code)).toContain("title_alignment");
+  });
+
+  it("normalizes unicode punctuation and whitespace before comparing the H1", async () => {
+    const valid = validLongFormPayload();
+    const title = "SEO Content Strategy: A Founder's Practical Guide";
+    const issues = await validateGeneratedArticle({
+      ...valid,
+      title,
+      metaTitle: title,
+      bodyMarkdown: valid.bodyMarkdown.replace(/^# .+$/m, "# SEO   Content Strategy: A Founder’s Practical Guide"),
+    }, "seo content strategy", "seo_article");
+
+    expect(issues.map((issue) => issue.code)).not.toContain("title_alignment");
+  });
+
+  it("verifies that a numbered-list promise matches the actual body sequence", async () => {
+    const valid = validLongFormPayload();
+    const title = "5 SEO Content Strategy Tips for Better Growth";
+    const bodyMarkdown = valid.bodyMarkdown.replace(/^# .+$/m, `# ${title}`).replace("\n\n", "\n\n1. First tip\n2. Second tip\n3. Third tip\n4. Fourth tip\n\n");
+    const issues = await validateGeneratedArticle({ ...valid, title, metaTitle: title, bodyMarkdown }, "seo content strategy", "seo_article");
+
+    expect(issues.map((issue) => issue.code)).toContain("title_number");
   });
 
   it("continues a paused server-side research turn with the exact provider blocks", () => {

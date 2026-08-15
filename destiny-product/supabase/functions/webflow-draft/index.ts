@@ -145,6 +145,7 @@ export default {
       bodyField,
       article: {
         title: draft.title,
+        metaTitle: draft.metaTitle,
         contentHtml: draft.contentHtml,
         metaDescription: draft.metaDescription,
         wordCount: draft.wordCount,

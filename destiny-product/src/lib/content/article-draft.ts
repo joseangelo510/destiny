@@ -2,6 +2,7 @@ import {
   DEFAULT_ARTICLE_PREFERENCES,
   type ArticleGenerationPreferences,
   type ArticleQualityIssue,
+  type ArticleTitleCandidate,
   type BucketBrigade,
   type GeneratedArticleSource,
   type InfographicSpec,
@@ -20,6 +21,8 @@ export type ArticleDraftInput = {
 export type ArticleDraft = {
   keyword: string;
   title: string;
+  metaTitle: string;
+  titleCandidates: ArticleTitleCandidate[];
   metaDescription: string;
   metaDescriptions: string[];
   body: string;
@@ -97,6 +100,8 @@ export function mergePersistedArticleDrafts(fallbacks: ArticleDraft[], saved: un
       ...fallback,
       ...candidate,
       keyword: fallback.keyword,
+      metaTitle: typeof candidate.metaTitle === "string" && candidate.metaTitle.trim() ? candidate.metaTitle : candidate.title,
+      titleCandidates: Array.isArray(candidate.titleCandidates) ? candidate.titleCandidates : fallback.titleCandidates,
       metaDescription: metaDescriptions[0] ?? fallback.metaDescription,
       metaDescriptions,
       body: normalizeArticleBody(candidate.body),
@@ -162,6 +167,8 @@ Review this draft for accuracy, add a real example from your experience, and rep
   return {
     keyword,
     title: `${titleKeyword}: A Practical Guide`,
+    metaTitle: `${titleKeyword}: A Practical Guide`,
+    titleCandidates: [],
     metaDescription: metaDescriptions[0],
     metaDescriptions,
     body: normalizeArticleBody(body),
@@ -191,6 +198,8 @@ export async function currentArticleQualityIssues(draft: ArticleDraft): Promise<
   }
   return await validateGeneratedArticle({
     title: draft.title,
+    metaTitle: draft.metaTitle,
+    titleCandidates: draft.titleCandidates,
     metaDescriptions: draft.metaDescriptions,
     bodyMarkdown: draft.body,
     bucketBrigades: draft.bucketBrigades,
@@ -315,8 +324,9 @@ export function renderArticleMarkdownToHtml(markdown: string) {
 
 export function buildWordDocument(draft: ArticleDraft) {
   const paragraphs = renderArticleMarkdownToHtml(draft.body);
+  const titleMetadata = `<p><strong>Article headline:</strong> ${escapeHtml(draft.title)}</p><p><strong>SEO/meta title:</strong> ${escapeHtml(draft.metaTitle)}</p>`;
   const metaDescriptions = draft.metaDescriptions.map((description, index) => `<p><strong>Meta description ${index + 1}:</strong> ${escapeHtml(description)}</p>`).join("");
   const sources = draft.sources.length ? `<h2>Sources used</h2><ul>${draft.sources.map((source) => `<li><a href="${escapeHtml(source.url)}">${escapeHtml(source.title)}</a>${source.publisher ? ` — ${escapeHtml(source.publisher)}` : ""}</li>`).join("")}</ul>` : "";
   const infographics = draft.infographics.length ? `<h2>Original infographic specifications</h2>${draft.infographics.map((graphic) => `<h3>${escapeHtml(graphic.title)}</h3><p>${escapeHtml(graphic.insight)}</p><p><strong>Alt text:</strong> ${escapeHtml(graphic.altText)}</p><p>${escapeHtml(graphic.sourceLabel)}</p>`).join("")}` : "";
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.title)}</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#1f342d;line-height:1.6;max-width:760px;margin:40px auto}h1{font-size:30px;line-height:1.2;margin:28px 0 14px}h2{font-size:23px;line-height:1.3;margin:26px 0 10px}h3{font-size:19px;line-height:1.35;margin:22px 0 8px}h4,h5,h6{font-size:16px;margin:20px 0 8px}p{margin:0 0 14px}ul,ol{margin:0 0 16px;padding-left:28px}li{margin:0 0 7px}blockquote{border-left:4px solid #8fc5b0;margin:18px 0;padding:8px 18px;color:#48645a}a{color:#176b51;text-decoration:underline}code{background:#f1f5f3;padding:1px 4px}</style></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p>${metaDescriptions}${paragraphs}${sources}${infographics}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="description" content="application-ready Destiny article"><title>${escapeHtml(draft.metaTitle)}</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#1f342d;line-height:1.6;max-width:760px;margin:40px auto}h1{font-size:30px;line-height:1.2;margin:28px 0 14px}h2{font-size:23px;line-height:1.3;margin:26px 0 10px}h3{font-size:19px;line-height:1.35;margin:22px 0 8px}h4,h5,h6{font-size:16px;margin:20px 0 8px}p{margin:0 0 14px}ul,ol{margin:0 0 16px;padding-left:28px}li{margin:0 0 7px}blockquote{border-left:4px solid #8fc5b0;margin:18px 0;padding:8px 18px;color:#48645a}a{color:#176b51;text-decoration:underline}code{background:#f1f5f3;padding:1px 4px}</style></head><body><p><strong>Focus keyword:</strong> ${escapeHtml(draft.keyword)}</p>${titleMetadata}${metaDescriptions}${paragraphs}${sources}${infographics}</body></html>`;
 }

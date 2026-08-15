@@ -1298,6 +1298,14 @@ body { font-size: 17px; }
 .article-draft-divider span { color: var(--forest); font-size: 13px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
 .article-draft-divider strong { color: var(--muted); font-size: 14px; }
 .article-meta-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+.article-title-candidates { background: #f7faf8; border: 1px solid var(--line); border-radius: 14px; margin: 12px 0 18px; padding: 14px; }
+.article-title-candidates summary { color: var(--green); cursor: pointer; font-size: 14px; font-weight: 750; }
+.article-title-candidates > div { display: grid; gap: 9px; margin-top: 12px; }
+.article-title-candidates button { align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; text-align: left; }
+.article-title-candidates button:hover, .article-title-candidates button.active { border-color: var(--green); box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 12%, transparent); }
+.article-title-candidates button span { color: var(--green); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.article-title-candidates button strong { font-size: 15px; line-height: 1.35; }
+.article-title-candidates button small, .article-title-candidates button em { color: var(--muted); font-size: 12px; font-style: normal; line-height: 1.4; }
 .article-evidence-panel, .article-infographic-list { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 22px; }
 .article-evidence-panel h3, .article-infographic-list h3 { font-family: Georgia, serif; font-size: 25px; font-weight: 500; margin: 0 0 5px; }
 .article-evidence-panel > p, .article-infographic-list > p { color: var(--muted); font-size: 14px; margin: 0 0 15px; }

@@ -89,8 +89,18 @@ export type InfographicSpec = {
   altText: string;
 };
 
+export type ArticleTitleCandidate = {
+  format: "numbered" | "how_to" | "second_person" | "question" | "descriptive" | "benefit";
+  headline: string;
+  metaTitle: string;
+  score: number;
+  rationale: string;
+};
+
 export type GeneratedArticlePayload = {
   title: string;
+  metaTitle: string;
+  titleCandidates: ArticleTitleCandidate[];
   metaDescriptions: string[];
   bodyMarkdown: string;
   bucketBrigades: BucketBrigade[];
@@ -99,7 +109,7 @@ export type GeneratedArticlePayload = {
 };
 
 export type ArticleQualityIssue = {
-  code: "generation_required" | "incomplete_output" | "word_count" | "heading_structure" | "heading_keyword" | "heading_variety" | "brigade_count" | "brigade_spacing" | "stock_phrase" | "meta_descriptions" | "source_coverage";
+  code: "generation_required" | "incomplete_output" | "word_count" | "heading_structure" | "heading_keyword" | "heading_variety" | "brigade_count" | "brigade_spacing" | "stock_phrase" | "meta_title_missing" | "meta_title_length" | "meta_title_keyword" | "title_alignment" | "title_hype" | "title_number" | "title_candidates" | "meta_descriptions" | "source_coverage";
   message: string;
 };
 
@@ -117,6 +127,9 @@ const BANNED_STOCK_PHRASES = [
   "game-changer",
   "delve",
 ];
+
+const HYPE_MODIFIERS = ["best", "complete", "easy", "proven", "ultimate", "unbeatable", "guaranteed", "revolutionary"];
+const TITLE_CANDIDATE_FORMATS = ["numbered", "how_to", "second_person", "question", "descriptive", "benefit"] as const;
 
 function clip(value: string, maximum = 4000) {
   return value.trim().slice(0, maximum);
@@ -168,19 +181,24 @@ HIDDEN DESTINY EDITORIAL POLICY — NEVER DISPLAY THIS CHECKLIST TO THE USER
 1. Truthfulness wins over every other instruction. Never fabricate sources, statistics, links, customer stories, testimonials, first-person experience, or results. Use only the supplied research evidence and verified internal pages for factual claims. Prefer primary sources, government, academic research, established publications, and recognized industry bodies.
 2. Every factual or quantitative claim must have a live supporting citation using an inline Markdown link to the exact supporting URL. Every strategy or tip needs a worked example; only call it a real-world example when a retrieved source verifies it. Include each cited external URL in the sources array.
 3. For Format = SEO article, the published policy is 2,000–3,000 words with 6–9 H2 sections. Plan for 2,300–2,800 words so the finished draft clears the 2,000-word floor even after formatting and counting differences; never aim at the bare minimum. Plan exactly 6–8 H2 sections — one section of headroom is reserved below the 9-section limit for completion passes, so never plan 9 or more. Give each H2 a distinct job and section budget so length comes from useful scope, not padding. Add missing scope from related questions, comparisons, objections, troubleshooting, or FAQs. Never restate prose merely to reach the target.
-4. Use one H1. Put the focus keyword or a close natural variant in the H1 and first H2. Use H3s where they clarify a real subtopic, including at least one H2 with H3 children. Distribute supporting keywords and entities naturally, while keeping at least 40% of headings free of target keywords. Rotate question, how-to, comparison, numbered, statement, and objection headings.
-5. For the Punchy coach voice, use measurable attributes rather than named-author imitation: second-person language, direct problem framing, 12–16-word average sentences with varied rhythm, 1–3-sentence paragraphs (never more than four), data-led openings when cited evidence exists, bold key sentences, useful bullets, rhetorical questions, and mobile-friendly whitespace.
-6. Use 4–9 contextual bucket brigades across a long SEO article, roughly one per H2 section and about one per 300 words. Put one within the first 150 words. Keep brigades at least 100 words apart. Each bridge must reference the adjacent idea; never copy a stock phrase.
-7. Open with a strong hook: a verified statistic, metaphor, brief story, defensible strong opinion, or short properly attributed quote. If research does not support a numeric hook, use a non-numeric hook.
-8. Use occasional bullets and bold or italic emphasis. Keep every paragraph to four sentences or fewer. Include at least three verified internal links from the inventory and at least two relevant CTAs.
-9. Supply exactly one meta description of 150 characters or fewer using the focus keyword or a close supporting phrase. Write accessibility-first alt text that states the graphic's actual takeaway; include keywords only when they are naturally descriptive.
-10. ${infographicRule}
-11. Use 0–2 genuinely helpful, API-verifiable YouTube references when available. A forced irrelevant video is worse than no video.
-12. Finish with an answer-first summary, useful FAQ coverage, and a clear next action. Preserve the customer's own voice and never manufacture first-person experience.
+4. Before drafting, inspect the organic titles in the research evidence pack. Identify the dominant search intent, page type, format, number pattern, freshness signal, and modifiers. If at least 6 of the top 10 relevant results share a format, normally match that useful format, but do not copy a competitor title. Generate exactly six title candidates: numbered/list, how-to, second-person, question, plain descriptive, and benefit/evidence. Score each out of 100 using SERP intent and format (25), accuracy (25), keyword relevance (15), simplicity (15), differentiation (10), and specificity or value (10). Select the strongest honest candidate.
+5. Treat the visible article headline and SEO/meta title as separate fields with the same central promise. The headline should normally be 8–13 words, use the focus keyword or a close natural variant, and favor clear language over clever language. A number is allowed only when the article delivers that exact count. Use no more than one meaningful adjective or differentiator; never stack hype. “You” or “your” is welcome when it reads naturally. Unsupported words such as best, proven, complete, ultimate, easy, data, or study are forbidden.
+6. Write a distinct SEO/meta title of 40–60 characters, preferably 50–60, and keep its estimated rendered width under 600 pixels including any known brand suffix. Put the focus keyword in the first half when natural. Keep the same core phrase and number as the headline. Never use repetition, boilerplate, all caps, emoji, or a year that the business will not maintain. Use at most one meaningful modifier or parenthetical.
+7. Use one H1 and make the first Markdown H1 exactly match the selected headline. Put the focus keyword or a close natural variant in the H1 and first H2. Use H3s where they clarify a real subtopic, including at least one H2 with H3 children. Distribute supporting keywords and entities naturally, while keeping at least 40% of headings free of target keywords. Rotate question, how-to, comparison, numbered, statement, and objection headings.
+8. For the Punchy coach voice, use measurable attributes rather than named-author imitation: second-person language, direct problem framing, 12–16-word average sentences with varied rhythm, 1–3-sentence paragraphs (never more than four), data-led openings when cited evidence exists, bold key sentences, useful bullets, rhetorical questions, and mobile-friendly whitespace.
+9. Use 4–9 contextual bucket brigades across a long SEO article, roughly one per H2 section and about one per 300 words. Put one within the first 150 words. Keep brigades at least 100 words apart. Each bridge must reference the adjacent idea; never copy a stock phrase.
+10. Open with a strong hook: a verified statistic, metaphor, brief story, defensible strong opinion, or short properly attributed quote. If research does not support a numeric hook, use a non-numeric hook.
+11. Use occasional bullets and bold or italic emphasis. Keep every paragraph to four sentences or fewer. Include at least three verified internal links from the inventory and at least two relevant CTAs.
+12. Supply exactly one meta description of 150 characters or fewer using the focus keyword or a close supporting phrase. Write accessibility-first alt text that states the graphic's actual takeaway; include keywords only when they are naturally descriptive.
+13. ${infographicRule}
+14. Use 0–2 genuinely helpful, API-verifiable YouTube references when available. A forced irrelevant video is worse than no video.
+15. Finish with an answer-first summary, useful FAQ coverage, and a clear next action. Preserve the customer's own voice and never manufacture first-person experience.
 
 Return one JSON object only with this shape:
 {
   "title": "...",
+  "metaTitle": "...",
+  "titleCandidates": [{"format":"numbered|how_to|second_person|question|descriptive|benefit","headline":"...","metaTitle":"...","score":90,"rationale":"..."}],
   "metaDescription": "...",
   "bodyMarkdown": "# ...",
   "bucketBrigades": [{"text":"...","afterWord":120}],
@@ -201,9 +219,27 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
         schema: {
           type: "object",
           additionalProperties: false,
-          required: ["title", "metaDescription", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
+          required: ["title", "metaTitle", "titleCandidates", "metaDescription", "bodyMarkdown", "bucketBrigades", "sources", "infographics"],
           properties: {
             title: { type: "string" },
+            metaTitle: { type: "string" },
+            titleCandidates: {
+              type: "array",
+              minItems: 6,
+              maxItems: 6,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["format", "headline", "metaTitle", "score", "rationale"],
+                properties: {
+                  format: { type: "string", enum: [...TITLE_CANDIDATE_FORMATS] },
+                  headline: { type: "string" },
+                  metaTitle: { type: "string" },
+                  score: { type: "integer", minimum: 0, maximum: 100 },
+                  rationale: { type: "string" },
+                },
+              },
+            },
             metaDescription: { type: "string" },
             bodyMarkdown: { type: "string" },
             bucketBrigades: {
@@ -281,7 +317,7 @@ function evidenceText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function buildSearchEvidencePack(payload: unknown, limit = 5) {
+export function buildSearchEvidencePack(payload: unknown, limit = 10) {
   const root = evidenceRecord(payload);
   const task = evidenceRecord(evidenceArray(root.tasks)[0]);
   if (Number(root.status_code) !== 20000 || Number(task.status_code) !== 20000) {
@@ -300,7 +336,7 @@ export function buildSearchEvidencePack(payload: unknown, limit = 5) {
   return buildArticleEvidencePack(sources, limit);
 }
 
-export function buildArticleEvidencePack(value: unknown, limit = 5) {
+export function buildArticleEvidencePack(value: unknown, limit = 10) {
   const sources = evidenceArray(value).map(evidenceRecord).flatMap((source) => {
     const url = evidenceText(source.url);
     const title = evidenceText(source.title);
@@ -323,7 +359,15 @@ export function markdownWordCount(markdown: string) {
 }
 
 function normalized(value: string) {
-  return value.toLocaleLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  return value
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function containsKeyword(value: string, keyword: string) {
@@ -333,6 +377,90 @@ function containsKeyword(value: string, keyword: string) {
   if (haystack.includes(needle)) return true;
   const terms = needle.split(" ").filter((term) => term.length > 2);
   return terms.length > 1 && terms.filter((term) => haystack.includes(term)).length / terms.length >= 0.75;
+}
+
+export function estimateMetaTitleWidth(value: string) {
+  return Math.round([...value].reduce((width, character) => {
+    if (/\s/.test(character)) return width + 4;
+    if (/[ilI1.,'`:;|!]/.test(character)) return width + 4.2;
+    if (/[mwMW@%&]/.test(character)) return width + 11.5;
+    if (/[A-Z0-9]/.test(character)) return width + 8.8;
+    return width + 7.6;
+  }, 0));
+}
+
+function meaningfulTitleTerms(value: string, keyword: string) {
+  const keywordTerms = new Set(normalized(keyword).split(" ").filter(Boolean));
+  const stop = new Set(["a", "an", "and", "for", "how", "in", "of", "the", "to", "what", "with", "your"]);
+  return new Set(normalized(value).split(" ").filter((term) => term.length > 2 && !keywordTerms.has(term) && !stop.has(term)));
+}
+
+function titlePromiseAligned(headline: string, metaTitle: string, keyword: string) {
+  if (!containsKeyword(headline, keyword) || !containsKeyword(metaTitle, keyword)) return false;
+  const headlineTerms = meaningfulTitleTerms(headline, keyword);
+  const metaTerms = meaningfulTitleTerms(metaTitle, keyword);
+  if (!headlineTerms.size || !metaTerms.size) return true;
+  const overlap = [...headlineTerms].filter((term) => metaTerms.has(term)).length;
+  return overlap / Math.min(headlineTerms.size, metaTerms.size) >= 0.34;
+}
+
+function titleNumber(value: string) {
+  const match = /\b(\d{1,3})\b/.exec(value);
+  if (!match) return null;
+  const numeric = Number(match[1]);
+  return numeric >= 1900 && numeric <= 2099 ? null : numeric;
+}
+
+function longestNumberedSequence(markdown: string) {
+  const numbers = markdown.split("\n").flatMap((line) => {
+    const match = /^\s*(?:#{2,4}\s+)?(?:step\s+)?(\d{1,3})[.):\-]\s+/i.exec(line);
+    return match ? [Number(match[1])] : [];
+  });
+  let longest = 0;
+  let current = 0;
+  for (const number of numbers) {
+    current = number === current + 1 ? number : number === 1 ? 1 : 0;
+    longest = Math.max(longest, current);
+  }
+  return longest;
+}
+
+function promisedListCount(value: string) {
+  const match = /\b(\d{1,3})\s+(?:(?:[\p{L}\p{N}-]+)\s+){0,6}(?:tips|ways|steps|ideas|examples|mistakes|strategies|tools|questions|reasons|methods|lessons|checks|recommendations)\b/iu.exec(value);
+  return match ? Number(match[1]) : null;
+}
+
+export function articleTitleQualityIssues(payload: Pick<GeneratedArticlePayload, "title" | "metaTitle" | "bodyMarkdown"> & { titleCandidates?: unknown }, keyword: string): ArticleQualityIssue[] {
+  const issues: ArticleQualityIssue[] = [];
+  const metaTitle = payload.metaTitle.trim();
+  if (!metaTitle) issues.push({ code: "meta_title_missing", message: "Add a separate SEO/meta title for search results." });
+  else {
+    const width = estimateMetaTitleWidth(metaTitle);
+    if (metaTitle.length < 40 || metaTitle.length > 60 || width > 600) {
+      issues.push({ code: "meta_title_length", message: `Keep the SEO/meta title to 40–60 characters and under about 600 pixels; this version is ${metaTitle.length} characters and about ${width} pixels.` });
+    }
+    if (!containsKeyword(metaTitle, keyword)) issues.push({ code: "meta_title_keyword", message: "Use the focus keyword or a close natural variation in the SEO/meta title." });
+    if (!titlePromiseAligned(payload.title, metaTitle, keyword)) issues.push({ code: "title_alignment", message: "Keep the article headline and SEO/meta title focused on the same central promise." });
+    const headlineNumber = titleNumber(payload.title);
+    const metaNumber = titleNumber(metaTitle);
+    if (headlineNumber !== metaNumber) issues.push({ code: "title_number", message: "Use the same honest list number in the article headline and SEO/meta title." });
+  }
+  const hypeCount = HYPE_MODIFIERS.filter((modifier) => new RegExp(`\\b${modifier}\\b`, "i").test(payload.title)).length;
+  if (hypeCount > 1) issues.push({ code: "title_hype", message: "Use at most one meaningful modifier in the headline; remove stacked hype." });
+  const bodyH1 = headingRecords(payload.bodyMarkdown).find((heading) => heading.level === 1)?.text ?? "";
+  if (normalized(bodyH1) !== normalized(payload.title) && !issues.some((issue) => issue.code === "title_alignment")) {
+    issues.push({ code: "title_alignment", message: "Make the article's H1 exactly match the selected blog headline." });
+  }
+  const candidates = Array.isArray(payload.titleCandidates) ? payload.titleCandidates : [];
+  const candidateFormats = new Set(candidates.flatMap((candidate) => candidate && typeof candidate === "object" && "format" in candidate && typeof candidate.format === "string" ? [candidate.format] : []));
+  if (candidates.length !== 6 || TITLE_CANDIDATE_FORMATS.some((format) => !candidateFormats.has(format))) {
+    issues.push({ code: "title_candidates", message: "Compare six researched headline directions before selecting the final headline and meta title." });
+  }
+  const promisedCount = promisedListCount(payload.title);
+  if (promisedCount !== null && longestNumberedSequence(payload.bodyMarkdown) !== promisedCount && !issues.some((issue) => issue.code === "title_number")) {
+    issues.push({ code: "title_number", message: `The headline promises ${promisedCount} items, but the article does not contain a complete numbered sequence from 1 through ${promisedCount}.` });
+  }
+  return issues;
 }
 
 function headingRecords(markdown: string) {
@@ -391,7 +519,7 @@ export async function validateGeneratedArticle(payload: GeneratedArticlePayload,
     articleBrigadeCount: facts.brigadeCount, articleFirstBrigade: facts.firstBrigade, articleMinBrigadeGap: facts.minBrigadeGap, articleStockPhrase: facts.stockPhrase,
     articleMetaCount: facts.metaCount, articleMetaOverlength: facts.metaOverlength, articleSourceCount: facts.sourceCount, articleCitedCount: facts.citedCount,
   });
-  return articleQualityIssuesFromPolicy(policy, facts, format);
+  return [...articleTitleQualityIssues(payload, keyword), ...articleQualityIssuesFromPolicy(policy, facts, format)];
 }
 
 function escapeXml(value: string) {
@@ -452,13 +580,24 @@ export function parseGeneratedArticlePayload(raw: string): GeneratedArticlePaylo
     } satisfies InfographicSpec];
   }) : [];
   const title = typeof parsed.title === "string" ? parsed.title.trim() : "";
+  const metaTitle = typeof parsed.metaTitle === "string" && parsed.metaTitle.trim() ? parsed.metaTitle.trim() : title;
+  const titleCandidates = Array.isArray(parsed.titleCandidates) ? parsed.titleCandidates.map(object).flatMap((candidate) => {
+    const format = candidate.format;
+    if (!TITLE_CANDIDATE_FORMATS.includes(format as typeof TITLE_CANDIDATE_FORMATS[number])) return [];
+    const headline = typeof candidate.headline === "string" ? candidate.headline.trim() : "";
+    const candidateMetaTitle = typeof candidate.metaTitle === "string" ? candidate.metaTitle.trim() : "";
+    const score = Number(candidate.score);
+    const rationale = typeof candidate.rationale === "string" ? candidate.rationale.trim() : "";
+    if (!headline || !candidateMetaTitle || !Number.isFinite(score)) return [];
+    return [{ format: format as ArticleTitleCandidate["format"], headline, metaTitle: candidateMetaTitle, score: Math.max(0, Math.min(100, Math.round(score))), rationale }];
+  }) : [];
   const bodyMarkdown = typeof parsed.bodyMarkdown === "string" ? parsed.bodyMarkdown.trim() : "";
   const singleMeta = typeof parsed.metaDescription === "string" ? parsed.metaDescription.trim() : "";
   const metaDescriptions = singleMeta
     ? [singleMeta]
     : stringArray(parsed.metaDescriptions).map((description) => description.trim()).filter(Boolean).slice(0, 1);
   if (!title || !bodyMarkdown) throw new Error("Claude did not return a complete article draft.");
-  return { title, metaDescriptions, bodyMarkdown, bucketBrigades, sources, infographics };
+  return { title, metaTitle, titleCandidates, metaDescriptions, bodyMarkdown, bucketBrigades, sources, infographics };
 }
 import type { DestinyLogicResult } from "../logicaffeine";
 import { runDestinyServerLogic } from "../logicaffeine-server";
