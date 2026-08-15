@@ -86,6 +86,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/integrations/cms/wordpress/reconcile",
+    "file": "src/app/api/integrations/cms/wordpress/reconcile/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/integrations/google/start",
     "file": "src/app/api/integrations/google/start/route.ts"
   },

@@ -12,6 +12,15 @@ const validDraft = {
   titleCandidates,
   body: `# Junk Removal Services: A Practical Guide\n\n${"A useful paragraph about choosing a reliable local junk removal service. ".repeat(4)}\n\n## What to compare\n\n- Transparent pricing\n- Local experience`,
   metaDescription: "Compare local junk removal services and choose the right provider.",
+  infographics: [{
+    id: "comparison-guide",
+    template: "comparison",
+    title: "Compare Junk Removal Services",
+    insight: "Use the same five checks for every provider.",
+    items: ["Pricing", "Licensing", "Recycling"],
+    sourceLabel: "Source: Destiny article research",
+    altText: "Checklist for comparing junk removal services",
+  }],
   approved: true,
   generationStatus: "generated",
 };
@@ -28,6 +37,9 @@ describe("WordPress draft preparation", () => {
     }));
     expect(prepareWordPressDraft(validDraft).contentHtml).not.toContain("<h1>");
     expect(prepareWordPressDraft(validDraft).contentHtml).toContain("<ul><li>Transparent pricing</li>");
+    expect(prepareWordPressDraft(validDraft).graphics).toEqual([
+      expect.objectContaining({ name: "comparison-guide", alt: "Checklist for comparing junk removal services", svg: expect.stringContaining("<svg") }),
+    ]);
   });
 
   it.each([
