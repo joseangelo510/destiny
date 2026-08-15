@@ -1,7 +1,7 @@
 "use client";
 
 import { WorkspaceLink as Link } from "./workspace-link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   currentArticleQualityIssues,
@@ -20,6 +20,7 @@ import {
   type ArticleInternalPage,
 } from "@/lib/content/article-generation";
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
+import { publicationCopy, type CmsPublicationState } from "@/lib/cms/publication-state";
 
 type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
 const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
@@ -125,13 +126,25 @@ export type CmsDraftResult = {
   url: string;
   updated: boolean;
   fieldReport?: CmsFieldReportEntry[];
+  publicationStatus?: CmsPublicationState;
+  remotePermalink?: string | null;
+  lastReconciledAt?: string | null;
+  verifiedLiveAt?: string | null;
+  verificationEvidence?: Record<string, unknown> | null;
+  seoTitleRendered?: string | null;
 };
 
 export type CmsTransferState = {
   provider: string;
   articleKey: string;
   status: string;
+  publicationStatus: CmsPublicationState | null;
   remoteEditUrl: string | null;
+  remotePermalink: string | null;
+  lastReconciledAt: string | null;
+  verifiedLiveAt: string | null;
+  verificationEvidence: Record<string, unknown> | null;
+  seoTitleRendered: string | null;
   fieldReport: CmsFieldReportEntry[] | null;
 };
 
@@ -145,7 +158,17 @@ export function hydrateCmsDrafts(transfers: CmsTransferState[], auditId: string)
     const keyword = transfer.articleKey.slice(prefix.length);
     const key = `${transfer.provider}:${keyword}`;
     if (drafts[key]) continue;
-    drafts[key] = { url: transfer.remoteEditUrl, updated: true, fieldReport: transfer.fieldReport ?? undefined };
+    drafts[key] = {
+      url: transfer.remoteEditUrl,
+      updated: true,
+      fieldReport: transfer.fieldReport ?? undefined,
+      publicationStatus: transfer.publicationStatus ?? "delivered_draft",
+      remotePermalink: transfer.remotePermalink,
+      lastReconciledAt: transfer.lastReconciledAt,
+      verifiedLiveAt: transfer.verifiedLiveAt,
+      verificationEvidence: transfer.verificationEvidence,
+      seoTitleRendered: transfer.seoTitleRendered,
+    };
   }
   return drafts;
 }
@@ -186,6 +209,7 @@ export function ArticleReviewWorkspace({
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
   const [delivering, setDelivering] = useState("");
+  const [checkingCms, setCheckingCms] = useState("");
   const [exporting, setExporting] = useState(false);
   const [cmsDrafts, setCmsDrafts] = useState<Record<string, CmsDraftResult>>(() => hydrateCmsDrafts(initialCmsTransfers, auditId));
 
@@ -196,6 +220,7 @@ export function ArticleReviewWorkspace({
   const connectedProviders = cmsProviders.filter((provider) => provider.connected);
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
+  const reconciledArticlesRef = useRef(new Set<string>());
   const draftRevisionRef = useRef(0);
   const persistedDraftRevisionRef = useRef(0);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
@@ -257,6 +282,43 @@ export function ArticleReviewWorkspace({
   const wordCount = useMemo(() => draft ? markdownWordCount(draft.body) : 0, [draft]);
   const canApprove = Boolean(draft?.generationStatus === "generated" && qualityVerified && qualityIssues.length === 0);
   const issueCategories = [...new Set(qualityIssues.map((issue) => issueCategory(issue.code)))];
+
+  const reconcileWordPress = useCallback(async (keyword: string, quiet = false) => {
+    const key = `wordpress:${keyword}`;
+    if (!cmsDrafts[key] || checkingCms) return;
+    setCheckingCms(key);
+    if (!quiet) setError("");
+    try {
+      const response = await fetch("/api/integrations/cms/wordpress/reconcile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId, articleKey: `${auditId}:${keyword}` }),
+      });
+      const payload = await response.json() as {
+        error?: string;
+        publicationStatus?: CmsPublicationState;
+        remotePermalink?: string | null;
+        lastReconciledAt?: string;
+        verifiedLiveAt?: string | null;
+        verificationEvidence?: Record<string, unknown>;
+        seoTitleRendered?: string | null;
+      };
+      if (!response.ok || !payload.publicationStatus) throw new Error(payload.error || "Destiny could not refresh the WordPress status.");
+      setCmsDrafts((current) => ({ ...current, [key]: { ...current[key], ...payload } }));
+    } catch (cause) {
+      if (!quiet) setError(cause instanceof Error ? cause.message : "Destiny could not refresh the WordPress status.");
+    } finally {
+      setCheckingCms("");
+    }
+  }, [auditId, checkingCms, cmsDrafts, websiteId]);
+
+  useEffect(() => {
+    if (!draft || !cmsDrafts[`wordpress:${draft.keyword}`] || reconciledArticlesRef.current.has(draft.keyword)) return;
+    reconciledArticlesRef.current.add(draft.keyword);
+    const timer = window.setTimeout(() => void reconcileWordPress(draft.keyword, true), 0);
+    // One readback per selected article is enough; users can refresh manually afterward.
+    return () => window.clearTimeout(timer);
+  }, [cmsDrafts, draft, reconcileWordPress]);
 
   useEffect(() => {
     let cancelled = false;
@@ -445,9 +507,9 @@ export function ArticleReviewWorkspace({
           generationStatus: draft.generationStatus,
         }),
       });
-      const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[] };
+      const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[]; publicationStatus?: CmsPublicationState; remotePermalink?: string | null; verifiedLiveAt?: string | null };
       if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Destiny could not create the ${provider.label} draft.`);
-      setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport } }));
+      setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport, publicationStatus: payload.publicationStatus, remotePermalink: payload.remotePermalink, verifiedLiveAt: payload.verifiedLiveAt } }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : `Destiny could not create the ${provider.label} draft.`);
     } finally {
@@ -527,12 +589,26 @@ export function ArticleReviewWorkspace({
       {connectedProviders.map((provider) => {
         const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
         if (!result) return null;
+        const publication = provider.id === "wordpress" ? publicationCopy(result.publicationStatus ?? "delivered_draft") : null;
         const transferred = result.fieldReport?.filter((entry) => entry.status === "transferred") ?? [];
         const needsReview = result.fieldReport?.filter((entry) => entry.status === "needs_review") ?? [];
         const unavailable = result.fieldReport?.filter((entry) => entry.status === "unavailable") ?? [];
         return <div className="integration-banner success" key={provider.id} role="status">
-          <strong>{result.updated ? `Draft updated in ${provider.label}` : `Draft created in ${provider.label}`}</strong>
-          <p>Nothing is live. Review the formatting in {provider.label}, then publish it when you are ready.</p>
+          <div className="cms-publication-heading">
+            <div><span className={`cms-status-chip ${result.publicationStatus ?? "delivered_draft"}`}>{publication?.label ?? (result.updated ? "Draft updated" : "Draft created")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div>
+            {provider.id === "wordpress" && <button className="secondary-button" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type="button">{checkingCms === `wordpress:${draft.keyword}` ? "Checking WordPress…" : "Check WordPress status"}</button>}
+          </div>
+          {provider.id === "wordpress" && <ol className="cms-publication-timeline" aria-label="WordPress publication progress">
+            <li className="complete"><span>1</span><div><strong>Draft delivered</strong><small>Article and planned graphics sent to WordPress</small></div></li>
+            <li className={result.publicationStatus === "scheduled" || result.publicationStatus === "published_unverified" || result.publicationStatus === "verified_live" || result.publicationStatus === "verification_failed" ? "complete" : "current"}><span>2</span><div><strong>Review and publish</strong><small>Formatting and SEO plugin fields remain under your control</small></div></li>
+            <li className={result.publicationStatus === "verified_live" ? "complete" : result.publicationStatus === "published_unverified" || result.publicationStatus === "verification_failed" ? "current" : ""}><span>3</span><div><strong>Verify the live page</strong><small>HTTP, canonical, content match, and indexability</small></div></li>
+          </ol>}
+          <div className="cms-publication-actions">
+            <a className="secondary-button" href={result.url} rel="noreferrer" target="_blank">Open WordPress editor</a>
+            {result.publicationStatus === "verified_live" && result.remotePermalink && <a className="primary-button" href={result.remotePermalink} rel="noreferrer" target="_blank">View verified live article</a>}
+          </div>
+          {result.lastReconciledAt && <small className="cms-checked-at">Last checked {new Date(result.lastReconciledAt).toLocaleString()}</small>}
+          {result.seoTitleRendered && <p><strong>Live search title:</strong> {result.seoTitleRendered} · about {estimateMetaTitleWidth(result.seoTitleRendered)}px</p>}
           {result.fieldReport?.length ? <div className="cms-field-report">
             {transferred.length > 0 && <><strong>Transferred by Destiny</strong><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
             {needsReview.length > 0 && <><strong>Still needs your review in {provider.label}</strong><ul>{needsReview.map((entry) => <li key={`r-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}

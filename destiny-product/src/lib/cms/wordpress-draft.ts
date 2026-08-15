@@ -1,5 +1,5 @@
 import { renderArticleMarkdownToHtml } from "@/lib/content/article-draft";
-import { articleTitleQualityIssues } from "@/lib/content/article-generation";
+import { articleTitleQualityIssues, renderInfographicSvg, type InfographicSpec } from "@/lib/content/article-generation";
 
 export type WordPressDraftRequest = {
   websiteId?: unknown;
@@ -10,9 +10,30 @@ export type WordPressDraftRequest = {
   titleCandidates?: unknown;
   body?: unknown;
   metaDescription?: unknown;
+  infographics?: unknown;
   approved?: unknown;
   generationStatus?: unknown;
 };
+
+function prepareInfographics(value: unknown) {
+  if (!Array.isArray(value)) return [] as Array<{ name: string; svg: string; alt: string }>;
+  return value.slice(0, 3).flatMap((entry, index) => {
+    if (!entry || typeof entry !== "object") return [];
+    const graphic = entry as Partial<InfographicSpec>;
+    if (typeof graphic.title !== "string" || !graphic.title.trim() || typeof graphic.altText !== "string" || !graphic.altText.trim()) return [];
+    if (typeof graphic.insight !== "string" || !Array.isArray(graphic.items) || typeof graphic.sourceLabel !== "string") return [];
+    const spec: InfographicSpec = {
+      id: typeof graphic.id === "string" && graphic.id.trim() ? graphic.id.trim() : `graphic-${index + 1}`,
+      template: graphic.template === "comparison" || graphic.template === "stat" || graphic.template === "timeline" || graphic.template === "checklist" ? graphic.template : "steps",
+      title: graphic.title.trim(),
+      insight: graphic.insight.trim(),
+      items: graphic.items.filter((item): item is string => typeof item === "string").slice(0, 8),
+      sourceLabel: graphic.sourceLabel.trim(),
+      altText: graphic.altText.trim(),
+    };
+    return [{ name: spec.id.replace(/[^a-z0-9-]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || `graphic-${index + 1}`, svg: renderInfographicSvg(spec), alt: spec.altText }];
+  });
+}
 
 export function prepareWordPressDraft(input: WordPressDraftRequest) {
   if (typeof input.websiteId !== "string" || !input.websiteId.trim()) {
@@ -44,5 +65,6 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
     metaTitle,
     contentHtml,
     excerpt,
+    graphics: prepareInfographics(input.infographics),
   };
 }

@@ -49,12 +49,16 @@ export default {
       return json({ error: "WordPress rejected the connection. Check the site URL, username, and Application Password." }, 400);
     }
 
+    const site = await fetch(`${connection.siteUrl}/wp-json`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10_000) })
+      .then((response) => response.ok ? response.json() : null)
+      .catch(() => null) as { name?: unknown } | null;
+    const siteName = typeof site?.name === "string" && site.name.trim() ? site.name.trim() : "";
     const { error } = await context.supabaseAdmin.rpc("store_cms_connection", {
       p_user_id: userId,
       p_website_id: connection.websiteId,
       p_provider: "wordpress",
       p_credentials: { site_url: connection.siteUrl, username: connection.username, application_password: connection.applicationPassword },
-      p_metadata: { site_url: connection.siteUrl, display_name: typeof user.name === "string" ? user.name : connection.username, user_id: String(user.id), profile_url: typeof user.link === "string" ? user.link : null },
+      p_metadata: { site_url: connection.siteUrl, display_name: typeof user.name === "string" ? user.name : connection.username, user_id: String(user.id), profile_url: typeof user.link === "string" ? user.link : null, site_name: siteName || null, estimated_title_suffix: siteName ? ` - ${siteName}` : null },
     });
     if (error) return json({ error: "Destiny verified WordPress but could not save the secure connection." }, 502);
     return json({ connected: true, siteUrl: connection.siteUrl, displayName: typeof user.name === "string" ? user.name : connection.username });
