@@ -14,6 +14,45 @@ export type EditorialKeyword = {
   cpc?: number;
 };
 
+export type SavedEditorialKeywordPreference = {
+  keyword: string;
+  normalized_keyword: string;
+  decision: string;
+  provider_intent?: string | null;
+  search_volume?: number | null;
+  difficulty?: number | null;
+  theme_id?: string | null;
+  theme_label?: string | null;
+};
+
+export function mergeApprovedSavedKeywords<T extends EditorialKeyword>(
+  keywords: T[],
+  preferences: SavedEditorialKeywordPreference[],
+): Array<T | EditorialKeyword> {
+  const normalized = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const seen = new Set(keywords.map((keyword) => normalized(keyword.keyword)));
+  const saved = preferences.flatMap((preference) => {
+    const keyword = preference.keyword.trim();
+    const key = preference.normalized_keyword || normalized(keyword);
+    const searchVolume = Number(preference.search_volume ?? 0);
+    if (preference.decision !== "approved" || !keyword || searchVolume <= 0 || seen.has(key)) return [];
+    seen.add(key);
+    const intent = preference.provider_intent === "transactional" || preference.provider_intent === "commercial" || preference.provider_intent === "navigational"
+      ? preference.provider_intent
+      : "informational";
+    return [{
+      keyword,
+      intent,
+      searchVolume,
+      difficulty: Number(preference.difficulty ?? 0),
+      opportunity: "saved_strategy",
+      themeId: preference.theme_id ?? "keyword-research",
+      themeLabel: preference.theme_label ?? "Keyword Research",
+    }];
+  });
+  return [...keywords, ...saved];
+}
+
 export function selectKeywordsForCalendar<T extends EditorialKeyword>(
   keywords: T[],
   decisions: Record<string, "approved" | "declined">,
