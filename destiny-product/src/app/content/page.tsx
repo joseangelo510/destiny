@@ -9,6 +9,7 @@ import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/ar
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
+import { mergeSavedApprovedKeywords } from "@/lib/content/saved-keyword-merge";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -44,11 +45,14 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     locationEvidence,
   }, 50);
   const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }] = context.website ? await Promise.all([
-    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision").eq("website_id", context.website.id),
+    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,provider_intent,search_volume,difficulty").eq("website_id", context.website.id),
     context.supabase.from("tracked_keywords").select("source").eq("website_id", context.website.id).neq("status", "paused"),
   ]) : [{ data: [] }, { data: [] }];
   const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
-  const keywordDecisions = Object.fromEntries(rankedKeywords.flatMap((keyword) => {
+  // Approved website preferences saved from later Keyword Research join the audit
+  // pool here; declined and zero-volume saved phrases never reach the calendar.
+  const calendarKeywordPool = mergeSavedApprovedKeywords(rankedKeywords, savedKeywordPreferences ?? []);
+  const keywordDecisions = Object.fromEntries(calendarKeywordPool.flatMap((keyword) => {
     const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
     return preference?.decision === "approved" || preference?.decision === "declined" ? [[keyword.keyword, preference.decision]] : [];
   })) as Record<string, "approved" | "declined">;
@@ -57,7 +61,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     locationEvidence,
     competitorNames: context.competitors.map((competitor) => competitor.name),
   };
-  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, editorialContext);
+  const keywords = selectKeywordsForCalendar(calendarKeywordPool, keywordDecisions, editorialContext);
   const businessModel = await inferBusinessModel(context.website?.products_services ?? "");
   const calendar = await buildEditorialCalendar(
     keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })),

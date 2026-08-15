@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { keywordEvidenceFromResearch } from "@/lib/content/saved-keyword-merge";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { selectQuickKeywordApprovals } from "@/lib/seo/quick-keyword-approval";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
@@ -19,7 +20,8 @@ const allowedValue = (value: unknown, allowed: Set<string>) => {
 };
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({})) as { auditId?: unknown; action?: unknown; approveRecommended?: unknown; keyword?: unknown; decision?: unknown; reason?: unknown; decisions?: unknown };
+  const body = await request.json().catch(() => ({})) as { auditId?: unknown; action?: unknown; approveRecommended?: unknown; keyword?: unknown; decision?: unknown; reason?: unknown; decisions?: unknown; evidence?: unknown };
+  const researchEvidence = keywordEvidenceFromResearch(body.evidence);
   const auditId = typeof body.auditId === "string" ? body.auditId : "";
   const restore = body.action === "restore";
   const approveRecommended = body.approveRecommended === true;
@@ -99,7 +101,15 @@ export async function POST(request: Request) {
   const providerKeywords = Array.isArray(providerResult.keywords) ? providerResult.keywords.map(record) : [];
   const preferenceRows = requestedDecisions.map((item) => {
     const normalizedKeyword = normalizeTrackedKeyword(item.keyword);
-    const evidence = providerKeywords.find((candidate) => normalizeTrackedKeyword(String(candidate.keyword || "")) === normalizedKeyword) ?? {};
+    const poolEvidence = providerKeywords.find((candidate) => normalizeTrackedKeyword(String(candidate.keyword || "")) === normalizedKeyword);
+    // Preserve live research evidence for phrases approved from Keyword Research
+    // that were never part of the audit recommendation pool.
+    const fromResearch = !poolEvidence && requestedDecisions.length === 1 && researchEvidence ? {
+      providerIntent: researchEvidence.providerIntent ?? undefined,
+      searchVolume: researchEvidence.searchVolume ?? undefined,
+      difficulty: researchEvidence.difficulty ?? undefined,
+    } : {};
+    const evidence = poolEvidence ?? fromResearch as Record<string, unknown>;
     return {
       organization_id: website.organization_id,
       website_id: audit.website_id,
