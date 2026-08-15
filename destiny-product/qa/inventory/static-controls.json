@@ -9,13 +9,13 @@
     "context": "</>} <section className=\"workspace-card connection-callout\" id=\"first-party-measurement\"><div><strong>First-party measurement</strong><p>Connect Search Console, Google Analytics, Business Profile, and YouTube to add clicks, impressions, conversions, reviews, and video discovery.</p></div><Link className=\"primary-button workspace-action\" href=\"/integrations\">Manage connections</Link></section> </>"
   },
   {
-    "control_id": "src/app/api/account/route.ts:19:data-mutation:1",
+    "control_id": "src/app/api/account/route.ts:21:data-mutation:1",
     "file": "src/app/api/account/route.ts",
-    "line": 19,
+    "line": 21,
     "type": "data-mutation",
     "route": "/api/account",
     "side_effect_class": 1,
-    "context": "const { data: profile, error } = await supabase.from(\"profiles\") .update({ contact_email: notificationEmail, updated_at: new Date().toISOString() }) .eq(\"id\", data.user.id)"
+    "context": "const { data: website, error } = await supabase.from(\"websites\") .update({ notification_email: notificationEmail, updated_at: new Date().toISOString() }) .eq(\"id\", body.websiteId)"
   },
   {
     "control_id": "src/app/api/directory-profiles/check/route.ts:23:data-mutation:1",
@@ -99,36 +99,36 @@
     "context": "if (!organizationId) { const { data, error } = await supabase.rpc(\"create_organization\", { organization_name: businessName,"
   },
   {
-    "control_id": "src/app/api/onboarding/route.ts:94:data-mutation:1",
-    "file": "src/app/api/onboarding/route.ts",
-    "line": 94,
-    "type": "data-mutation",
-    "route": "/api/onboarding",
-    "side_effect_class": 1,
-    "context": "const websiteQuery = existingWebsite ? supabase.from(\"websites\").update(websiteValues).eq(\"id\", existingWebsite.id) : supabase.from(\"websites\").insert({ organization_id: organizationId, ...websiteValues });"
-  },
-  {
     "control_id": "src/app/api/onboarding/route.ts:95:data-mutation:1",
     "file": "src/app/api/onboarding/route.ts",
     "line": 95,
     "type": "data-mutation",
     "route": "/api/onboarding",
     "side_effect_class": 1,
+    "context": "const websiteQuery = existingWebsite ? supabase.from(\"websites\").update(websiteValues).eq(\"id\", existingWebsite.id) : supabase.from(\"websites\").insert({ organization_id: organizationId, ...websiteValues });"
+  },
+  {
+    "control_id": "src/app/api/onboarding/route.ts:96:data-mutation:1",
+    "file": "src/app/api/onboarding/route.ts",
+    "line": 96,
+    "type": "data-mutation",
+    "route": "/api/onboarding",
+    "side_effect_class": 1,
     "context": "? supabase.from(\"websites\").update(websiteValues).eq(\"id\", existingWebsite.id) : supabase.from(\"websites\").insert({ organization_id: organizationId, ...websiteValues }); const { data: savedWebsite, error: websiteError } = await websiteQuery.select(\"id\").single();"
   },
   {
-    "control_id": "src/app/api/onboarding/route.ts:100:data-mutation:1",
+    "control_id": "src/app/api/onboarding/route.ts:101:data-mutation:1",
     "file": "src/app/api/onboarding/route.ts",
-    "line": 100,
+    "line": 101,
     "type": "data-mutation",
     "route": "/api/onboarding",
     "side_effect_class": 1,
     "context": "const competitorEntries = parseCompetitorEntries(competitors); const { error: deleteError } = await supabase.from(\"competitors\").delete().eq(\"website_id\", savedWebsite.id); if (deleteError) throw deleteError;"
   },
   {
-    "control_id": "src/app/api/onboarding/route.ts:103:data-mutation:1",
+    "control_id": "src/app/api/onboarding/route.ts:104:data-mutation:1",
     "file": "src/app/api/onboarding/route.ts",
-    "line": 103,
+    "line": 104,
     "type": "data-mutation",
     "route": "/api/onboarding",
     "side_effect_class": 1,
@@ -717,7 +717,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links go here. Update it here whenever those reports should go somewhere else.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificationD"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
     "control_id": "src/components/account-settings.tsx:115:onChange:2",
@@ -726,7 +726,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links go here. Update it here whenever those reports should go somewhere else.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificationD"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
     "control_id": "src/components/account-settings.tsx:115:button:3",
@@ -735,7 +735,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links go here. Update it here whenever those reports should go somewhere else.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificationD"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
     "control_id": "src/components/account-settings.tsx:115:onClick:4",
@@ -744,7 +744,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links go here. Update it here whenever those reports should go somewhere else.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificationD"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
     "control_id": "src/components/account-settings.tsx:127:button:1",
