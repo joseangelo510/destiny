@@ -119,7 +119,8 @@ describe("Destiny article generation policy", () => {
     expect(request).not.toHaveProperty("tools");
     expect(request.output_config.format.type).toBe("json_schema");
     expect(request.output_config.format.schema.required).toEqual(expect.arrayContaining(["metaTitle", "titleCandidates", "bodyMarkdown", "sources", "infographics"]));
-    expect(request.output_config.format.schema.properties.titleCandidates).toMatchObject({ minItems: 1, maxItems: 6 });
+    expect(request.output_config.format.schema.properties.titleCandidates).not.toHaveProperty("minItems");
+    expect(request.output_config.format.schema.properties.titleCandidates).not.toHaveProperty("maxItems");
     expect(request.output_config.format.schema.required).toContain("metaDescription");
     expect(request.output_config.format.schema.required).not.toContain("metaDescriptions");
     expect(request.output_config.format.schema.properties.metaDescription).toEqual({ type: "string" });
