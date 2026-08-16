@@ -229,11 +229,9 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
             metaTitle: { type: "string" },
             titleCandidates: {
               type: "array",
-              // Anthropic structured outputs currently accept minItems only as
-              // 0 or 1. Exact-six enforcement remains in the application
-              // quality gate, while maxItems keeps model output bounded.
-              minItems: 1,
-              maxItems: 6,
+              // Anthropic structured outputs do not accept array-size schema
+              // keywords here. Exact-six enforcement remains in Destiny's
+              // application quality gate after the response is parsed.
               items: {
                 type: "object",
                 additionalProperties: false,
