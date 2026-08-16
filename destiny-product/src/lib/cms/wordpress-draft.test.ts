@@ -32,6 +32,7 @@ describe("WordPress draft preparation", () => {
       articleKey: "audit-1:junk removal services",
       title: validDraft.title,
       metaTitle: validDraft.metaTitle,
+      renderingVersion: "wordpress-blocks-v2",
       excerpt: validDraft.metaDescription,
       contentHtml: expect.stringContaining("<p>A useful paragraph"),
     }));

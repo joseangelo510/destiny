@@ -119,7 +119,7 @@ export default {
       return json({ error: "Connect WordPress before sending this article." }, 409);
     }
 
-    const hash = await contentHash(JSON.stringify({ ...wordpressDraftPayload(draft), media: draft.media.map((item) => ({ filename: item.filename, alt: item.alt, role: item.role, caption: item.caption, placementAfterHeading: item.placementAfterHeading, bytes: item.base64.length })) }));
+    const hash = await contentHash(JSON.stringify({ renderingVersion: draft.renderingVersion, ...wordpressDraftPayload(draft), media: draft.media.map((item) => ({ filename: item.filename, alt: item.alt, role: item.role, caption: item.caption, placementAfterHeading: item.placementAfterHeading, bytes: item.base64.length })) }));
     const { data: existing } = await context.supabaseAdmin.from("cms_transfers")
       .select("id,status,content_hash,remote_id,remote_edit_url,publication_status,remote_permalink,verified_live_at,field_report")
       .eq("integration_id", integrationId)

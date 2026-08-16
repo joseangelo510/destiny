@@ -12,6 +12,7 @@ describe("WordPress draft Edge Function logic", () => {
       excerpt: "A concise summary.",
     });
     expect(wordpressDraftPayload(draft)).toMatchObject({ status: "draft", title: "A useful article" });
+    expect(draft.renderingVersion).toBe("wordpress-blocks-v1");
     expect(draft.metaTitle).toBe("A Useful Article | Practical Guide");
     expect(wordpressDraftPayload(draft)).not.toHaveProperty("publish");
     expect(wordpressEditUrl("https://example.com/", "42")).toBe("https://example.com/wp-admin/post.php?post=42&action=edit");
@@ -75,6 +76,10 @@ describe("WordPress draft Edge Function logic", () => {
       featuredMedia: 20,
       contentHtml: '<!-- wp:heading {"level":2} --><h2>First section</h2><!-- wp:image {"id":21} --><figure><img class="wp-image-21" alt="Useful diagram"></figure><!-- /wp:image --><!-- /wp:heading -->',
     }, media)).toMatchObject({ verified: false, reason: expect.stringMatching(/inside a heading block/i) });
+    expect(verifyDeliveredDraftMedia({
+      featuredMedia: 20,
+      contentHtml: '<!-- wp:heading {"level":2} --><h2>First section</h2><!-- /wp:heading --><!-- wp:image {"id":21} --><figure><img class="wp-image-21" alt="Useful diagram"></figure><!-- /wp:image -->',
+    }, media)).toEqual({ verified: true, reason: "" });
   });
 
   it("creates a stable, short fingerprint from the article text", () => {

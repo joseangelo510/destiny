@@ -1,4 +1,5 @@
 export type WordPressDraftBody = {
+  renderingVersion?: unknown;
   websiteId?: unknown;
   articleKey?: unknown;
   title?: unknown;
@@ -38,6 +39,9 @@ function mediaInputs(value: unknown) {
 }
 
 export function prepareDraftBody(body: WordPressDraftBody) {
+  const renderingVersion = typeof body.renderingVersion === "string" && body.renderingVersion.trim()
+    ? body.renderingVersion.trim().slice(0, 80)
+    : "wordpress-blocks-v1";
   const websiteId = typeof body.websiteId === "string" ? body.websiteId.trim() : "";
   const articleKey = typeof body.articleKey === "string" ? body.articleKey.trim().slice(0, 500) : "";
   const title = typeof body.title === "string" ? body.title.trim() : "";
@@ -47,7 +51,7 @@ export function prepareDraftBody(body: WordPressDraftBody) {
   if (!websiteId || !articleKey || !title || contentHtml.length < 100) {
     throw new Error("The approved article is incomplete.");
   }
-  return { websiteId, articleKey, title, metaTitle, contentHtml, excerpt, media: mediaInputs(body.media) };
+  return { renderingVersion, websiteId, articleKey, title, metaTitle, contentHtml, excerpt, media: mediaInputs(body.media) };
 }
 
 function escapeAttribute(value: string) {
@@ -103,7 +107,7 @@ export function verifyDeliveredDraftMedia(
   remote: { featuredMedia: number; contentHtml: string },
   media: UploadedWordPressMedia[],
 ) {
-  if (/<!-- wp:heading\b[\s\S]*?<!-- wp:image\b[\s\S]*?<!-- \/wp:heading -->/i.test(remote.contentHtml)) {
+  if (/<!-- wp:heading\b(?:(?!<!-- \/wp:heading -->)[\s\S])*<!-- wp:image\b(?:(?!<!-- \/wp:heading -->)[\s\S])*<!-- \/wp:heading -->/i.test(remote.contentHtml)) {
     return { verified: false, reason: "WordPress placed an inline image inside a heading block instead of after it." };
   }
   const featured = media.find((item) => item.role === "featured");
