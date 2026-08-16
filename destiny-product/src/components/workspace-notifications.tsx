@@ -7,6 +7,21 @@ import {
   type WorkspaceNotification,
 } from "../lib/product/notifications";
 
+async function fetchWorkspaceNotifications(websiteId: string | null) {
+  if (!websiteId) return { notifications: [] as WorkspaceNotification[], error: "" };
+  const [standardResponse, digestResponse] = await Promise.all([
+    fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" }),
+    fetch(`/api/comms/digest?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" }),
+  ]);
+  const [standard, digest] = await Promise.all([
+    standardResponse.json().catch(() => ({})) as Promise<{ error?: string; notifications?: WorkspaceNotification[] }>,
+    digestResponse.json().catch(() => ({})) as Promise<{ error?: string; notifications?: WorkspaceNotification[] }>,
+  ]);
+  if (!standardResponse.ok) return { notifications: [] as WorkspaceNotification[], error: standard.error || "Destiny could not load notifications." };
+  if (!digestResponse.ok) return { notifications: standard.notifications ?? [], error: digest.error || "Destiny could not load grouped updates." };
+  return { notifications: [...(digest.notifications ?? []), ...(standard.notifications ?? [])].sort((left, right) => right.created_at.localeCompare(left.created_at)).slice(0, 12), error: "" };
+}
+
 export function WorkspaceNotifications({ websiteId }: { websiteId: string | null }) {
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [open, setOpen] = useState(false);
@@ -17,13 +32,9 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
   const load = async () => {
     setLoading(true);
     if (!websiteId) return;
-    const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" });
-    const payload = await response.json().catch(() => ({})) as { error?: string; notifications?: WorkspaceNotification[] };
-    if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
-    else {
-      setNotifications(payload.notifications ?? []);
-      setError("");
-    }
+    const payload = await fetchWorkspaceNotifications(websiteId);
+    setNotifications(payload.notifications);
+    setError(payload.error);
     setLoading(false);
   };
 
@@ -32,15 +43,11 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
     if (!websiteId) {
       return () => { active = false; };
     }
-    void fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" })
-      .then(async (response) => ({
-        response,
-        payload: await response.json().catch(() => ({})) as { error?: string; notifications?: WorkspaceNotification[] },
-      }))
-      .then(({ response, payload }) => {
+    void fetchWorkspaceNotifications(websiteId)
+      .then((payload) => {
         if (!active) return;
-        if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
-        else setNotifications(payload.notifications ?? []);
+        setError(payload.error);
+        setNotifications(payload.notifications);
         setLoading(false);
       })
       .catch(() => {
@@ -52,7 +59,23 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
   }, [websiteId]);
 
   const openNotification = async (notification: WorkspaceNotification) => {
+    if (notification.source === "comms_batch" && notification.message_id) {
+      const response = await fetch(`/api/comms/digest?site=${encodeURIComponent(websiteId ?? "")}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageId: notification.message_id }),
+      });
+      if (!response.ok) {
+        setError("Destiny could not dismiss this grouped update.");
+        return;
+      }
+    }
     if (!notification.read_at) {
+      if (notification.source === "comms_batch") {
+        if (notification.destination_path) window.location.assign(notification.destination_path);
+        else await load();
+        return;
+      }
       const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId ?? "")}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -68,12 +91,20 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
   };
 
   const markAllRead = async () => {
-    const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId ?? "")}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ all: true }),
-    });
-    if (!response.ok) setError("Destiny could not mark the notifications as read.");
+    const digestMessageIds = notifications.flatMap((notification) => notification.source === "comms_batch" && notification.message_id ? [notification.message_id] : []);
+    const [response, digestResponse] = await Promise.all([
+      fetch(`/api/notifications?site=${encodeURIComponent(websiteId ?? "")}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      }),
+      digestMessageIds.length ? fetch(`/api/comms/digest?site=${encodeURIComponent(websiteId ?? "")}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageIds: digestMessageIds }),
+      }) : Promise.resolve(new Response(null, { status: 200 })),
+    ]);
+    if (!response.ok || !digestResponse.ok) setError("Destiny could not mark the notifications as read.");
     else await load();
   };
 

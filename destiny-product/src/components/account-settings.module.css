@@ -15,6 +15,25 @@
 .saveButton { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 800; margin-top: 12px; min-height: 44px; padding: 0 17px; }
 .saveButton:disabled { cursor: not-allowed; opacity: .42; }
 .success { color: var(--forest) !important; font-weight: 750; margin-top: 10px !important; }
+.commsForm { display: grid; gap: 22px; margin-top: 28px; }
+.cadenceOptions { border: 0; display: grid; gap: 10px; margin: 0; padding: 0; }
+.cadenceOptions legend { color: var(--forest-dark); font-size: 15px; font-weight: 850; margin-bottom: 10px; }
+.cadenceOption { align-items: flex-start; background: #f6f8f5; border: 1px solid #e2e9e5; border-radius: 14px; cursor: pointer; display: flex; gap: 12px; padding: 15px 16px; }
+.cadenceOption:has(input:checked) { background: #eaf5ef; border-color: #8ab7a1; }
+.cadenceOption input { accent-color: var(--forest); margin-top: 3px; }
+.cadenceOption span { display: grid; gap: 4px; }
+.cadenceOption strong { color: var(--forest-dark); font-size: 15px; }
+.cadenceOption small { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.timezoneLabel { color: var(--forest-dark); display: grid; font-size: 14px; font-weight: 800; gap: 8px; }
+.timezoneLabel input { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 48px; padding: 0 14px; }
+.timezoneLabel small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.channelOptions { display: flex; flex-wrap: wrap; gap: 18px; }
+.channelOptions label { align-items: center; color: var(--forest-dark); display: inline-flex; font-size: 14px; font-weight: 800; gap: 8px; }
+.channelOptions input { accent-color: var(--forest); }
+.commsActions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
+.commsActions button { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 15px; font-weight: 800; min-height: 48px; padding: 0 20px; }
+.commsActions button:disabled { cursor: not-allowed; opacity: .45; }
+.commsActions span { color: var(--muted); font-size: 13px; }
 .websiteList { border: 1px solid #e4e9e4; border-radius: 18px; display: grid; margin-top: 28px; overflow: hidden; }
 .websiteRow { align-items: center; background: #fff; display: flex; gap: 18px; justify-content: space-between; padding: 18px 20px; }
 .websiteRow + .websiteRow { border-top: 1px solid #e4e9e4; }

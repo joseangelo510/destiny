@@ -14,6 +14,282 @@ export type Database = {
   }
   public: {
     Tables: {
+      comms_achievements: {
+        Row: {
+          achievement_key: string
+          earned_at: string
+          id: string
+          organization_id: string
+          source_event_id: string | null
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          achievement_key: string
+          earned_at?: string
+          id?: string
+          organization_id: string
+          source_event_id?: string | null
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          achievement_key?: string
+          earned_at?: string
+          id?: string
+          organization_id?: string
+          source_event_id?: string | null
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      comms_deliveries: {
+        Row: {
+          alarm: boolean
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          event_id: string | null
+          id: string
+          message_id: string
+          organization_id: string
+          provider_message_id: string | null
+          status: string
+          transactional: boolean
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          alarm?: boolean
+          channel: string
+          created_at?: string
+          delivered_at?: string | null
+          event_id?: string | null
+          id?: string
+          message_id: string
+          organization_id: string
+          provider_message_id?: string | null
+          status: string
+          transactional?: boolean
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          alarm?: boolean
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          event_id?: string | null
+          id?: string
+          message_id?: string
+          organization_id?: string
+          provider_message_id?: string | null
+          status?: string
+          transactional?: boolean
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      comms_message_outcomes: {
+        Row: {
+          event_id: string | null
+          id: string
+          message_id: string
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          outcome: string
+          user_id: string
+          website_id: string
+        }
+        Insert: {
+          event_id?: string | null
+          id?: string
+          message_id: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          outcome: string
+          user_id: string
+          website_id: string
+        }
+        Update: {
+          event_id?: string | null
+          id?: string
+          message_id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          outcome?: string
+          user_id?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      comms_notification_events: {
+        Row: {
+          bypass_batch: boolean
+          created_at: string
+          dedupe_key: string
+          event_id: string
+          grouping_key: string
+          job: string
+          occurred_at: string
+          organization_id: string
+          payload: Json
+          priority: number
+          render: Json
+          type: string
+          user_id: string
+          user_timezone: string
+          website_id: string
+        }
+        Insert: {
+          bypass_batch?: boolean
+          created_at?: string
+          dedupe_key: string
+          event_id?: string
+          grouping_key: string
+          job: string
+          occurred_at?: string
+          organization_id: string
+          payload?: Json
+          priority?: number
+          render?: Json
+          type: string
+          user_id: string
+          user_timezone: string
+          website_id: string
+        }
+        Update: {
+          bypass_batch?: boolean
+          created_at?: string
+          dedupe_key?: string
+          event_id?: string
+          grouping_key?: string
+          job?: string
+          occurred_at?: string
+          organization_id?: string
+          payload?: Json
+          priority?: number
+          render?: Json
+          type?: string
+          user_id?: string
+          user_timezone?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      comms_preferences: {
+        Row: {
+          cadence: string
+          created_at: string
+          email_enabled: boolean
+          id: string
+          organization_id: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+          user_timezone: string
+          website_id: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          organization_id: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          user_timezone?: string
+          website_id: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          organization_id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          user_timezone?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      comms_weeks: {
+        Row: {
+          created_at: string
+          friday_risk_at: string
+          freezes_remaining: number
+          freezes_reset_at: string
+          id: string
+          local_week_start: string
+          organization_id: string
+          qualifying_action_count: number
+          recovery_action_count: number
+          recovery_expires_at: string | null
+          state: string
+          streak_length: number
+          sunday_last_chance_at: string
+          updated_at: string
+          user_id: string
+          user_timezone: string
+          website_id: string
+          week_number: number
+          window_end_at: string
+          window_start_at: string
+        }
+        Insert: {
+          created_at?: string
+          friday_risk_at: string
+          freezes_remaining?: number
+          freezes_reset_at: string
+          id?: string
+          local_week_start: string
+          organization_id: string
+          qualifying_action_count?: number
+          recovery_action_count?: number
+          recovery_expires_at?: string | null
+          state?: string
+          streak_length?: number
+          sunday_last_chance_at: string
+          updated_at?: string
+          user_id: string
+          user_timezone: string
+          website_id: string
+          week_number: number
+          window_end_at: string
+          window_start_at: string
+        }
+        Update: {
+          created_at?: string
+          friday_risk_at?: string
+          freezes_remaining?: number
+          freezes_reset_at?: string
+          id?: string
+          local_week_start?: string
+          organization_id?: string
+          qualifying_action_count?: number
+          recovery_action_count?: number
+          recovery_expires_at?: string | null
+          state?: string
+          streak_length?: number
+          sunday_last_chance_at?: string
+          updated_at?: string
+          user_id?: string
+          user_timezone?: string
+          website_id?: string
+          week_number?: number
+          window_end_at?: string
+          window_start_at?: string
+        }
+        Relationships: []
+      }
       audit_metrics: {
         Row: {
           audit_id: string
