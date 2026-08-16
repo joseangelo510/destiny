@@ -108,6 +108,7 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
   };
 
   return {
+    renderingVersion: "wordpress-blocks-v2",
     websiteId: input.websiteId.trim(),
     articleKey: `${auditId}:${keyword}`.slice(0, 500),
     title,
