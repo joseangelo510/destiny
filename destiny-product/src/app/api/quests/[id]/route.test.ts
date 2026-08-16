@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { isCommsBetaEnabled, recordQuestActionCompletion, runDestinyServerLogic, state, update } = vi.hoisted(() => ({
-  isCommsBetaEnabled: vi.fn(() => true),
-  recordQuestActionCompletion: vi.fn(),
+const { runDestinyServerLogic, state, update } = vi.hoisted(() => ({
   runDestinyServerLogic: vi.fn(),
   state: {
     approvedKeywordCount: 5,
-    quest: { id: "quest-1", task_type: "business_confirmation", status: "todo", audit_id: "audit-1", week_number: 1, website_id: "site-1", title: "Confirm business", action_path: "/onboarding" },
+    quest: { id: "quest-1", task_type: "business_confirmation", status: "todo", audit_id: "audit-1", week_number: 1 },
   },
   update: vi.fn(),
 }));
@@ -14,8 +12,6 @@ const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
 const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
 vi.mock("../../../../lib/logicaffeine-server", () => ({ runDestinyServerLogic }));
-vi.mock("../../../../lib/comms/persistence", () => ({ recordQuestActionCompletion }));
-vi.mock("../../../../lib/comms/feature", () => ({ isCommsBetaEnabled }));
 vi.mock("../../../../lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getClaims: async () => ({ data: { claims: { sub: "user-zero" } } }) },
@@ -45,14 +41,12 @@ import { PATCH } from "./route";
 describe("PATCH /api/quests/[id] LOGOS policy", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    isCommsBetaEnabled.mockReturnValue(true);
     state.approvedKeywordCount = 5;
-    state.quest = { id: "quest-1", task_type: "business_confirmation", status: "todo", audit_id: "audit-1", week_number: 1, website_id: "site-1", title: "Confirm business", action_path: "/onboarding" };
-    recordQuestActionCompletion.mockResolvedValue({ recorded: true });
+    state.quest = { id: "quest-1", task_type: "business_confirmation", status: "todo", audit_id: "audit-1", week_number: 1 };
     update.mockReturnValue({
       eq: () => ({
         select: () => ({
-          maybeSingle: async () => ({ data: { id: "quest-1", status: "complete", completed_at: "2026-08-15T18:00:00.000Z", verification_status: "verified" }, error: null }),
+          maybeSingle: async () => ({ data: { id: "quest-1", status: "complete", verification_status: "verified" }, error: null }),
         }),
       }),
     });
@@ -76,7 +70,6 @@ describe("PATCH /api/quests/[id] LOGOS policy", () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "complete", verification_status: "verified", verification_method: "user_confirmation" }));
     expect(info).toHaveBeenCalledWith(expect.stringContaining('"fallbacks":0'));
     expect(info).toHaveBeenCalledWith(expect.stringContaining('"wasm_errors":0'));
-    expect(recordQuestActionCompletion).not.toHaveBeenCalled();
   });
 
   it("fails closed on a LOGOS boundary error and performs no write", async () => {
@@ -133,10 +126,5 @@ describe("PATCH /api/quests/[id] LOGOS policy", () => {
     expect(response.status).toBe(200);
     expect(runDestinyServerLogic).toHaveBeenCalledOnce();
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "complete" }));
-    expect(recordQuestActionCompletion).toHaveBeenCalledWith(expect.objectContaining({
-      questId: "quest-1",
-      websiteId: "site-1",
-      userId: "user-zero",
-    }));
   });
 });

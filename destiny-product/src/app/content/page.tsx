@@ -1,4 +1,5 @@
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
+import { PublishingPlanManager } from "@/components/publishing-plan-manager";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
@@ -11,6 +12,7 @@ import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, 
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
+import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string }> }) {
@@ -91,6 +93,31 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
   const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
+  const { data: publishingPlanRow } = context.website && context.audit
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("publishing_plans")
+      .select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at")
+      .eq("website_id", context.website.id)
+      .eq("audit_id", context.audit.id)
+      .maybeSingle()
+    : { data: null };
+  const { data: publishingItemRows } = publishingPlanRow
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("publishing_schedule_items")
+      .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error")
+      .eq("plan_id", publishingPlanRow.id)
+      .order("position")
+    : { data: [] };
+  const publishingPlan = publishingPlanRow as PublishingPlanRecord | null;
+  const publishingItems = (publishingItemRows ?? []) as PublishingScheduleItemRecord[];
+  const wordpressScheduleByKeyword: Record<string, string> = {};
+  if (publishingPlan?.status === "active" && publishingPlan.mode !== "review_each") {
+    for (const item of publishingItems) {
+      if (item.state === "published" || item.state === "managed_externally") continue;
+      const keyword = normalizeTrackedKeyword(item.keyword);
+      if (!wordpressScheduleByKeyword[keyword]) wordpressScheduleByKeyword[keyword] = item.scheduled_for;
+    }
+  }
   const approvedKeywordCount = (savedKeywordPreferences ?? []).filter((item) => item.decision === "approved").length;
   const watchlistCount = (pipelineTrackedKeywords ?? []).filter((item) => item.source !== "strategy").length;
 
@@ -102,12 +129,21 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
+        <PublishingPlanManager
+          websiteId={context.website?.id ?? ""}
+          auditId={context.audit?.id ?? ""}
+          calendar={calendar}
+          wordpressConnected={wordpress?.status === "connected"}
+          initialPlan={publishingPlan}
+          initialItems={publishingItems}
+        />
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
           webflowConnected={webflow?.status === "connected"}
           initialCmsTransfers={initialCmsTransfers}
+          wordpressScheduleByKeyword={wordpressScheduleByKeyword}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",

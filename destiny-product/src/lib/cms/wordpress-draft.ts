@@ -13,6 +13,7 @@ export type WordPressDraftRequest = {
   infographics?: unknown;
   approved?: unknown;
   generationStatus?: unknown;
+  scheduledFor?: unknown;
 };
 
 function slug(value: string) {
@@ -87,11 +88,16 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
   const metaTitle = typeof input.metaTitle === "string" && input.metaTitle.trim() ? input.metaTitle.trim().slice(0, 160) : title;
   const body = typeof input.body === "string" ? input.body.trim() : "";
   const excerpt = typeof input.metaDescription === "string" ? input.metaDescription.trim().slice(0, 280) : "";
+  const scheduledFor = typeof input.scheduledFor === "string" && input.scheduledFor.trim() ? input.scheduledFor.trim() : "";
   if (!auditId || !keyword || !title || body.length < 100) {
     throw new Error("The approved article is incomplete. Review it before sending it to WordPress.");
   }
   const titleIssues = articleTitleQualityIssues({ title, metaTitle, titleCandidates: input.titleCandidates, bodyMarkdown: body }, keyword);
   if (titleIssues.length) throw new Error(`Review the headline and SEO/meta title before sending this article: ${titleIssues[0].message}`);
+  if (scheduledFor) {
+    const scheduled = Date.parse(scheduledFor);
+    if (Number.isNaN(scheduled) || scheduled - Date.now() < 72 * 60 * 60 * 1000) throw new Error("Choose a publication time at least 72 hours away.");
+  }
 
   const renderedHtml = renderArticleMarkdownToHtml(body).replace(/^<h1>.*?<\/h1>/, "");
   const contentHtml = wordpressArticleBlocks(renderedHtml);
@@ -115,6 +121,7 @@ export function prepareWordPressDraft(input: WordPressDraftRequest) {
     metaTitle,
     contentHtml,
     excerpt,
+    scheduledFor,
     featuredGraphic,
     graphics: prepareInfographics(input.infographics, articleHeadings(body)),
   };

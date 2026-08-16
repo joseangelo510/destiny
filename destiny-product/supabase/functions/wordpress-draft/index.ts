@@ -202,6 +202,7 @@ export default {
     const remoteId = String(remote.id);
     const remoteEditUrl = wordpressEditUrl(siteUrl, remoteId);
     const fieldReport = wordpressFieldReport(draft.metaTitle, titleSuffix, uploadedMedia.length);
+    const publicationStatus = remote.status === "future" ? "scheduled" : "delivered_draft";
     const draftMediaVerification = verifyDeliveredDraftMedia({
       featuredMedia: typeof remote.featured_media === "number" ? remote.featured_media : 0,
       contentHtml: typeof remote.content?.rendered === "string" ? remote.content.rendered : "",
@@ -224,12 +225,13 @@ export default {
     }
     const { error: completionError } = await context.supabaseAdmin.from("cms_transfers").update({
       status: "succeeded",
-      publication_status: "delivered_draft",
+      publication_status: publicationStatus,
       remote_id: remoteId,
       remote_edit_url: remoteEditUrl,
       remote_permalink: typeof remote.link === "string" ? remote.link : null,
       remote_status: typeof remote.status === "string" ? remote.status : "draft",
       remote_modified_at: typeof remote.modified_gmt === "string" ? remote.modified_gmt : null,
+      scheduled_for: draft.scheduledFor || null,
       delivered_fingerprint: contentFingerprint(draft.title, wordpressDraftPayload(draft, uploadedMedia).content),
       featured_media_id: uploadedMedia.find((item) => item.role === "featured")?.id ?? null,
       media_ids: uploadedMedia.map((item) => item.id),
@@ -240,6 +242,6 @@ export default {
     }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
     if (completionError) return json({ error: "The WordPress draft was created, but Destiny could not save its editor link. Check WordPress before trying again." }, 502);
 
-    return json({ delivered: true, remoteEditUrl, updated: Boolean(updateRemoteId), publicationStatus: "delivered_draft", fieldReport });
+    return json({ delivered: true, remoteEditUrl, updated: Boolean(updateRemoteId), publicationStatus, scheduledFor: draft.scheduledFor || null, fieldReport });
   }),
 };

@@ -40,14 +40,12 @@ const productionHistory = [
   "20260814033523_scope_notifications_to_website.sql",
   "20260814033535_google_sync_state_lock.sql",
   "20260814135202_harden_authenticated_rpcs.sql",
-  "20260815231204_wordpress_publication_reconciliation.sql",
-  "20260816024617_reconcile_llm_visibility_tasks_backfill.sql",
-  "20260816024624_website_notification_email_backfill.sql",
-  "20260816024632_index_llm_visibility_completed_by_backfill.sql",
-  "20260816024639_destiny_comms_beta.sql",
-  "20260816031057_index_comms_website_foreign_keys.sql",
 ];
-const stagingForwardHistory = [];
+const stagingForwardHistory = [
+  "20260815024644_reconcile_llm_visibility_tasks.sql",
+  "20260815024645_website_notification_email.sql",
+  "20260815025015_index_llm_visibility_completed_by.sql",
+];
 const recordedHistory = [...productionHistory, ...stagingForwardHistory];
 
 const files = (await readdir(migrationDirectory))

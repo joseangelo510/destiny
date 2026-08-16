@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prepareWordPressDraft, type WordPressDraftRequest } from "@/lib/cms/wordpress-draft";
 import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import sharp from "sharp";
 
 export async function POST(request: Request) {
@@ -40,6 +42,15 @@ export async function POST(request: Request) {
 
   if (error || !data?.delivered || !data.remoteEditUrl) {
     return NextResponse.json({ error: data?.error || "Destiny could not create the WordPress draft." }, { status: 502 });
+  }
+  if (draft.scheduledFor) {
+    const db = supabase as unknown as SupabaseClient;
+    await db.from("publishing_schedule_items").update({
+      state: "scheduled",
+      article_key: draft.articleKey,
+      remote_edit_url: data.remoteEditUrl,
+      last_error: null,
+    }).eq("website_id", draft.websiteId).eq("normalized_keyword", normalizeTrackedKeyword(String(body.keyword ?? ""))).eq("scheduled_for", draft.scheduledFor);
   }
   return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
 }

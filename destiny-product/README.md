@@ -193,16 +193,6 @@ ANTHROPIC_API_KEY
 ANTHROPIC_COPY_MODEL
 ```
 
-The closed-beta communications surfaces are fail-closed. Leave
-`DESTINY_COMMS_BETA_ENABLED` unset or set it to `false` until the communications
-migration, RLS isolation checks, and payload review are complete. This review
-build cannot be enabled in production through environment configuration. Local
-review requires both `DESTINY_COMMS_BETA_ENABLED=true` and
-`DESTINY_COMMS_BETA_LOCAL_PREVIEW=true`; production activation requires a later,
-reviewed code change. The preview exposes the cadence controls, Week indicator,
-grouped in-app updates, and authenticated review page; it does not configure an
-email or push provider.
-
 Keep DataForSEO and Resend secrets in Supabase rather than duplicating them in
 Replit. After publishing, set `NEXT_PUBLIC_SITE_URL` and Supabase's
 `DESTINY_SITE_URL` to the final HTTPS URL, then add that URL to Supabase Auth's

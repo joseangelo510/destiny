@@ -14,64 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      article_drafts: {
-        Row: {
-          audit_id: string
-          created_at: string
-          draft: Json
-          id: string
-          keyword: string
-          organization_id: string
-          updated_at: string
-          user_id: string
-          website_id: string
-        }
-        Insert: {
-          audit_id: string
-          created_at?: string
-          draft: Json
-          id?: string
-          keyword: string
-          organization_id: string
-          updated_at?: string
-          user_id: string
-          website_id: string
-        }
-        Update: {
-          audit_id?: string
-          created_at?: string
-          draft?: Json
-          id?: string
-          keyword?: string
-          organization_id?: string
-          updated_at?: string
-          user_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "article_drafts_audit_id_fkey"
-            columns: ["audit_id"]
-            isOneToOne: false
-            referencedRelation: "audits"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "article_drafts_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "article_drafts_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       audit_metrics: {
         Row: {
           audit_id: string
@@ -181,698 +123,6 @@ export type Database = {
           },
           {
             foreignKeyName: "audits_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cms_transfers: {
-        Row: {
-          article_key: string
-          attempt_count: number
-          completed_at: string | null
-          content_hash: string
-          created_at: string
-          delivered_fingerprint: string | null
-          error_class: string | null
-          error_detail: string | null
-          featured_media_id: number | null
-          field_report: Json | null
-          id: string
-          integration_id: string
-          last_reconciled_at: string | null
-          media_ids: Json
-          publication_status: string | null
-          remote_content_hash: string | null
-          remote_edit_url: string | null
-          remote_id: string | null
-          remote_modified_at: string | null
-          remote_permalink: string | null
-          remote_status: string | null
-          scheduled_for: string | null
-          seo_title_rendered: string | null
-          status: string
-          updated_at: string
-          verification_evidence: Json | null
-          verified_live_at: string | null
-          website_id: string
-        }
-        Insert: {
-          article_key: string
-          attempt_count?: number
-          completed_at?: string | null
-          content_hash: string
-          created_at?: string
-          delivered_fingerprint?: string | null
-          error_class?: string | null
-          error_detail?: string | null
-          featured_media_id?: number | null
-          field_report?: Json | null
-          id?: string
-          integration_id: string
-          last_reconciled_at?: string | null
-          media_ids?: Json
-          publication_status?: string | null
-          remote_content_hash?: string | null
-          remote_edit_url?: string | null
-          remote_id?: string | null
-          remote_modified_at?: string | null
-          remote_permalink?: string | null
-          remote_status?: string | null
-          scheduled_for?: string | null
-          seo_title_rendered?: string | null
-          status?: string
-          updated_at?: string
-          verification_evidence?: Json | null
-          verified_live_at?: string | null
-          website_id: string
-        }
-        Update: {
-          article_key?: string
-          attempt_count?: number
-          completed_at?: string | null
-          content_hash?: string
-          created_at?: string
-          delivered_fingerprint?: string | null
-          error_class?: string | null
-          error_detail?: string | null
-          featured_media_id?: number | null
-          field_report?: Json | null
-          id?: string
-          integration_id?: string
-          last_reconciled_at?: string | null
-          media_ids?: Json
-          publication_status?: string | null
-          remote_content_hash?: string | null
-          remote_edit_url?: string | null
-          remote_id?: string | null
-          remote_modified_at?: string | null
-          remote_permalink?: string | null
-          remote_status?: string | null
-          scheduled_for?: string | null
-          seo_title_rendered?: string | null
-          status?: string
-          updated_at?: string
-          verification_evidence?: Json | null
-          verified_live_at?: string | null
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cms_transfers_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "integrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cms_transfers_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_achievements: {
-        Row: {
-          achievement_key: string
-          earned_at: string
-          id: string
-          organization_id: string
-          source_event_id: string | null
-          user_id: string
-          website_id: string
-        }
-        Insert: {
-          achievement_key: string
-          earned_at?: string
-          id?: string
-          organization_id: string
-          source_event_id?: string | null
-          user_id: string
-          website_id: string
-        }
-        Update: {
-          achievement_key?: string
-          earned_at?: string
-          id?: string
-          organization_id?: string
-          source_event_id?: string | null
-          user_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_achievements_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_achievements_source_event_id_fkey"
-            columns: ["source_event_id"]
-            isOneToOne: false
-            referencedRelation: "comms_notification_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "comms_achievements_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_achievements_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_deliveries: {
-        Row: {
-          alarm: boolean
-          channel: string
-          created_at: string
-          delivered_at: string | null
-          event_id: string | null
-          id: string
-          message_id: string
-          organization_id: string
-          provider_message_id: string | null
-          status: string
-          transactional: boolean
-          user_id: string
-          website_id: string
-        }
-        Insert: {
-          alarm?: boolean
-          channel: string
-          created_at?: string
-          delivered_at?: string | null
-          event_id?: string | null
-          id?: string
-          message_id: string
-          organization_id: string
-          provider_message_id?: string | null
-          status: string
-          transactional?: boolean
-          user_id: string
-          website_id: string
-        }
-        Update: {
-          alarm?: boolean
-          channel?: string
-          created_at?: string
-          delivered_at?: string | null
-          event_id?: string | null
-          id?: string
-          message_id?: string
-          organization_id?: string
-          provider_message_id?: string | null
-          status?: string
-          transactional?: boolean
-          user_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_deliveries_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "comms_notification_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "comms_deliveries_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_deliveries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_deliveries_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_message_outcomes: {
-        Row: {
-          event_id: string | null
-          id: string
-          message_id: string
-          metadata: Json
-          occurred_at: string
-          organization_id: string
-          outcome: string
-          user_id: string
-          website_id: string
-        }
-        Insert: {
-          event_id?: string | null
-          id?: string
-          message_id: string
-          metadata?: Json
-          occurred_at?: string
-          organization_id: string
-          outcome: string
-          user_id: string
-          website_id: string
-        }
-        Update: {
-          event_id?: string | null
-          id?: string
-          message_id?: string
-          metadata?: Json
-          occurred_at?: string
-          organization_id?: string
-          outcome?: string
-          user_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_message_outcomes_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "comms_notification_events"
-            referencedColumns: ["event_id"]
-          },
-          {
-            foreignKeyName: "comms_message_outcomes_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_message_outcomes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_message_outcomes_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_notification_events: {
-        Row: {
-          bypass_batch: boolean
-          created_at: string
-          dedupe_key: string
-          event_id: string
-          grouping_key: string
-          job: string
-          occurred_at: string
-          organization_id: string
-          payload: Json
-          priority: number
-          render: Json
-          type: string
-          user_id: string
-          user_timezone: string
-          website_id: string
-        }
-        Insert: {
-          bypass_batch?: boolean
-          created_at?: string
-          dedupe_key: string
-          event_id?: string
-          grouping_key: string
-          job: string
-          occurred_at?: string
-          organization_id: string
-          payload?: Json
-          priority?: number
-          render?: Json
-          type: string
-          user_id: string
-          user_timezone: string
-          website_id: string
-        }
-        Update: {
-          bypass_batch?: boolean
-          created_at?: string
-          dedupe_key?: string
-          event_id?: string
-          grouping_key?: string
-          job?: string
-          occurred_at?: string
-          organization_id?: string
-          payload?: Json
-          priority?: number
-          render?: Json
-          type?: string
-          user_id?: string
-          user_timezone?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_notification_events_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_notification_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_notification_events_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_preferences: {
-        Row: {
-          cadence: string
-          created_at: string
-          email_enabled: boolean
-          id: string
-          organization_id: string
-          push_enabled: boolean
-          updated_at: string
-          user_id: string
-          user_timezone: string
-          website_id: string
-        }
-        Insert: {
-          cadence?: string
-          created_at?: string
-          email_enabled?: boolean
-          id?: string
-          organization_id: string
-          push_enabled?: boolean
-          updated_at?: string
-          user_id: string
-          user_timezone?: string
-          website_id: string
-        }
-        Update: {
-          cadence?: string
-          created_at?: string
-          email_enabled?: boolean
-          id?: string
-          organization_id?: string
-          push_enabled?: boolean
-          updated_at?: string
-          user_id?: string
-          user_timezone?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_preferences_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_preferences_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comms_weeks: {
-        Row: {
-          created_at: string
-          freezes_remaining: number
-          freezes_reset_at: string
-          friday_risk_at: string
-          id: string
-          local_week_start: string
-          organization_id: string
-          qualifying_action_count: number
-          recovery_action_count: number
-          recovery_expires_at: string | null
-          state: string
-          streak_length: number
-          sunday_last_chance_at: string
-          updated_at: string
-          user_id: string
-          user_timezone: string
-          website_id: string
-          week_number: number
-          window_end_at: string
-          window_start_at: string
-        }
-        Insert: {
-          created_at?: string
-          freezes_remaining?: number
-          freezes_reset_at: string
-          friday_risk_at: string
-          id?: string
-          local_week_start: string
-          organization_id: string
-          qualifying_action_count?: number
-          recovery_action_count?: number
-          recovery_expires_at?: string | null
-          state?: string
-          streak_length?: number
-          sunday_last_chance_at: string
-          updated_at?: string
-          user_id: string
-          user_timezone: string
-          website_id: string
-          week_number: number
-          window_end_at: string
-          window_start_at: string
-        }
-        Update: {
-          created_at?: string
-          freezes_remaining?: number
-          freezes_reset_at?: string
-          friday_risk_at?: string
-          id?: string
-          local_week_start?: string
-          organization_id?: string
-          qualifying_action_count?: number
-          recovery_action_count?: number
-          recovery_expires_at?: string | null
-          state?: string
-          streak_length?: number
-          sunday_last_chance_at?: string
-          updated_at?: string
-          user_id?: string
-          user_timezone?: string
-          website_id?: string
-          week_number?: number
-          window_end_at?: string
-          window_start_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comms_weeks_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_weeks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comms_weeks_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      competitors: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          url: string | null
-          website_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          url?: string | null
-          website_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          url?: string | null
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "competitors_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      directory_profiles: {
-        Row: {
-          created_at: string
-          directory_key: string
-          http_status: number | null
-          id: string
-          last_checked_at: string | null
-          organization_id: string
-          profile_url: string | null
-          public_rating: number | null
-          public_review_count: number | null
-          status: string
-          updated_at: string
-          website_id: string
-        }
-        Insert: {
-          created_at?: string
-          directory_key: string
-          http_status?: number | null
-          id?: string
-          last_checked_at?: string | null
-          organization_id: string
-          profile_url?: string | null
-          public_rating?: number | null
-          public_review_count?: number | null
-          status?: string
-          updated_at?: string
-          website_id: string
-        }
-        Update: {
-          created_at?: string
-          directory_key?: string
-          http_status?: number | null
-          id?: string
-          last_checked_at?: string | null
-          organization_id?: string
-          profile_url?: string | null
-          public_rating?: number | null
-          public_review_count?: number | null
-          status?: string
-          updated_at?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "directory_profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "directory_profiles_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      integrations: {
-        Row: {
-          connected_at: string | null
-          created_at: string
-          credential_reference: string | null
-          external_account_id: string | null
-          id: string
-          last_synced_at: string | null
-          metadata: Json
-          organization_id: string
-          provider: string
-          scopes: string[]
-          status: string
-          updated_at: string
-          website_id: string | null
-        }
-        Insert: {
-          connected_at?: string | null
-          created_at?: string
-          credential_reference?: string | null
-          external_account_id?: string | null
-          id?: string
-          last_synced_at?: string | null
-          metadata?: Json
-          organization_id: string
-          provider: string
-          scopes?: string[]
-          status?: string
-          updated_at?: string
-          website_id?: string | null
-        }
-        Update: {
-          connected_at?: string | null
-          created_at?: string
-          credential_reference?: string | null
-          external_account_id?: string | null
-          id?: string
-          last_synced_at?: string | null
-          metadata?: Json
-          organization_id?: string
-          provider?: string
-          scopes?: string[]
-          status?: string
-          updated_at?: string
-          website_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "integrations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "integrations_website_id_fkey"
             columns: ["website_id"]
             isOneToOne: false
             referencedRelation: "websites"
@@ -1016,6 +266,277 @@ export type Database = {
           },
         ]
       }
+      rank_observations: {
+        Row: {
+          check_url: string | null
+          created_at: string
+          evidence: Json
+          found: boolean
+          id: string
+          observed_at: string
+          position: number | null
+          provider: string
+          provider_cost: number | null
+          provider_task_id: string | null
+          result_title: string | null
+          result_url: string | null
+          search_depth: number
+          tracked_keyword_id: string
+          website_id: string
+        }
+        Insert: {
+          check_url?: string | null
+          created_at?: string
+          evidence?: Json
+          found: boolean
+          id?: string
+          observed_at: string
+          position?: number | null
+          provider?: string
+          provider_cost?: number | null
+          provider_task_id?: string | null
+          result_title?: string | null
+          result_url?: string | null
+          search_depth: number
+          tracked_keyword_id: string
+          website_id: string
+        }
+        Update: {
+          check_url?: string | null
+          evidence?: Json
+          found?: boolean
+          observed_at?: string
+          position?: number | null
+          provider_cost?: number | null
+          provider_task_id?: string | null
+          result_title?: string | null
+          result_url?: string | null
+          search_depth?: number
+        }
+        Relationships: [
+          { foreignKeyName: "rank_observations_tracked_keyword_id_fkey"; columns: ["tracked_keyword_id"]; isOneToOne: false; referencedRelation: "tracked_keywords"; referencedColumns: ["id"] },
+          { foreignKeyName: "rank_observations_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      rank_tracker_lists: {
+        Row: { created_at: string; created_by: string; id: string; name: string; updated_at: string; website_id: string }
+        Insert: { created_at?: string; created_by: string; id?: string; name: string; updated_at?: string; website_id: string }
+        Update: { name?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "rank_tracker_lists_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      rank_tracker_runs: {
+        Row: { completed_at: string | null; completed_count: number; created_at: string; failed_count: number; id: string; provider_cost: number; requested_count: number; started_at: string | null; status: string; website_id: string }
+        Insert: { completed_at?: string | null; completed_count?: number; created_at?: string; failed_count?: number; id?: string; provider_cost?: number; requested_count?: number; started_at?: string | null; status?: string; website_id: string }
+        Update: { completed_at?: string | null; completed_count?: number; failed_count?: number; provider_cost?: number; requested_count?: number; started_at?: string | null; status?: string }
+        Relationships: [
+          { foreignKeyName: "rank_tracker_runs_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      tracked_keywords: {
+        Row: {
+          created_at: string
+          created_by: string
+          device: string
+          first_reading_due_at: string
+          id: string
+          keyword: string
+          language_code: string
+          last_checked_at: string | null
+          last_error: string | null
+          list_id: string | null
+          location_code: number
+          location_name: string
+          next_check_at: string
+          normalized_keyword: string
+          search_depth: number
+          source: string
+          status: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          device?: string
+          first_reading_due_at?: string
+          id?: string
+          keyword: string
+          language_code?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          list_id?: string | null
+          location_code?: number
+          location_name?: string
+          next_check_at?: string
+          normalized_keyword: string
+          search_depth?: number
+          source?: string
+          status?: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          device?: string
+          keyword?: string
+          language_code?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          list_id?: string | null
+          location_code?: number
+          location_name?: string
+          next_check_at?: string
+          normalized_keyword?: string
+          search_depth?: number
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "tracked_keywords_list_id_fkey"; columns: ["list_id"]; isOneToOne: false; referencedRelation: "rank_tracker_lists"; referencedColumns: ["id"] },
+          { foreignKeyName: "tracked_keywords_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
+      competitors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          url: string | null
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          url?: string | null
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          url?: string | null
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitors_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          connected_at: string | null
+          created_at: string
+          credential_reference: string | null
+          external_account_id: string | null
+          id: string
+          last_synced_at: string | null
+          metadata: Json
+          organization_id: string
+          provider: string
+          scopes: string[]
+          status: string
+          updated_at: string
+          website_id: string | null
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string
+          credential_reference?: string | null
+          external_account_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          metadata?: Json
+          organization_id: string
+          provider: string
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          website_id?: string | null
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string
+          credential_reference?: string | null
+          external_account_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          metadata?: Json
+          organization_id?: string
+          provider?: string
+          scopes?: string[]
+          status?: string
+          updated_at?: string
+          website_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integrations_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_profiles: {
+        Row: {
+          created_at: string
+          directory_key: string
+          id: string
+          http_status: number | null
+          last_checked_at: string | null
+          organization_id: string
+          profile_url: string | null
+          public_rating: number | null
+          public_review_count: number | null
+          status: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          directory_key: string
+          id?: string
+          http_status?: number | null
+          last_checked_at?: string | null
+          organization_id: string
+          profile_url?: string | null
+          public_rating?: number | null
+          public_review_count?: number | null
+          status?: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          directory_key?: string
+          http_status?: number | null
+          last_checked_at?: string | null
+          profile_url?: string | null
+          public_rating?: number | null
+          public_review_count?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "directory_profiles_organization_id_fkey"; columns: ["organization_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+          { foreignKeyName: "directory_profiles_website_id_fkey"; columns: ["website_id"]; isOneToOne: false; referencedRelation: "websites"; referencedColumns: ["id"] },
+        ]
+      }
       llm_visibility_tasks: {
         Row: {
           completed_at: string | null
@@ -1119,17 +640,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "notifications_website_id_fkey"
             columns: ["website_id"]
             isOneToOne: false
             referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1252,8 +773,8 @@ export type Database = {
           priority: number
           requires_approval: boolean
           status: string
-          task_type: string
           title: string
+          task_type: string
           updated_at: string
           verification_method: string | null
           verification_status: string
@@ -1281,8 +802,8 @@ export type Database = {
           priority?: number
           requires_approval?: boolean
           status?: string
-          task_type?: string
           title: string
+          task_type?: string
           updated_at?: string
           verification_method?: string | null
           verification_status?: string
@@ -1310,8 +831,8 @@ export type Database = {
           priority?: number
           requires_approval?: boolean
           status?: string
-          task_type?: string
           title?: string
+          task_type?: string
           updated_at?: string
           verification_method?: string | null
           verification_status?: string
@@ -1330,312 +851,6 @@ export type Database = {
           },
           {
             foreignKeyName: "quests_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rank_observations: {
-        Row: {
-          check_url: string | null
-          created_at: string
-          evidence: Json
-          found: boolean
-          id: string
-          observed_at: string
-          position: number | null
-          provider: string
-          provider_cost: number | null
-          provider_task_id: string | null
-          result_title: string | null
-          result_url: string | null
-          search_depth: number
-          tracked_keyword_id: string
-          website_id: string
-        }
-        Insert: {
-          check_url?: string | null
-          created_at?: string
-          evidence?: Json
-          found: boolean
-          id?: string
-          observed_at: string
-          position?: number | null
-          provider?: string
-          provider_cost?: number | null
-          provider_task_id?: string | null
-          result_title?: string | null
-          result_url?: string | null
-          search_depth: number
-          tracked_keyword_id: string
-          website_id: string
-        }
-        Update: {
-          check_url?: string | null
-          created_at?: string
-          evidence?: Json
-          found?: boolean
-          id?: string
-          observed_at?: string
-          position?: number | null
-          provider?: string
-          provider_cost?: number | null
-          provider_task_id?: string | null
-          result_title?: string | null
-          result_url?: string | null
-          search_depth?: number
-          tracked_keyword_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rank_observations_tracked_keyword_id_fkey"
-            columns: ["tracked_keyword_id"]
-            isOneToOne: false
-            referencedRelation: "tracked_keywords"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rank_observations_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rank_tracker_lists: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          name: string
-          updated_at: string
-          website_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          name: string
-          updated_at?: string
-          website_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          name?: string
-          updated_at?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rank_tracker_lists_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rank_tracker_runs: {
-        Row: {
-          completed_at: string | null
-          completed_count: number
-          created_at: string
-          failed_count: number
-          id: string
-          provider_cost: number
-          requested_count: number
-          started_at: string | null
-          status: string
-          website_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          completed_count?: number
-          created_at?: string
-          failed_count?: number
-          id?: string
-          provider_cost?: number
-          requested_count?: number
-          started_at?: string | null
-          status?: string
-          website_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          completed_count?: number
-          created_at?: string
-          failed_count?: number
-          id?: string
-          provider_cost?: number
-          requested_count?: number
-          started_at?: string | null
-          status?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rank_tracker_runs_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reoptimization_documents: {
-        Row: {
-          audit_id: string
-          created_at: string
-          id: string
-          keyword: string
-          manifest: Json
-          normalized_keyword: string
-          organization_id: string
-          page_url: string
-          status: string
-          updated_at: string
-          user_id: string
-          website_id: string
-        }
-        Insert: {
-          audit_id: string
-          created_at?: string
-          id?: string
-          keyword: string
-          manifest: Json
-          normalized_keyword: string
-          organization_id: string
-          page_url: string
-          status?: string
-          updated_at?: string
-          user_id: string
-          website_id: string
-        }
-        Update: {
-          audit_id?: string
-          created_at?: string
-          id?: string
-          keyword?: string
-          manifest?: Json
-          normalized_keyword?: string
-          organization_id?: string
-          page_url?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reoptimization_documents_audit_id_fkey"
-            columns: ["audit_id"]
-            isOneToOne: false
-            referencedRelation: "audits"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reoptimization_documents_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reoptimization_documents_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reoptimization_documents_website_id_fkey"
-            columns: ["website_id"]
-            isOneToOne: false
-            referencedRelation: "websites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tracked_keywords: {
-        Row: {
-          created_at: string
-          created_by: string
-          device: string
-          first_reading_due_at: string
-          id: string
-          keyword: string
-          language_code: string
-          last_checked_at: string | null
-          last_error: string | null
-          list_id: string | null
-          location_code: number
-          location_name: string
-          next_check_at: string
-          normalized_keyword: string
-          search_depth: number
-          source: string
-          status: string
-          updated_at: string
-          website_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          device?: string
-          first_reading_due_at?: string
-          id?: string
-          keyword: string
-          language_code?: string
-          last_checked_at?: string | null
-          last_error?: string | null
-          list_id?: string | null
-          location_code?: number
-          location_name?: string
-          next_check_at?: string
-          normalized_keyword: string
-          search_depth?: number
-          source?: string
-          status?: string
-          updated_at?: string
-          website_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          device?: string
-          first_reading_due_at?: string
-          id?: string
-          keyword?: string
-          language_code?: string
-          last_checked_at?: string | null
-          last_error?: string | null
-          list_id?: string | null
-          location_code?: number
-          location_name?: string
-          next_check_at?: string
-          normalized_keyword?: string
-          search_depth?: number
-          source?: string
-          status?: string
-          updated_at?: string
-          website_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tracked_keywords_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "rank_tracker_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tracked_keywords_website_id_fkey"
             columns: ["website_id"]
             isOneToOne: false
             referencedRelation: "websites"
@@ -1719,98 +934,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      begin_destiny_audit: {
-        Args: { p_provider: string; p_user_id: string; p_website_id: string }
-        Returns: string
-      }
-      begin_destiny_audit_v2: {
-        Args: { p_provider: string; p_user_id: string; p_website_id: string }
-        Returns: Json
-      }
-      begin_google_oauth_state: {
-        Args: {
-          p_provider: string
-          p_state_hash: string
-          p_user_id: string
-          p_website_id: string
-        }
-        Returns: undefined
-      }
-      consume_google_oauth_state: {
-        Args: { p_state_hash: string }
-        Returns: Json
-      }
       create_organization: {
         Args: { organization_name: string }
-        Returns: string
-      }
-      fail_destiny_audit: {
-        Args: {
-          p_audit_id: string
-          p_failure_message: string
-          p_user_id: string
-        }
-        Returns: undefined
-      }
-      finalize_destiny_audit: {
-        Args: {
-          p_audit_id: string
-          p_growth_stage: string
-          p_metrics: Json
-          p_provider_result: Json
-          p_quest_category: string
-          p_quest_title: string
-          p_user_id: string
-        }
-        Returns: string
-      }
-      finalize_destiny_audit_v2: {
-        Args: {
-          p_audit_id: string
-          p_growth_stage: string
-          p_logic_input_hash: string
-          p_metrics: Json
-          p_provider_result: Json
-          p_rules_version: string
-          p_tasks: Json
-          p_user_id: string
-        }
-        Returns: number
-      }
-      read_cms_transfer_states: {
-        Args: { p_website_id: string }
-        Returns: Json
-      }
-      read_google_oauth_credentials: {
-        Args: { p_integration_id: string; p_user_id: string }
-        Returns: Json
-      }
-      read_webflow_connection_credentials: {
-        Args: { p_user_id: string; p_website_id: string }
-        Returns: Json
-      }
-      read_wordpress_connection_credentials: {
-        Args: { p_user_id: string; p_website_id: string }
-        Returns: Json
-      }
-      store_cms_connection: {
-        Args: {
-          p_credentials: Json
-          p_metadata: Json
-          p_provider: string
-          p_user_id: string
-          p_website_id: string
-        }
-        Returns: string
-      }
-      store_google_oauth_connection: {
-        Args: {
-          p_provider: string
-          p_scopes: string[]
-          p_token: Json
-          p_user_id: string
-          p_website_id: string
-        }
         Returns: string
       }
     }

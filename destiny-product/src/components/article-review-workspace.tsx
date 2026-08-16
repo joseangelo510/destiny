@@ -21,6 +21,7 @@ import {
 } from "@/lib/content/article-generation";
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 import { publicationCopy, type CmsPublicationState } from "@/lib/cms/publication-state";
+import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 
 type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
 const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
@@ -180,6 +181,7 @@ export function ArticleReviewWorkspace({
   webflowConnected = false,
   initialDrafts,
   initialCmsTransfers = [],
+  wordpressScheduleByKeyword = {},
   generationContext,
   generationAvailable,
   generationModelLabel,
@@ -192,6 +194,7 @@ export function ArticleReviewWorkspace({
   webflowConnected?: boolean;
   initialDrafts: ArticleDraft[];
   initialCmsTransfers?: CmsTransferState[];
+  wordpressScheduleByKeyword?: Record<string, string>;
   generationContext: ArticleGenerationContext;
   generationAvailable: boolean;
   generationModelLabel: string;
@@ -490,6 +493,7 @@ export function ArticleReviewWorkspace({
     setDelivering(provider.id);
     setError("");
     try {
+      const scheduledFor = provider.id === "wordpress" ? wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] : undefined;
       const response = await fetch(provider.draftEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -505,6 +509,7 @@ export function ArticleReviewWorkspace({
           infographics: draft.infographics,
           approved: draft.approved,
           generationStatus: draft.generationStatus,
+          scheduledFor,
         }),
       });
       const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[]; publicationStatus?: CmsPublicationState; remotePermalink?: string | null; verifiedLiveAt?: string | null };
@@ -579,10 +584,10 @@ export function ArticleReviewWorkspace({
           const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
           return result
             ? <span className="cms-draft-actions" key={provider.id}>
-                <button className="primary-button" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Updating ${provider.label} draft…` : `Update ${provider.label} draft`}</button>
+                <button className="primary-button" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === "wordpress" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? "Update scheduled WordPress post" : `Update ${provider.label} draft`}</button>
                 <a className="secondary-button" href={result.url} rel="noreferrer" target="_blank">Review in {provider.label}</a>
               </span>
-            : <button className="primary-button" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Creating ${provider.label} draft…` : `Send to ${provider.label}`}</button>;
+            : <button className="primary-button" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type="button">{delivering === provider.id ? `Sending to ${provider.label}…` : provider.id === "wordpress" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? `Schedule in WordPress for ${new Date(wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)]).toLocaleDateString()}` : `Send to ${provider.label}`}</button>;
         })}
       </div>
       {draft.approved && !connectedProviders.length && <div className="configuration-note"><strong>Connect a CMS to send this draft</strong><p>Connect WordPress or Webflow once, then return here and send approved articles directly to your CMS as drafts.</p><Link className="secondary-button" href="/integrations#publishing-destinations">Connect a CMS</Link></div>}

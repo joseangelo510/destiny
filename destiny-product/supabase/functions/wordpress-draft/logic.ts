@@ -7,6 +7,7 @@ export type WordPressDraftBody = {
   contentHtml?: unknown;
   excerpt?: unknown;
   media?: unknown;
+  scheduledFor?: unknown;
 };
 
 export type WordPressMediaRole = "featured" | "inline";
@@ -48,10 +49,15 @@ export function prepareDraftBody(body: WordPressDraftBody) {
   const metaTitle = typeof body.metaTitle === "string" && body.metaTitle.trim() ? body.metaTitle.trim().slice(0, 160) : title;
   const contentHtml = typeof body.contentHtml === "string" ? body.contentHtml.trim() : "";
   const excerpt = typeof body.excerpt === "string" ? body.excerpt.trim().slice(0, 280) : "";
+  const scheduledFor = typeof body.scheduledFor === "string" && body.scheduledFor.trim() ? body.scheduledFor.trim() : "";
   if (!websiteId || !articleKey || !title || contentHtml.length < 100) {
     throw new Error("The approved article is incomplete.");
   }
-  return { renderingVersion, websiteId, articleKey, title, metaTitle, contentHtml, excerpt, media: mediaInputs(body.media) };
+  if (scheduledFor) {
+    const scheduled = Date.parse(scheduledFor);
+    if (Number.isNaN(scheduled) || scheduled - Date.now() < 72 * 60 * 60 * 1000) throw new Error("Choose a publication time at least 72 hours away.");
+  }
+  return { renderingVersion, websiteId, articleKey, title, metaTitle, contentHtml, excerpt, scheduledFor, media: mediaInputs(body.media) };
 }
 
 function escapeAttribute(value: string) {
@@ -98,7 +104,8 @@ export function wordpressDraftPayload(draft: ReturnType<typeof prepareDraftBody>
     title: draft.title,
     content: insertWordPressFigures(draft.contentHtml, media),
     excerpt: draft.excerpt,
-    status: "draft" as const,
+    status: draft.scheduledFor ? "future" as const : "draft" as const,
+    ...(draft.scheduledFor ? { date_gmt: draft.scheduledFor.replace(/\.\d{3}Z$/, "") } : {}),
     ...(featured ? { featured_media: featured.id } : {}),
   };
 }
@@ -140,5 +147,5 @@ export function wordpressPostEndpoint(siteUrl: string, remoteId = "") {
 }
 
 export function canUpdateWordPressDraft(remoteStatus: string) {
-  return remoteStatus === "draft" || remoteStatus === "pending" || remoteStatus === "private";
+  return remoteStatus === "draft" || remoteStatus === "pending" || remoteStatus === "private" || remoteStatus === "future";
 }
