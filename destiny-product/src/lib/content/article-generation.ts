@@ -229,7 +229,10 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
             metaTitle: { type: "string" },
             titleCandidates: {
               type: "array",
-              minItems: 6,
+              // Anthropic structured outputs currently accept minItems only as
+              // 0 or 1. Exact-six enforcement remains in the application
+              // quality gate, while maxItems keeps model output bounded.
+              minItems: 1,
               maxItems: 6,
               items: {
                 type: "object",
