@@ -39,6 +39,13 @@ export type PublishingPlanInput = {
   automaticConfirmed?: boolean;
 };
 
+export function reconcilePublishingItems(
+  current: PublishingScheduleItemRecord[],
+  refreshed: PublishingScheduleItemRecord[] | undefined,
+) {
+  return Array.isArray(refreshed) ? refreshed : current;
+}
+
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export function validatePublishingPlan(input: PublishingPlanInput) {

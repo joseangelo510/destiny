@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, canScheduleArticle, publishingItemKey, stateForMissedSchedule, validatePublishingPlan, wordpressScheduleDate } from "./publishing-plan";
+import { buildWeeklySchedule, canScheduleArticle, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, validatePublishingPlan, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
   it("requires a deliberate mode and explicit automatic confirmation", () => {
@@ -32,5 +32,12 @@ describe("publishing plans", () => {
     expect(publishingItemKey("plan-1", "background check compliance", 1)).not.toBe(
       publishingItemKey("plan-1", "background check compliance", 4),
     );
+  });
+
+  it("reconciles the live queue returned by a scheduling run", () => {
+    const current = [{ id: "item-1", state: "needs_review" }] as PublishingScheduleItemRecord[];
+    const refreshed = [{ id: "item-1", state: "scheduled" }] as PublishingScheduleItemRecord[];
+    expect(reconcilePublishingItems(current, refreshed)[0].state).toBe("scheduled");
+    expect(reconcilePublishingItems(current, undefined)[0].state).toBe("needs_review");
   });
 });
