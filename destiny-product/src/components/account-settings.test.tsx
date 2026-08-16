@@ -26,5 +26,14 @@ describe("AccountSettings", () => {
     expect(html).toContain('type="email"');
     expect(html).toContain("Delete account");
     expect(html).toContain("cannot be undone");
+    expect(html).not.toContain("Communication cadence");
+  });
+
+  it("shows communication controls only when the closed beta flag is enabled", () => {
+    const html = renderToStaticMarkup(<AccountSettings activeWebsiteId="11111111-1111-4111-8111-111111111111" commsEnabled initialCommsPreference={{ cadence: "weekly", userTimezone: "America/Los_Angeles", emailEnabled: true, pushEnabled: false }} loginEmail="login@example.com" notificationEmail="reports@example.com" />);
+
+    expect(html).toContain("Communication cadence");
+    expect(html).toContain("America/Los_Angeles");
+    expect(html).toContain("Save cadence");
   });
 });

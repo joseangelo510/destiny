@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { weekWindowAt } from "@/lib/comms/week";
 import type { CommsCadence } from "@/lib/comms/contracts";
+import { isCommsBetaEnabled } from "@/lib/comms/feature";
 import { isWebsiteId } from "@/lib/workspace-selection";
 
 const CADENCES = new Set<CommsCadence>(["essential", "weekly", "guided", "muted"]);
@@ -18,6 +19,7 @@ async function scope(request: Request) {
 }
 
 export async function GET(request: Request) {
+  if (!isCommsBetaEnabled()) return NextResponse.json({ error: "Not found." }, { status: 404 });
   const { supabase, userId, website } = await scope(request);
   if (!userId) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   if (!website) return NextResponse.json({ error: "Choose a website to manage its communication cadence." }, { status: 404 });
@@ -28,6 +30,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  if (!isCommsBetaEnabled()) return NextResponse.json({ error: "Not found." }, { status: 404 });
   const { supabase, userId, website } = await scope(request);
   if (!userId) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   if (!website) return NextResponse.json({ error: "Choose a website to manage its communication cadence." }, { status: 404 });

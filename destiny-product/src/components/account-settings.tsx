@@ -10,8 +10,9 @@ type AccountWebsite = {
   normalizedDomain: string;
 };
 
-export function AccountSettings({ activeWebsiteId = null, initialCommsPreference, loginEmail, notificationEmail, websites = [] }: {
+export function AccountSettings({ activeWebsiteId = null, commsEnabled = false, initialCommsPreference, loginEmail, notificationEmail, websites = [] }: {
   activeWebsiteId?: string | null;
+  commsEnabled?: boolean;
   initialCommsPreference?: { cadence: string; userTimezone: string; emailEnabled: boolean; pushEnabled: boolean };
   loginEmail: string;
   notificationEmail: string | null;
@@ -143,7 +144,7 @@ export function AccountSettings({ activeWebsiteId = null, initialCommsPreference
         <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
       </dl>
     </section>
-    <section className={styles.card} id="communication-cadence">
+    {commsEnabled ? <section className={styles.card} id="communication-cadence">
       <div className={styles.heading}><span>Communication cadence</span><h2>Choose how Destiny follows up</h2><p>The setting applies to the current website. Critical crawl or indexation alarms can still bypass a muted digest.</p></div>
       {activeWebsiteId ? <div className={styles.commsForm}>
         <fieldset className={styles.cadenceOptions}>
@@ -159,7 +160,7 @@ export function AccountSettings({ activeWebsiteId = null, initialCommsPreference
         <div className={styles.channelOptions}><label><input checked={emailEnabled} onChange={(event) => setEmailEnabled(event.target.checked)} type="checkbox" /> Email</label><label><input checked={pushEnabled} onChange={(event) => setPushEnabled(event.target.checked)} type="checkbox" /> Push</label></div>
         <div className={styles.commsActions}><button disabled={savingComms} onClick={() => void saveCommunicationPreference()} type="button">{savingComms ? "Saving…" : "Save cadence"}</button>{commsStatus ? <span aria-live="polite">{commsStatus}</span> : null}</div>
       </div> : <p className={styles.emptyWebsites}>Add or select a website before choosing a communication cadence.</p>}
-    </section>
+    </section> : null}
     <section className={styles.card}>
       <div className={styles.heading}><span>Website management</span><h2>Your websites</h2><p>Review the websites connected to this login or remove one you no longer want Destiny to manage.</p></div>
       {websites.length ? <div className={styles.websiteList}>

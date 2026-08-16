@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { WeekIndicator } from "@/components/week-indicator";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { renderContinuityEmail, renderOnboardingDataLandedEmail, renderWeeklyScorecardEmail } from "@/lib/comms/email-templates";
 import { buildScorecardSnapshot } from "@/lib/comms/scorecard";
 import { createWeekContinuity } from "@/lib/comms/week";
 import type { ScorecardMetric, ScorecardWin } from "@/lib/comms/contracts";
+import { isCommsBetaEnabled } from "@/lib/comms/feature";
 import { isStreakActionableTask } from "@/lib/quests/completion";
 import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
 import { getWorkspaceContext } from "@/lib/workspace-context";
@@ -25,6 +26,7 @@ function EmailPreview({ html, title }: { html: string; title: string }) {
 }
 
 export default async function CommsPreviewPage() {
+  if (!isCommsBetaEnabled()) notFound();
   const context = await getWorkspaceContext();
   if (!context.website) redirect("/onboarding");
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

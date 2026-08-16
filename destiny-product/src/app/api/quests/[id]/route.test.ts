@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { recordQuestActionCompletion, runDestinyServerLogic, state, update } = vi.hoisted(() => ({
+const { isCommsBetaEnabled, recordQuestActionCompletion, runDestinyServerLogic, state, update } = vi.hoisted(() => ({
+  isCommsBetaEnabled: vi.fn(() => true),
   recordQuestActionCompletion: vi.fn(),
   runDestinyServerLogic: vi.fn(),
   state: {
@@ -14,6 +15,7 @@ const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
 vi.mock("../../../../lib/logicaffeine-server", () => ({ runDestinyServerLogic }));
 vi.mock("../../../../lib/comms/persistence", () => ({ recordQuestActionCompletion }));
+vi.mock("../../../../lib/comms/feature", () => ({ isCommsBetaEnabled }));
 vi.mock("../../../../lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getClaims: async () => ({ data: { claims: { sub: "user-zero" } } }) },
@@ -43,6 +45,7 @@ import { PATCH } from "./route";
 describe("PATCH /api/quests/[id] LOGOS policy", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    isCommsBetaEnabled.mockReturnValue(true);
     state.approvedKeywordCount = 5;
     state.quest = { id: "quest-1", task_type: "business_confirmation", status: "todo", audit_id: "audit-1", week_number: 1, website_id: "site-1", title: "Confirm business", action_path: "/onboarding" };
     recordQuestActionCompletion.mockResolvedValue({ recorded: true });

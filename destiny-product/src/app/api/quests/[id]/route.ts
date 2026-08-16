@@ -5,6 +5,7 @@ import { runDestinyServerLogic } from "../../../../lib/logicaffeine-server";
 import { validateGuidanceStateInput, type GuidanceState } from "../../../../lib/quests/guidance-state";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../../../../lib/product/plan-horizon";
 import { recordQuestActionCompletion } from "../../../../lib/comms/persistence";
+import { isCommsBetaEnabled } from "../../../../lib/comms/feature";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -105,7 +106,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!quest) return NextResponse.json({ error: "Quest not found." }, { status: 404 });
-  if (body.status === "complete" && existingQuest.status !== "complete" && isStreakActionableTask(existingQuest.task_type) && quest.completed_at) {
+  if (isCommsBetaEnabled() && body.status === "complete" && existingQuest.status !== "complete" && isStreakActionableTask(existingQuest.task_type) && quest.completed_at) {
     const comms = await recordQuestActionCompletion({
       supabase,
       userId: claimsData.claims.sub,

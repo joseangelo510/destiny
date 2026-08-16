@@ -113,18 +113,29 @@ create table public.comms_message_outcomes (
     'freeze_used', 'recovery_used'
   )),
   metadata jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata) = 'object'),
-  occurred_at timestamptz not null default now()
+  occurred_at timestamptz not null default now(),
+  unique (user_id, website_id, message_id, outcome)
 );
 
+create index comms_preferences_organization_idx on public.comms_preferences (organization_id);
 create index comms_preferences_user_idx on public.comms_preferences (user_id);
+create index comms_weeks_organization_idx on public.comms_weeks (organization_id);
 create index comms_weeks_user_current_idx on public.comms_weeks (user_id, website_id, local_week_start desc);
 create index comms_weeks_state_deadline_idx on public.comms_weeks (state, window_end_at)
   where state in ('open', 'at_risk', 'recovering');
+create index comms_events_organization_idx on public.comms_notification_events (organization_id);
+create index comms_events_website_idx on public.comms_notification_events (website_id, occurred_at desc);
 create index comms_events_batch_idx on public.comms_notification_events (user_id, website_id, bypass_batch, grouping_key, occurred_at desc);
 create index comms_events_priority_idx on public.comms_notification_events (priority desc, occurred_at)
   where priority = 2 or bypass_batch;
+create index comms_achievements_organization_idx on public.comms_achievements (organization_id);
+create index comms_achievements_event_idx on public.comms_achievements (source_event_id) where source_event_id is not null;
 create index comms_achievements_user_idx on public.comms_achievements (user_id, earned_at desc);
+create index comms_deliveries_organization_idx on public.comms_deliveries (organization_id);
+create index comms_deliveries_event_idx on public.comms_deliveries (event_id) where event_id is not null;
 create index comms_deliveries_cap_idx on public.comms_deliveries (user_id, website_id, channel, delivered_at desc);
+create index comms_outcomes_organization_idx on public.comms_message_outcomes (organization_id);
+create index comms_outcomes_event_idx on public.comms_message_outcomes (event_id) where event_id is not null;
 create index comms_outcomes_message_idx on public.comms_message_outcomes (message_id, occurred_at desc);
 create index comms_outcomes_user_idx on public.comms_message_outcomes (user_id, website_id, occurred_at desc);
 
@@ -142,80 +153,114 @@ alter table public.comms_message_outcomes enable row level security;
 
 create policy "comms_preferences_select_self" on public.comms_preferences
   for select to authenticated using (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_preferences.user_id = (select auth.uid())
+    and private.is_organization_member(comms_preferences.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_preferences.website_id and website.organization_id = comms_preferences.organization_id)
   );
 create policy "comms_preferences_insert_self" on public.comms_preferences
   for insert to authenticated with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_preferences.user_id = (select auth.uid())
+    and private.is_organization_member(comms_preferences.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_preferences.website_id and website.organization_id = comms_preferences.organization_id)
   );
 create policy "comms_preferences_update_self" on public.comms_preferences
   for update to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_preferences.user_id = (select auth.uid())
+    and private.is_organization_member(comms_preferences.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_preferences.website_id and website.organization_id = comms_preferences.organization_id)
   ) with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_preferences.user_id = (select auth.uid())
+    and private.is_organization_member(comms_preferences.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_preferences.website_id and website.organization_id = comms_preferences.organization_id)
   );
 
 create policy "comms_weeks_select_self" on public.comms_weeks
   for select to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_weeks.user_id = (select auth.uid())
+    and private.is_organization_member(comms_weeks.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_weeks.website_id and website.organization_id = comms_weeks.organization_id)
   );
 create policy "comms_weeks_insert_self" on public.comms_weeks
   for insert to authenticated with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_weeks.user_id = (select auth.uid())
+    and private.is_organization_member(comms_weeks.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_weeks.website_id and website.organization_id = comms_weeks.organization_id)
   );
 create policy "comms_weeks_update_self" on public.comms_weeks
   for update to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_weeks.user_id = (select auth.uid())
+    and private.is_organization_member(comms_weeks.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_weeks.website_id and website.organization_id = comms_weeks.organization_id)
   ) with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_weeks.user_id = (select auth.uid())
+    and private.is_organization_member(comms_weeks.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_weeks.website_id and website.organization_id = comms_weeks.organization_id)
   );
 
 create policy "comms_events_select_self" on public.comms_notification_events
   for select to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_notification_events.user_id = (select auth.uid())
+    and private.is_organization_member(comms_notification_events.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_notification_events.website_id and website.organization_id = comms_notification_events.organization_id)
   );
 create policy "comms_events_insert_self" on public.comms_notification_events
   for insert to authenticated with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_notification_events.user_id = (select auth.uid())
+    and private.is_organization_member(comms_notification_events.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_notification_events.website_id and website.organization_id = comms_notification_events.organization_id)
   );
 
 create policy "comms_achievements_select_self" on public.comms_achievements
   for select to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_achievements.user_id = (select auth.uid())
+    and private.is_organization_member(comms_achievements.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_achievements.website_id and website.organization_id = comms_achievements.organization_id)
   );
 create policy "comms_achievements_insert_self" on public.comms_achievements
   for insert to authenticated with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_achievements.user_id = (select auth.uid())
+    and private.is_organization_member(comms_achievements.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_achievements.website_id and website.organization_id = comms_achievements.organization_id)
+    and (
+      comms_achievements.source_event_id is null
+      or exists (
+        select 1 from public.comms_notification_events event
+        where event.event_id = comms_achievements.source_event_id
+          and event.organization_id = comms_achievements.organization_id
+          and event.website_id = comms_achievements.website_id
+          and event.user_id = comms_achievements.user_id
+      )
+    )
   );
 
 create policy "comms_deliveries_select_self" on public.comms_deliveries
   for select to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_deliveries.user_id = (select auth.uid())
+    and private.is_organization_member(comms_deliveries.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_deliveries.website_id and website.organization_id = comms_deliveries.organization_id)
   );
 
 create policy "comms_outcomes_select_self" on public.comms_message_outcomes
   for select to authenticated using (
-    user_id = (select auth.uid()) and private.is_organization_member(organization_id)
+    comms_message_outcomes.user_id = (select auth.uid())
+    and private.is_organization_member(comms_message_outcomes.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_message_outcomes.website_id and website.organization_id = comms_message_outcomes.organization_id)
   );
 create policy "comms_outcomes_insert_self" on public.comms_message_outcomes
   for insert to authenticated with check (
-    user_id = (select auth.uid())
-    and private.is_organization_member(organization_id)
-    and exists (select 1 from public.websites website where website.id = website_id and website.organization_id = organization_id)
+    comms_message_outcomes.user_id = (select auth.uid())
+    and private.is_organization_member(comms_message_outcomes.organization_id)
+    and exists (select 1 from public.websites website where website.id = comms_message_outcomes.website_id and website.organization_id = comms_message_outcomes.organization_id)
+    and (
+      event_id is null
+      or exists (
+        select 1 from public.comms_notification_events event
+        where event.event_id = comms_message_outcomes.event_id
+          and event.organization_id = comms_message_outcomes.organization_id
+          and event.website_id = comms_message_outcomes.website_id
+          and event.user_id = comms_message_outcomes.user_id
+      )
+    )
   );
 
 revoke all on public.comms_preferences from anon, authenticated;
@@ -236,6 +281,13 @@ grant select, insert on public.comms_notification_events to authenticated;
 grant select, insert on public.comms_achievements to authenticated;
 grant select on public.comms_deliveries to authenticated;
 grant select, insert on public.comms_message_outcomes to authenticated;
+
+grant select, insert, update, delete on public.comms_preferences to service_role;
+grant select, insert, update, delete on public.comms_weeks to service_role;
+grant select, insert, update, delete on public.comms_notification_events to service_role;
+grant select, insert, update, delete on public.comms_achievements to service_role;
+grant select, insert, update, delete on public.comms_deliveries to service_role;
+grant select, insert, update, delete on public.comms_message_outcomes to service_role;
 
 comment on table public.comms_weeks is 'Per-user, per-website local Week continuity. Reopening a quest never decrements historical action counts.';
 comment on table public.comms_notification_events is 'Typed communications event envelope. Priority-2 alarms and bypass_batch events must not wait for batching.';

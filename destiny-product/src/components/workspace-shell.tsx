@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { getWorkspaceContext } from "@/lib/workspace-context";
+import { isCommsBetaEnabled } from "@/lib/comms/feature";
 import { WorkspaceShellView } from "./workspace-shell-view";
 
 export async function WorkspaceShell({
@@ -18,5 +19,5 @@ export async function WorkspaceShell({
   children: ReactNode;
 }) {
   const context = await getWorkspaceContext();
-  return <WorkspaceShellView active={active} activeWebsiteId={context.website?.id ?? null} description={description} design={design} eyebrow={eyebrow} title={title} websites={context.websites}>{children}</WorkspaceShellView>;
+  return <WorkspaceShellView active={active} activeWebsiteId={context.website?.id ?? null} commsEnabled={isCommsBetaEnabled()} description={description} design={design} eyebrow={eyebrow} title={title} websites={context.websites}>{children}</WorkspaceShellView>;
 }

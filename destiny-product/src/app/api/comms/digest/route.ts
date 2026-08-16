@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { batchNotificationEvents } from "@/lib/comms/batching";
 import type { NotificationEvent, NotificationEventType } from "@/lib/comms/contracts";
+import { isCommsBetaEnabled } from "@/lib/comms/feature";
 import { createClient } from "@/lib/supabase/server";
 import { isWebsiteId, siteScopedHref } from "@/lib/workspace-selection";
 
@@ -19,6 +20,7 @@ async function scope(request: Request) {
 }
 
 export async function GET(request: Request) {
+  if (!isCommsBetaEnabled()) return NextResponse.json({ error: "Not found." }, { status: 404 });
   const { supabase, userId, website } = await scope(request);
   if (!userId) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   if (!website) return NextResponse.json({ error: "Choose a website to view its updates." }, { status: 404 });
@@ -79,6 +81,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!isCommsBetaEnabled()) return NextResponse.json({ error: "Not found." }, { status: 404 });
   const { supabase, userId, website } = await scope(request);
   if (!userId) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   if (!website) return NextResponse.json({ error: "Choose a website to update its digest." }, { status: 404 });

@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isWebsiteId } from "@/lib/workspace-selection";
 import type { Json } from "@/lib/supabase/database.types";
+import { isCommsBetaEnabled } from "@/lib/comms/feature";
 
 const OUTCOMES = new Set(["downstream_completion", "dismiss", "mute", "opt_out", "freeze_used", "recovery_used"]);
 
 export async function POST(request: Request) {
+  if (!isCommsBetaEnabled()) return NextResponse.json({ error: "Not found." }, { status: 404 });
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = typeof claimsData?.claims?.sub === "string" ? claimsData.claims.sub : null;

@@ -1,8 +1,8 @@
 # Destiny communications beta contract
 
-Status: v1 frozen for implementation  
-Scope: closed beta only  
-Owner: Jose  
+Status: v1 frozen for implementation
+Scope: closed beta only
+Owner: Jose
 Implementation branch: `codex/comms-beta`
 
 ## 1. Qualifying action
