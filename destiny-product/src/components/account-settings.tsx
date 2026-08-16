@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CommsCadence } from "@/lib/comms/contracts";
 import styles from "./account-settings.module.css";
 
 type AccountWebsite = {
@@ -9,8 +10,10 @@ type AccountWebsite = {
   normalizedDomain: string;
 };
 
-export function AccountSettings({ activeWebsiteId = null, loginEmail, notificationEmail, websites = [] }: {
+export function AccountSettings({ activeWebsiteId = null, commsEnabled = false, initialCommsPreference, loginEmail, notificationEmail, websites = [] }: {
   activeWebsiteId?: string | null;
+  commsEnabled?: boolean;
+  initialCommsPreference?: { cadence: string; userTimezone: string; emailEnabled: boolean; pushEnabled: boolean };
   loginEmail: string;
   notificationEmail: string | null;
   websites?: AccountWebsite[];
@@ -19,6 +22,12 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
   const [notificationDraft, setNotificationDraft] = useState(notificationEmail ?? "");
   const [savingNotificationEmail, setSavingNotificationEmail] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  const [cadence, setCadence] = useState<CommsCadence>((initialCommsPreference?.cadence as CommsCadence | undefined) ?? "weekly");
+  const [userTimezone, setUserTimezone] = useState(initialCommsPreference?.userTimezone ?? "UTC");
+  const [emailEnabled, setEmailEnabled] = useState(initialCommsPreference?.emailEnabled ?? true);
+  const [pushEnabled, setPushEnabled] = useState(initialCommsPreference?.pushEnabled ?? false);
+  const [savingComms, setSavingComms] = useState(false);
+  const [commsStatus, setCommsStatus] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +39,26 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
   const websiteMatches = pendingWebsite
     ? websiteConfirmation.trim().toLowerCase() === pendingWebsite.normalizedDomain.toLowerCase()
     : false;
+
+  async function saveCommunicationPreference() {
+    if (!activeWebsiteId || savingComms) return;
+    setSavingComms(true);
+    setCommsStatus("");
+    try {
+      const response = await fetch(`/api/comms/preferences?site=${encodeURIComponent(activeWebsiteId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cadence, userTimezone, emailEnabled, pushEnabled }),
+      });
+      const result = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Destiny could not save this cadence.");
+      setCommsStatus("Saved for this website.");
+    } catch (cause) {
+      setCommsStatus(cause instanceof Error ? cause.message : "Destiny could not save this cadence.");
+    } finally {
+      setSavingComms(false);
+    }
+  }
 
   function beginWebsiteDeletion(website: AccountWebsite) {
     setPendingWebsite(website);
@@ -115,7 +144,23 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
       </dl>
     </section>
-
+    {commsEnabled ? <section className={styles.card} id="communication-cadence">
+      <div className={styles.heading}><span>Communication cadence</span><h2>Choose how Destiny follows up</h2><p>The setting applies to the current website. Critical crawl or indexation alarms can still bypass a muted digest.</p></div>
+      {activeWebsiteId ? <div className={styles.commsForm}>
+        <fieldset className={styles.cadenceOptions}>
+          <legend>Email rhythm</legend>
+          {([
+            ["essential", "Essential only", "Transactional updates and critical alarms."],
+            ["weekly", "Weekly", "Monday scorecard plus at most one continuity reminder."],
+            ["guided", "Guided", "Weekly scorecard and behavior-triggered coaching."],
+            ["muted", "Muted", "No non-transactional email or push."],
+          ] as const).map(([value, label, detail]) => <label className={styles.cadenceOption} key={value}><input checked={cadence === value} name="cadence" onChange={() => setCadence(value)} type="radio" value={value} /><span><strong>{label}</strong><small>{detail}</small></span></label>)}
+        </fieldset>
+        <label className={styles.timezoneLabel}>Time zone<input list="destiny-timezones" onChange={(event) => setUserTimezone(event.target.value)} value={userTimezone} /><datalist id="destiny-timezones"><option value="UTC" /><option value="America/Los_Angeles" /><option value="America/Denver" /><option value="America/Chicago" /><option value="America/New_York" /><option value="Europe/London" /><option value="Australia/Sydney" /></datalist><small>Week deadlines and 7:15–8:15 sends use this IANA time zone.</small></label>
+        <div className={styles.channelOptions}><label><input checked={emailEnabled} onChange={(event) => setEmailEnabled(event.target.checked)} type="checkbox" /> Email</label><label><input checked={pushEnabled} onChange={(event) => setPushEnabled(event.target.checked)} type="checkbox" /> Push</label></div>
+        <div className={styles.commsActions}><button disabled={savingComms} onClick={() => void saveCommunicationPreference()} type="button">{savingComms ? "Saving…" : "Save cadence"}</button>{commsStatus ? <span aria-live="polite">{commsStatus}</span> : null}</div>
+      </div> : <p className={styles.emptyWebsites}>Add or select a website before choosing a communication cadence.</p>}
+    </section> : null}
     <section className={styles.card}>
       <div className={styles.heading}><span>Website management</span><h2>Your websites</h2><p>Review the websites connected to this login or remove one you no longer want Destiny to manage.</p></div>
       {websites.length ? <div className={styles.websiteList}>

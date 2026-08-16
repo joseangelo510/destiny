@@ -4,6 +4,8 @@ import { createClient } from "../../../../lib/supabase/server";
 import { runDestinyServerLogic } from "../../../../lib/logicaffeine-server";
 import { validateGuidanceStateInput, type GuidanceState } from "../../../../lib/quests/guidance-state";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../../../../lib/product/plan-horizon";
+import { recordQuestActionCompletion } from "../../../../lib/comms/persistence";
+import { isCommsBetaEnabled } from "../../../../lib/comms/feature";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { data: existingQuest, error: lookupError } = await supabase
     .from("quests")
-    .select("id,task_type,status,audit_id,week_number")
+    .select("id,task_type,status,audit_id,week_number,website_id,title,action_path")
     .eq("id", id)
     .maybeSingle();
   if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
@@ -104,5 +106,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!quest) return NextResponse.json({ error: "Quest not found." }, { status: 404 });
+  if (isCommsBetaEnabled() && body.status === "complete" && existingQuest.status !== "complete" && isStreakActionableTask(existingQuest.task_type) && quest.completed_at) {
+    const comms = await recordQuestActionCompletion({
+      supabase,
+      userId: claimsData.claims.sub,
+      websiteId: existingQuest.website_id,
+      questId: existingQuest.id,
+      questTitle: existingQuest.title,
+      completedAt: quest.completed_at,
+      actionPath: existingQuest.action_path,
+    });
+    if (!comms.recorded && comms.reason !== "duplicate") {
+      console.error(JSON.stringify({ event: "destiny_comms_action", questId: id, outcome: "deferred", reason: comms.reason }));
+    }
+  }
   return NextResponse.json({ quest, celebration: policy.questCelebration, transitionRuleId: policy.questTransitionRuleId });
 }

@@ -27,7 +27,7 @@ function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId:
   </details>;
 }
 
-export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
+export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null, commsEnabled = false }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null; commsEnabled?: boolean }) {
   const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
   const href = (path: string) => siteScopedHref(path, activeWebsiteId);
   return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell" data-design={design}>
@@ -42,7 +42,7 @@ export function WorkspaceShellView({ active, eyebrow, title, description, design
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </div>
     </aside>
-    <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications key={activeWebsiteId ?? "none"} websiteId={activeWebsiteId} /></header>{children}</section>
+    <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications commsEnabled={commsEnabled} key={activeWebsiteId ?? "none"} websiteId={activeWebsiteId} /></header>{children}</section>
     <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">{PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</nav>
   </main></WorkspaceWebsiteProvider>;
 }

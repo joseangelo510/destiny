@@ -8,6 +8,9 @@ export type WorkspaceNotification = {
   created_at: string;
   website_id: string;
   website_name: string;
+  source?: "comms_batch";
+  event_ids?: string[];
+  message_id?: string;
 };
 
 export function unreadNotificationCount(notifications: WorkspaceNotification[]): number {
