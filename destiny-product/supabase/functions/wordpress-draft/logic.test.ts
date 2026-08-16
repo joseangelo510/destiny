@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contentFingerprint, insertWordPressFigures, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl } from "./logic";
+import { canUpdateWordPressDraft, contentFingerprint, insertWordPressFigures, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl, wordpressPostEndpoint } from "./logic";
 
 describe("WordPress draft Edge Function logic", () => {
   it("hard-codes draft status and creates the editor link", () => {
@@ -15,6 +15,10 @@ describe("WordPress draft Edge Function logic", () => {
     expect(draft.metaTitle).toBe("A Useful Article | Practical Guide");
     expect(wordpressDraftPayload(draft)).not.toHaveProperty("publish");
     expect(wordpressEditUrl("https://example.com/", "42")).toBe("https://example.com/wp-admin/post.php?post=42&action=edit");
+    expect(wordpressPostEndpoint("https://example.com/", "42")).toBe("https://example.com/wp-json/wp/v2/posts/42");
+    expect(wordpressPostEndpoint("https://example.com/", "")).toBe("https://example.com/wp-json/wp/v2/posts");
+    expect(canUpdateWordPressDraft("draft")).toBe(true);
+    expect(canUpdateWordPressDraft("publish")).toBe(false);
   });
 
   it("sets the dedicated featured image and anchors captioned inline graphics to their sections", () => {

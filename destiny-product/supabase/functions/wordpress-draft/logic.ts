@@ -124,3 +124,12 @@ export function contentFingerprint(title: string, contentHtml: string) {
 export function wordpressEditUrl(siteUrl: string, remoteId: string) {
   return `${siteUrl.replace(/\/+$/, "")}/wp-admin/post.php?post=${encodeURIComponent(remoteId)}&action=edit`;
 }
+
+export function wordpressPostEndpoint(siteUrl: string, remoteId = "") {
+  const base = `${siteUrl.replace(/\/+$/, "")}/wp-json/wp/v2/posts`;
+  return remoteId ? `${base}/${encodeURIComponent(remoteId)}` : base;
+}
+
+export function canUpdateWordPressDraft(remoteStatus: string) {
+  return remoteStatus === "draft" || remoteStatus === "pending" || remoteStatus === "private";
+}

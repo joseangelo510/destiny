@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { contentFingerprint, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl, type UploadedWordPressMedia, type WordPressMediaInput } from "./logic.ts";
+import { canUpdateWordPressDraft, contentFingerprint, prepareDraftBody, verifyDeliveredDraftMedia, wordpressDraftPayload, wordpressEditUrl, wordpressPostEndpoint, type UploadedWordPressMedia, type WordPressMediaInput } from "./logic.ts";
 
 type ConnectionSecret = {
   integration_id?: unknown;
@@ -119,9 +119,9 @@ export default {
       return json({ error: "Connect WordPress before sending this article." }, 409);
     }
 
-    const hash = await contentHash(JSON.stringify({ ...wordpressDraftPayload(draft), media: draft.media.map((item) => ({ filename: item.filename, alt: item.alt, bytes: item.base64.length })) }));
+    const hash = await contentHash(JSON.stringify({ ...wordpressDraftPayload(draft), media: draft.media.map((item) => ({ filename: item.filename, alt: item.alt, role: item.role, caption: item.caption, placementAfterHeading: item.placementAfterHeading, bytes: item.base64.length })) }));
     const { data: existing } = await context.supabaseAdmin.from("cms_transfers")
-      .select("id,status,content_hash,remote_edit_url,publication_status,remote_permalink,verified_live_at,field_report")
+      .select("id,status,content_hash,remote_id,remote_edit_url,publication_status,remote_permalink,verified_live_at,field_report")
       .eq("integration_id", integrationId)
       .eq("article_key", draft.articleKey)
       .maybeSingle();
@@ -129,9 +129,27 @@ export default {
       if (existing.content_hash === hash && existing.remote_edit_url) {
         return json({ delivered: true, remoteEditUrl: existing.remote_edit_url, reused: true, publicationStatus: existing.publication_status, remotePermalink: existing.remote_permalink, verifiedLiveAt: existing.verified_live_at, fieldReport: existing.field_report ?? wordpressFieldReport(draft.metaTitle, titleSuffix, draft.media.length) });
       }
-      return json({ error: "This article is already in WordPress. Open the existing draft to continue editing.", remoteEditUrl: existing.remote_edit_url }, 409);
     }
     if (existing?.status === "pending") return json({ error: "Destiny is already sending this article to WordPress." }, 409);
+
+    const authorization = `Basic ${btoa(`${username}:${applicationPassword}`)}`;
+    const updateRemoteId = existing?.status === "succeeded" && existing.remote_id ? String(existing.remote_id) : "";
+    if (updateRemoteId) {
+      let currentResponse: Response;
+      try {
+        currentResponse = await fetch(`${wordpressPostEndpoint(siteUrl, updateRemoteId)}?context=edit`, {
+          headers: { Authorization: authorization, Accept: "application/json" },
+          signal: AbortSignal.timeout(20_000),
+        });
+      } catch {
+        return json({ error: "Destiny could not verify the existing WordPress draft before updating it." }, 502);
+      }
+      const current = await currentResponse.json().catch(() => ({})) as { status?: unknown };
+      if (!currentResponse.ok || typeof current.status !== "string") return json({ error: "WordPress could not return the existing draft before an update." }, 502);
+      if (!canUpdateWordPressDraft(current.status)) {
+        return json({ error: "Destiny will not overwrite a published article. Create a new draft or edit the live article directly in WordPress.", remoteEditUrl: existing.remote_edit_url }, 409);
+      }
+    }
 
     const pendingWrite = existing
       ? context.supabaseAdmin.from("cms_transfers").update({ status: "pending", publication_status: "delivering", content_hash: hash, error_class: null, error_detail: null, attempt_count: 1, updated_at: new Date().toISOString() }).eq("id", existing.id)
@@ -147,7 +165,6 @@ export default {
     const { error: pendingError } = await pendingWrite;
     if (pendingError) return json({ error: "Destiny is already sending this article to WordPress." }, 409);
 
-    const authorization = `Basic ${btoa(`${username}:${applicationPassword}`)}`;
     let uploadedMedia: UploadedWordPressMedia[] = [];
     try {
       uploadedMedia = await uploadWordPressMedia(siteUrl, authorization, draft.media);
@@ -158,7 +175,7 @@ export default {
 
     let response: Response;
     try {
-      response = await fetch(`${siteUrl}/wp-json/wp/v2/posts`, {
+      response = await fetch(wordpressPostEndpoint(siteUrl, updateRemoteId), {
         method: "POST",
         headers: {
           Authorization: authorization,
@@ -223,6 +240,6 @@ export default {
     }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
     if (completionError) return json({ error: "The WordPress draft was created, but Destiny could not save its editor link. Check WordPress before trying again." }, 502);
 
-    return json({ delivered: true, remoteEditUrl, publicationStatus: "delivered_draft", fieldReport });
+    return json({ delivered: true, remoteEditUrl, updated: Boolean(updateRemoteId), publicationStatus: "delivered_draft", fieldReport });
   }),
 };
