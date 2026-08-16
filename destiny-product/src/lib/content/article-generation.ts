@@ -240,7 +240,9 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
                   format: { type: "string", enum: [...TITLE_CANDIDATE_FORMATS] },
                   headline: { type: "string" },
                   metaTitle: { type: "string" },
-                  score: { type: "integer", minimum: 0, maximum: 100 },
+                  // Keep the provider schema structural only. parseArticleResponse
+                  // clamps the score to Destiny's required 0–100 range.
+                  score: { type: "integer" },
                   rationale: { type: "string" },
                 },
               },
