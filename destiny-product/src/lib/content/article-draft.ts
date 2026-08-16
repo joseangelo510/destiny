@@ -225,7 +225,7 @@ function renderInlineMarkdown(value: string) {
   const withLinkTokens = value.replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/gi, (_match, label: string, url: string) => {
     const token = `DESTINYWORDLINK${links.length}TOKEN`;
     const linkedLabel = escapeHtml(label)
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/__([^_]+)__/g, "<strong>$1</strong>");
     links.push(`<a href="${escapeHtmlAttribute(url)}">${linkedLabel}</a>`);
     return token;
@@ -233,7 +233,8 @@ function renderInlineMarkdown(value: string) {
 
   let rendered = escapeHtml(withLinkTokens)
     .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    // Allow italic spans inside bold text, e.g. **change *when* and *how***.
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/__([^_]+)__/g, "<strong>$1</strong>")
     .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,!?;:)]|$)/g, "$1<em>$2</em>")
     .replace(/(^|[\s(])_([^_\n]+)_(?=[\s.,!?;:)]|$)/g, "$1<em>$2</em>");

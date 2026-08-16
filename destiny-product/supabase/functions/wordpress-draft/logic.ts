@@ -60,11 +60,12 @@ export function insertWordPressFigures(contentHtml: string, media: UploadedWordP
   const figure = (item: UploadedWordPressMedia) => `<!-- wp:image {"id":${item.id},"sizeSlug":"large"} --><figure class="wp-block-image size-large destiny-article-figure"><img src="${escapeAttribute(item.sourceUrl)}" alt="${escapeAttribute(item.alt)}" class="wp-image-${item.id}" />${item.caption ? `<figcaption class="wp-element-caption">${escapeAttribute(item.caption)}</figcaption>` : ""}</figure><!-- /wp:image -->`;
   let output = contentHtml;
   const pending: UploadedWordPressMedia[] = [];
+  const headingBlockPattern = /(?:<!-- wp:heading\b[\s\S]*?-->)?<h([23])\b[^>]*>[\s\S]*?<\/h\1>(?:<!-- \/wp:heading -->)?/gi;
   for (const item of inline) {
     let inserted = false;
     const target = plainText(item.placementAfterHeading);
     if (target) {
-      output = output.replace(/(<h[23]\b[^>]*>[\s\S]*?<\/h[23]>)/gi, (heading) => {
+      output = output.replace(headingBlockPattern, (heading) => {
         if (inserted || plainText(heading) !== target) return heading;
         inserted = true;
         return `${heading}${figure(item)}`;
@@ -73,7 +74,8 @@ export function insertWordPressFigures(contentHtml: string, media: UploadedWordP
     if (!inserted) pending.push(item);
   }
   let fallbackIndex = 0;
-  output = output.replace(/(<h2\b[^>]*>[\s\S]*?<\/h2>)/gi, (heading) => {
+  const h2BlockPattern = /(?:<!-- wp:heading\b[\s\S]*?-->)?<h2\b[^>]*>[\s\S]*?<\/h2>(?:<!-- \/wp:heading -->)?/gi;
+  output = output.replace(h2BlockPattern, (heading) => {
     if (fallbackIndex >= pending.length) return heading;
     if (/destiny-article-figure[\s\S]*$/.test(heading)) return heading;
     return `${heading}${figure(pending[fallbackIndex++])}`;
@@ -101,6 +103,9 @@ export function verifyDeliveredDraftMedia(
   remote: { featuredMedia: number; contentHtml: string },
   media: UploadedWordPressMedia[],
 ) {
+  if (/<!-- wp:heading\b[\s\S]*?<!-- wp:image\b[\s\S]*?<!-- \/wp:heading -->/i.test(remote.contentHtml)) {
+    return { verified: false, reason: "WordPress placed an inline image inside a heading block instead of after it." };
+  }
   const featured = media.find((item) => item.role === "featured");
   if (featured && remote.featuredMedia !== featured.id) {
     return { verified: false, reason: "WordPress did not save the required featured image." };

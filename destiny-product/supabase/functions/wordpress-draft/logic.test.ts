@@ -26,7 +26,7 @@ describe("WordPress draft Edge Function logic", () => {
       websiteId: "website-1",
       articleKey: "audit-1:keyword",
       title: "A useful article",
-      contentHtml: `<p>${"Opening content. ".repeat(8)}</p><h2>First section</h2><p>One</p><h2>Second section</h2><p>Two</p>`,
+      contentHtml: `<!-- wp:heading {"level":2} --><h2>First section</h2><!-- /wp:heading --><p>${"Opening content. ".repeat(8)}</p><!-- wp:heading {"level":2} --><h2>Second section</h2><!-- /wp:heading --><p>Two</p>`,
       excerpt: "A concise summary.",
     });
     const media = [
@@ -38,6 +38,8 @@ describe("WordPress draft Edge Function logic", () => {
     expect(content).toContain('<!-- wp:image {"id":21,"sizeSlug":"large"} -->');
     expect(content).toContain('<figcaption class="wp-element-caption">Source: Destiny research</figcaption>');
     expect(content.indexOf("second.webp")).toBeGreaterThan(content.indexOf("Second section"));
+    expect(content).toContain('</h2><!-- /wp:heading --><!-- wp:image');
+    expect(content).not.toMatch(/<!-- wp:heading[\s\S]*?<!-- wp:image[\s\S]*?<!-- \/wp:heading -->/);
     expect(wordpressDraftPayload(draft, media)).toMatchObject({ status: "draft", featured_media: 20, content });
   });
 
@@ -69,6 +71,10 @@ describe("WordPress draft Edge Function logic", () => {
       contentHtml: '<figure class="destiny-article-figure"><img class="wp-image-21" src="https://example.com/inline.webp" alt="Useful diagram"></figure>',
     }, media)).toEqual({ verified: true, reason: "" });
     expect(verifyDeliveredDraftMedia({ featuredMedia: 0, contentHtml: "" }, media)).toMatchObject({ verified: false });
+    expect(verifyDeliveredDraftMedia({
+      featuredMedia: 20,
+      contentHtml: '<!-- wp:heading {"level":2} --><h2>First section</h2><!-- wp:image {"id":21} --><figure><img class="wp-image-21" alt="Useful diagram"></figure><!-- /wp:image --><!-- /wp:heading -->',
+    }, media)).toMatchObject({ verified: false, reason: expect.stringMatching(/inside a heading block/i) });
   });
 
   it("creates a stable, short fingerprint from the article text", () => {

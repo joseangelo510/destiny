@@ -94,4 +94,13 @@ describe("WordPress draft HTML safety", () => {
     expect(prepared.contentHtml).toContain("destiny-callout");
     expect(prepared.contentHtml).toContain("Practical tip:");
   });
+
+  it("renders nested italic emphasis inside bold text without literal Markdown markers", () => {
+    const prepared = prepareWordPressDraft({
+      ...validDraft,
+      body: `# Junk Removal Services: A Practical Guide\n\n${"Opening context for the reader and the decision they need to make. ".repeat(4)}\n\n**Choose *when* and *how* to act.**`,
+    });
+    expect(prepared.contentHtml).toContain("<strong>Choose <em>when</em> and <em>how</em> to act.</strong>");
+    expect(prepared.contentHtml).not.toContain("**Choose");
+  });
 });
