@@ -41,6 +41,16 @@
   },
   {
     "kind": "api",
+    "route": "/api/content/publishing-plan",
+    "file": "src/app/api/content/publishing-plan/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/publishing-plan/run",
+    "file": "src/app/api/content/publishing-plan/run/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/content/word",
     "file": "src/app/api/content/word/route.ts"
   },

@@ -19,7 +19,21 @@ describe("WordPress draft Edge Function logic", () => {
     expect(wordpressPostEndpoint("https://example.com/", "42")).toBe("https://example.com/wp-json/wp/v2/posts/42");
     expect(wordpressPostEndpoint("https://example.com/", "")).toBe("https://example.com/wp-json/wp/v2/posts");
     expect(canUpdateWordPressDraft("draft")).toBe(true);
+    expect(canUpdateWordPressDraft("future")).toBe(true);
     expect(canUpdateWordPressDraft("publish")).toBe(false);
+  });
+
+  it("uses WordPress native future status only for a date beyond the 72-hour holdback", () => {
+    const scheduledFor = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString();
+    const draft = prepareDraftBody({
+      websiteId: "website-1",
+      articleKey: "audit-1:scheduled",
+      title: "A scheduled article",
+      contentHtml: `<p>${"Useful scheduled article content. ".repeat(8)}</p>`,
+      scheduledFor,
+    });
+    expect(wordpressDraftPayload(draft)).toMatchObject({ status: "future", date_gmt: scheduledFor.replace(/\.\d{3}Z$/, "") });
+    expect(() => prepareDraftBody({ ...draft, scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() })).toThrow(/72 hours/i);
   });
 
   it("sets the dedicated featured image and anchors captioned inline graphics to their sections", () => {

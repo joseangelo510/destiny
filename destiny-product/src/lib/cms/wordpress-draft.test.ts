@@ -71,6 +71,12 @@ describe("WordPress draft preparation", () => {
   it("blocks a previously approved legacy draft without researched title candidates", () => {
     expect(() => prepareWordPressDraft({ ...validDraft, titleCandidates: [] })).toThrow(/headline and SEO\/meta title/i);
   });
+
+  it("preserves an approved future publication date", () => {
+    const scheduledFor = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString();
+    expect(prepareWordPressDraft({ ...validDraft, scheduledFor })).toMatchObject({ scheduledFor });
+    expect(() => prepareWordPressDraft({ ...validDraft, scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() })).toThrow(/72 hours/i);
+  });
 });
 
 describe("WordPress draft HTML safety", () => {
