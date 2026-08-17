@@ -1,6 +1,7 @@
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
-import { buildRankDigest, nextDigestAt, shouldSendDigest, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
+import { renderRankDigestEmail } from "./email.ts";
+import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
 
 type PreferenceRow = {
   website_id: string;
@@ -13,13 +14,11 @@ type PreferenceRow = {
 
 type DigestRequest = { websiteId?: unknown; force?: unknown; isTest?: unknown };
 type Observation = { tracked_keyword_id: string; observed_at: string; found: boolean; position: number | null };
+type TrackedKeyword = { id: string; keyword: string; normalized_keyword: string; location_name: string; device: string };
+type KeywordPreference = { normalized_keyword: string; decision: string; search_volume: number | null; provider_intent: string | null; difficulty: number | null; priority_score: number | null };
 
 function json(data: unknown, status = 200) {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
-}
-
-function escapeHtml(value: string) {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function websiteFrom(row: PreferenceRow) {
@@ -52,44 +51,41 @@ async function verifiedWebsiteId(token: string, secret: string) {
   return mismatch === 0 ? websiteId : null;
 }
 
-function movementLabel(row: ReturnType<typeof buildRankDigest>["rows"][number]) {
-  if (row.direction === "baseline") return "Baseline";
-  if (row.direction === "up") return row.change === null ? "Now ranking" : `Up ${row.change}`;
-  if (row.direction === "down") return row.change === null ? "Not found in top 100" : `Down ${Math.abs(row.change)}`;
-  return "No change";
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-function positionLabel(found: boolean, position: number | null) {
-  return found && position ? `#${position}` : "Not in top 100";
+function list(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
 }
 
-function comparisonLabel(row: ReturnType<typeof buildRankDigest>["rows"][number]) {
-  const current = positionLabel(row.currentFound, row.currentPosition);
-  return row.direction === "baseline"
-    ? `First reading → ${current}`
-    : `${positionLabel(row.previousFound === true, row.previousPosition)} → ${current}`;
+function normalizedKeyword(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
 }
 
-function renderEmail(input: {
-  siteName: string;
-  domain: string;
-  digest: ReturnType<typeof buildRankDigest>;
-  rankUrl: string;
-  accountUrl: string;
-  unsubscribeUrl: string;
-  firstNotice: boolean;
-  isTest: boolean;
-}) {
-  const rows = input.digest.topMovers.length ? input.digest.topMovers : input.digest.rows.slice(0, 10);
-  const tableRows = rows.map((row) => `<tr><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;font-weight:700">${escapeHtml(row.keyword)}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5">${escapeHtml(comparisonLabel(row))}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;color:${row.direction === "up" ? "#237451" : row.direction === "down" ? "#a64c42" : "#65746e"};font-weight:700">${escapeHtml(movementLabel(row))}</td></tr>`).join("");
-  const firstNotice = input.firstNotice ? `<div style="background:#eef6f1;border:1px solid #d5e8de;border-radius:12px;padding:14px 16px;margin:18px 0"><strong>New:</strong> Destiny will send ranking updates every 3 days. You can change the frequency or turn them off in Account settings.</div>` : "";
-  const heading = input.digest.hasComparison ? "Your search visibility moved." : "Your first ranking baseline is ready.";
-  const textRows = rows.map((row) => `- ${row.keyword}: ${comparisonLabel(row)} (${movementLabel(row)})`).join("\n");
-  return {
-    subject: `${input.isTest ? "[Test] " : ""}${input.digest.subject}`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#20302c"><p style="color:#2a6855;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Destiny ranking update · ${escapeHtml(input.domain)}</p><h1 style="font-family:Georgia,serif;font-size:36px;font-weight:500;line-height:1.12;margin:10px 0">${heading}</h1><p>Here is the latest confirmed Google movement for the keywords Destiny tracks for <strong>${escapeHtml(input.siteName)}</strong>.</p>${firstNotice}<div style="display:flex;gap:8px;flex-wrap:wrap;margin:24px 0"><div style="background:#eef6f1;border-radius:12px;padding:14px 18px"><strong style="font-size:26px;color:#237451">${input.digest.counts.up}</strong><br><span>moved up</span></div><div style="background:#fbf1ef;border-radius:12px;padding:14px 18px"><strong style="font-size:26px;color:#a64c42">${input.digest.counts.down}</strong><br><span>moved down</span></div><div style="background:#f3f5f3;border-radius:12px;padding:14px 18px"><strong style="font-size:26px">${input.digest.top10Current}</strong><br><span>in top 10</span></div><div style="background:#f3f5f3;border-radius:12px;padding:14px 18px"><strong style="font-size:26px">${input.digest.averageCurrent ?? "—"}</strong><br><span>average position</span></div></div><table style="border-collapse:collapse;width:100%;font-size:14px"><thead><tr><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Keyword</th><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Previous → current</th><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Change</th></tr></thead><tbody>${tableRows}</tbody></table><p style="margin:28px 0"><a href="${escapeHtml(input.rankUrl)}" style="background:#275f4e;color:#fff;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">View rank tracker</a></p><p style="color:#71807a;font-size:12px;line-height:1.6">Rankings can fluctuate. Destiny compares the same Google location, language, and device each time and never treats “not found” as position zero.<br><a href="${escapeHtml(input.accountUrl)}" style="color:#526b61">Manage email frequency</a> · <a href="${escapeHtml(input.unsubscribeUrl)}" style="color:#526b61">Unsubscribe from ranking emails</a></p></div>`,
-    text: `${heading}\n\n${input.siteName} (${input.domain})\n${input.digest.counts.up} moved up · ${input.digest.counts.down} moved down · ${input.digest.top10Current} in the top 10 · average position ${input.digest.averageCurrent ?? "—"}\n\n${textRows}\n\nView rank tracker: ${input.rankUrl}\nManage email frequency: ${input.accountUrl}\nUnsubscribe: ${input.unsubscribeUrl}`,
-  };
+function opportunityCandidates(rawProviderPayload: unknown): RankDigestOpportunity[] {
+  const provider = record(record(rawProviderPayload).providerResult);
+  return list(provider.keywords).flatMap((value) => {
+    const keyword = record(value);
+    const phrase = typeof keyword.keyword === "string" ? keyword.keyword.trim() : "";
+    const volume = Number(keyword.searchVolume ?? 0);
+    if (!phrase || !Number.isFinite(volume) || volume <= 0) return [];
+    const rawIntent = String(keyword.providerIntent ?? keyword.intent ?? "informational");
+    const intent = rawIntent === "transactional" || rawIntent === "commercial" || rawIntent === "navigational" ? rawIntent : "informational";
+    const rawDifficulty = Number(keyword.difficulty);
+    const difficulty = Number.isFinite(rawDifficulty) && rawDifficulty >= 0 && rawDifficulty <= 100 ? rawDifficulty : null;
+    const opportunity = String(keyword.opportunity ?? "site_idea");
+    const evidenceSource = opportunity === "competitor_gap" ? "competitor_gap" as const : Number(keyword.rank ?? 0) > 0 ? "serp_scan" as const : "site_audit" as const;
+    return [{
+      keyword: phrase,
+      estimatedVolume: Math.round(volume),
+      intent,
+      difficulty,
+      priorityScore: Math.max(0, Math.min(100, Math.round(Number(keyword.priorityScore ?? 0) || 0))),
+      reason: String(keyword.priorityReason ?? keyword.reason ?? (evidenceSource === "competitor_gap" ? "Competitors earn visibility for this relevant search." : "This search matches the business and has meaningful demand.")).slice(0, 220),
+      evidenceSource,
+    }];
+  });
 }
 
 async function sendWithRetry(input: { apiKey: string; from: string; recipient: string; subject: string; html: string; text: string; idempotencyKey: string; unsubscribeUrl: string }) {
@@ -164,31 +160,60 @@ export default {
     for (const preference of (data ?? []) as unknown as PreferenceRow[]) {
       const website = websiteFrom(preference);
       if (!website) continue;
-      const { data: tracked } = await context.supabaseAdmin.from("tracked_keywords").select("id,keyword").eq("website_id", preference.website_id).in("status", ["pending", "active", "error"]).limit(500);
-      const keywordIds = (tracked ?? []).map((row) => row.id);
-      if (!keywordIds.length) {
-        await context.supabaseAdmin.from("notification_preferences").update({ last_digest_status: "skipped", last_digest_error: "No tracked keywords.", next_digest_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("website_id", preference.website_id);
-        results.push({ websiteId: preference.website_id, status: "skipped", reason: "No tracked keywords." });
-        continue;
-      }
-      const { data: observations } = await context.supabaseAdmin.from("rank_observations").select("tracked_keyword_id,observed_at,found,position").eq("website_id", preference.website_id).in("tracked_keyword_id", keywordIds).order("observed_at", { ascending: false }).limit(2000);
+      const [{ data: trackedData }, { data: preferencesData }, { data: latestAudit }] = await Promise.all([
+        context.supabaseAdmin.from("tracked_keywords").select("id,keyword,normalized_keyword,location_name,device").eq("website_id", preference.website_id).in("status", ["pending", "active", "error"]).limit(500),
+        context.supabaseAdmin.from("keyword_preferences").select("normalized_keyword,decision,search_volume,provider_intent,difficulty,priority_score").eq("website_id", preference.website_id),
+        context.supabaseAdmin.from("audits").select("raw_provider_payload,completed_at").eq("website_id", preference.website_id).eq("status", "complete").order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+      ]);
+      const tracked = (trackedData ?? []) as TrackedKeyword[];
+      const keywordPreferences = (preferencesData ?? []) as KeywordPreference[];
+      const keywordIds = tracked.map((row) => row.id);
+      const observationResult = keywordIds.length
+        ? await context.supabaseAdmin.from("rank_observations").select("tracked_keyword_id,observed_at,found,position").eq("website_id", preference.website_id).in("tracked_keyword_id", keywordIds).order("observed_at", { ascending: false }).limit(2000)
+        : { data: [] as Observation[] };
+      const observations = observationResult.data ?? [];
       const byKeyword = new Map<string, Observation[]>();
-      for (const observation of (observations ?? []) as Observation[]) {
+      for (const observation of observations as Observation[]) {
         const values = byKeyword.get(observation.tracked_keyword_id) ?? [];
         if (values.length < 2) byKeyword.set(observation.tracked_keyword_id, [...values, observation]);
       }
-      const latestObservationAt = (observations?.[0] as Observation | undefined)?.observed_at ?? null;
-      if (!force && !shouldSendDigest(preference.last_digest_sent_at, latestObservationAt)) {
+      const latestObservationAt = (observations[0] as Observation | undefined)?.observed_at ?? null;
+      const auditCandidates = opportunityCandidates(latestAudit?.raw_provider_payload);
+      const candidateByKeyword = new Map(auditCandidates.map((candidate) => [normalizedKeyword(candidate.keyword), candidate]));
+      const preferenceByKeyword = new Map(keywordPreferences.map((item) => [item.normalized_keyword, item]));
+      const declined = keywordPreferences.filter((item) => item.decision === "declined").map((item) => item.normalized_keyword);
+      const opportunities = selectDigestOpportunities(auditCandidates, [...tracked.map((item) => item.normalized_keyword), ...declined]);
+      const latestEvidenceAt = keywordIds.length ? latestObservationAt : typeof latestAudit?.completed_at === "string" ? latestAudit.completed_at : null;
+      if (!keywordIds.length && !opportunities.length) {
+        await context.supabaseAdmin.from("notification_preferences").update({ last_digest_status: "skipped", last_digest_error: "No tracked keywords or audit opportunities yet.", next_digest_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("website_id", preference.website_id);
+        results.push({ websiteId: preference.website_id, status: "skipped", reason: "No tracked keywords or audit opportunities yet." });
+        continue;
+      }
+      if (keywordIds.length && !latestObservationAt) {
+        await context.supabaseAdmin.from("notification_preferences").update({ last_digest_status: "skipped", last_digest_error: "Waiting for the first live rank reading.", next_digest_at: new Date(now.getTime() + 6 * 3_600_000).toISOString() }).eq("website_id", preference.website_id);
+        results.push({ websiteId: preference.website_id, status: "skipped", reason: "Waiting for the first live rank reading." });
+        continue;
+      }
+      if (!force && !shouldSendDigest(preference.last_digest_sent_at, latestEvidenceAt)) {
         await context.supabaseAdmin.from("notification_preferences").update({ last_digest_status: "skipped", last_digest_error: "Waiting for fresh rank readings.", next_digest_at: new Date(now.getTime() + 6 * 3_600_000).toISOString() }).eq("website_id", preference.website_id);
         results.push({ websiteId: preference.website_id, status: "skipped", reason: "Waiting for fresh rank readings." });
         continue;
       }
-      const readings: RankDigestReading[] = (tracked ?? []).flatMap((keyword) => {
+      const readings: RankDigestReading[] = tracked.flatMap((keyword) => {
         const history = byKeyword.get(keyword.id) ?? [];
         const current = history[0];
         if (!current) return [];
         const previous = history[1];
-        return [{ keyword: keyword.keyword, currentFound: current.found, currentPosition: current.position, previousFound: previous ? previous.found : null, previousPosition: previous?.position ?? null }];
+        const preferenceEvidence = preferenceByKeyword.get(keyword.normalized_keyword);
+        const auditEvidence = candidateByKeyword.get(keyword.normalized_keyword);
+        return [{
+          keyword: keyword.keyword,
+          currentFound: current.found,
+          currentPosition: current.position,
+          previousFound: previous ? previous.found : null,
+          previousPosition: previous?.position ?? null,
+          searchVolume: preferenceEvidence?.search_volume ?? auditEvidence?.estimatedVolume ?? null,
+        }];
       });
       const digest = buildRankDigest(website.business_name?.trim() || website.normalized_domain, readings);
       const { data: organization } = await context.supabaseAdmin.from("organizations").select("owner_id").eq("id", preference.organization_id).maybeSingle();
@@ -199,7 +224,7 @@ export default {
         results.push({ websiteId: preference.website_id, status: "failed", reason: "No valid recipient email." });
         continue;
       }
-      const periodKey = isTest ? `test-${now.toISOString()}` : `reading-${latestObservationAt ?? now.toISOString()}`;
+      const periodKey = isTest ? `test-${now.toISOString()}` : `evidence-${latestEvidenceAt ?? now.toISOString()}`;
       const { data: send, error: ledgerError } = await context.supabaseAdmin.from("rank_digest_sends").insert({
         website_id: preference.website_id,
         organization_id: preference.organization_id,
@@ -219,15 +244,24 @@ export default {
       }
       const token = await unsubscribeToken(preference.website_id, tokenSecret);
       const unsubscribeUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/rank-digest?unsubscribe=${encodeURIComponent(token)}`;
-      const email = renderEmail({
+      const observationDates = observations.map((item) => item.observed_at).filter(Boolean).sort();
+      const email = renderRankDigestEmail({
         siteName: digest.siteName,
         domain: website.normalized_domain,
         digest,
+        opportunities,
         rankUrl: `${siteUrl}/rank-tracker?site=${encodeURIComponent(preference.website_id)}`,
+        keywordStrategyUrl: `${siteUrl}/keywords?site=${encodeURIComponent(preference.website_id)}`,
         accountUrl: `${siteUrl}/account?site=${encodeURIComponent(preference.website_id)}`,
         unsubscribeUrl,
         firstNotice: preference.first_digest_notice_pending,
         isTest,
+        measurement: {
+          locationName: tracked[0]?.location_name || "United States",
+          device: tracked[0]?.device || "Desktop",
+          rangeStart: observationDates[0] ?? latestEvidenceAt,
+          rangeEnd: observationDates.at(-1) ?? latestEvidenceAt,
+        },
       });
       const delivery = await sendWithRetry({ apiKey, from, recipient, ...email, idempotencyKey: `destiny-rank-${send.id}`, unsubscribeUrl });
       if (!delivery.sent) {

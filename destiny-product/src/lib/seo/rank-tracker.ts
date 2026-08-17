@@ -30,7 +30,7 @@ export function rankReadingFromPolicy(policy: Pick<DestinyLogicResult, "rankRead
   const states = [
     { label: "Check failed — retrying", tone: "error" as const },
     { label: "First check pending", tone: "pending" as const },
-    { label: "Not found in top 100", tone: "not-found" as const },
+    { label: "Not yet visible", tone: "not-found" as const },
     { label: `#${position}`, tone: "ranked" as const },
   ];
   return states[policy.rankReadingCode] ?? states[0];
@@ -40,7 +40,7 @@ export function rankMovementFromPolicy(policy: Pick<DestinyLogicResult, "rankMov
   const delta = policy.rankMovementDelta;
   const states = [
     { delta: null, label: "—", tone: "flat" as const }, { delta: null, label: "New", tone: "new" as const },
-    { delta: null, label: "Entered top 100", tone: "new" as const }, { delta: null, label: "Dropped out", tone: "lost" as const },
+    { delta: null, label: "Now visible", tone: "new" as const }, { delta: null, label: "Not yet visible", tone: "lost" as const },
     { delta, label: `Up ${delta}`, tone: "up" as const }, { delta, label: `Down ${Math.abs(delta)}`, tone: "down" as const },
     { delta: 0, label: "No change", tone: "flat" as const },
   ];

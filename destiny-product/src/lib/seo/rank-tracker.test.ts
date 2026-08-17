@@ -17,7 +17,7 @@ describe("rank tracker evidence rules", () => {
 
   it("labels a completed top-100 miss truthfully", async () => {
     await expect(rankReadingState({ status: "active", position: null, found: false })).resolves.toEqual({
-      label: "Not found in top 100",
+      label: "Not yet visible",
       tone: "not-found",
     });
   });
@@ -26,12 +26,12 @@ describe("rank tracker evidence rules", () => {
     await expect(rankMovement(7, 13)).resolves.toEqual({ delta: 6, label: "Up 6", tone: "up" });
     await expect(rankMovement(18, 4)).resolves.toEqual({ delta: -14, label: "Down 14", tone: "down" });
     await expect(rankMovement(9, null)).resolves.toEqual({ delta: null, label: "New", tone: "new" });
-    await expect(rankMovement(null, 9)).resolves.toEqual({ delta: null, label: "Dropped out", tone: "lost" });
+    await expect(rankMovement(null, 9)).resolves.toEqual({ delta: null, label: "Not yet visible", tone: "lost" });
   });
 
   it("names top-100 entry and exit without inventing a numeric delta", async () => {
-    expect((await rankMovementFromReadings({ position: 8, found: true }, { position: null, found: false })).label).toBe("Entered top 100");
-    expect((await rankMovementFromReadings({ position: null, found: false }, { position: 8, found: true })).label).toBe("Dropped out");
+    expect((await rankMovementFromReadings({ position: 8, found: true }, { position: null, found: false })).label).toBe("Now visible");
+    expect((await rankMovementFromReadings({ position: null, found: false }, { position: 8, found: true })).label).toBe("Not yet visible");
   });
 
   it("keeps pending keywords out of ranking averages", async () => {

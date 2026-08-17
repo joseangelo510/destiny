@@ -133,7 +133,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}
       </div>
     </section>
-    <aside className="rank-evidence-note"><strong>Accuracy rule</strong><p>Destiny records the exact location, language, device, timestamp, provider task, and result URL for every check. “Not found” means the domain did not appear within the measured top 100—it never means position zero.</p></aside>
+    <aside className="rank-evidence-note"><strong>What “Not yet visible” means</strong><p>Google did not show this website in the first 100 results—about 10 pages—for that search during the latest check. It is a starting point, not a penalty, and it never means position zero.</p></aside>
     {error ? <div className="error-banner" role="alert">{error}</div> : null}
   </div>;
 }
