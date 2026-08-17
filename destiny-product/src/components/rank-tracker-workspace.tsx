@@ -23,9 +23,9 @@ export type RankTrackerKeyword = {
   policyView?: { reading: { label: string; tone: string }; movement: { label: string; tone: string }; freshness: { message: string }; bucket: number };
 };
 
-type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[] };
+type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; emailCadence?: string | null };
 
-export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords }: Props) {
+export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, emailCadence = null }: Props) {
   const [lists, setLists] = useState(initialLists);
   const [keywords, setKeywords] = useState(initialKeywords);
   const [activeList, setActiveList] = useState<string>("all");
@@ -97,7 +97,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords 
   return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
     <section className="rank-tracker-intro">
       <div><span className="research-kicker">Weekly Google rank tracking</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context every week so movement is comparable—not guessed.</p></div>
-      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>
+      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small>{emailCadence ? <small className="rank-email-cadence">{emailCadence} Change this in Account settings.</small> : null}</div>
     </section>
 
     <section className="rank-summary-grid">

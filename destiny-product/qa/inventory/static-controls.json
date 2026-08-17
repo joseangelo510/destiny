@@ -9,6 +9,15 @@
     "context": "</>} <section className=\"workspace-card connection-callout\" id=\"first-party-measurement\"><div><strong>First-party measurement</strong><p>Connect Search Console, Google Analytics, Business Profile, and YouTube to add clicks, impressions, conversions, reviews, and video discovery.</p></div><Link className=\"primary-button workspace-action\" href=\"/integrations\">Manage connections</Link></section> </>"
   },
   {
+    "control_id": "src/app/api/account/ranking-emails/route.ts:16:data-mutation:1",
+    "file": "src/app/api/account/ranking-emails/route.ts",
+    "line": 16,
+    "type": "data-mutation",
+    "route": "/api/account/ranking-emails",
+    "side_effect_class": 1,
+    "context": "const { data: preference, error } = await supabase.from(\"notification_preferences\") .update({ ranking_digest_frequency: body.frequency,"
+  },
+  {
     "control_id": "src/app/api/account/route.ts:21:data-mutation:1",
     "file": "src/app/api/account/route.ts",
     "line": 21,
@@ -774,144 +783,162 @@
     "context": "<details className=\"weekly-momentum-drawer\"> <summary><span><strong>Your momentum</strong><small>{weekly.currentStreak}-week streak · {done} of {actionableTasks.length} complete</small></span><b>View history</b></summary> <section className=\"weekly-momentum-grid\" aria-label=\"Weekly streak and completion history\">{["
   },
   {
-    "control_id": "src/components/account-settings.tsx:115:input:1",
+    "control_id": "src/components/account-settings.tsx:165:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 115,
+    "line": 165,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
-    "control_id": "src/components/account-settings.tsx:115:onChange:2",
+    "control_id": "src/components/account-settings.tsx:165:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 115,
+    "line": 165,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
-    "control_id": "src/components/account-settings.tsx:115:button:3",
+    "control_id": "src/components/account-settings.tsx:165:button:3",
     "file": "src/components/account-settings.tsx",
-    "line": 115,
+    "line": 165,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
-    "control_id": "src/components/account-settings.tsx:115:onClick:4",
+    "control_id": "src/components/account-settings.tsx:165:onClick:4",
     "file": "src/components/account-settings.tsx",
-    "line": 115,
+    "line": 165,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
   },
   {
-    "control_id": "src/components/account-settings.tsx:127:button:1",
+    "control_id": "src/components/account-settings.tsx:185:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 127,
+    "line": 185,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{RANKING_DIGEST_FREQUENCIES.map((frequency) => <label className={styles.frequencyOption} key={frequency}> <input checked={choice === frequency} name={`ranking-frequency-${website.id}`} onChange={() => void saveRankingFrequency(website.id, frequency)} type=\"radio\" value={frequency} /> <span>{rankingDigestFrequencyLabel(frequency)}{frequency === RECOMMENDED_RANKING_DIGEST_FREQUENCY ? <em className={styles.recommendedBadge}>Recommended</em> : null}</span>"
+  },
+  {
+    "control_id": "src/components/account-settings.tsx:185:onChange:2",
+    "file": "src/components/account-settings.tsx",
+    "line": 185,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{RANKING_DIGEST_FREQUENCIES.map((frequency) => <label className={styles.frequencyOption} key={frequency}> <input checked={choice === frequency} name={`ranking-frequency-${website.id}`} onChange={() => void saveRankingFrequency(website.id, frequency)} type=\"radio\" value={frequency} /> <span>{rankingDigestFrequencyLabel(frequency)}{frequency === RECOMMENDED_RANKING_DIGEST_FREQUENCY ? <em className={styles.recommendedBadge}>Recommended</em> : null}</span>"
+  },
+  {
+    "control_id": "src/components/account-settings.tsx:204:button:1",
+    "file": "src/components/account-settings.tsx",
+    "line": 204,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <button className={styles.websiteDeleteButton} disabled={deletingWebsite} onClick={() => beginWebsiteDeletion(website)} type=\"button\">Delete website</button> </div>)}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:127:onClick:2",
+    "control_id": "src/components/account-settings.tsx:204:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 127,
+    "line": 204,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <button className={styles.websiteDeleteButton} disabled={deletingWebsite} onClick={() => beginWebsiteDeletion(website)} type=\"button\">Delete website</button> </div>)}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:133:input:1",
+    "control_id": "src/components/account-settings.tsx:210:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 133,
+    "line": 210,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Delete {pendingWebsite.normalizedDomain}?</strong><p>This permanently removes this website’s audits, keywords, three-month plans, tasks, rank tracking, drafts, reviews, and connections. This cannot be undone.</p></div> <label className={styles.confirmation}>Type <strong>{pendingWebsite.normalizedDomain}</strong> to confirm<input autoComplete=\"off\" autoFocus onChange={(event) => setWebsiteConfirmation(event.target.value)} placeholder={pendingWebsite.normalizedDomain} spellCheck={fals"
   },
   {
-    "control_id": "src/components/account-settings.tsx:133:onChange:2",
+    "control_id": "src/components/account-settings.tsx:210:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 133,
+    "line": 210,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Delete {pendingWebsite.normalizedDomain}?</strong><p>This permanently removes this website’s audits, keywords, three-month plans, tasks, rank tracking, drafts, reviews, and connections. This cannot be undone.</p></div> <label className={styles.confirmation}>Type <strong>{pendingWebsite.normalizedDomain}</strong> to confirm<input autoComplete=\"off\" autoFocus onChange={(event) => setWebsiteConfirmation(event.target.value)} placeholder={pendingWebsite.normalizedDomain} spellCheck={fals"
   },
   {
-    "control_id": "src/components/account-settings.tsx:135:button:1",
+    "control_id": "src/components/account-settings.tsx:212:button:1",
     "file": "src/components/account-settings.tsx",
-    "line": 135,
+    "line": 212,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:135:onClick:2",
+    "control_id": "src/components/account-settings.tsx:212:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 135,
+    "line": 212,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:135:button:3",
+    "control_id": "src/components/account-settings.tsx:212:button:3",
     "file": "src/components/account-settings.tsx",
-    "line": 135,
+    "line": 212,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:135:onClick:4",
+    "control_id": "src/components/account-settings.tsx:212:onClick:4",
     "file": "src/components/account-settings.tsx",
-    "line": 135,
+    "line": 212,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:142:input:1",
+    "control_id": "src/components/account-settings.tsx:219:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 142,
+    "line": 219,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<label className={styles.confirmation}>Type <strong>{loginEmail}</strong> to confirm <input autoComplete=\"off\" onChange={(event) => setConfirmation(event.target.value)} placeholder={loginEmail} spellCheck={false} value={confirmation} /> </label>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:142:onChange:2",
+    "control_id": "src/components/account-settings.tsx:219:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 142,
+    "line": 219,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<label className={styles.confirmation}>Type <strong>{loginEmail}</strong> to confirm <input autoComplete=\"off\" onChange={(event) => setConfirmation(event.target.value)} placeholder={loginEmail} spellCheck={false} value={confirmation} /> </label>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:145:button:1",
+    "control_id": "src/components/account-settings.tsx:222:button:1",
     "file": "src/components/account-settings.tsx",
-    "line": 145,
+    "line": 222,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <p aria-live=\"polite\" className={styles.error}>{error}</p>} <button className={styles.deleteButton} disabled={!matches || deleting} onClick={deleteAccount} type=\"button\">{deleting ? \"Deleting account…\" : \"Delete account\"}</button> </section>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:145:onClick:2",
+    "control_id": "src/components/account-settings.tsx:222:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 145,
+    "line": 222,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,

@@ -266,6 +266,81 @@ export type Database = {
           },
         ]
       }
+      rank_digest_sends: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          entered_top_10: number
+          error: string | null
+          id: string
+          is_test: boolean
+          keywords_compared: number
+          left_top_10: number
+          moved_down: number
+          moved_up: number
+          organization_id: string
+          period_key: string
+          provider_message_id: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          website_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          entered_top_10?: number
+          error?: string | null
+          id?: string
+          is_test?: boolean
+          keywords_compared?: number
+          left_top_10?: number
+          moved_down?: number
+          moved_up?: number
+          organization_id: string
+          period_key: string
+          provider_message_id?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          website_id: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          entered_top_10?: number
+          error?: string | null
+          id?: string
+          is_test?: boolean
+          keywords_compared?: number
+          left_top_10?: number
+          moved_down?: number
+          moved_up?: number
+          organization_id?: string
+          period_key?: string
+          provider_message_id?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rank_digest_sends_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rank_digest_sends_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rank_observations: {
         Row: {
           check_url: string | null
@@ -589,6 +664,66 @@ export type Database = {
             foreignKeyName: "llm_visibility_tasks_website_id_fkey"
             columns: ["website_id"]
             isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          first_digest_notice_pending: boolean
+          last_digest_error: string | null
+          last_digest_sent_at: string | null
+          last_digest_status: string
+          next_digest_at: string | null
+          organization_id: string
+          ranking_digest_frequency: string
+          timezone: string
+          unsubscribed_at: string | null
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_digest_notice_pending?: boolean
+          last_digest_error?: string | null
+          last_digest_sent_at?: string | null
+          last_digest_status?: string
+          next_digest_at?: string | null
+          organization_id: string
+          ranking_digest_frequency?: string
+          timezone?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          first_digest_notice_pending?: boolean
+          last_digest_error?: string | null
+          last_digest_sent_at?: string | null
+          last_digest_status?: string
+          next_digest_at?: string | null
+          organization_id?: string
+          ranking_digest_frequency?: string
+          timezone?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: true
             referencedRelation: "websites"
             referencedColumns: ["id"]
           },

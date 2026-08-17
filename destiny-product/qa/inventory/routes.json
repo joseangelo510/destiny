@@ -21,6 +21,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/account/ranking-emails",
+    "file": "src/app/api/account/ranking-emails/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/audits",
     "file": "src/app/api/audits/route.ts"
   },
