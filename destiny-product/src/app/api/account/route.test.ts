@@ -57,6 +57,37 @@ describe("DELETE /api/account", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
+  it("updates the selected website ranking email frequency", async () => {
+    maybeSingle.mockResolvedValueOnce({ data: { ranking_digest_frequency: "three_day", next_digest_at: "2026-08-16T16:00:00.000Z" }, error: null });
+    const response = await PATCH(new Request("http://localhost/api/account", {
+      method: "PATCH",
+      body: JSON.stringify({
+        rankingDigestFrequency: "three_day",
+        websiteId: "11111111-1111-4111-8111-111111111111",
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(from).toHaveBeenCalledWith("notification_preferences");
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      ranking_digest_frequency: "three_day",
+      unsubscribed_at: null,
+    }));
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ rankingDigestFrequency: "three_day" }));
+  });
+
+  it("rejects an unknown ranking email frequency", async () => {
+    const response = await PATCH(new Request("http://localhost/api/account", {
+      method: "PATCH",
+      body: JSON.stringify({
+        rankingDigestFrequency: "daily",
+        websiteId: "11111111-1111-4111-8111-111111111111",
+      }),
+    }));
+    expect(response.status).toBe(400);
+    expect(from).not.toHaveBeenCalled();
+  });
+
   it("requires the current login email as confirmation", async () => {
     const response = await DELETE(new Request("http://localhost/api/account", { method: "DELETE", body: JSON.stringify({ confirmation: "wrong@example.com" }) }));
 

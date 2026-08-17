@@ -7,6 +7,8 @@ type AccountWebsite = {
   id: string;
   businessName: string | null;
   normalizedDomain: string;
+  rankingDigestFrequency: "three_day" | "weekly" | "off";
+  lastDigestSentAt: string | null;
 };
 
 export function AccountSettings({ activeWebsiteId = null, loginEmail, notificationEmail, websites = [] }: {
@@ -19,6 +21,11 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
   const [notificationDraft, setNotificationDraft] = useState(notificationEmail ?? "");
   const [savingNotificationEmail, setSavingNotificationEmail] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  const [rankingDigestFrequencies, setRankingDigestFrequencies] = useState<Record<string, AccountWebsite["rankingDigestFrequency"]>>(
+    Object.fromEntries(websites.map((website) => [website.id, website.rankingDigestFrequency])),
+  );
+  const [savingDigestWebsiteId, setSavingDigestWebsiteId] = useState<string | null>(null);
+  const [digestMessage, setDigestMessage] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -88,6 +95,30 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
     }
   }
 
+  async function saveRankingDigestFrequency(websiteId: string, frequency: AccountWebsite["rankingDigestFrequency"]) {
+    if (savingDigestWebsiteId) return;
+    const previous = rankingDigestFrequencies[websiteId] ?? "weekly";
+    setSavingDigestWebsiteId(websiteId);
+    setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: frequency }));
+    setDigestMessage((current) => ({ ...current, [websiteId]: "" }));
+    try {
+      const response = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rankingDigestFrequency: frequency, websiteId }),
+      });
+      const result = await response.json().catch(() => ({})) as { error?: string; rankingDigestFrequency?: AccountWebsite["rankingDigestFrequency"] };
+      if (!response.ok || !result.rankingDigestFrequency) throw new Error(result.error || "Destiny could not save this notification setting.");
+      setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: result.rankingDigestFrequency as AccountWebsite["rankingDigestFrequency"] }));
+      setDigestMessage((current) => ({ ...current, [websiteId]: frequency === "off" ? "Ranking emails turned off." : "Ranking email schedule saved." }));
+    } catch (cause) {
+      setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: previous }));
+      setDigestMessage((current) => ({ ...current, [websiteId]: cause instanceof Error ? cause.message : "Destiny could not save this notification setting." }));
+    } finally {
+      setSavingDigestWebsiteId(null);
+    }
+  }
+
   async function deleteAccount() {
     if (!matches || deleting) return;
     setDeleting(true);
@@ -114,6 +145,26 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         <div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div>
         <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
       </dl>
+    </section>
+
+    <section className={styles.card}>
+      <div className={styles.heading}><span>Email notifications</span><h2>Keyword ranking emails</h2><p>Choose how often Destiny emails a short summary of which keywords moved up, moved down, and entered or left the top 10.</p></div>
+      {websites.length ? <div className={styles.digestList}>
+        {websites.map((website) => {
+          const frequency = rankingDigestFrequencies[website.id] ?? website.rankingDigestFrequency;
+          const message = digestMessage[website.id];
+          const saving = savingDigestWebsiteId === website.id;
+          return <div className={styles.digestRow} key={website.id}>
+            <div className={styles.digestIdentity}><strong>{website.businessName?.trim() || website.normalizedDomain}</strong><span>{website.normalizedDomain}</span>{website.lastDigestSentAt ? <small>Last sent {new Date(website.lastDigestSentAt).toLocaleDateString()}</small> : <small>Your first update will follow the next fresh ranking check.</small>}</div>
+            <div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role="group">
+              <button aria-pressed={frequency === "three_day"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "three_day")} type="button"><span>Every 3 days</span><small>Recommended</small></button>
+              <button aria-pressed={frequency === "weekly"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "weekly")} type="button"><span>Weekly</span></button>
+              <button aria-pressed={frequency === "off"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "off")} type="button"><span>Off</span></button>
+            </div>
+            {saving ? <p aria-live="polite" className={styles.digestStatus}>Saving…</p> : message ? <p aria-live="polite" className={message.includes("saved") || message.includes("turned off") ? styles.success : styles.error}>{message}</p> : null}
+          </div>;
+        })}
+      </div> : <p className={styles.emptyWebsites}>Add a website before choosing a ranking email schedule.</p>}
     </section>
 
     <section className={styles.card}>
