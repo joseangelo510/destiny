@@ -3600,40 +3600,22 @@
     "context": "<details className=\"ai-publishing-path workspace-card\"> <summary>How will an AI-built website connect?</summary> <div><strong>Where do you make changes to this website?</strong><ul><li>WordPress, Wix, Webflow, Shopify, or another CMS</li><li>Lovable, Replit, v0, Bolt, or Base44</li><li>GitHub, Vercel, Netlify, or a developer-managed repository</li><li>I’m not sure—let Destiny inspect the website</li></ul><p>Destiny will use that answer to choose the real publishing connection. It will never clai"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:116:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:117:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 116,
+    "line": 117,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-mode-grid\" role=\"radiogroup\" aria-label=\"Publishing mode\"> {MODES.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? \"active\" : \"\"} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role=\"radio\" type=\"button\"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)} </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:116:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:117:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 116,
+    "line": 117,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-mode-grid\" role=\"radiogroup\" aria-label=\"Publishing mode\"> {MODES.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? \"active\" : \"\"} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role=\"radio\" type=\"button\"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)} </div>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:118:input:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 118,
-    "type": "input",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:118:onChange:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 118,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:119:input:1",
@@ -3642,7 +3624,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && <"
+    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:119:onChange:2",
@@ -3651,93 +3633,111 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
+    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:120:input:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 120,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 3,
     "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && <"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:121:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:120:onChange:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 121,
+    "line": 120,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && <"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:122:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 122,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type=\"button\">Cancel</butt"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:121:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:122:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 121,
+    "line": 122,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type=\"button\">Cancel</butt"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:121:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:122:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 121,
+    "line": 122,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type=\"button\">Cancel</butt"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:121:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:122:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 121,
+    "line": 122,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type=\"button\">Cancel</butt"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-summary\"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div> <div className=\"publishing-plan-actions\"><button classN"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-summary\"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div> <div className=\"publishing-plan-actions\"><button classN"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-summary\"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div> <div className=\"publishing-plan-actions\"><button classN"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-summary\"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div> <div className=\"publishing-plan-actions\"><button classN"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:button:5",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:button:5",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-summary\"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div> <div className=\"publishing-plan-actions\"><button classN"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:124:onClick:6",
+    "control_id": "src/components/publishing-plan-manager.tsx:125:onClick:6",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 124,
+    "line": 125,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
