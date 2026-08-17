@@ -42,7 +42,7 @@ export const getWorkspaceContext = cache(async function getWorkspaceContext() {
   }
 
   const [{ data: audit }, { data: quests }, { data: competitors }, { data: integrations }] = await Promise.all([
-    supabase.from("audits").select("*").eq("website_id", website.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("audits").select("*").eq("website_id", website.id).eq("status", "complete").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("quests").select("*").eq("website_id", website.id).order("priority", { ascending: true }).order("created_at", { ascending: true }).limit(500),
     supabase.from("competitors").select("name,url").eq("website_id", website.id).order("created_at", { ascending: true }),
     supabase.from("integrations").select("*").eq("website_id", website.id).order("provider", { ascending: true }),

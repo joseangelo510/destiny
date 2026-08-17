@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { notificationRecipient } from "./notification-recipient";
 import { sendAuditReadyEmail } from "./process-audit/email";
 import { sendWelcomeEmail } from "./send-welcome/email";
 
@@ -8,6 +9,11 @@ function stubSecrets(values: Record<string, string | undefined>) {
 
 describe("Destiny transactional email", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("uses the website recipient before the account-level fallback", () => {
+    expect(notificationRecipient(" Reports@Client.Example ", "owner@example.com")).toBe("reports@client.example");
+    expect(notificationRecipient("", " Owner@Example.com ")).toBe("owner@example.com");
+  });
 
   it("stays safely disabled when provider secrets are absent", async () => {
     stubSecrets({});
@@ -43,5 +49,6 @@ describe("Destiny transactional email", () => {
     expect(url).toBe("https://api.resend.com/emails");
     expect(request?.headers).toMatchObject({ "Idempotency-Key": "destiny-audit-ready-audit-id" });
     expect(String(request?.body)).toContain("https://app.destiny.example/this-week");
+    expect(String(request?.body)).toContain("Open my week 1 plan");
   });
 });

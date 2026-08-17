@@ -7,16 +7,17 @@ import {
   type WorkspaceNotification,
 } from "../lib/product/notifications";
 
-export function WorkspaceNotifications() {
+export function WorkspaceNotifications({ websiteId }: { websiteId: string | null }) {
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(websiteId));
   const [error, setError] = useState("");
   const unread = unreadNotificationCount(notifications);
 
   const load = async () => {
     setLoading(true);
-    const response = await fetch("/api/notifications", { cache: "no-store" });
+    if (!websiteId) return;
+    const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" });
     const payload = await response.json().catch(() => ({})) as { error?: string; notifications?: WorkspaceNotification[] };
     if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
     else {
@@ -28,7 +29,10 @@ export function WorkspaceNotifications() {
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/notifications", { cache: "no-store" })
+    if (!websiteId) {
+      return () => { active = false; };
+    }
+    void fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" })
       .then(async (response) => ({
         response,
         payload: await response.json().catch(() => ({})) as { error?: string; notifications?: WorkspaceNotification[] },
@@ -38,13 +42,18 @@ export function WorkspaceNotifications() {
         if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
         else setNotifications(payload.notifications ?? []);
         setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("Destiny could not load notifications.");
+        setLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [websiteId]);
 
   const openNotification = async (notification: WorkspaceNotification) => {
     if (!notification.read_at) {
-      const response = await fetch("/api/notifications", {
+      const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId ?? "")}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: notification.id }),
@@ -59,7 +68,7 @@ export function WorkspaceNotifications() {
   };
 
   const markAllRead = async () => {
-    const response = await fetch("/api/notifications", {
+    const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId ?? "")}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ all: true }),
@@ -78,7 +87,7 @@ export function WorkspaceNotifications() {
     </button>
     {open && <section aria-label="Notifications" className="workspace-notification-panel" id="workspace-notification-panel">
       <div className="notification-panel-heading"><div><strong>Notifications</strong><span>{unread} unread</span></div>{unread > 0 && <button className="text-button" onClick={() => void markAllRead()} type="button">Mark all read</button>}</div>
-      {loading ? <p className="notification-empty">Loading updates…</p> : error ? <p className="notification-error" role="alert">{error}</p> : notifications.length ? notifications.map((notification) => <button className={notification.read_at ? "notification-item" : "notification-item unread"} key={notification.id} onClick={() => void openNotification(notification)} type="button"><span className="notification-dot" /><span><strong>{notification.title}</strong><small>{notification.body}</small></span></button>) : <p className="notification-empty">Audit updates and result links will appear here.</p>}
+      {loading ? <p className="notification-empty">Loading updates…</p> : error ? <p className="notification-error" role="alert">{error}</p> : notifications.length ? notifications.map((notification) => <button className={notification.read_at ? "notification-item" : "notification-item unread"} key={notification.id} onClick={() => void openNotification(notification)} type="button"><span className="notification-dot" /><span><strong>{notification.title}</strong><small>{notification.body}</small></span></button>) : <p className="notification-empty">Audit updates for this website will appear here.</p>}
     </section>}
   </div>;
 }

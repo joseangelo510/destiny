@@ -1,4 +1,5 @@
 import { runDestinyServerLogic } from "../logicaffeine-server";
+import { isActionableGuidanceState } from "../quests/guidance-state";
 
 export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
@@ -10,7 +11,7 @@ export const PRIMARY_NAVIGATION = [
 ] as const;
 
 export const FEATURE_NAVIGATION = [
-  { label: "Home", href: "/" },
+  { label: "Home", href: "/app" },
   { label: "Website audits", href: "/audits" },
   { label: "Content studio", href: "/content" },
   { label: "Keyword strategy", href: "/keywords" },
@@ -29,6 +30,8 @@ type CoachTask = {
   category?: string | null;
   status: string;
   verification_status?: string | null;
+  guidance_state?: string | null;
+  follow_up_at?: string | null;
   priority: number;
 };
 
@@ -71,8 +74,10 @@ function coachStatusCode(status: string) {
 }
 
 export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expanded = true) {
-  const anyInProgress = tasks.some((task) => task.status === "in_progress") ? 1 : 0;
-  const evaluated = await Promise.all(tasks.map(async (task) => {
+  const activeTasks = tasks.filter((task) => task.status === "complete" || isActionableGuidanceState(task.guidance_state, task.follow_up_at));
+  const pausedTasks = tasks.filter((task) => task.status !== "complete" && !isActionableGuidanceState(task.guidance_state, task.follow_up_at));
+  const anyInProgress = activeTasks.some((task) => task.status === "in_progress") ? 1 : 0;
+  const evaluated = await Promise.all(activeTasks.map(async (task) => {
     const policy = await runDestinyServerLogic({
       auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
       progressTaskCode: coachTaskCode(task.task_type), progressTaskStatusCode: coachStatusCode(task.status),
@@ -101,6 +106,7 @@ export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expande
   }));
   return {
     actionable,
+    pausedTasks,
     window,
     currentTask: resolved.find((item) => item.state === "current")?.task ?? null,
     groups: categories.filter((category) => category.tasks.length > 0),
@@ -110,9 +116,32 @@ export async function buildCoachTaskSet<T extends CoachTask>(tasks: T[], expande
 
 type DestinyLogicCategory = (typeof COACH_CATEGORIES)[number]["id"];
 
-export function guidedTaskPath(task: { task_type: string; action_path: string }) {
-  if (task.task_type !== "primary_quest" || task.action_path.includes("#")) return task.action_path;
+export function guidedTaskPath(task: { task_type: string; action_path: string; category?: string | null; title?: string | null }) {
+  if (isReviewTask(task)) return "/reviews";
+  const opensAuditDetail = /^\/audits\/[^/?#]+\/?$/.test(task.action_path);
+  if (task.task_type !== "primary_quest" || task.action_path.includes("#") || !opensAuditDetail) return task.action_path;
   return `${task.action_path.replace(/\/$/, "")}#recommended-fix`;
+}
+
+export function isReviewTask(task: { task_type: string; category?: string | null; title?: string | null }) {
+  const title = task.title?.trim() || "";
+  return task.category === "reviews"
+    || task.task_type === "reviews"
+    || /\bGoogle reviews?\b/i.test(title)
+    || /^(?:get|request) reviews?\b/i.test(title);
+}
+
+export function coachingTaskCopy(task: { title?: string | null; description?: string | null; task_type: string; category?: string | null }) {
+  if (!isReviewTask(task)) return {
+    title: task.title?.trim() || "Complete the recommended task",
+    description: task.description?.trim() || "Complete this step to move your work forward.",
+  };
+  return {
+    title: "Get reviews",
+    description: (task.description?.trim() || "Build customer trust with reviews on the platforms that matter for your business.")
+      .replace(/\bGoogle reviews?\b/gi, "reviews")
+      .replace(/\blocal trust\b/gi, "customer trust"),
+  };
 }
 
 const TASK_ROADMAP_TARGETS: Record<string, string> = {

@@ -27,6 +27,13 @@ export type KeywordBusinessContext = {
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
 export type CustomerIntent = "conversion" | "consideration" | "awareness";
 
+export type KeywordPreferenceSignal = {
+  normalizedKeyword: string;
+  decision: "approved" | "declined";
+  reason?: "wrong_audience" | "not_offered" | "too_competitive" | "already_covered" | "not_now" | null;
+  updatedAt?: string | null;
+};
+
 export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandidate> = T & {
   providerIntent: ProviderIntent;
   searchIntent: CustomerIntent;
@@ -42,10 +49,20 @@ export type RankedKeywordOpportunity<T extends KeywordCandidate = KeywordCandida
 };
 
 const STOP_WORDS = new Set([
-  "a", "about", "and", "are", "as", "at", "be", "best", "business", "by", "customer", "customers", "expert", "for", "from", "get", "good", "help", "high", "in", "into", "is", "it", "local", "of", "on", "online", "or", "our", "people", "private", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "top", "want", "we", "who", "with", "you", "your",
+  "a", "about", "and", "are", "as", "at", "be", "best", "business", "by", "customer", "customers", "does", "expert", "for", "from", "get", "good", "help", "high", "how", "in", "into", "is", "it", "local", "of", "on", "online", "or", "our", "people", "private", "provide", "service", "services", "that", "the", "their", "them", "they", "this", "to", "top", "want", "was", "we", "what", "when", "where", "who", "why", "with", "you", "your",
 ]);
 
 const TOKEN_FAMILIES: Record<string, string> = {
+  acting: "acting",
+  authenticate: "authenticity", authenticated: "authenticity", authentication: "authenticity", authenticity: "authenticity",
+  certificate: "certify", certificates: "certify", certification: "certify", certifications: "certify", certified: "certify", certify: "certify",
+  check: "check", checked: "check", checker: "check", checkers: "check", checking: "check", checks: "check",
+  compliance: "compliance", compliant: "compliance", comply: "compliance",
+  detect: "detect", detected: "detect", detecting: "detect", detection: "detect", detector: "detect", detectors: "detect",
+  disclose: "disclosure", disclosed: "disclosure", disclosing: "disclosure", disclosure: "disclosure", disclosures: "disclosure",
+  label: "label", labeled: "label", labeling: "label", labelled: "label", labelling: "label", labels: "label",
+  verification: "verify", verified: "verify", verifies: "verify", verify: "verify",
+  watermark: "watermark", watermarked: "watermark", watermarking: "watermark", watermarks: "watermark",
   admission: "admission", admissions: "admission",
   accept: "admission", acceptance: "admission", accepted: "admission",
   application: "application", applications: "application", applying: "application", apply: "application",
@@ -61,7 +78,7 @@ const TOKEN_FAMILIES: Record<string, string> = {
 };
 
 const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hire|near me|order|price|prices|pricing|promo code|quote|schedule|sign up|subscribe)\b/i;
-const COMMERCIAL = /\b(?:affordable|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|reviews?|services?|top|versus|vs\.?)\b/i;
+const COMMERCIAL = /\b(?:affordable|agency|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|expert|experts|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
 const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const PHYSICS_QUERY = /\bspeed of light\b/i;
@@ -71,11 +88,18 @@ const OBSERVABILITY_QUERY = /\bobservability\b/i;
 const OBSERVABILITY_COMPARISON = /\b(?:alternative|alternatives|compare|comparison|optimization|versus|vs\.?)\b/i;
 const LLM_ACADEMIC_NOISE = /\b(?:college|columbia|course|degree|harvard|lse|masters?|nyu|phd|program|stanford|students?|university|yale)\b/i;
 const LLM_ACADEMIC_LOCATION_COST = /\b(?:cost of llm in|llm cost in|llm in)\s+(?:australia|canada|india|ireland|new zealand|usa|united states)\b/i;
-const SERVICE_PROVIDER_QUERY = /\b(?:agency|consultants?|consulting|services?)\b/i;
-const LLM_VISIBILITY_QUERY = /(?:\bseo\b|\bsearch engine optimization\b|\bcontent optimization\b)/i;
+const SERVICE_PROVIDER_QUERY = /\b(?:agency|consultants?|consulting|experts?|services?)\b/i;
+const LLM_VISIBILITY_QUERY = /(?:\bseo\b|\bsearch engine optimization\b|\bllm search optimization\b|\bcontent optimization\b)/i;
 const LLM_RESEARCH_PAPER_NOISE = /\b(?:reset replay|sample efficient|survey and roofline)\b/i;
 const LLM_TRAINING_QUERY = /\b(?:fine[- ]?tuning|training)\b/i;
 const LLM_ENGINE_OPTIMIZATION = /\bllm engine optimization\b/i;
+const AI_MEDIA_COMPLIANCE_BUSINESS = /\bai\b[\s\S]{0,120}\b(?:compliance|detect|disclos|label|transparen)|\b(?:compliance|detect|disclos|label|transparen)[\s\S]{0,120}\bai\b/i;
+const NON_MEDIA_AI_CHECK_QUERY = /\b(?:code|documents?|essays?|pdf|texts?|turnitin|words?)\b/i;
+const AI_MEDIA_CREATION_TANGENT = /\b(?:copyright(?:ed)?|cursed|funny|of myself|to video)\b/i;
+const BRANDED_AI_CHECK_QUERY = /\b(?:content at scale|grammarly|truthscan|turnitin)\b/i;
+const REDUNDANT_AI_CHECK_QUERY = /\bai\b.*\b(?:detectors?.*checkers?|checkers?.*detectors?)\b/i;
+const XMP_SOFTWARE_NOISE = /\b(?:enable clip|read xmp metadata|contained no settings)\b/i;
+const ACADEMIC_SURVEY_NOISE = /\b(?:sok|systemati[sz]ation of knowledge)\b/i;
 const SERVICE_BUSINESS = /\b(?:agency|coach|coaching|consultant|consulting|counseling|counselor|guidance|service|services)\b/i;
 const SOFTWARE_PRODUCT = /\b(?:app|apps|crm|platform|saas|software|system|tool|tools)\b/i;
 const BUYER_ACTION = /\b(?:book|buy|call|companies|company|consultation|cost|fees?|hire|near me|price|prices|pricing|quote|reviews?|schedule|sign up)\b/i;
@@ -114,10 +138,20 @@ const OFFER_CONTEXT_ONLY_TOKENS = new Set([
 ]);
 const GENERIC_DIFFERENTIATOR_TOKENS = new Set([
   ...OFFER_CONTEXT_ONLY_TOKENS,
-  "estimate", "experience", "review", "team", "year",
+  "affordable", "best", "better", "cheap", "cheaper", "cost", "costs", "estimate", "experience", "free", "good", "great",
+  "high", "low", "lower", "lowest", "price", "prices", "pricing", "quality", "quick", "reliable", "review", "team", "top",
+  "trusted", "trustworthy", "value", "year",
 ]);
 const DISCOVERY_MODIFIER_TOKENS = new Set([
-  "affordable", "best", "cheap", "company", "cost", "day", "estimate", "fast", "free", "guide", "hire", "how", "list", "listing", "local", "near", "post", "pre", "price", "pricing", "quote", "review", "same", "top", "what", "when", "where", "why",
+  "affordable", "best", "cheap", "company", "cost", "day", "does", "estimate", "fast", "free", "guide", "hire", "how", "list", "listing", "local", "much", "near", "post", "pre", "price", "pricing", "quote", "review", "run", "same", "top", "what", "when", "where", "why",
+]);
+const WEAK_DOMAIN_EVIDENCE_TOKENS = new Set([
+  "ai", "agent", "brand", "builder", "content", "create", "created", "face", "free", "general", "google", "human", "image", "legal", "market", "meta", "model", "read", "scale", "score", "stand", "tool", "use", "video", "website", "work",
+]);
+const STRONG_EVIDENCE_IGNORED_TOKENS = new Set([
+  ...OFFER_CONTEXT_ONLY_TOKENS,
+  ...DISCOVERY_MODIFIER_TOKENS,
+  ...WEAK_DOMAIN_EVIDENCE_TOKENS,
 ]);
 
 function normalizedPhrase(value: string) {
@@ -151,8 +185,8 @@ function canonicalToken(token: string) {
 }
 
 function canonicalTokens(value: string) {
-  return value.normalize("NFKC").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/)
-    .filter((token) => token.length >= 3 && !STOP_WORDS.has(token) && !/^\d+$/.test(token))
+  return value.normalize("NFKC").toLowerCase().replace(/\bartificial intelligence\b/g, "ai").replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/)
+    .filter((token) => (token === "ai" || token.length >= 3) && !STOP_WORDS.has(token) && !/^\d+$/.test(token))
     .map(canonicalToken);
 }
 
@@ -190,8 +224,11 @@ function isLowEvidenceSiteIdea(candidate: KeywordCandidate, businessTokens: Set<
     result.set(token, (result.get(token) ?? 0) + 1), new Map());
   if ([...counts].some(([token, count]) => count > 1 && !OFFER_CONTEXT_ONLY_TOKENS.has(token))) return true;
   const meaningful = tokens.filter((token) => !DISCOVERY_MODIFIER_TOKENS.has(token));
-  if (meaningful.length < 2 || businessTokens.has(meaningful[0])) return false;
   const grounded = meaningful.filter((token) => businessTokens.has(token)).length;
+  if (!meaningful.length) return true;
+  if (grounded === meaningful.length) return false;
+  if (meaningful.length < 2) return true;
+  if (meaningful.length <= 3) return true;
   return grounded / meaningful.length <= 0.5;
 }
 
@@ -220,6 +257,10 @@ function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   // These are awareness topics unless the phrase also expresses a buyer action.
   if (INSTITUTION.test(candidate.keyword) && INSTITUTION_RESEARCH.test(candidate.keyword)
     && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return "informational";
+  // A provider may label service-provider phrases as informational. In a
+  // strategy product, agency, expert, consultant, and services searches are
+  // consideration intent unless the phrase has a stronger buying action.
+  if (SERVICE_PROVIDER_QUERY.test(candidate.keyword)) return "commercial";
   const supplied = String(candidate.intent ?? "").toLowerCase();
   if (supplied.includes("transaction") || supplied.includes("conversion")) return "transactional";
   if (supplied.includes("commercial") || supplied.includes("consideration")) return "commercial";
@@ -228,6 +269,56 @@ function inferIntent(candidate: KeywordCandidate): ProviderIntent {
   if (COMMERCIAL.test(candidate.keyword)) return "commercial";
   if (INFORMATIONAL.test(candidate.keyword)) return "informational";
   return "informational";
+}
+
+function preferenceIdentity(value: string) {
+  return canonicalTokens(value).join(" ");
+}
+
+function preferenceSimilarity(left: string, right: string) {
+  const leftTokens = new Set(canonicalTokens(left));
+  const rightTokens = new Set(canonicalTokens(right));
+  if (!leftTokens.size || !rightTokens.size) return 0;
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return intersection / new Set([...leftTokens, ...rightTokens]).size;
+}
+
+export function applyKeywordPreferenceSignals<T extends RankedKeywordOpportunity>(
+  ranked: T[],
+  signals: KeywordPreferenceSignal[] = [],
+  now = new Date(),
+): T[] {
+  if (!signals.length) return ranked;
+  const activeSignals = signals.flatMap((signal) => {
+    const identity = preferenceIdentity(signal.normalizedKeyword);
+    if (!identity) return [];
+    if (signal.decision === "declined" && signal.reason === "not_now") {
+      const updatedAt = Date.parse(signal.updatedAt ?? "");
+      if (Number.isFinite(updatedAt) && now.getTime() - updatedAt > 90 * 24 * 60 * 60 * 1000) return [];
+    }
+    return [{ ...signal, identity }];
+  });
+
+  return ranked.flatMap((keyword) => {
+    const identity = preferenceIdentity(keyword.keyword);
+    const approved = activeSignals.find((signal) => signal.decision === "approved" && signal.identity === identity);
+    const declined = activeSignals.find((signal) => signal.decision === "declined" && (
+      signal.identity === identity
+      || (["wrong_audience", "not_offered"].includes(signal.reason ?? "")
+        && preferenceSimilarity(signal.normalizedKeyword, keyword.keyword) >= 0.75)
+    ));
+    if (declined) return [];
+    if (!approved) return [keyword];
+    return [{
+      ...keyword,
+      priorityTier: Math.min(keyword.priorityTier, 2) as 1 | 2,
+      priorityScore: Math.min(100, keyword.priorityScore + 12),
+      priorityReason: `${keyword.priorityReason} · previously approved`,
+    }];
+  }).sort((left, right) => left.priorityTier - right.priorityTier
+    || right.priorityScore - left.priorityScore
+    || Number(right.searchVolume ?? 0) - Number(left.searchVolume ?? 0)
+    || left.keyword.localeCompare(right.keyword));
 }
 
 function customerIntent(intent: ProviderIntent): CustomerIntent {
@@ -307,17 +398,24 @@ function keywordThemeMatch(keyword: string, brief: BusinessSearchBrief) {
   let best: { theme: KeywordTheme; score: number } | null = null;
   for (const theme of brief.themes) {
     if (theme.negativeTerms.some((phrase) => phraseMatches(keywordTokens, phrase))) continue;
-    const requiredMatches = theme.requiredTerms.filter((phrase) => phraseMatches(keywordTokens, phrase)).length;
+    const requiredMatches = theme.requiredTerms.filter((phrase) => {
+      const terms = canonicalTokens(phrase);
+      return terms.some((term) => !WEAK_DOMAIN_EVIDENCE_TOKENS.has(term)) && phraseMatches(keywordTokens, phrase);
+    }).length;
     const seedEvidence = theme.seedKeywords.map((seed) => {
       const seedTokens = new Set(canonicalTokens(seed));
       const intersection = [...keywordTokens].filter((token) => seedTokens.has(token)).length;
+      const distinctiveIntersection = [...keywordTokens]
+        .filter((token) => seedTokens.has(token) && !WEAK_DOMAIN_EVIDENCE_TOKENS.has(token)).length;
       return {
         shared: intersection,
+        distinctiveShared: distinctiveIntersection,
         overlap: intersection / Math.max(1, Math.min(keywordTokens.size, seedTokens.size)),
       };
-    }).sort((left, right) => right.overlap - left.overlap || right.shared - left.shared)[0] ?? { shared: 0, overlap: 0 };
+    }).sort((left, right) => right.overlap - left.overlap || right.distinctiveShared - left.distinctiveShared || right.shared - left.shared)[0]
+      ?? { shared: 0, distinctiveShared: 0, overlap: 0 };
     const evidenceBacked = (requiredMatches > 0 && seedEvidence.overlap >= 0.25)
-      || (seedEvidence.shared >= 2 && seedEvidence.overlap >= 0.6);
+      || (seedEvidence.distinctiveShared >= 1 && seedEvidence.shared >= 2 && seedEvidence.overlap >= 0.6);
     if (!evidenceBacked) continue;
     const score = requiredMatches * 3 + seedEvidence.overlap * 2 + Math.min(0.75, seedEvidence.shared * 0.15);
     if (!best || score > best.score) best = { theme, score };
@@ -331,7 +429,7 @@ function keywordConflictsWithNonOffer(keyword: string, brief: BusinessSearchBrie
     const terms = canonicalTokens(phrase);
     if (!terms.length) return false;
     const shared = terms.filter((term) => keywordTokens.has(term)).length;
-    return shared === terms.length || (terms.length >= 2 && shared >= 2);
+    return shared === terms.length || (terms.length >= 3 && shared / terms.length >= 0.75);
   });
 }
 
@@ -398,7 +496,16 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     if (!Number.isFinite(volume) || volume <= 0) return [];
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
-    if (isLowEvidenceSiteIdea(candidate, business.all)) return [];
+    const keywordTokens = new Set(canonicalTokens(candidate.keyword));
+    const specificBusinessOverlap = [...keywordTokens]
+      .filter((token) => business.all.has(token) && !OFFER_CONTEXT_ONLY_TOKENS.has(token)).length;
+    const highSignalBusinessOverlap = [...keywordTokens]
+      .filter((token) => business.all.has(token) && !STRONG_EVIDENCE_IGNORED_TOKENS.has(token)).length;
+    const hasStrongDomainAnchor = highSignalBusinessOverlap >= 1;
+    const themeMatch = brief ? keywordThemeMatch(candidate.keyword, brief) : null;
+    const strongThemeMatch = Boolean(themeMatch && themeMatch.score >= 4.5);
+    if (isLowEvidenceSiteIdea(candidate, business.all)
+      && !(strongThemeMatch && specificBusinessOverlap >= 2)) return [];
     if (PHYSICS_QUERY.test(candidate.keyword) && !/\b(?:physics|photon|optics|light speed)\b/i.test(businessDescription)) return [];
     if (LLM_BUSINESS.test(businessDescription) && candidate.opportunity !== "existing_rank"
       && !LLM_KEYWORD_ANCHOR.test(candidate.keyword)) return [];
@@ -411,6 +518,16 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
       && !/\b(?:fine[- ]?tuning|training)\b/i.test(businessDescription)) return [];
     if (LLM_BUSINESS.test(businessDescription) && LLM_ENGINE_OPTIMIZATION.test(candidate.keyword)
       && !/\binference engine\b/i.test(businessDescription)) return [];
+    if (AI_MEDIA_COMPLIANCE_BUSINESS.test(businessDescription)
+      && NON_MEDIA_AI_CHECK_QUERY.test(candidate.keyword)
+      && !NON_MEDIA_AI_CHECK_QUERY.test(context.productsServices ?? "")) return [];
+    if (AI_MEDIA_COMPLIANCE_BUSINESS.test(businessDescription)
+      && AI_MEDIA_CREATION_TANGENT.test(candidate.keyword)
+      && !AI_MEDIA_CREATION_TANGENT.test(context.productsServices ?? "")) return [];
+    if (AI_MEDIA_COMPLIANCE_BUSINESS.test(businessDescription)
+      && (BRANDED_AI_CHECK_QUERY.test(candidate.keyword) || REDUNDANT_AI_CHECK_QUERY.test(candidate.keyword))) return [];
+    if (AI_MEDIA_COMPLIANCE_BUSINESS.test(businessDescription)
+      && (XMP_SOFTWARE_NOISE.test(candidate.keyword) || ACADEMIC_SURVEY_NOISE.test(candidate.keyword))) return [];
     if (OBSERVABILITY_QUERY.test(candidate.keyword)
       && /\bobservability\b/i.test(context.differentiation ?? "")
       && !OBSERVABILITY_COMPARISON.test(candidate.keyword)) return [];
@@ -430,26 +547,39 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
     if (keywordHasGeographicConflict(candidate, context)) return [];
     seen.add(identity);
     const providerIntent = inferIntent(candidate);
-    if (isBroadInformationalHeadTerm(candidate, providerIntent)) return [];
     if (INSTITUTION.test(candidate.keyword) && !INSTITUTION_RESEARCH.test(candidate.keyword)
       && !SERVICE_BUSINESS.test(candidate.keyword) && !BUYER_ACTION.test(candidate.keyword)) return [];
-    const keywordTokens = new Set(canonicalTokens(candidate.keyword));
     const offerOverlap = [...keywordTokens].filter((token) => business.offer.has(token)).length;
     const totalOverlap = [...keywordTokens].filter((token) => business.all.has(token)).length;
     const distinctiveOfferOverlap = [...keywordTokens].filter((token) => business.offer.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
     const distinctiveTotalOverlap = [...keywordTokens].filter((token) => business.all.has(token) && !GENERIC_OFFER_TOKENS.has(token)).length;
+    const specificOfferOverlap = [...keywordTokens]
+      .filter((token) => business.offer.has(token) && !OFFER_CONTEXT_ONLY_TOKENS.has(token)).length;
+    const highSignalOfferOverlap = [...keywordTokens]
+      .filter((token) => business.offer.has(token)
+        && !STRONG_EVIDENCE_IGNORED_TOKENS.has(token)).length;
+    const strongOfferEvidence = highSignalOfferOverlap >= 2
+      || (specificOfferOverlap >= 1 && specificBusinessOverlap >= 2 && hasStrongDomainAnchor)
+      || (highSignalOfferOverlap >= 1 && BUYER_ACTION.test(candidate.keyword));
+    const strongBusinessEvidence = specificBusinessOverlap >= 2 && highSignalBusinessOverlap >= 1;
+    if (isBroadInformationalHeadTerm(candidate, providerIntent)
+      && (SERVICE_ACTION_QUERY.test(candidate.keyword) || !strongOfferEvidence)) return [];
     if (PROOF_OR_SENTENCE_FRAGMENT.test(candidate.keyword) && distinctiveOfferOverlap < 2) return [];
     const savedAudienceTheme = /(?:audience|customer outcome|market relevance)/i
       .test(`${String(candidate.themeId ?? "")} ${String(candidate.themeLabel ?? "")}`);
     if (!brief && savedAudienceTheme && distinctiveOfferOverlap < 2) return [];
-    const themeMatch = brief ? keywordThemeMatch(candidate.keyword, brief) : null;
+    const hasBriefOfferAnchor = brief ? keywordHasOfferAnchor(candidate.keyword, brief) : false;
+    const hasSpecificTechnicalAnchor = themeMatch
+      ? keywordHasTechnicalAuthorityAnchor(candidate.keyword, themeMatch.theme)
+      : false;
     if (brief && themeMatch && themeRequiresOfferAnchor(themeMatch.theme, candidate.keyword, providerIntent)
-      && !keywordHasOfferAnchor(candidate.keyword, brief)
-      && !keywordHasTechnicalAuthorityAnchor(candidate.keyword, themeMatch.theme)) return [];
+      && !hasBriefOfferAnchor
+      && !hasSpecificTechnicalAnchor
+      && !strongOfferEvidence) return [];
     const contextualSchoolResearch = HIGH_SCHOOL_AUDIENCE.test(businessDescription)
       && INSTITUTION.test(candidate.keyword)
       && INSTITUTION_RESEARCH.test(candidate.keyword);
-    if (brief && !themeMatch && !contextualSchoolResearch) return [];
+    if (brief && !themeMatch && !contextualSchoolResearch && !strongOfferEvidence && !strongBusinessEvidence) return [];
     const verifiedSchoolResearch = HIGH_SCHOOL_AUDIENCE.test(businessDescription)
       && SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX.test(candidate.keyword)
       && Number(candidate.directCompetitorRankers ?? 0) > 0;
@@ -461,9 +591,12 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
       ? (hasServiceTerm && (distinctiveOfferOverlap >= 1 || (offerOverlap >= 1 && distinctiveTotalOverlap >= 1)))
         || (hasBuyerAction && distinctiveOfferOverlap >= 1)
       : (offerOverlap >= 2 && distinctiveOfferOverlap >= 1) || (distinctiveOfferOverlap >= 1 && hasBuyerAction);
-    const coreMatch = themeMatch
-      ? themeMatch.theme.priority === "primary" && (themeMatch.score >= 3.9 || tokenCoreMatch)
-      : tokenCoreMatch;
+    const themeCanEstablishCoreMatch = Boolean(themeMatch
+      && (themeMatch.theme.evidence.some((item) => item.field === "productsServices") || hasBriefOfferAnchor));
+    const coreMatch = tokenCoreMatch || Boolean(themeMatch
+      && themeCanEstablishCoreMatch
+      && themeMatch.theme.priority === "primary"
+      && themeMatch.score >= 3.9);
     const relevanceTier: "core" | "adjacent" | null = coreMatch
       ? "core"
       : themeMatch || verifiedSchoolResearch || contextualSchoolResearch || (totalOverlap >= 2 && distinctiveTotalOverlap >= 1) || (distinctiveOfferOverlap >= 1 && (providerIntent === "informational" || isUsefulInstitutionResearch))
@@ -515,8 +648,9 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
 }
 
 function nearDuplicate(left: string, right: string) {
-  const leftTokens = new Set(canonicalTokens(left));
-  const rightTokens = new Set(canonicalTokens(right));
+  const modifiers = new Set(["accurate", "character", "free", "most", "online", "reliable", "sign", "signup", "unlimited", "word"]);
+  const leftTokens = new Set(canonicalTokens(left).filter((token) => !modifiers.has(token)));
+  const rightTokens = new Set(canonicalTokens(right).filter((token) => !modifiers.has(token)));
   if (!leftTokens.size || !rightTokens.size) return false;
   const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
   const union = new Set([...leftTokens, ...rightTokens]).size;
@@ -585,6 +719,21 @@ export function selectDiversifiedKeywordOpportunities<T extends RankedKeywordOpp
       if (selected.length === maximum) break;
     }
     if (!added) break;
+  }
+  // Near-duplicate and theme-cap suppression are quality preferences, not
+  // permission to violate the product's requested pool size. The diversified
+  // pass above establishes breadth first; remaining distinct, measured,
+  // relevant phrases then fill the final slots.
+  if (selected.length < maximum) {
+    const selectedIdentities = new Set(selected.map((keyword) => canonicalTokens(keyword.keyword).join(" ")));
+    const finalThemeCap = maximum === 25 ? maximum : themeCap;
+    for (const keyword of ranked) {
+      if (selected.length >= maximum) break;
+      const identity = canonicalTokens(keyword.keyword).join(" ");
+      if (!identity || selectedIdentities.has(identity) || (counts.get(keyword.themeId) ?? 0) >= finalThemeCap) continue;
+      add(keyword);
+      selectedIdentities.add(identity);
+    }
   }
   return selected.sort((left, right) => left.priorityTier - right.priorityTier
     || right.priorityScore - left.priorityScore

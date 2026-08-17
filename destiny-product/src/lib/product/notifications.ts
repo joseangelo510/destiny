@@ -6,6 +6,8 @@ export type WorkspaceNotification = {
   destination_path: string | null;
   read_at: string | null;
   created_at: string;
+  website_id: string;
+  website_name: string;
 };
 
 export function unreadNotificationCount(notifications: WorkspaceNotification[]): number {
@@ -14,4 +16,11 @@ export function unreadNotificationCount(notifications: WorkspaceNotification[]):
 
 export function notificationButtonLabel(unread: number): string {
   return unread > 0 ? `Open notifications, ${unread} unread` : "Open notifications";
+}
+
+export function notificationTitleForWebsite(title: string, websiteName: string) {
+  const cleanTitle = title.trim();
+  const cleanWebsite = websiteName.trim();
+  if (!cleanWebsite || cleanTitle.toLocaleLowerCase().startsWith(cleanWebsite.toLocaleLowerCase())) return cleanTitle;
+  return `${cleanWebsite}: ${cleanTitle}`;
 }

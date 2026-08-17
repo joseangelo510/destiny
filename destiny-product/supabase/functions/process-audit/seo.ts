@@ -7,7 +7,12 @@ import {
   type BusinessSearchBriefConfig,
   type BusinessSearchContext,
 } from "./business-search-brief.ts";
-import { rankKeywordOpportunities, selectDiversifiedKeywordOpportunities } from "./keyword-opportunity.ts";
+import {
+  applyKeywordPreferenceSignals,
+  rankKeywordOpportunities,
+  selectDiversifiedKeywordOpportunities,
+  type KeywordPreferenceSignal,
+} from "./keyword-opportunity.ts";
 import { applyLogosKeywordPolicy } from "./logos-keyword-policy.ts";
 import {
   extractSiteVocabulary,
@@ -88,6 +93,29 @@ export type SeoAuditResult = {
   publisherOpportunities?: PublisherOpportunity[];
   llmVisibility?: LlmVisibility;
   businessSearchBrief?: BusinessSearchBrief;
+  keywordStrategyDiagnostics?: {
+    location: string;
+    submittedUrl: string;
+    rootUrl: string;
+    themes: number;
+    discoveryThemes: number;
+    categorySeeds: number;
+    buyerSeeds: number;
+    providerCandidates: {
+      ranked: number;
+      competitorGaps: number;
+      buyerSuggestions: number;
+      siteIdeas: number;
+      categoryIdeas: number;
+      relatedExpansion: number;
+    };
+    merged: number;
+    relevant: number;
+    evaluated: number;
+    expansionSeeds: number;
+    candidatePreview: Array<{ keyword: string; searchVolume: number; opportunity: string; intent: string }>;
+    relevantPreview: Array<{ keyword: string; searchVolume: number; themeId: string; relevanceTier: string }>;
+  };
   notices: string[];
 };
 
@@ -161,6 +189,34 @@ export function normalizeWebsite(value: string) {
   url.password = "";
   url.hash = "";
   return { url: url.toString(), domain };
+}
+
+const DEFAULT_SEARCH_LOCATION = "United States";
+
+export function auditSearchLocation(domain: string, requestedLocation: string) {
+  const requested = requestedLocation.trim();
+  if (requested && requested !== DEFAULT_SEARCH_LOCATION) return requested;
+  const normalizedDomain = domain.toLowerCase().replace(/^www\./, "");
+  if (normalizedDomain.endsWith(".co.uk") || normalizedDomain.endsWith(".uk")) return "United Kingdom";
+  if (normalizedDomain.endsWith(".ca")) return "Canada";
+  if (normalizedDomain.endsWith(".com.au") || normalizedDomain.endsWith(".au")) return "Australia";
+  if (normalizedDomain.endsWith(".nz")) return "New Zealand";
+  if (normalizedDomain.endsWith(".ie")) return "Ireland";
+  return requested || DEFAULT_SEARCH_LOCATION;
+}
+
+export function renderedPageLinks(value: unknown) {
+  const response = record(value).custom_js_response;
+  let parsed = response;
+  if (typeof response === "string") {
+    try { parsed = JSON.parse(response); } catch { parsed = []; }
+  }
+  const values = Array.isArray(parsed)
+    ? parsed
+    : parsed && typeof parsed === "object" && Array.isArray((parsed as JsonRecord).links)
+      ? (parsed as JsonRecord).links as unknown[]
+      : [];
+  return values.filter((link): link is string => typeof link === "string" && /^https?:\/\//i.test(link));
 }
 
 function stableNumber(value: string) {
@@ -476,9 +532,15 @@ export function thinKeywordExpansionSeeds(
   });
   const llmCostContext = values.some((value) => /\bllm\b/i.test(value) && /\b(?:cost|costs|optimization|optimize|spend)\b/i.test(value));
   const llmOfferVariants = llmCostContext ? LLM_COST_OFFER_SEEDS : [];
+  const strategicAnchor = /\b(?:article|certificat\w*|compliance|c2pa|disclos\w*|label\w*|law|metadata|provenance|regulat\w*|transparen\w*|verif\w*|watermark\w*)\b/i;
+  const expansionSeedIsStrategic = (seed: string) => !/\bai\b/i.test(seed) || strategicAnchor.test(seed);
+  const strategicCategories = categorySeeds.filter(expansionSeedIsStrategic);
+  const strategicSurvivors = ranked
+    .filter((keyword) => expansionSeedIsStrategic(keyword.keyword))
+    .map((keyword) => keyword.keyword);
   // Buyer seeds were already queried during the first pass. The fallback uses
   // new offer-shaped seeds so it adds evidence instead of buying duplicates.
-  const prioritizedValues = [...llmOfferVariants, ...compactVariants, ...categorySeeds, ...ranked.map((keyword) => keyword.keyword)];
+  const prioritizedValues = [...llmOfferVariants, ...compactVariants, ...strategicCategories, ...strategicSurvivors];
   const seen = new Set<string>();
   return prioritizedValues.flatMap((value) => {
     const key = keywordIdentity(value);
@@ -486,6 +548,33 @@ export function thinKeywordExpansionSeeds(
     seen.add(key);
     return [value];
   }).slice(0, limit);
+}
+
+export function buildStrategicSiteExpansionSeeds(siteText: string, limit = 24) {
+  const text = siteText.normalize("NFKC").toLowerCase();
+  const seeds: string[] = [];
+  const add = (...values: string[]) => {
+    for (const value of values) {
+      if (!seeds.includes(value) && seeds.length < limit) seeds.push(value);
+    }
+  };
+  if (/\bai\b/.test(text) && /\b(?:generated|synthetic)\b/.test(text)) {
+    add("ai content labeling", "ai content disclosure", "ai image disclosure", "ai video disclosure");
+  }
+  if (/\barticle\s*50\b/.test(text)) add("eu ai act article 50", "article 50 compliance");
+  if (/\b(?:sb\s*942|sb942)\b/.test(text)) add("california sb 942", "california ai transparency act");
+  if (/\bc2pa\b/.test(text)) add("c2pa metadata", "c2pa content credentials");
+  if (/\bxmp\b/.test(text)) add("xmp metadata");
+  if (/\bmachine[- ]readable\b/.test(text)) add("machine readable ai label");
+  if (/\bprovenance\b/.test(text)) add("ai content provenance", "ai image provenance");
+  if (/\bcertificat(?:e|es|ion)|\bcertif(?:y|ied)\b/.test(text)) {
+    add("ai compliance certificate", "ai content certification");
+  }
+  if (/\bverif(?:y|ies|ied|iable|ication)\b/.test(text)) add("ai content verification", "verify ai generated content");
+  if (/\bwatermark(?:ing|ed|s)?\b/.test(text)) add("digital watermarking", "ai watermarking");
+  if (/\bsynthetic media\b/.test(text)) add("synthetic media detection", "synthetic media disclosure");
+  if (/\bsigned (?:evidence|proof|result|certificate)\b/.test(text)) add("signed ai content proof");
+  return seeds.slice(0, Math.max(0, limit));
 }
 
 export function needsKeywordExpansion(keywordCount: number) {
@@ -617,9 +706,12 @@ export async function runDataForSeoAudit(
   knownCompetitors: Array<{ name: string; url?: string | null }> = [],
   onProgress: (progress: number) => Promise<void> | void = () => undefined,
   strategyModel: BusinessSearchBriefConfig = {},
+  keywordPreferences: KeywordPreferenceSignal[] = [],
 ): Promise<SeoAuditResult> {
   const website = normalizeWebsite(websiteValue);
-  const location = locationName.trim() || "United States";
+  const submittedUrl = website.url;
+  const rootUrl = new URL("/", submittedUrl).toString();
+  const location = auditSearchLocation(website.domain, locationName);
   const businessSearchBrief = enrichMeasuredExpansionThemes(
     await createBusinessSearchBrief(businessContext ?? {}, knownCompetitors, strategyModel),
     businessContext,
@@ -638,7 +730,12 @@ export async function runDataForSeoAudit(
     .then((value) => ({ status: "fulfilled" as const, value }))
     .catch((reason: unknown) => ({ status: "rejected" as const, reason }));
   const [pagePayload, rankingsPayload, competitorsPayload, ideasPayload, categoryIdeasPayload, buyerSuggestionResults, historyPayload, homepageContent] = await Promise.all([
-    dataForSeoPost("/v3/on_page/instant_pages", [{ url: website.url, enable_javascript: true }], login, password),
+    dataForSeoPost("/v3/on_page/instant_pages", [{
+      url: rootUrl,
+      enable_javascript: true,
+      enable_xhr: true,
+      custom_js: "(async () => { const links = Array.from(document.querySelectorAll('a[href]')).map((link) => link.href); try { const xml = await fetch('/sitemap.xml').then((response) => response.ok ? response.text() : ''); const sitemap = Array.from(new DOMParser().parseFromString(xml, 'text/xml').querySelectorAll('loc')).map((node) => node.textContent || '').filter(Boolean); return Array.from(new Set([...links, ...sitemap])).slice(0, 100); } catch { return links.slice(0, 100); } })()",
+    }], login, password),
     dataForSeoPost("/v3/dataforseo_labs/google/ranked_keywords/live", [{
       target: website.domain, location_name: location, language_name: "English",
       item_types: ["organic", "local_pack", "featured_snippet"], limit: 100,
@@ -679,7 +776,7 @@ export async function runDataForSeoAudit(
       language_name: "English",
       correlate: true,
     }], login, password),
-    dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: website.url, markdown_view: true }], login, password),
+    dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: rootUrl, markdown_view: true, enable_javascript: true }], login, password),
   ]);
   await onProgress(30);
 
@@ -703,8 +800,12 @@ export async function runDataForSeoAudit(
   const homepageResult = firstResult(homepageContent);
   const homepageItem = record(array(homepageResult.items)[0]);
   const parsedHomepage = parseContentPage(homepageItem, "homepage");
-  parsedHomepage.url = website.url;
-  const selectedPages = selectImportantPageLinks(website.url, parsedHomepage.links ?? [], 8);
+  parsedHomepage.url = rootUrl;
+  const selectedPages = selectImportantPageLinks(rootUrl, [
+    ...(parsedHomepage.links ?? []),
+    ...renderedPageLinks(page),
+    ...(submittedUrl === rootUrl ? [] : [submittedUrl]),
+  ], 8);
   const remainingPageResults = await Promise.allSettled(selectedPages.slice(1).map(async (selected) => {
     const payload = await dataForSeoPost("/v3/on_page/content_parsing/live", [{ url: selected.url, markdown_view: true }], login, password);
     const result = firstResult(payload);
@@ -822,14 +923,24 @@ export async function runDataForSeoAudit(
     const evaluated = keywordPolicyEngine() === "typescript"
       ? relevant
       : await applyLogosKeywordPolicy(relevant);
-    return { relevant, evaluated };
+    return { relevant, evaluated: applyKeywordPreferenceSignals(evaluated, keywordPreferences) };
   };
 
   let keywordEvaluation = await evaluateKeywordPool(strategyCandidates);
   let expansionSeeds: string[] = [];
   let expandedKeywordIdeas: StrategyKeyword[] = [];
-  if (needsKeywordExpansion(keywordEvaluation.evaluated.length)) {
-    const availableExpansionSeeds = thinKeywordExpansionSeeds(keywordEvaluation.relevant, buyerSeeds, categorySeeds, 40);
+  const publishableKeywordCount = () => selectDiversifiedKeywordOpportunities(
+    keywordEvaluation.evaluated,
+    MIN_RECOMMENDED_KEYWORDS,
+  ).length;
+  if (needsKeywordExpansion(publishableKeywordCount())) {
+    const siteExpansionSeeds = buildStrategicSiteExpansionSeeds(pages.map((page) => page.text).join("\n"), 24);
+    const availableExpansionSeeds = thinKeywordExpansionSeeds(
+      keywordEvaluation.relevant,
+      buyerSeeds,
+      [...categorySeeds, ...siteExpansionSeeds],
+      40,
+    );
     for (const targetSeedCount of [20, 40]) {
       const nextSeeds = availableExpansionSeeds.slice(expansionSeeds.length, targetSeedCount);
       if (!nextSeeds.length) break;
@@ -866,7 +977,7 @@ export async function runDataForSeoAudit(
           }));
         keywordEvaluation = await evaluateKeywordPool(strategyCandidates);
       }
-      if (!needsKeywordExpansion(keywordEvaluation.evaluated.length)) break;
+      if (!needsKeywordExpansion(publishableKeywordCount())) break;
     }
   }
   const legacyRankedKeywords = keywordEvaluation.relevant;
@@ -893,7 +1004,7 @@ export async function runDataForSeoAudit(
     expansionSeeds: expansionSeeds.length,
     fallbacks: logosFallbackCount,
   }));
-  const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, 35).map((keyword) => ({
+  const keywords = selectDiversifiedKeywordOpportunities(rankedKeywordsForStrategy, MIN_RECOMMENDED_KEYWORDS).map((keyword) => ({
     ...keyword,
     normalizedKeyword: keywordIdentity(keyword.keyword),
     matchedTerms: [],
@@ -962,8 +1073,42 @@ export async function runDataForSeoAudit(
     publisherOpportunities,
     llmVisibility,
     businessSearchBrief,
+    keywordStrategyDiagnostics: {
+      location,
+      submittedUrl,
+      rootUrl,
+      themes: businessSearchBrief.themes.length,
+      discoveryThemes: searchSeedThemes.length,
+      categorySeeds: categorySeeds.length,
+      buyerSeeds: buyerSeeds.length,
+      providerCandidates: {
+        ranked: rankedKeywords.length,
+        competitorGaps: gapKeywords.length,
+        buyerSuggestions: buyerKeywordIdeas.length,
+        siteIdeas: keywordIdeas.length,
+        categoryIdeas: categoryKeywordIdeas.length,
+        relatedExpansion: expandedKeywordIdeas.length,
+      },
+      merged: strategyCandidates.length,
+      relevant: legacyRankedKeywords.length,
+      evaluated: rankedKeywordsForStrategy.length,
+      expansionSeeds: expansionSeeds.length,
+      candidatePreview: strategyCandidates.slice(0, 100).map((keyword) => ({
+        keyword: keyword.keyword,
+        searchVolume: Number(keyword.searchVolume ?? 0),
+        opportunity: String(keyword.opportunity ?? ""),
+        intent: String(keyword.intent ?? ""),
+      })),
+      relevantPreview: legacyRankedKeywords.slice(0, 50).map((keyword) => ({
+        keyword: keyword.keyword,
+        searchVolume: Number(keyword.searchVolume ?? 0),
+        themeId: keyword.themeId,
+        relevanceTier: keyword.relevanceTier,
+      })),
+    },
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
+      `Search demand was measured in ${location}${location !== locationName.trim() && locationName.trim() ? ` instead of the default ${locationName.trim()} because the website uses a country-code domain` : ""}.`,
       `Destiny inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
       `The approval pool is prioritized by core business relevance, revenue intent, monthly demand, ranking difficulty, commercial value, and opportunity evidence across ${competitorDomains.length} competitor domains.`,
       directCompetitorDomains.size
@@ -993,9 +1138,10 @@ export async function runSeoAudit(input: {
   knownCompetitors?: Array<{ name: string; url?: string | null }>;
   onProgress?: (progress: number) => Promise<void> | void;
   strategyModel?: BusinessSearchBriefConfig;
+  keywordPreferences?: KeywordPreferenceSignal[];
 }) {
   if (input.login && input.password) {
-    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress, input.strategyModel);
+    return runDataForSeoAudit(input.website, input.locationName || "United States", input.login, input.password, input.businessContext, input.knownCompetitors, input.onProgress, input.strategyModel, input.keywordPreferences);
   }
   await input.onProgress?.(90);
   return runDemoAudit(input.website, input.businessContext);

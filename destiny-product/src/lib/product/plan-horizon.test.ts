@@ -13,8 +13,7 @@ describe("Destiny starter plan horizon", () => {
     expect(INITIAL_PLAN_WEEKS).toBe(12);
   });
 
-  it("keeps enough keyword choices for a varied 12-week calendar", () => {
-    expect(INITIAL_KEYWORD_APPROVAL_TARGET).toBeGreaterThanOrEqual(INITIAL_PLAN_WEEKS);
-    expect(INITIAL_KEYWORD_APPROVAL_TARGET).toBeLessThan(30);
+  it("starts the plan after five approved keywords", () => {
+    expect(INITIAL_KEYWORD_APPROVAL_TARGET).toBe(5);
   });
 });

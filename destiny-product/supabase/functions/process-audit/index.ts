@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { notificationRecipient } from "../notification-recipient.ts";
 import { sendAuditReadyEmailWithRetry, withEmailDelivery } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
 import { auditReadyNotificationCopy } from "./notifications.ts";
@@ -23,7 +24,7 @@ async function sha256(value: unknown) {
 function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, logic: Awaited<ReturnType<typeof runDestinyLogic>>) {
   const tasks = {
     keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Destiny completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, xp: 25 },
-    primary_quest: { title: logic.weeklyQuest, why: logic.explanation, category: logic.questCategory, taskType: "primary_quest", actionPath: `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, xp: 25 },
+    primary_quest: { title: logic.weeklyQuest, why: logic.explanation, category: logic.questCategory, taskType: "primary_quest", actionPath: logic.questCategory === "reviews" ? "/reviews" : `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, xp: 25 },
     content_review: { title: "Review and approve three articles for this week", why: "Each article is editable, connected to an approved keyword, and stays behind a human accuracy gate before CMS or document delivery.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 35, xp: 45 },
     community_distribution: { title: "Reply to three relevant Reddit or Quora discussions", why: "Helpful answers in live conversations can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "community_distribution", actionPath: "/distribution#community", estimatedMinutes: 35, xp: 35 },
     social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, xp: 25 },
@@ -65,10 +66,10 @@ export default {
     const userId = context.userClaims?.id;
     if (!userId) return json({ error: "Sign in again to continue." }, 401);
 
-    const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }] = await Promise.all([
+    const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }, { data: keywordPreferences }] = await Promise.all([
       context.supabase
         .from("websites")
-        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market")
+        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market,notification_email")
         .eq("id", body.websiteId)
         .maybeSingle(),
       context.supabase
@@ -79,6 +80,10 @@ export default {
       context.supabase
         .from("competitors")
         .select("name,url")
+        .eq("website_id", body.websiteId),
+      context.supabase
+        .from("keyword_preferences")
+        .select("normalized_keyword,decision,reason,updated_at")
         .eq("website_id", body.websiteId),
     ]);
 
@@ -134,6 +139,15 @@ export default {
             model: keywordModel,
             timeoutMs: 45_000,
           },
+          keywordPreferences: (keywordPreferences ?? []).flatMap((preference) => {
+            if (preference.decision !== "approved" && preference.decision !== "declined") return [];
+            return [{
+              normalizedKeyword: preference.normalized_keyword,
+              decision: preference.decision,
+              reason: preference.reason,
+              updatedAt: preference.updated_at,
+            }];
+          }),
           onProgress: async (progress) => {
             await context.supabaseAdmin.from("audits").update({ progress }).eq("id", auditId).eq("status", "running");
           },
@@ -189,7 +203,8 @@ export default {
           .update({
             title: readyNotification.title,
             body: readyNotification.body,
-            destination_path: "/this-week",
+            destination_path: `/audits/${auditId}`,
+            website_id: website.id,
           })
           .eq("user_id", userId)
           .eq("kind", "audit_ready")
@@ -198,7 +213,7 @@ export default {
         const emailDelivery = await sendAuditReadyEmailWithRetry({
           auditId,
           firstName: profile?.first_name ?? "",
-          recipient: profile?.contact_email ?? "",
+          recipient: notificationRecipient(website.notification_email, profile?.contact_email),
           domain: result.domain,
           weeklyQuest: logic.weeklyQuest,
         });

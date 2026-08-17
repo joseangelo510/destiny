@@ -316,7 +316,7 @@ describe("Destiny LOGOS parity", () => {
     expect(browser).toEqual(worker);
     expect(browser.keywordEligible).toBe(false);
     expect(browser.questSource).toBe("growth_action");
-    expect(browser.weeklyQuest).toBe("Ask three recent customers for a Google review");
+    expect(browser.weeklyQuest).toBe("Get reviews");
     expect(browser.weeklyTaskManifest).toEqual(["keyword_review", "primary_quest", "content_review"]);
     expect(browser.weeklyTaskManifest).toHaveLength(browser.weeklyTaskCount);
   });
@@ -375,5 +375,20 @@ describe("Destiny LOGOS parity", () => {
       articleWordIssue: false, articleHeadingIssue: false, articleHeadingKeywordIssue: false, articleHeadingVarietyIssue: false,
       articleBrigadeIssue: false, articleBrigadeSpacingIssue: false, articleStockIssue: false, articleMetaIssue: false, articleSourceIssue: false,
     });
+  });
+
+  it.each([
+    ["unfinished review opens the inbox", { keywordStrategyComplete: 0, keywordPendingRecommendations: 7, keywordApprovedDecisions: 3 }, { keywordWorkspaceTab: "review", keywordNextStep: "review_keywords" }],
+    ["finished strategy opens approved work and starts content", { keywordStrategyComplete: 1, keywordPendingRecommendations: 7, keywordApprovedDecisions: 5, keywordArticleDrafts: 0 }, { keywordWorkspaceTab: "approved", keywordNextStep: "create_first_article" }],
+    ["existing drafts lead to this week's work", { keywordStrategyComplete: 1, keywordApprovedDecisions: 5, keywordArticleDrafts: 3, keywordContentComplete: 0 }, { keywordWorkspaceTab: "approved", keywordNextStep: "review_weekly_content" }],
+    ["completed content leads to measured progress", { keywordStrategyComplete: 1, keywordApprovedDecisions: 5, keywordArticleDrafts: 3, keywordContentComplete: 1 }, { keywordWorkspaceTab: "approved", keywordNextStep: "track_progress" }],
+    ["a declined-only archive remains recoverable", { keywordStrategyComplete: 1, keywordApprovedDecisions: 0, keywordDeclinedDecisions: 4 }, { keywordWorkspaceTab: "declined", keywordNextStep: "review_keywords" }],
+  ] as const)("owns keyword workspace progression: %s", async (_label, keywordState, expected) => {
+    const { browser, worker } = await runBoth({
+      auditComplete: 1, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
+      ...keywordState,
+    });
+    expect(browser).toEqual(worker);
+    expect(browser).toMatchObject(expected);
   });
 });

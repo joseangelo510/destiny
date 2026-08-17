@@ -78,6 +78,7 @@ export async function POST(request: Request) {
       url: website.url,
       normalized_domain: website.domain,
       business_name: businessName,
+      notification_email: email,
       ...onboardingBusinessColumns({ productsServices, customer, problem, standout }),
       market: ONBOARDING_SEARCH_COUNTRY,
       onboarding_completed_at: new Date().toISOString(),

@@ -6,7 +6,6 @@ import {
   DEFAULT_COPY_MODEL,
   READING_EASE_OPTIONS,
   buildAnthropicArticleRequest,
-  buildAnthropicArticleContinuationRequest,
   buildArticleEvidencePack,
   buildArticleGenerationPrompt,
   parseGeneratedArticlePayload,
@@ -20,10 +19,20 @@ import {
 } from "@/lib/content/article-generation";
 import { createClient } from "@/lib/supabase/server";
 import { encodeArticleGenerationEvent, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
+import {
+  SEO_ARTICLE_RECOVERY_MAX_WORDS,
+  SEO_ARTICLE_RECOVERY_MIN_WORDS,
+  articleContinuationDecision,
+  buildAnthropicArticleContinuationRequest,
+  buildArticleContinuationPrompt,
+  mergeArticleContinuation,
+  parseArticleContinuation,
+} from "@/lib/content/article-recovery";
 
 export const maxDuration = 300;
 const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
-const ARTICLE_WRITING_TIMEOUT_MS = 205_000;
+const ARTICLE_WRITING_TIMEOUT_MS = 170_000;
+const ARTICLE_CONTINUATION_TIMEOUT_MS = 70_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 
 type GenerateRequest = {
@@ -36,13 +45,19 @@ type GenerateRequest = {
   preferences?: unknown;
 };
 
-type AnthropicPayload = {
-  content?: Array<{ type?: unknown; text?: unknown; [key: string]: unknown }>;
+type AnthropicMessagePayload = {
+  content?: Array<{ type?: string; text?: string }>;
   error?: { message?: string };
   stop_reason?: string;
+  usage?: { input_tokens?: number; output_tokens?: number };
 };
 
-const MAX_ARTICLE_RESEARCH_CONTINUATIONS = 2;
+function anthropicText(payload: AnthropicMessagePayload) {
+  return (payload.content ?? [])
+    .filter((block) => block.type === "text" && typeof block.text === "string")
+    .map((block) => block.text)
+    .join("\n");
+}
 
 function text(value: unknown, maximum: number) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -121,8 +136,8 @@ export async function POST(request: Request) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article evidence search took longer than expected. Your starter outline is safe—try again when you are ready."
-          : "The evidence search could not be reached. Your starter outline is safe—try again in a moment.",
+          ? "Article evidence search took longer than expected. Your brief and settings are saved—try again when you are ready."
+          : "The evidence search could not be reached. Your brief and settings are saved—try again in a moment.",
         code: timedOut ? "ARTICLE_EVIDENCE_TIMEOUT" : "ARTICLE_EVIDENCE_UNAVAILABLE",
       };
     } finally {
@@ -146,51 +161,116 @@ export async function POST(request: Request) {
       signal: AbortSignal.any([writingDeadline, request.signal]),
     });
 
+    onPhase("writing");
     let response: Response;
     try {
-      onPhase("writing");
       response = await writeArticle(buildAnthropicArticleRequest(prompt, model));
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
       return {
         error: timedOut
-          ? "Article writing took longer than expected. Your researched starter outline is safe—try again when you are ready."
-          : "The article service could not be reached. Your starter outline is safe—try again in a moment.",
+          ? "Article writing took longer than expected. Your brief and settings are saved—try again when you are ready."
+          : "The article service could not be reached. Your brief and settings are saved—try again in a moment.",
         code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
       };
     }
 
-    let payload = await response.json().catch(() => ({})) as AnthropicPayload;
+    const payload = await response.json().catch(() => ({})) as AnthropicMessagePayload;
     if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
 
     try {
-      for (let continuation = 0; payload.stop_reason === "pause_turn" && continuation < MAX_ARTICLE_RESEARCH_CONTINUATIONS; continuation += 1) {
-        if (!Array.isArray(payload.content) || payload.content.length === 0) throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
-        response = await writeArticle(buildAnthropicArticleContinuationRequest(prompt, payload.content, model));
-        payload = await response.json().catch(() => ({})) as AnthropicPayload;
-        if (!response.ok) return { error: payload.error?.message || `Claude writing returned HTTP ${response.status}.`, code: "ANTHROPIC_ERROR" };
-      }
-    } catch (cause) {
-      const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
-      return {
-        error: timedOut
-          ? "Article research took longer than expected. Your brief is safe—try again when you are ready."
-          : "The article service could not finish its research. Your brief is safe—try again in a moment.",
-        code: timedOut ? "ARTICLE_WRITING_TIMEOUT" : "ARTICLE_GENERATION_UNAVAILABLE",
-      };
-    }
-
-    try {
-      if (payload.stop_reason === "pause_turn") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
       if (payload.stop_reason === "refusal") throw new Error("ARTICLE_RESPONSE_REFUSED");
-      const rawText = (payload.content ?? []).filter((block) => block.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n");
-      if (payload.stop_reason === "max_tokens") throw new Error("ARTICLE_RESPONSE_INCOMPLETE");
-      const article = parseGeneratedArticlePayload(rawText);
+      let article = parseGeneratedArticlePayload(anthropicText(payload));
+      const initialDecision = articleContinuationDecision(article.bodyMarkdown, input.preferences.format, payload.stop_reason);
+      console.info("article_generation_initial", {
+        model,
+        stopReason: payload.stop_reason ?? "unknown",
+        inputTokens: payload.usage?.input_tokens ?? null,
+        outputTokens: payload.usage?.output_tokens ?? null,
+        wordCount: initialDecision.wordCount,
+        cleanEnding: initialDecision.cleanEnding,
+        continuationReason: initialDecision.reason,
+        finalCharacters: article.bodyMarkdown.slice(-160),
+      });
+
+      let recoveryIssue: { code: "incomplete_output"; message: string } | null = null;
+      if (initialDecision.needed) {
+        onPhase("finishing");
+        try {
+          const continuationPrompt = buildArticleContinuationPrompt({
+            bodyMarkdown: article.bodyMarkdown,
+            researchEvidence,
+            // Buffered band: aiming at the bare 2,000-word policy floor left
+            // finished drafts at 1,994–2,025 words, where counting variance
+            // flips them to incomplete. The finishing pass now targets
+            // 2,200–2,900 so the result clears both policy boundaries.
+            targetMinimumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MIN_WORDS : Math.max(700, initialDecision.wordCount + 400),
+            targetMaximumWords: input.preferences.format === "seo_article" ? SEO_ARTICLE_RECOVERY_MAX_WORDS : Math.max(1_200, initialDecision.wordCount + 1_000),
+            // A cleanly ended but short article gets the expansion framing so
+            // the model adds H3 coverage instead of declaring it complete.
+            reason: initialDecision.reason,
+          });
+          const continuationResponse = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-api-key": apiKey,
+              "anthropic-version": "2023-06-01",
+            },
+            body: JSON.stringify(buildAnthropicArticleContinuationRequest(continuationPrompt, model)),
+            signal: AbortSignal.any([AbortSignal.timeout(ARTICLE_CONTINUATION_TIMEOUT_MS), request.signal]),
+          });
+          const continuationPayload = await continuationResponse.json().catch(() => ({})) as AnthropicMessagePayload;
+          if (!continuationResponse.ok) throw new Error(continuationPayload.error?.message || `Claude completion returned HTTP ${continuationResponse.status}.`);
+          if (continuationPayload.stop_reason === "max_tokens" || continuationPayload.stop_reason === "refusal") {
+            throw new Error(`Claude completion stopped with ${continuationPayload.stop_reason}.`);
+          }
+
+          article = {
+            ...article,
+            bodyMarkdown: mergeArticleContinuation(article.bodyMarkdown, parseArticleContinuation(anthropicText(continuationPayload))),
+          };
+          const completedDecision = articleContinuationDecision(article.bodyMarkdown, input.preferences.format, continuationPayload.stop_reason);
+          console.info("article_generation_recovery", {
+            model,
+            attempted: true,
+            stopReason: continuationPayload.stop_reason ?? "unknown",
+            inputTokens: continuationPayload.usage?.input_tokens ?? null,
+            outputTokens: continuationPayload.usage?.output_tokens ?? null,
+            wordCount: completedDecision.wordCount,
+            cleanEnding: completedDecision.cleanEnding,
+            remainingReason: completedDecision.reason,
+            finalCharacters: article.bodyMarkdown.slice(-160),
+          });
+          if (completedDecision.needed) {
+            recoveryIssue = {
+              code: "incomplete_output",
+              message: "Destiny completed one bounded finishing pass, but the combined article still ended before it met the completion requirements. Generate again before approval.",
+            };
+          }
+        } catch (cause) {
+          console.error("article_generation_recovery", {
+            model,
+            attempted: true,
+            error: cause instanceof Error ? cause.message : "unknown",
+            preservedWordCount: initialDecision.wordCount,
+            finalCharacters: article.bodyMarkdown.slice(-160),
+          });
+          recoveryIssue = {
+            code: "incomplete_output",
+            message: "The first article response ended early and Destiny's single finishing pass could not complete it. The partial draft is preserved, but it cannot be approved.",
+          };
+        }
+      }
+
       const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
+      if (recoveryIssue && !qualityIssues.some((issue) => issue.code === "incomplete_output")) qualityIssues.unshift(recoveryIssue);
       return {
         draft: {
           keyword: input.keyword,
           title: article.title,
+          metaTitle: article.metaTitle,
+          titleCandidates: article.titleCandidates,
           metaDescription: article.metaDescriptions[0] ?? "",
           metaDescriptions: article.metaDescriptions,
           body: article.bodyMarkdown,
@@ -198,7 +278,10 @@ export async function POST(request: Request) {
           infographics: article.infographics,
           bucketBrigades: article.bucketBrigades,
           preferences: input.preferences,
-          generationStatus: "generated",
+          // A draft whose bounded finishing pass failed must stay
+          // non-approvable even after the client recomputes quality issues,
+          // which has no incomplete-output check of its own.
+          generationStatus: recoveryIssue ? "needs_generation" : "generated",
           generatedBy: model,
           qualityIssues,
           optimization: qualityIssues.length
@@ -209,13 +292,13 @@ export async function POST(request: Request) {
               { label: "Human review", detail: "Review the article, sources, graphics, and business claims before publishing." },
             ],
         },
-        quality: { passed: qualityIssues.length === 0, issues: qualityIssues },
+        quality: { passed: qualityIssues.length === 0, issues: qualityIssues, recovered: initialDecision.needed && !recoveryIssue },
         model,
       };
     } catch (cause) {
       console.error("article_generation_parse", { error: cause instanceof Error ? cause.message : "unknown" });
       return {
-        error: "Claude returned an incomplete article draft. Your starter outline is safe—try again.",
+        error: "Claude returned an incomplete article draft. Your brief and settings are saved—try again.",
         code: "ARTICLE_RESPONSE_INCOMPLETE",
       };
     }
@@ -226,15 +309,16 @@ export async function POST(request: Request) {
   let keepalive: ReturnType<typeof setInterval> | null = null;
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      const write = (event: Parameters<typeof encodeArticleGenerationEvent>[0]) => controller.enqueue(encoder.encode(encodeArticleGenerationEvent(event)));
-      write({ type: "phase", phase: "researching" });
-      keepalive = setInterval(() => {
-        if (!cancelled) write({ type: "keepalive" });
-      }, ARTICLE_GENERATION_KEEPALIVE_MS);
-      void generatePayload((phase) => write({ type: "phase", phase })).then((payload) => {
-        if (!cancelled) write({ type: "result", payload });
+      const send = (encoded: string) => {
+        if (cancelled) return;
+        try { controller.enqueue(encoder.encode(encoded)); } catch { cancelled = true; }
+      };
+      send(encodeArticleGenerationEvent({ type: "phase", phase: "researching" }));
+      keepalive = setInterval(() => send(encodeArticleGenerationEvent({ type: "keepalive" })), ARTICLE_GENERATION_KEEPALIVE_MS);
+      void generatePayload((phase) => send(encodeArticleGenerationEvent({ type: "phase", phase }))).then((payload) => {
+        send(encodeArticleGenerationEvent({ type: "result", payload }));
       }).catch((cause) => {
-        if (!cancelled) write({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Destiny could not generate this article." } });
+        send(encodeArticleGenerationEvent({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Destiny could not generate this article." } }));
       }).finally(() => {
         if (keepalive) clearInterval(keepalive);
         if (!cancelled) controller.close();

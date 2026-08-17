@@ -9,6 +9,7 @@ describe("article generation stream", () => {
       encodeArticleGenerationEvent({ type: "phase", phase: "researching" }),
       encodeArticleGenerationEvent({ type: "keepalive" }),
       encodeArticleGenerationEvent({ type: "phase", phase: "writing" }),
+      encodeArticleGenerationEvent({ type: "phase", phase: "finishing" }),
       encodeArticleGenerationEvent({ type: "result", payload: { draft: { title: "Complete" } } }),
     ].join("");
     const body = new ReadableStream<Uint8Array>({
@@ -21,7 +22,7 @@ describe("article generation stream", () => {
     const phases: string[] = [];
 
     await expect(readArticleGenerationStream(body, (phase) => phases.push(phase))).resolves.toEqual({ draft: { title: "Complete" } });
-    expect(phases).toEqual(["researching", "writing"]);
+    expect(phases).toEqual(["researching", "writing", "finishing"]);
   });
 
   it("fails closed when the stream ends without a final result", async () => {

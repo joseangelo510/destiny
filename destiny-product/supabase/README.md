@@ -12,9 +12,12 @@ are deployed to the verified `Jose Angelo Studios` Supabase project.
 - Google OAuth tokens are not stored directly in the `integrations` table. The
   table stores only a reference to an encrypted credential.
 - Raw DataForSEO payloads stay attached to the originating audit for traceability.
-- The authenticated `create_organization` RPC is intentionally security-definer
-  so the organization and initial owner membership are created atomically. It
-  validates `auth.uid()` and anonymous execution is revoked.
+- Public authenticated RPCs are security-invoker wrappers. The privileged
+  implementations live in the non-exposed `private` schema, validate
+  `auth.uid()`, and reject anonymous sessions before bypassing RLS.
+- `cms_transfers` is intentionally service-role-only. RLS has no client policy
+  because browsers access its safe, organization-scoped projection through the
+  authenticated `read_cms_transfer_states` wrapper.
 
 ## Tables
 

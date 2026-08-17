@@ -1,0 +1,73 @@
+.destiny-article {
+  color: inherit;
+  font-size: max(16px, 1em);
+  line-height: 1.75;
+}
+
+.destiny-article h2,
+.destiny-article h3,
+.destiny-article h4 {
+  color: inherit;
+  font-style: normal;
+  padding-bottom: 0;
+}
+
+.destiny-article h2 {
+  font-size: clamp(1.65rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 2.2em 0 .6em;
+}
+
+.destiny-article h3 {
+  font-size: clamp(1.25rem, 2.3vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 1.8em 0 .5em;
+}
+
+.destiny-article h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 1.5em 0 .45em;
+}
+
+.destiny-article p,
+.destiny-article ul,
+.destiny-article ol,
+.destiny-article blockquote {
+  line-height: 1.75;
+  margin: 0 0 1.15em;
+  padding-bottom: 0;
+}
+
+.destiny-article li + li {
+  margin-top: .4em;
+}
+
+.destiny-article .destiny-callout {
+  background: #f4f8f6;
+  border-left: 5px solid #2f6b5a;
+  border-radius: 0 12px 12px 0;
+  margin: 1.6em 0;
+  padding: 1em 1.2em;
+}
+
+.destiny-article .destiny-article-figure {
+  margin: 1.8em auto 2.2em;
+}
+
+.destiny-article .destiny-article-figure img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.destiny-article .destiny-article-figure figcaption {
+  color: #5e746d;
+  font-size: .875rem;
+  line-height: 1.5;
+  margin-top: .65em;
+  text-align: left;
+}

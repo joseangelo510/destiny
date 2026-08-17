@@ -70,3 +70,13 @@ Outputs, in order:
 Every promoted domain has an annotated Git tag. The baseline tag and the
 phase tags recover source, adapters, generated WASM, tests, and UI together.
 No destructive database migration is part of the LOGOS cutover.
+# Follow-up: move title policy into LOGOS
+
+The separate blog-headline and SEO/meta-title gates are temporarily evaluated
+in the TypeScript host because this checkout contains only the compiled LOGOS
+WASM bridge, not the LOGOS source needed to regenerate the engine. The current
+compiled article policy checks title keyword use but has no separate meta-title,
+candidate, pixel-width, promise-alignment, or list-count rules, so the temporary
+host checks do not contradict an existing LOGOS decision. When the authoritative
+LOGOS source is restored, port these title inputs and verdicts, add adapter parity
+fixtures, regenerate the WASM, and remove the host-owned policy implementation.

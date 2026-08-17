@@ -26,7 +26,7 @@ describe("AuditMomentumProcessing", () => {
     expect(html).toContain("Working now");
     expect((html.match(/Research saved/g) ?? [])).toHaveLength(4);
     expect(html).not.toContain("decorative timer");
-    expect(html).toContain("notification center will link back to your guided weekly plan");
+    expect(html).toContain("notification center will link back");
     expect(html).toContain("email when delivery is available");
     expect(html).not.toContain("six-month");
   });

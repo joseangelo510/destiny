@@ -20,25 +20,44 @@ const input = {
 };
 
 describe("GamePlanView", () => {
-  it("renders the executive plan hierarchy without weekly checkboxes", async () => {
+  it("renders Fable's calm executive-plan hierarchy without execution clutter", async () => {
     const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={await buildGamePlan(input)} />);
 
-    expect(html).toContain("Four focused plays");
-    expect(html).toContain("Three months at a glance");
-    expect(html).toContain("Scope of work");
-    expect(html).toContain("Honest forecast ranges");
-    expect(html).toContain("Export plan (PDF)");
+    expect(html).toContain("Game Plan");
+    expect(html).toContain("the why");
+    expect(html).toContain("Roadmap");
+    expect(html).toContain("the when");
+    expect(html).toContain("This Week");
+    expect(html).toContain("the doing");
+    expect(html).toContain("Your 90-day SEO game plan");
+    expect(html).toContain("The four plays");
+    expect(html).toContain("What to expect, month by month");
+    expect(html).toContain("What this plan does and doesn’t cover");
+    expect(html).toContain("Share this plan");
     expect(html).toContain('href="/audits/audit-1"');
+    expect(html).toContain('href="/roadmap"');
+    expect(html).toContain('href="/this-week"');
     expect(html).not.toContain('type="checkbox"');
+    expect(html).not.toContain("milestones complete");
+    expect(html).not.toContain("Honest forecast ranges");
+    expect(html).not.toContain("Review keyword strategy");
   });
 
-  it("blocks export and suppresses a conflicting stored business name", async () => {
+  it("leaves the single page H1 to the workspace shell by rendering its hero heading as an H2", async () => {
+    const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={await buildGamePlan(input)} />);
+
+    expect(html).not.toContain("<h1");
+    expect(html).toContain('<h2 class="game-plan-hero-title">Your 90-day SEO game plan</h2>');
+  });
+
+  it("moves conflicting business identity confirmation into the share flow", async () => {
     const plan = await buildGamePlan({ ...input, businessName: "DatacenterDotDev Inc." });
     const html = renderToStaticMarkup(<GamePlanView auditHref="/audits/audit-1" lastUpdated="Aug 2, 2026" plan={plan} />);
 
-    expect(html).toContain("Destiny found conflicting business details");
-    expect(html).toContain("Logicaffeine’s 90-Day SEO Game Plan");
-    expect(html).toContain("Confirm details to export");
+    expect(html).toContain("You’ll confirm your business name before anything is shared");
+    expect(html).toContain("Share this plan");
+    expect(html).toContain("Confirm business details");
+    expect(html).not.toContain('role="alert"');
     expect(html).not.toContain("DatacenterDotDev");
   });
 });

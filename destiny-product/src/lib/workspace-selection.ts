@@ -19,6 +19,14 @@ export function siteScopedHref(href: string, websiteId: unknown) {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+export function shouldPersistWebsiteSelection(headers: Headers) {
+  const isPrefetch = headers.get("next-router-prefetch") === "1"
+    || headers.get("x-middleware-prefetch") === "1"
+    || /prefetch/i.test(headers.get("purpose") ?? "")
+    || /prefetch/i.test(headers.get("sec-purpose") ?? "");
+  return !isPrefetch;
+}
+
 export const activeWebsiteCookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,

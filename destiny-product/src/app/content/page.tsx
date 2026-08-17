@@ -1,17 +1,22 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
+import { PublishingPlanManager } from "@/components/publishing-plan-manager";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import Link from "next/link";
-import { buildArticleDraft } from "@/lib/content/article-draft";
+import { WorkspaceLink as Link } from "@/components/workspace-link";
+import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
+import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
-import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, mergeApprovedSavedKeywords, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
+import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
+import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
-export default async function ContentPage() {
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string }> }) {
+  const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
@@ -40,17 +45,28 @@ export default async function ContentPage() {
     market: context.website?.market ?? "",
     locationEvidence,
   }, 50);
-  const { data: savedKeywordDecisions } = context.audit ? await context.supabase.from("keyword_decisions").select("keyword,decision").eq("audit_id", context.audit.id) : { data: [] };
-  const keywordDecisions = Object.fromEntries((savedKeywordDecisions ?? []).map((item) => [item.keyword, item.decision])) as Record<string, "approved" | "declined">;
+  const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }] = context.website ? await Promise.all([
+    context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,provider_intent,search_volume,difficulty,theme_id,theme_label").eq("website_id", context.website.id),
+    context.supabase.from("tracked_keywords").select("source").eq("website_id", context.website.id).neq("status", "paused"),
+  ]) : [{ data: [] }, { data: [] }];
+  const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
+  const calendarKeywordPool = mergeApprovedSavedKeywords(rankedKeywords, savedKeywordPreferences ?? []);
+  const keywordDecisions = Object.fromEntries(calendarKeywordPool.flatMap((keyword) => {
+    const preference = preferenceByNormalized.get(normalizeTrackedKeyword(keyword.keyword));
+    return preference?.decision === "approved" || preference?.decision === "declined" ? [[keyword.keyword, preference.decision]] : [];
+  })) as Record<string, "approved" | "declined">;
   const editorialContext = {
     productsServices: context.website?.products_services ?? "",
     locationEvidence,
     competitorNames: context.competitors.map((competitor) => competitor.name),
   };
-  const keywords = selectKeywordsForCalendar(rankedKeywords, keywordDecisions, editorialContext);
+  const keywords = selectKeywordsForCalendar(calendarKeywordPool, keywordDecisions, editorialContext);
   const businessModel = await inferBusinessModel(context.website?.products_services ?? "");
   const calendar = await buildEditorialCalendar(
-    keywords.map((keyword) => ({ ...keyword, intent: keyword.providerIntent })),
+    keywords.map((keyword) => ({
+      ...keyword,
+      intent: "providerIntent" in keyword ? String(keyword.providerIntent) : keyword.intent,
+    })),
     INITIAL_PLAN_WEEKS,
     businessModel,
     editorialContext,
@@ -65,23 +81,69 @@ export default async function ContentPage() {
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
   }));
+  const { data: savedArticleDraftRows } = context.audit && context.website
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("article_drafts")
+      .select("draft")
+      .eq("website_id", context.website.id)
+      .eq("audit_id", context.audit.id)
+    : { data: [] };
+  const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDrafts, (savedArticleDraftRows ?? []).map((row) => row.draft));
   const { data: cmsTransferRows } = context.website
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
   const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
+  const { data: publishingPlanRow } = context.website && context.audit
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("publishing_plans")
+      .select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at")
+      .eq("website_id", context.website.id)
+      .eq("audit_id", context.audit.id)
+      .maybeSingle()
+    : { data: null };
+  const { data: publishingItemRows } = publishingPlanRow
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("publishing_schedule_items")
+      .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error")
+      .eq("plan_id", publishingPlanRow.id)
+      .order("position")
+    : { data: [] };
+  const publishingPlan = publishingPlanRow as PublishingPlanRecord | null;
+  const publishingItems = (publishingItemRows ?? []) as PublishingScheduleItemRecord[];
+  const wordpressScheduleByKeyword: Record<string, string> = {};
+  if (publishingPlan?.status === "active" && publishingPlan.mode !== "review_each") {
+    for (const item of publishingItems) {
+      if (item.state === "published" || item.state === "managed_externally") continue;
+      const keyword = normalizeTrackedKeyword(item.keyword);
+      if (!wordpressScheduleByKeyword[keyword]) wordpressScheduleByKeyword[keyword] = item.scheduled_for;
+    }
+  }
+  const approvedKeywordCount = (savedKeywordPreferences ?? []).filter((item) => item.decision === "approved").length;
+  const watchlistCount = (pipelineTrackedKeywords ?? []).filter((item) => item.source !== "strategy").length;
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
-      <FeatureJourneyCallout milestone="Get ready to be found" description="Reviewing and approving a useful article moves your work forward. Destiny separately verifies when search engines begin showing it." />
+      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={hydratedArticleDrafts.length} watchedKeywords={watchlistCount} />
+      {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
+      <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
       {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
+        <PublishingPlanManager
+          websiteId={context.website?.id ?? ""}
+          auditId={context.audit?.id ?? ""}
+          calendar={calendar}
+          wordpressConnected={wordpress?.status === "connected"}
+          initialPlan={publishingPlan}
+          initialItems={publishingItems}
+        />
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
           webflowConnected={webflow?.status === "connected"}
           initialCmsTransfers={initialCmsTransfers}
+          wordpressScheduleByKeyword={wordpressScheduleByKeyword}
           generationContext={{
             businessName: context.website?.business_name ?? "Your business",
             problemSolved: context.website?.problem_solved ?? "",
@@ -95,7 +157,7 @@ export default async function ContentPage() {
           }}
           generationAvailable={generationCapability.available}
           generationModelLabel={generationCapability.label}
-          initialDrafts={articleDrafts}
+          initialDrafts={hydratedArticleDrafts}
           questId={approvalQuest?.id}
           questStatus={approvalQuest?.status}
         />

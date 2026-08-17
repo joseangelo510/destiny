@@ -1,4 +1,4 @@
-export type ArticleGenerationPhase = "researching" | "writing";
+export type ArticleGenerationPhase = "researching" | "writing" | "finishing";
 
 export type ArticleGenerationStreamEvent<T> =
   | { type: "phase"; phase: ArticleGenerationPhase }

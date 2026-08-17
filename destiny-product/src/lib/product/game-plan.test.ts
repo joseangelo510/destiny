@@ -35,13 +35,16 @@ describe("90-Day Game Plan", () => {
     });
 
     expect(plan.title).toBe("Logic Caffeine’s 90-Day SEO Game Plan");
+    expect(plan.domain).toBe("logicaffeine.com");
+    expect(plan.startingLine).toMatch(/very little search visibility/i);
     expect(plan.months).toHaveLength(3);
     expect(plan.plays.map((play) => play.title)).toEqual([
-      "Own valuable customer searches",
-      "Answer the questions customers ask",
-      "Strengthen the website foundation",
-      "Build trust across the web",
+      "Fix the foundation",
+      "Chase real customer demand",
+      "Publish pages that answer",
+      "Earn trust signals",
     ]);
+    expect(plan.months.map((month) => month.theme)).toEqual(["Foundation", "Content and demand", "Trust signals"]);
     expect(plan.forecasts.every((forecast) => forecast.kind === "projection")).toBe(true);
     expect(plan.forecastDisclaimer).toMatch(/cannot be guaranteed/i);
     expect(plan.scope.outThisQuarter).toContain("Guaranteed page-one rankings or traffic promises");

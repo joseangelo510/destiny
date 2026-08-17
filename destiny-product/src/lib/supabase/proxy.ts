@@ -1,11 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeInternalPath } from "@/lib/auth/redirect";
-import { ACTIVE_WEBSITE_COOKIE, activeWebsiteCookieOptions, isWebsiteId } from "@/lib/workspace-selection";
+import {
+  ACTIVE_WEBSITE_COOKIE,
+  activeWebsiteCookieOptions,
+  isWebsiteId,
+  shouldPersistWebsiteSelection,
+} from "@/lib/workspace-selection";
 import type { Database } from "./database.types";
+import { workspaceRedirectHref } from "@/lib/workspace-routes";
 
 export async function updateSession(request: NextRequest) {
   const requestedWebsiteId = request.nextUrl.searchParams.get("site");
+  const persistWebsiteSelection = isWebsiteId(requestedWebsiteId)
+    && shouldPersistWebsiteSelection(request.headers);
   if (isWebsiteId(requestedWebsiteId)) request.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId);
   let response = NextResponse.next({ request });
   const supabase = createServerClient<Database>(
@@ -50,8 +58,26 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (data?.claims && isWebsiteId(requestedWebsiteId)) {
+  if (data?.claims && persistWebsiteSelection) {
     response.cookies.set(ACTIVE_WEBSITE_COOKIE, requestedWebsiteId, activeWebsiteCookieOptions);
+  }
+
+  const workspaceRedirect = data?.claims && request.method === "GET" && shouldPersistWebsiteSelection(request.headers)
+    ? workspaceRedirectHref({
+      activeWebsiteId: request.cookies.get(ACTIVE_WEBSITE_COOKIE)?.value,
+      pathname: request.nextUrl.pathname,
+      requestedWebsiteId,
+      search: request.nextUrl.search,
+    })
+    : null;
+  if (workspaceRedirect) {
+    const redirectUrl = request.nextUrl.clone();
+    const target = new URL(workspaceRedirect, request.url);
+    redirectUrl.pathname = target.pathname;
+    redirectUrl.search = target.search;
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
   return response;
 }

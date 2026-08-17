@@ -41,6 +41,8 @@ export function normalizeSavedArticleDraft(value: unknown, fallback: ArticleDraf
   return {
     ...fallback,
     ...saved,
+    metaTitle: typeof saved.metaTitle === "string" && saved.metaTitle.trim() ? saved.metaTitle : typeof saved.title === "string" ? saved.title : fallback.metaTitle,
+    titleCandidates: Array.isArray(saved.titleCandidates) ? saved.titleCandidates : fallback.titleCandidates,
     metaDescription: metaDescriptions[0] ?? fallback.metaDescription,
     metaDescriptions,
     body: normalizeArticleBody(savedBody),
