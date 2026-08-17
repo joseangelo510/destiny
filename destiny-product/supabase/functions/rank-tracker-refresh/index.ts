@@ -65,9 +65,15 @@ export default {
     if (error) return json({ error: error.message }, 500);
     const due = (data ?? []) as unknown as DueKeyword[];
     const groups = due.reduce<Record<string, DueKeyword[]>>((acc, row) => ({ ...acc, [row.website_id]: [...(acc[row.website_id] ?? []), row] }), {});
+    const websiteIds = Object.keys(groups);
+    const { data: preferences } = websiteIds.length
+      ? await context.supabaseAdmin.from("notification_preferences").select("website_id,ranking_digest_frequency").in("website_id", websiteIds)
+      : { data: [] };
+    const cadenceByWebsite = new Map((preferences ?? []).map((preference) => [preference.website_id, preference.ranking_digest_frequency]));
     const completedRuns: unknown[] = [];
 
     for (const [websiteId, rows] of Object.entries(groups)) {
+      const refreshDays = cadenceByWebsite.get(websiteId) === "three_day" ? 3 : 7;
       const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: rows.length, started_at: now.toISOString() }).select("id").single();
       let completed = 0;
       let failed = 0;
@@ -92,7 +98,7 @@ export default {
           if (insertError) throw insertError;
           totalCost += observation.providerCost;
           completed += 1;
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: new Date(now.getTime() + 7 * 86_400_000).toISOString(), last_error: null }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: new Date(now.getTime() + refreshDays * 86_400_000).toISOString(), last_error: null }).eq("id", row.id);
         } catch (cause) {
           failed += 1;
           const message = cause instanceof Error ? cause.message : "Rank check failed.";

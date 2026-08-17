@@ -14,12 +14,10 @@ describe("RankTrackerWorkspace", () => {
         { id: "kw-1", keyword: "college admissions consultant", listId: null, status: "active", source: "strategy", createdAt: "2026-07-20T00:00:00.000Z", lastCheckedAt: "2026-08-02T00:00:00.000Z", currentPosition: 7, previousPosition: 13, previousFound: true, found: true, resultUrl: "https://example.com/services", checkedAt: "2026-08-02T00:00:00.000Z", policyView: rankedPolicy },
         { id: "kw-2", keyword: "college essay help", listId: "list-1", status: "pending", source: "research", createdAt: "2026-08-03T00:00:00.000Z", lastCheckedAt: null, currentPosition: null, previousPosition: null, found: null, resultUrl: null, checkedAt: null, policyView: pendingPolicy },
       ]}
-      emailCadence="Ranking email updates arrive every 3 days."
+      rankingDigestFrequency="three_day"
       websiteId="website-1"
     />);
-    expect(html).toContain("Ranking email updates arrive every 3 days.");
-    expect(html).toContain("Change this in Account settings.");
-    expect(html).toContain("Weekly Google rank tracking");
+    expect(html).toContain("Google rank tracking every 3 days");
     expect(html).toContain("United States · English · Desktop");
     expect(html).toContain("General");
     expect(html).toContain("Admissions services");

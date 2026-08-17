@@ -23,9 +23,9 @@ export type RankTrackerKeyword = {
   policyView?: { reading: { label: string; tone: string }; movement: { label: string; tone: string }; freshness: { message: string }; bucket: number };
 };
 
-type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; emailCadence?: string | null };
+type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; rankingDigestFrequency?: "three_day" | "weekly" | "off" };
 
-export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, emailCadence = null }: Props) {
+export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, rankingDigestFrequency = "weekly" }: Props) {
   const [lists, setLists] = useState(initialLists);
   const [keywords, setKeywords] = useState(initialKeywords);
   const [activeList, setActiveList] = useState<string>("all");
@@ -96,8 +96,8 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
 
   return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
     <section className="rank-tracker-intro">
-      <div><span className="research-kicker">Weekly Google rank tracking</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context every week so movement is comparable—not guessed.</p></div>
-      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small>{emailCadence ? <small className="rank-email-cadence">{emailCadence} Change this in Account settings.</small> : null}</div>
+      <div><span className="research-kicker">{rankingDigestFrequency === "three_day" ? "Google rank tracking every 3 days" : "Weekly Google rank tracking"}</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context on your chosen schedule so movement is comparable—not guessed.</p></div>
+      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>
     </section>
 
     <section className="rank-summary-grid">
@@ -133,7 +133,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}
       </div>
     </section>
-    <aside className="rank-evidence-note"><strong>What “Not yet visible” means</strong><p>Google did not show this website in the first 100 results—about 10 pages—for that search during the latest check. It is a starting point, not a penalty, and it never means position zero.</p></aside>
+    <aside className="rank-evidence-note"><strong>Accuracy rule</strong><p>Destiny records the exact location, language, device, timestamp, provider task, and result URL for every check. “Not found” means the domain did not appear within the measured top 100—it never means position zero.</p></aside>
     {error ? <div className="error-banner" role="alert">{error}</div> : null}
   </div>;
 }

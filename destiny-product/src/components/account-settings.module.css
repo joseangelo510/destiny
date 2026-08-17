@@ -15,6 +15,20 @@
 .saveButton { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 800; margin-top: 12px; min-height: 44px; padding: 0 17px; }
 .saveButton:disabled { cursor: not-allowed; opacity: .42; }
 .success { color: var(--forest) !important; font-weight: 750; margin-top: 10px !important; }
+.digestList { display: grid; gap: 14px; margin-top: 28px; }
+.digestRow { align-items: center; background: #f6f8f5; border: 1px solid #e1e8e3; border-radius: 18px; display: grid; gap: 16px; grid-template-columns: minmax(190px, 1fr) minmax(360px, auto); padding: 20px; }
+.digestIdentity { display: grid; gap: 4px; min-width: 0; }
+.digestIdentity strong { color: var(--forest-dark); font-size: 17px; }
+.digestIdentity span, .digestIdentity small { color: var(--muted); overflow-wrap: anywhere; }
+.digestIdentity span { font-size: 14px; }
+.digestIdentity small { font-size: 12px; line-height: 1.45; }
+.frequencyControl { background: #e8eeea; border-radius: 13px; display: grid; gap: 4px; grid-template-columns: 1.25fr 1fr .7fr; padding: 4px; }
+.frequencyControl button { align-items: center; background: transparent; border: 0; border-radius: 10px; color: #60716a; cursor: pointer; display: flex; flex-direction: column; font: inherit; font-size: 13px; font-weight: 800; justify-content: center; min-height: 48px; padding: 6px 12px; }
+.frequencyControl button small { color: #72837c; font-size: 10px; font-weight: 750; margin-top: 2px; }
+.frequencyControl button[aria-pressed="true"] { background: #fff; box-shadow: 0 2px 9px rgba(23, 59, 48, .1); color: var(--forest); }
+.frequencyControl button[aria-pressed="true"] small { color: var(--forest); }
+.frequencyControl button:disabled { cursor: wait; opacity: .58; }
+.digestStatus { color: var(--muted); font-size: 13px; grid-column: 1 / -1; margin: -5px 0 0; }
 .websiteList { border: 1px solid #e4e9e4; border-radius: 18px; display: grid; margin-top: 28px; overflow: hidden; }
 .websiteRow { align-items: center; background: #fff; display: flex; gap: 18px; justify-content: space-between; padding: 18px 20px; }
 .websiteRow + .websiteRow { border-top: 1px solid #e4e9e4; }
@@ -44,6 +58,7 @@
 .deleteButton { background: #a43f38; border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 15px; font-weight: 800; margin-top: 17px; min-height: 48px; padding: 0 20px; }
 .deleteButton:disabled { cursor: not-allowed; opacity: .42; }
 .error { color: #a43f38; font-size: 14px; margin: 14px 0 0; }
+@media (max-width: 760px) { .digestRow { grid-template-columns: 1fr; } .frequencyControl { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .card { border-radius: 18px; } .websiteRow { align-items: stretch; flex-direction: column; } .websiteDeleteButton { align-self: flex-start; } .websiteDeleteActions > button { width: 100%; } }
 .lastSent { color: var(--muted); font-size: 13px; }
 .frequencyGroup { border: 0; display: flex; flex-wrap: wrap; gap: 14px; margin: 0; padding: 0; }

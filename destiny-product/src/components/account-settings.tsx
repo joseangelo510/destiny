@@ -2,73 +2,30 @@
 
 import { useState } from "react";
 import styles from "./account-settings.module.css";
-import {
-  DEFAULT_RANKING_DIGEST_FREQUENCY,
-  RANKING_DIGEST_FREQUENCIES,
-  RECOMMENDED_RANKING_DIGEST_FREQUENCY,
-  effectiveRankingDigestFrequency,
-  lastRankingDigestSummary,
-  rankingDigestFrequencyLabel,
-  type RankingDigestFrequency,
-  type RankingDigestSendStatus,
-} from "../lib/notifications/ranking-digest";
 
 type AccountWebsite = {
   id: string;
   businessName: string | null;
   normalizedDomain: string;
-};
-
-export type RankingEmailPreference = {
-  frequency: RankingDigestFrequency;
-  unsubscribedAt: string | null;
+  rankingDigestFrequency: "three_day" | "weekly" | "off";
   lastDigestSentAt: string | null;
-  lastDigestStatus: RankingDigestSendStatus;
 };
 
-export function AccountSettings({ activeWebsiteId = null, loginEmail, notificationEmail, websites = [], rankingEmailPreferences = {} }: {
+export function AccountSettings({ activeWebsiteId = null, loginEmail, notificationEmail, websites = [] }: {
   activeWebsiteId?: string | null;
   loginEmail: string;
   notificationEmail: string | null;
   websites?: AccountWebsite[];
-  rankingEmailPreferences?: Record<string, RankingEmailPreference>;
 }) {
-  const [rankingChoices, setRankingChoices] = useState<Record<string, RankingDigestFrequency>>(() =>
-    Object.fromEntries(websites.map((website) => {
-      const preference = rankingEmailPreferences[website.id] ?? null;
-      return [website.id, preference ? effectiveRankingDigestFrequency(preference) : DEFAULT_RANKING_DIGEST_FREQUENCY];
-    })));
-  const [savingRankingWebsiteId, setSavingRankingWebsiteId] = useState<string | null>(null);
-  const [rankingMessages, setRankingMessages] = useState<Record<string, string>>({});
-
-  async function saveRankingFrequency(websiteId: string, frequency: RankingDigestFrequency) {
-    if (savingRankingWebsiteId) return;
-    const previous = rankingChoices[websiteId];
-    if (previous === frequency) return;
-    setSavingRankingWebsiteId(websiteId);
-    setRankingChoices((choices) => ({ ...choices, [websiteId]: frequency }));
-    setRankingMessages((messages) => ({ ...messages, [websiteId]: "" }));
-    try {
-      const response = await fetch("/api/account/ranking-emails", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ websiteId, frequency }),
-      });
-      const result = await response.json().catch(() => ({})) as { error?: string; frequency?: RankingDigestFrequency };
-      if (!response.ok || !result.frequency) throw new Error(result.error || "Destiny could not save this ranking email setting.");
-      setRankingChoices((choices) => ({ ...choices, [websiteId]: result.frequency as RankingDigestFrequency }));
-      setRankingMessages((messages) => ({ ...messages, [websiteId]: "Ranking email setting saved." }));
-    } catch (cause) {
-      setRankingChoices((choices) => ({ ...choices, [websiteId]: previous }));
-      setRankingMessages((messages) => ({ ...messages, [websiteId]: cause instanceof Error ? cause.message : "Destiny could not save this ranking email setting." }));
-    } finally {
-      setSavingRankingWebsiteId(null);
-    }
-  }
   const [savedNotificationEmail, setSavedNotificationEmail] = useState(notificationEmail ?? "");
   const [notificationDraft, setNotificationDraft] = useState(notificationEmail ?? "");
   const [savingNotificationEmail, setSavingNotificationEmail] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  const [rankingDigestFrequencies, setRankingDigestFrequencies] = useState<Record<string, AccountWebsite["rankingDigestFrequency"]>>(
+    Object.fromEntries(websites.map((website) => [website.id, website.rankingDigestFrequency])),
+  );
+  const [savingDigestWebsiteId, setSavingDigestWebsiteId] = useState<string | null>(null);
+  const [digestMessage, setDigestMessage] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -138,6 +95,30 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
     }
   }
 
+  async function saveRankingDigestFrequency(websiteId: string, frequency: AccountWebsite["rankingDigestFrequency"]) {
+    if (savingDigestWebsiteId) return;
+    const previous = rankingDigestFrequencies[websiteId] ?? "weekly";
+    setSavingDigestWebsiteId(websiteId);
+    setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: frequency }));
+    setDigestMessage((current) => ({ ...current, [websiteId]: "" }));
+    try {
+      const response = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rankingDigestFrequency: frequency, websiteId }),
+      });
+      const result = await response.json().catch(() => ({})) as { error?: string; rankingDigestFrequency?: AccountWebsite["rankingDigestFrequency"] };
+      if (!response.ok || !result.rankingDigestFrequency) throw new Error(result.error || "Destiny could not save this notification setting.");
+      setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: result.rankingDigestFrequency as AccountWebsite["rankingDigestFrequency"] }));
+      setDigestMessage((current) => ({ ...current, [websiteId]: frequency === "off" ? "Ranking emails turned off." : "Ranking email schedule saved." }));
+    } catch (cause) {
+      setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: previous }));
+      setDigestMessage((current) => ({ ...current, [websiteId]: cause instanceof Error ? cause.message : "Destiny could not save this notification setting." }));
+    } finally {
+      setSavingDigestWebsiteId(null);
+    }
+  }
+
   async function deleteAccount() {
     if (!matches || deleting) return;
     setDeleting(true);
@@ -167,30 +148,23 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
     </section>
 
     <section className={styles.card}>
-      <div className={styles.heading}><span>Keyword ranking emails</span><h2>Keyword ranking emails</h2><p>Choose how often each website emails you a ranking update. Every 3 days is recommended so movement is caught early.</p></div>
-      {websites.length ? <div className={styles.websiteList}>
+      <div className={styles.heading}><span>Email notifications</span><h2>Keyword ranking emails</h2><p>Choose how often Destiny emails a short summary of which keywords moved up, moved down, and entered or left the top 10.</p></div>
+      {websites.length ? <div className={styles.digestList}>
         {websites.map((website) => {
-          const preference = rankingEmailPreferences[website.id] ?? null;
-          const choice = rankingChoices[website.id] ?? DEFAULT_RANKING_DIGEST_FREQUENCY;
-          const message = rankingMessages[website.id] ?? "";
-          return <div className={styles.websiteRow} key={`ranking-${website.id}`}>
-            <div className={styles.websiteIdentity}>
-              <div className={styles.websiteTitleLine}><strong>{website.businessName?.trim() || website.normalizedDomain}</strong>{website.id === activeWebsiteId ? <span className={styles.currentBadge}>Current website</span> : null}</div>
-              <span>{website.normalizedDomain}</span>
-              <small className={styles.lastSent}>{lastRankingDigestSummary({ lastStatus: preference?.lastDigestStatus ?? "never", lastSentAt: preference?.lastDigestSentAt ?? null })}</small>
+          const frequency = rankingDigestFrequencies[website.id] ?? website.rankingDigestFrequency;
+          const message = digestMessage[website.id];
+          const saving = savingDigestWebsiteId === website.id;
+          return <div className={styles.digestRow} key={website.id}>
+            <div className={styles.digestIdentity}><strong>{website.businessName?.trim() || website.normalizedDomain}</strong><span>{website.normalizedDomain}</span>{website.lastDigestSentAt ? <small>Last sent {new Date(website.lastDigestSentAt).toLocaleDateString()}</small> : <small>Your first update will follow the next fresh ranking check.</small>}</div>
+            <div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role="group">
+              <button aria-pressed={frequency === "three_day"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "three_day")} type="button"><span>Every 3 days</span><small>Recommended</small></button>
+              <button aria-pressed={frequency === "weekly"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "weekly")} type="button"><span>Weekly</span></button>
+              <button aria-pressed={frequency === "off"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "off")} type="button"><span>Off</span></button>
             </div>
-            <fieldset className={styles.frequencyGroup} disabled={savingRankingWebsiteId === website.id}>
-              <legend className={styles.visuallyHidden}>Ranking email frequency for {website.normalizedDomain}</legend>
-              {RANKING_DIGEST_FREQUENCIES.map((frequency) => <label className={styles.frequencyOption} key={frequency}>
-                <input checked={choice === frequency} name={`ranking-frequency-${website.id}`} onChange={() => void saveRankingFrequency(website.id, frequency)} type="radio" value={frequency} />
-                <span>{rankingDigestFrequencyLabel(frequency)}{frequency === RECOMMENDED_RANKING_DIGEST_FREQUENCY ? <em className={styles.recommendedBadge}>Recommended</em> : null}</span>
-              </label>)}
-            </fieldset>
-            {message && <p aria-live="polite" className={message.endsWith("saved.") ? styles.success : styles.error}>{message}</p>}
+            {saving ? <p aria-live="polite" className={styles.digestStatus}>Saving…</p> : message ? <p aria-live="polite" className={message.includes("saved") || message.includes("turned off") ? styles.success : styles.error}>{message}</p> : null}
           </div>;
         })}
-      </div> : <p className={styles.emptyWebsites}>Add a website to control its ranking emails.</p>}
-      <p className={styles.websiteSafety}>Every ranking email includes a one-click unsubscribe link. Only fresh ranking readings are ever emailed.</p>
+      </div> : <p className={styles.emptyWebsites}>Add a website before choosing a ranking email schedule.</p>}
     </section>
 
     <section className={styles.card}>
