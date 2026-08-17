@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { buildWeeklySchedule, type PublishingMode, type PublishingPlanRecord, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { buildWeeklySchedule, reconcilePublishingItems, type PublishingMode, type PublishingPlanRecord, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 
 type CalendarItem = { focusKeyword: string; title: string; contentType: string };
 
@@ -75,8 +75,9 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
     setError("");
     setNotice("");
     const response = await fetch("/api/content/publishing-plan/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId }) });
-    const payload = await response.json() as { error?: string; checked?: number; scheduled?: number };
+    const payload = await response.json() as { error?: string; checked?: number; scheduled?: number; items?: PublishingScheduleItemRecord[] };
     if (!response.ok) throw new Error(payload.error || "Destiny could not run the scheduling checks.");
+    setItems((current) => reconcilePublishingItems(current, payload.items));
     setNotice(payload.scheduled
       ? `${payload.scheduled} article${payload.scheduled === 1 ? "" : "s"} scheduled in WordPress. Other slots remain safely queued.`
       : `Destiny checked ${payload.checked ?? 0} ready slot${payload.checked === 1 ? "" : "s"}. Nothing was scheduled because the remaining articles still need generation or review.`);
@@ -122,7 +123,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
     </> : plan ? <>
       <div className="publishing-plan-summary"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div>
       <div className="publishing-plan-actions"><button className="secondary-button" onClick={() => setEditing(true)} type="button">Change mode or dates</button>{plan.status === "active" && plan.mode !== "review_each" && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Run scheduling checks now"}</button>}<button className={plan.status === "paused" ? "primary-button" : "secondary-button"} disabled={saving} onClick={() => void setStatus(plan.status === "paused" ? "active" : "paused")} type="button">{saving ? "Saving…" : plan.status === "paused" ? "Resume scheduling" : "Pause new scheduling"}</button></div>
-      <ol className="publishing-queue-preview">{items.slice(0, 4).map((item) => <li key={item.id}><span>{item.position}</span><div><strong>{item.title}</strong><small>{new Date(item.scheduled_for).toLocaleDateString()} · {item.state.replaceAll("_", " ")}{item.review_recommended ? " · review recommended" : ""}</small></div></li>)}</ol>
+      <ol className="publishing-queue-preview">{items.slice(0, 4).map((item) => <li key={item.id}><span>{item.position}</span><div><strong>{item.title}</strong><small>{new Date(item.scheduled_for).toLocaleDateString()} · {item.state.replaceAll("_", " ")}{item.review_recommended ? " · review recommended" : ""}</small>{item.last_error && <em>{item.last_error}</em>}</div></li>)}</ol>
       <p className="publishing-plan-footnote">Destiny never publishes a missed date late. A missed or failed slot returns to review with a suggested new date.</p>
       {notice && <div className="integration-banner success" role="status"><strong>Scheduling check complete</strong><p>{notice}</p></div>}
       {error && <div className="error-banner" role="alert">{error}</div>}

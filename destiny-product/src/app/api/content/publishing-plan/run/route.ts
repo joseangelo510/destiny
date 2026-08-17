@@ -78,5 +78,11 @@ export async function POST(request: Request) {
     results.push({ keyword: item.keyword, state: "scheduled", message: "Scheduled in WordPress." });
   }
 
-  return NextResponse.json({ checked: results.length, scheduled: results.filter((item) => item.state === "scheduled").length, results }, { headers: { "Cache-Control": "no-store" } });
+  const { data: refreshedItems, error: refreshedItemsError } = await db
+    .from("publishing_schedule_items")
+    .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error")
+    .eq("plan_id", plan.id)
+    .order("position");
+  if (refreshedItemsError) return NextResponse.json({ error: "The scheduling check finished, but Destiny could not refresh the queue." }, { status: 500 });
+  return NextResponse.json({ checked: results.length, scheduled: results.filter((item) => item.state === "scheduled").length, results, items: refreshedItems ?? [] }, { headers: { "Cache-Control": "no-store" } });
 }
