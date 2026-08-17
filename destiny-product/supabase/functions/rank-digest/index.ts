@@ -63,6 +63,13 @@ function positionLabel(found: boolean, position: number | null) {
   return found && position ? `#${position}` : "Not in top 100";
 }
 
+function comparisonLabel(row: ReturnType<typeof buildRankDigest>["rows"][number]) {
+  const current = positionLabel(row.currentFound, row.currentPosition);
+  return row.direction === "baseline"
+    ? `First reading → ${current}`
+    : `${positionLabel(row.previousFound === true, row.previousPosition)} → ${current}`;
+}
+
 function renderEmail(input: {
   siteName: string;
   domain: string;
@@ -74,10 +81,10 @@ function renderEmail(input: {
   isTest: boolean;
 }) {
   const rows = input.digest.topMovers.length ? input.digest.topMovers : input.digest.rows.slice(0, 10);
-  const tableRows = rows.map((row) => `<tr><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;font-weight:700">${escapeHtml(row.keyword)}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5">${escapeHtml(positionLabel(row.previousFound === true, row.previousPosition))} → ${escapeHtml(positionLabel(row.currentFound, row.currentPosition))}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;color:${row.direction === "up" ? "#237451" : row.direction === "down" ? "#a64c42" : "#65746e"};font-weight:700">${escapeHtml(movementLabel(row))}</td></tr>`).join("");
+  const tableRows = rows.map((row) => `<tr><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;font-weight:700">${escapeHtml(row.keyword)}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5">${escapeHtml(comparisonLabel(row))}</td><td style="padding:12px 8px;border-bottom:1px solid #e3e9e5;color:${row.direction === "up" ? "#237451" : row.direction === "down" ? "#a64c42" : "#65746e"};font-weight:700">${escapeHtml(movementLabel(row))}</td></tr>`).join("");
   const firstNotice = input.firstNotice ? `<div style="background:#eef6f1;border:1px solid #d5e8de;border-radius:12px;padding:14px 16px;margin:18px 0"><strong>New:</strong> Destiny will send ranking updates every 3 days. You can change the frequency or turn them off in Account settings.</div>` : "";
   const heading = input.digest.hasComparison ? "Your search visibility moved." : "Your first ranking baseline is ready.";
-  const textRows = rows.map((row) => `- ${row.keyword}: ${positionLabel(row.previousFound === true, row.previousPosition)} → ${positionLabel(row.currentFound, row.currentPosition)} (${movementLabel(row)})`).join("\n");
+  const textRows = rows.map((row) => `- ${row.keyword}: ${comparisonLabel(row)} (${movementLabel(row)})`).join("\n");
   return {
     subject: `${input.isTest ? "[Test] " : ""}${input.digest.subject}`,
     html: `<div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#20302c"><p style="color:#2a6855;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Destiny ranking update · ${escapeHtml(input.domain)}</p><h1 style="font-family:Georgia,serif;font-size:36px;font-weight:500;line-height:1.12;margin:10px 0">${heading}</h1><p>Here is the latest confirmed Google movement for the keywords Destiny tracks for <strong>${escapeHtml(input.siteName)}</strong>.</p>${firstNotice}<div style="display:flex;gap:8px;flex-wrap:wrap;margin:24px 0"><div style="background:#eef6f1;border-radius:12px;padding:14px 18px"><strong style="font-size:26px;color:#237451">${input.digest.counts.up}</strong><br><span>moved up</span></div><div style="background:#fbf1ef;border-radius:12px;padding:14px 18px"><strong style="font-size:26px;color:#a64c42">${input.digest.counts.down}</strong><br><span>moved down</span></div><div style="background:#f3f5f3;border-radius:12px;padding:14px 18px"><strong style="font-size:26px">${input.digest.top10Current}</strong><br><span>in top 10</span></div><div style="background:#f3f5f3;border-radius:12px;padding:14px 18px"><strong style="font-size:26px">${input.digest.averageCurrent ?? "—"}</strong><br><span>average position</span></div></div><table style="border-collapse:collapse;width:100%;font-size:14px"><thead><tr><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Keyword</th><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Previous → current</th><th align="left" style="padding:10px 8px;border-bottom:2px solid #ccd8d1">Change</th></tr></thead><tbody>${tableRows}</tbody></table><p style="margin:28px 0"><a href="${escapeHtml(input.rankUrl)}" style="background:#275f4e;color:#fff;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">View rank tracker</a></p><p style="color:#71807a;font-size:12px;line-height:1.6">Rankings can fluctuate. Destiny compares the same Google location, language, and device each time and never treats “not found” as position zero.<br><a href="${escapeHtml(input.accountUrl)}" style="color:#526b61">Manage email frequency</a> · <a href="${escapeHtml(input.unsubscribeUrl)}" style="color:#526b61">Unsubscribe from ranking emails</a></p></div>`,
