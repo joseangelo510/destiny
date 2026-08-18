@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   const db = supabase as unknown as SupabaseClient;
   const { data: plan, error } = await db.from("publishing_plans").select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").eq("website_id", websiteId).order("updated_at", { ascending: false }).limit(1).maybeSingle();
   if (error) return NextResponse.json({ error: "Destiny could not load the publishing plan." }, { status: 500 });
-  const { data: items } = plan ? await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position") : { data: [] };
+  const { data: items } = plan ? await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position") : { data: [] };
   return NextResponse.json({ plan, items: items ?? [] }, { headers: { "Cache-Control": "no-store" } });
 }
 
@@ -114,7 +114,7 @@ export async function PUT(request: Request) {
   }));
   const { error: itemError } = rows.length ? await db.from("publishing_schedule_items").upsert(rows, { onConflict: "plan_id,position" }) : { error: null };
   if (itemError) return NextResponse.json({ error: "The plan was saved, but Destiny could not save every calendar slot." }, { status: 500 });
-  const { data: items } = await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position");
+  const { data: items } = await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position");
   return NextResponse.json({ plan, items: items ?? [] });
 }
 

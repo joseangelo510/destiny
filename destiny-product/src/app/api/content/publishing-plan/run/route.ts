@@ -5,6 +5,7 @@ import { currentArticleQualityIssues, type ArticleDraft } from "@/lib/content/ar
 import { prepareWordPressDraft } from "@/lib/cms/wordpress-draft";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { createClient } from "@/lib/supabase/server";
+import { wordpressRemoteIdFromEditUrl } from "@/lib/content/publishing-plan";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -74,13 +75,13 @@ export async function POST(request: Request) {
       results.push({ keyword: item.keyword, state: "failed", message });
       continue;
     }
-    await db.from("publishing_schedule_items").update({ state: "scheduled", article_key: prepared.articleKey, remote_edit_url: data.remoteEditUrl, last_error: null, attempt_count: 1 }).eq("id", item.id);
+    await db.from("publishing_schedule_items").update({ state: "scheduled", article_key: prepared.articleKey, remote_id: wordpressRemoteIdFromEditUrl(data.remoteEditUrl), remote_edit_url: data.remoteEditUrl, last_error: null, attempt_count: 1 }).eq("id", item.id);
     results.push({ keyword: item.keyword, state: "scheduled", message: "Scheduled in WordPress." });
   }
 
   const { data: refreshedItems, error: refreshedItemsError } = await db
     .from("publishing_schedule_items")
-    .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_edit_url,remote_permalink,last_error")
+    .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
     .eq("plan_id", plan.id)
     .order("position");
   if (refreshedItemsError) return NextResponse.json({ error: "The scheduling check finished, but Destiny could not refresh the queue." }, { status: 500 });

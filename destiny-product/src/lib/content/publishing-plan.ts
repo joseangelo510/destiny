@@ -26,10 +26,32 @@ export type PublishingScheduleItemRecord = {
   scheduled_for: string;
   state: PublishingState;
   review_recommended: boolean;
+  remote_id: string | null;
   remote_edit_url: string | null;
   remote_permalink: string | null;
   last_error: string | null;
 };
+
+export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
+
+export function publishingCalendarState(item: PublishingScheduleItemRecord, websitePlatform: string | null): PublishingCalendarState {
+  if (websitePlatform === "wix" || item.state === "managed_externally") return "manual";
+  if (item.state === "published") return item.remote_permalink ? "published" : "planned";
+  if (item.state === "scheduled") return item.remote_id ? "scheduled" : "planned";
+  if (item.state === "failed") return "failed";
+  if (item.state === "needs_review") return /missed|date passed|past due/i.test(item.last_error ?? "") ? "missed" : "needs_review";
+  return "planned";
+}
+
+export function wordpressRemoteIdFromEditUrl(value: string | null | undefined) {
+  if (!value) return null;
+  try {
+    const id = new URL(value).searchParams.get("post");
+    return id && /^\d+$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
 
 export type PublishingPlanInput = {
   mode: PublishingMode;
