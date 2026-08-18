@@ -11,7 +11,7 @@ export function latestVerifiedShareTarget(
   businessName: string,
 ) {
   const live = transfers
-    .filter((transfer) => transfer.publicationStatus === "published")
+    .filter((transfer) => transfer.publicationStatus === "verified_live")
     .filter((transfer) => typeof transfer.remotePermalink === "string" && /^https:\/\//i.test(transfer.remotePermalink))
     .filter((transfer) => typeof transfer.verifiedLiveAt === "string" && !Number.isNaN(Date.parse(transfer.verifiedLiveAt)))
     .sort((left, right) => String(right.verifiedLiveAt ?? "").localeCompare(String(left.verifiedLiveAt ?? "")))[0];
