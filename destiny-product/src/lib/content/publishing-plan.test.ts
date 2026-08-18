@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, canScheduleArticle, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { buildWeeklySchedule, canScheduleArticle, publishingCalendarState, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
   it("requires a deliberate mode and explicit automatic confirmation", () => {
@@ -45,5 +45,31 @@ describe("publishing plans", () => {
     const refreshed = [{ id: "item-1", state: "scheduled" }] as PublishingScheduleItemRecord[];
     expect(reconcilePublishingItems(current, refreshed)[0].state).toBe("scheduled");
     expect(reconcilePublishingItems(current, undefined)[0].state).toBe("needs_review");
+  });
+
+  it("only presents scheduled and published states when CMS proof exists", () => {
+    const item = {
+      id: "item-1",
+      state: "scheduled",
+      scheduled_for: "2026-08-21T16:00:00.000Z",
+      remote_id: null,
+      remote_permalink: null,
+    } as PublishingScheduleItemRecord;
+    expect(publishingCalendarState(item, "wordpress")).toBe("planned");
+    expect(publishingCalendarState({ ...item, remote_id: "20208955" }, "wordpress")).toBe("scheduled");
+    expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955" }, "wordpress")).toBe("planned");
+    expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955", remote_permalink: "https://example.com/post" }, "wordpress")).toBe("published");
+  });
+
+  it("keeps Wix publishing visibly manual and extracts WordPress proof IDs", () => {
+    const item = {
+      id: "item-1",
+      state: "scheduled",
+      remote_id: "20208955",
+      remote_permalink: null,
+    } as PublishingScheduleItemRecord;
+    expect(publishingCalendarState(item, "wix")).toBe("manual");
+    expect(wordpressRemoteIdFromEditUrl("https://clearcheck.app/wp-admin/post.php?post=20208955&action=edit")).toBe("20208955");
+    expect(wordpressRemoteIdFromEditUrl("https://clearcheck.app/wp-admin/edit.php")).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import sharp from "sharp";
+import { wordpressRemoteIdFromEditUrl } from "@/lib/content/publishing-plan";
 
 export async function POST(request: Request) {
   let body: WordPressDraftRequest;
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
     await db.from("publishing_schedule_items").update({
       state: "scheduled",
       article_key: draft.articleKey,
+      remote_id: wordpressRemoteIdFromEditUrl(data.remoteEditUrl),
       remote_edit_url: data.remoteEditUrl,
       last_error: null,
     }).eq("website_id", draft.websiteId).eq("normalized_keyword", normalizeTrackedKeyword(String(body.keyword ?? ""))).eq("scheduled_for", draft.scheduledFor);
