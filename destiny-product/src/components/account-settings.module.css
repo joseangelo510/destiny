@@ -60,11 +60,3 @@
 .error { color: #a43f38; font-size: 14px; margin: 14px 0 0; }
 @media (max-width: 760px) { .digestRow { grid-template-columns: 1fr; } .frequencyControl { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .card { border-radius: 18px; } .websiteRow { align-items: stretch; flex-direction: column; } .websiteDeleteButton { align-self: flex-start; } .websiteDeleteActions > button { width: 100%; } }
-.lastSent { color: var(--muted); font-size: 13px; }
-.frequencyGroup { border: 0; display: flex; flex-wrap: wrap; gap: 14px; margin: 0; padding: 0; }
-.frequencyGroup:disabled { opacity: .55; }
-.frequencyOption { align-items: center; background: #f6f8f5; border: 1px solid #dfe7e2; border-radius: 12px; cursor: pointer; display: flex; font-size: 14px; font-weight: 700; gap: 8px; padding: 10px 14px; }
-.frequencyOption:has(input:checked) { border-color: var(--forest); box-shadow: 0 0 0 2px rgba(48, 112, 88, .13); }
-.frequencyOption input { accent-color: var(--forest); }
-.recommendedBadge { background: var(--forest); border-radius: 999px; color: #fff; font-size: 11px; font-style: normal; font-weight: 800; margin-left: 8px; padding: 2px 8px; }
-.visuallyHidden { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
