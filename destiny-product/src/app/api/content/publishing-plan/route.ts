@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildWeeklySchedule, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
+import { buildWeeklySchedule, unapprovedCalendarKeywords, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -66,13 +66,19 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Review the publishing plan." }, { status: 400 });
   }
 
-  const [{ data: website }, { data: audit }] = await Promise.all([
+  const [{ data: website }, { data: audit }, { data: approvedPreferenceRows }] = await Promise.all([
     supabase.from("websites").select("organization_id").eq("id", websiteId).maybeSingle(),
     supabase.from("audits").select("id").eq("id", auditId).eq("website_id", websiteId).maybeSingle(),
+    supabase.from("keyword_preferences").select("keyword").eq("website_id", websiteId).eq("decision", "approved"),
   ]);
   if (!website?.organization_id || !audit) return NextResponse.json({ error: "This website or audit is not available to the account." }, { status: 404 });
+  const approvedKeywords = (approvedPreferenceRows ?? []).flatMap((item) => typeof item.keyword === "string" ? [item.keyword] : []);
+  if (!approvedKeywords.length) return NextResponse.json({ error: "Approve at least one keyword before creating a publishing plan." }, { status: 409 });
+  if (unapprovedCalendarKeywords(calendar, approvedKeywords).length) {
+    return NextResponse.json({ error: "The publishing plan contains topics that have not been approved for this website." }, { status: 409 });
+  }
 
-  const dates = buildWeeklySchedule(input.startDate, calendar.length);
+  const dates = buildWeeklySchedule(input.startDate, calendar.length, input.timezone);
   const db = supabase as unknown as SupabaseClient;
   const { data: plan, error: planError } = await db.from("publishing_plans").upsert({
     organization_id: website.organization_id,

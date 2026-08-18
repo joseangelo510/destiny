@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, canScheduleArticle, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, validatePublishingPlan, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { buildWeeklySchedule, canScheduleArticle, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
   it("requires a deliberate mode and explicit automatic confirmation", () => {
@@ -7,11 +7,17 @@ describe("publishing plans", () => {
     expect(validatePublishingPlan({ mode: "automatic", startDate: "2026-08-25", timezone: "America/Los_Angeles", postCount: 12, automaticConfirmed: true })).toMatchObject({ mode: "automatic" });
   });
 
-  it("builds one deterministic weekly slot for each plan week", () => {
-    const dates = buildWeeklySchedule("2026-08-25", 12);
+  it("builds weekly slots at 9 a.m. in the selected timezone, including DST", () => {
+    const dates = buildWeeklySchedule("2026-08-25", 12, "America/Los_Angeles");
     expect(dates).toHaveLength(12);
     expect(dates[0]).toBe("2026-08-25T16:00:00.000Z");
-    expect(dates[11]).toBe("2026-11-10T16:00:00.000Z");
+    expect(dates[11]).toBe("2026-11-10T17:00:00.000Z");
+    expect(buildWeeklySchedule("2026-08-25", 1, "America/New_York")[0]).toBe("2026-08-25T13:00:00.000Z");
+  });
+
+  it("rejects calendar topics that were not explicitly approved for the website", () => {
+    const calendar = [{ keyword: "approved topic" }, { keyword: "Unapproved Topic" }, { keyword: "approved   topic" }];
+    expect(unapprovedCalendarKeywords(calendar, ["approved topic"])).toEqual(["Unapproved Topic"]);
   });
 
   it("blocks scheduling until generation, quality, connection, and holdback checks pass", () => {
