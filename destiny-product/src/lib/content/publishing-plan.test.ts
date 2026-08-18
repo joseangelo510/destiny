@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, canScheduleArticle, publishingCalendarState, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { buildWeeklySchedule, canScheduleArticle, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
+  it("keeps CMS delivery capability explicit", () => {
+    expect(publishingDeliveryMode("wordpress", ["wordpress"])).toBe("direct_wordpress");
+    expect(publishingDeliveryMode("webflow", ["webflow"])).toBe("manual_webflow");
+    expect(publishingDeliveryMode("wix", [])).toBe("manual_wix");
+    expect(publishingDeliveryMode("squarespace", [])).toBe("unavailable");
+    expect(publishingDeliveryMode("wix", ["wordpress"])).toBe("direct_wordpress");
+  });
   it("requires a deliberate mode and explicit automatic confirmation", () => {
     expect(() => validatePublishingPlan({ mode: "automatic", startDate: "2026-08-25", timezone: "America/Los_Angeles", postCount: 12 })).toThrow(/confirm/i);
     expect(validatePublishingPlan({ mode: "automatic", startDate: "2026-08-25", timezone: "America/Los_Angeles", postCount: 12, automaticConfirmed: true })).toMatchObject({ mode: "automatic" });

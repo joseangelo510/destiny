@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest } from "./logic";
+import { buildRankDigest, deliveryStateFromProviderEvent, nextDigestAt, selectDigestOpportunities, shouldSendDigest } from "./logic";
 
 describe("rank digest logic", () => {
   it("summarizes upward, downward, top-ten, new, and lost movement truthfully", () => {
@@ -40,6 +40,15 @@ describe("rank digest logic", () => {
     const sent = new Date("2026-08-16T16:00:00.000Z");
     expect(nextDigestAt(sent, "three_day").toISOString()).toBe("2026-08-19T16:00:00.000Z");
     expect(nextDigestAt(sent, "weekly").toISOString()).toBe("2026-08-23T16:00:00.000Z");
+  });
+
+  it("distinguishes provider acceptance from confirmed inbox delivery", () => {
+    expect(deliveryStateFromProviderEvent("sent")).toBe("accepted");
+    expect(deliveryStateFromProviderEvent("delivery_delayed")).toBe("accepted");
+    expect(deliveryStateFromProviderEvent("delivered")).toBe("delivered");
+    expect(deliveryStateFromProviderEvent("opened")).toBe("delivered");
+    expect(deliveryStateFromProviderEvent("bounced")).toBe("failed");
+    expect(deliveryStateFromProviderEvent("suppressed")).toBe("failed");
   });
 
   it("requires fresh observations after the previous digest", () => {

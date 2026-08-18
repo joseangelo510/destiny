@@ -10,15 +10,25 @@ import {
   recommendedDirectories,
   recommendedSocialChannels,
 } from "@/lib/distribution/recommendations";
+import { latestVerifiedShareTarget } from "@/lib/distribution/share-target";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export default async function DistributionPage() {
   const context = await getWorkspaceContext();
   const providerResult = providerResultFromMetrics(context.metrics);
   const opportunities = list(providerResult.distributionOpportunities).map(record);
   const publishers = creatorProspects(list(providerResult.publisherOpportunities).map(record));
-  const articleUrl = context.website?.url ?? "";
-  const articleTitle = `A useful guide from ${context.website?.business_name ?? "our team"}`;
+  const { data: transferRows } = context.website
+    ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
+    : { data: [] };
+  const shareTarget = latestVerifiedShareTarget(
+    Array.isArray(transferRows) ? transferRows.map(record) : [],
+    context.website?.url ?? "",
+    context.website?.business_name ?? "our team",
+  );
+  const articleUrl = shareTarget.url;
+  const articleTitle = shareTarget.title;
   const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
   const xShare = `https://x.com/intent/post?text=${encodeURIComponent(`${articleTitle} ${articleUrl}`)}`;
   const facebookShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
@@ -47,6 +57,7 @@ export default async function DistributionPage() {
 
           <section className="workspace-card distribution-section" id="social">
             <div className="distribution-section-heading"><div><span className="eyebrow">2 · Social sharing</span><h2>Share the approved article with your network</h2><p>Connect the article to a firsthand observation instead of posting a generic link.</p></div><strong>Goal: LinkedIn + X + Facebook</strong></div>
+            <div className={`configuration-note ${shareTarget.verifiedArticle ? "success" : ""}`}><strong>{shareTarget.verifiedArticle ? "Verified live article selected" : "No verified live article yet"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : "Destiny will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live."}</p></div>
             <div className="social-share-actions"><a className="primary-button" href={linkedInShare} rel="noreferrer" target="_blank">Share on LinkedIn ↗</a><a className="secondary-button" href={xShare} rel="noreferrer" target="_blank">Share on X ↗</a><a className="secondary-button" href={facebookShare} rel="noreferrer" target="_blank">Share on Facebook ↗</a><Link className="text-button" href="/content">Review articles first</Link></div>
             <RecommendationPanel paid={paid} title="Get more social recommendations">
               {social.additional.length ? social.additional.map((channel) => <article key={channel.name}><strong>{channel.name}</strong><p>{channel.detail}</p></article>) : <p>Destiny needs more business context before recommending an additional channel.</p>}

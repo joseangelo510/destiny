@@ -1,7 +1,7 @@
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { renderRankDigestEmail } from "./email.ts";
-import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
+import { buildRankDigest, deliveryStateFromProviderEvent, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
 
 type PreferenceRow = {
   website_id: string;
@@ -117,6 +117,40 @@ async function sendWithRetry(input: { apiKey: string; from: string; recipient: s
   return { sent: false as const, error: lastError, attempts: 3 };
 }
 
+async function providerEvent(apiKey: string, messageId: string) {
+  try {
+    const response = await fetch(`https://api.resend.com/emails/${encodeURIComponent(messageId)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+    const payload = await response.json().catch(() => ({})) as { last_event?: unknown };
+    return response.ok && typeof payload.last_event === "string" ? payload.last_event : null;
+  } catch {
+    return null;
+  }
+}
+
+async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey: string) {
+  const { data } = await context.supabaseAdmin.from("rank_digest_sends")
+    .select("id,provider_message_id")
+    .in("status", ["sending", "sent", "accepted"])
+    .not("provider_message_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  for (const send of data ?? []) {
+    const event = await providerEvent(apiKey, send.provider_message_id);
+    if (!event) continue;
+    const status = deliveryStateFromProviderEvent(event);
+    await context.supabaseAdmin.from("rank_digest_sends").update({
+      status,
+      provider_event: event,
+      last_checked_at: new Date().toISOString(),
+      delivered_at: status === "delivered" ? new Date().toISOString() : null,
+      error: status === "failed" ? `Email provider reported ${event}.` : null,
+    }).eq("id", send.id);
+  }
+}
+
 export default {
   fetch: withSupabase({ auth: "none" }, async (request, context) => {
     const url = new URL(request.url);
@@ -146,6 +180,7 @@ export default {
     const force = body.force === true;
     const isTest = body.isTest === true;
     const now = new Date();
+    await reconcileProviderReceipts(context, apiKey);
 
     let query = context.supabaseAdmin.from("notification_preferences")
       .select("website_id,organization_id,ranking_digest_frequency,last_digest_sent_at,first_digest_notice_pending,websites!inner(business_name,normalized_domain,notification_email)")
@@ -163,7 +198,7 @@ export default {
       const [{ data: trackedData }, { data: preferencesData }, { data: latestAudit }] = await Promise.all([
         context.supabaseAdmin.from("tracked_keywords").select("id,keyword,normalized_keyword,location_name,device").eq("website_id", preference.website_id).in("status", ["pending", "active", "error"]).limit(500),
         context.supabaseAdmin.from("keyword_preferences").select("normalized_keyword,decision,search_volume,provider_intent,difficulty,priority_score").eq("website_id", preference.website_id),
-        context.supabaseAdmin.from("audits").select("raw_provider_payload,completed_at").eq("website_id", preference.website_id).eq("status", "complete").order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+        context.supabaseAdmin.from("audits").select("id,completed_at,audit_metrics(raw_provider_payload)").eq("website_id", preference.website_id).eq("status", "complete").order("completed_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       const tracked = (trackedData ?? []) as TrackedKeyword[];
       const keywordPreferences = (preferencesData ?? []) as KeywordPreference[];
@@ -178,7 +213,8 @@ export default {
         if (values.length < 2) byKeyword.set(observation.tracked_keyword_id, [...values, observation]);
       }
       const latestObservationAt = (observations[0] as Observation | undefined)?.observed_at ?? null;
-      const auditCandidates = opportunityCandidates(latestAudit?.raw_provider_payload);
+      const metricRow = Array.isArray(latestAudit?.audit_metrics) ? latestAudit.audit_metrics[0] : latestAudit?.audit_metrics;
+      const auditCandidates = opportunityCandidates(metricRow?.raw_provider_payload);
       const candidateByKeyword = new Map(auditCandidates.map((candidate) => [normalizedKeyword(candidate.keyword), candidate]));
       const preferenceByKeyword = new Map(keywordPreferences.map((item) => [item.normalized_keyword, item]));
       const declined = keywordPreferences.filter((item) => item.decision === "declined").map((item) => item.normalized_keyword);
@@ -270,12 +306,12 @@ export default {
         results.push({ websiteId: preference.website_id, status: "failed", reason: delivery.error });
         continue;
       }
-      await context.supabaseAdmin.from("rank_digest_sends").update({ status: "sent", provider_message_id: delivery.messageId, attempt_count: delivery.attempts, sent_at: now.toISOString() }).eq("id", send.id);
+      await context.supabaseAdmin.from("rank_digest_sends").update({ status: "accepted", provider_message_id: delivery.messageId, provider_event: "sent", last_checked_at: now.toISOString(), attempt_count: delivery.attempts, sent_at: now.toISOString() }).eq("id", send.id);
       if (!isTest) {
         const frequency = preference.ranking_digest_frequency === "three_day" ? "three_day" : "weekly";
-        await context.supabaseAdmin.from("notification_preferences").update({ last_digest_sent_at: now.toISOString(), last_digest_status: "sent", last_digest_error: null, first_digest_notice_pending: false, next_digest_at: nextDigestAt(now, frequency).toISOString() }).eq("website_id", preference.website_id);
+        await context.supabaseAdmin.from("notification_preferences").update({ last_digest_sent_at: now.toISOString(), last_digest_status: "accepted", last_digest_error: null, first_digest_notice_pending: false, next_digest_at: nextDigestAt(now, frequency).toISOString() }).eq("website_id", preference.website_id);
       }
-      results.push({ websiteId: preference.website_id, status: "sent", messageId: delivery.messageId, recipient, subject: email.subject });
+      results.push({ websiteId: preference.website_id, status: "accepted", messageId: delivery.messageId, recipient, subject: email.subject });
     }
     return json({ processed: results.length, results });
   }),
