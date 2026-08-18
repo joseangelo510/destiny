@@ -1,6 +1,6 @@
 # Destiny launch-readiness audit — 2026-08-17
 
-Status: **PARTIAL — data isolation passed; delivery workflows are not yet launch-certified**
+Status: **PARTIAL — production hardening deployed; inbox delivery is not yet launch-certified**
 
 ## Executive decision
 
@@ -42,13 +42,23 @@ This is strong row-level evidence, not complete authorization certification. For
 | Career Path Partners | No tracked keywords | None | None | Manual share handoff | Skipped truthfully: no tracked keywords |
 | Other test sites | Sparse/test data | None | None | Manual share handoff | Mostly skipped or not applicable |
 
-## Defects found and fixes prepared
+## Defects found and fixes deployed
 
 1. **Email acceptance was mislabeled as delivery.** The app stored a successful Resend API response as `sent`, even when Gmail received nothing. A migration and digest reconciliation now distinguish `accepted`, `delivered`, and `failed`, and poll Resend's message event.
 2. **Digest opportunity source was wrong.** Rank digest queried `audits.raw_provider_payload`; the payload is stored in `audit_metrics.raw_provider_payload`. The query now reads the metric relationship.
 3. **Report destinations were opaque.** Account settings now show the exact recipient and latest delivery state for every website.
 4. **Social buttons shared homepages.** Distribution now selects only the current site's latest verified published CMS transfer. If none exists, it labels the homepage fallback honestly.
-5. **Cadence expectation was unclear.** Existing sites were forced to every three days, while the requested product is a weekly report. Weekly is now presented as the recommended cadence; changing existing production preferences is a separate deployment decision.
+5. **Cadence expectation was unclear.** Existing sites were forced to every three days, while the requested product is a weekly report. Production preferences now use weekly as the recommended cadence.
+
+## Production deployment update — 2026-08-18
+
+- Supabase migration `rank_digest_delivery_truth` applied and `rank-digest` Edge Function v4 is active.
+- Replit production was published from the reviewed launch-hardening checkpoint; Replit's tests and production build passed.
+- Live public smoke tests passed on desktop and mobile: **4 of 4**.
+- Authenticated Account settings show the exact report recipient and honest `Accepted; delivery confirmation pending` state for each website.
+- Live site isolation checks passed: 98 Junk IT share links use `98junkit.com`; ClearCheck share links use its verified FCRA article.
+- A live smoke test found and corrected a publication-state mismatch (`published` versus the stored `verified_live` value). Replit's focused test, lint, and production build passed before the hotfix was republished.
+- The production scheduler completed with **15 accepted, 0 stuck, 0 failed**, and **0 organization/site mismatches**. No matching report was visible anywhere in `joseangelo85@gmail.com` immediately afterward, so inbox delivery remains unresolved rather than certified.
 
 ## Keyword-quality findings
 
@@ -90,7 +100,6 @@ Backlink outreach, full crawler depth, automatic social posting, and advanced co
 
 ### P0 — before accepting users
 
-- Apply the delivery-state migration and deploy the corrected rank digest.
 - Confirm one digest reaches `joseangelo85@gmail.com`; inspect Resend suppression/bounce state if it does not.
 - Run a full WordPress loop on ClearCheck and Jose Angelo Studios.
 - Run a Webflow draft loop on Smart & Fast and label manual publishing accurately.
