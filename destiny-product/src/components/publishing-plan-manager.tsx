@@ -17,11 +17,13 @@ function futureStartDate() {
   return date.toISOString().slice(0, 10);
 }
 
-export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressConnected, initialPlan, initialItems }: {
+export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressConnected, approvedKeywordCount, websitePlatform, initialPlan, initialItems }: {
   websiteId: string;
   auditId: string;
   calendar: CalendarItem[];
   wordpressConnected: boolean;
+  approvedKeywordCount: number;
+  websitePlatform: string | null;
   initialPlan: PublishingPlanRecord | null;
   initialItems: PublishingScheduleItemRecord[];
 }) {
@@ -35,8 +37,12 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const dates = useMemo(() => buildWeeklySchedule(startDate, calendar.length), [startDate, calendar.length]);
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
+  const dates = useMemo(() => buildWeeklySchedule(startDate, calendar.length, timezone), [startDate, calendar.length, timezone]);
   const counts = useMemo(() => items.reduce<Record<string, number>>((result, item) => ({ ...result, [item.state]: (result[item.state] ?? 0) + 1 }), {}), [items]);
+  const missingApprovals = approvedKeywordCount < 1;
+  const wixUnsupported = websitePlatform === "wix" && !wordpressConnected;
+  const cmsUnavailable = !wordpressConnected;
 
   const save = async () => {
     if (!mode || saving) return;
@@ -51,7 +57,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
           auditId,
           mode,
           startDate,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles",
+          timezone,
           automaticConfirmed,
           calendar: calendar.map((item) => ({ keyword: item.focusKeyword, title: item.title, contentType: item.contentType })),
         }),
@@ -111,7 +117,9 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       <div><span className="eyebrow">Publishing plan</span><h2>{plan && !editing ? "Your three-month publishing rhythm" : "How involved do you want to be?"}</h2><p>{plan && !editing ? "WordPress owns every future date. Destiny tracks readiness and stops anything that needs attention." : "Choose once for this plan. You can change it later without losing the calendar."}</p></div>
       {plan && !editing && <span className={`status-chip ${plan.status === "active" ? "" : "amber"}`}>{plan.status === "active" ? "Active" : plan.status === "paused" ? "Paused" : "Needs attention"}</span>}
     </div>
-    {!wordpressConnected && <div className="configuration-note"><strong>Connect WordPress before scheduling</strong><p>You can save the plan now, but Destiny will not schedule a post until the connection is healthy.</p></div>}
+    {missingApprovals ? <div className="configuration-note"><strong>Approve topics before scheduling</strong><p>Only explicitly approved keyword topics can enter a publishing plan. Review the Keyword strategy first.</p></div>
+      : wixUnsupported ? <div className="configuration-note"><strong>Wix scheduling is not connected yet</strong><p>Destiny cannot honestly confirm a Wix-native scheduled post yet. Generate and review content here, then schedule it in Wix until the direct connection ships.</p></div>
+      : cmsUnavailable ? <div className="configuration-note"><strong>Connect WordPress before scheduling</strong><p>Destiny can save reviewed content, but it will not create a CMS schedule until the WordPress connection is healthy.</p></div> : null}
     {editing ? <>
       <div className="publishing-mode-grid" role="radiogroup" aria-label="Publishing mode">
         {MODES.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? "active" : ""} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role="radio" type="button"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)}
@@ -119,7 +127,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       <div className="publishing-date-row"><label>First publication date<input min={futureStartDate()} type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : "Choose a start date"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div>
       {mode === "automatic" && <label className="automatic-confirmation"><input checked={automaticConfirmed} onChange={(event) => setAutomaticConfirmed(event.target.checked)} type="checkbox" /><span><strong>Confirm automatic scheduling for {calendar.length} posts</strong><small>Destiny may schedule these dates only after every article passes its quality checks. The first two posts will be marked “review recommended.” Failures stop instead of publishing.</small></span></label>}
       {error && <div className="error-banner" role="alert">{error}</div>}
-      <div className="publishing-plan-actions"><button className="primary-button" disabled={!mode || saving || (mode === "automatic" && !automaticConfirmed)} onClick={() => void save()} type="button">{saving ? "Saving plan…" : plan ? "Save changes" : "Start this publishing plan"}</button>{plan && <button className="secondary-button" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type="button">Cancel</button>}</div>
+      <div className="publishing-plan-actions"><button className="primary-button" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === "automatic" && !automaticConfirmed)} onClick={() => void save()} type="button">{saving ? "Saving plan…" : plan ? "Save changes" : "Start this publishing plan"}</button>{plan && <button className="secondary-button" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type="button">Cancel</button>}</div>
     </> : plan ? <>
       <div className="publishing-plan-summary"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div>
       <div className="publishing-plan-actions"><button className="secondary-button" onClick={() => setEditing(true)} type="button">Change mode or dates</button>{plan.status === "active" && plan.mode !== "review_each" && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Run scheduling checks now"}</button>}<button className={plan.status === "paused" ? "primary-button" : "secondary-button"} disabled={saving} onClick={() => void setStatus(plan.status === "paused" ? "active" : "paused")} type="button">{saving ? "Saving…" : plan.status === "paused" ? "Resume scheduling" : "Pause new scheduling"}</button></div>

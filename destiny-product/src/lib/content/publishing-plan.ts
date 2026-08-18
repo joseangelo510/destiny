@@ -59,12 +59,50 @@ export function validatePublishingPlan(input: PublishingPlanInput) {
   return input;
 }
 
-export function buildWeeklySchedule(startDate: string, postCount: number, publishHourUtc = 16) {
+function normalizedKeyword(value: string) {
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function localDateTimeAsUtc(startDate: string, timeZone: string, localHour: number) {
+  const [year, month, day] = startDate.split("-").map(Number);
+  const localWallClockAsUtc = Date.UTC(year, month - 1, day, localHour, 0, 0);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const offsetAt = (instant: number) => {
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(instant))
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, Number(part.value)]));
+    return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second) - instant;
+  };
+  const firstPass = localWallClockAsUtc - offsetAt(localWallClockAsUtc);
+  return new Date(localWallClockAsUtc - offsetAt(firstPass));
+}
+
+export function buildWeeklySchedule(startDate: string, postCount: number, timeZone = "UTC", publishHourLocal = 9) {
   if (!DATE_PATTERN.test(startDate)) throw new Error("Choose a valid start date.");
   if (!Number.isInteger(postCount) || postCount < 1 || postCount > 12) throw new Error("Choose between 1 and 12 posts.");
-  const first = new Date(`${startDate}T${String(publishHourUtc).padStart(2, "0")}:00:00.000Z`);
-  if (Number.isNaN(first.getTime())) throw new Error("Choose a valid start date.");
-  return Array.from({ length: postCount }, (_, index) => new Date(first.getTime() + index * 7 * 24 * 60 * 60 * 1000).toISOString());
+  if (!Number.isInteger(publishHourLocal) || publishHourLocal < 0 || publishHourLocal > 23) throw new Error("Choose a valid publication hour.");
+  try { new Intl.DateTimeFormat("en-US", { timeZone }).format(); }
+  catch { throw new Error("Choose a valid publishing timezone."); }
+  const firstCalendarDate = new Date(`${startDate}T12:00:00.000Z`);
+  if (Number.isNaN(firstCalendarDate.getTime())) throw new Error("Choose a valid start date.");
+  return Array.from({ length: postCount }, (_, index) => {
+    const calendarDate = new Date(firstCalendarDate.getTime() + index * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    return localDateTimeAsUtc(calendarDate, timeZone, publishHourLocal).toISOString();
+  });
+}
+
+export function unapprovedCalendarKeywords(calendar: Array<{ keyword: string }>, approvedKeywords: string[]) {
+  const approved = new Set(approvedKeywords.map(normalizedKeyword));
+  return [...new Set(calendar.filter((item) => !approved.has(normalizedKeyword(item.keyword))).map((item) => item.keyword))];
 }
 
 export function canScheduleArticle(input: {

@@ -9,6 +9,7 @@ import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
 import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, mergeApprovedSavedKeywords, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
+import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
@@ -74,6 +75,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const approvalQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "content_review");
   const wordpress = context.integrations.find((integration) => integration.provider === "wordpress");
   const webflow = context.integrations.find((integration) => integration.provider === "webflow");
+  const builderProfile = parseBuilderProfile(context.website?.builder_profile);
   const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
@@ -89,6 +91,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("audit_id", context.audit.id)
     : { data: [] };
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDrafts, (savedArticleDraftRows ?? []).map((row) => row.draft));
+  const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows } = context.website
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
@@ -123,17 +126,19 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
-      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={hydratedArticleDrafts.length} watchedKeywords={watchlistCount} />
+      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
-      {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
+      {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Destiny will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         <PublishingPlanManager
+          approvedKeywordCount={approvedKeywordCount}
           websiteId={context.website?.id ?? ""}
           auditId={context.audit?.id ?? ""}
           calendar={calendar}
           wordpressConnected={wordpress?.status === "connected"}
+          websitePlatform={builderProfile.platform}
           initialPlan={publishingPlan}
           initialItems={publishingItems}
         />
