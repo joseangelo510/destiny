@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildWeeklySchedule, unapprovedCalendarKeywords, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
+import { buildWeeklySchedule, publishingDeliveryMode, unapprovedCalendarKeywords, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
 import { createClient } from "@/lib/supabase/server";
+import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -66,10 +67,11 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Review the publishing plan." }, { status: 400 });
   }
 
-  const [{ data: website }, { data: audit }, { data: approvedPreferenceRows }] = await Promise.all([
-    supabase.from("websites").select("organization_id").eq("id", websiteId).maybeSingle(),
+  const [{ data: website }, { data: audit }, { data: approvedPreferenceRows }, { data: integrations }] = await Promise.all([
+    supabase.from("websites").select("organization_id,builder_profile").eq("id", websiteId).maybeSingle(),
     supabase.from("audits").select("id").eq("id", auditId).eq("website_id", websiteId).maybeSingle(),
     supabase.from("keyword_preferences").select("keyword").eq("website_id", websiteId).eq("decision", "approved"),
+    supabase.from("integrations").select("provider,status").eq("website_id", websiteId),
   ]);
   if (!website?.organization_id || !audit) return NextResponse.json({ error: "This website or audit is not available to the account." }, { status: 404 });
   const approvedKeywords = (approvedPreferenceRows ?? []).flatMap((item) => typeof item.keyword === "string" ? [item.keyword] : []);
@@ -77,6 +79,12 @@ export async function PUT(request: Request) {
   if (unapprovedCalendarKeywords(calendar, approvedKeywords).length) {
     return NextResponse.json({ error: "The publishing plan contains topics that have not been approved for this website." }, { status: 409 });
   }
+  const connectedProviders = new Set((integrations ?? []).filter((integration) => integration.status === "connected").map((integration) => integration.provider));
+  const websitePlatform = parseBuilderProfile(website.builder_profile).platform;
+  const deliveryMode = publishingDeliveryMode(websitePlatform, connectedProviders);
+  const manualCmsPlan = deliveryMode === "manual_webflow" || deliveryMode === "manual_wix";
+  if (deliveryMode === "unavailable") return NextResponse.json({ error: "Connect WordPress or Webflow before creating a publishing plan. Wix can use a guided manual plan." }, { status: 409 });
+  if (manualCmsPlan && input.mode === "automatic") return NextResponse.json({ error: "Automatic CMS scheduling is available only for a verified WordPress connection." }, { status: 409 });
 
   const dates = buildWeeklySchedule(input.startDate, calendar.length, input.timezone);
   const db = supabase as unknown as SupabaseClient;
@@ -109,7 +117,7 @@ export async function PUT(request: Request) {
     title: item.title,
     content_type: item.contentType,
     scheduled_for: dates[index],
-    state: "planned",
+    state: manualCmsPlan ? "managed_externally" : "planned",
     review_recommended: input.mode === "automatic" && item.position <= 2,
   }));
   const { error: itemError } = rows.length ? await db.from("publishing_schedule_items").upsert(rows, { onConflict: "plan_id,position" }) : { error: null };

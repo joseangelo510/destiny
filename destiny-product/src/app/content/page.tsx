@@ -138,6 +138,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           auditId={context.audit?.id ?? ""}
           calendar={calendar}
           wordpressConnected={wordpress?.status === "connected"}
+          webflowConnected={webflow?.status === "connected"}
           websitePlatform={builderProfile.platform}
           initialPlan={publishingPlan}
           initialItems={publishingItems}

@@ -7,7 +7,7 @@ import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/c
 
 const calendar = [{ focusKeyword: "commercial junk removal", title: "Commercial Junk Removal Guide", contentType: "Blog guide" }];
 
-function render(options: { approved?: number; wordpress?: boolean; platform?: string | null } = {}) {
+function render(options: { approved?: number; wordpress?: boolean; webflow?: boolean; platform?: string | null } = {}) {
   return renderToStaticMarkup(<PublishingPlanManager
     approvedKeywordCount={options.approved ?? 0}
     auditId="11111111-1111-4111-8111-111111111111"
@@ -17,6 +17,7 @@ function render(options: { approved?: number; wordpress?: boolean; platform?: st
     websiteId="22222222-2222-4222-8222-222222222222"
     websitePlatform={options.platform ?? null}
     wordpressConnected={options.wordpress ?? false}
+    webflowConnected={options.webflow ?? false}
   />);
 }
 
@@ -28,10 +29,17 @@ describe("PublishingPlanManager readiness", () => {
     expect(html).toContain("disabled");
   });
 
-  it("tells Wix users that automatic scheduling is not yet supported", () => {
+  it("offers Wix users a truthful guided publishing plan without automatic mode", () => {
     const html = render({ approved: 3, platform: "wix" });
-    expect(html).toContain("Wix scheduling is not connected yet");
-    expect(html).toContain("Destiny cannot honestly confirm a Wix-native scheduled post yet");
+    expect(html).toContain("Wix uses a guided publishing plan");
+    expect(html).toContain("nothing is labeled scheduled or live until the CMS confirms it");
+    expect(html).not.toContain("Hands-off after approval");
+  });
+
+  it("offers connected Webflow users a truthful guided publishing plan", () => {
+    const html = render({ approved: 3, platform: "webflow", webflow: true });
+    expect(html).toContain("Webflow uses a guided publishing plan");
+    expect(html).not.toContain("Connect a CMS before scheduling");
   });
 
   it("allows a connected WordPress site with approved topics to configure a plan", () => {

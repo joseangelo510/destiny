@@ -1,4 +1,12 @@
 export type RankingDigestFrequency = "three_day" | "weekly" | "off";
+export type RankDigestDeliveryState = "accepted" | "delivered" | "failed";
+
+export function deliveryStateFromProviderEvent(value: unknown): RankDigestDeliveryState {
+  const event = String(value ?? "").trim().toLowerCase();
+  if (["delivered", "opened", "clicked"].includes(event)) return "delivered";
+  if (["bounced", "failed", "cancelled", "canceled", "complained", "suppressed"].includes(event)) return "failed";
+  return "accepted";
+}
 
 export type RankDigestReading = {
   keyword: string;

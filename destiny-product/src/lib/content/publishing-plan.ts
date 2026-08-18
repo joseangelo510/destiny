@@ -33,6 +33,15 @@ export type PublishingScheduleItemRecord = {
 };
 
 export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
+export type PublishingDeliveryMode = "direct_wordpress" | "manual_webflow" | "manual_wix" | "unavailable";
+
+export function publishingDeliveryMode(websitePlatform: string | null, connectedProviders: Iterable<string>): PublishingDeliveryMode {
+  const connected = new Set(connectedProviders);
+  if (connected.has("wordpress")) return "direct_wordpress";
+  if (connected.has("webflow")) return "manual_webflow";
+  if (websitePlatform === "wix") return "manual_wix";
+  return "unavailable";
+}
 
 export function publishingCalendarState(item: PublishingScheduleItemRecord, websitePlatform: string | null): PublishingCalendarState {
   if (websitePlatform === "wix" || item.state === "managed_externally") return "manual";
