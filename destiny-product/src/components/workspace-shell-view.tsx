@@ -27,7 +27,7 @@ function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId:
   </details>;
 }
 
-export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
+export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy" | "claude-analytics"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
   const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
   const href = (path: string) => siteScopedHref(path, activeWebsiteId);
   return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell" data-design={design}>

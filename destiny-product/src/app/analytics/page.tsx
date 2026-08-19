@@ -35,7 +35,7 @@ export default async function AnalyticsPage() {
     lostKeywords: Number(point.lostKeywords ?? 0),
   })) satisfies HistoricalSeoPoint[];
   const metrics = context.metrics;
-  if (!context.website) return <WorkspaceShell active="/analytics" eyebrow="Destiny workspace" title="How your site is doing" description="See how people find you and what to improve next."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Destiny knows which search and Analytics data belongs here." /></WorkspaceShell>;
+  if (!context.website) return <WorkspaceShell active="/analytics" design="claude-analytics" eyebrow="Destiny workspace" title="How your site is doing" description="See how people find you and what to improve next."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Destiny knows which search and Analytics data belongs here." /></WorkspaceShell>;
   const searchConsole = syncedMetadata(context.integrations, "google_search_console");
   const analytics = syncedMetadata(context.integrations, "google_analytics");
   const [{ data: tracked }, { data: observations }] = await Promise.all([
@@ -68,7 +68,7 @@ export default async function AnalyticsPage() {
   const hasAnalyticsData = Boolean(metrics || searchConsole || analytics || (tracked?.length ?? 0) > 0);
   const estimate = rankingEstimateFallback(historicalPerformance);
   return (
-    <WorkspaceShell active="/analytics" eyebrow={context.website.normalized_domain} title="How your site is doing" description="A clear path from being seen in search to earning useful visits and results.">
+    <WorkspaceShell active="/analytics" design="claude-analytics" eyebrow={context.website.normalized_domain} title="How your site is doing" description="A clear path from being seen in search to earning useful visits and results.">
       {!hasAnalyticsData ? <WorkspaceEmpty title="Analytics begin after your audit" description="Run an audit or connect Google data to begin measuring search visibility and useful visits." /> : (
         <AnalyticsDashboard
           estimate={estimate ? { ...estimate, source: String(providerResult.sourceLabel ?? context.audit?.provider ?? "DataForSEO") } : null}

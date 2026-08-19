@@ -46,11 +46,17 @@ export type AnalyticsRankMover = {
   tone: "up" | "down" | "flat" | "new";
 };
 
+export type AnalyticsVerdictSegment = {
+  text: string;
+  highlight?: boolean;
+};
+
 export type AnalyticsPeriodView = {
   range: AnalyticsRange;
   metrics: Record<AnalyticsMetricKey, AnalyticsMetric>;
   trafficSources: AnalyticsTrafficSource[];
   verdict: string;
+  verdictSegments: AnalyticsVerdictSegment[];
   why: string;
   hasFirstPartyTrend: boolean;
 };
@@ -158,21 +164,74 @@ function metric(input: {
   return { ...input, changePercent: percentChange(input.total, input.previousTotal) };
 }
 
+function signedPercent(value: number) {
+  return `${value >= 0 ? "+" : "−"}${Math.abs(value)}%`;
+}
+
 function visibilityVerdict(metrics: Record<AnalyticsMetricKey, AnalyticsMetric>, movers: AnalyticsRankMover[]) {
   const impressions = metrics.impressions;
   const clicks = metrics.clicks;
   const rising = movers.filter((mover) => mover.tone === "up").length;
+  const pageOne = movers.filter((mover) => mover.tone === "up"
+    && mover.currentPosition !== null
+    && mover.currentPosition <= 10
+    && mover.previousPosition !== null
+    && mover.previousPosition > 10).length;
+  let segments: AnalyticsVerdictSegment[];
   if (impressions.total !== null && clicks.total !== null) {
-    if (impressions.changePercent !== null || clicks.changePercent !== null) {
-      const visibility = impressions.changePercent === null ? "has a new baseline" : `${impressions.changePercent >= 0 ? "grew" : "fell"} ${Math.abs(impressions.changePercent)}%`;
-      const visits = clicks.changePercent === null ? "have a new baseline" : `${clicks.changePercent >= 0 ? "grew" : "fell"} ${Math.abs(clicks.changePercent)}%`;
-      const movement = rising ? `, with ${rising} tracked keyword${rising === 1 ? "" : "s"} moving up` : "";
-      return `Your Google visibility ${visibility}, and search visits ${visits}${movement}.`;
+    if (impressions.changePercent !== null && clicks.changePercent !== null) {
+      if (impressions.changePercent > 0 && clicks.changePercent > 0) {
+        segments = [
+          { text: "More people are finding you on Google — visibility grew " },
+          { text: signedPercent(impressions.changePercent), highlight: true },
+          { text: " and search visits grew " },
+          { text: signedPercent(clicks.changePercent), highlight: true },
+        ];
+      } else {
+        segments = [
+          { text: `Your Google visibility ${impressions.changePercent >= 0 ? "grew" : "fell"} ` },
+          { text: signedPercent(impressions.changePercent), highlight: true },
+          { text: `, while search visits ${clicks.changePercent >= 0 ? "grew" : "fell"} ` },
+          { text: signedPercent(clicks.changePercent), highlight: true },
+        ];
+      }
+      if (pageOne > 0) {
+        segments.push(
+          { text: ", with " },
+          { text: `${pageOne} tracked keyword${pageOne === 1 ? "" : "s"}`, highlight: true },
+          { text: ` that moved onto page one${pageOne === 1 ? "" : ""}` },
+        );
+      } else if (rising > 0) {
+        segments.push(
+          { text: ", with " },
+          { text: `${rising} tracked keyword${rising === 1 ? "" : "s"}`, highlight: true },
+          { text: " moving up" },
+        );
+      }
+      segments.push({ text: "." });
+      return { text: segments.map((segment) => segment.text).join(""), segments };
     }
-    return `Google showed your site ${Math.round(impressions.total).toLocaleString("en-US")} times and sent ${Math.round(clicks.total).toLocaleString("en-US")} search visit${Math.round(clicks.total) === 1 ? "" : "s"} during this connected period.`;
+    if (impressions.changePercent !== null || clicks.changePercent !== null) {
+      const known = impressions.changePercent !== null
+        ? { label: "visibility", metric: impressions }
+        : { label: "search visits", metric: clicks };
+      const change = known.metric.changePercent!;
+      segments = [
+        { text: `Your Google ${known.label} ${change >= 0 ? "grew" : "fell"} ` },
+        { text: signedPercent(change), highlight: true },
+        { text: ", while the other search metric established a new baseline." },
+      ];
+      return { text: segments.map((segment) => segment.text).join(""), segments };
+    }
+    segments = [{ text: `Google showed your site ${Math.round(impressions.total).toLocaleString("en-US")} times and sent ${Math.round(clicks.total).toLocaleString("en-US")} search visit${Math.round(clicks.total) === 1 ? "" : "s"} during this connected period.` }];
+    return { text: segments[0].text, segments };
   }
-  if (impressions.total !== null) return `Your website appeared ${Math.round(impressions.total).toLocaleString("en-US")} times in Google Search during this connected period.`;
-  return "Connect Google Search Console to see how often people find your website and which searches bring them in.";
+  if (impressions.total !== null) {
+    segments = [{ text: `Your website appeared ${Math.round(impressions.total).toLocaleString("en-US")} times in Google Search during this connected period.` }];
+    return { text: segments[0].text, segments };
+  }
+  segments = [{ text: "Connect Google Search Console to see how often people find your website and which searches bring them in." }];
+  return { text: segments[0].text, segments };
 }
 
 export function buildAnalyticsPeriods({
@@ -222,11 +281,13 @@ export function buildAnalyticsPeriods({
         previous: normalizedSeries(ga.previousDaily, engagedValue === null ? "organicSessions" : "organicEngagedSessions"),
       }),
     } satisfies Record<AnalyticsMetricKey, AnalyticsMetric>;
+    const verdict = visibilityVerdict(metrics, movers);
     return {
       range,
       metrics,
       trafficSources: trafficSources(ga),
-      verdict: visibilityVerdict(metrics, movers),
+      verdict: verdict.text,
+      verdictSegments: verdict.segments,
       why: "Why it matters: impressions show discovery, clicks show visits, and Analytics shows whether organic visitors stayed and acted.",
       hasFirstPartyTrend: Object.values(metrics).some((item) => item.current.length > 1),
     };

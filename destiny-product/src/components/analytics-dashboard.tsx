@@ -117,7 +117,9 @@ export function AnalyticsDashboard({
 
     <section className="analytics-verdict" aria-labelledby="analytics-verdict-title">
       <span className="analytics-eyebrow" id="analytics-verdict-title">This period, in one sentence</span>
-      <p>{period.verdict}</p>
+      <p>{period.verdictSegments.map((segment, index) => segment.highlight
+        ? <strong className="analytics-verdict-highlight" key={`${segment.text}-${index}`}>{segment.text}</strong>
+        : <span key={`${segment.text}-${index}`}>{segment.text}</span>)}</p>
       <small>{period.why}</small>
     </section>
 
@@ -155,7 +157,7 @@ export function AnalyticsDashboard({
         </div>
       </header>
       {chartReady ? <svg className="analytics-trend-chart" preserveAspectRatio="none" role="img" viewBox="0 0 760 230">
-        <title>{metric.name} during the latest {range} days compared with the prior period</title>
+        <title>{`${metric.name} during the latest ${range} days compared with the prior period`}</title>
         <line x1="10" x2="750" y1="58" y2="58" /><line x1="10" x2="750" y1="115" y2="115" /><line x1="10" x2="750" y1="172" y2="172" />
         {previousPath && <path className="analytics-trend-previous" d={previousPath} />}
         <path className="analytics-trend-current" d={currentPath} />

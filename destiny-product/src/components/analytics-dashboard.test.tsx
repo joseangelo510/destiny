@@ -23,6 +23,7 @@ describe("AnalyticsDashboard", () => {
         previousDaily: [{ date: "2026-05-18", organicEngagedSessions: 5 }, { date: "2026-05-19", organicEngagedSessions: 6 }],
         trafficSources: [{ source: "google", medium: "organic", sessions: 80 }],
       } } },
+      movers: [{ keyword: "seo coach", currentPosition: 8, previousPosition: 13, delta: 5, tone: "up" }],
     });
     const html = renderToStaticMarkup(<AnalyticsDashboard
       estimate={{ organicTraffic: 900, rankingKeywords: 48, source: "DataForSEO" }}
@@ -38,6 +39,10 @@ describe("AnalyticsDashboard", () => {
     />);
 
     expect(html).toContain("This period, in one sentence");
+    expect(html).toContain("More people are finding you on Google");
+    expect(html).toContain('<strong class="analytics-verdict-highlight">+20%</strong>');
+    expect(html).toContain('<strong class="analytics-verdict-highlight">1 tracked keyword</strong>');
+    expect(html.match(/analytics-verdict-highlight/g)).toHaveLength(3);
     expect(html).toContain("Do this next");
     expect(html).toContain("The search journey");
     expect(html).toContain("Where visitors come from");

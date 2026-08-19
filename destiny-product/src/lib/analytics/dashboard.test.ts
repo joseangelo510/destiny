@@ -31,7 +31,28 @@ describe("Destiny analytics dashboard", () => {
       { label: "AI assistants", sessions: 10, percent: 10 },
       { label: "Direct", sessions: 10, percent: 10 },
     ]);
-    expect(periods[90].verdict).toMatch(/1 tracked keyword moving up/);
+    expect(periods[90].verdict).toBe("More people are finding you on Google — visibility grew +20% and search visits grew +20%, with 1 tracked keyword that moved onto page one.");
+    expect(periods[90].verdictSegments.filter((segment) => segment.highlight).map((segment) => segment.text)).toEqual([
+      "+20%",
+      "+20%",
+      "1 tracked keyword",
+    ]);
+  });
+
+  it("keeps a mixed-period verdict truthful while preserving the highlighted metric structure", () => {
+    const periods = buildAnalyticsPeriods({
+      searchConsole: { periods: { 30: {
+        clicks: 80,
+        previousClicks: 100,
+        impressions: 1200,
+        previousImpressions: 1000,
+      } } },
+      analytics: null,
+      movers: [],
+    });
+
+    expect(periods[30].verdict).toBe("Your Google visibility grew +20%, while search visits fell −20%.");
+    expect(periods[30].verdictSegments.filter((segment) => segment.highlight).map((segment) => segment.text)).toEqual(["+20%", "−20%"]);
   });
 
   it("uses legacy 28-day snapshots only for the 30-day view and does not invent a 90-day series", () => {
