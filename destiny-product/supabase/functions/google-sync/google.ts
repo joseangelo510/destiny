@@ -28,12 +28,29 @@ async function googleJson(url: string, accessToken: string, init?: RequestInit) 
   return response.json() as Promise<unknown>;
 }
 
-function reportingDates() {
+function reportingDates(days = 28, previous = false) {
   const end = new Date();
-  end.setUTCDate(end.getUTCDate() - 3);
+  end.setUTCHours(0, 0, 0, 0);
+  end.setUTCDate(end.getUTCDate() - 3 - (previous ? days : 0));
   const start = new Date(end);
-  start.setUTCDate(start.getUTCDate() - 27);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
   return { startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10) };
+}
+
+function dateBetween(value: string, dates: { startDate: string; endDate: string }) {
+  return value >= dates.startDate && value <= dates.endDate;
+}
+
+function searchTotals(payload: unknown) {
+  const row = record(list(record(payload).rows)[0]);
+  return { clicks: number(row.clicks), impressions: number(row.impressions), ctr: number(row.ctr), position: number(row.position) };
+}
+
+function searchDaily(payload: unknown) {
+  return list(record(payload).rows).map(record).flatMap((row) => {
+    const date = text(list(row.keys)[0]);
+    return date ? [{ date, clicks: number(row.clicks), impressions: number(row.impressions), ctr: number(row.ctr), position: number(row.position) }] : [];
+  }).sort((left, right) => left.date.localeCompare(right.date));
 }
 
 export async function syncSearchConsole(accessToken: string, domain: string): Promise<GoogleSyncResult> {
@@ -45,25 +62,80 @@ export async function syncSearchConsole(accessToken: string, domain: string): Pr
   if (!selected) return { externalAccountId: null, metadata: { siteCount: 0, notice: "No Search Console property was available to this Google account." } };
 
   const siteUrl = text(selected.siteUrl);
-  const dates = reportingDates();
   const endpoint = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`;
-  const [totalsPayload, queriesPayload] = await Promise.all([
-    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...dates, dimensions: [], rowLimit: 1, dataState: "final" }) }),
-    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...dates, dimensions: ["query"], rowLimit: 10, dataState: "final" }) }),
+  const current30 = reportingDates(30);
+  const previous30 = reportingDates(30, true);
+  const current90 = reportingDates(90);
+  const previous90 = reportingDates(90, true);
+  const [totals30Payload, previous30Payload, totals90Payload, previous90Payload, dailyPayload, queriesPayload] = await Promise.all([
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...current30, dimensions: [], rowLimit: 1, dataState: "final" }) }),
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...previous30, dimensions: [], rowLimit: 1, dataState: "final" }) }),
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...current90, dimensions: [], rowLimit: 1, dataState: "final" }) }),
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...previous90, dimensions: [], rowLimit: 1, dataState: "final" }) }),
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ startDate: previous90.startDate, endDate: current90.endDate, dimensions: ["date"], rowLimit: 25_000, dataState: "final" }) }),
+    googleJson(endpoint, accessToken, { method: "POST", body: JSON.stringify({ ...current90, dimensions: ["query"], rowLimit: 10, dataState: "final" }) }),
   ]);
-  const totals = record(list(record(totalsPayload).rows)[0]);
+  const totals30 = searchTotals(totals30Payload);
+  const prior30 = searchTotals(previous30Payload);
+  const totals90 = searchTotals(totals90Payload);
+  const prior90 = searchTotals(previous90Payload);
+  const daily = searchDaily(dailyPayload);
   const topQueries = list(record(queriesPayload).rows).map(record).map((row) => ({
     query: text(list(row.keys)[0]), clicks: number(row.clicks), impressions: number(row.impressions), position: number(row.position),
   }));
+  const period = (dates: { startDate: string; endDate: string }, previousDates: { startDate: string; endDate: string }, totals: ReturnType<typeof searchTotals>, previous: ReturnType<typeof searchTotals>) => ({
+    ...dates,
+    ...totals,
+    previousClicks: previous.clicks,
+    previousImpressions: previous.impressions,
+    previousCtr: previous.ctr,
+    previousPosition: previous.position,
+    daily: daily.filter((row) => dateBetween(row.date, dates)),
+    previousDaily: daily.filter((row) => dateBetween(row.date, previousDates)),
+  });
   return {
     externalAccountId: siteUrl,
     metadata: {
-      ...dates,
+      ...current30,
       selectedSiteUrl: siteUrl,
       availableSites: sites.slice(0, 25).map((site) => ({ siteUrl: text(site.siteUrl), permissionLevel: text(site.permissionLevel) })),
-      clicks: number(totals.clicks), impressions: number(totals.impressions), ctr: number(totals.ctr), position: number(totals.position), topQueries,
+      clicks: totals30.clicks, impressions: totals30.impressions, ctr: totals30.ctr, position: totals30.position, topQueries,
+      periods: {
+        "30": period(current30, previous30, totals30, prior30),
+        "90": period(current90, previous90, totals90, prior90),
+      },
     },
   };
+}
+
+function analyticsTotals(payload: unknown) {
+  const values = list(record(list(record(payload).rows)[0]).metricValues).map((value) => number(record(value).value));
+  return {
+    organicSessions: values[0] ?? 0,
+    organicActiveUsers: values[1] ?? 0,
+    organicEngagedSessions: values[2] ?? 0,
+    organicKeyEvents: values[3] ?? 0,
+  };
+}
+
+function analyticsDate(value: string) {
+  return /^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}` : value;
+}
+
+function analyticsDaily(payload: unknown) {
+  return list(record(payload).rows).map(record).flatMap((row) => {
+    const date = analyticsDate(text(record(list(row.dimensionValues)[0]).value));
+    const totals = analyticsTotals({ rows: [row] });
+    return date ? [{ date, ...totals }] : [];
+  }).sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function analyticsTrafficSources(payload: unknown) {
+  return list(record(payload).rows).map(record).flatMap((row) => {
+    const dimensions = list(row.dimensionValues).map((value) => text(record(value).value));
+    const sessions = number(record(list(row.metricValues)[0]).value);
+    return sessions > 0 ? [{ source: dimensions[0] || "(not set)", medium: dimensions[1] || "(not set)", sessions }] : [];
+  });
 }
 
 export async function syncGoogleAnalytics(accessToken: string): Promise<GoogleSyncResult> {
@@ -78,26 +150,76 @@ export async function syncGoogleAnalytics(accessToken: string): Promise<GoogleSy
   const selected = properties[0];
   if (!selected) return { externalAccountId: null, metadata: { propertyCount: 0, notice: "No GA4 property was available to this Google account." } };
 
-  const report = record(await googleJson(`https://analyticsdata.googleapis.com/v1beta/${selected.property}:runReport`, accessToken, {
-    method: "POST",
-    body: JSON.stringify({
-      dateRanges: [{ startDate: "28daysAgo", endDate: "yesterday" }],
-      dimensions: [{ name: "sessionDefaultChannelGroup" }],
-      metrics: [{ name: "sessions" }, { name: "activeUsers" }, { name: "keyEvents" }],
-      dimensionFilter: { filter: { fieldName: "sessionDefaultChannelGroup", stringFilter: { matchType: "EXACT", value: "Organic Search" } } },
-      limit: 1,
+  const current30 = reportingDates(30);
+  const previous30 = reportingDates(30, true);
+  const current90 = reportingDates(90);
+  const previous90 = reportingDates(90, true);
+  const organicFilter = { filter: { fieldName: "sessionDefaultChannelGroup", stringFilter: { matchType: "EXACT", value: "Organic Search" } } };
+  const totalsRequest = (dates: { startDate: string; endDate: string }) => ({
+    dateRanges: [dates],
+    metrics: [{ name: "sessions" }, { name: "activeUsers" }, { name: "engagedSessions" }, { name: "keyEvents" }],
+    dimensionFilter: organicFilter,
+    limit: 1,
+  });
+  const dailyRequest = {
+    dateRanges: [{ startDate: previous90.startDate, endDate: current90.endDate }],
+    dimensions: [{ name: "date" }],
+    metrics: [{ name: "sessions" }, { name: "activeUsers" }, { name: "engagedSessions" }, { name: "keyEvents" }],
+    dimensionFilter: organicFilter,
+    orderBys: [{ dimension: { dimensionName: "date" } }],
+    limit: 25_000,
+  };
+  const trafficRequest = (dates: { startDate: string; endDate: string }) => ({
+    dateRanges: [dates],
+    dimensions: [{ name: "sessionSource" }, { name: "sessionMedium" }],
+    metrics: [{ name: "sessions" }],
+    orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+    limit: 200,
+  });
+  const [batchPayload, traffic30Payload, traffic90Payload] = await Promise.all([
+    googleJson(`https://analyticsdata.googleapis.com/v1beta/${selected.property}:batchRunReports`, accessToken, {
+      method: "POST",
+      body: JSON.stringify({ requests: [totalsRequest(current30), totalsRequest(previous30), totalsRequest(current90), totalsRequest(previous90), dailyRequest] }),
     }),
-  }));
-  const values = list(record(list(report.rows)[0]).metricValues).map((value) => number(record(value).value));
+    googleJson(`https://analyticsdata.googleapis.com/v1beta/${selected.property}:runReport`, accessToken, {
+      method: "POST", body: JSON.stringify(trafficRequest(current30)),
+    }),
+    googleJson(`https://analyticsdata.googleapis.com/v1beta/${selected.property}:runReport`, accessToken, {
+      method: "POST", body: JSON.stringify(trafficRequest(current90)),
+    }),
+  ]);
+  const reports = list(record(batchPayload).reports);
+  const totals30 = analyticsTotals(reports[0]);
+  const prior30 = analyticsTotals(reports[1]);
+  const totals90 = analyticsTotals(reports[2]);
+  const prior90 = analyticsTotals(reports[3]);
+  const daily = analyticsDaily(reports[4]);
+  const period = (dates: { startDate: string; endDate: string }, previousDates: { startDate: string; endDate: string }, totals: ReturnType<typeof analyticsTotals>, previous: ReturnType<typeof analyticsTotals>, trafficPayload: unknown) => ({
+    ...dates,
+    ...totals,
+    previousOrganicSessions: previous.organicSessions,
+    previousOrganicActiveUsers: previous.organicActiveUsers,
+    previousOrganicEngagedSessions: previous.organicEngagedSessions,
+    previousOrganicKeyEvents: previous.organicKeyEvents,
+    daily: daily.filter((row) => dateBetween(row.date, dates)),
+    previousDaily: daily.filter((row) => dateBetween(row.date, previousDates)),
+    trafficSources: analyticsTrafficSources(trafficPayload),
+  });
+  const currentPeriod = period(current30, previous30, totals30, prior30, traffic30Payload);
   return {
     externalAccountId: selected.property,
     metadata: {
       selectedProperty: selected,
       availableProperties: properties.slice(0, 50),
-      dateRange: "Last 28 complete days",
-      organicSessions: values[0] ?? 0,
-      organicActiveUsers: values[1] ?? 0,
-      organicKeyEvents: values[2] ?? 0,
+      dateRange: "Last 30 complete days",
+      organicSessions: currentPeriod.organicSessions,
+      organicActiveUsers: currentPeriod.organicActiveUsers,
+      organicEngagedSessions: currentPeriod.organicEngagedSessions,
+      organicKeyEvents: currentPeriod.organicKeyEvents,
+      periods: {
+        "30": currentPeriod,
+        "90": period(current90, previous90, totals90, prior90, traffic90Payload),
+      },
     },
   };
 }
