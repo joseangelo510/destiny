@@ -199,7 +199,7 @@ function visibilityVerdict(metrics: Record<AnalyticsMetricKey, AnalyticsMetric>,
         segments.push(
           { text: ", with " },
           { text: `${pageOne} tracked keyword${pageOne === 1 ? "" : "s"}`, highlight: true },
-          { text: ` that moved onto page one${pageOne === 1 ? "" : ""}` },
+          { text: " that moved onto page one" },
         );
       } else if (rising > 0) {
         segments.push(
