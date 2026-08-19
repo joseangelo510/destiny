@@ -14,7 +14,7 @@ export async function WorkspaceShell({
   eyebrow: string;
   title: string;
   description: string;
-  design?: "claude-keyword-strategy";
+  design?: "claude-keyword-strategy" | "claude-analytics";
   children: ReactNode;
 }) {
   const context = await getWorkspaceContext();
