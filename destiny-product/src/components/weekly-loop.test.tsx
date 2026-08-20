@@ -64,21 +64,76 @@ const groups = [
 ];
 
 describe("WeeklyLoop", () => {
-  it("uses one category surface and exposes the active category task in place", () => {
-    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} remainingTasks={2} />);
+  it("renders the calm four-step map with every category preview and the recommended checklist", () => {
+    const mapGroups = groups.map((group) => group.id === "distribution"
+      ? { ...group, tasks: [task({ id: "distribution-task", title: "Share your approved article", task_type: "social_distribution", action_path: "/distribution#social" })] }
+      : group.id === "technical-seo"
+      ? { ...group, tasks: [
+        task({ id: "technical-task", title: "Run a PageSpeed and deeper technical check", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" }),
+        task({ id: "technical-follow-up", title: "Review the technical findings", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" }),
+      ] }
+      : group);
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} currentTaskId="content-task" groups={mapGroups} remainingTasks={4} />);
 
-    expect(html).toContain("Your weekly SEO loop");
-    expect(html).toContain("Four kinds of work build your visibility");
-    expect(html).toContain("Approve your priority keywords");
-    expect(html).not.toContain("Review your first article");
-    expect(html).not.toContain("Your next useful step");
-    expect(html).not.toContain("See the full week");
-    expect((html.match(/Research &amp; strategy/g) ?? [])).toHaveLength(1);
-    expect((html.match(/Content creation/g) ?? [])).toHaveLength(1);
-    expect((html.match(/Technical SEO/g) ?? [])).toHaveLength(1);
+    expect(html).toContain("Choose a category to see its complete checklist.");
+    expect(html).not.toContain("Four kinds of work build your visibility");
+    expect(html).toContain('aria-label="Weekly plan categories"');
+    expect(html).toContain("1");
+    expect(html).toContain("2");
+    expect(html).toContain("3");
+    expect(html).toContain("4");
+    for (const label of ["Research &amp; strategy", "Content creation", "Distribution", "Technical SEO"]) expect(html).toContain(label);
+    for (const preview of ["Approve your priority keywords", "Review your first article", "Share your approved article", "Run a PageSpeed and deeper technical check"]) expect(html).toContain(preview);
+    expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain("Step 2");
+    expect(html).toContain("Ready to start");
+    expect((html.match(/Review your first article/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect((html.match(/0 of 5 weekly tasks complete/g) ?? []).length).toBeGreaterThanOrEqual(1);
     expect(html).not.toContain("Data analysis");
     expect(html).toContain("See full audit details");
     expect(html).toContain('href="/audits/audit-1"');
+  });
+
+  it("keeps empty categories visible and labels their checklist honestly", () => {
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} groups={groups} remainingTasks={2} />);
+
+    expect(html).toContain("Distribution");
+    expect(html).toContain("No task needed here this week.");
+    expect(html).toContain("0 tasks");
+  });
+
+  it("renders every real task in the selected category checklist with its saved destination", () => {
+    const technicalGroups = groups.map((group) => group.id === "technical-seo"
+      ? { ...group, tasks: [
+        task({ id: "technical-task", title: "Run a PageSpeed and deeper technical check", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" }),
+        task({ id: "technical-follow-up", title: "Review the technical findings", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" }),
+      ] }
+      : group);
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} currentTaskId="technical-task" groups={technicalGroups} remainingTasks={3} />);
+
+    expect(html).toContain("Step 4");
+    expect(html).toContain('data-task-id="technical-task" open=""');
+    expect(html).toContain('data-task-id="technical-follow-up"');
+    expect(html.split('href="/audits/audit-1#technical-evidence"')).toHaveLength(3);
+    expect(html).toContain("12 min");
+  });
+
+  it("keeps the category map interaction local to the weekly surface", async () => {
+    const source = await readFile(new URL("./weekly-loop.tsx", import.meta.url), "utf8");
+
+    expect(source).toContain('onClick={() => setActiveGroupId(group.id)}');
+    expect(source).toContain('type="button"');
+    expect(source).toContain("weekly-map-focus-panel");
+    expect(source).not.toContain("weekly-loop-tabs");
+    expect(source).not.toContain("weekly-loop-task-pane");
+  });
+
+  it("stacks the complete selector above the focus panel on mobile without horizontal overflow", async () => {
+    const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+    expect(css).toContain(".weekly-map-layout");
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*\.weekly-map-layout \{[^}]*grid-template-columns: 1fr/);
+    expect(css).toMatch(/@media \(max-width: 760px\)[\s\S]*\.weekly-map-path \{[^}]*overflow: visible/);
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {
@@ -103,6 +158,7 @@ describe("WeeklyLoop", () => {
     expect(html).toContain("Approve your priority keywords");
     expect(html).not.toContain("Review your first article");
     expect(html).toContain("Show my full week");
+    expect(html).not.toContain('aria-label="Weekly plan categories"');
   });
 
   it("opens a completed-only strategy task so the saved review remains reachable", () => {
@@ -114,6 +170,7 @@ describe("WeeklyLoop", () => {
     expect(html).toContain('data-task-id="keyword-task" open=""');
     expect(html).toContain('href="/keywords"');
     expect(html).toContain("Review saved strategy");
+    expect(html).toContain("Marked done by you");
   });
 
   it("renders a real-audit weekly screen from the LOGOS-owned manifest", async () => {

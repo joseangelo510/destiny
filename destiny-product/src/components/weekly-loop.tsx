@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { WeeklyTaskList } from "./weekly-task-list";
-import { coachingTaskCopy } from "../lib/product/coach-experience";
+import { coachingTaskCopy, completionPresentation } from "../lib/product/coach-experience";
 
 type WeeklyLoopTask = {
   id: string;
@@ -30,13 +30,6 @@ export type WeeklyLoopGroup = {
   description: string;
   taskTypes: readonly string[];
   tasks: WeeklyLoopTask[];
-};
-
-const CATEGORY_ICONS: Record<string, string> = {
-  "research-strategy": "⌁",
-  "content-creation": "✎",
-  distribution: "↗",
-  "technical-seo": "⌗",
 };
 
 export function WeeklyLoop({
@@ -105,19 +98,24 @@ export function WeeklyLoop({
     ?? activeGroup?.tasks.find((task) => task.status === "todo")?.id
     ?? activeGroup?.tasks[0]?.id
     ?? null;
+  const activeTask = activeGroup?.tasks.find((task) => task.id === openTaskId) ?? null;
+  const activeTaskCopy = activeTask ? coachingTaskCopy(activeTask) : null;
+  const activeTaskState = activeTask ? completionPresentation(activeTask) : null;
+  const activeGroupIndex = Math.max(0, groups.findIndex((group) => group.id === activeGroup?.id));
+  const progress = allTasks.length > 0 ? Math.round((complete / allTasks.length) * 100) : 0;
 
   return <>
     <section className="weekly-loop" aria-labelledby="weekly-loop-title">
-      <header className="weekly-loop-heading">
+      <header className="weekly-map-heading">
         <div>
-          <span className="eyebrow">Your weekly SEO loop</span>
-          <h2 id="weekly-loop-title">Four kinds of work build your visibility.</h2>
-          <p>Choose a category to see exactly what Destiny recommends this week.</p>
+          <span className="eyebrow">Your weekly plan</span>
+          <h2 id="weekly-loop-title">Choose a category to see its complete checklist.</h2>
         </div>
-        <div className="weekly-loop-summary" aria-label={`${complete} of ${allTasks.length} weekly tasks complete`}>
-          <strong>{complete > 0 ? `${complete} of ${allTasks.length}` : allTasks.length}</strong>
-          <span>{complete > 0 ? "complete this week" : "tasks this week"}</span>
-          <small>{currentStreak}-week streak</small>
+        <div className="weekly-map-summary">
+          <div aria-label={`${complete} of ${allTasks.length} weekly tasks complete`} className="weekly-map-progress-ring" style={{ background: `conic-gradient(var(--forest) ${progress}%, #e5ece8 0)` }}>
+            <span><strong>{complete}</strong><small>of {allTasks.length}</small></span>
+          </div>
+          <div className="weekly-map-summary-copy"><strong>{complete} of {allTasks.length} complete</strong><small>{currentStreak}-week streak</small></div>
           {!focusMode && focusTask && <button className="overwhelm-button" onClick={() => setFocusMode(true)} type="button"><span aria-hidden="true">♡</span> I’m overwhelmed</button>}
         </div>
       </header>
@@ -127,23 +125,44 @@ export function WeeklyLoop({
         <div className="weekly-focus-time"><span>One step</span><strong>about {focusTask.estimated_minutes} minutes</strong></div>
         <WeeklyTaskList auditId={auditId} openTaskId={focusTask.id} remainingTasks={remainingTasks} tasks={[focusTask]} />
       </section> : <>
-      <div className="weekly-loop-tabs" role="tablist" aria-label="Weekly SEO work">
-        {groups.map((group, index) => {
-          const groupComplete = group.tasks.filter((task) => task.status === "complete").length;
-          const active = group.id === activeGroup?.id;
-          return <button aria-controls="weekly-loop-task-pane" aria-selected={active} className={active ? "active" : ""} id={`weekly-loop-tab-${group.id}`} key={group.id} onClick={() => setActiveGroupId(group.id)} role="tab" type="button">
-            <span className={`weekly-loop-icon category-${index + 1}`}>{CATEGORY_ICONS[group.id] ?? index + 1}</span>
-            <span><small>0{index + 1}</small><strong>{group.label}</strong><em>{groupComplete > 0 ? `${groupComplete} of ${group.tasks.length} complete` : `${group.tasks.length} ${group.tasks.length === 1 ? "task" : "tasks"}`}</em></span>
-          </button>;
-        })}
-      </div>
+      <div className="weekly-map-layout">
+        <nav aria-label="Weekly plan categories" className="weekly-map-path">
+          {groups.map((group, index) => {
+            const groupComplete = group.tasks.filter((task) => task.status === "complete").length;
+            const previewTask = group.tasks.find((task) => task.id === currentTaskId)
+              ?? group.tasks.find((task) => task.status === "in_progress")
+              ?? group.tasks.find((task) => task.status === "todo")
+              ?? group.tasks[0]
+              ?? null;
+            const active = group.id === activeGroup?.id;
+            return <button aria-controls="weekly-map-focus-panel" aria-pressed={active} className={active ? "active" : ""} key={group.id} onClick={() => setActiveGroupId(group.id)} type="button">
+              <span className="weekly-map-step-number">{index + 1}</span>
+              <span className="weekly-map-step-copy">
+                <strong>{group.label}</strong>
+                <small>{group.tasks.length > 0 ? coachingTaskCopy(previewTask!).title : "No task needed here this week."}</small>
+                <em>{group.tasks.length === 0 ? "0 tasks" : groupComplete === group.tasks.length ? `${groupComplete} of ${group.tasks.length} complete` : `${group.tasks.length} ${group.tasks.length === 1 ? "task" : "tasks"}`}</em>
+              </span>
+            </button>;
+          })}
+        </nav>
 
-      {activeGroup && <section aria-labelledby={`weekly-loop-tab-${activeGroup.id}`} className="weekly-loop-task-pane" id="weekly-loop-task-pane" role="tabpanel">
-        <div className="weekly-loop-pane-intro"><span className="eyebrow">{focusGroup && activeGroup.id === focusGroup.id ? "Start here" : "Now viewing"}</span><p>{activeGroup.description}</p>{focusGroup && activeGroup.id === focusGroup.id && <small className="weekly-loop-start-here-note">Your next move is based on what the audit found.</small>}</div>
-        {activeGroup.tasks.length > 0
-          ? <WeeklyTaskList auditId={auditId} openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
-          : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
-      </section>}
+        {activeGroup && <section aria-live="polite" className="weekly-map-focus-panel" id="weekly-map-focus-panel">
+          <header className="weekly-map-focus-heading">
+            <div>
+              <span className="weekly-map-focus-step">Step {activeGroupIndex + 1} · {activeGroup.label}</span>
+              <h3>{activeTaskCopy?.title ?? activeGroup.label}</h3>
+              <p>{activeTaskCopy?.description ?? activeGroup.description}</p>
+            </div>
+            <span className={`weekly-map-focus-state ${activeTaskState?.tone ?? "open"}`}>{activeTaskState?.label ?? "Nothing needed now"}</span>
+          </header>
+          {activeGroup.tasks.length > 0
+            ? <>
+              <div className="weekly-map-checklist-heading"><strong>Complete checklist</strong><span>{activeGroup.tasks.filter((task) => task.status === "complete").length} of {activeGroup.tasks.length} complete</span></div>
+              <WeeklyTaskList auditId={auditId} openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
+            </>
+            : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
+        </section>}
+      </div>
       </>}
     </section>
 
