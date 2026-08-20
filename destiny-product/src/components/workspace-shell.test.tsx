@@ -26,7 +26,7 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain(`/app?site=${site.id}`);
     expect(html).not.toContain('aria-label="Destiny homepage"');
     expect(html).toContain(`href="/account?site=${site.id}"`);
-    expect(html).toMatch(/>Account<.*>Sign out</s);
+    expect(html).toMatch(/>Account<[\s\S]*>Sign out</);
   });
 
   it("opens the tool disclosure when the user is already inside a secondary tool", () => {
@@ -76,6 +76,30 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain('aria-label="Open notifications"');
   });
 
+  it("includes Repurpose content immediately after Content studio in feature navigation", () => {
+    const html = renderToStaticMarkup(<WorkspaceShellView active="/this-week" activeWebsiteId={site.id} description="One useful step." eyebrow="example.com" title="This week" websites={[site]}><p>Work</p></WorkspaceShellView>);
+
+    // Both items are present
+    expect(html).toContain("Content studio");
+    expect(html).toContain("Repurpose content");
+
+    // Repurpose content href is site-scoped
+    expect(html).toContain(`href="/content/repurpose?site=${site.id}"`);
+
+    // Adjacency: Content studio appears immediately before Repurpose content
+    const contentStudioPos = html.indexOf("Content studio");
+    const repurposePos = html.indexOf("Repurpose content");
+    expect(contentStudioPos).toBeGreaterThan(-1);
+    expect(repurposePos).toBeGreaterThan(-1);
+    expect(contentStudioPos).toBeLessThan(repurposePos);
+
+    // Nothing else appears between Content studio and Repurpose content
+    const between = html.slice(contentStudioPos + "Content studio".length, repurposePos);
+    expect(between).not.toContain("Editorial calendar");
+    expect(between).not.toContain("Keyword strategy");
+    expect(between).not.toContain("Keyword research");
+  });
+
   it("keeps the compact (≤760px) header inside the viewport: account actions hidden, site selector shrinkable", async () => {
     const { readFile } = await import("node:fs/promises");
     const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -86,7 +110,7 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(mobileBlocks.some((block) => /\.sidebar \.sidebar-account-actions\s*\{[^}]*display:\s*none/.test(block) || /,\s*\.sidebar \.sidebar-account-actions\s*\{[^}]*display:\s*none/.test(block))).toBe(true);
     // …while Account and Sign out remain reachable inside the mobile Tools & reports menu.
     const html = renderToStaticMarkup(<WorkspaceShellView active="/this-week" activeWebsiteId={site.id} description="One useful step." eyebrow="example.com" title="This week" websites={[site]}><p>Work</p></WorkspaceShellView>);
-    expect(html).toMatch(/mobile-feature-menu.*mobile-menu-account[^>]*>Account<.*mobile-menu-signout[^>]*>Sign out<\/button>/s);
+    expect(html).toMatch(/mobile-feature-menu[\s\S]*mobile-menu-account[^>]*>Account<[\s\S]*mobile-menu-signout[^>]*>Sign out<\/button>/);
     // The header row itself may never widen the document.
     expect(mobileBlocks.some((block) => /\.sidebar\s*\{[^}]*max-width:\s*100vw/.test(block))).toBe(true);
     expect(mobileBlocks.some((block) => /\.sidebar > \*\s*\{[^}]*min-width:\s*0/.test(block))).toBe(true);

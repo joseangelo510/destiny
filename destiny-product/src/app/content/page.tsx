@@ -13,10 +13,13 @@ import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-horizon";
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
+import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
 import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
-export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string }> }) {
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string }> }) {
   const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
@@ -76,13 +79,28 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const wordpress = context.integrations.find((integration) => integration.provider === "wordpress");
   const webflow = context.integrations.find((integration) => integration.provider === "webflow");
   const builderProfile = parseBuilderProfile(context.website?.builder_profile);
-  const articleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
+  const { data: repurposeSourceRow } = context.website && params.repurpose && UUID_PATTERN.test(params.repurpose)
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("repurpose_sources")
+      .select("id,output_type,target_keyword,source_kind,source_name,source_url,status,draft_title,draft_body,draft_metadata")
+      .eq("id", params.repurpose)
+      .eq("website_id", context.website.id)
+      .eq("output_type", "seo_blog_article")
+      .eq("status", "ready")
+      .maybeSingle()
+    : { data: null };
+  const repurposeArticleDraft = buildRepurposeArticleDraft(repurposeSourceRow);
+  const calendarArticleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
   }));
+  const articleDrafts = [
+    ...(repurposeArticleDraft ? [repurposeArticleDraft] : []),
+    ...calendarArticleDrafts.filter((draft) => draft.keyword !== repurposeArticleDraft?.keyword),
+  ].slice(0, 3);
   const { data: savedArticleDraftRows } = context.audit && context.website
     ? await (context.supabase as unknown as SupabaseClient)
       .from("article_drafts")
@@ -123,16 +141,17 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   }
   const approvedKeywordCount = (savedKeywordPreferences ?? []).filter((item) => item.decision === "approved").length;
   const watchlistCount = (pipelineTrackedKeywords ?? []).filter((item) => item.source !== "strategy").length;
+  const strategyContentReady = rankedKeywords.length > 0 && approvedKeywordCount > 0 && keywords.length > 0;
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
       <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
-      {!rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Destiny will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
+      {!repurposeArticleDraft && !rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !repurposeArticleDraft && approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Destiny will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !repurposeArticleDraft && !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
-        <section className="workspace-card content-workflow"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
-        <PublishingPlanManager
+        <section className="workspace-card content-workflow"><div><span>1</span><strong>{repurposeArticleDraft ? "Repurposed draft ready" : "Three outlines ready"}</strong><small>{repurposeArticleDraft ? "Loaded from your saved source" : "Built from your keyword strategy"}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
+        {strategyContentReady && <PublishingPlanManager
           approvedKeywordCount={approvedKeywordCount}
           websiteId={context.website?.id ?? ""}
           auditId={context.audit?.id ?? ""}
@@ -142,7 +161,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           websitePlatform={builderProfile.platform}
           initialPlan={publishingPlan}
           initialItems={publishingItems}
-        />
+        />}
         <ArticleReviewWorkspace
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
@@ -167,7 +186,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           questId={approvalQuest?.id}
           questStatus={approvalQuest?.status}
         />
-        <section className="workspace-card">
+        {strategyContentReady && <section className="workspace-card">
           <div className="workspace-card-heading editorial-calendar-heading">
             <div><strong>Editorial calendar</strong><small>{String(providerResult.sourceLabel ?? "Saved audit data")}</small></div>
             <div className="editorial-calendar-meta">
@@ -204,7 +223,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
               );
             })}
           </div>
-        </section>
+        </section>}
         </>
       )}
     </WorkspaceShell>
