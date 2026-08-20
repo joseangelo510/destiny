@@ -14,6 +14,7 @@ export const FEATURE_NAVIGATION = [
   { label: "Home", href: "/app" },
   { label: "Website audits", href: "/audits" },
   { label: "Content studio", href: "/content" },
+  { label: "Editorial calendar", href: "/content#publishing-plan" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Keyword research", href: "/keyword-research" },
   { label: "Rank tracker", href: "/rank-tracker" },

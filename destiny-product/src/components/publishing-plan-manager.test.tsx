@@ -48,7 +48,7 @@ describe("PublishingPlanManager readiness", () => {
     expect(html).not.toContain("Wix scheduling is not connected yet");
   });
 
-  it("renders Spark's calendar view with the complete truthful queue", () => {
+  it("renders the approved readable editorial calendar with truthful Month, Week, and List views", () => {
     const plan: PublishingPlanRecord = {
       id: "plan-1",
       mode: "automatic",
@@ -93,15 +93,15 @@ describe("PublishingPlanManager readiness", () => {
       wordpressConnected
     />);
 
-    expect(html).toContain("Publishing calendar view");
-    expect(html).toContain("Calendar");
+    expect(html).toContain("Plan and publish your content.");
+    expect(html).toContain("+ Add content");
+    expect(html).toContain("Month");
+    expect(html).toContain("Week");
     expect(html).toContain("List");
-    expect(html).toContain("America/Los_Angeles");
-    expect(html).toContain("Scheduled guide");
-    expect(html).toContain("Published guide");
-    expect(html).toContain("Failed guide");
-    expect(html).toContain("CMS-confirmed scheduled");
-    expect(html).toContain("Live and verified");
+    expect(html).toContain("Publishing week view");
+    expect(html).toContain("Planned guide");
+    expect(html).toContain("Planned");
+    expect(html).not.toContain("New story");
     expect(html).not.toContain("items.slice(0, 4)");
   });
 });
