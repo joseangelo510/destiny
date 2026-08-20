@@ -23,6 +23,7 @@ export type PublishingScheduleItemRecord = {
   keyword: string;
   title: string;
   content_type: string;
+  related_article_title?: string | null;
   scheduled_for: string;
   state: PublishingState;
   review_recommended: boolean;
@@ -31,6 +32,20 @@ export type PublishingScheduleItemRecord = {
   remote_permalink: string | null;
   last_error: string | null;
 };
+
+export type EditorialContentChannel = "article" | "linkedin" | "x" | "approved_draft";
+
+export function editorialContentChannel(contentType: string | null | undefined): EditorialContentChannel {
+  const normalized = (contentType ?? "").trim().toLocaleLowerCase();
+  if (normalized.includes("linkedin")) return "linkedin";
+  if (normalized === "x post" || normalized.includes("twitter")) return "x";
+  if (normalized.includes("approved draft")) return "approved_draft";
+  return "article";
+}
+
+export function isArticleCalendarItem(item: Pick<PublishingScheduleItemRecord, "content_type" | "position">, confirmedPostCount: number) {
+  return item.position <= confirmedPostCount && editorialContentChannel(item.content_type) === "article";
+}
 
 export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
 export type PublishingDeliveryMode = "direct_wordpress" | "manual_webflow" | "manual_wix" | "unavailable";
@@ -44,7 +59,8 @@ export function publishingDeliveryMode(websitePlatform: string | null, connected
 }
 
 export function publishingCalendarState(item: PublishingScheduleItemRecord, websitePlatform: string | null): PublishingCalendarState {
-  if (websitePlatform === "wix" || item.state === "managed_externally") return "manual";
+  if (websitePlatform === "wix" && ["article", "approved_draft"].includes(editorialContentChannel(item.content_type))) return "manual";
+  if (item.state === "managed_externally") return "manual";
   if (item.state === "published") return item.remote_permalink ? "published" : "planned";
   if (item.state === "scheduled") return item.remote_id ? "scheduled" : "planned";
   if (item.state === "failed") return "failed";
@@ -94,9 +110,9 @@ function normalizedKeyword(value: string) {
   return value.normalize("NFKC").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function localDateTimeAsUtc(startDate: string, timeZone: string, localHour: number) {
+function localDateTimeAsUtc(startDate: string, timeZone: string, localHour: number, localMinute = 0) {
   const [year, month, day] = startDate.split("-").map(Number);
-  const localWallClockAsUtc = Date.UTC(year, month - 1, day, localHour, 0, 0);
+  const localWallClockAsUtc = Date.UTC(year, month - 1, day, localHour, localMinute, 0);
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
@@ -115,6 +131,17 @@ function localDateTimeAsUtc(startDate: string, timeZone: string, localHour: numb
   };
   const firstPass = localWallClockAsUtc - offsetAt(localWallClockAsUtc);
   return new Date(localWallClockAsUtc - offsetAt(firstPass));
+}
+
+export function calendarLocalDateTimeAsUtc(value: string, timeZone: string) {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) throw new Error("Choose a valid publishing date and time.");
+  try { new Intl.DateTimeFormat("en-US", { timeZone }).format(); }
+  catch { throw new Error("Choose a valid publishing timezone."); }
+  const hour = Number(match[2]);
+  const minute = Number(match[3]);
+  if (hour > 23 || minute > 59) throw new Error("Choose a valid publishing date and time.");
+  return localDateTimeAsUtc(match[1], timeZone, hour, minute).toISOString();
 }
 
 export function buildWeeklySchedule(startDate: string, postCount: number, timeZone = "UTC", publishHourLocal = 9) {

@@ -7,6 +7,13 @@ import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type CalendarInput = { keyword?: unknown; title?: unknown; contentType?: unknown };
+const ITEM_SELECT = "id,plan_id,position,keyword,title,content_type,related_article_title,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error";
+const MANUAL_CONTENT_TYPES = new Map([
+  ["article", "Article"],
+  ["linkedin", "LinkedIn post"],
+  ["x", "X post"],
+  ["approved_draft", "Approved draft"],
+]);
 
 function validId(value: unknown) {
   return typeof value === "string" && UUID.test(value) ? value : null;
@@ -41,7 +48,7 @@ export async function GET(request: Request) {
   const db = supabase as unknown as SupabaseClient;
   const { data: plan, error } = await db.from("publishing_plans").select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").eq("website_id", websiteId).order("updated_at", { ascending: false }).limit(1).maybeSingle();
   if (error) return NextResponse.json({ error: "Destiny could not load the publishing plan." }, { status: 500 });
-  const { data: items } = plan ? await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position") : { data: [] };
+  const { data: items } = plan ? await db.from("publishing_schedule_items").select(ITEM_SELECT).eq("plan_id", plan.id).order("position") : { data: [] };
   return NextResponse.json({ plan, items: items ?? [] }, { headers: { "Cache-Control": "no-store" } });
 }
 
@@ -122,8 +129,54 @@ export async function PUT(request: Request) {
   }));
   const { error: itemError } = rows.length ? await db.from("publishing_schedule_items").upsert(rows, { onConflict: "plan_id,position" }) : { error: null };
   if (itemError) return NextResponse.json({ error: "The plan was saved, but Destiny could not save every calendar slot." }, { status: 500 });
-  const { data: items } = await db.from("publishing_schedule_items").select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error").eq("plan_id", plan.id).order("position");
+  const { data: items } = await db.from("publishing_schedule_items").select(ITEM_SELECT).eq("plan_id", plan.id).order("position");
   return NextResponse.json({ plan, items: items ?? [] });
+}
+
+export async function POST(request: Request) {
+  const { supabase, userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Sign in again to add content." }, { status: 401 });
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+  const websiteId = validId(body.websiteId);
+  const title = typeof body.title === "string" ? body.title.trim().slice(0, 500) : "";
+  const contentType = typeof body.contentType === "string" ? MANUAL_CONTENT_TYPES.get(body.contentType) : null;
+  const focusKeyword = typeof body.focusKeyword === "string" ? body.focusKeyword.trim().slice(0, 300) : "";
+  const relatedArticleTitle = typeof body.relatedArticleTitle === "string" ? body.relatedArticleTitle.trim().slice(0, 500) : "";
+  const scheduledFor = typeof body.scheduledFor === "string" && Number.isFinite(Date.parse(body.scheduledFor)) ? new Date(body.scheduledFor).toISOString() : null;
+  if (!websiteId || !title || !contentType || !scheduledFor) return NextResponse.json({ error: "Choose a content type, title, and date." }, { status: 400 });
+  if ((contentType === "Article" || contentType === "Approved draft") && !focusKeyword) return NextResponse.json({ error: "Add the focus keyword for this article." }, { status: 400 });
+  if ((contentType === "LinkedIn post" || contentType === "X post") && !relatedArticleTitle) return NextResponse.json({ error: "Choose the article this social post will promote." }, { status: 400 });
+
+  const db = supabase as unknown as SupabaseClient;
+  const { data: plan, error: planError } = await db.from("publishing_plans")
+    .select("id,organization_id,website_id,audit_id")
+    .eq("website_id", websiteId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (planError || !plan) return NextResponse.json({ error: "Create a publishing plan before adding calendar content." }, { status: 409 });
+  const { data: existing, error: existingError } = await db.from("publishing_schedule_items").select("position").eq("plan_id", plan.id).order("position", { ascending: false }).limit(1);
+  if (existingError) return NextResponse.json({ error: "Destiny could not check the calendar." }, { status: 500 });
+  const position = Number(existing?.[0]?.position ?? 0) + 1;
+  if (position > 72) return NextResponse.json({ error: "This calendar already has 72 items. Move or remove an item before adding another." }, { status: 409 });
+  const keyword = focusKeyword || relatedArticleTitle;
+  const { data: item, error } = await db.from("publishing_schedule_items").insert({
+    plan_id: plan.id,
+    organization_id: plan.organization_id,
+    website_id: plan.website_id,
+    audit_id: plan.audit_id,
+    position,
+    keyword,
+    normalized_keyword: `${normalizedKeyword(keyword)} ${position}`.slice(0, 300),
+    title,
+    content_type: contentType,
+    related_article_title: relatedArticleTitle || null,
+    scheduled_for: scheduledFor,
+    state: "planned",
+    review_recommended: false,
+  }).select(ITEM_SELECT).single();
+  if (error || !item) return NextResponse.json({ error: "Destiny could not add this content to the calendar." }, { status: 500 });
+  return NextResponse.json({ item }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PATCH(request: Request) {

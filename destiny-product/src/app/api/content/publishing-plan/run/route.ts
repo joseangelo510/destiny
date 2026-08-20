@@ -5,7 +5,7 @@ import { currentArticleQualityIssues, type ArticleDraft } from "@/lib/content/ar
 import { prepareWordPressDraft } from "@/lib/cms/wordpress-draft";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { createClient } from "@/lib/supabase/server";
-import { wordpressRemoteIdFromEditUrl } from "@/lib/content/publishing-plan";
+import { isArticleCalendarItem, wordpressRemoteIdFromEditUrl } from "@/lib/content/publishing-plan";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -18,11 +18,11 @@ export async function POST(request: Request) {
   const websiteId = typeof body.websiteId === "string" && UUID.test(body.websiteId) ? body.websiteId : null;
   if (!websiteId) return NextResponse.json({ error: "Choose a valid website." }, { status: 400 });
   const db = supabase as unknown as SupabaseClient;
-  const { data: plan } = await db.from("publishing_plans").select("id,audit_id,mode,status,holdback_hours").eq("website_id", websiteId).maybeSingle();
+  const { data: plan } = await db.from("publishing_plans").select("id,audit_id,mode,status,holdback_hours,confirmed_post_count").eq("website_id", websiteId).maybeSingle();
   if (!plan || plan.status !== "active" || plan.mode === "review_each") return NextResponse.json({ error: "Choose an active batch or automatic publishing plan first." }, { status: 409 });
 
   const [{ data: items }, { data: draftRows }] = await Promise.all([
-    db.from("publishing_schedule_items").select("id,keyword,scheduled_for,state").eq("plan_id", plan.id).in("state", ["planned", "needs_review", "failed"]).order("position"),
+    db.from("publishing_schedule_items").select("id,position,keyword,content_type,scheduled_for,state").eq("plan_id", plan.id).in("state", ["planned", "needs_review", "failed"]).order("position"),
     db.from("article_drafts").select("keyword,draft").eq("website_id", websiteId).eq("audit_id", plan.audit_id),
   ]);
   const drafts = new Map((draftRows ?? []).flatMap((row) => row.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const results: Array<{ keyword: string; state: string; message: string }> = [];
   const usedDrafts = new Set<string>();
 
-  for (const item of items ?? []) {
+  for (const item of (items ?? []).filter((entry) => isArticleCalendarItem(entry, plan.confirmed_post_count))) {
     const normalized = normalizeTrackedKeyword(item.keyword);
     if (usedDrafts.has(normalized)) {
       results.push({ keyword: item.keyword, state: "planned", message: "Waiting for a distinct article brief for this later topic angle." });
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
   const { data: refreshedItems, error: refreshedItemsError } = await db
     .from("publishing_schedule_items")
-    .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
+    .select("id,plan_id,position,keyword,title,content_type,related_article_title,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
     .eq("plan_id", plan.id)
     .order("position");
   if (refreshedItemsError) return NextResponse.json({ error: "The scheduling check finished, but Destiny could not refresh the queue." }, { status: 500 });

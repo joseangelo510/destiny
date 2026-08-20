@@ -107,7 +107,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const { data: publishingItemRows } = publishingPlanRow
     ? await (context.supabase as unknown as SupabaseClient)
       .from("publishing_schedule_items")
-      .select("id,plan_id,position,keyword,title,content_type,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
+      .select("id,plan_id,position,keyword,title,content_type,related_article_title,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
       .eq("plan_id", publishingPlanRow.id)
       .order("position")
     : { data: [] };

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { buildWeeklySchedule, publishingCalendarState, reconcilePublishingItems, type PublishingCalendarState, type PublishingMode, type PublishingPlanRecord, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, editorialContentChannel, publishingCalendarState, reconcilePublishingItems, type EditorialContentChannel, type PublishingCalendarState, type PublishingMode, type PublishingPlanRecord, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 
 type CalendarItem = { focusKeyword: string; title: string; contentType: string };
 
@@ -22,7 +22,14 @@ const STATE_META: Record<PublishingCalendarState, { label: string; short: string
   manual: { label: "Manual", short: "Manual", icon: "↗", description: "This post must be scheduled directly in Wix for now." },
 };
 
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const CONTENT_META: Record<EditorialContentChannel, { label: string; mark: string }> = {
+  article: { label: "Article", mark: "A" },
+  approved_draft: { label: "Approved draft", mark: "A" },
+  linkedin: { label: "LinkedIn post", mark: "in" },
+  x: { label: "X post", mark: "X" },
+};
 
 function dateKeyInTimezone(value: string, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
@@ -38,6 +45,34 @@ function shiftMonth(month: string, amount: number) {
 
 function monthTitle(month: string) {
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}T12:00:00.000Z`));
+}
+
+function weekStart(value: string) {
+  const date = new Date(`${value.slice(0, 10)}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+}
+
+function shiftDate(value: string, days: number) {
+  const date = new Date(`${value}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function weekTitle(value: string) {
+  const end = shiftDate(value, 6);
+  const startDate = new Date(`${value}T12:00:00.000Z`);
+  const endDate = new Date(`${end}T12:00:00.000Z`);
+  const startLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(startDate);
+  const endLabel = new Intl.DateTimeFormat("en-US", { month: startDate.getUTCMonth() === endDate.getUTCMonth() ? undefined : "short", day: "numeric", timeZone: "UTC" }).format(endDate);
+  return `${startLabel}–${endLabel}`;
+}
+
+function calendarDateTime(value: string, timezone: string) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date(value)).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
 }
 
 function formattedPublishTime(value: string, timezone: string) {
@@ -78,23 +113,37 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+  const [viewMode, setViewMode] = useState<"month" | "week" | "list">("week");
+  const [channel, setChannel] = useState<"all" | "articles" | "social">("all");
   const [currentMonth, setCurrentMonth] = useState(`${(initialPlan?.start_date ?? startDate).slice(0, 7)}-01`);
+  const [currentWeek, setCurrentWeek] = useState(weekStart(initialItems[0]?.scheduled_for ?? initialPlan?.start_date ?? startDate));
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addType, setAddType] = useState<EditorialContentChannel>("article");
+  const [addTitle, setAddTitle] = useState("");
+  const [addKeyword, setAddKeyword] = useState("");
+  const [addRelatedArticle, setAddRelatedArticle] = useState("");
+  const [addDate, setAddDate] = useState(`${futureStartDate()}T09:00`);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
   const dates = useMemo(() => buildWeeklySchedule(startDate, calendar.length, timezone), [startDate, calendar.length, timezone]);
   const planTimezone = plan?.timezone || timezone;
   const displayState = (item: PublishingScheduleItemRecord) => publishingCalendarState(item, websitePlatform);
-  const counts = useMemo(() => items.reduce<Record<string, number>>((result, item) => {
-    const state = publishingCalendarState(item, websitePlatform);
-    return { ...result, [state]: (result[state] ?? 0) + 1 };
-  }, {}), [items, websitePlatform]);
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+  const filteredItems = useMemo(() => items.filter((item) => {
+    const itemChannel = editorialContentChannel(item.content_type);
+    if (channel === "articles") return itemChannel === "article" || itemChannel === "approved_draft";
+    if (channel === "social") return itemChannel === "linkedin" || itemChannel === "x";
+    return true;
+  }), [channel, items]);
+  const articleTitles = useMemo(() => items.filter((item) => {
+    const itemChannel = editorialContentChannel(item.content_type);
+    return itemChannel === "article" || itemChannel === "approved_draft";
+  }).map((item) => item.title), [items]);
   const calendarDays = useMemo(() => {
     const first = new Date(`${currentMonth}T12:00:00.000Z`);
     const mondayOffset = (first.getUTCDay() + 6) % 7;
     const start = new Date(first.getTime() - mondayOffset * 24 * 60 * 60 * 1000);
-    const itemsByDate = items.reduce<Record<string, PublishingScheduleItemRecord[]>>((result, item) => {
+    const itemsByDate = filteredItems.reduce<Record<string, PublishingScheduleItemRecord[]>>((result, item) => {
       const key = dateKeyInTimezone(item.scheduled_for, planTimezone);
       result[key] = [...(result[key] ?? []), item];
       return result;
@@ -104,7 +153,18 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       const key = date.toISOString().slice(0, 10);
       return { key, day: date.getUTCDate(), current: key.slice(0, 7) === currentMonth.slice(0, 7), items: itemsByDate[key] ?? [] };
     });
-  }, [currentMonth, items, planTimezone]);
+  }, [currentMonth, filteredItems, planTimezone]);
+  const weekDays = useMemo(() => {
+    const itemsByDate = filteredItems.reduce<Record<string, PublishingScheduleItemRecord[]>>((result, item) => {
+      const key = dateKeyInTimezone(item.scheduled_for, planTimezone);
+      result[key] = [...(result[key] ?? []), item];
+      return result;
+    }, {});
+    return Array.from({ length: 7 }, (_, index) => {
+      const key = shiftDate(currentWeek, index);
+      return { key, date: new Date(`${key}T12:00:00.000Z`), items: itemsByDate[key] ?? [] };
+    });
+  }, [currentWeek, filteredItems, planTimezone]);
   const missingApprovals = approvedKeywordCount < 1;
   const manualCmsPlan = !wordpressConnected && (websitePlatform === "wix" || webflowConnected);
   const cmsUnavailable = !wordpressConnected && !manualCmsPlan;
@@ -113,12 +173,12 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   useEffect(() => {
     const key = `destiny-publishing-view:${websiteId}`;
     const saved = window.localStorage.getItem(key);
-    const nextView = saved === "calendar" || saved === "list" ? saved : window.matchMedia("(max-width: 720px)").matches ? "list" : "calendar";
+    const nextView = saved === "month" || saved === "week" || saved === "list" ? saved : window.matchMedia("(max-width: 720px)").matches ? "list" : "week";
     const timer = window.setTimeout(() => setViewMode(nextView), 0);
     return () => window.clearTimeout(timer);
   }, [websiteId]);
 
-  const chooseView = (value: "calendar" | "list") => {
+  const chooseView = (value: "month" | "week" | "list") => {
     setViewMode(value);
     window.localStorage.setItem(`destiny-publishing-view:${websiteId}`, value);
   };
@@ -191,10 +251,53 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
     } finally { setSaving(false); }
   };
 
+  const addContent = async () => {
+    if (saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch("/api/content/publishing-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          websiteId,
+          contentType: addType,
+          title: addTitle,
+          focusKeyword: addKeyword,
+          relatedArticleTitle: addRelatedArticle,
+          scheduledFor: calendarLocalDateTimeAsUtc(addDate, planTimezone),
+        }),
+      });
+      const payload = await response.json() as { error?: string; item?: PublishingScheduleItemRecord };
+      if (!response.ok || !payload.item) throw new Error(payload.error || "Destiny could not add this content.");
+      setItems((current) => [...current, payload.item!].sort((left, right) => Date.parse(left.scheduled_for) - Date.parse(right.scheduled_for)));
+      setAddOpen(false);
+      setAddTitle("");
+      setAddKeyword("");
+      setAddRelatedArticle("");
+      setNotice(`${CONTENT_META[addType].label} added to the calendar as planned.`);
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not add this content.");
+    } finally { setSaving(false); }
+  };
+
+  const openAddContent = (date?: string) => {
+    if (date) setAddDate(`${date}T09:00`);
+    setAddOpen(true);
+  };
+
+  const movePeriod = (amount: number) => {
+    if (viewMode === "month") setCurrentMonth((value) => shiftMonth(value, amount));
+    if (viewMode === "week") setCurrentWeek((value) => shiftDate(value, amount * 7));
+  };
+
+  const today = dateKeyInTimezone(new Date().toISOString(), planTimezone);
+
   return <section className="workspace-card publishing-plan" id="publishing-plan">
     <div className="publishing-plan-heading">
-      <div><span className="eyebrow">Publishing plan</span><h2>{plan && !editing ? "Your three-month publishing rhythm" : "How involved do you want to be?"}</h2><p>{plan && !editing ? "WordPress owns every future date. Destiny tracks readiness and stops anything that needs attention." : "Choose once for this plan. You can change it later without losing the calendar."}</p></div>
-      {plan && !editing && <span className={`status-chip ${plan.status === "active" ? "" : "amber"}`}>{plan.status === "active" ? "Active" : plan.status === "paused" ? "Paused" : "Needs attention"}</span>}
+      <div><span className="eyebrow">{plan && !editing ? "Editorial calendar" : "Publishing plan"}</span><h2>{plan && !editing ? "Plan and publish your content." : "How involved do you want to be?"}</h2><p>{plan && !editing ? "See every blog article, LinkedIn post, and X post that is planned, waiting for review, scheduled, or published." : "Choose once for this plan. You can change it later without losing the calendar."}</p></div>
+      {plan && !editing && <div className="publishing-heading-actions"><span className={`status-chip ${plan.status === "active" ? "" : "amber"}`}>{plan.status === "active" ? "Active" : plan.status === "paused" ? "Paused" : "Needs attention"}</span><button className="primary-button" onClick={() => setAddOpen(true)} type="button">+ Add content</button></div>}
     </div>
     {missingApprovals ? <div className="configuration-note"><strong>Approve topics before scheduling</strong><p>Only explicitly approved keyword topics can enter a publishing plan. Review the Keyword strategy first.</p></div>
       : manualCmsPlan ? <div className="configuration-note"><strong>{websitePlatform === "wix" ? "Wix" : "Webflow"} uses a guided publishing plan</strong><p>Destiny will save every date and article task here. You will finish each publication in {websitePlatform === "wix" ? "Wix" : "Webflow"}; nothing is labeled scheduled or live until the CMS confirms it.</p></div>
@@ -208,41 +311,54 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       {error && <div className="error-banner" role="alert">{error}</div>}
       <div className="publishing-plan-actions"><button className="primary-button" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === "automatic" && !automaticConfirmed)} onClick={() => void save()} type="button">{saving ? "Saving plan…" : plan ? "Save changes" : "Start this publishing plan"}</button>{plan && <button className="secondary-button" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type="button">Cancel</button>}</div>
     </> : plan ? <>
-      <div className="publishing-plan-summary"><div><small>Mode</small><strong>{MODES.find((item) => item.id === plan.mode)?.title}</strong></div><div><small>Calendar</small><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong></div><div><small>Progress</small><strong>{counts.published ?? 0} published · {counts.scheduled ?? 0} scheduled</strong></div></div>
       <div className="publishing-calendar-toolbar">
-        <div aria-label="Publishing plan view" className="publishing-view-toggle" role="group">
-          <button aria-pressed={viewMode === "list"} onClick={() => chooseView("list")} type="button">List</button>
-          <button aria-pressed={viewMode === "calendar"} onClick={() => chooseView("calendar")} type="button">Calendar</button>
+        <div className="publishing-toolbar-left">
+          <div aria-label="Editorial calendar view" className="publishing-view-toggle" role="group">
+            <button aria-pressed={viewMode === "month"} onClick={() => chooseView("month")} type="button">Month</button>
+            <button aria-pressed={viewMode === "week"} onClick={() => chooseView("week")} type="button">Week</button>
+            <button aria-pressed={viewMode === "list"} onClick={() => chooseView("list")} type="button">List</button>
+          </div>
+          {viewMode !== "list" && <div className="publishing-month-controls">
+            <button aria-label={`Previous ${viewMode}`} onClick={() => movePeriod(-1)} type="button">←</button>
+            <strong>{viewMode === "month" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong>
+            <button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type="button">Today</button>
+            <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type="button">→</button>
+          </div>}
         </div>
-        {viewMode === "calendar" && <div className="publishing-month-controls">
-          <button aria-label="Previous month" onClick={() => setCurrentMonth((value) => shiftMonth(value, -1))} type="button">←</button>
-          <strong>{monthTitle(currentMonth)}</strong>
-          <button onClick={() => setCurrentMonth(`${dateKeyInTimezone(new Date().toISOString(), planTimezone).slice(0, 7)}-01`)} type="button">Today</button>
-          <button aria-label="Next month" onClick={() => setCurrentMonth((value) => shiftMonth(value, 1))} type="button">→</button>
-        </div>}
-        <small className="publishing-timezone">Times shown in {planTimezone}</small>
+        <div aria-label="Content channel" className="publishing-channel-toggle" role="group"><button aria-pressed={channel === "all"} onClick={() => setChannel("all")} type="button">All</button><button aria-pressed={channel === "articles"} onClick={() => setChannel("articles")} type="button">Articles</button><button aria-pressed={channel === "social"} onClick={() => setChannel("social")} type="button">Social</button></div>
       </div>
 
       <div className={`publishing-calendar-layout${selectedItem ? " has-detail" : ""}`}>
         <div className="publishing-calendar-main">
-          {viewMode === "calendar" ? <div aria-label="Publishing calendar view" className="publishing-calendar-view">
+          {viewMode === "month" && <div aria-label="Publishing month view" className="publishing-calendar-view publishing-month-view">
             <div className="publishing-calendar-weekdays">{WEEKDAYS.map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}</div>
             <div className="publishing-calendar-grid">
               {calendarDays.map((day) => <div className={`publishing-calendar-day${day.current ? "" : " muted"}`} key={day.key}>
                 <time dateTime={day.key}>{day.day}</time>
-                <div className="publishing-calendar-day-items">{day.items.map((item) => {
+                <div className="publishing-calendar-day-items">{day.items.slice(0, 2).map((item) => {
                   const state = displayState(item);
                   const meta = STATE_META[state];
-                  return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-chip ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} title={`${item.title} · ${meta.label}`} type="button">{meta.icon && <span aria-hidden="true">{meta.icon}</span>}{meta.short}</button>;
-                })}</div>
+                  const content = CONTENT_META[editorialContentChannel(item.content_type)];
+                  return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><span className="publishing-card-type"><b>{content.mark}</b>{content.label}<i aria-hidden="true" /></span><strong>{item.title}</strong></button>;
+                })}{day.items.length > 2 && <button className="publishing-calendar-more" onClick={() => { setCurrentWeek(weekStart(day.key)); chooseView("week"); }} type="button">+{day.items.length - 2} more</button>}</div>
               </div>)}
             </div>
-            {!calendarDays.some((day) => day.current && day.items.length) && <div className="publishing-calendar-empty"><strong>No posts planned for {monthTitle(currentMonth)}</strong><button onClick={() => setEditing(true)} type="button">Change mode or dates</button></div>}
-          </div> : <ol aria-label="Publishing agenda view" className="publishing-queue-preview publishing-agenda-view">{items.map((item) => {
+            {!calendarDays.some((day) => day.current && day.items.length) && <div className="publishing-calendar-empty"><strong>No content planned for {monthTitle(currentMonth)}</strong><button onClick={() => openAddContent(currentMonth)} type="button">Add content</button></div>}
+          </div>}
+
+          {viewMode === "week" && <div aria-label="Publishing week view" className="publishing-week-view">{weekDays.map((day) => <section className={`publishing-week-day${day.key === today ? " today" : ""}`} key={day.key}><div className="publishing-week-heading"><strong>{new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" }).format(day.date)}</strong><span>{day.key === today ? "Today · " : ""}{day.items.length ? `${day.items.length} content item${day.items.length === 1 ? "" : "s"}` : "No content planned"}</span></div>{day.items.length ? <div className="publishing-week-items">{day.items.map((item) => {
             const state = displayState(item);
             const meta = STATE_META[state];
-            return <li key={item.id}><span>{item.position}</span><div><strong>{item.title}</strong><small>{formattedPublishTime(item.scheduled_for, planTimezone)} · {meta.label}{item.review_recommended ? " · review recommended" : ""}</small>{item.last_error && <em>{item.last_error}</em>}</div><button aria-label={`Open ${item.title}`} className={`publishing-agenda-state ${state}`} onClick={() => setSelectedItemId(item.id)} type="button">{meta.icon} {meta.short}</button></li>;
-          })}</ol>}
+            const content = CONTENT_META[editorialContentChannel(item.content_type)];
+            return <button className="publishing-week-row" key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><span className="publishing-week-type"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat("en-US", { timeZone: planTimezone, hour: "numeric", minute: "2-digit" }).format(new Date(item.scheduled_for))}</small></span></span><span className="publishing-week-title"><strong>{item.title}</strong><small>{item.related_article_title ? `Promotes article: “${item.related_article_title}”` : `Focus keyword: ${item.keyword}`}</small></span><span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span></button>;
+          })}</div> : <div className="publishing-week-empty"><span>This day is open.</span><button onClick={() => openAddContent(day.key)} type="button">+ Add content</button></div>}</section>)}</div>}
+
+          {viewMode === "list" && <div aria-label="Publishing list view" className="publishing-list-view"><div className="publishing-list-heading"><strong>{new Date(`${plan.start_date}T12:00:00Z`).toLocaleDateString()} – {new Date(`${plan.end_date}T12:00:00Z`).toLocaleDateString()}</strong><small>{filteredItems.length} content items · Times shown in {planTimezone}</small></div><div className="publishing-list-head"><span>Date</span><span>Type</span><span>Title</span><span>Related article</span><span>Status</span><span>Action</span></div>{filteredItems.map((item) => {
+            const state = displayState(item);
+            const meta = STATE_META[state];
+            const content = CONTENT_META[editorialContentChannel(item.content_type)];
+            return <button className="publishing-list-row" key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className="publishing-list-type"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? "Review recommended" : item.keyword}</small></span><span>{item.related_article_title || "Not applicable"}</span><span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span><span className="publishing-list-action">{state === "needs_review" ? "Review" : state === "published" ? "View live" : state === "scheduled" ? "Open" : "View"}</span></button>;
+          })}</div>}
 
           <div aria-label="Publishing state legend" className="publishing-calendar-legend">{(["planned", "needs_review", "scheduled", "published", "failed", ...(manualCmsPlan ? ["manual"] : [])] as PublishingCalendarState[]).map((state) => <span className={state} key={state}><i aria-hidden="true" />{state === "failed" ? "Failed / missed" : STATE_META[state].label}</span>)}</div>
         </div>
@@ -250,15 +366,17 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
         {selectedItem && (() => {
           const state = displayState(selectedItem);
           const meta = STATE_META[state];
-          return <aside aria-label="Scheduled post details" aria-modal="false" className="publishing-post-detail" role="dialog">
-            <div className="publishing-post-detail-heading"><div><span className="eyebrow">Post details</span><h3>{selectedItem.title}</h3></div><button aria-label="Close post details" onClick={() => setSelectedItemId(null)} type="button">×</button></div>
+          const content = CONTENT_META[editorialContentChannel(selectedItem.content_type)];
+          const social = editorialContentChannel(selectedItem.content_type) === "linkedin" || editorialContentChannel(selectedItem.content_type) === "x";
+          return <aside aria-label="Content details" aria-modal="false" className="publishing-post-detail" role="dialog">
+            <div className="publishing-post-detail-heading"><div><span className="eyebrow">Content details</span><h3>{selectedItem.title}</h3></div><button aria-label="Close content details" onClick={() => setSelectedItemId(null)} type="button">×</button></div>
             <span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span>
-            <p>{meta.description}</p>
-            <dl><div><dt>Publish time</dt><dd>{formattedPublishTime(selectedItem.scheduled_for, planTimezone)}</dd></div><div><dt>Focus keyword</dt><dd>{selectedItem.keyword}</dd></div>{selectedItem.remote_id && <div><dt>CMS post ID</dt><dd>{selectedItem.remote_id}</dd></div>}<div><dt>Site</dt><dd>{websitePlatform === "wix" ? "Wix" : webflowConnected ? "Webflow" : "WordPress"}</dd></div></dl>
+            <p>Review this {content.label.toLocaleLowerCase()}, check its publishing status, and open the next action.</p>
+            <dl><div><dt>Content type</dt><dd>{content.label}</dd></div><div><dt>Publish time</dt><dd>{formattedPublishTime(selectedItem.scheduled_for, planTimezone)}</dd></div>{selectedItem.related_article_title ? <div><dt>Related article</dt><dd>{selectedItem.related_article_title}</dd></div> : <div><dt>Focus keyword</dt><dd>{selectedItem.keyword}</dd></div>}{selectedItem.remote_id && <div><dt>CMS post ID</dt><dd>{selectedItem.remote_id}</dd></div>}<div><dt>Destination</dt><dd>{social ? content.label.replace(" post", "") : websitePlatform === "wix" ? "Wix" : webflowConnected ? "Webflow" : "WordPress"}</dd></div></dl>
             {selectedItem.last_error && <div className="publishing-detail-error"><strong>What needs attention</strong><p>{selectedItem.last_error}</p></div>}
             <div className="publishing-post-detail-actions">
-              {state === "planned" && <a className="primary-button" href="#article-review-workspace">Generate article</a>}
-              {state === "needs_review" && <a className="primary-button" href="#article-review-workspace">Review now</a>}
+              {state === "planned" && <a className="primary-button" href={social ? "/distribution" : "#article-review-workspace"}>{social ? "Prepare social post" : "Generate article"}</a>}
+              {state === "needs_review" && <a className="primary-button" href={social ? "/distribution" : "#article-review-workspace"}>Review content</a>}
               {state === "scheduled" && selectedItem.remote_edit_url && <a className="primary-button" href={selectedItem.remote_edit_url} rel="noreferrer" target="_blank">View in WordPress ↗</a>}
               {state === "published" && selectedItem.remote_permalink && <a className="primary-button" href={selectedItem.remote_permalink} rel="noreferrer" target="_blank">View live post ↗</a>}
               {(state === "failed" || state === "missed") && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Retry scheduling check"}</button>}
@@ -267,6 +385,8 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
           </aside>;
         })()}
       </div>
+
+      {addOpen && <div className="publishing-add-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby="publishing-add-title" aria-modal="true" className="publishing-add-dialog" role="dialog"><div className="publishing-add-heading"><div><h3 id="publishing-add-title">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label="Close add content" onClick={() => setAddOpen(false)} type="button">×</button></div><div aria-label="Content type" className="publishing-add-types" role="group">{(["article", "linkedin", "x", "approved_draft"] as EditorialContentChannel[]).map((type) => <button aria-pressed={addType === type} key={type} onClick={() => setAddType(type)} type="button">{CONTENT_META[type].label}</button>)}</div><div className="publishing-add-form"><label className="wide">Content title<input onChange={(event) => setAddTitle(event.target.value)} placeholder={addType === "linkedin" ? "What should this LinkedIn post say?" : addType === "x" ? "What should this X post say?" : "Enter the article title"} value={addTitle} /></label>{addType === "article" || addType === "approved_draft" ? <label>Focus keyword<input onChange={(event) => setAddKeyword(event.target.value)} placeholder="e.g. YouTube SEO services" value={addKeyword} /></label> : <label>Article this post promotes<select onChange={(event) => setAddRelatedArticle(event.target.value)} value={addRelatedArticle}><option value="">Choose an article</option>{articleTitles.map((title) => <option key={title} value={title}>{title}</option>)}</select></label>}<label>Publish or schedule date<input min={calendarDateTime(new Date().toISOString(), timezone)} onChange={(event) => setAddDate(event.target.value)} type="datetime-local" value={addDate} /></label></div>{error && <div className="error-banner" role="alert">{error}</div>}<div className="publishing-add-actions"><button className="secondary-button" onClick={() => setAddOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={saving || !addTitle.trim() || !addDate || ((addType === "article" || addType === "approved_draft") ? !addKeyword.trim() : !addRelatedArticle)} onClick={() => void addContent()} type="button">{saving ? "Adding…" : "Add as planned"}</button></div></div></div>}
 
       <div className="publishing-plan-actions"><button className="secondary-button" onClick={() => setEditing(true)} type="button">Change mode or dates</button>{wordpressConnected && plan.status === "active" && plan.mode !== "review_each" && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Run scheduling checks now"}</button>}<button className={plan.status === "paused" ? "primary-button" : "secondary-button"} disabled={saving} onClick={() => void setStatus(plan.status === "paused" ? "active" : "paused")} type="button">{saving ? "Saving…" : plan.status === "paused" ? "Resume scheduling" : "Pause new scheduling"}</button></div>
       <p className="publishing-plan-footnote">Destiny never publishes a missed date late. A missed or failed slot returns to review with a suggested new date.</p>

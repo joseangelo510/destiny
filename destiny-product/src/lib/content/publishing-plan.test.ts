@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, canScheduleArticle, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, canScheduleArticle, editorialContentChannel, isArticleCalendarItem, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
+  it("keeps social calendar entries out of the CMS article scheduler", () => {
+    expect(editorialContentChannel("Blog guide")).toBe("article");
+    expect(editorialContentChannel("LinkedIn post")).toBe("linkedin");
+    expect(editorialContentChannel("X post")).toBe("x");
+    expect(editorialContentChannel("Approved draft")).toBe("approved_draft");
+    expect(isArticleCalendarItem({ content_type: "Blog guide", position: 3 }, 12)).toBe(true);
+    expect(isArticleCalendarItem({ content_type: "LinkedIn post", position: 13 }, 12)).toBe(false);
+    expect(isArticleCalendarItem({ content_type: "Blog guide", position: 13 }, 12)).toBe(false);
+  });
   it("keeps CMS delivery capability explicit", () => {
     expect(publishingDeliveryMode("wordpress", ["wordpress"])).toBe("direct_wordpress");
     expect(publishingDeliveryMode("webflow", ["webflow"])).toBe("manual_webflow");
@@ -20,6 +29,8 @@ describe("publishing plans", () => {
     expect(dates[0]).toBe("2026-08-25T16:00:00.000Z");
     expect(dates[11]).toBe("2026-11-10T17:00:00.000Z");
     expect(buildWeeklySchedule("2026-08-25", 1, "America/New_York")[0]).toBe("2026-08-25T13:00:00.000Z");
+    expect(calendarLocalDateTimeAsUtc("2026-08-25T09:30", "America/Los_Angeles")).toBe("2026-08-25T16:30:00.000Z");
+    expect(calendarLocalDateTimeAsUtc("2026-11-10T09:30", "America/Los_Angeles")).toBe("2026-11-10T17:30:00.000Z");
   });
 
   it("rejects calendar topics that were not explicitly approved for the website", () => {
