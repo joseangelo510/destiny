@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { WorkspaceShellView } from "./workspace-shell-view";
 
@@ -33,6 +34,17 @@ describe("WorkspaceShell coaching hierarchy", () => {
 
     expect(html).toMatch(/<details[^>]*class="desktop-feature-menu"[^>]*open/);
     expect(html).toContain("Keyword strategy");
+  });
+
+  it("uses document navigation for the cross-route Editorial calendar link and keeps the selected site", async () => {
+    const html = renderToStaticMarkup(<WorkspaceShellView active="/this-week" activeWebsiteId={site.id} description="One useful step." eyebrow="example.com" title="This week" websites={[site]}><p>Work</p></WorkspaceShellView>);
+    const editorialLink = html.match(new RegExp(`<a[^>]*href="/content\\?site=${site.id}#publishing-plan"[^>]*>Editorial calendar</a>`))?.[0] ?? "";
+    const source = await readFile(new URL("./workspace-shell-view.tsx", import.meta.url), "utf8");
+
+    expect(editorialLink).toContain('data-document-navigation="true"');
+    expect(new URL(`/content?site=${site.id}#publishing-plan`, `https://destiny.local/this-week?site=${site.id}`).href)
+      .toBe(`https://destiny.local/content?site=${site.id}#publishing-plan`);
+    expect(source).toContain('item.href.includes("#") ? <a');
   });
 
   it("exposes the approved Claude design scope only when the keyword workspace requests it", () => {

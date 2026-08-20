@@ -10,6 +10,12 @@ export type WorkspaceSite = { id: string; business_name: string | null; normaliz
 
 function siteLabel(site: WorkspaceSite) { return site.business_name?.trim() || site.normalized_domain; }
 
+function FeatureNavigationLink({ active, item, websiteId }: { active: string; item: (typeof FEATURE_NAVIGATION)[number]; websiteId: string | null }) {
+  const scopedHref = siteScopedHref(item.href, websiteId);
+  const className = item.href === active ? "active" : "";
+  return item.href.includes("#") ? <a className={className} data-document-navigation="true" href={scopedHref}>{item.label}</a> : <Link className={className} href={scopedHref}>{item.label}</Link>;
+}
+
 function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId: string | null; pathname: string; websites: WorkspaceSite[] }) {
   const current = websites.find((website) => website.id === activeWebsiteId) ?? websites[0];
   if (!current) return <Link className={styles.singleSiteAdd} href="/onboarding?new=1">Add your first website</Link>;
@@ -35,8 +41,8 @@ export function WorkspaceShellView({ active, eyebrow, title, description, design
       <Link aria-label="Destiny workspace home" className="brand sidebar-brand" href={href("/app")}><span className="brand-mark">D</span><span>Destiny</span></Link>
       <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />
       <nav aria-label="Destiny workspace"><span className="nav-section-label">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.label}</Link>)}</nav>
-      <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details>
-      <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.label}</Link>)}<Link className={`mobile-menu-account ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link><form action="/auth/signout" method="post"><button className="mobile-menu-signout" type="submit">Sign out</button></form></div></details>
+      <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details>
+      <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}<Link className={`mobile-menu-account ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link><form action="/auth/signout" method="post"><button className="mobile-menu-signout" type="submit">Sign out</button></form></div></details>
       <div className="sidebar-account-actions">
         <Link className={`sidebar-account-link ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link>
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
