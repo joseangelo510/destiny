@@ -109,6 +109,9 @@ describe("Destiny infographic generation", () => {
   it("accepts harmless canonical and tracking differences without accepting another source", () => {
     const tracked = new Set(sources.map((source, index) => index === 0 ? `${source.url}/?utm_source=openai` : source.url));
     expect(infographicPlanIssues(validPlan, tracked)).not.toContain("Every cited source must come from OpenAI's retrieved web evidence.");
+    const encoded = { ...validPlan, sources: [{ ...sources[0], url: "https://research.example/Business+Wire/report" }, ...sources.slice(1)] };
+    const encodedRetrieved = new Set(["https://research.example/Business%2BWire/report", ...sources.slice(1).map((source) => source.url)]);
+    expect(infographicPlanIssues(encoded, encodedRetrieved)).not.toContain("Every cited source must come from OpenAI's retrieved web evidence.");
     expect(infographicPlanIssues(validPlan, new Set(["https://unrelated.example/report"]))).toContain("Every cited source must come from OpenAI's retrieved web evidence.");
   });
 
