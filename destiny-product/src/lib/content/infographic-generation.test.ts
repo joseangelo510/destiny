@@ -126,6 +126,48 @@ describe("Destiny infographic generation", () => {
     expect(svg).toContain("Data and labels rendered by Destiny");
   });
 
+  it("shrinks long primary statistics so they stay inside their evidence card", () => {
+    const longStatistic = {
+      ...validPlan,
+      sections: validPlan.sections.map((section, index) => index === 0
+        ? { ...section, dataPoints: [{ ...section.dataPoints[0], value: "3 checkpoints" }] }
+        : section),
+    };
+    const svg = renderInfographicOverlaySvg(longStatistic);
+    expect(svg).toContain('font-size="28" font-weight="800">3 checkpoints</text>');
+  });
+
+  it("keeps complete evidence labels visible across up to four readable lines", () => {
+    const detailedLabels = {
+      ...validPlan,
+      sections: validPlan.sections.map((section, index) => index === 0
+        ? {
+            ...section,
+            dataPoints: [
+              { ...section.dataPoints[0], label: "Name AI-generated applications as the single biggest employment-screening risk over the next five years" },
+              { ...section.dataPoints[0], value: "#1", label: "Accuracy and quality remained the leading provider-selection priority" },
+            ],
+          }
+        : section),
+    };
+    const svg = renderInfographicOverlaySvg(detailedLabels);
+    expect(svg).toContain("employment-screening risk over</text>");
+    expect(svg).toContain("the next five years</text>");
+    expect(svg).not.toContain("five…");
+    expect(svg).toContain(">priority</text>");
+  });
+
+  it("adds an ellipsis when a source publisher is too long for the ledger column", () => {
+    const longPublisher = {
+      ...validPlan,
+      sources: validPlan.sources.map((source, index) => index === 0
+        ? { ...source, publisher: "Federal Trade Commission and Equal Employment Opportunity Commission" }
+        : source),
+    };
+    const svg = renderInfographicOverlaySvg(longPublisher);
+    expect(svg).toContain("source-1 · Federal Trade Commission and…");
+  });
+
   it("asks OpenAI for decoration only so exact facts remain deterministic", () => {
     const prompt = buildInfographicArtPrompt(validPlan, "editorial");
     expect(prompt).toContain("four visually distinct zones");

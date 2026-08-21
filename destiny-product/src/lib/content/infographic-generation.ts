@@ -359,6 +359,18 @@ function textLines(value: string, x: number, y: number, size: number, lineHeight
   return wrap(value, maximum, limit).map((line, index) => `<text x="${x}" y="${y + index * lineHeight}" ${attrs} font-size="${size}">${escapeXml(line)}</text>`).join("");
 }
 
+function inlineMetricFontSize(value: string) {
+  const length = Math.max(value.trim().length, 1);
+  return Math.max(28, Math.min(54, Math.floor(205 / (length * 0.56))));
+}
+
+function singleLineEllipsis(value: string, maximum: number) {
+  if (value.length <= maximum) return value;
+  const clipped = value.slice(0, Math.max(1, maximum - 1));
+  const boundary = clipped.lastIndexOf(" ");
+  return `${(boundary >= Math.floor(maximum * 0.6) ? clipped.slice(0, boundary) : clipped).replace(/[.,;:!?\s]+$/, "")}…`;
+}
+
 export function renderInfographicOverlaySvg(plan: InfographicPlan) {
   const panels = plan.sections.map((section, index) => {
     const y = 520 + index * 490;
@@ -371,17 +383,17 @@ export function renderInfographicOverlaySvg(plan: InfographicPlan) {
       <text x="170" y="${y + 57}" fill="#2f6b59" font-family="Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="2">${escapeXml(section.eyebrow.toLocaleUpperCase().slice(0, 42))}</text>
       ${textLines(section.title, 170, y + 105, 34, 40, 39, 2, 'fill="#173f33" font-family="Georgia, serif" font-weight="500"')}
       <rect x="94" y="${y + 170}" width="250" height="170" rx="24" fill="#173f33"/>
-      <text x="118" y="${y + 242}" fill="#cceb69" font-family="Arial, sans-serif" font-size="54" font-weight="800">${escapeXml(primary?.value?.slice(0, 16) || "—")}</text>
-      ${textLines(primary?.label || "Evidence-backed finding", 118, y + 282, 18, 24, 24, 2, 'fill="#ffffff" font-family="Arial, sans-serif" font-weight="700"')}
+      <text x="118" y="${y + 242}" fill="#cceb69" font-family="Arial, sans-serif" font-size="${inlineMetricFontSize(primary?.value || "—")}" font-weight="800">${escapeXml(primary?.value?.slice(0, 16) || "—")}</text>
+      ${textLines(primary?.label || "Evidence-backed finding", 118, y + 282, 13.5, 18, 30, 4, 'fill="#ffffff" font-family="Arial, sans-serif" font-weight="700"')}
       ${textLines(section.takeaway, 382, y + 206, 21, 31, 47, 4, 'fill="#284a40" font-family="Arial, sans-serif"')}
-      ${supporting.map((point, pointIndex) => `<g><text x="${382 + pointIndex * 260}" y="${y + 334}" fill="#e2674f" font-family="Arial, sans-serif" font-size="30" font-weight="800">${escapeXml(point.value.slice(0, 14))}</text>${textLines(point.label, 382 + pointIndex * 260, y + 361, 15, 20, 26, 2, 'fill="#45635a" font-family="Arial, sans-serif" font-weight="700"')}</g>`).join("")}
-      <text x="94" y="${y + 390}" fill="#637c73" font-family="Arial, sans-serif" font-size="13">Sources: ${escapeXml(sourceLabels.slice(0, 100))}</text>
+      ${supporting.map((point, pointIndex) => `<g><text x="${382 + pointIndex * 260}" y="${y + 326}" fill="#e2674f" font-family="Arial, sans-serif" font-size="30" font-weight="800">${escapeXml(point.value.slice(0, 14))}</text>${textLines(point.label, 382 + pointIndex * 260, y + 352, 14, 18, 30, 3, 'fill="#45635a" font-family="Arial, sans-serif" font-weight="700"')}</g>`).join("")}
+      <text x="94" y="${y + 410}" fill="#637c73" font-family="Arial, sans-serif" font-size="13">Sources: ${escapeXml(sourceLabels.slice(0, 100))}</text>
     </g>`;
   }).join("");
   const sourceLedger = plan.sources.slice(0, 8).map((source, index) => {
     const x = index % 2 === 0 ? 96 : 536;
     const y = 2665 + Math.floor(index / 2) * 72;
-    return `<text x="${x}" y="${y}" fill="#264a3f" font-family="Arial, sans-serif" font-size="14" font-weight="700">${escapeXml(`${source.id} · ${source.publisher}`.slice(0, 42))}</text><text x="${x}" y="${y + 20}" fill="#637c73" font-family="Arial, sans-serif" font-size="12">${escapeXml(sourceDomain(source.url).slice(0, 48))}</text>${textLines(source.title, x, y + 39, 12, 15, 52, 1, 'fill="#637c73" font-family="Arial, sans-serif"')}`;
+    return `<text x="${x}" y="${y}" fill="#264a3f" font-family="Arial, sans-serif" font-size="14" font-weight="700">${escapeXml(singleLineEllipsis(`${source.id} · ${source.publisher}`, 42))}</text><text x="${x}" y="${y + 20}" fill="#637c73" font-family="Arial, sans-serif" font-size="12">${escapeXml(sourceDomain(source.url).slice(0, 48))}</text>${textLines(source.title, x, y + 39, 12, 15, 52, 1, 'fill="#637c73" font-family="Arial, sans-serif"')}`;
   }).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${INFOGRAPHIC_WIDTH} ${INFOGRAPHIC_HEIGHT}" width="${INFOGRAPHIC_WIDTH}" height="${INFOGRAPHIC_HEIGHT}">
     <title>${escapeXml(plan.title)}</title><desc>${escapeXml(plan.altText)}</desc>
