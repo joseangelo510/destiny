@@ -46,6 +46,21 @@
   },
   {
     "kind": "api",
+    "route": "/api/content/infographic/document",
+    "file": "src/app/api/content/infographic/document/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/infographic/render",
+    "file": "src/app/api/content/infographic/render/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/infographic/research",
+    "file": "src/app/api/content/infographic/research/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/content/publishing-plan",
     "file": "src/app/api/content/publishing-plan/route.ts"
   },
@@ -223,6 +238,11 @@
     "kind": "page",
     "route": "/content",
     "file": "src/app/content/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/content/infographics",
+    "file": "src/app/content/infographics/page.tsx"
   },
   {
     "kind": "page",

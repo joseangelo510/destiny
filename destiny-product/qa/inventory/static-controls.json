@@ -27,6 +27,15 @@
     "context": "const { data: preference, error } = await untyped.from(\"notification_preferences\") .update({ ranking_digest_frequency: rankingDigestFrequency,"
   },
   {
+    "control_id": "src/app/api/content/infographic/document/route.ts:31:a:1",
+    "file": "src/app/api/content/infographic/document/route.ts",
+    "line": 31,
+    "type": "a",
+    "route": "/api/content/infographic/document",
+    "side_effect_class": 3,
+    "context": "const sources = infographicPlan.sources.map((source) => `<li><a href=\"${escapeHtml(source.url)}\">${escapeHtml(source.title)}</a> — ${escapeHtml(source.publisher)} (${escapeHtml(source.publishedAt)})</li>`).join(\"\"); const reusablePosts = infographicPlan.repurposeCards.map((card) => `<h3>${escapeHtml(card.title)}</h3><p><strong>Recommended channel:</strong> ${escapeHtml(card.recommendedChannel)}</p><p>${escapeHtml(card.copy)}</p>`).join(\"\");"
+  },
+  {
     "control_id": "src/app/api/content/publishing-plan/route.ts:163:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/route.ts",
     "line": 163,
@@ -2320,6 +2329,195 @@
     "route": "component",
     "side_effect_class": 2,
     "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{message && <small>{message}</small>}</div>; }"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:93:select:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 93,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"infographic-form-grid\"> <label><span>Topic</span><select value={topicChoice} onChange={(event) => setTopicChoice(event.target.value)}>{approvedKeywords.map((item) => <option key={item.keyword} value={`keyword:${item.keyword}`}>{item.keyword}{item.searchVolume > 0 ? ` · ${item.searchVolume.toLocaleString()} monthly searches` : \"\"}</option>)}<option value=\"custom\">Enter my own topic</option></select></label> {topicChoice === \"custom\" && <label><span>Your topic</span><input value={c"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:93:onChange:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 93,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"infographic-form-grid\"> <label><span>Topic</span><select value={topicChoice} onChange={(event) => setTopicChoice(event.target.value)}>{approvedKeywords.map((item) => <option key={item.keyword} value={`keyword:${item.keyword}`}>{item.keyword}{item.searchVolume > 0 ? ` · ${item.searchVolume.toLocaleString()} monthly searches` : \"\"}</option>)}<option value=\"custom\">Enter my own topic</option></select></label> {topicChoice === \"custom\" && <label><span>Your topic</span><input value={c"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:94:input:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 94,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label><span>Topic</span><select value={topicChoice} onChange={(event) => setTopicChoice(event.target.value)}>{approvedKeywords.map((item) => <option key={item.keyword} value={`keyword:${item.keyword}`}>{item.keyword}{item.searchVolume > 0 ? ` · ${item.searchVolume.toLocaleString()} monthly searches` : \"\"}</option>)}<option value=\"custom\">Enter my own topic</option></select></label> {topicChoice === \"custom\" && <label><span>Your topic</span><input value={customTopic} onChange={(event) => setCust"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:94:onChange:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 94,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label><span>Topic</span><select value={topicChoice} onChange={(event) => setTopicChoice(event.target.value)}>{approvedKeywords.map((item) => <option key={item.keyword} value={`keyword:${item.keyword}`}>{item.keyword}{item.searchVolume > 0 ? ` · ${item.searchVolume.toLocaleString()} monthly searches` : \"\"}</option>)}<option value=\"custom\">Enter my own topic</option></select></label> {topicChoice === \"custom\" && <label><span>Your topic</span><input value={customTopic} onChange={(event) => setCust"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:95:select:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 95,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{topicChoice === \"custom\" && <label><span>Your topic</span><input value={customTopic} onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: employee background check trends\" /></label>} <label><span>Visual direction</span><select value={style} onChange={(event) => setStyle(event.target.value as InfographicStyle)}>{INFOGRAPHIC_STYLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label} — {option.description}</option>)}</select></label> <la"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:95:onChange:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 95,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{topicChoice === \"custom\" && <label><span>Your topic</span><input value={customTopic} onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: employee background check trends\" /></label>} <label><span>Visual direction</span><select value={style} onChange={(event) => setStyle(event.target.value as InfographicStyle)}>{INFOGRAPHIC_STYLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label} — {option.description}</option>)}</select></label> <la"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:96:textarea:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 96,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<label><span>Visual direction</span><select value={style} onChange={(event) => setStyle(event.target.value as InfographicStyle)}>{INFOGRAPHIC_STYLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label} — {option.description}</option>)}</select></label> <label className=\"infographic-full\"><span>Special instructions <small>Optional</small></span><textarea rows={3} value={specialInstructions} onChange={(event) => setSpecialInstructions(event.target.value)} placehold"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:96:onChange:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 96,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<label><span>Visual direction</span><select value={style} onChange={(event) => setStyle(event.target.value as InfographicStyle)}>{INFOGRAPHIC_STYLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label} — {option.description}</option>)}</select></label> <label className=\"infographic-full\"><span>Special instructions <small>Optional</small></span><textarea rows={3} value={specialInstructions} onChange={(event) => setSpecialInstructions(event.target.value)} placehold"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:100:button:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 100,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Destiny needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:100:onClick:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 100,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Destiny needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:105:a:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 105,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"infographic-story-grid\">{plan.sections.map((section, index) => <article key={section.id}><span>STORY {index + 1}</span><h3>{section.title}</h3><p>{section.takeaway}</p><div>{section.dataPoints.map((point) => <p key={`${point.value}-${point.label}`}><strong>{point.value}</strong> {point.label}<small>{point.context}</small></p>)}</div></article>)}</div> <div className=\"infographic-source-list\"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} "
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:106:button:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 106,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"infographic-source-list\"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} rel=\"noreferrer\" target=\"_blank\"><span>{source.id}</span><strong>{source.title}</strong><small>{source.publisher} · {source.publishedAt}</small></a>)}</div> <div className=\"infographic-review-actions\"><button className=\"primary-button\" disabled={busy !== \"\"} onClick={createVisual} type=\"button\">{busy === \"visual\" ? \"Creating the visual…\" : \"Looks good — create infogra"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:106:onClick:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 106,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"infographic-source-list\"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} rel=\"noreferrer\" target=\"_blank\"><span>{source.id}</span><strong>{source.title}</strong><small>{source.publisher} · {source.publishedAt}</small></a>)}</div> <div className=\"infographic-review-actions\"><button className=\"primary-button\" disabled={busy !== \"\"} onClick={createVisual} type=\"button\">{busy === \"visual\" ? \"Creating the visual…\" : \"Looks good — create infogra"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:106:button:3",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 106,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"infographic-source-list\"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} rel=\"noreferrer\" target=\"_blank\"><span>{source.id}</span><strong>{source.title}</strong><small>{source.publisher} · {source.publishedAt}</small></a>)}</div> <div className=\"infographic-review-actions\"><button className=\"primary-button\" disabled={busy !== \"\"} onClick={createVisual} type=\"button\">{busy === \"visual\" ? \"Creating the visual…\" : \"Looks good — create infogra"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:106:onClick:4",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 106,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"infographic-source-list\"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} rel=\"noreferrer\" target=\"_blank\"><span>{source.id}</span><strong>{source.title}</strong><small>{source.publisher} · {source.publishedAt}</small></a>)}</div> <div className=\"infographic-review-actions\"><button className=\"primary-button\" disabled={busy !== \"\"} onClick={createVisual} type=\"button\">{busy === \"visual\" ? \"Creating the visual…\" : \"Looks good — create infogra"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:109:a:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 109,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{plan && <section className=\"infographic-output-grid\"> <div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-emp"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:110:summary:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 110,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:110:button:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 110,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:110:onClick:3",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 110,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:112:button:1",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 112,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</section>} {plan && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>Four reusable posts</strong><small>Each keeps the sources from its matching story panel.</small></div></div><div className=\"infographic-repurpose-grid\">{plan.repurposeCards.map((card) => <article key={card.id}><span>{card.recommendedChannel}</span><h3>{card.title}</h3><p>{card.copy}</p><button className=\"secondary-button\" onClick={() => copyCard(card.id, card.copy)} type=\"button\">{copied"
+  },
+  {
+    "control_id": "src/components/infographic-generator.tsx:112:onClick:2",
+    "file": "src/components/infographic-generator.tsx",
+    "line": 112,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</section>} {plan && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>Four reusable posts</strong><small>Each keeps the sources from its matching story panel.</small></div></div><div className=\"infographic-repurpose-grid\">{plan.repurposeCards.map((card) => <article key={card.id}><span>{card.recommendedChannel}</span><h3>{card.title}</h3><p>{card.copy}</p><button className=\"secondary-button\" onClick={() => copyCard(card.id, card.copy)} type=\"button\">{copied"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:49:button:1",

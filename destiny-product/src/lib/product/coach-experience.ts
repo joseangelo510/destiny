@@ -15,6 +15,7 @@ export const FEATURE_NAVIGATION = [
   { label: "Website audits", href: "/audits" },
   { label: "Content studio", href: "/content" },
   { label: "Repurpose content", href: "/content/repurpose" },
+  { label: "Infographic generator", href: "/content/infographics" },
   { label: "Editorial calendar", href: "/content#publishing-plan" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Keyword research", href: "/keyword-research" },

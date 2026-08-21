@@ -36,6 +36,7 @@ describe("Destiny SEO coach experience", () => {
       "Website audits",
       "Content studio",
       "Repurpose content",
+      "Infographic generator",
       "Editorial calendar",
       "Keyword strategy",
       "Keyword research",
