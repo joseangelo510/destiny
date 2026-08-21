@@ -267,6 +267,20 @@ function markdownWordCount(markdown: string) {
   return markdown.replace(/https?:\/\/\S+/g, " ").replace(/[#*_`>\[\]()!-]/g, " ").trim().split(/\s+/).filter(Boolean).length;
 }
 
+function comparableSourceUrl(value: string) {
+  try {
+    const url = new URL(value);
+    url.hostname = url.hostname.toLocaleLowerCase().replace(/^www\./, "");
+    url.hash = "";
+    for (const key of [...url.searchParams.keys()]) {
+      if (/^(?:utm_.+|gclid|fbclid|mc_cid|mc_eid|ref|source)$/i.test(key)) url.searchParams.delete(key);
+    }
+    url.searchParams.sort();
+    url.pathname = url.pathname.replace(/\/$/, "") || "/";
+    return url.toString();
+  } catch { return ""; }
+}
+
 export function infographicPlanIssues(plan: InfographicPlan, retrieved: Set<string>, now = new Date()) {
   const issues: string[] = [];
   if (plan.sections.length !== 4) issues.push("Use exactly four story panels so the infographic can become four standalone pieces.");
@@ -277,7 +291,8 @@ export function infographicPlanIssues(plan: InfographicPlan, retrieved: Set<stri
   if (articleWords < 500 || articleWords > 1000) issues.push("Keep the companion article between 500 and 1,000 words.");
   const sourceIds = new Set(plan.sources.map((source) => source.id));
   if (plan.sources.some((source) => !/^https:\/\//i.test(source.url))) issues.push("Every source link must use a secure web address.");
-  if (plan.sources.some((source) => !retrieved.has(source.url))) issues.push("Every cited source must come from OpenAI's retrieved web evidence.");
+  const retrievedSourceUrls = new Set([...retrieved].map(comparableSourceUrl).filter(Boolean));
+  if (plan.sources.some((source) => !retrievedSourceUrls.has(comparableSourceUrl(source.url)))) issues.push("Every cited source must come from OpenAI's retrieved web evidence.");
   if (plan.sections.some((section) => !section.dataPoints.length || section.dataPoints.length > 3)) issues.push("Give every story panel one to three data points.");
   if (plan.sections.some((section) => section.dataPoints.some((point) => !point.sourceIds.length || point.sourceIds.some((id) => !sourceIds.has(id))))) {
     issues.push("Every data point must cite a source included in the source ledger.");
