@@ -277,7 +277,8 @@ function comparableSourceUrl(value: string) {
     }
     url.searchParams.sort();
     url.pathname = url.pathname.replace(/\/$/, "") || "/";
-    return url.toString();
+    const decodedPath = decodeURIComponent(url.pathname);
+    return `${url.protocol}//${url.hostname}${decodedPath}${url.search}`;
   } catch { return ""; }
 }
 
