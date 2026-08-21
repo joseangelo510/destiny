@@ -272,13 +272,13 @@ function comparableSourceUrl(value: string) {
     const url = new URL(value);
     url.hostname = url.hostname.toLocaleLowerCase().replace(/^www\./, "");
     url.hash = "";
-    for (const key of [...url.searchParams.keys()]) {
-      if (/^(?:utm_.+|gclid|fbclid|mc_cid|mc_eid|ref|source)$/i.test(key)) url.searchParams.delete(key);
-    }
-    url.searchParams.sort();
     url.pathname = url.pathname.replace(/\/$/, "") || "/";
     const decodedPath = decodeURIComponent(url.pathname);
-    return `${url.protocol}//${url.hostname}${decodedPath}${url.search}`;
+    // Search providers routinely return analytics, rendering, and session
+    // parameters that are absent from the canonical URL the model cites. The
+    // evidence identity is the secure origin and document path, not those
+    // transport parameters.
+    return `${url.protocol}//${url.hostname}${decodedPath}`;
   } catch { return ""; }
 }
 
