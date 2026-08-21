@@ -106,6 +106,12 @@ describe("Destiny infographic generation", () => {
     expect(result.retrievedUrls).toHaveLength(4);
   });
 
+  it("accepts harmless canonical and tracking differences without accepting another source", () => {
+    const tracked = new Set(sources.map((source, index) => index === 0 ? `${source.url}/?utm_source=openai` : source.url));
+    expect(infographicPlanIssues(validPlan, tracked)).not.toContain("Every cited source must come from OpenAI's retrieved web evidence.");
+    expect(infographicPlanIssues(validPlan, new Set(["https://unrelated.example/report"]))).toContain("Every cited source must come from OpenAI's retrieved web evidence.");
+  });
+
   it("renders accurate text and a visible source ledger over the generated visual layer", () => {
     const svg = renderInfographicOverlaySvg(validPlan);
     expect(svg).toContain(`viewBox="0 0 ${INFOGRAPHIC_WIDTH} ${INFOGRAPHIC_HEIGHT}"`);
