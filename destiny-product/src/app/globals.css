@@ -1065,6 +1065,76 @@ body { font-size: 17px; }
 .workspace-card { padding: 30px; }
 .workspace-card-heading strong, .card-heading { font-size: 17px; }
 .workspace-card-heading > span, .workspace-card-heading small, .card-heading small { font-size: 13px; }
+
+/* Infographic generator: evidence first, then visual generation. */
+.infographic-generator { display: grid; gap: 22px; }
+.infographic-intro { align-items: end; background: linear-gradient(130deg, #173f33, #245c4b); color: white; display: grid; gap: 28px; grid-template-columns: 1.25fr 1fr; overflow: hidden; position: relative; }
+.infographic-intro::after { background: #cceb69; border-radius: 50%; content: ""; height: 180px; opacity: .13; position: absolute; right: -60px; top: -95px; width: 180px; }
+.infographic-intro h2 { color: white; font-family: var(--font-display), Georgia, serif; font-size: clamp(32px, 4vw, 54px); font-weight: 500; letter-spacing: -.035em; line-height: 1; margin: 12px 0 16px; max-width: 700px; }
+.infographic-intro p { color: #dbe9e3; font-size: 16px; line-height: 1.55; margin: 0; max-width: 650px; }
+.feature-eyebrow { color: #cceb69; font-size: 12px; font-weight: 850; letter-spacing: .16em; }
+.infographic-steps { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; position: relative; z-index: 1; }
+.infographic-steps li { align-items: center; color: #b9cbc4; display: grid; font-size: 14px; font-weight: 750; gap: 12px; grid-template-columns: 34px 1fr; }
+.infographic-steps b { align-items: center; border: 1px solid #6f9185; border-radius: 50%; display: flex; height: 34px; justify-content: center; width: 34px; }
+.infographic-steps li.active, .infographic-steps li.done { color: white; }
+.infographic-steps li.active b { background: #cceb69; border-color: #cceb69; color: #173f33; }
+.infographic-steps li.done b { background: #fff; border-color: #fff; color: #173f33; }
+.infographic-deliverables { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); }
+.infographic-deliverables > div { background: #f5f8f5; border: 1px solid var(--line); border-radius: 16px; min-height: 98px; padding: 18px; }
+.infographic-deliverables strong, .infographic-deliverables small { display: block; }
+.infographic-deliverables strong { color: var(--forest); font-size: 15px; margin-bottom: 8px; }
+.infographic-deliverables small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.infographic-form-grid { display: grid; gap: 18px; grid-template-columns: 1fr 1fr; margin-bottom: 20px; }
+.infographic-form-grid label { display: grid; gap: 8px; }
+.infographic-form-grid label > span { color: var(--forest); font-size: 13px; font-weight: 800; }
+.infographic-form-grid label > span small { color: var(--muted); font-weight: 500; }
+.infographic-form-grid input, .infographic-form-grid select, .infographic-form-grid textarea { background: #fbfcfa; border: 1px solid #ccd9d3; border-radius: 12px; color: #193a31; font: inherit; font-size: 15px; padding: 13px 14px; width: 100%; }
+.infographic-form-grid textarea { line-height: 1.5; resize: vertical; }
+.infographic-full { grid-column: 1 / -1; }
+.infographic-setup > .integration-banner { margin-bottom: 18px; }
+.infographic-story-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
+.infographic-story-grid article { background: #f5f8f5; border: 1px solid #dce6e0; border-radius: 16px; padding: 20px; }
+.infographic-story-grid article > span { color: #2e6c59; font-size: 11px; font-weight: 850; letter-spacing: .13em; }
+.infographic-story-grid h3 { color: var(--forest); font-family: var(--font-display), Georgia, serif; font-size: 24px; font-weight: 500; margin: 9px 0; }
+.infographic-story-grid p { color: #52685f; line-height: 1.55; }
+.infographic-story-grid article > div { border-top: 1px solid #dce6e0; display: grid; gap: 8px; margin-top: 14px; padding-top: 12px; }
+.infographic-story-grid article > div p { margin: 0; }
+.infographic-story-grid article > div strong { color: #e2674f; font-size: 23px; margin-right: 5px; }
+.infographic-story-grid article > div small { color: var(--muted); display: block; font-size: 12px; margin-top: 4px; }
+.infographic-source-list { border-top: 1px solid var(--line); display: grid; gap: 8px; margin-top: 24px; padding-top: 20px; }
+.infographic-source-list h3 { color: var(--forest); font-size: 15px; margin: 0 0 4px; }
+.infographic-source-list a { align-items: center; border-radius: 10px; color: var(--forest); display: grid; gap: 10px; grid-template-columns: 52px 1fr auto; padding: 10px; text-decoration: none; }
+.infographic-source-list a:hover { background: #f2f7f4; }
+.infographic-source-list a > span { color: #2e6c59; font-size: 11px; font-weight: 850; text-transform: uppercase; }
+.infographic-source-list a small { color: var(--muted); font-size: 12px; }
+.infographic-review-actions { display: flex; gap: 10px; margin-top: 22px; }
+.infographic-output-grid { display: grid; gap: 22px; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+.infographic-preview img { border: 1px solid var(--line); border-radius: 14px; display: block; height: auto; margin-bottom: 16px; width: 100%; }
+.infographic-preview-empty { align-items: center; background: #f3f6f2; border: 1px dashed #aabdb4; border-radius: 14px; color: var(--forest); display: flex; flex-direction: column; gap: 7px; justify-content: center; min-height: 420px; text-align: center; }
+.infographic-preview-empty span { color: var(--muted); font-size: 13px; }
+.infographic-article h3 { color: var(--forest); font-family: var(--font-display), Georgia, serif; font-size: 28px; font-weight: 500; }
+.infographic-article p { color: #536a61; font-size: 14px; line-height: 1.55; }
+.infographic-article details { border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); margin: 18px 0; padding: 15px 0; }
+.infographic-article summary { color: var(--forest); cursor: pointer; font-weight: 800; }
+.infographic-article pre { color: #4a6158; font-family: inherit; font-size: 14px; line-height: 1.65; max-height: 520px; overflow: auto; white-space: pre-wrap; }
+.infographic-repurpose-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
+.infographic-repurpose-grid article { border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.infographic-repurpose-grid article > span { color: #2e6c59; font-size: 11px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.infographic-repurpose-grid h3 { color: var(--forest); font-size: 17px; margin: 9px 0; }
+.infographic-repurpose-grid p { color: #536a61; line-height: 1.6; }
+
+@media (max-width: 900px) {
+  .infographic-intro, .infographic-output-grid { grid-template-columns: 1fr; }
+  .infographic-deliverables, .infographic-story-grid, .infographic-repurpose-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 620px) {
+  .infographic-deliverables, .infographic-story-grid, .infographic-repurpose-grid, .infographic-form-grid { grid-template-columns: 1fr; }
+  .infographic-full { grid-column: auto; }
+  .infographic-source-list a { align-items: start; grid-template-columns: 46px 1fr; }
+  .infographic-source-list a small { grid-column: 2; }
+  .infographic-review-actions { align-items: stretch; flex-direction: column; }
+}
 .workspace-empty p, .connection-callout p, .opportunity-item p, .review-score p { font-size: 16px; }
 .primary-button, .secondary-button { font-size: 16px; min-height: 50px; padding-left: 21px; padding-right: 21px; }
 .text-button { font-size: 15px; }
