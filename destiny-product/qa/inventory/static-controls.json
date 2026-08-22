@@ -1,12 +1,12 @@
 [
   {
-    "control_id": "src/app/analytics/page.tsx:83:Link:1",
-    "file": "src/app/analytics/page.tsx",
-    "line": 83,
-    "type": "Link",
-    "route": "/analytics",
+    "control_id": "src/app/api/account/ranking-emails/route.ts:16:data-mutation:1",
+    "file": "src/app/api/account/ranking-emails/route.ts",
+    "line": 16,
+    "type": "data-mutation",
+    "route": "/api/account/ranking-emails",
     "side_effect_class": 1,
-    "context": "</>} <section className=\"workspace-card connection-callout\" id=\"first-party-measurement\"><div><strong>First-party measurement</strong><p>Connect Search Console, Google Analytics, Business Profile, and YouTube to add clicks, impressions, conversions, reviews, and video discovery.</p></div><Link className=\"primary-button workspace-action\" href=\"/integrations\">Manage connections</Link></section> </>"
+    "context": "const { data: preference, error } = await supabase.from(\"notification_preferences\") .update({ ranking_digest_frequency: body.frequency,"
   },
   {
     "control_id": "src/app/api/account/route.ts:34:data-mutation:1",
@@ -99,6 +99,96 @@
     "context": "} await db.from(\"publishing_schedule_items\").update({ state: \"scheduled\", article_key: prepared.articleKey, remote_id: wordpressRemoteIdFromEditUrl(data.remoteEditUrl), remote_edit_url: data.remoteEditUrl, last_error: null, attempt_count: 1 }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"scheduled\", message: \"Scheduled in WordPress.\" });"
   },
   {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:206:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 206,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:238:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 238,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"writing\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:305:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 305,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:325:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 325,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:342:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 342,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:360:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 360,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:378:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 378,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"failed\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/generate/route.ts:400:data-mutation:1",
+    "file": "src/app/api/content/repurpose/generate/route.ts",
+    "line": 400,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/generate",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ status: \"ready\","
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/sources/route.ts:253:data-mutation:1",
+    "file": "src/app/api/content/repurpose/sources/route.ts",
+    "line": 253,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/sources",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .insert({ organization_id: website.organization_id,"
+  },
+  {
+    "control_id": "src/app/api/content/repurpose/sources/route.ts:411:data-mutation:1",
+    "file": "src/app/api/content/repurpose/sources/route.ts",
+    "line": 411,
+    "type": "data-mutation",
+    "route": "/api/content/repurpose/sources",
+    "side_effect_class": 1,
+    "context": ".from(\"repurpose_sources\") .update({ draft_title: titleStr,"
+  },
+  {
     "control_id": "src/app/api/directory-profiles/check/route.ts:23:data-mutation:1",
     "file": "src/app/api/directory-profiles/check/route.ts",
     "line": 23,
@@ -124,6 +214,114 @@
     "route": "/api/integrations/cms/wordpress/draft",
     "side_effect_class": 3,
     "context": "const db = supabase as unknown as SupabaseClient; await db.from(\"publishing_schedule_items\").update({ state: \"scheduled\","
+  },
+  {
+    "control_id": "src/app/api/interlinks/opportunities/[id]/route.ts:26:data-mutation:1",
+    "file": "src/app/api/interlinks/opportunities/[id]/route.ts",
+    "line": 26,
+    "type": "data-mutation",
+    "route": "/api/interlinks/opportunities/[id]",
+    "side_effect_class": 1,
+    "context": "}; const { error } = await db.from(\"interlink_opportunities\").update(updates).eq(\"id\", id); if (error) return NextResponse.json({ error: error.message }, { status: 500 });"
+  },
+  {
+    "control_id": "src/app/api/interlinks/opportunities/[id]/verify/route.ts:34:data-mutation:1",
+    "file": "src/app/api/interlinks/opportunities/[id]/verify/route.ts",
+    "line": 34,
+    "type": "data-mutation",
+    "route": "/api/interlinks/opportunities/[id]/verify",
+    "side_effect_class": 1,
+    "context": "const verifiedAt = new Date().toISOString(); const { error } = await db.from(\"interlink_opportunities\").update({ status: \"verified\", verified_at: verifiedAt, verified_anchor: verification.anchor }).eq(\"id\", id); if (error) return NextResponse.json({ error: error.message }, { status: 500 });"
+  },
+  {
+    "control_id": "src/app/api/interlinks/runs/route.ts:92:data-mutation:1",
+    "file": "src/app/api/interlinks/runs/route.ts",
+    "line": 92,
+    "type": "data-mutation",
+    "route": "/api/interlinks/runs",
+    "side_effect_class": 1,
+    "context": "}; const { error: runError } = await db.from(\"interlink_runs\").insert(runRow); if (runError) return NextResponse.json({ error: runError.message }, { status: 500 });"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/answers/route.ts:25:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/answers/route.ts",
+    "line": 25,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/answers",
+    "side_effect_class": 1,
+    "context": "if (skip) { const { error } = await db.from(\"interview_questions\").update({ skipped: true }).eq(\"id\", questionId).eq(\"interview_id\", id); if (error) return NextResponse.json({ error: \"Destiny could not save that skip.\" }, { status: 500 });"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/answers/route.ts:30:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/answers/route.ts",
+    "line": 30,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/answers",
+    "side_effect_class": 1,
+    "context": "if (!existing) { const { error } = await db.from(\"interview_answers\").insert({ organization_id: interview.organization_id,"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/answers/route.ts:42:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/answers/route.ts",
+    "line": 42,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/answers",
+    "side_effect_class": 1,
+    "context": "const nextPosition = Math.min(Number(interview.question_count), Number(question.position) + 1); await db.from(\"interviews\").update({ current_position: nextPosition }).eq(\"id\", id); return NextResponse.json({ saved: true, nextPosition });"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/article/route.ts:35:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/article/route.ts",
+    "line": 35,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/article",
+    "side_effect_class": 2,
+    "context": "if (existing && existingDraft?.generationStatus === \"generated\") { await db.from(\"article_drafts\").update({ interview_id: id }).eq(\"id\", existing.id); } else {"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/complete/route.ts:31:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/complete/route.ts",
+    "line": 31,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/complete",
+    "side_effect_class": 1,
+    "context": "if (libraryError) return NextResponse.json({ error: \"Your answers are safe, but Destiny could not update the Voice Library yet.\" }, { status: 500 }); const { error: completionError } = await db.from(\"interviews\").update({ status: \"complete\", completed_at: new Date().toISOString() }).eq(\"id\", id); if (completionError) return NextResponse.json({ error: \"Your answers are safe, but Destiny could not finish the interview yet.\" }, { status: 500 });"
+  },
+  {
+    "control_id": "src/app/api/interviews/[id]/insights/route.ts:18:data-mutation:1",
+    "file": "src/app/api/interviews/[id]/insights/route.ts",
+    "line": 18,
+    "type": "data-mutation",
+    "route": "/api/interviews/[id]/insights",
+    "side_effect_class": 1,
+    "context": "const db = websiteScopedClient(supabase); const { data, error } = await db.from(\"voice_library_items\").update({ status }).eq(\"id\", itemId).eq(\"interview_id\", id).select(\"id,status\").maybeSingle(); if (error || !data) return NextResponse.json({ error: \"That insight is not available in this interview.\" }, { status: 404 });"
+  },
+  {
+    "control_id": "src/app/api/interviews/route.ts:58:data-mutation:1",
+    "file": "src/app/api/interviews/route.ts",
+    "line": 58,
+    "type": "data-mutation",
+    "route": "/api/interviews",
+    "side_effect_class": 1,
+    "context": "}); const { data: interview, error: interviewError } = await db.from(\"interviews\").insert({ organization_id: website.organization_id,"
+  },
+  {
+    "control_id": "src/app/api/interviews/route.ts:72:data-mutation:1",
+    "file": "src/app/api/interviews/route.ts",
+    "line": 72,
+    "type": "data-mutation",
+    "route": "/api/interviews",
+    "side_effect_class": 1,
+    "context": "if (interviewError || !interview) return NextResponse.json({ error: \"Destiny could not create this interview.\" }, { status: 500 }); const { data: questionRows, error: questionError } = await db.from(\"interview_questions\").insert(questions.map((question) => ({ organization_id: website.organization_id,"
+  },
+  {
+    "control_id": "src/app/api/interviews/route.ts:81:data-mutation:1",
+    "file": "src/app/api/interviews/route.ts",
+    "line": 81,
+    "type": "data-mutation",
+    "route": "/api/interviews",
+    "side_effect_class": 0,
+    "context": "if (questionError || !questionRows?.length) { await db.from(\"interviews\").delete().eq(\"id\", interview.id); return NextResponse.json({ error: \"Destiny could not prepare the interview questions.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/keywords/decisions/route.ts:54:data-mutation:1",
@@ -441,27 +639,27 @@
     "context": "<p>For your security, Destiny’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
-    "control_id": "src/app/content/page.tsx:96:data-mutation:1",
+    "control_id": "src/app/content/page.tsx:129:data-mutation:1",
     "file": "src/app/content/page.tsx",
-    "line": 96,
+    "line": 129,
     "type": "data-mutation",
     "route": "/content",
     "side_effect_class": 0,
     "context": "const { data: cmsTransferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/content/page.tsx:134:Link:1",
+    "control_id": "src/app/content/page.tsx:168:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 134,
+    "line": 168,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 3,
-    "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>Three outlines ready</strong><small>Built from your keyword strategy</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className=\"content-workf"
+    "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{interviewArticleDraft ? \"Interview draft ready\" : repurposeArticleDraft ? \"Repurposed draft ready\" : \"Three outlines ready\"}</strong><small>{interviewArticleDraft ? \"Built from your exact interview answers\" : repurposeArticleDraft ? \"Loaded from your saved source\" : \"Built from your keyword strategy\"}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Gene"
   },
   {
-    "control_id": "src/app/content/page.tsx:177:button:1",
+    "control_id": "src/app/content/page.tsx:211:button:1",
     "file": "src/app/content/page.tsx",
-    "line": 177,
+    "line": 211,
     "type": "button",
     "route": "/content",
     "side_effect_class": 0,
@@ -1008,85 +1206,139 @@
     "context": "{error && <p aria-live=\"polite\" className={styles.error}>{error}</p>} <button className={styles.deleteButton} disabled={!matches || deleting} onClick={deleteAccount} type=\"button\">{deleting ? \"Deleting account…\" : \"Delete account\"}</button> </section>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:544:button:1",
+    "control_id": "src/components/analytics-dashboard.tsx:103:button:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 103,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"analytics-range\" aria-label=\"Analytics time range\"> {([30, 90] as const).map((days) => <button aria-pressed={range === days}"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:107:onClick:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 107,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "key={days} onClick={() => setRange(days)} type=\"button\""
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:128:Link:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 128,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div><span>Do this next</span><strong>{nextAction.title}</strong></div> <Link href={nextAction.href}>{nextAction.label}</Link> </section>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:140:button:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 140,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{index > 0 && <div className=\"analytics-journey-arrow\" aria-hidden=\"true\"><span>→</span><small>{index === 1 ? clickRate : engagedRate}</small></div>} <button aria-pressed={metricKey === key} className=\"analytics-journey-step\" onClick={() => setMetricKey(key)} type=\"button\"> <span>{item.name}</span>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:140:onClick:2",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 140,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{index > 0 && <div className=\"analytics-journey-arrow\" aria-hidden=\"true\"><span>→</span><small>{index === 1 ? clickRate : engagedRate}</small></div>} <button aria-pressed={metricKey === key} className=\"analytics-journey-step\" onClick={() => setMetricKey(key)} type=\"button\"> <span>{item.name}</span>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:156:button:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 156,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"analytics-metric-tabs\" aria-label=\"Search journey metric\"> {([\"impressions\", \"clicks\", \"engagedVisits\"] as const).map((key) => <button aria-pressed={metricKey === key} key={key} onClick={() => setMetricKey(key)} type=\"button\">{period.metrics[key].name}</button>)} </div>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:156:onClick:2",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 156,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"analytics-metric-tabs\" aria-label=\"Search journey metric\"> {([\"impressions\", \"clicks\", \"engagedVisits\"] as const).map((key) => <button aria-pressed={metricKey === key} key={key} onClick={() => setMetricKey(key)} type=\"button\">{period.metrics[key].name}</button>)} </div>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:185:Link:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 185,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "</div>)}</div> : <div className=\"analytics-breakdown-empty\"><strong>No two-reading movement yet.</strong><span>Destiny needs two rank checks before it can show a trustworthy change.</span></div>} <small className=\"analytics-panel-source\"><i aria-hidden=\"true\" />Rank tracker · {trackedKeywordCount.toLocaleString(\"en-US\")} keyword{trackedKeywordCount === 1 ? \"\" : \"s\"} tracked · <Link href=\"/rank-tracker\">See all keywords</Link></small> </section>"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:189:Link:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 189,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!conversionsConnected && <section className=\"analytics-conversion-note\"><span aria-hidden=\"true\">◐</span><p><strong>No organic conversions are recorded yet.</strong> If conversion measurement is already configured, this note will clear after the first organic key event arrives. Otherwise, connect measurement to complete the journey.</p><Link href=\"/integrations\">Review measurement</Link></section>}"
+  },
+  {
+    "control_id": "src/components/analytics-dashboard.tsx:191:summary:1",
+    "file": "src/components/analytics-dashboard.tsx",
+    "line": 191,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{estimate && <details className=\"analytics-estimate\"><summary>Provider estimates—not website Analytics</summary><div><span><strong>{Math.round(estimate.organicTraffic).toLocaleString(\"en-US\")}</strong> estimated monthly organic visits</span><span><strong>{Math.round(estimate.rankingKeywords).toLocaleString(\"en-US\")}</strong> ranking keywords</span><small>{estimate.source}. These are modeled search estimates and remain separate from the connected metrics above.</small></div></details>} </div>;"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:547:button:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 544,
+    "line": 547,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<div><span className=\"eyebrow\">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div> {drafts.map((item, index) => <button className={index === selected ? \"active\" : \"\"} disabled={generating} key={item.keyword} onClick={() => { setSelected(index); setError(\"\"); }} type=\"button\"><span>{item.approved ? \"✓\" : index + 1}</span><div"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:544:onClick:2",
+    "control_id": "src/components/article-review-workspace.tsx:547:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 544,
+    "line": 547,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
     "context": "<div><span className=\"eyebrow\">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div> {drafts.map((item, index) => <button className={index === selected ? \"active\" : \"\"} disabled={generating} key={item.keyword} onClick={() => { setSelected(index); setError(\"\"); }} type=\"button\"><span>{item.approved ? \"✓\" : index + 1}</span><div"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:552:select:1",
+    "control_id": "src/components/article-review-workspace.tsx:555:select:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 552,
+    "line": 555,
     "type": "select",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"article-preference-grid\"> <label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={gene"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:552:onChange:2",
+    "control_id": "src/components/article-review-workspace.tsx:555:onChange:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 552,
+    "line": 555,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"article-preference-grid\"> <label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={gene"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:553:select:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 553,
-    "type": "select",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={generating} value={draft.preferences.format} o"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:553:onChange:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 553,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={generating} value={draft.preferences.format} o"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:554:select:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 554,
-    "type": "select",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Format<select disabled={generating} value={draft.preferences.format} onChange={(event) => updatePreference(\"format\", event.target.value as ArticleGenerationPreferences[\"format\"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label> <label>Reading ease<select disabled={generating} value={draft.preferen"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:554:onChange:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 554,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Format<select disabled={generating} value={draft.preferences.format} onChange={(event) => updatePreference(\"format\", event.target.value as ArticleGenerationPreferences[\"format\"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label> <label>Reading ease<select disabled={generating} value={draft.preferen"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:556:textarea:1",
+    "control_id": "src/components/article-review-workspace.tsx:556:select:1",
     "file": "src/components/article-review-workspace.tsx",
     "line": 556,
-    "type": "textarea",
+    "type": "select",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checke"
+    "context": "<label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={generating} value={draft.preferences.format} o"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:556:onChange:2",
@@ -1095,16 +1347,16 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checke"
+    "context": "<label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference(\"voice\", event.target.value as ArticleGenerationPreferences[\"voice\"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label> <label>Format<select disabled={generating} value={draft.preferences.format} o"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:557:input:1",
+    "control_id": "src/components/article-review-workspace.tsx:557:select:1",
     "file": "src/components/article-review-workspace.tsx",
     "line": 557,
-    "type": "input",
+    "type": "select",
     "route": "component",
-    "side_effect_class": 2,
-    "context": "<label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><"
+    "side_effect_class": 1,
+    "context": "<label>Format<select disabled={generating} value={draft.preferences.format} onChange={(event) => updatePreference(\"format\", event.target.value as ArticleGenerationPreferences[\"format\"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label> <label>Reading ease<select disabled={generating} value={draft.preferen"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:557:onChange:2",
@@ -1112,167 +1364,185 @@
     "line": 557,
     "type": "onChange",
     "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>Format<select disabled={generating} value={draft.preferences.format} onChange={(event) => updatePreference(\"format\", event.target.value as ArticleGenerationPreferences[\"format\"])}>{ARTICLE_FORMAT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_FORMAT_OPTIONS.find((option) => option.value === draft.preferences.format)?.description}</small></label> <label>Reading ease<select disabled={generating} value={draft.preferen"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:559:textarea:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 559,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "</div> <label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checke"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:559:onChange:2",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 559,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "</div> <label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checke"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:560:input:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 560,
+    "type": "input",
+    "route": "component",
     "side_effect_class": 2,
     "context": "<label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:558:button:1",
+    "control_id": "src/components/article-review-workspace.tsx:560:onChange:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 558,
+    "line": 560,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<label>Special instructions<textarea disabled={generating} rows={3} placeholder=\"Add required examples, points to include, or brand guidance.\" value={draft.preferences.specialInstructions} onChange={(event) => updatePreference(\"specialInstructions\", event.target.value)} /></label> <label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:561:button:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 561,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:558:onClick:2",
+    "control_id": "src/components/article-review-workspace.tsx:561:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 558,
+    "line": 561,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
     "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:558:button:3",
+    "control_id": "src/components/article-review-workspace.tsx:561:button:3",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 558,
+    "line": 561,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:558:onClick:4",
+    "control_id": "src/components/article-review-workspace.tsx:561:onClick:4",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 558,
+    "line": 561,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
     "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:568:input:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 568,
-    "type": "input",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<div className=\"article-meta-grid\"> <label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label>"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:568:onChange:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 568,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<div className=\"article-meta-grid\"> <label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label>"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:569:input:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 569,
-    "type": "input",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label> </div>"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:569:onChange:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 569,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label> </div>"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:571:summary:1",
+    "control_id": "src/components/article-review-workspace.tsx:571:input:1",
     "file": "src/components/article-review-workspace.tsx",
     "line": 571,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"article-meta-grid\"> <label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label>"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:571:onChange:2",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 571,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"article-meta-grid\"> <label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label>"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:572:input:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 572,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label> </div>"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:572:onChange:2",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 572,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>Blog headline (H1)<input value={draft.title} onChange={(event) => updateText(\"title\", event.target.value)} /><small>{draft.title.trim().split(/\\s+/).filter(Boolean).length} words · normally 8–13</small></label> <label>SEO/meta title<input value={draft.metaTitle} onChange={(event) => updateText(\"metaTitle\", event.target.value)} /><small>{draft.metaTitle.length}/60 characters · about {estimateMetaTitleWidth(draft.metaTitle)}px/600px</small></label> </div>"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:574:summary:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 574,
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> {draft.titleCandidates.length > 0 && <details className=\"article-title-candidates\"><summary>Compare six researched title directions</summary><div>{draft.titleCandidates.map((candidate, index) => <button className={candidate.headline === draft.title && candidate.metaTitle === draft.metaTitle ? \"active\" : \"\"} key={`${candidate.format}-${index}`} onClick={() => chooseTitleCandidate(index)} type=\"button\"><span>{candidate.format.replaceAll(\"_\", \" \")} · {candidate.score}/100</span><strong>{cand"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:571:button:2",
+    "control_id": "src/components/article-review-workspace.tsx:574:button:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 571,
+    "line": 574,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> {draft.titleCandidates.length > 0 && <details className=\"article-title-candidates\"><summary>Compare six researched title directions</summary><div>{draft.titleCandidates.map((candidate, index) => <button className={candidate.headline === draft.title && candidate.metaTitle === draft.metaTitle ? \"active\" : \"\"} key={`${candidate.format}-${index}`} onClick={() => chooseTitleCandidate(index)} type=\"button\"><span>{candidate.format.replaceAll(\"_\", \" \")} · {candidate.score}/100</span><strong>{cand"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:571:onClick:3",
+    "control_id": "src/components/article-review-workspace.tsx:574:onClick:3",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 571,
+    "line": 574,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> {draft.titleCandidates.length > 0 && <details className=\"article-title-candidates\"><summary>Compare six researched title directions</summary><div>{draft.titleCandidates.map((candidate, index) => <button className={candidate.headline === draft.title && candidate.metaTitle === draft.metaTitle ? \"active\" : \"\"} key={`${candidate.format}-${index}`} onClick={() => chooseTitleCandidate(index)} type=\"button\"><span>{candidate.format.replaceAll(\"_\", \" \")} · {candidate.score}/100</span><strong>{cand"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:573:textarea:1",
+    "control_id": "src/components/article-review-workspace.tsx:576:textarea:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 573,
+    "line": 576,
     "type": "textarea",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"article-meta-grid\"> {[0].map((index) => <label key={index}>Meta description<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? \"\"} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? \"\").length}/150 characters</small></label>)} </div>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:573:onChange:2",
+    "control_id": "src/components/article-review-workspace.tsx:576:onChange:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 573,
+    "line": 576,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"article-meta-grid\"> {[0].map((index) => <label key={index}>Meta description<textarea rows={3} maxLength={150} value={draft.metaDescriptions[index] ?? \"\"} onChange={(event) => updateMetaDescription(index, event.target.value)} /><small>{(draft.metaDescriptions[index] ?? \"\").length}/150 characters</small></label>)} </div>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:575:textarea:1",
+    "control_id": "src/components/article-review-workspace.tsx:578:textarea:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 575,
+    "line": 578,
     "type": "textarea",
     "route": "component",
     "side_effect_class": 1,
     "context": "</div> <label>Article draft<textarea className=\"article-body-editor\" rows={32} value={draft.body} onChange={(event) => updateText(\"body\", event.target.value)} /></label>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:575:onChange:2",
+    "control_id": "src/components/article-review-workspace.tsx:578:onChange:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 575,
+    "line": 578,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "</div> <label>Article draft<textarea className=\"article-body-editor\" rows={32} value={draft.body} onChange={(event) => updateText(\"body\", event.target.value)} /></label>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:577:a:1",
+    "control_id": "src/components/article-review-workspace.tsx:580:a:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 577,
+    "line": 580,
     "type": "a",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "{draft.sources.length > 0 && <section className=\"article-evidence-panel\"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel=\"noreferrer\" target=\"_blank\">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>} {draft.infographics.length > 0 && <section className=\"article-infographic-list\"><h3>Original graphics</h3><p>Download and place these in the"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:578:button:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 578,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "{draft.sources.length > 0 && <section className=\"article-evidence-panel\"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel=\"noreferrer\" target=\"_blank\">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>} {draft.infographics.length > 0 && <section className=\"article-infographic-list\"><h3>Original graphics</h3><p>Download and place these in the"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:578:onClick:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 578,
-    "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{draft.sources.length > 0 && <section className=\"article-evidence-panel\"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel=\"noreferrer\" target=\"_blank\">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>} {draft.infographics.length > 0 && <section className=\"article-infographic-list\"><h3>Original graphics</h3><p>Download and place these in the"
@@ -1283,8 +1553,8 @@
     "line": 581,
     "type": "button",
     "route": "component",
-    "side_effect_class": 2,
-    "context": "<div className=\"article-editor-actions\"> <button className={draft.approved ? \"secondary-button\" : \"primary-button\"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type=\"button\">{draft.approved ? \"Reopen this draft\" : canApprove ? \"Approve this draft\" : \"Generate and review before approval\"}</button> <button className=\"secondary-button\" disabled={exporting} onClick={() => void downloadWordDocument()} type=\"button\">{exporting ? \"Creating Word document…\" : \"Download editable Wor"
+    "side_effect_class": 3,
+    "context": "{draft.sources.length > 0 && <section className=\"article-evidence-panel\"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel=\"noreferrer\" target=\"_blank\">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>} {draft.infographics.length > 0 && <section className=\"article-infographic-list\"><h3>Original graphics</h3><p>Download and place these in the"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:581:onClick:2",
@@ -1292,53 +1562,44 @@
     "line": 581,
     "type": "onClick",
     "route": "component",
+    "side_effect_class": 3,
+    "context": "{draft.sources.length > 0 && <section className=\"article-evidence-panel\"><h3>Sources used</h3><p>Review the supporting evidence before publishing.</p><ul>{draft.sources.map((source) => <li key={source.id}><a href={source.url} rel=\"noreferrer\" target=\"_blank\">{source.title}</a>{source.publisher ? <span>{source.publisher}</span> : null}</li>)}</ul></section>} {draft.infographics.length > 0 && <section className=\"article-infographic-list\"><h3>Original graphics</h3><p>Download and place these in the"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:584:button:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 584,
+    "type": "button",
+    "route": "component",
     "side_effect_class": 2,
     "context": "<div className=\"article-editor-actions\"> <button className={draft.approved ? \"secondary-button\" : \"primary-button\"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type=\"button\">{draft.approved ? \"Reopen this draft\" : canApprove ? \"Approve this draft\" : \"Generate and review before approval\"}</button> <button className=\"secondary-button\" disabled={exporting} onClick={() => void downloadWordDocument()} type=\"button\">{exporting ? \"Creating Word document…\" : \"Download editable Wor"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:582:button:1",
+    "control_id": "src/components/article-review-workspace.tsx:584:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 582,
+    "line": 584,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<div className=\"article-editor-actions\"> <button className={draft.approved ? \"secondary-button\" : \"primary-button\"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type=\"button\">{draft.approved ? \"Reopen this draft\" : canApprove ? \"Approve this draft\" : \"Generate and review before approval\"}</button> <button className=\"secondary-button\" disabled={exporting} onClick={() => void downloadWordDocument()} type=\"button\">{exporting ? \"Creating Word document…\" : \"Download editable Wor"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:585:button:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 585,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<button className={draft.approved ? \"secondary-button\" : \"primary-button\"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type=\"button\">{draft.approved ? \"Reopen this draft\" : canApprove ? \"Approve this draft\" : \"Generate and review before approval\"}</button> <button className=\"secondary-button\" disabled={exporting} onClick={() => void downloadWordDocument()} type=\"button\">{exporting ? \"Creating Word document…\" : \"Download editable Word document\"}</button> {draft.approved && "
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:582:onClick:2",
+    "control_id": "src/components/article-review-workspace.tsx:585:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 582,
+    "line": 585,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
     "context": "<button className={draft.approved ? \"secondary-button\" : \"primary-button\"} disabled={!draft.approved && !canApprove} onClick={toggleApproved} type=\"button\">{draft.approved ? \"Reopen this draft\" : canApprove ? \"Approve this draft\" : \"Generate and review before approval\"}</button> <button className=\"secondary-button\" disabled={exporting} onClick={() => void downloadWordDocument()} type=\"button\">{exporting ? \"Creating Word document…\" : \"Download editable Word document\"}</button> {draft.approved && "
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:587:button:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 587,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 2,
-    "context": "? <span className=\"cms-draft-actions\" key={provider.id}> <button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:587:onClick:2",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 587,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 2,
-    "context": "? <span className=\"cms-draft-actions\" key={provider.id}> <button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank"
-  },
-  {
-    "control_id": "src/components/article-review-workspace.tsx:588:a:1",
-    "file": "src/components/article-review-workspace.tsx",
-    "line": 588,
-    "type": "a",
-    "route": "component",
-    "side_effect_class": 2,
-    "context": "<button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Review in {provider.label}</a> </span>"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:590:button:1",
@@ -1347,7 +1608,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
-    "context": "</span> : <button className=\"primary-button\" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Sending to ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? `Schedule in WordPress for ${new Date(wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)]).toLocaleDateString()}` : `Send to ${provider.label}`}</button>; })}"
+    "context": "? <span className=\"cms-draft-actions\" key={provider.id}> <button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:590:onClick:2",
@@ -1356,75 +1617,102 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
+    "context": "? <span className=\"cms-draft-actions\" key={provider.id}> <button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:591:a:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 591,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<button className=\"primary-button\" disabled={Boolean(delivering)} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Updating ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? \"Update scheduled WordPress post\" : `Update ${provider.label} draft`}</button> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Review in {provider.label}</a> </span>"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:593:button:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 593,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 2,
     "context": "</span> : <button className=\"primary-button\" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Sending to ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? `Schedule in WordPress for ${new Date(wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)]).toLocaleDateString()}` : `Send to ${provider.label}`}</button>; })}"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:593:Link:1",
+    "control_id": "src/components/article-review-workspace.tsx:593:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
     "line": 593,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "</span> : <button className=\"primary-button\" disabled={Boolean(delivering)} key={provider.id} onClick={() => void sendToCms(provider)} type=\"button\">{delivering === provider.id ? `Sending to ${provider.label}…` : provider.id === \"wordpress\" && wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] ? `Schedule in WordPress for ${new Date(wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)]).toLocaleDateString()}` : `Send to ${provider.label}`}</button>; })}"
+  },
+  {
+    "control_id": "src/components/article-review-workspace.tsx:596:Link:1",
+    "file": "src/components/article-review-workspace.tsx",
+    "line": 596,
     "type": "Link",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> {draft.approved && !connectedProviders.length && <div className=\"configuration-note\"><strong>Connect a CMS to send this draft</strong><p>Connect WordPress or Webflow once, then return here and send approved articles directly to your CMS as drafts.</p><Link className=\"secondary-button\" href=\"/integrations#publishing-destinations\">Connect a CMS</Link></div>} {connectedProviders.map((provider) => {"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:604:button:1",
+    "control_id": "src/components/article-review-workspace.tsx:607:button:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 604,
+    "line": 607,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div><span className={`cms-status-chip ${result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type=\"button\">{c"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:604:onClick:2",
+    "control_id": "src/components/article-review-workspace.tsx:607:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 604,
+    "line": 607,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div><span className={`cms-status-chip ${result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type=\"button\">{c"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:612:a:1",
+    "control_id": "src/components/article-review-workspace.tsx:615:a:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 612,
+    "line": 615,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className=\"cms-publication-actions\"> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {result.publicationStatus === \"verified_live\" && result.remotePermalink && <a className=\"primary-button\" href={result.remotePermalink} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>}"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:613:a:1",
+    "control_id": "src/components/article-review-workspace.tsx:616:a:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 613,
+    "line": 616,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "<a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {result.publicationStatus === \"verified_live\" && result.remotePermalink && <a className=\"primary-button\" href={result.remotePermalink} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>} </div>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:633:Link:1",
+    "control_id": "src/components/article-review-workspace.tsx:636:Link:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 633,
+    "line": 636,
     "type": "Link",
     "route": "component",
     "side_effect_class": 2,
     "context": "{draft.generatedBy && <small className=\"article-generated-by\">Generated by {draft.generatedBy}</small>} <Link className=\"secondary-button\" href=\"/integrations\">Connect CMS</Link> <button className=\"primary-button\" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === \"complete\"} onClick={() => void finish()} type=\"button\">{questStatus === \"complete\" ? \"Weekly content approved\" : saving ? \"Saving…\" : \"Finish weekly content review\"}</button>"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:634:button:1",
+    "control_id": "src/components/article-review-workspace.tsx:637:button:1",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 634,
+    "line": 637,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<Link className=\"secondary-button\" href=\"/integrations\">Connect CMS</Link> <button className=\"primary-button\" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === \"complete\"} onClick={() => void finish()} type=\"button\">{questStatus === \"complete\" ? \"Weekly content approved\" : saving ? \"Saving…\" : \"Finish weekly content review\"}</button> </aside>}"
   },
   {
-    "control_id": "src/components/article-review-workspace.tsx:634:onClick:2",
+    "control_id": "src/components/article-review-workspace.tsx:637:onClick:2",
     "file": "src/components/article-review-workspace.tsx",
-    "line": 634,
+    "line": 637,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
@@ -2518,6 +2806,429 @@
     "route": "component",
     "side_effect_class": 0,
     "context": "</section>} {plan && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>Four reusable posts</strong><small>Each keeps the sources from its matching story panel.</small></div></div><div className=\"infographic-repurpose-grid\">{plan.repurposeCards.map((card) => <article key={card.id}><span>{card.recommendedChannel}</span><h3>{card.title}</h3><p>{card.copy}</p><button className=\"secondary-button\" onClick={() => copyCard(card.id, card.copy)} type=\"button\">{copied"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:120:button:1",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 120,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Destiny checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </section"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:120:onClick:2",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 120,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Destiny checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </section"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:135:Link:1",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 135,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "{!visible.length ? <section className=\"workspace-card interlink-empty\"><span>✓</span><div><h2>No safe opportunities found in the pages checked</h2><p>Destiny will not pad the list. Publish more content or run a fresh website audit, then check again.</p><Link className=\"secondary-button\" href=\"/audits\">Review website audit</Link></div></section> : <section className=\"interlink-results\"> <div className=\"interlink-results-heading\"><div><span className=\"eyebrow\">Recommended edits</span><h2>Start wit"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:button:1",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:onClick:2",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:button:3",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:onClick:4",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:button:5",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:onClick:6",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:button:7",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:153:onClick:8",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 153,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"interlink-edit-destination\"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div> <div className=\"interlink-edit-actions\"><button className=\"secondary-button\" onClick={() => void copyEdit(item)} type=\"button\">{copyStatus?.id === item.id && copyStatus.tone === \"success\" ? \"Copied\" : \"Copy the edit\"}</button>{item.status === \"suggested\" && <button className=\"primary-"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:158:button:1",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 158,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <div className=\"interlink-card-actions\">{item.status !== \"verified\" && <button className=\"primary-button\" onClick={() => { setExpanded(isOpen ? \"\" : item.id); setCopyStatus(null); }} type=\"button\">{isOpen ? \"Close edit\" : item.status === \"done_claimed\" ? \"Verify link\" : \"See the edit\"}</button>}{item.status === \"suggested\" && <button className=\"link-button\" disabled={working === item.id} onClick={() => void changeStatus(item, \"skip\")} type=\"button\">Skip</button>}{item.status === \"verified"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:158:onClick:2",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 158,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <div className=\"interlink-card-actions\">{item.status !== \"verified\" && <button className=\"primary-button\" onClick={() => { setExpanded(isOpen ? \"\" : item.id); setCopyStatus(null); }} type=\"button\">{isOpen ? \"Close edit\" : item.status === \"done_claimed\" ? \"Verify link\" : \"See the edit\"}</button>}{item.status === \"suggested\" && <button className=\"link-button\" disabled={working === item.id} onClick={() => void changeStatus(item, \"skip\")} type=\"button\">Skip</button>}{item.status === \"verified"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:158:button:3",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 158,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <div className=\"interlink-card-actions\">{item.status !== \"verified\" && <button className=\"primary-button\" onClick={() => { setExpanded(isOpen ? \"\" : item.id); setCopyStatus(null); }} type=\"button\">{isOpen ? \"Close edit\" : item.status === \"done_claimed\" ? \"Verify link\" : \"See the edit\"}</button>}{item.status === \"suggested\" && <button className=\"link-button\" disabled={working === item.id} onClick={() => void changeStatus(item, \"skip\")} type=\"button\">Skip</button>}{item.status === \"verified"
+  },
+  {
+    "control_id": "src/components/interlink-workspace.tsx:158:onClick:4",
+    "file": "src/components/interlink-workspace.tsx",
+    "line": 158,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <div className=\"interlink-card-actions\">{item.status !== \"verified\" && <button className=\"primary-button\" onClick={() => { setExpanded(isOpen ? \"\" : item.id); setCopyStatus(null); }} type=\"button\">{isOpen ? \"Close edit\" : item.status === \"done_claimed\" ? \"Verify link\" : \"See the edit\"}</button>}{item.status === \"suggested\" && <button className=\"link-button\" disabled={working === item.id} onClick={() => void changeStatus(item, \"skip\")} type=\"button\">Skip</button>}{item.status === \"verified"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:227:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 227,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<nav aria-label=\"Interview progress\" className={styles.stageNav}> {stages.map(([id, number, label]) => <button aria-current={stage === id ? \"step\" : undefined} className={stage === id ? styles.activeStage : \"\"} key={id} onClick={() => navigate(id)} type=\"button\"><span>{number}</span>{label}</button>)} </nav>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:227:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 227,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<nav aria-label=\"Interview progress\" className={styles.stageNav}> {stages.map(([id, number, label]) => <button aria-current={stage === id ? \"step\" : undefined} className={stage === id ? styles.activeStage : \"\"} key={id} onClick={() => navigate(id)} type=\"button\"><span>{number}</span>{label}</button>)} </nav>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:239:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 239,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.topicMeta}><span>{topic.focusKeyword}</span><span>{formatVolume(topic.searchVolume)}</span><span>About {topic.estimatedMinutes} min</span><span>{topic.questionCount} questions</span></div> <button className={styles.primaryButton} disabled={busy} onClick={() => startInterview(topic)} type=\"button\">Start this interview →</button> </article>)}</div>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:239:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 239,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.topicMeta}><span>{topic.focusKeyword}</span><span>{formatVolume(topic.searchVolume)}</span><span>About {topic.estimatedMinutes} min</span><span>{topic.questionCount} questions</span></div> <button className={styles.primaryButton} disabled={busy} onClick={() => startInterview(topic)} type=\"button\">Start this interview →</button> </article>)}</div>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:241:input:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 241,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:241:onChange:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 241,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:241:button:3",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 241,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:241:onClick:4",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 241,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:247:textarea:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 247,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.interviewHeader}><div><span>{activeInterview.topicTitle}</span><strong>Question {questionIndex + 1} of {activeInterview.questions.length}</strong></div><div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div></div> <div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real nu"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:247:onChange:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 247,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.interviewHeader}><div><span>{activeInterview.topicTitle}</span><strong>Question {questionIndex + 1} of {activeInterview.questions.length}</strong></div><div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div></div> <div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real nu"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:248:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 248,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Destiny will handle the polish later.\" rows={9} value"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:248:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 248,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Destiny will handle the polish later.\" rows={9} value"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:249:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 249,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{nudge && <div className={styles.nudge}><strong>You have the idea.</strong> {nudge}<button onClick={() => { setNudge(\"ready\"); void saveCurrentAnswer(false); }} type=\"button\">Continue with this answer</button></div>} <div className={styles.questionActions}><button className={styles.primaryButton} disabled={busy} onClick={() => saveCurrentAnswer(false)} type=\"button\">{busy ? \"Saving…\" : questionIndex === activeInterview.questions.length - 1 ? \"Save answer & finish\" : \"Save answer & continue →\"}</"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:249:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 249,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{nudge && <div className={styles.nudge}><strong>You have the idea.</strong> {nudge}<button onClick={() => { setNudge(\"ready\"); void saveCurrentAnswer(false); }} type=\"button\">Continue with this answer</button></div>} <div className={styles.questionActions}><button className={styles.primaryButton} disabled={busy} onClick={() => saveCurrentAnswer(false)} type=\"button\">{busy ? \"Saving…\" : questionIndex === activeInterview.questions.length - 1 ? \"Save answer & finish\" : \"Save answer & continue →\"}</"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:249:button:3",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 249,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{nudge && <div className={styles.nudge}><strong>You have the idea.</strong> {nudge}<button onClick={() => { setNudge(\"ready\"); void saveCurrentAnswer(false); }} type=\"button\">Continue with this answer</button></div>} <div className={styles.questionActions}><button className={styles.primaryButton} disabled={busy} onClick={() => saveCurrentAnswer(false)} type=\"button\">{busy ? \"Saving…\" : questionIndex === activeInterview.questions.length - 1 ? \"Save answer & finish\" : \"Save answer & continue →\"}</"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:249:onClick:4",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 249,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{nudge && <div className={styles.nudge}><strong>You have the idea.</strong> {nudge}<button onClick={() => { setNudge(\"ready\"); void saveCurrentAnswer(false); }} type=\"button\">Continue with this answer</button></div>} <div className={styles.questionActions}><button className={styles.primaryButton} disabled={busy} onClick={() => saveCurrentAnswer(false)} type=\"button\">{busy ? \"Saving…\" : questionIndex === activeInterview.questions.length - 1 ? \"Save answer & finish\" : \"Save answer & continue →\"}</"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:button:3",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:onClick:4",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:button:5",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:256:onClick:6",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 256,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:257:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 257,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:257:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 257,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:257:button:3",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 257,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:257:onClick:4",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 257,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:264:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 264,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Destiny has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voic"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:264:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 264,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Destiny has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voic"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:265:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 265,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voice Library.</h3><p>There is no invented sample data here. Choose one topic and share what you know.</p><button className={styles.primaryButton} onClick={() => setStage(\"topics\")} type=\"button\">Choose my first topic</button></div> : <div className={styles.libraryGrid}>{items.filter((item) => item.status !== \"rejected_by_owner\").map((item) => <article key={item.id}><small>{insightLabels[it"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:265:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 265,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voice Library.</h3><p>There is no invented sample data here. Choose one topic and share what you know.</p><button className={styles.primaryButton} onClick={() => setStage(\"topics\")} type=\"button\">Choose my first topic</button></div> : <div className={styles.libraryGrid}>{items.filter((item) => item.status !== \"rejected_by_owner\").map((item) => <article key={item.id}><small>{insightLabels[it"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:268:button:1",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 268,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Destiny will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Destiny-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCount} confi"
+  },
+  {
+    "control_id": "src/components/interviews-workspace.tsx:268:onClick:2",
+    "file": "src/components/interviews-workspace.tsx",
+    "line": 268,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Destiny will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Destiny-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCount} confi"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:49:button:1",
@@ -4734,6 +5445,294 @@
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
+    "control_id": "src/components/repurpose-workspace.tsx:133:input:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 133,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "> <input type=\"radio\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:138:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 138,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "checked={value === option.value} onChange={(event) => { if (isRepurposeOutput(event.currentTarget.value)) {"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:403:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 403,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{REPURPOSE_SOURCE_MODES.map((mode) => ( <button key={mode}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:405:role:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 405,
+    "type": "role",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "key={mode} role=\"tab\" aria-selected={sourceMode === mode}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:408:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 408,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "className={`repurpose-mode-tab${sourceMode === mode ? \" active\" : \"\"}`} onClick={() => { setSourceMode(mode); setSourceError(null); }} type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:424:input:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 424,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <input id=\"repurpose-file-input\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:429:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 429,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "accept=\".pdf,.docx,.txt,.md\" onChange={handleFileChange} disabled={Boolean(source)}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:443:input:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 443,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <input id=\"repurpose-url-input\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:448:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 448,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "value={urlValue} onChange={(e) => { setUrlValue(e.target.value); setSourceError(null); }} disabled={Boolean(source)}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:461:textarea:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 461,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <textarea id=\"repurpose-text-input\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:465:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 465,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "value={textValue} onChange={(e) => { setTextValue(e.target.value); setSourceError(null); }} rows={8}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:475:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 475,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"repurpose-coming-soon-controls\"> <button type=\"button\" disabled className=\"repurpose-coming-soon-btn\" aria-disabled=\"true\"> <span>🎙</span> Audio recording"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:479:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 479,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</button> <button type=\"button\" disabled className=\"repurpose-coming-soon-btn\" aria-disabled=\"true\"> <span>🎬</span> Video file"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:497:a:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 497,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<strong>Source ready:</strong> {source.attribution} {source.url && <> — <a href={source.url} rel=\"noopener noreferrer\" target=\"_blank\">{source.url}</a></>} </div>"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:502:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 502,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{!source && ( <button type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:505:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 505,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "className=\"primary-button repurpose-source-submit\" onClick={handleAddSource} disabled={sourceLoading}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:525:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 525,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<OutputCards value={output} onChange={setOutput} disabled={Boolean(draft)} />"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:532:select:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 532,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <select id={keywordSelectId}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:535:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 535,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "value={targetKeyword} onChange={(e) => setTargetKeyword(e.target.value)} disabled={Boolean(draft)}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:561:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 561,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": ")} <button type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:564:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 564,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "className=\"primary-button repurpose-generate-btn\" onClick={() => handleGenerate()} disabled={!canGenerate}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:602:a:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 602,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{draft.sourceUrl && ( <> — <a href={draft.sourceUrl} rel=\"noopener noreferrer\" target=\"_blank\">{draft.sourceUrl}</a></> )}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:610:input:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 610,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <input id=\"repurpose-draft-title\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:614:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 614,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "value={editTitle} onChange={(e) => { setEditTitle(e.target.value); setSaveStatus(null); }} maxLength={120}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:623:textarea:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 623,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</label> <textarea id=\"repurpose-draft-body\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:626:onChange:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 626,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "value={editBody} onChange={(e) => { setEditBody(e.target.value); setSaveStatus(null); }} rows={20}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:634:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 634,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"repurpose-draft-actions\"> <button type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:637:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 637,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "className=\"primary-button\" onClick={handleSave} disabled={saving}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:642:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 642,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</button> <button type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:645:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 645,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "className=\"secondary-button\" onClick={handleRetry} disabled={generating}"
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:685:button:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 685,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className=\"repurpose-non-seo\"> <button type=\"button\""
+  },
+  {
+    "control_id": "src/components/repurpose-workspace.tsx:688:onClick:1",
+    "file": "src/components/repurpose-workspace.tsx",
+    "line": 688,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "className=\"secondary-button\" onClick={async () => { try {"
+  },
+  {
     "control_id": "src/components/roadmap-experience.tsx:83:Link:1",
     "file": "src/components/roadmap-experience.tsx",
     "line": 83,
@@ -5022,126 +6021,117 @@
     "context": "<div className=\"weekly-focus-meta\"><span>{task.estimated_minutes} minutes</span><span>Moves you toward {taskRoadmapTarget(task.task_type)}</span></div> <div className=\"weekly-focus-actions\"><Link className=\"primary-button\" href={guidedTaskPath(task)}>{isReviewTask(task) ? \"Open reviews\" : \"Begin this step\"}</Link><a className=\"text-button\" href=\"#weekly-checklist\">See the full week</a></div> </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:121:button:1",
+    "control_id": "src/components/weekly-loop.tsx:119:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 121,
+    "line": 119,
     "type": "button",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<small>{currentStreak}-week streak</small> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
+    "side_effect_class": 1,
+    "context": "<div className=\"weekly-map-summary-copy\"><strong>{complete} of {allTasks.length} complete</strong><small>{currentStreak}-week streak</small></div> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:121:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:119:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 121,
+    "line": 119,
     "type": "onClick",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<small>{currentStreak}-week streak</small> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
+    "side_effect_class": 1,
+    "context": "<div className=\"weekly-map-summary-copy\"><strong>{complete} of {allTasks.length} complete</strong><small>{currentStreak}-week streak</small></div> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:126:button:1",
+    "control_id": "src/components/weekly-loop.tsx:124:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 126,
+    "line": 124,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">Show"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:126:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:124:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 126,
+    "line": 124,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">Show"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:134:button:1",
+    "control_id": "src/components/weekly-loop.tsx:138:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 134,
+    "line": 138,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-loop-task-pane\" aria-selected={active} className={active ? \"active\" : \"\"} id={`weekly-loop-tab-${group.id}`} key={group.id} onClick={() => setActiveGroupId(group.id)} role=\"tab\" type=\"button\"> <span className={`weekly-loop-icon category-${index + 1}`}>{CATEGORY_ICONS[group.id] ?? index + 1}</span>"
+    "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-map-focus-panel\" aria-pressed={active} className={active ? \"active\" : \"\"} key={group.id} onClick={() => setActiveGroupId(group.id)} type=\"button\"> <span className=\"weekly-map-step-number\">{index + 1}</span>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:134:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:138:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 134,
+    "line": 138,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-loop-task-pane\" aria-selected={active} className={active ? \"active\" : \"\"} id={`weekly-loop-tab-${group.id}`} key={group.id} onClick={() => setActiveGroupId(group.id)} role=\"tab\" type=\"button\"> <span className={`weekly-loop-icon category-${index + 1}`}>{CATEGORY_ICONS[group.id] ?? index + 1}</span>"
+    "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-map-focus-panel\" aria-pressed={active} className={active ? \"active\" : \"\"} key={group.id} onClick={() => setActiveGroupId(group.id)} type=\"button\"> <span className=\"weekly-map-step-number\">{index + 1}</span>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:134:role:3",
+    "control_id": "src/components/weekly-loop.tsx:169:a:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 134,
-    "type": "role",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-loop-task-pane\" aria-selected={active} className={active ? \"active\" : \"\"} id={`weekly-loop-tab-${group.id}`} key={group.id} onClick={() => setActiveGroupId(group.id)} role=\"tab\" type=\"button\"> <span className={`weekly-loop-icon category-${index + 1}`}>{CATEGORY_ICONS[group.id] ?? index + 1}</span>"
-  },
-  {
-    "control_id": "src/components/weekly-loop.tsx:150:a:1",
-    "file": "src/components/weekly-loop.tsx",
-    "line": 150,
+    "line": 169,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "<a className=\"weekly-plan-reveal-audit-link\" href={`/audits/${auditId}`}>See full audit details</a>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:152:button:1",
+    "control_id": "src/components/weekly-loop.tsx:171:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 152,
+    "line": 171,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className=\"weekly-plan-replay\" onClick={() => setRevealOpen(true)} type=\"button\"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:152:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:171:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 152,
+    "line": 171,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className=\"weekly-plan-replay\" onClick={() => setRevealOpen(true)} type=\"button\"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:156:button:1",
+    "control_id": "src/components/weekly-loop.tsx:175:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 156,
+    "line": 175,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<section aria-labelledby=\"weekly-plan-reveal-title\" aria-modal=\"true\" className=\"weekly-plan-reveal\" role=\"dialog\"> <button aria-label=\"Close plan reveal\" className=\"weekly-plan-reveal-close\" onClick={closeReveal} type=\"button\">×</button> <div className=\"weekly-plan-reveal-compass\" aria-hidden=\"true\">✦</div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:156:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:175:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 156,
+    "line": 175,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<section aria-labelledby=\"weekly-plan-reveal-title\" aria-modal=\"true\" className=\"weekly-plan-reveal\" role=\"dialog\"> <button aria-label=\"Close plan reveal\" className=\"weekly-plan-reveal-close\" onClick={closeReveal} type=\"button\">×</button> <div className=\"weekly-plan-reveal-compass\" aria-hidden=\"true\">✦</div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:162:button:1",
+    "control_id": "src/components/weekly-loop.tsx:181:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 162,
+    "line": 181,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<div className=\"weekly-plan-reveal-list\">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className=\"weekly-plan-reveal-start-here\">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div> <button className=\"primary-button\" onClick={startFromReveal} type=\"button\">{focusTask ? `Start: ${coachingTaskCopy(focusTask).title}` : \"See your fi"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:162:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:181:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 162,
+    "line": 181,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
@@ -5400,40 +6390,31 @@
     "context": "<div className=\"notification-panel-heading\"><div><strong>Notifications</strong><span>{unread} unread</span></div>{unread > 0 && <button className=\"text-button\" onClick={() => void markAllRead()} type=\"button\">Mark all read</button>}</div> {loading ? <p className=\"notification-empty\">Loading updates…</p> : error ? <p className=\"notification-error\" role=\"alert\">{error}</p> : notifications.length ? notifications.map((notification) => <button className={notification.read_at ? \"notification-item\" : \""
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:15:Link:1",
+    "control_id": "src/components/workspace-shell-view.tsx:16:a:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 15,
+    "line": 16,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const className = item.href === active ? \"active\" : \"\"; return item.href.includes(\"#\") ? <a className={className} data-document-navigation=\"true\" href={scopedHref}>{item.label}</a> : <Link className={className} href={scopedHref}>{item.label}</Link>; }"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:16:Link:2",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 16,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const className = item.href === active ? \"active\" : \"\"; return item.href.includes(\"#\") ? <a className={className} data-document-navigation=\"true\" href={scopedHref}>{item.label}</a> : <Link className={className} href={scopedHref}>{item.label}</Link>; }"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:21:Link:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 21,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "const current = websites.find((website) => website.id === activeWebsiteId) ?? websites[0]; if (!current) return <Link className={styles.singleSiteAdd} href=\"/onboarding?new=1\">Add your first website</Link>; const mark = siteLabel(current).slice(0, 2);"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:19:Link:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 19,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className={styles.singleSite}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></div> <Link className={styles.singleSiteAdd} href=\"/onboarding?new=1\">+ Add another website</Link> </div>;"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:22:summary:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 22,
-    "type": "summary",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "return <details className={styles.siteContext}> <summary aria-label={`Current website: ${siteLabel(current)}. Choose another website.`}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></summary> <div className={styles.siteMenu}>"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:24:a:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 24,
-    "type": "a",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className={styles.siteMenu}> {websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : \"\"}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)} <Link className={styles.addSite} href=\"/onboarding?new=1\">+ Add another website</Link>"
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:25:Link:1",
@@ -5442,88 +6423,34 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<div className={styles.singleSite}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></div> <Link className={styles.singleSiteAdd} href=\"/onboarding?new=1\">+ Add another website</Link> </div>;"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:28:summary:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 28,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <details className={styles.siteContext}> <summary aria-label={`Current website: ${siteLabel(current)}. Choose another website.`}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></summary> <div className={styles.siteMenu}>"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:30:a:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 30,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.siteMenu}> {websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : \"\"}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)} <Link className={styles.addSite} href=\"/onboarding?new=1\">+ Add another website</Link>"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:31:Link:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 31,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "{websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : \"\"}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)} <Link className={styles.addSite} href=\"/onboarding?new=1\">+ Add another website</Link> </div>"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:35:Link:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 35,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<aside className=\"sidebar\"> <Link aria-label=\"Destiny workspace home\" className=\"brand sidebar-brand\" href={href(\"/app\")}><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:37:Link:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 37,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \""
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:38:summary:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 38,
-    "type": "summary",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.lengt"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:38:Link:2",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 38,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.lengt"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:39:summary:1",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 39,
-    "type": "summary",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? \"active\" : \"\"} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:39:Link:2",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 39,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? \"active\" : \"\"} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:39:Link:3",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 39,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? \"active\" : \"\"} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:39:form:4",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 39,
-    "type": "form",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? \"active\" : \"\"} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION"
-  },
-  {
-    "control_id": "src/components/workspace-shell-view.tsx:39:button:5",
-    "file": "src/components/workspace-shell-view.tsx",
-    "line": 39,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <Link className={item.href === active ? \"active\" : \"\"} href={href(item.href)} key={item.label}>{item.label}</Link>)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION"
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:41:Link:1",
@@ -5532,30 +6459,93 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<aside className=\"sidebar\"> <Link aria-label=\"Destiny workspace home\" className=\"brand sidebar-brand\" href={href(\"/app\")}><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:43:Link:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 43,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \""
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:44:summary:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 44,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.lengt"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:45:summary:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 45,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:45:Link:2",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 45,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:45:form:3",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 45,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:45:button:4",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 45,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:47:Link:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 47,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<div className=\"sidebar-account-actions\"> <Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:42:form:1",
+    "control_id": "src/components/workspace-shell-view.tsx:48:form:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 42,
+    "line": 48,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </div>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:42:button:2",
+    "control_id": "src/components/workspace-shell-view.tsx:48:button:2",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 42,
+    "line": 48,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </div>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:46:Link:1",
+    "control_id": "src/components/workspace-shell-view.tsx:52:Link:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 46,
+    "line": 52,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,

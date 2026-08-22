@@ -30,6 +30,7 @@ import {
   parseArticleContinuation,
 } from "@/lib/content/article-recovery";
 import { normalizeInternalUrl } from "@/lib/seo/interlinking";
+import { loadWebsiteVoiceContext } from "@/lib/interviews/server";
 
 export const maxDuration = 300;
 const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
@@ -145,6 +146,7 @@ export async function POST(request: Request) {
   if (!input.keyword || !input.businessName) {
     return NextResponse.json({ error: "Choose a focus keyword and business before generating an article." }, { status: 400 });
   }
+  const voiceContext = await loadWebsiteVoiceContext(supabase as unknown as SupabaseClient, websiteId).catch(() => "");
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -181,7 +183,8 @@ export async function POST(request: Request) {
     try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
     catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
-    const prompt = buildArticleGenerationPrompt(input, researchEvidence);
+    const basePrompt = buildArticleGenerationPrompt(input, researchEvidence);
+    const prompt = voiceContext ? `${basePrompt}\n\n${voiceContext}` : basePrompt;
     const writingDeadline = AbortSignal.timeout(ARTICLE_WRITING_TIMEOUT_MS);
     const writeArticle = (payload: unknown) => fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

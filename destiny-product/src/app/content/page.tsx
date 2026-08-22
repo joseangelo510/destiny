@@ -14,12 +14,13 @@ import { INITIAL_PLAN_MONTHS, INITIAL_PLAN_WEEKS } from "@/lib/product/plan-hori
 import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
+import { parseInterviewArticleDraft } from "@/lib/interviews/interviews";
 import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string }> }) {
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string }> }) {
   const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
@@ -93,6 +94,16 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .maybeSingle()
     : { data: null };
   const repurposeArticleDraft = buildRepurposeArticleDraft(repurposeSourceRow);
+  const { data: interviewArticleRow } = context.website && context.audit && params.interview && UUID_PATTERN.test(params.interview)
+    ? await (context.supabase as unknown as SupabaseClient)
+      .from("article_drafts")
+      .select("draft")
+      .eq("website_id", context.website.id)
+      .eq("audit_id", context.audit.id)
+      .eq("interview_id", params.interview)
+      .maybeSingle()
+    : { data: null };
+  const interviewArticleDraft = parseInterviewArticleDraft(interviewArticleRow?.draft);
   const calendarArticleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
@@ -101,8 +112,9 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     differentiation: context.website?.differentiation ?? "",
   }));
   const articleDrafts = [
+    ...(interviewArticleDraft ? [interviewArticleDraft] : []),
     ...(repurposeArticleDraft ? [repurposeArticleDraft] : []),
-    ...calendarArticleDrafts.filter((draft) => draft.keyword !== repurposeArticleDraft?.keyword),
+    ...calendarArticleDrafts.filter((draft) => draft.keyword !== repurposeArticleDraft?.keyword && draft.keyword !== interviewArticleDraft?.keyword),
   ].slice(0, 3);
   const { data: savedArticleDraftRows } = context.audit && context.website
     ? await (context.supabase as unknown as SupabaseClient)
@@ -151,9 +163,9 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
-      {!repurposeArticleDraft && !rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !repurposeArticleDraft && approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Destiny will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !repurposeArticleDraft && !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
+      {!repurposeArticleDraft && !interviewArticleDraft && !rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !repurposeArticleDraft && !interviewArticleDraft && approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Destiny will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !repurposeArticleDraft && !interviewArticleDraft && !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Destiny should use." /> : (
         <>
-        <section className="workspace-card content-workflow"><div><span>1</span><strong>{repurposeArticleDraft ? "Repurposed draft ready" : "Three outlines ready"}</strong><small>{repurposeArticleDraft ? "Loaded from your saved source" : "Built from your keyword strategy"}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
+        <section className="workspace-card content-workflow"><div><span>1</span><strong>{interviewArticleDraft ? "Interview draft ready" : repurposeArticleDraft ? "Repurposed draft ready" : "Three outlines ready"}</strong><small>{interviewArticleDraft ? "Built from your exact interview answers" : repurposeArticleDraft ? "Loaded from your saved source" : "Built from your keyword strategy"}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         {strategyContentReady && <PublishingPlanManager
           approvedKeywordCount={approvedKeywordCount}
           websiteId={context.website?.id ?? ""}

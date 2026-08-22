@@ -71,6 +71,16 @@
   },
   {
     "kind": "api",
+    "route": "/api/content/repurpose/generate",
+    "file": "src/app/api/content/repurpose/generate/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/content/repurpose/sources",
+    "file": "src/app/api/content/repurpose/sources/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/content/word",
     "file": "src/app/api/content/word/route.ts"
   },
@@ -128,6 +138,46 @@
     "kind": "api",
     "route": "/api/integrations/google/sync",
     "file": "src/app/api/integrations/google/sync/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interlinks/opportunities/[id]",
+    "file": "src/app/api/interlinks/opportunities/[id]/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interlinks/opportunities/[id]/verify",
+    "file": "src/app/api/interlinks/opportunities/[id]/verify/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interlinks/runs",
+    "file": "src/app/api/interlinks/runs/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interviews",
+    "file": "src/app/api/interviews/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interviews/[id]/answers",
+    "file": "src/app/api/interviews/[id]/answers/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interviews/[id]/article",
+    "file": "src/app/api/interviews/[id]/article/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interviews/[id]/complete",
+    "file": "src/app/api/interviews/[id]/complete/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/interviews/[id]/insights",
+    "file": "src/app/api/interviews/[id]/insights/route.ts"
   },
   {
     "kind": "api",
@@ -246,6 +296,11 @@
   },
   {
     "kind": "page",
+    "route": "/content/repurpose",
+    "file": "src/app/content/repurpose/page.tsx"
+  },
+  {
+    "kind": "page",
     "route": "/distribution",
     "file": "src/app/distribution/page.tsx"
   },
@@ -258,6 +313,16 @@
     "kind": "page",
     "route": "/integrations",
     "file": "src/app/integrations/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/internal-links",
+    "file": "src/app/internal-links/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/interviews",
+    "file": "src/app/interviews/page.tsx"
   },
   {
     "kind": "page",
