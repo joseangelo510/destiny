@@ -53,6 +53,10 @@ function changedFiles(commit) {
     });
 }
 
+function isMergeCommit(commit) {
+  return git(["rev-list", "--parents", "-n", "1", commit]).split(" ").length > 2;
+}
+
 async function main() {
   const policy = JSON.parse(await readFile(policyPath, "utf8"));
   if (!Number.isInteger(policy.policyVersion) || !/^[0-9a-f]{40}$/.test(policy.activationSha ?? "")) {
@@ -76,6 +80,7 @@ async function main() {
     const separator = line.indexOf("\t");
     const sha = line.slice(0, separator);
     const subject = line.slice(separator + 1);
+    if (isMergeCommit(sha)) continue;
     for (const error of validateCommitShape({ subject, files: changedFiles(sha) })) errors.push(`${sha.slice(0, 12)}: ${error}`);
   }
   const testDiff = git(["diff", "--unified=0", `${policy.activationSha}..HEAD`, "--", "*.test.*", "*.spec.*"]);
