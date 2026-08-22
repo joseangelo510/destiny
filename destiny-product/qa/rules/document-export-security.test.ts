@@ -8,14 +8,16 @@ const root = process.cwd();
 describe("Word export dependency security", () => {
   it("pins nanoid to the patched release in package metadata and both lockfiles", async () => {
     const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as {
-      pnpm?: { overrides?: Record<string, string> };
+      overrides?: Record<string, string>;
     };
+    const workspace = await readFile(path.join(root, "pnpm-workspace.yaml"), "utf8");
     const pnpmLock = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8");
     const npmLock = JSON.parse(await readFile(path.join(root, "package-lock.json"), "utf8")) as {
       packages?: Record<string, { version?: string }>;
     };
 
-    expect(packageJson.pnpm?.overrides?.nanoid).toBe("3.3.18");
+    expect(packageJson.overrides?.nanoid).toBe("3.3.18");
+    expect(workspace).toMatch(/overrides:\s+[\s\S]*nanoid: 3\.3\.18/);
     expect(pnpmLock).not.toMatch(/nanoid@3\.3\.(?:16|17)(?:\W|$)/);
     expect(npmLock.packages?.["node_modules/nanoid"]?.version).toBe("3.3.18");
   });
