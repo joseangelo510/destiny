@@ -8,13 +8,21 @@ import { assertLoopbackSupabaseUrl } from "../../scripts/qa-isolation-environmen
 type RowResult = { id: string } & Record<string, unknown>;
 type Client = SupabaseClient;
 
+type ReadIsolationRow = {
+  table: string;
+  key: string;
+  value: string;
+};
+
 type Tenant = {
   userId: string;
   organizationId: string;
   websiteId: string;
   auditId: string;
   planId: string;
+  cmsTransferId: string;
   client: Client;
+  readRows: ReadIsolationRow[];
   rows: Array<{
     table: string;
     id: string;
@@ -81,6 +89,165 @@ async function sweepAbandonedLocalFixtures() {
 async function insertOne(client: Client, table: string, values: Record<string, unknown>, label: string) {
   const { data, error } = await client.from(table).insert(values).select("*").single<RowResult>();
   return requireRow(data, error, label);
+}
+
+function seedReadIsolationRows(input: {
+  label: "A" | "B" | "C";
+  organizationId: string;
+  websiteId: string;
+  auditId: string;
+  userId: string;
+  interlinkRunId: string;
+  interviewId: string;
+}) {
+  const ids = {
+    competitor: randomUUID(),
+    integration: randomUUID(),
+    quest: randomUUID(),
+    rankList: randomUUID(),
+    trackedKeyword: randomUUID(),
+    rankObservation: randomUUID(),
+    rankRun: randomUUID(),
+    directory: randomUUID(),
+    preference: randomUUID(),
+    reoptimization: randomUUID(),
+    llmTask: randomUUID(),
+    digestSend: randomUUID(),
+    repurpose: randomUUID(),
+    interlinkOpportunity: randomUUID(),
+    interviewQuestion: randomUUID(),
+    interviewAnswer: randomUUID(),
+    voiceItem: randomUUID(),
+    cmsTransfer: randomUUID(),
+  };
+  const label = input.label;
+  runDatabaseSql(`
+    insert into public.audit_metrics (audit_id, ranking_keywords, raw_provider_payload)
+    values ('${input.auditId}', ${label.charCodeAt(0)}, '{"tenant":"${label}"}'::jsonb);
+
+    insert into public.competitors (id, website_id, name, url)
+    values ('${ids.competitor}', '${input.websiteId}', 'Competitor ${label}', 'https://competitor-${label.toLowerCase()}.invalid');
+
+    insert into public.integrations (id, organization_id, website_id, provider, status, metadata)
+    values ('${ids.integration}', '${input.organizationId}', '${input.websiteId}', 'google_search_console', 'connected', '{"tenant":"${label}"}'::jsonb);
+
+    insert into public.quests (id, website_id, audit_id, title, category, status)
+    values ('${ids.quest}', '${input.websiteId}', '${input.auditId}', 'Quest ${label}', 'content', 'todo');
+
+    insert into public.rank_tracker_lists (id, website_id, created_by, name)
+    values ('${ids.rankList}', '${input.websiteId}', '${input.userId}', 'Rank list ${label}');
+
+    insert into public.tracked_keywords
+      (id, website_id, list_id, created_by, keyword, normalized_keyword, source, status)
+    values
+      ('${ids.trackedKeyword}', '${input.websiteId}', '${ids.rankList}', '${input.userId}',
+       'Tracked keyword ${label} ${runId}', 'tracked keyword ${label.toLowerCase()} ${runId}', 'manual', 'active');
+
+    insert into public.rank_observations
+      (id, tracked_keyword_id, website_id, observed_at, found, position, search_depth, evidence)
+    values
+      ('${ids.rankObservation}', '${ids.trackedKeyword}', '${input.websiteId}', now(), true, 42, 100,
+       '{"tenant":"${label}"}'::jsonb);
+
+    insert into public.rank_tracker_runs
+      (id, website_id, status, requested_count, completed_count, completed_at)
+    values ('${ids.rankRun}', '${input.websiteId}', 'complete', 1, 1, now());
+
+    insert into public.directory_profiles
+      (id, organization_id, website_id, directory_key, profile_url, status)
+    values
+      ('${ids.directory}', '${input.organizationId}', '${input.websiteId}', 'qa-${label.toLowerCase()}',
+       'https://directory-${label.toLowerCase()}.invalid/profile', 'saved');
+
+    insert into public.keyword_preferences
+      (id, organization_id, website_id, user_id, source_audit_id, keyword, normalized_keyword, decision)
+    values
+      ('${ids.preference}', '${input.organizationId}', '${input.websiteId}', '${input.userId}', '${input.auditId}',
+       'Preference ${label} ${runId}', 'preference ${label.toLowerCase()} ${runId}', 'approved');
+
+    insert into public.reoptimization_documents
+      (id, organization_id, website_id, audit_id, user_id, keyword, normalized_keyword, page_url, manifest)
+    values
+      ('${ids.reoptimization}', '${input.organizationId}', '${input.websiteId}', '${input.auditId}', '${input.userId}',
+       'Reoptimization ${label}', 'reoptimization ${label.toLowerCase()}',
+       'https://page-${label.toLowerCase()}.invalid/service', '{"version":4,"tenant":"${label}"}'::jsonb);
+
+    insert into public.llm_visibility_tasks
+      (id, website_id, source_key, task_key, status)
+    values ('${ids.llmTask}', '${input.websiteId}', 'owned-site', 'qa-task-${label.toLowerCase()}', 'todo');
+
+    insert into public.rank_digest_sends
+      (id, website_id, organization_id, period_key, recipient, status)
+    values
+      ('${ids.digestSend}', '${input.websiteId}', '${input.organizationId}', 'qa-${label.toLowerCase()}-${runId}',
+       'qa-${label.toLowerCase()}@isolation.destiny.invalid', 'accepted');
+
+    insert into public.repurpose_sources
+      (id, organization_id, website_id, user_id, source_kind, source_name, source_size_bytes,
+       extracted_text_ciphertext, extracted_characters, status)
+    values
+      ('${ids.repurpose}', '${input.organizationId}', '${input.websiteId}', '${input.userId}', 'paste',
+       'Repurpose ${label}', 100, repeat('x', 64), 100, 'ready');
+
+    insert into public.interlink_opportunities
+      (id, run_id, organization_id, website_id, source_url, source_title, target_url, target_title,
+       anchor_text, source_sentence, reason, priority_score, priority, status)
+    values
+      ('${ids.interlinkOpportunity}', '${input.interlinkRunId}', '${input.organizationId}', '${input.websiteId}',
+       'https://source-${label.toLowerCase()}.invalid/article', 'Source ${label}',
+       'https://target-${label.toLowerCase()}.invalid/service', 'Target ${label}', 'helpful anchor ${label}',
+       'A useful source sentence for tenant ${label}.', 'A relevant internal link for tenant ${label}.', 80, 'high', 'suggested');
+
+    insert into public.interview_questions
+      (id, organization_id, website_id, interview_id, position, kind, text)
+    values
+      ('${ids.interviewQuestion}', '${input.organizationId}', '${input.websiteId}', '${input.interviewId}',
+       1, 'warm_up', 'What should customers know for tenant ${label}?');
+
+    insert into public.interview_answers
+      (id, organization_id, website_id, interview_id, question_id, user_id, verbatim_text)
+    values
+      ('${ids.interviewAnswer}', '${input.organizationId}', '${input.websiteId}', '${input.interviewId}',
+       '${ids.interviewQuestion}', '${input.userId}', 'Verbatim expertise for tenant ${label}.');
+
+    insert into public.voice_library_items
+      (id, organization_id, website_id, interview_id, answer_id, type, title, body, provenance, status)
+    values
+      ('${ids.voiceItem}', '${input.organizationId}', '${input.websiteId}', '${input.interviewId}',
+       '${ids.interviewAnswer}', 'pov', 'Point of view ${label}', 'Voice evidence for tenant ${label}.',
+       '[{"answer_id":"${ids.interviewAnswer}"}]'::jsonb, 'confirmed_by_owner');
+
+    insert into public.cms_transfers
+      (id, website_id, integration_id, article_key, content_hash, status)
+    values
+      ('${ids.cmsTransfer}', '${input.websiteId}', '${ids.integration}', 'qa-${label.toLowerCase()}-${runId}',
+       'local-only-${label.toLowerCase()}', 'succeeded');
+  `);
+
+  return {
+    cmsTransferId: ids.cmsTransfer,
+    readRows: [
+      { table: "audit_metrics", key: "audit_id", value: input.auditId },
+      { table: "competitors", key: "id", value: ids.competitor },
+      { table: "integrations", key: "id", value: ids.integration },
+      { table: "quests", key: "id", value: ids.quest },
+      { table: "rank_tracker_lists", key: "id", value: ids.rankList },
+      { table: "tracked_keywords", key: "id", value: ids.trackedKeyword },
+      { table: "rank_observations", key: "id", value: ids.rankObservation },
+      { table: "rank_tracker_runs", key: "id", value: ids.rankRun },
+      { table: "directory_profiles", key: "id", value: ids.directory },
+      { table: "keyword_preferences", key: "id", value: ids.preference },
+      { table: "reoptimization_documents", key: "id", value: ids.reoptimization },
+      { table: "llm_visibility_tasks", key: "id", value: ids.llmTask },
+      { table: "notification_preferences", key: "website_id", value: input.websiteId },
+      { table: "rank_digest_sends", key: "id", value: ids.digestSend },
+      { table: "repurpose_sources", key: "id", value: ids.repurpose },
+      { table: "interlink_opportunities", key: "id", value: ids.interlinkOpportunity },
+      { table: "interview_questions", key: "id", value: ids.interviewQuestion },
+      { table: "interview_answers", key: "id", value: ids.interviewAnswer },
+      { table: "voice_library_items", key: "id", value: ids.voiceItem },
+    ],
+  };
 }
 
 async function createTenant(label: "A" | "B" | "C"): Promise<Tenant> {
@@ -209,13 +376,25 @@ async function createTenant(label: "A" | "B" | "C"): Promise<Tenant> {
        'Tenant ${label} notification', 'Local isolation fixture');
   `);
 
+  const extended = seedReadIsolationRows({
+    label,
+    organizationId,
+    websiteId: website.id,
+    auditId: audit.id,
+    userId: user.id,
+    interlinkRunId: interlink.id,
+    interviewId: interview.id,
+  });
+
   return {
     userId: user.id,
     organizationId,
     websiteId: website.id,
     auditId: audit.id,
     planId: plan.id,
+    cmsTransferId: extended.cmsTransferId,
     client,
+    readRows: extended.readRows,
     rows: [
       { table: "websites", id: website.id, field: "business_name", original: `Isolation business ${label}`, attempted: `Cross-tenant website ${label}` },
       { table: "audits", id: audit.id, field: "status", original: "queued", attempted: "cancelled" },
@@ -264,6 +443,40 @@ async function verifyTenantBoundary(owner: Tenant, outsider: Tenant) {
     expect(afterDelete.error, `${row.table}: owner verification after delete failed.`).toBeNull();
     expect(afterDelete.data?.id, `${row.table}: cross-tenant delete removed protected data.`).toBe(row.id);
   }
+}
+
+async function verifyExtendedReadIsolation(owner: Tenant, outsider: Tenant) {
+  const ownProfile = await owner.client.from("profiles").select("id").eq("id", owner.userId).single();
+  expect(ownProfile.error, "The user could not read their own profile.").toBeNull();
+  expect(ownProfile.data?.id).toBe(owner.userId);
+  const crossProfile = await outsider.client.from("profiles").select("id").eq("id", owner.userId).maybeSingle();
+  expect(crossProfile.error, "A hidden cross-user profile should resolve as no row.").toBeNull();
+  expect(crossProfile.data, "A user profile leaked to another tenant.").toBeNull();
+
+  for (const row of owner.readRows) {
+    const ownRead = await owner.client
+      .from(row.table)
+      .select(row.key)
+      .eq(row.key, row.value)
+      .maybeSingle();
+    expect(ownRead.error, `${row.table}: same-tenant extended read failed.`).toBeNull();
+    expect(ownRead.data?.[row.key], `${row.table}: owner could not read the registered fixture.`).toBe(row.value);
+
+    const crossRead = await outsider.client
+      .from(row.table)
+      .select(row.key)
+      .eq(row.key, row.value)
+      .maybeSingle();
+    expect(crossRead.error, `${row.table}: cross-tenant extended read should resolve as hidden.`).toBeNull();
+    expect(crossRead.data, `${row.table}: registered tenant data leaked.`).toBeNull();
+  }
+
+  const serviceOnly = await owner.client
+    .from("cms_transfers")
+    .select("id")
+    .eq("id", owner.cmsTransferId)
+    .maybeSingle();
+  expect(serviceOnly.data, "cms_transfers became directly visible to an authenticated user.").toBeNull();
 }
 
 async function verifyBlendedPairRejection(a: Tenant, b: Tenant) {
@@ -576,6 +789,9 @@ test("three real local users cannot read, mutate, or blend each other's website 
     await verifyTenantBoundary(a, b);
     await verifyTenantBoundary(b, c);
     await verifyTenantBoundary(c, a);
+    await verifyExtendedReadIsolation(a, b);
+    await verifyExtendedReadIsolation(b, c);
+    await verifyExtendedReadIsolation(c, a);
     await verifyBlendedPairRejection(a, b);
     await verifyBlendedPairRejection(b, c);
     await verifyPrivilegedEdgeFunctionDenials(a, b);
