@@ -713,8 +713,15 @@ async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tena
 
   const callback = await fetch(`${localUrl}/functions/v1/google-oauth-callback?state=invalid&code=invalid`, {
     headers: { apikey: anonKey },
+    redirect: "manual",
   });
-  expect(callback.status, "Google OAuth accepted an invalid one-time state.").toBe(400);
+  expect(callback.status, "Google OAuth did not reject an invalid one-time state with an error redirect.").toBe(302);
+  const callbackLocation = callback.headers.get("location");
+  expect(callbackLocation, "Google OAuth did not provide a safe error destination.").toBeTruthy();
+  const callbackDestination = new URL(callbackLocation!);
+  expect(callbackDestination.pathname).toBe("/integrations");
+  expect(callbackDestination.searchParams.get("google")).toBe("failed");
+  expect(callbackDestination.searchParams.get("reason")).toBe("invalid_response");
 
   const digest = await edgeRequest("/functions/v1/rank-digest");
   expect(digest.status, "Rank digest accepted a caller without its cron secret.").toBe(401);
