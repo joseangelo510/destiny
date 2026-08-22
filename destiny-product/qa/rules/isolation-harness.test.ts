@@ -65,4 +65,38 @@ describe("disposable two-tenant isolation harness", () => {
     expect(runner).toContain("site-isolation-audit.sql");
     expect(runner).toContain("assertLoopbackSupabaseUrl");
   });
+
+  it("runs a three-site isolation cycle instead of relying on one tenant pair", async () => {
+    const matrix = await readFile(
+      path.join(productRoot, "qa", "isolation", "two-tenant.integration.test.ts"),
+      "utf8",
+    );
+
+    expect(matrix).toContain('createTenant("C")');
+    expect(matrix).toContain("verifyTenantBoundary(a, b)");
+    expect(matrix).toContain("verifyTenantBoundary(b, c)");
+    expect(matrix).toContain("verifyTenantBoundary(c, a)");
+    expect(matrix).toContain("verifyBlendedPairRejection(b, c)");
+  });
+
+  it("provides offline CMS mocks and a smoke test for every supported handoff mode", async () => {
+    const adapterPath = path.join(productRoot, "qa", "mocks", "cms-adapters.ts");
+    const smokePath = path.join(productRoot, "qa", "mocks", "cms-adapters.test.ts");
+    expect(await exists(adapterPath)).toBe(true);
+    expect(await exists(smokePath)).toBe(true);
+
+    const adapter = await readFile(adapterPath, "utf8");
+    for (const provider of ["wordpress", "webflow", "wix"]) {
+      expect(adapter).toContain(`\"${provider}\"`);
+    }
+    for (const forbiddenHost of [
+      "clearcheck.app",
+      "98junkit.com",
+      "joseangelostudios.com",
+    ]) {
+      expect(adapter).toContain(forbiddenHost);
+    }
+    expect(adapter).toContain(".invalid");
+    expect(adapter).not.toContain("fetch(");
+  });
 });
