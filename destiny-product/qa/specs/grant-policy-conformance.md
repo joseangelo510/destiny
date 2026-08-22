@@ -25,6 +25,11 @@ isolation or inherit unsafe PostgreSQL privileges.
 9. Cross-tenant reads stay empty; cross-tenant writes are either a grant-layer
    403 or an RLS-layer zero-row result according to the reviewed grant matrix,
    and the owner's row remains unchanged.
+10. `service_role` has explicit CRUD grants on every public base table,
+    explicit `USAGE` and `SELECT` grants on every public sequence, and explicit
+    `EXECUTE` grants on every public routine; `PUBLIC` inheritance never
+    satisfies this worker contract.
+11. `PUBLIC` has no direct table or sequence privileges in the public schema.
 
 ## Scenarios
 
@@ -44,6 +49,15 @@ isolation or inherit unsafe PostgreSQL privileges.
 sequence ACLs, and views
 
 **Then** it returns zero rows.
+
+### Server workers do not depend on PUBLIC inheritance
+
+**Given** a fresh database whose public-schema privileges have been rebuilt
+
+**When** a server worker uses the `service_role` Data API client
+
+**Then** its explicit grants allow the reviewed operation without opening any
+browser-role access path.
 
 ### Anonymous access is denied at the grant layer
 
