@@ -36,67 +36,67 @@
     "context": "const sources = infographicPlan.sources.map((source) => `<li><a href=\"${escapeHtml(source.url)}\">${escapeHtml(source.title)}</a> — ${escapeHtml(source.publisher)} (${escapeHtml(source.publishedAt)})</li>`).join(\"\"); const reusablePosts = infographicPlan.repurposeCards.map((card) => `<h3>${escapeHtml(card.title)}</h3><p><strong>Recommended channel:</strong> ${escapeHtml(card.recommendedChannel)}</p><p>${escapeHtml(card.copy)}</p>`).join(\"\");"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/route.ts:163:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/route.ts:154:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/route.ts",
-    "line": 163,
+    "line": 154,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan",
     "side_effect_class": 3,
-    "context": "const keyword = focusKeyword || relatedArticleTitle; const { data: item, error } = await db.from(\"publishing_schedule_items\").insert({ plan_id: plan.id,"
+    "context": "const keyword = focusKeyword || relatedArticleTitle; const { data: item, error } = await db.insert(\"publishing_schedule_items\", { plan_id: plan.id,"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/route.ts:190:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/route.ts:181:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/route.ts",
-    "line": 190,
+    "line": 181,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan",
     "side_effect_class": 3,
-    "context": "const db = supabase as unknown as SupabaseClient; const { data: plan, error } = await db.from(\"publishing_plans\").update({ status }).eq(\"website_id\", websiteId).select(\"id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at\").single(); if (error || !plan) return NextResponse.json({ error: \"Destiny could not update the publishing plan.\" }, { status: 500 });"
+    "context": "if (!userId) return NextResponse.json({ error: \"Sign in again to update the publishing plan.\" }, { status: 401 }); const { data: plan, error } = await db.update(\"publishing_plans\", { status }).select(\"id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at\").single(); if (error || !plan) return NextResponse.json({ error: \"Destiny could not update the publishing plan.\" }, { status: 500 });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/run/route.ts:47:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/run/route.ts:44:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/run/route.ts",
-    "line": 47,
+    "line": 44,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/run",
     "side_effect_class": 3,
-    "context": "if (plan.mode === \"batch_schedule\" && (draft as ArticleDraft & { approved?: boolean }).approved !== true) { await db.from(\"publishing_schedule_items\").update({ state: \"needs_review\", last_error: \"Approve this article for the batch first.\" }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"needs_review\", message: \"Waiting for batch approval.\" });"
+    "context": "if (plan.mode === \"batch_schedule\" && (draft as ArticleDraft & { approved?: boolean }).approved !== true) { await db.update(\"publishing_schedule_items\", { state: \"needs_review\", last_error: \"Approve this article for the batch first.\" }, { id: item.id }); results.push({ keyword: item.keyword, state: \"needs_review\", message: \"Waiting for batch approval.\" });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/run/route.ts:53:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/run/route.ts:50:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/run/route.ts",
-    "line": 53,
+    "line": 50,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/run",
     "side_effect_class": 3,
-    "context": "if (issues.length) { await db.from(\"publishing_schedule_items\").update({ state: \"needs_review\", last_error: issues[0].message }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"needs_review\", message: issues[0].message });"
+    "context": "if (issues.length) { await db.update(\"publishing_schedule_items\", { state: \"needs_review\", last_error: issues[0].message }, { id: item.id }); results.push({ keyword: item.keyword, state: \"needs_review\", message: issues[0].message });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/run/route.ts:62:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/run/route.ts:59:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/run/route.ts",
-    "line": 62,
+    "line": 59,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/run",
     "side_effect_class": 3,
-    "context": "const message = cause instanceof Error ? cause.message : \"The article did not pass the scheduling gate.\"; await db.from(\"publishing_schedule_items\").update({ state: \"needs_review\", last_error: message }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"needs_review\", message });"
+    "context": "const message = cause instanceof Error ? cause.message : \"The article did not pass the scheduling gate.\"; await db.update(\"publishing_schedule_items\", { state: \"needs_review\", last_error: message }, { id: item.id }); results.push({ keyword: item.keyword, state: \"needs_review\", message });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/run/route.ts:74:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/run/route.ts:71:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/run/route.ts",
-    "line": 74,
+    "line": 71,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/run",
     "side_effect_class": 3,
-    "context": "const message = data?.error || \"WordPress did not confirm the future publication date.\"; await db.from(\"publishing_schedule_items\").update({ state: \"failed\", last_error: message, attempt_count: 1 }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"failed\", message });"
+    "context": "const message = data?.error || \"WordPress did not confirm the future publication date.\"; await db.update(\"publishing_schedule_items\", { state: \"failed\", last_error: message, attempt_count: 1 }, { id: item.id }); results.push({ keyword: item.keyword, state: \"failed\", message });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/run/route.ts:78:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/run/route.ts:75:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/run/route.ts",
-    "line": 78,
+    "line": 75,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/run",
     "side_effect_class": 3,
-    "context": "} await db.from(\"publishing_schedule_items\").update({ state: \"scheduled\", article_key: prepared.articleKey, remote_id: wordpressRemoteIdFromEditUrl(data.remoteEditUrl), remote_edit_url: data.remoteEditUrl, last_error: null, attempt_count: 1 }).eq(\"id\", item.id); results.push({ keyword: item.keyword, state: \"scheduled\", message: \"Scheduled in WordPress.\" });"
+    "context": "} await db.update(\"publishing_schedule_items\", { state: \"scheduled\", article_key: prepared.articleKey, remote_id: wordpressRemoteIdFromEditUrl(data.remoteEditUrl), remote_edit_url: data.remoteEditUrl, last_error: null, attempt_count: 1 }, { id: item.id }); results.push({ keyword: item.keyword, state: \"scheduled\", message: \"Scheduled in WordPress.\" });"
   },
   {
     "control_id": "src/app/api/content/repurpose/generate/route.ts:206:data-mutation:1",
@@ -207,13 +207,13 @@
     "context": "const { data, error } = await supabase.from(\"profiles\").update({ founder_why: founderWhy }).eq(\"id\", userId).select(\"founder_why\").maybeSingle(); if (error) return NextResponse.json({ error: \"Destiny could not save your why.\" }, { status: 500 });"
   },
   {
-    "control_id": "src/app/api/integrations/cms/wordpress/draft/route.ts:54:data-mutation:1",
+    "control_id": "src/app/api/integrations/cms/wordpress/draft/route.ts:48:data-mutation:1",
     "file": "src/app/api/integrations/cms/wordpress/draft/route.ts",
-    "line": 54,
+    "line": 48,
     "type": "data-mutation",
     "route": "/api/integrations/cms/wordpress/draft",
     "side_effect_class": 3,
-    "context": "const db = supabase as unknown as SupabaseClient; await db.from(\"publishing_schedule_items\").update({ state: \"scheduled\","
+    "context": "if (draft.scheduledFor) { await db.update(\"publishing_schedule_items\", { state: \"scheduled\","
   },
   {
     "control_id": "src/app/api/interlinks/opportunities/[id]/route.ts:26:data-mutation:1",
