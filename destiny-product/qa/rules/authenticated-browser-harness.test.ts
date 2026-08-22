@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const productRoot = process.cwd();
 const repositoryRoot = path.resolve(productRoot, "..");
 const fixtureScript = path.join(productRoot, "scripts", "qa-browser-fixture.mjs");
+const gateRunner = path.join(productRoot, "scripts", "qa-gate.mjs");
 const browserJourney = path.join(productRoot, "qa", "e2e", "local-authenticated.spec.ts");
 const productionJourney = path.join(productRoot, "qa", "e2e", "prod-readonly.spec.ts");
 
@@ -20,13 +21,16 @@ async function exists(file: string) {
 describe("authenticated local browser harness", () => {
   it("keeps disposable Supabase alive through the authenticated browser journey", async () => {
     const workflow = await readFile(path.join(repositoryRoot, ".github", "workflows", "ci.yml"), "utf8");
-    const prepare = workflow.indexOf("Prepare authenticated browser fixture");
-    const browser = workflow.indexOf("Run browser journeys");
-    const teardown = workflow.indexOf("Destroy disposable Supabase isolation stack");
+    const gate = await readFile(gateRunner, "utf8");
+    const prepare = gate.indexOf('runPnpm(["qa:browser-fixture"]');
+    const browser = gate.indexOf('runPnpm(["test:e2e"]');
+    const teardown = gate.indexOf('run(supabaseBin, ["stop", "--no-backup"]');
 
     expect(prepare).toBeGreaterThan(-1);
     expect(browser).toBeGreaterThan(prepare);
     expect(teardown).toBeGreaterThan(browser);
+    expect(workflow).toContain("Destroy disposable Supabase isolation stack");
+    expect(workflow).toContain("if: always()");
   });
 
   it("creates loopback-only shared-user state and exports only local CI paths", async () => {

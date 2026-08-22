@@ -157,14 +157,15 @@ await writeFile(manifestPath, JSON.stringify({
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));
 
-if (process.env.GITHUB_ENV) {
-  await appendFile(process.env.GITHUB_ENV, [
-    `NEXT_PUBLIC_SUPABASE_URL=${status.apiUrl}`,
-    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${status.anonKey}`,
-    `QA_AUTH_STATE=${authStatePath}`,
-    `QA_LOCAL_BROWSER_FIXTURE=${manifestPath}`,
-    "",
-  ].join("\n"));
-}
+const environment = [
+  `NEXT_PUBLIC_SUPABASE_URL=${status.apiUrl}`,
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${status.anonKey}`,
+  `QA_AUTH_STATE=${authStatePath}`,
+  `QA_LOCAL_BROWSER_FIXTURE=${manifestPath}`,
+  "",
+].join("\n");
+
+if (process.env.GITHUB_ENV) await appendFile(process.env.GITHUB_ENV, environment);
+if (process.env.QA_BROWSER_ENV_FILE) await writeFile(process.env.QA_BROWSER_ENV_FILE, environment);
 
 process.stdout.write(`Prepared local authenticated browser fixture at ${manifestPath}\n`);

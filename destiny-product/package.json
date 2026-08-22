@@ -22,7 +22,7 @@
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
     "test:links": "playwright test qa/e2e/links.spec.ts",
-    "gate": "pnpm qa:inventory && pnpm qa:migrations && pnpm lint && pnpm test && pnpm build && pnpm test:e2e"
+    "gate": "node scripts/qa-gate.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

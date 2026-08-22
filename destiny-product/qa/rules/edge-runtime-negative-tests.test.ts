@@ -18,10 +18,12 @@ async function exists(file: string) {
 describe("Edge Function negative authorization harness", () => {
   it("runs the real local Edge runtime in the disposable GitHub gate", async () => {
     const workflow = await readFile(path.join(repositoryRoot, ".github", "workflows", "ci.yml"), "utf8");
-    const startCommand = workflow.split("Start disposable Supabase isolation stack")[1]?.split("Run three-site isolation matrix")[0] ?? "";
+    const gate = await readFile(path.join(productRoot, "scripts", "qa-gate.mjs"), "utf8");
 
-    expect(startCommand).toContain("supabase start");
-    expect(startCommand).not.toContain("edge-runtime");
+    expect(workflow).toContain("run: pnpm gate");
+    expect(gate).toContain('run(supabaseBin, [');
+    expect(gate).toContain('"start"');
+    expect(gate).not.toContain('"edge-runtime"');
   });
 
   it("requires a cross-tenant or unauthenticated negative request for every privileged function", async () => {

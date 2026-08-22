@@ -11,7 +11,7 @@ As Destiny's product owner, I want every product change to prove its intended be
 3. A route or interactive control added without refreshing `qa/inventory/` makes CI red.
 4. A malformed, duplicated, missing, or renamed recorded migration makes CI red.
 5. Browser artifacts are retained for fourteen days when Playwright or another CI step fails.
-6. The local `pnpm gate` includes the migration check and remains the developer/agent pre-push command.
+6. The local `pnpm gate` is the same complete command CI executes: it runs inventory and migration checks, lint, unit/integration tests, a disposable Supabase stack, the three-site isolation matrix, the authenticated browser fixture, the production build, and Playwright before guaranteed no-backup teardown.
 7. The policy documents red-green-refactor and forbids weakening a test to bypass a failure.
 8. The deployed application remains unchanged by Phase 0.
 9. Public browser tests run from a clean clone without Supabase secrets or a live Supabase connection.

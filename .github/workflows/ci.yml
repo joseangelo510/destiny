@@ -41,38 +41,8 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Regenerate the QA inventory
-        run: pnpm qa:inventory
-
-      - name: Require a committed, current QA inventory
-        run: git diff --exit-code -- qa/inventory
-
-      - name: Protect the migration ledger
-        run: pnpm qa:migrations
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Run unit and integration tests
-        run: pnpm test
-
-      - name: Start disposable Supabase isolation stack
-        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,logflare,vector,supavisor
-
-      - name: Run three-site isolation matrix
-        run: pnpm qa:isolation
-
-      - name: Prepare authenticated browser fixture
-        run: pnpm qa:browser-fixture
-
-      - name: Build the production application
-        run: pnpm build
-
-      - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run browser journeys
-        run: pnpm test:e2e
+      - name: Run the complete Destiny harness
+        run: pnpm gate
 
       - name: Destroy disposable Supabase isolation stack
         if: always()

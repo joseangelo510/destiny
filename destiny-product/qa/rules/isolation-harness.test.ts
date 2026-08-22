@@ -35,14 +35,14 @@ describe("disposable three-site isolation harness", () => {
 
   it("requires the root CI job to start, run, and always destroy the disposable stack", async () => {
     const workflow = await readFile(path.join(repositoryRoot, ".github", "workflows", "ci.yml"), "utf8");
-    for (const fragment of [
-      "pnpm exec supabase start",
-      "pnpm qa:isolation",
-      "pnpm exec supabase stop --no-backup",
-      "if: always()",
-    ]) {
-      expect(workflow, `Expected the repository-root CI workflow to include ${fragment}.`).toContain(fragment);
-    }
+    const gate = await readFile(path.join(productRoot, "scripts", "qa-gate.mjs"), "utf8");
+    expect(workflow).toContain("run: pnpm gate");
+    expect(workflow).toContain("pnpm exec supabase stop --no-backup");
+    expect(workflow).toContain("if: always()");
+    expect(gate).toContain('run(supabaseBin, [');
+    expect(gate).toContain('"start"');
+    expect(gate).toContain('runPnpm(["qa:isolation"]');
+    expect(gate).toContain('run(supabaseBin, ["stop", "--no-backup"]');
   });
 
   it("registers the high-risk website-scoped tables and the executable audit", async () => {
