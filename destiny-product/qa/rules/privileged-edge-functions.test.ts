@@ -94,6 +94,18 @@ describe("privileged Edge Function authorization boundaries", () => {
     }
   });
 
+  it("pins the Edge runtime dependency beside every privileged function", async () => {
+    for (const entry of await manifest()) {
+      const denoConfigPath = path.join(productRoot, path.dirname(entry.path), "deno.json");
+      expect(await exists(denoConfigPath), `${entry.path} is missing its deployable deno.json.`).toBe(true);
+      const denoConfig = JSON.parse(await readFile(denoConfigPath, "utf8")) as {
+        imports?: Record<string, string>;
+      };
+      expect(denoConfig.imports?.["@supabase/server"], `${entry.path} must pin @supabase/server.`)
+        .toBe("npm:@supabase/server@1.4.1");
+    }
+  });
+
   it("authorizes every user-scoped website before privileged work", async () => {
     const entries = (await manifest()).filter((entry) => entry.boundary === "website_rls");
     expect(entries.length).toBeGreaterThan(0);
