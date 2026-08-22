@@ -340,6 +340,124 @@ async function verifyBlendedPairRejection(a: Tenant, b: Tenant) {
   `, /does not belong to its organization/i);
 }
 
+async function grantSharedMembership(owner: Tenant, member: Tenant) {
+  const { data, error } = await owner.client
+    .from("organization_members")
+    .insert({
+      organization_id: owner.organizationId,
+      user_id: member.userId,
+      role: "member",
+    })
+    .select("organization_id,user_id,role")
+    .single();
+  expect(error, "The organization owner could not grant the shared membership.").toBeNull();
+  expect(data).toMatchObject({
+    organization_id: owner.organizationId,
+    user_id: member.userId,
+    role: "member",
+  });
+
+  const sharedRead = await member.client
+    .from("websites")
+    .select("id,business_name")
+    .eq("id", owner.websiteId)
+    .maybeSingle();
+  expect(sharedRead.error, "The authorized shared member could not read the shared site.").toBeNull();
+  expect(sharedRead.data).toMatchObject({
+    id: owner.websiteId,
+    business_name: "Isolation business A",
+  });
+}
+
+async function verifyMemberCannotEscalate(owner: Tenant, member: Tenant, thirdParty: Tenant) {
+  const selfPromotion = await member.client
+    .from("organization_members")
+    .update({ role: "admin" })
+    .eq("organization_id", owner.organizationId)
+    .eq("user_id", member.userId)
+    .select("role");
+  expect(selfPromotion.data ?? [], "A basic member promoted their own organization role.").toHaveLength(0);
+
+  const memberGrant = await member.client
+    .from("organization_members")
+    .insert({
+      organization_id: owner.organizationId,
+      user_id: thirdParty.userId,
+      role: "member",
+    })
+    .select("user_id");
+  expect(memberGrant.data ?? [], "A basic member granted another user organization access.").toHaveLength(0);
+  expect(memberGrant.error, "The rejected member grant should return an authorization error.").not.toBeNull();
+
+  const unauthorizedRename = await member.client
+    .from("organizations")
+    .update({ name: "Unauthorized organization rename" })
+    .eq("id", owner.organizationId)
+    .select("id");
+  expect(unauthorizedRename.data ?? [], "A basic member renamed the organization.").toHaveLength(0);
+
+  const membership = await owner.client
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", owner.organizationId)
+    .eq("user_id", member.userId)
+    .single();
+  expect(membership.error, "The owner could not verify the member role after escalation attempts.").toBeNull();
+  expect(membership.data?.role).toBe("member");
+
+  const organization = await owner.client
+    .from("organizations")
+    .select("name")
+    .eq("id", owner.organizationId)
+    .single();
+  expect(organization.error, "The owner could not verify the organization after the rename attempt.").toBeNull();
+  expect(organization.data?.name).toBe(`${namePrefix} A`);
+}
+
+async function verifyRevokedMembership(owner: Tenant, member: Tenant) {
+  const removal = await owner.client
+    .from("organization_members")
+    .delete()
+    .eq("organization_id", owner.organizationId)
+    .eq("user_id", member.userId)
+    .select("user_id")
+    .single();
+  expect(removal.error, "The owner could not remove the shared member.").toBeNull();
+  expect(removal.data?.user_id).toBe(member.userId);
+
+  // The same signed-in session must lose access without a token refresh or new login.
+  const revokedRead = await member.client
+    .from("websites")
+    .select("id")
+    .eq("id", owner.websiteId)
+    .maybeSingle();
+  expect(revokedRead.error, "A revoked read should resolve as no visible row.").toBeNull();
+  expect(revokedRead.data, "A removed member retained read access through the existing session.").toBeNull();
+
+  const revokedUpdate = await member.client
+    .from("websites")
+    .update({ business_name: "Revoked member mutation" })
+    .eq("id", owner.websiteId)
+    .select("id");
+  expect(revokedUpdate.data ?? [], "A removed member retained write access through the existing session.").toHaveLength(0);
+
+  const ownerVerification = await owner.client
+    .from("websites")
+    .select("business_name")
+    .eq("id", owner.websiteId)
+    .single();
+  expect(ownerVerification.error, "The owner could not verify the site after membership removal.").toBeNull();
+  expect(ownerVerification.data?.business_name).toBe("Isolation business A");
+
+  const ownSite = await member.client
+    .from("websites")
+    .select("id")
+    .eq("id", member.websiteId)
+    .single();
+  expect(ownSite.error, "Removing shared access also broke the user's own organization access.").toBeNull();
+  expect(ownSite.data?.id).toBe(member.websiteId);
+}
+
 function runPsql(sql: string) {
   return spawnSync("docker", [
     "exec", "-i", databaseContainer,
@@ -400,6 +518,9 @@ test("three real local users cannot read, mutate, or blend each other's website 
     await verifyTenantBoundary(c, a);
     await verifyBlendedPairRejection(a, b);
     await verifyBlendedPairRejection(b, c);
+    await grantSharedMembership(a, c);
+    await verifyMemberCannotEscalate(a, c, b);
+    await verifyRevokedMembership(a, c);
     verifyExecutableAudit(a, b);
   } finally {
     await deleteLocalFixtures();
