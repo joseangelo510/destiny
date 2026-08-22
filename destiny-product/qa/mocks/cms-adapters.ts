@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { contentFingerprint } from "../../supabase/functions/wordpress-draft/logic";
+import { verifyPublicPage } from "../../supabase/functions/wordpress-reconcile/logic";
 
 export type OfflineCmsProvider = "wordpress" | "webflow" | "wix";
 
@@ -9,17 +11,43 @@ type PreparedCmsArticle = {
   contentHtml: string;
   renderingVersion?: string;
   wordCount?: number;
+  scheduledFor?: string;
+  featuredGraphic?: unknown;
+  graphics?: unknown[];
 };
 
 export type OfflineCmsReceipt = {
   provider: OfflineCmsProvider;
   websiteId: string;
   articleKey: string;
-  state: "draft_created" | "manual_handoff_required";
+  state:
+    | "draft_created"
+    | "scheduled"
+    | "verification_failed"
+    | "verified_live"
+    | "manual_handoff_required";
   externalId: string | null;
   editorUrl: string | null;
-  publishedUrl: null;
-  scheduledFor: null;
+  publishedUrl: string | null;
+  scheduledFor: string | null;
+};
+
+export type OfflineCmsEvent = {
+  jobId: string;
+  provider: OfflineCmsProvider;
+  websiteId: string;
+  articleKey: string;
+  state: OfflineCmsReceipt["state"];
+  recordedAt: string;
+};
+
+type StoredReceipt = {
+  receipt: OfflineCmsReceipt;
+  destination: string;
+  title: string;
+  contentHtml: string;
+  featuredImageRequired: boolean;
+  expectedInlineImages: number;
 };
 
 const LIVE_CLIENT_HOSTS = [
@@ -80,7 +108,20 @@ function copyReceipt(receipt: OfflineCmsReceipt): OfflineCmsReceipt {
 }
 
 export function createOfflineCmsHarness() {
-  const receipts = new Map<string, OfflineCmsReceipt>();
+  const receipts = new Map<string, StoredReceipt>();
+  const eventLog: OfflineCmsEvent[] = [];
+
+  function record(receipt: OfflineCmsReceipt) {
+    const sequence = eventLog.length + 1;
+    eventLog.push({
+      jobId: `qa-job-${stableId(`${receipt.provider}:${receipt.websiteId}:${receipt.articleKey}:${receipt.state}:${sequence}`)}`,
+      provider: receipt.provider,
+      websiteId: receipt.websiteId,
+      articleKey: receipt.articleKey,
+      state: receipt.state,
+      recordedAt: new Date(sequence * 1000).toISOString(),
+    });
+  }
 
   return {
     async transfer(
@@ -93,26 +134,77 @@ export function createOfflineCmsHarness() {
 
       const receiptKey = `${provider}:${destination.origin}:${article.websiteId}:${article.articleKey}`;
       const existing = receipts.get(receiptKey);
-      if (existing) return copyReceipt(existing);
+      if (existing) return copyReceipt(existing.receipt);
 
       const id = `qa-${stableId(receiptKey)}`;
       const isManual = provider === "wix";
+      const scheduledFor = provider === "wordpress" && typeof article.scheduledFor === "string" && article.scheduledFor
+        ? article.scheduledFor
+        : null;
       const receipt: OfflineCmsReceipt = {
         provider,
         websiteId: article.websiteId,
         articleKey: article.articleKey,
-        state: isManual ? "manual_handoff_required" : "draft_created",
+        state: isManual ? "manual_handoff_required" : scheduledFor ? "scheduled" : "draft_created",
         externalId: isManual ? null : id,
         editorUrl: isManual ? null : new URL(`/editor/${id}`, destination).toString(),
         publishedUrl: null,
-        scheduledFor: null,
+        scheduledFor,
       };
-      receipts.set(receiptKey, receipt);
+      receipts.set(receiptKey, {
+        receipt,
+        destination: destination.origin,
+        title: article.title,
+        contentHtml: article.contentHtml,
+        featuredImageRequired: Boolean(article.featuredGraphic),
+        expectedInlineImages: Array.isArray(article.graphics) ? article.graphics.length : 0,
+      });
+      record(receipt);
       return copyReceipt(receipt);
     },
 
+    async verifyWordPressPublication(input: {
+      destination: string;
+      websiteId: string;
+      articleKey: string;
+      status: number;
+      permalink: string;
+      html: string;
+    }): Promise<OfflineCmsReceipt> {
+      const destination = assertOfflineDestination(input.destination);
+      const permalink = assertOfflineDestination(input.permalink);
+      if (permalink.origin !== destination.origin) {
+        throw new Error("Offline CMS harness refused publication evidence from another destination.");
+      }
+      const receiptKey = `wordpress:${destination.origin}:${input.websiteId}:${input.articleKey}`;
+      const stored = receipts.get(receiptKey);
+      if (!stored || stored.receipt.provider !== "wordpress") {
+        throw new Error("Offline CMS harness could not find a matching WordPress receipt.");
+      }
+
+      const verification = verifyPublicPage({
+        status: input.status,
+        html: input.html,
+        permalink: input.permalink,
+        fingerprint: contentFingerprint(stored.title, stored.contentHtml),
+        featuredImageRequired: stored.featuredImageRequired,
+        expectedInlineImages: stored.expectedInlineImages,
+      });
+      stored.receipt = {
+        ...stored.receipt,
+        state: verification.verified ? "verified_live" : "verification_failed",
+        publishedUrl: verification.verified ? input.permalink : null,
+      };
+      record(stored.receipt);
+      return copyReceipt(stored.receipt);
+    },
+
     evidence() {
-      return Array.from(receipts.values(), copyReceipt);
+      return Array.from(receipts.values(), (stored) => copyReceipt(stored.receipt));
+    },
+
+    events() {
+      return eventLog.map((event) => ({ ...event }));
     },
   };
 }
