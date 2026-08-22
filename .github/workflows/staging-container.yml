@@ -1,47 +1,105 @@
-name: staging-container
+name: production-container
 
 on:
   push:
     branches: [container-staging]
+    paths: [production/run.json]
 
 concurrency:
-  group: staging-container
+  group: production-container
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: read
-  packages: read
+  packages: write
 
 env:
   RELEASE_SHA: fc7f050e1201ff5ee6ebece98560592257de127f
   RELEASE_TAG: step-zero-v1.1
-  SITE_URL: https://destiny-staging-stepzero.fly.dev
-  IMAGE_DIGEST: sha256:b17e68b2dbf120a6736d0fbe60c5a3f74828f9dfcadb7316cd4ac2800e82ac24
-  FLY_APP: destiny-staging-stepzero
+  PRODUCTION_IMAGE_TAG: step-zero-v1.1-prod
+  PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
+  STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
+  STAGING_HOSTNAME: destiny-staging-stepzero
+  PRODUCTION_SITE_URL: https://app.caminoseo.com
+  WRAPPER_WORKFLOW_PATH: .github/workflows/staging-container.yml
+  FLY_APP: destiny-production
   FLY_REGION: sjc
 
 jobs:
-  build:
-    if: ${{ false }}
+  manifest:
     runs-on: ubuntu-24.04
-    environment: staging
     outputs:
-      digest: ${{ steps.build.outputs.digest }}
+      phase: ${{ steps.manifest.outputs.phase }}
+      site_url: ${{ steps.manifest.outputs.site_url }}
+      candidate_digest: ${{ steps.manifest.outputs.candidate_digest }}
     steps:
-      - name: Assert trigger branch
-        run: test "${{ github.ref }}" = "refs/heads/container-staging"
+      - name: Checkout immutable wrapper history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate committed run manifest and run ceiling
+        id: manifest
+        run: |
+          test -f "${WRAPPER_WORKFLOW_PATH}"
+          test -f production/run.json
+          jq -e 'type == "object" and (keys | sort) == ["candidate_digest", "phase", "site_url"]' production/run.json > /dev/null
+          phase="$(jq -er '.phase' production/run.json)"
+          site_url="$(jq -er '.site_url' production/run.json)"
+          candidate_digest="$(jq -er '.candidate_digest' production/run.json)"
+          case "${phase}" in candidate|post-cutover) ;; *) echo "invalid phase" >&2; exit 1 ;; esac
+          test "${site_url}" = "${PRODUCTION_SITE_URL}"
+          if [ "${phase}" = "candidate" ]; then
+            test -z "${candidate_digest}"
+          else
+            printf '%s' "${candidate_digest}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          fi
+          manifest_commits="$(git log --format='%H' -- production/run.json | wc -l | tr -d ' ')"
+          echo "run manifest commits including this one: ${manifest_commits}"
+          test "${manifest_commits}" -le 3
+          echo "phase=${phase}" >> "${GITHUB_OUTPUT}"
+          echo "site_url=${site_url}" >> "${GITHUB_OUTPUT}"
+          echo "candidate_digest=${candidate_digest}" >> "${GITHUB_OUTPUT}"
+
+  candidate:
+    needs: manifest
+    if: ${{ needs.manifest.outputs.phase == 'candidate' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
+      DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
+      NEXT_PUBLIC_SITE_URL: ${{ needs.manifest.outputs.site_url }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SITE_URL: ${{ needs.manifest.outputs.site_url }}
+    steps:
+      - name: Enforce three-run ceiling
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          workflow_id="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            | jq -er '.workflow_id')"
+          count="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/runs?branch=container-staging&event=push&per_page=100" \
+            | jq '.total_count')"
+          echo "production workflow runs including this one: ${count}"
+          test "${count}" -le 3
 
       - name: Checkout wrapper branch
         uses: actions/checkout@v4
 
-      - name: Checkout immutable release evidence
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.RELEASE_SHA }}
-          path: release
-          fetch-depth: 1
-
-      - name: Checkout release tag into src
+      - name: Checkout immutable release tree
         uses: actions/checkout@v4
         with:
           ref: ${{ env.RELEASE_SHA }}
@@ -49,19 +107,66 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Source provenance
+      - name: Assert required production configuration is present
+        run: |
+          test -n "${FLY_API_TOKEN}" || { echo "FLY_API_TOKEN is empty" >&2; exit 1; }
+          test -n "${ANTHROPIC_API_KEY}" || { echo "ANTHROPIC_API_KEY is empty" >&2; exit 1; }
+          test -n "${DATAFORSEO_LOGIN}" || { echo "DATAFORSEO_LOGIN is empty" >&2; exit 1; }
+          test -n "${DATAFORSEO_PASSWORD}" || { echo "DATAFORSEO_PASSWORD is empty" >&2; exit 1; }
+          test -n "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" || { echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is empty" >&2; exit 1; }
+          test -n "${NEXT_PUBLIC_SUPABASE_URL}" || { echo "NEXT_PUBLIC_SUPABASE_URL is empty" >&2; exit 1; }
+          test -n "${OPENAI_API_KEY}" || { echo "OPENAI_API_KEY is empty" >&2; exit 1; }
+          test -n "${SESSION_SECRET}" || { echo "SESSION_SECRET is empty" >&2; exit 1; }
+          test -n "${SITE_URL}" || { echo "SITE_URL is empty" >&2; exit 1; }
+
+      - name: Assert source, tag, inventory, and production inputs
         working-directory: src
         run: |
-          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-          test "$(git cat-file -t $RELEASE_TAG)" = "tag"
-          test "$(git rev-parse $RELEASE_TAG^{})" = "$RELEASE_SHA"
-          test "$(git describe --tags --exact-match HEAD)" = "$RELEASE_TAG"
+          test "$(git rev-parse HEAD)" = "${RELEASE_SHA}"
+          test "$(git cat-file -t ${RELEASE_TAG})" = "tag"
+          test "$(git rev-parse ${RELEASE_TAG}^{})" = "${RELEASE_SHA}"
+          test "$(git describe --tags --exact-match HEAD)" = "${RELEASE_TAG}"
           test -z "$(git status --porcelain)"
+          test -f destiny-product/qa/inventory/routes.json
+          jq -e 'type == "array" and length > 0' destiny-product/qa/inventory/routes.json > /dev/null
+          test "$(jq 'length' destiny-product/qa/inventory/routes.json)" = "76"
+          case "${NEXT_PUBLIC_SUPABASE_URL}" in
+            *"${PRODUCTION_SUPABASE_REF}"*) ;;
+            *) echo "production Supabase ref mismatch" >&2; exit 1 ;;
+          esac
+          case "${NEXT_PUBLIC_SUPABASE_URL}" in
+            *"${STAGING_SUPABASE_REF}"*) echo "staging Supabase ref forbidden" >&2; exit 1 ;;
+            *) ;;
+          esac
+          test "${SITE_URL}" = "${PRODUCTION_SITE_URL}"
+          case "${SITE_URL}" in
+            *fly.dev*|*replit.app*) echo "temporary hostnames are forbidden" >&2; exit 1 ;;
+            *) ;;
+          esac
           echo "SRC_HEAD=$(git rev-parse HEAD)"
           echo "SRC_TAG=$(git describe --tags --exact-match HEAD)"
+          echo "routes=$(jq 'length' destiny-product/qa/inventory/routes.json)"
 
-      - name: Assert staging Supabase URL
-        run: echo "${{ vars.NEXT_PUBLIC_SUPABASE_URL }}" | grep -q titjatewvcjiuhisoppp
+      - name: Assert release start/build scripts and no boot migrations
+        working-directory: src/destiny-product
+        run: |
+          test "$(jq -r '.scripts.start' package.json)" = "next start"
+          test "$(jq -r '.scripts.build' package.json)" = "next build --webpack"
+          test "$(jq -r '.scripts | has("prestart") or has("poststart") or has("postinstall") or has("prebuild")' package.json)" = "false"
+          scan_paths=(package.json)
+          test -f next.config.ts && scan_paths+=(next.config.ts)
+          test -f src/instrumentation.ts && scan_paths+=(src/instrumentation.ts)
+          test -d supabase && scan_paths+=(supabase)
+          ! grep -R -I -Eiq 'supabase[[:space:]]+db[[:space:]]+push|prisma[[:space:]]+migrate|drizzle-kit|knex[[:space:]]+migrate|sequelize[[:space:]]+db:migrate' "${scan_paths[@]}"
+
+      - name: Assert production Fly configuration and no boot migrations
+        run: |
+          grep -q '^app = "destiny-production"$' fly.toml
+          grep -q '^primary_region = "sjc"$' fly.toml
+          grep -q '^  DESTINY_SEO_PROVIDER = "dataforseo"$' fly.toml
+          grep -q 'path = "/_next/static/build-sha.txt"' fly.toml
+          grep -q 'exec node_modules/.bin/next start' Dockerfile
+          ! grep -Eiq 'supabase[[:space:]]+db[[:space:]]+push|prisma[[:space:]]+migrate|drizzle-kit|knex[[:space:]]+migrate|sequelize[[:space:]]+db:migrate' Dockerfile
 
       - uses: docker/setup-buildx-action@v3
 
@@ -72,7 +177,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push production candidate
         id: build
         uses: docker/build-push-action@v6
         with:
@@ -85,61 +190,284 @@ jobs:
           build-args: |
             GIT_SHA=${{ env.RELEASE_SHA }}
             RELEASE_TAG=${{ env.RELEASE_TAG }}
-            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_SITE_URL=${{ env.SITE_URL }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ env.PRODUCTION_SITE_URL }}
+            PRODUCTION_SUPABASE_REF=${{ env.PRODUCTION_SUPABASE_REF }}
           tags: |
-            ghcr.io/joseangelo510/destiny-staging:${{ env.RELEASE_TAG }}
-            ghcr.io/joseangelo510/destiny-staging:${{ env.RELEASE_SHA }}
+            ghcr.io/joseangelo510/destiny-production:${{ env.PRODUCTION_IMAGE_TAG }}
+            ghcr.io/joseangelo510/destiny-production:${{ env.RELEASE_SHA }}
 
-      - name: Record image evidence
+      - name: Record and inspect production candidate
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          echo "IMAGE_DIGEST=${{ steps.build.outputs.digest }}"
-          docker buildx imagetools inspect ghcr.io/joseangelo510/destiny-staging@${{ steps.build.outputs.digest }} --raw > manifest.json
-          docker buildx imagetools inspect ghcr.io/joseangelo510/destiny-staging@${{ steps.build.outputs.digest }} > inspect.txt
-          echo "${{ steps.build.outputs.digest }}" > digest.txt
+          test -n "${IMAGE_DIGEST}"
+          echo "${IMAGE_DIGEST}" | tee candidate-digest.txt
+          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" --raw > manifest.json
+          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" > ghcr-inspect.txt
+          jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64" and ((.annotations["vnd.docker.reference.type"] // "") != "attestation-manifest"))] | .[].digest' manifest.json | tee candidate-child-digest.txt
+          test "$(wc -l < candidate-child-digest.txt | tr -d ' ')" = "1"
+          printf '%s' "$(cat candidate-child-digest.txt)" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          docker pull --platform linux/amd64 "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}"
+          docker run --rm --platform linux/amd64 --entrypoint sh \
+            "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" -c \
+            "! grep -R -q '${STAGING_SUPABASE_REF}' /app && \
+             ! grep -R -q '${STAGING_HOSTNAME}' /app && \
+             grep -R -l '${PRODUCTION_SUPABASE_REF}' /app/.next && \
+             grep -R -l '${PRODUCTION_SITE_URL}' /app/.next" \
+            | tee production-bundle-matches.txt
+          test -s production-bundle-matches.txt
 
-      - uses: actions/upload-artifact@v4
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Assert final-hostname certificate is active
+        run: |
+          production_host="${PRODUCTION_SITE_URL#https://}"
+          test -n "${production_host}"
+          test "${production_host}" != "${PRODUCTION_SITE_URL}"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${FLY_API_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://api.machines.dev/v1/apps/${FLY_APP}/certificates/${production_host}" \
+            | tee certificate-pre-candidate.json
+          jq -e \
+            --arg hostname "${production_host}" \
+            '.hostname == $hostname
+             and .status == "active"
+             and .acme_requested == true
+             and any(.certificates[]; .source == "fly" and .status == "active")' \
+            certificate-pre-candidate.json > /dev/null
+
+      - name: Assert empty production target and authenticate registry
+        run: |
+          flyctl apps list --json | jq -e --arg app "${FLY_APP}" 'any(.[]; (.Name // .name) == $app)' > /dev/null
+          test "$(flyctl machines list --app "${FLY_APP}" --json | jq 'length')" = "0"
+          flyctl auth docker
+
+      - name: Copy exact candidate digest to Fly registry
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          docker buildx imagetools create \
+            --tag "registry.fly.io/${FLY_APP}:${PRODUCTION_IMAGE_TAG}" \
+            "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}"
+          docker buildx imagetools inspect "registry.fly.io/${FLY_APP}:${PRODUCTION_IMAGE_TAG}" > fly-inspect.txt
+          grep -q "${IMAGE_DIGEST}" fly-inspect.txt
+
+      - name: Stage runtime secrets without starting a machine
+        run: |
+          flyctl secrets set --stage --app "${FLY_APP}" \
+            ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" \
+            DATAFORSEO_LOGIN="${DATAFORSEO_LOGIN}" \
+            DATAFORSEO_PASSWORD="${DATAFORSEO_PASSWORD}" \
+            NEXT_PUBLIC_SITE_URL="${SITE_URL}" \
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" \
+            NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+            OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            SESSION_SECRET="${SESSION_SECRET}"
+
+      - name: Deploy exact production candidate
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          flyctl deploy \
+            --app "${FLY_APP}" \
+            --image "registry.fly.io/${FLY_APP}@${IMAGE_DIGEST}" \
+            --ha=false \
+            --strategy immediate \
+            --wait-timeout 5m
+
+      - name: Capture provenance, health, and build-time identity
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          flyctl status --app "${FLY_APP}" --json > status.json
+          flyctl machines list --app "${FLY_APP}" --json > machines.json
+          test "$(jq '[.[] | select(.state == "started")] | length' machines.json)" = "1"
+          test "$(jq -r '[.[] | select(.state == "started")][0].region' machines.json)" = "${FLY_REGION}"
+          child_digest="$(cat candidate-child-digest.txt)"
+          jq -e --arg digest "${child_digest}" 'any(.[]; .image_ref.digest == $digest)' machines.json > /dev/null
+          jq -e --arg sha "${RELEASE_SHA}" --arg tag "${RELEASE_TAG}" 'any(.[]; .image_ref.labels["org.opencontainers.image.revision"] == $sha and .image_ref.labels["org.opencontainers.image.version"] == $tag)' machines.json > /dev/null
+          flyctl ips list --app "${FLY_APP}" --json > ips.json
+          jq -er '[.[] | select(.Type == "shared_v4" or .Type == "v4")] | .[].Address' ips.json | tee fly-ipv4.txt
+          test "$(wc -l < fly-ipv4.txt | tr -d ' ')" = "1"
+          production_ipv4="$(cat fly-ipv4.txt)"
+          production_host="${PRODUCTION_SITE_URL#https://}"
+          test -n "${production_ipv4}"
+          test -n "${production_host}"
+          echo "PRODUCTION_IPV4=${production_ipv4}" >> "${GITHUB_ENV}"
+          echo "PRODUCTION_HOST=${production_host}" >> "${GITHUB_ENV}"
+          READY=0
+          for i in $(seq 1 30); do
+            SHA="$(curl -sS --max-time 5 --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-sha.txt" || true)"
+            TAG="$(curl -sS --max-time 5 --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-tag.txt" || true)"
+            BUILD_ENV="$(curl -sS --max-time 5 --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-env.txt" || true)"
+            BUILD_SITE_URL="$(curl -sS --max-time 5 --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-site-url.txt" || true)"
+            if [ "${SHA}" = "${RELEASE_SHA}" ] && [ "${TAG}" = "${RELEASE_TAG}" ] && [ "${BUILD_ENV}" = "production" ] && [ "${BUILD_SITE_URL}" = "${PRODUCTION_SITE_URL}" ]; then READY=1; break; fi
+            sleep 2
+          done
+          test "${READY}" = "1"
+          echo "ready after ${i} attempts"
+          flyctl checks list --app "${FLY_APP}" --json | tee checks.json
+          jq -e '[to_entries[].value[]] | length > 0 and all(.[]; .status == "passing")' checks.json > /dev/null
+          sleep 10
+          flyctl logs --app "${FLY_APP}" --no-tail > runtime.log
+          grep "DESTINY_BUILD_SHA=${RELEASE_SHA}" runtime.log
+          grep "DESTINY_BUILD_TAG=${RELEASE_TAG}" runtime.log
+          grep "DESTINY_BUILD_ENV=production" runtime.log
+          grep "DESTINY_BUILD_SITE_URL=${PRODUCTION_SITE_URL}" runtime.log
+          grep -q "Ready" runtime.log
+          curl --fail --silent --show-error --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-sha.txt" | tee build-sha.txt
+          curl --fail --silent --show-error --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-tag.txt" | tee build-tag.txt
+          curl --fail --silent --show-error --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-env.txt" | tee build-env.txt
+          curl --fail --silent --show-error --resolve "${production_host}:443:${production_ipv4}" "${SITE_URL}/_next/static/build-site-url.txt" | tee build-site-url.txt
+          test "$(cat build-sha.txt)" = "${RELEASE_SHA}"
+          test "$(cat build-tag.txt)" = "${RELEASE_TAG}"
+          test "$(cat build-env.txt)" = "production"
+          test "$(cat build-site-url.txt)" = "${PRODUCTION_SITE_URL}"
+
+      - name: Sweep immutable route inventory before DNS
+        run: |
+          jq -r '.[].route' src/destiny-product/qa/inventory/routes.json \
+            | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' \
+            | sort -u > route-paths.txt
+          printf '%s\n' '/_next/static/build-sha.txt' '/_next/static/build-tag.txt' '/_next/static/build-env.txt' >> route-paths.txt
+          sort -u -o route-paths.txt route-paths.txt
+          test "$(wc -l < route-paths.txt | tr -d ' ')" = "79"
+          : > route-sweep.tsv
+          while IFS= read -r route; do
+            safe_name="$(printf '%s' "${route}" | tr '/?&=[]' '_______')"
+            code="$(curl --silent --show-error --location --max-redirs 5 \
+              --resolve "${PRODUCTION_HOST}:443:${PRODUCTION_IPV4}" \
+              --output "route-${safe_name}.body" --write-out '%{http_code}' "${SITE_URL}${route}")"
+            printf '%s\t%s\n' "${code}" "${route}" | tee -a route-sweep.tsv
+            test "${code}" != "000"
+            test "${code}" -lt 500
+          done < route-paths.txt
+          test "$(awk '$1 == 200 {count++} END {print count+0}' route-sweep.tsv)" = "32"
+          test "$(awk '$1 == 401 {count++} END {print count+0}' route-sweep.tsv)" = "46"
+          test "$(awk '$1 == 405 {count++} END {print count+0}' route-sweep.tsv)" = "1"
+          test "$(awk '$1 >= 500 {count++} END {print count+0}' route-sweep.tsv)" = "0"
+          grep -q $'401\t/api/content/word$' route-sweep.tsv
+          grep -q $'405\t/auth/signout$' route-sweep.tsv
+
+      - name: Observe 30-minute pre-cutover stability
+        run: |
+          : > stability-pre-cutover.tsv
+          for minute in $(seq 0 30); do
+            timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            root_code="$(curl --silent --show-error --location --max-redirs 5 --resolve "${PRODUCTION_HOST}:443:${PRODUCTION_IPV4}" --output /dev/null --write-out '%{http_code}' "${SITE_URL}/")"
+            stamp="$(curl --fail --silent --show-error --resolve "${PRODUCTION_HOST}:443:${PRODUCTION_IPV4}" "${SITE_URL}/_next/static/build-sha.txt")"
+            build_env="$(curl --fail --silent --show-error --resolve "${PRODUCTION_HOST}:443:${PRODUCTION_IPV4}" "${SITE_URL}/_next/static/build-env.txt")"
+            machine_count="$(flyctl machines list --app "${FLY_APP}" --json | jq '[.[] | select(.state == "started")] | length')"
+            printf '%s\t%s\t%s\t%s\t%s\n' "${timestamp}" "${root_code}" "${stamp}" "${build_env}" "${machine_count}" | tee -a stability-pre-cutover.tsv
+            test "${root_code}" = "200"
+            test "${stamp}" = "${RELEASE_SHA}"
+            test "${build_env}" = "production"
+            test "${machine_count}" = "1"
+            if [ "${minute}" -lt 30 ]; then sleep 60; fi
+          done
+          flyctl machines list --app "${FLY_APP}" --json > machines-after-pre-cutover.json
+          flyctl logs --app "${FLY_APP}" --no-tail > runtime-after-pre-cutover.log
+          test "$(jq '[.[] | select(.state == "started")] | length' machines-after-pre-cutover.json)" = "1"
+          grep -q "${RELEASE_SHA}" runtime-after-pre-cutover.log
+
+      - name: Capture and remove failed candidate machine
+        if: ${{ failure() }}
+        run: |
+          if ! command -v flyctl > /dev/null 2>&1; then
+            echo "flyctl was not installed; deployment could not have started" > failure-cleanup.txt
+            exit 0
+          fi
+          flyctl logs --app "${FLY_APP}" --no-tail > runtime-at-failure.log 2>&1 || true
+          flyctl machines list --app "${FLY_APP}" --json > machines-at-failure.json
+          mapfile -t machine_ids < <(jq -r '.[].id' machines-at-failure.json)
+          if [ "${#machine_ids[@]}" -gt 0 ]; then
+            flyctl machine destroy --app "${FLY_APP}" --force "${machine_ids[@]}"
+          fi
+          remaining="$(flyctl machines list --app "${FLY_APP}" --json | jq 'length')"
+          printf 'remaining_machines=%s\n' "${remaining}" | tee failure-cleanup.txt
+          test "${remaining}" = "0"
+
+      - name: Upload candidate evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
         with:
-          name: staging-evidence-${{ github.run_id }}
+          name: production-candidate-evidence-${{ github.run_id }}
           path: |
-            digest.txt
+            candidate-digest.txt
             manifest.json
-            inspect.txt
+            candidate-child-digest.txt
+            ghcr-inspect.txt
+            production-bundle-matches.txt
+            fly-inspect.txt
+            status.json
+            machines.json
+            ips.json
+            fly-ipv4.txt
+            certificate-pre-candidate.json
+            checks.json
+            runtime.log
+            build-sha.txt
+            build-tag.txt
+            build-env.txt
+            build-site-url.txt
+            route-paths.txt
+            route-sweep.tsv
+            route-*.body
+            stability-pre-cutover.tsv
+            machines-after-pre-cutover.json
+            runtime-after-pre-cutover.log
+            machines-at-failure.json
+            runtime-at-failure.log
+            failure-cleanup.txt
+          if-no-files-found: warn
 
-  deploy:
-    if: ${{ true }}
+  post-cutover:
+    needs: manifest
+    if: ${{ needs.manifest.outputs.phase == 'post-cutover' }}
     runs-on: ubuntu-24.04
-    environment: staging
+    environment: production
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      IMAGE_DIGEST: ${{ needs.manifest.outputs.candidate_digest }}
+      SITE_URL: ${{ needs.manifest.outputs.site_url }}
     steps:
-      - name: Assert trigger branch
-        run: test "${{ github.ref }}" = "refs/heads/container-staging"
+      - name: Enforce ceiling and immutable digest input
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          workflow_id="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            | jq -er '.workflow_id')"
+          count="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/runs?branch=container-staging&event=push&per_page=100" \
+            | jq '.total_count')"
+          test "${count}" -le 3
+          printf '%s' "${IMAGE_DIGEST}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          test "${SITE_URL}" = "${PRODUCTION_SITE_URL}"
 
       - name: Checkout wrapper branch
         uses: actions/checkout@v4
 
-      - name: Checkout release tree for QA inventory
+      - name: Assert wrapper and required production configuration
+        run: |
+          test -f "${WRAPPER_WORKFLOW_PATH}"
+          test -n "${FLY_API_TOKEN}" || { echo "FLY_API_TOKEN is empty" >&2; exit 1; }
+          test -n "${SITE_URL}" || { echo "SITE_URL is empty" >&2; exit 1; }
+
+      - name: Checkout immutable release inventory
         uses: actions/checkout@v4
         with:
           ref: ${{ env.RELEASE_SHA }}
-          path: release
+          path: src
           fetch-depth: 1
-
-      - name: Assert release tree and QA inventory
-        working-directory: release
-        run: |
-          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-          test -f destiny-product/qa/inventory/routes.json
-          jq -e 'type == "array" and length > 0' destiny-product/qa/inventory/routes.json > /dev/null
-          echo "routes=$(jq 'length' destiny-product/qa/inventory/routes.json)"
-
-      - name: Assert immutable Fly configuration
-        run: |
-          grep -q '^app = "destiny-staging-stepzero"$' fly.toml
-          grep -q '^primary_region = "sjc"$' fly.toml
-          grep -q 'path = "/_next/static/build-sha.txt"' fly.toml
 
       - uses: docker/setup-buildx-action@v3
 
@@ -150,132 +478,126 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify immutable candidate exists in both registries
+        run: |
+          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" --raw > manifest-post-cutover.json
+          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" > ghcr-inspect-post-cutover.txt
+          jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64" and ((.annotations["vnd.docker.reference.type"] // "") != "attestation-manifest"))] | .[].digest' manifest-post-cutover.json | tee candidate-child-digest-post-cutover.txt
+          test "$(wc -l < candidate-child-digest-post-cutover.txt | tr -d ' ')" = "1"
+          printf '%s' "$(cat candidate-child-digest-post-cutover.txt)" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          docker buildx imagetools inspect "registry.fly.io/${FLY_APP}:${PRODUCTION_IMAGE_TAG}" > fly-inspect-post-cutover.txt
+          grep -q "${IMAGE_DIGEST}" fly-inspect-post-cutover.txt
+
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Authenticate Fly registry
-        run: flyctl auth docker
-
-      - name: Inspect approved candidate digest
+      - name: Assert final-hostname certificate remains active
         run: |
-          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-staging@${IMAGE_DIGEST}" > ghcr-inspect.txt
+          production_host="${PRODUCTION_SITE_URL#https://}"
+          test -n "${production_host}"
+          test "${production_host}" != "${PRODUCTION_SITE_URL}"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${FLY_API_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://api.machines.dev/v1/apps/${FLY_APP}/certificates/${production_host}" \
+            | tee certificate-post-cutover.json
+          jq -e \
+            --arg hostname "${production_host}" \
+            '.hostname == $hostname
+             and .status == "active"
+             and .acme_requested == true
+             and any(.certificates[]; .source == "fly" and .status == "active")' \
+            certificate-post-cutover.json > /dev/null
 
-      - name: Ensure disposable Fly app exists
+      - name: Verify hostname, machine, health, and stamps
         run: |
-          flyctl apps list --json \
-            | jq -e --arg app "${FLY_APP}" 'any(.[]; (.Name // .name) == $app)' > /dev/null || \
-            flyctl apps create "${FLY_APP}" --org personal --yes
+          flyctl status --app "${FLY_APP}" --json > status-post-cutover.json
+          flyctl machines list --app "${FLY_APP}" --json > machines-post-cutover.json
+          test "$(jq '[.[] | select(.state == "started")] | length' machines-post-cutover.json)" = "1"
+          test "$(jq -r '[.[] | select(.state == "started")][0].region' machines-post-cutover.json)" = "${FLY_REGION}"
+          child_digest="$(cat candidate-child-digest-post-cutover.txt)"
+          jq -e --arg digest "${child_digest}" 'any(.[]; .image_ref.digest == $digest)' machines-post-cutover.json > /dev/null
+          jq -e --arg sha "${RELEASE_SHA}" --arg tag "${RELEASE_TAG}" 'any(.[]; .image_ref.labels["org.opencontainers.image.revision"] == $sha and .image_ref.labels["org.opencontainers.image.version"] == $tag)' machines-post-cutover.json > /dev/null
+          flyctl checks list --app "${FLY_APP}" --json | tee checks-post-cutover.json
+          jq -e '[to_entries[].value[]] | length > 0 and all(.[]; .status == "passing")' checks-post-cutover.json > /dev/null
+          flyctl logs --app "${FLY_APP}" --no-tail > runtime-post-cutover.log
+          grep "DESTINY_BUILD_SHA=${RELEASE_SHA}" runtime-post-cutover.log
+          grep "DESTINY_BUILD_TAG=${RELEASE_TAG}" runtime-post-cutover.log
+          grep "DESTINY_BUILD_ENV=production" runtime-post-cutover.log
+          grep "DESTINY_BUILD_SITE_URL=${PRODUCTION_SITE_URL}" runtime-post-cutover.log
+          curl --fail --silent --show-error --location --output root-post-cutover.html --write-out '%{http_code}\n' "${SITE_URL}/" | tee root-status-post-cutover.txt
+          test "$(cat root-status-post-cutover.txt)" = "200"
+          test "$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-sha.txt")" = "${RELEASE_SHA}"
+          test "$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-tag.txt")" = "${RELEASE_TAG}"
+          test "$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-env.txt")" = "production"
+          test "$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-site-url.txt")" = "${PRODUCTION_SITE_URL}"
 
-      - name: Copy exact digest to Fly registry
+      - name: Repeat route sweep after DNS cutover
         run: |
-          docker buildx imagetools create \
-            --tag "registry.fly.io/${FLY_APP}:step-zero-v1.1" \
-            "ghcr.io/joseangelo510/destiny-staging@${IMAGE_DIGEST}"
-          docker buildx imagetools inspect "registry.fly.io/${FLY_APP}:step-zero-v1.1" > fly-inspect.txt
-          grep -q "${IMAGE_DIGEST}" fly-inspect.txt
-
-      - name: Stage runtime secrets
-        run: |
-          flyctl secrets set --stage --app "${FLY_APP}" \
-            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
-            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-            SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
-
-      - name: Deploy approved digest only
-        run: |
-          flyctl deploy \
-            --app "${FLY_APP}" \
-            --image "registry.fly.io/${FLY_APP}@${IMAGE_DIGEST}" \
-            --ha=false \
-            --strategy immediate \
-            --wait-timeout 5m
-
-      - name: Capture runtime evidence
-        run: |
-          flyctl status --app "${FLY_APP}" --json > status.json
-          flyctl machines list --app "${FLY_APP}" --json > machines.json
-          READY=0
-          for i in $(seq 1 30); do
-            SHA=$(curl -sS --max-time 5 "${SITE_URL}/_next/static/build-sha.txt" || true)
-            TAG=$(curl -sS --max-time 5 "${SITE_URL}/_next/static/build-tag.txt" || true)
-            if [ "$SHA" = "${RELEASE_SHA}" ] && [ "$TAG" = "${RELEASE_TAG}" ]; then
-              READY=1
-              break
-            fi
-            sleep 2
-          done
-          test "$READY" = "1"
-          echo "ready after $i attempts"
-          flyctl checks list --app "${FLY_APP}" | tee checks.txt | grep -qi passing
-          sleep 10
-          flyctl logs --app "${FLY_APP}" --no-tail > runtime.log
-          grep "DESTINY_BUILD_SHA=${RELEASE_SHA}" runtime.log
-          grep "DESTINY_BUILD_TAG=${RELEASE_TAG}" runtime.log
-          grep -q "Ready" runtime.log
-          curl --fail --silent --show-error --location --output root.html --write-out '%{http_code}\n' "${SITE_URL}/" | tee root-status.txt
-          test "$(cat root-status.txt)" = "200"
-          curl --fail --silent --show-error "${SITE_URL}/_next/static/build-sha.txt" | tee build-sha.txt
-          curl --fail --silent --show-error "${SITE_URL}/_next/static/build-tag.txt" | tee build-tag.txt
-          test "$(cat build-sha.txt)" = "${RELEASE_SHA}"
-          test "$(cat build-tag.txt)" = "${RELEASE_TAG}"
-
-      - name: Sweep every inventoried route without authentication
-        run: |
-          jq -r '.[].route' release/destiny-product/qa/inventory/routes.json \
+          jq -r '.[].route' src/destiny-product/qa/inventory/routes.json \
             | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' \
-            | sort -u > route-paths.txt
-          printf '%s\n' '/_next/static/build-sha.txt' '/_next/static/build-tag.txt' >> route-paths.txt
-          sort -u -o route-paths.txt route-paths.txt
-          test "$(wc -l < route-paths.txt | tr -d ' ')" = "78"
-          : > route-sweep.tsv
+            | sort -u > route-paths-post-cutover.txt
+          printf '%s\n' '/_next/static/build-sha.txt' '/_next/static/build-tag.txt' '/_next/static/build-env.txt' >> route-paths-post-cutover.txt
+          sort -u -o route-paths-post-cutover.txt route-paths-post-cutover.txt
+          test "$(wc -l < route-paths-post-cutover.txt | tr -d ' ')" = "79"
+          : > route-sweep-post-cutover.tsv
           while IFS= read -r route; do
-            safe_name="$(printf '%s' "$route" | tr '/?&=[]' '_______')"
+            safe_name="$(printf '%s' "${route}" | tr '/?&=[]' '_______')"
             code="$(curl --silent --show-error --location --max-redirs 5 \
-              --output "route-${safe_name}.body" --write-out '%{http_code}' "${SITE_URL}${route}")"
-            printf '%s\t%s\n' "$code" "$route" | tee -a route-sweep.tsv
-            test "$code" -lt 500
-          done < route-paths.txt
-          grep -q $'\t/api/content/word$' route-sweep.tsv
+              --output "post-route-${safe_name}.body" --write-out '%{http_code}' "${SITE_URL}${route}")"
+            printf '%s\t%s\n' "${code}" "${route}" | tee -a route-sweep-post-cutover.tsv
+            test "${code}" != "000"
+            test "${code}" -lt 500
+          done < route-paths-post-cutover.txt
+          test "$(awk '$1 == 200 {count++} END {print count+0}' route-sweep-post-cutover.tsv)" = "32"
+          test "$(awk '$1 == 401 {count++} END {print count+0}' route-sweep-post-cutover.tsv)" = "46"
+          test "$(awk '$1 == 405 {count++} END {print count+0}' route-sweep-post-cutover.tsv)" = "1"
+          test "$(awk '$1 >= 500 {count++} END {print count+0}' route-sweep-post-cutover.tsv)" = "0"
+          grep -q $'401\t/api/content/word$' route-sweep-post-cutover.tsv
+          grep -q $'405\t/auth/signout$' route-sweep-post-cutover.tsv
 
-      - name: Observe 30-minute staging stability window
+      - name: Observe 30-minute post-cutover stability
         run: |
-          : > stability.tsv
+          : > stability-post-cutover.tsv
           for minute in $(seq 0 30); do
             timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            root_code="$(curl --silent --show-error --location --max-redirs 5 \
-              --output /dev/null --write-out '%{http_code}' "${SITE_URL}/")"
+            root_code="$(curl --silent --show-error --location --max-redirs 5 --output /dev/null --write-out '%{http_code}' "${SITE_URL}/")"
             stamp="$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-sha.txt")"
+            build_env="$(curl --fail --silent --show-error "${SITE_URL}/_next/static/build-env.txt")"
             machine_count="$(flyctl machines list --app "${FLY_APP}" --json | jq '[.[] | select(.state == "started")] | length')"
-            printf '%s\t%s\t%s\t%s\n' "$timestamp" "$root_code" "$stamp" "$machine_count" | tee -a stability.tsv
-            test "$root_code" -lt 500
-            test "$stamp" = "${RELEASE_SHA}"
-            test "$machine_count" = "1"
-            if [ "$minute" -lt 30 ]; then sleep 60; fi
+            printf '%s\t%s\t%s\t%s\t%s\n' "${timestamp}" "${root_code}" "${stamp}" "${build_env}" "${machine_count}" | tee -a stability-post-cutover.tsv
+            test "${root_code}" = "200"
+            test "${stamp}" = "${RELEASE_SHA}"
+            test "${build_env}" = "production"
+            test "${machine_count}" = "1"
+            if [ "${minute}" -lt 30 ]; then sleep 60; fi
           done
-          flyctl machines list --app "${FLY_APP}" --json > machines-after-30m.json
-          flyctl logs --app "${FLY_APP}" --no-tail > runtime-after-30m.log
-          grep -q "${RELEASE_SHA}" runtime-after-30m.log
+          flyctl machines list --app "${FLY_APP}" --json > machines-after-post-cutover.json
+          flyctl logs --app "${FLY_APP}" --no-tail > runtime-after-post-cutover.log
+          test "$(jq '[.[] | select(.state == "started")] | length' machines-after-post-cutover.json)" = "1"
+          grep -q "${RELEASE_SHA}" runtime-after-post-cutover.log
 
-      - name: Upload deploy evidence
+      - name: Upload post-cutover evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: staging-deploy-evidence-${{ github.run_id }}
+          name: production-post-cutover-evidence-${{ github.run_id }}
           path: |
-            ghcr-inspect.txt
-            fly-inspect.txt
-            status.json
-            machines.json
-            checks.txt
-            runtime.log
-            root-status.txt
-            root.html
-            build-sha.txt
-            build-tag.txt
-            route-paths.txt
-            route-sweep.tsv
-            route-*.body
-            stability.tsv
-            machines-after-30m.json
-            runtime-after-30m.log
+            ghcr-inspect-post-cutover.txt
+            manifest-post-cutover.json
+            candidate-child-digest-post-cutover.txt
+            fly-inspect-post-cutover.txt
+            certificate-post-cutover.json
+            status-post-cutover.json
+            machines-post-cutover.json
+            checks-post-cutover.json
+            runtime-post-cutover.log
+            root-status-post-cutover.txt
+            root-post-cutover.html
+            route-paths-post-cutover.txt
+            route-sweep-post-cutover.tsv
+            post-route-*.body
+            stability-post-cutover.tsv
+            machines-after-post-cutover.json
+            runtime-after-post-cutover.log
           if-no-files-found: warn
