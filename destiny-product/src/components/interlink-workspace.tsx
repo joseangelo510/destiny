@@ -37,6 +37,12 @@ function statusLabel(status: InterlinkOpportunityView["status"]) {
   return ({ suggested: "Suggested", approved: "Ready to add", skipped: "Skipped", done_claimed: "Waiting for verification", verified: "Verified live" } as const)[status];
 }
 
+function benefitLabel(item: InterlinkOpportunityView) {
+  const rank = item.reason.match(/ranking\s+#(\d+)/i)?.[1];
+  if (rank) return `Helps “${item.targetTitle}” — currently ranking #${rank} — move toward page one.`;
+  return `Helps more readers reach “${item.targetTitle}.”`;
+}
+
 export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initialOpportunities }: {
   websiteId: string;
   websiteName: string;
@@ -49,6 +55,7 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
   const [phase, setPhase] = useState(0);
   const [working, setWorking] = useState("");
   const [expanded, setExpanded] = useState("");
+  const [copyStatus, setCopyStatus] = useState<{ id: string; tone: "success" | "error"; message: string } | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -99,7 +106,12 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
   };
 
   const copyEdit = async (item: InterlinkOpportunityView) => {
-    await navigator.clipboard.writeText(`Link “${item.anchorText}” to ${item.targetUrl}`);
+    try {
+      await navigator.clipboard.writeText(`On “${item.sourceTitle}” (${item.sourceUrl}), find this sentence:\n\n${item.sourceSentence}\n\nTurn “${item.anchorText}” into a link to “${item.targetTitle}” (${item.targetUrl}).`);
+      setCopyStatus({ id: item.id, tone: "success", message: "Edit copied." });
+    } catch {
+      setCopyStatus({ id: item.id, tone: "error", message: "Could not copy. Select the instructions manually." });
+    }
   };
 
   return <div className="interlink-workspace">
@@ -128,17 +140,22 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
             <div className="interlink-card-order"><span>{item.status === "verified" ? "✓" : index + 1}</span><small>{item.priority} priority</small></div>
             <div className="interlink-card-main">
               <div className="interlink-card-status"><span>{statusLabel(item.status)}</span>{item.verifiedAt && <small>Verified {new Date(item.verifiedAt).toLocaleDateString()}</small>}</div>
-              <div className="interlink-route"><div><small>From</small><strong>{item.sourceTitle}</strong><code>{path(item.sourceUrl)}</code></div><span aria-hidden="true">→</span><div><small>To</small><strong>{item.targetTitle}</strong><code>{path(item.targetUrl)}</code></div></div>
-              <p>{item.reason}</p>
+              <div className="interlink-route">
+                <div className="interlink-route-source"><small><span aria-hidden="true">✎</span>Add a link on this page</small><strong>{item.sourceTitle}</strong><code>{path(item.sourceUrl)}</code></div>
+                <div className="interlink-route-target"><small><span aria-hidden="true">↳</span>Pointing to this page</small><strong>{item.targetTitle}</strong><code>{path(item.targetUrl)}</code></div>
+              </div>
+              <p>{benefitLabel(item)}</p>
               {isOpen && <div className="interlink-edit-panel">
-                <span className="eyebrow">Exact edit</span>
+                <div className="interlink-edit-location"><span>Add a link on:</span><strong>{item.sourceTitle}</strong><code>{path(item.sourceUrl)}</code></div>
+                <span className="eyebrow">The exact sentence to update</span>
                 <blockquote>{item.sourceSentence}</blockquote>
-                <div><span>Turn <strong>“{item.anchorText}”</strong> into a link to:</span><code>{item.targetUrl}</code></div>
-                <div className="interlink-edit-actions"><button className="secondary-button" onClick={() => void copyEdit(item)} type="button">Copy instructions</button>{item.status === "suggested" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "approve")} type="button">Approve this edit</button>}{item.status === "approved" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "mark_done")} type="button">I added the link</button>}{item.status === "done_claimed" && <button className="primary-button" disabled={working === item.id} onClick={() => void verify(item)} type="button">Verify live page</button>}</div>
+                <div className="interlink-edit-destination"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div>
+                <div className="interlink-edit-actions"><button className="secondary-button" onClick={() => void copyEdit(item)} type="button">{copyStatus?.id === item.id && copyStatus.tone === "success" ? "Copied" : "Copy the edit"}</button>{item.status === "suggested" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "approve")} type="button">Approve this edit</button>}{item.status === "approved" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "mark_done")} type="button">I added the link</button>}{item.status === "done_claimed" && <button className="primary-button" disabled={working === item.id} onClick={() => void verify(item)} type="button">Verify live page</button>}</div>
+                {copyStatus?.id === item.id && <p aria-live="polite" className={`interlink-copy-feedback ${copyStatus.tone}`}>{copyStatus.message}</p>}
                 <p className="interlink-truth-note">Nothing is changed automatically. “Verified” appears only after Destiny finds the link on the live source page.</p>
               </div>}
             </div>
-            <div className="interlink-card-actions">{item.status !== "verified" && <button className="primary-button" onClick={() => setExpanded(isOpen ? "" : item.id)} type="button">{isOpen ? "Close edit" : item.status === "done_claimed" ? "Verify link" : "Get the edit"}</button>}{item.status === "suggested" && <button className="link-button" disabled={working === item.id} onClick={() => void changeStatus(item, "skip")} type="button">Skip</button>}{item.status === "verified" && <span className="interlink-verified">Live link confirmed</span>}</div>
+            <div className="interlink-card-actions">{item.status !== "verified" && <button className="primary-button" onClick={() => { setExpanded(isOpen ? "" : item.id); setCopyStatus(null); }} type="button">{isOpen ? "Close edit" : item.status === "done_claimed" ? "Verify link" : "See the edit"}</button>}{item.status === "suggested" && <button className="link-button" disabled={working === item.id} onClick={() => void changeStatus(item, "skip")} type="button">Skip</button>}{item.status === "verified" && <span className="interlink-verified">Live link confirmed</span>}</div>
           </article>;
         })}
       </section>}

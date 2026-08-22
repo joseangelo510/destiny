@@ -19,7 +19,7 @@ const opportunity: InterlinkOpportunityView = {
 };
 
 describe("InterlinkWorkspace", () => {
-  it("explains the bounded scan and presents one clear action per opportunity", () => {
+  it("labels the page to edit and the page the link points to in plain language", () => {
     const html = renderToStaticMarkup(<InterlinkWorkspace
       websiteId="website-1"
       websiteName="Example Co"
@@ -29,8 +29,18 @@ describe("InterlinkWorkspace", () => {
     expect(html).toContain("verified priority pages—not every URL");
     expect(html).toContain("Pricing");
     expect(html).toContain("SEO services");
-    expect(html).toContain("Get the edit");
+    expect(html).toContain("Add a link on this page");
+    expect(html).toContain("Pointing to this page");
+    expect(html).toContain("See the edit");
+    expect(html).toContain("Helps “SEO services” — currently ranking #8 — move toward page one.");
+    expect(html).not.toContain(">From<");
+    expect(html).not.toContain(">To<");
+    expect(html).not.toContain("Get the edit");
     expect(html).not.toContain("Apply automatically");
+
+    expect(html.indexOf("Add a link on this page")).toBeLessThan(html.indexOf("Pricing"));
+    expect(html.indexOf("Pricing")).toBeLessThan(html.indexOf("Pointing to this page"));
+    expect(html.indexOf("Pointing to this page")).toBeLessThan(html.lastIndexOf("SEO services"));
   });
 
   it("does not present a claimed implementation as verified", () => {
