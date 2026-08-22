@@ -62,10 +62,8 @@ jobs:
       - name: Run three-site isolation matrix
         run: pnpm qa:isolation
 
-      - name: Destroy disposable Supabase isolation stack
-        if: always()
-        continue-on-error: true
-        run: pnpm exec supabase stop --no-backup
+      - name: Prepare authenticated browser fixture
+        run: pnpm qa:browser-fixture
 
       - name: Build the production application
         run: pnpm build
@@ -75,6 +73,11 @@ jobs:
 
       - name: Run browser journeys
         run: pnpm test:e2e
+
+      - name: Destroy disposable Supabase isolation stack
+        if: always()
+        continue-on-error: true
+        run: pnpm exec supabase stop --no-backup
 
       - name: Preserve browser evidence on failure
         if: failure()

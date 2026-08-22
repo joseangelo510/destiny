@@ -18,6 +18,7 @@
     "qa:migrations": "node scripts/qa-migrations.mjs",
     "qa:inventory": "node scripts/qa-inventory.mjs",
     "qa:isolation": "node scripts/qa-isolation.mjs",
+    "qa:browser-fixture": "node scripts/qa-browser-fixture.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
     "test:links": "playwright test qa/e2e/links.spec.ts",
