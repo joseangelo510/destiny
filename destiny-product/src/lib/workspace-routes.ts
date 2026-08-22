@@ -10,6 +10,7 @@ export const WORKSPACE_ROUTE_ROOTS = [
   "/distribution",
   "/growth-plan",
   "/integrations",
+  "/internal-links",
   "/keyword-research",
   "/keywords",
   "/llm-visibility",

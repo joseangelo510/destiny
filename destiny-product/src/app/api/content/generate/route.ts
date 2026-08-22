@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   ARTICLE_FORMAT_OPTIONS,
   ARTICLE_VOICE_OPTIONS,
@@ -28,6 +29,7 @@ import {
   mergeArticleContinuation,
   parseArticleContinuation,
 } from "@/lib/content/article-recovery";
+import { normalizeInternalUrl } from "@/lib/seo/interlinking";
 
 export const maxDuration = 300;
 const ARTICLE_EVIDENCE_TIMEOUT_MS = 30_000;
@@ -36,6 +38,8 @@ const ARTICLE_CONTINUATION_TIMEOUT_MS = 70_000;
 const ARTICLE_GENERATION_KEEPALIVE_MS = 5_000;
 
 type GenerateRequest = {
+  websiteId?: unknown;
+  auditId?: unknown;
   keyword?: unknown;
   businessName?: unknown;
   problemSolved?: unknown;
@@ -93,6 +97,30 @@ function internalPages(value: unknown): ArticleInternalPage[] {
   });
 }
 
+async function loadVerifiedInternalPages(supabase: Awaited<ReturnType<typeof createClient>>, websiteId: string, auditId: string) {
+  const [{ data: website }, { data: audit }] = await Promise.all([
+    supabase.from("websites").select("id,url").eq("id", websiteId).maybeSingle(),
+    supabase.from("audits").select("id,website_id").eq("id", auditId).eq("website_id", websiteId).maybeSingle(),
+  ]);
+  if (!website || !audit) return null;
+  const db = supabase as unknown as SupabaseClient;
+  const { data: run } = await db.from("interlink_runs").select("manifest").eq("website_id", websiteId).eq("status", "complete").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  let candidates = Array.isArray(record(run?.manifest).pages) ? record(run?.manifest).pages as unknown[] : [];
+  if (!candidates.length) {
+    const { data: metrics } = await supabase.from("audit_metrics").select("raw_provider_payload").eq("audit_id", auditId).maybeSingle();
+    const providerResult = record(record(metrics?.raw_provider_payload).providerResult);
+    candidates = Array.isArray(providerResult.pages) ? providerResult.pages : [];
+  }
+  const seen = new Set<string>();
+  return internalPages(candidates.map((candidate) => {
+    const page = record(candidate);
+    const url = typeof page.url === "string" ? normalizeInternalUrl(page.url, website.url) : null;
+    if (!url || seen.has(url) || ("statusCode" in page && Number(page.statusCode) !== 200) || ("indexable" in page && page.indexable !== true)) return {};
+    seen.add(url);
+    return { title: typeof page.title === "string" ? page.title : url, url, text: typeof page.text === "string" ? page.text : "" };
+  }));
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
@@ -100,13 +128,18 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "Sign in again to generate an article." }, { status: 401 });
 
   const body = await request.json().catch(() => ({})) as GenerateRequest;
+  const websiteId = text(body.websiteId, 100);
+  const auditId = text(body.auditId, 100);
+  if (!websiteId || !auditId) return NextResponse.json({ error: "Choose a verified website and audit before generating an article." }, { status: 400 });
+  const verifiedInternalPages = await loadVerifiedInternalPages(supabase, websiteId, auditId);
+  if (!verifiedInternalPages) return NextResponse.json({ error: "The website or audit is not available in this workspace." }, { status: 404 });
   const input: ArticleGenerationInput = {
     keyword: text(body.keyword, 300),
     businessName: text(body.businessName, 200),
     problemSolved: text(body.problemSolved, 4000),
     idealCustomer: text(body.idealCustomer, 4000),
     differentiation: text(body.differentiation, 4000),
-    internalPages: internalPages(body.internalPages),
+    internalPages: verifiedInternalPages,
     preferences: preferences(body.preferences),
   };
   if (!input.keyword || !input.businessName) {
@@ -263,7 +296,7 @@ export async function POST(request: Request) {
         }
       }
 
-      const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format);
+      const qualityIssues = await validateGeneratedArticle(article, input.keyword, input.preferences.format, input.internalPages);
       if (recoveryIssue && !qualityIssues.some((issue) => issue.code === "incomplete_output")) qualityIssues.unshift(recoveryIssue);
       return {
         draft: {
@@ -283,6 +316,7 @@ export async function POST(request: Request) {
           // which has no incomplete-output check of its own.
           generationStatus: recoveryIssue ? "needs_generation" : "generated",
           generatedBy: model,
+          verifiedInternalPages: input.internalPages,
           qualityIssues,
           optimization: qualityIssues.length
             ? qualityIssues.map((issue) => ({ label: issue.code.replaceAll("_", " "), detail: issue.message }))

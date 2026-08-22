@@ -3,6 +3,7 @@ import {
   DEFAULT_ARTICLE_PREFERENCES,
   DEFAULT_COPY_MODEL,
   articleGenerationCapability,
+  articleInternalLinkIssues,
   articleQualityIssuesFromPolicy,
   buildAnthropicArticleRequest,
   buildAnthropicArticleContinuationRequest,
@@ -51,6 +52,42 @@ function validLongFormPayload(): GeneratedArticlePayload {
 }
 
 describe("Destiny article generation policy", () => {
+  it("requires three unique verified internal links when the inventory supports them", () => {
+    const payload = {
+      bodyMarkdown: [
+        "Read our [SEO services](https://example.com/services/seo).",
+        "Use the [content strategy guide](https://example.com/guides/content).",
+        "Then review [technical SEO](https://example.com/guides/technical).",
+      ].join("\n\n"),
+    };
+    const inventory = [
+      { title: "SEO services", url: "https://example.com/services/seo" },
+      { title: "Content strategy", url: "https://example.com/guides/content" },
+      { title: "Technical SEO", url: "https://example.com/guides/technical" },
+      { title: "About", url: "https://example.com/about" },
+    ];
+    expect(articleInternalLinkIssues(payload, inventory)).toEqual([]);
+    expect(articleInternalLinkIssues({ bodyMarkdown: payload.bodyMarkdown.replace(/\n\nThen[\s\S]+$/, "") }, inventory))
+      .toContainEqual(expect.objectContaining({ code: "internal_link_count" }));
+  });
+
+  it("blocks fabricated same-site links while leaving external citations alone", () => {
+    const inventory = [
+      { title: "Home", url: "https://example.com/" },
+      { title: "Services", url: "https://example.com/services" },
+    ];
+    const issues = articleInternalLinkIssues({
+      bodyMarkdown: "[Home](https://example.com/) [Services](https://example.com/services) [Made up](https://example.com/not-real) [Source](https://research.example/report)",
+    }, inventory);
+    expect(issues).toContainEqual(expect.objectContaining({ code: "internal_link_unverified" }));
+    expect(issues).not.toContainEqual(expect.objectContaining({ message: expect.stringContaining("research.example") }));
+  });
+
+  it("uses every verified page when a small site has fewer than three", () => {
+    const inventory = [{ title: "Home", url: "https://example.com/" }, { title: "About", url: "https://example.com/about" }];
+    expect(articleInternalLinkIssues({ bodyMarkdown: "[Home](https://example.com/) and [About](https://example.com/about)." }, inventory)).toEqual([]);
+  });
+
   it("keeps Jose's approved controls and SEO-article defaults", () => {
     expect(DEFAULT_ARTICLE_PREFERENCES).toEqual({
       voice: "punchy_coach",

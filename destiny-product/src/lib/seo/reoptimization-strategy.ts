@@ -1,5 +1,6 @@
 import type { ReoptimizationEvidence, ReoptimizationPageSnapshot } from "./reoptimization-document";
 import type { ReoptimizationResearchResult } from "./research";
+import { normalizeInternalUrl } from "./interlinking";
 
 export const REOPTIMIZATION_CHECKLIST = [
   { id: "decision", label: "Protect, refresh, expand, rewrite, or consolidate" },
@@ -28,7 +29,7 @@ export type ReoptimizationChecklistItem = {
   current: string;
   recommended: string;
   where: string;
-  evidence: Array<{ source: "Current page" | "DataForSEO SERP" | "DataForSEO OnPage" | "DataForSEO Backlinks" | "Google Search Console"; detail: string; url: string }>;
+  evidence: Array<{ source: "Current page" | "Website audit" | "DataForSEO SERP" | "DataForSEO OnPage" | "DataForSEO Backlinks" | "Google Search Console"; detail: string; url: string }>;
 };
 
 export type ReoptimizationHeadingPlan = {
@@ -82,10 +83,54 @@ export type ReoptimizationStrategy = {
   measurementPlan: string[];
 };
 
+type VerifiedInternalPage = { title: string; url: string; text?: string };
+
 const clean = (value: unknown, maximum = 5_000) => typeof value === "string" ? value.trim().slice(0, maximum) : "";
 const record = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 
-export function buildReoptimizationEvidencePack(evidence: ReoptimizationEvidence, snapshot: ReoptimizationPageSnapshot, research: ReoptimizationResearchResult) {
+function linkTerms(value: string) {
+  const stop = new Set(["about", "agency", "and", "best", "company", "for", "from", "guide", "home", "page", "services", "the", "this", "with", "your"]);
+  return [...new Set(value.toLocaleLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((term) => term.length > 2 && !stop.has(term)))];
+}
+
+export function applyVerifiedInternalLinkPlan(strategy: ReoptimizationStrategy, pages: VerifiedInternalPage[], targetUrl: string, currentText: string) {
+  const target = normalizeInternalUrl(targetUrl, targetUrl);
+  const signal = linkTerms([strategy.keywordFramework.primary, ...strategy.keywordFramework.secondary, ...strategy.keywordFramework.related, currentText.slice(0, 8_000)].join(" "));
+  const seen = new Set<string>();
+  const relevant = pages.flatMap((page) => {
+    const url = normalizeInternalUrl(page.url, targetUrl);
+    if (!url || url === target || seen.has(url)) return [];
+    seen.add(url);
+    const haystack = `${page.title} ${page.text ?? ""}`.toLocaleLowerCase();
+    const score = signal.filter((term) => haystack.includes(term)).length;
+    return score > 0 ? [{ ...page, url, score }] : [];
+  }).sort((a, b) => b.score - a.score || a.url.localeCompare(b.url)).slice(0, 3);
+  const internalLinkItem = strategy.checklist.find((item) => item.id === "internal-links");
+  if (!internalLinkItem) return strategy;
+  const replacement: ReoptimizationChecklistItem = relevant.length ? {
+    ...internalLinkItem,
+    status: "opportunity",
+    priority: relevant.length >= 3 ? "high" : "medium",
+    finding: `${relevant.length} relevant internal destination${relevant.length === 1 ? " was" : "s were"} verified for this page update.`,
+    action: relevant.length >= 3 ? "Add these three internal links during the page update." : `Add the ${relevant.length} relevant verified link${relevant.length === 1 ? "" : "s"}; do not invent extra destinations to reach three.`,
+    current: `${internalLinkItem.current} Verify the live page before removing or replacing any existing link.`,
+    recommended: relevant.map((page, index) => `${index + 1}. Link “${page.title}” to ${page.url}`).join("\n"),
+    where: "Place each link in the section where it genuinely helps the reader; do not stack the links into one paragraph.",
+    evidence: relevant.map((page) => ({ source: "Website audit" as const, detail: `Verified internal destination: ${page.title}`, url: page.url })),
+  } : {
+    ...internalLinkItem,
+    status: "verify",
+    priority: "medium",
+    finding: "Destiny did not find a relevant verified destination in the current page inventory.",
+    action: "Run Internal links or a fresh website audit before adding links to this page.",
+    recommended: "No internal URL proposed; inventing a destination is blocked.",
+    where: "No CMS edit until a relevant destination is verified.",
+    evidence: [{ source: "Current page" as const, detail: "No relevant verified internal destination was supplied.", url: targetUrl }],
+  };
+  return { ...strategy, checklist: strategy.checklist.map((item) => item.id === "internal-links" ? replacement : item) };
+}
+
+export function buildReoptimizationEvidencePack(evidence: ReoptimizationEvidence, snapshot: ReoptimizationPageSnapshot, research: ReoptimizationResearchResult, verifiedInternalPages: VerifiedInternalPage[] = []) {
   const competitors = research.competitorPages.map((page) => ({ rank: page.rank, title: page.title, url: page.url, headings: page.headingStructure, wordCount: page.wordCount, backlinkRank: page.backlinkRank, referringDomains: page.referringDomains, excerpt: page.text.slice(0, 5_000) }));
   return JSON.stringify({
     business: { name: evidence.businessName, productsServices: evidence.productsServices, idealCustomer: evidence.idealCustomer },
@@ -107,6 +152,7 @@ export function buildReoptimizationEvidencePack(evidence: ReoptimizationEvidence
     competitorPages: competitors,
     onPage: research.onPage,
     backlinks: research.backlinks,
+    verifiedInternalPages: verifiedInternalPages.slice(0, 25),
     researchUpdatedAt: research.updatedAt,
   }, null, 2);
 }
@@ -155,7 +201,7 @@ Apply these gates rigorously:
 6. Snippet: protect a title/meta that already matches intent. Recommend exact alternatives only when the current snippet is missing, stale, misleading, truncated, or weak relative to the SERP.
 7. Proof: verify claims, dates, examples, author/company experience, case evidence, citations, and trust signals. Mark unsupported superlatives for substantiation.
 8. Structure: compare the exact current and proposed heading hierarchies; improve scanability, heading logic, accuracy, dated material, broken references, visuals, and accessibility. Never pad to an arbitrary word count.
-9. Internal links: identify topical relationships from verified page links/query data. If inbound-link inventory is unavailable, request verification instead of inventing source pages or anchor counts.
+9. Internal links: use only verifiedInternalPages and verified live-page links. Recommend at least three relevant internal links when three or more genuinely related verified pages are available. Name the exact destination URL and natural anchor. If fewer than three relevant verified pages exist, use every relevant verified page and explain the shortfall instead of inventing URLs, anchors, or relevance.
 10. Link equity: preserve the URL and linked material. A merge or redirect requires explicit evidence and a redirect/canonical plan.
 11. Technical: interpret DataForSEO OnPage output, but distinguish raw checks from confirmed faults. Include schema or performance work only when relevant and verified.
 12. AI visibility: make key answers explicit, quotable, attributable, and supported by first-party evidence; do not create generic FAQ filler.
@@ -174,7 +220,7 @@ const evidenceSchema = {
   additionalProperties: false,
   required: ["source", "detail", "url"],
   properties: {
-    source: { type: "string", enum: ["Current page", "DataForSEO SERP", "DataForSEO OnPage", "DataForSEO Backlinks", "Google Search Console"] },
+    source: { type: "string", enum: ["Current page", "Website audit", "DataForSEO SERP", "DataForSEO OnPage", "DataForSEO Backlinks", "Google Search Console"] },
     detail: { type: "string" },
     url: { type: "string" },
   },

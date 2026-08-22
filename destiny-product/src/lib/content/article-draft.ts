@@ -1,6 +1,7 @@
 import {
   DEFAULT_ARTICLE_PREFERENCES,
   type ArticleGenerationPreferences,
+  type ArticleInternalPage,
   type ArticleQualityIssue,
   type ArticleTitleCandidate,
   type BucketBrigade,
@@ -32,6 +33,7 @@ export type ArticleDraft = {
   preferences: ArticleGenerationPreferences;
   generationStatus: "starter" | "needs_generation" | "generated";
   generatedBy?: string;
+  verifiedInternalPages?: ArticleInternalPage[];
   qualityIssues: ArticleQualityIssue[];
   optimization: Array<{ label: string; detail: string }>;
 };
@@ -205,7 +207,7 @@ export async function currentArticleQualityIssues(draft: ArticleDraft): Promise<
     bucketBrigades: draft.bucketBrigades,
     sources: draft.sources,
     infographics: draft.infographics,
-  }, draft.keyword, draft.preferences.format);
+  }, draft.keyword, draft.preferences.format, draft.verifiedInternalPages ?? []);
 }
 
 export async function articleCanBeApproved(draft: ArticleDraft) {

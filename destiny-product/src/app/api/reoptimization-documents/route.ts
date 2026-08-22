@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildReoptimizationManifest, fetchReoptimizationPage } from "@/lib/seo/reoptimization-document";
-import { buildAnthropicReoptimizationRequest, buildReoptimizationEvidencePack, buildReoptimizationPrompt, parseReoptimizationStrategy } from "@/lib/seo/reoptimization-strategy";
+import { applyVerifiedInternalLinkPlan, buildAnthropicReoptimizationRequest, buildReoptimizationEvidencePack, buildReoptimizationPrompt, parseReoptimizationStrategy } from "@/lib/seo/reoptimization-strategy";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getResearchClient } from "@/lib/seo/research";
 import { DEFAULT_COPY_MODEL } from "@/lib/content/article-generation";
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
   const { data: metrics } = await supabase.from("audit_metrics").select("raw_provider_payload").eq("audit_id", auditId).maybeSingle();
   const providerResult = record(record(metrics?.raw_provider_payload).providerResult);
   const providerKeywords = Array.isArray(providerResult.keywords) ? providerResult.keywords.map(record) : [];
+  const verifiedInternalPages = Array.isArray(providerResult.pages) ? providerResult.pages.map(record).flatMap((page) => typeof page.url === "string" ? [{ title: typeof page.title === "string" ? page.title : page.url, url: page.url, text: typeof page.text === "string" ? page.text.slice(0, 8_000) : "" }] : []) : [];
   const evidence = providerKeywords.find((candidate) => normalizeTrackedKeyword(String(candidate.keyword || "")) === normalizedKeyword) ?? {};
   const { data: searchConsole } = await supabase.from("integrations").select("metadata").eq("website_id", website.id).eq("provider", "google_search_console").eq("status", "connected").maybeSingle();
   const topQueries = Array.isArray(record(searchConsole?.metadata).topQueries) ? record(searchConsole?.metadata).topQueries as unknown[] : [];
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
   let strategy;
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   try {
-    const prompt = buildReoptimizationPrompt(buildReoptimizationEvidencePack(evidenceInput, snapshot, research));
+    const prompt = buildReoptimizationPrompt(buildReoptimizationEvidencePack(evidenceInput, snapshot, research, verifiedInternalPages));
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(String(record(record(payload).error).message || `Claude returned HTTP ${response.status}.`));
-    strategy = parseReoptimizationStrategy(anthropicText(payload));
+    strategy = applyVerifiedInternalLinkPlan(parseReoptimizationStrategy(anthropicText(payload)), verifiedInternalPages, pageUrl, research.currentPage.text);
   } catch (cause) {
     console.error("reoptimization_strategy_failed", { model, cause });
     return NextResponse.json({ error: "Destiny could not produce a trustworthy evidence-backed plan. Your keyword approval is saved; retry the change document without approving again." }, { status: 502 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REOPTIMIZATION_CHECKLIST, buildAnthropicReoptimizationRequest, buildReoptimizationPrompt, parseReoptimizationStrategy } from "./reoptimization-strategy";
+import { REOPTIMIZATION_CHECKLIST, applyVerifiedInternalLinkPlan, buildAnthropicReoptimizationRequest, buildReoptimizationPrompt, parseReoptimizationStrategy } from "./reoptimization-strategy";
 
 const validPayload = () => ({
   verdict: "light_refresh",
@@ -80,5 +80,21 @@ describe("re-optimization strategy", () => {
       action: "replace",
       recommendedText: "YouTube Ads Services",
     }));
+  });
+
+  it("turns verified site pages into a concrete re-optimization link plan without inventing URLs", () => {
+    const strategy = parseReoptimizationStrategy(validPayload());
+    const planned = applyVerifiedInternalLinkPlan(strategy, [
+      { title: "YouTube SEO services", url: "https://example.com/youtube-seo", text: "YouTube SEO services" },
+      { title: "Video production", url: "https://example.com/video-production", text: "YouTube video production" },
+      { title: "Campaign reporting", url: "https://example.com/reporting", text: "YouTube campaign reporting" },
+      { title: "Foreign", url: "https://other.example/page", text: "YouTube ads" },
+    ], "https://example.com/youtube-ads", "Our YouTube ads page covers SEO, video production, and campaign reporting.");
+    const item = planned.checklist.find((candidate) => candidate.id === "internal-links");
+    expect(item?.recommended).toContain("https://example.com/youtube-seo");
+    expect(item?.recommended).toContain("https://example.com/video-production");
+    expect(item?.recommended).toContain("https://example.com/reporting");
+    expect(item?.recommended).not.toContain("other.example");
+    expect(item?.evidence).toHaveLength(3);
   });
 });

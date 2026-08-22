@@ -21,8 +21,21 @@ describe("Content Studio article recovery route", () => {
     vi.resetModules();
     process.env.ANTHROPIC_API_KEY = "test-anthropic-key";
     process.env.ANTHROPIC_COPY_MODEL = "claude-opus-4-8";
+    const query = (data: unknown) => {
+      const builder: Record<string, unknown> = {};
+      for (const method of ["select", "eq", "order", "limit"]) builder[method] = vi.fn(() => builder);
+      builder.maybeSingle = vi.fn().mockResolvedValue({ data, error: null });
+      return builder;
+    };
     createClient.mockResolvedValue({
       auth: { getClaims: vi.fn().mockResolvedValue({ data: { claims: { sub: "user-1" } } }) },
+      from: vi.fn((table: string) => query(table === "websites"
+        ? { id: "website-1", url: "https://example.com" }
+        : table === "audits"
+          ? { id: "audit-1", website_id: "website-1" }
+          : table === "interlink_runs"
+            ? { manifest: { pages: [] } }
+            : { raw_provider_payload: { providerResult: { pages: [] } } })),
       functions: {
         invoke: vi.fn().mockResolvedValue({
           data: {
@@ -65,6 +78,8 @@ describe("Content Studio article recovery route", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        websiteId: "website-1",
+        auditId: "audit-1",
         keyword: "junk removal services",
         businessName: "98 Junk It",
         problemSolved: "Fast removal of unwanted household and commercial items.",
@@ -110,6 +125,8 @@ describe("Content Studio article recovery route", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        websiteId: "website-1",
+        auditId: "audit-1",
         keyword: "junk removal services",
         businessName: "98 Junk It",
         problemSolved: "Fast removal of unwanted household and commercial items.",

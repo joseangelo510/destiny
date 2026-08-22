@@ -105,6 +105,7 @@ function issueCategory(code: string) {
   if (code.startsWith("meta_title") || code.startsWith("title_")) return "Headline and search title";
   if (code.startsWith("brigade_") || code === "stock_phrase") return "Writing rhythm";
   if (code === "source_coverage") return "Research and citations";
+  if (code.startsWith("internal_link_")) return "Internal links";
   if (code === "meta_descriptions") return "Search metadata";
   return "Editorial quality";
 }
@@ -408,6 +409,8 @@ export function ArticleReviewWorkspace({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          websiteId,
+          auditId,
           keyword: draft.keyword,
           ...generationContext,
           preferences: draft.preferences,

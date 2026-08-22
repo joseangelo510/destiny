@@ -1,3 +1,5 @@
+import { normalizeInternalUrl } from "@/lib/seo/interlinking";
+
 export const DEFAULT_COPY_MODEL = "claude-opus-4-8";
 
 export function articleGenerationCapability(apiKey: string | undefined, configuredModel?: string) {
@@ -113,7 +115,7 @@ export type GeneratedArticlePayload = {
 };
 
 export type ArticleQualityIssue = {
-  code: "generation_required" | "incomplete_output" | "word_count" | "heading_structure" | "heading_keyword" | "heading_variety" | "brigade_count" | "brigade_spacing" | "stock_phrase" | "meta_title_missing" | "meta_title_length" | "meta_title_keyword" | "title_alignment" | "title_hype" | "title_number" | "title_candidates" | "meta_descriptions" | "source_coverage";
+  code: "generation_required" | "incomplete_output" | "word_count" | "heading_structure" | "heading_keyword" | "heading_variety" | "brigade_count" | "brigade_spacing" | "stock_phrase" | "meta_title_missing" | "meta_title_length" | "meta_title_keyword" | "title_alignment" | "title_hype" | "title_number" | "title_candidates" | "meta_descriptions" | "source_coverage" | "internal_link_count" | "internal_link_unverified";
   message: string;
 };
 
@@ -472,6 +474,31 @@ export function articleTitleQualityIssues(payload: Pick<GeneratedArticlePayload,
   return issues;
 }
 
+export function articleInternalLinkIssues(payload: Pick<GeneratedArticlePayload, "bodyMarkdown">, internalPages: ArticleInternalPage[]): ArticleQualityIssue[] {
+  const inventory = internalPages.flatMap((page) => {
+    const normalized = normalizeInternalUrl(page.url, internalPages[0]?.url ?? page.url);
+    return normalized ? [normalized] : [];
+  });
+  const verified = new Set(inventory);
+  if (!verified.size) return [];
+  const websiteUrl = inventory[0];
+  const internalLinks = [...payload.bodyMarkdown.matchAll(/\[[^\]]+\]\(([^\s)]+)(?:\s+["'][^"']*["'])?\)/g)].flatMap((match) => {
+    const normalized = normalizeInternalUrl(match[1], websiteUrl);
+    return normalized ? [normalized] : [];
+  });
+  const issues: ArticleQualityIssue[] = [];
+  const unknown = [...new Set(internalLinks.filter((url) => !verified.has(url)))];
+  if (unknown.length) {
+    issues.push({ code: "internal_link_unverified", message: `Replace ${unknown.length} same-site link${unknown.length === 1 ? "" : "s"} that Destiny could not verify in this website's page inventory.` });
+  }
+  const verifiedLinks = new Set(internalLinks.filter((url) => verified.has(url)));
+  const required = Math.min(3, verified.size);
+  if (verifiedLinks.size < required) {
+    issues.push({ code: "internal_link_count", message: `Add ${required} unique verified internal link${required === 1 ? "" : "s"}; this draft currently uses ${verifiedLinks.size}.` });
+  }
+  return issues;
+}
+
 function headingRecords(markdown: string) {
   return markdown.split("\n").flatMap((line) => {
     const match = /^(#{1,4})\s+(.+)$/.exec(line.trim());
@@ -519,7 +546,7 @@ export function articleQualityIssuesFromPolicy(policy: Pick<DestinyLogicResult, 
   return issues;
 }
 
-export async function validateGeneratedArticle(payload: GeneratedArticlePayload, keyword: string, format: ArticleFormat): Promise<ArticleQualityIssue[]> {
+export async function validateGeneratedArticle(payload: GeneratedArticlePayload, keyword: string, format: ArticleFormat, internalPages: ArticleInternalPage[] = []): Promise<ArticleQualityIssue[]> {
   const facts = articleQualityFacts(payload, keyword, format);
   const policy = await runDestinyServerLogic({
     auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
@@ -528,7 +555,7 @@ export async function validateGeneratedArticle(payload: GeneratedArticlePayload,
     articleBrigadeCount: facts.brigadeCount, articleFirstBrigade: facts.firstBrigade, articleMinBrigadeGap: facts.minBrigadeGap, articleStockPhrase: facts.stockPhrase,
     articleMetaCount: facts.metaCount, articleMetaOverlength: facts.metaOverlength, articleSourceCount: facts.sourceCount, articleCitedCount: facts.citedCount,
   });
-  return [...articleTitleQualityIssues(payload, keyword), ...articleQualityIssuesFromPolicy(policy, facts, format)];
+  return [...articleTitleQualityIssues(payload, keyword), ...articleQualityIssuesFromPolicy(policy, facts, format), ...articleInternalLinkIssues(payload, internalPages)];
 }
 
 function escapeXml(value: string) {

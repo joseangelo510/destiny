@@ -7,6 +7,7 @@ describe("workspace route safety", () => {
   it("recognizes workspace pages without treating public and onboarding pages as private workspace routes", () => {
     expect(isWorkspacePathname("/this-week")).toBe(true);
     expect(isWorkspacePathname("/audits/example")).toBe(true);
+    expect(isWorkspacePathname("/internal-links")).toBe(true);
     expect(isWorkspacePathname("/")).toBe(false);
     expect(isWorkspacePathname("/onboarding")).toBe(false);
   });

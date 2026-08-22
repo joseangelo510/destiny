@@ -100,6 +100,13 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(between).not.toContain("Keyword research");
   });
 
+  it("shows Internal links as a website-scoped tool between audits and content", () => {
+    const html = renderToStaticMarkup(<WorkspaceShellView active="/internal-links" activeWebsiteId={site.id} description="Find links." eyebrow="example.com" title="Internal links" websites={[site]}><p>Work</p></WorkspaceShellView>);
+    expect(html).toContain(`href="/internal-links?site=${site.id}"`);
+    expect(html.indexOf(`href="/audits?site=${site.id}"`)).toBeLessThan(html.indexOf(`href="/internal-links?site=${site.id}"`));
+    expect(html.indexOf(`href="/internal-links?site=${site.id}"`)).toBeLessThan(html.indexOf(`href="/content?site=${site.id}"`));
+  });
+
   it("keeps the compact (≤760px) header inside the viewport: account actions hidden, site selector shrinkable", async () => {
     const { readFile } = await import("node:fs/promises");
     const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");

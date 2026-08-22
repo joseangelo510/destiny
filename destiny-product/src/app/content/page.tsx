@@ -49,10 +49,13 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     market: context.website?.market ?? "",
     locationEvidence,
   }, 50);
-  const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }] = context.website ? await Promise.all([
+  const [{ data: savedKeywordPreferences }, { data: pipelineTrackedKeywords }, { data: interlinkRun }] = context.website ? await Promise.all([
     context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,provider_intent,search_volume,difficulty,theme_id,theme_label").eq("website_id", context.website.id),
     context.supabase.from("tracked_keywords").select("source").eq("website_id", context.website.id).neq("status", "paused"),
-  ]) : [{ data: [] }, { data: [] }];
+    (context.supabase as unknown as SupabaseClient).from("interlink_runs").select("manifest").eq("website_id", context.website.id).eq("status", "complete").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]) : [{ data: [] }, { data: [] }, { data: null }];
+  const interlinkPages = list(record(interlinkRun?.manifest).pages).map(record).filter((page) => Number(page.statusCode) === 200 && page.indexable === true && typeof page.url === "string");
+  const generationPages = interlinkPages.length ? interlinkPages : pages;
   const preferenceByNormalized = new Map((savedKeywordPreferences ?? []).map((item) => [item.normalized_keyword, item]));
   const calendarKeywordPool = mergeApprovedSavedKeywords(rankedKeywords, savedKeywordPreferences ?? []);
   const keywordDecisions = Object.fromEntries(calendarKeywordPool.flatMap((keyword) => {
@@ -174,7 +177,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
             problemSolved: context.website?.problem_solved ?? "",
             idealCustomer: context.website?.ideal_customer ?? "",
             differentiation: context.website?.differentiation ?? "",
-            internalPages: pages.map((page) => ({
+            internalPages: generationPages.slice(0, 20).map((page) => ({
               title: String(page.title || page.url),
               url: String(page.url),
               text: typeof page.text === "string" ? page.text : undefined,

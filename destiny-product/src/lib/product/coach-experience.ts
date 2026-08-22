@@ -13,6 +13,7 @@ export const PRIMARY_NAVIGATION = [
 export const FEATURE_NAVIGATION = [
   { label: "Home", href: "/app" },
   { label: "Website audits", href: "/audits" },
+  { label: "Internal links", href: "/internal-links" },
   { label: "Content studio", href: "/content" },
   { label: "Repurpose content", href: "/content/repurpose" },
   { label: "Infographic generator", href: "/content/infographics" },
