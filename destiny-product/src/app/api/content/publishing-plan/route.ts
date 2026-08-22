@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildWeeklySchedule, publishingDeliveryMode, unapprovedCalendarKeywords, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
-import { createClient } from "@/lib/supabase/server";
+import { scopedClient } from "@/lib/db";
 import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -34,32 +33,27 @@ function calendarInput(value: unknown) {
   });
 }
 
-async function auth() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  return { supabase, userId: typeof data?.claims?.sub === "string" ? data.claims.sub : null };
-}
-
 export async function GET(request: Request) {
   const websiteId = validId(new URL(request.url).searchParams.get("websiteId"));
   if (!websiteId) return NextResponse.json({ error: "Choose a valid website." }, { status: 400 });
-  const { supabase, userId } = await auth();
+  const db = await scopedClient(websiteId);
+  const userId = await db.getClaims();
   if (!userId) return NextResponse.json({ error: "Sign in again to load the publishing plan." }, { status: 401 });
-  const db = supabase as unknown as SupabaseClient;
-  const { data: plan, error } = await db.from("publishing_plans").select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").eq("website_id", websiteId).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  const { data: plan, error } = await db.select("publishing_plans", "id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").order("updated_at", { ascending: false }).limit(1).maybeSingle();
   if (error) return NextResponse.json({ error: "Destiny could not load the publishing plan." }, { status: 500 });
-  const { data: items } = plan ? await db.from("publishing_schedule_items").select(ITEM_SELECT).eq("plan_id", plan.id).order("position") : { data: [] };
+  const { data: items } = plan ? await db.select("publishing_schedule_items", ITEM_SELECT).eq("plan_id", plan.id).order("position") : { data: [] };
   return NextResponse.json({ plan, items: items ?? [] }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PUT(request: Request) {
-  const { supabase, userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Sign in again to save the publishing plan." }, { status: 401 });
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   const websiteId = validId(body.websiteId);
   const auditId = validId(body.auditId);
   const calendar = calendarInput(body.calendar);
   if (!websiteId || !auditId || !calendar.length) return NextResponse.json({ error: "The website, audit, or editorial calendar is incomplete." }, { status: 400 });
+  const db = await scopedClient(websiteId);
+  const userId = await db.getClaims();
+  if (!userId) return NextResponse.json({ error: "Sign in again to save the publishing plan." }, { status: 401 });
 
   let input;
   try {
@@ -75,10 +69,10 @@ export async function PUT(request: Request) {
   }
 
   const [{ data: website }, { data: audit }, { data: approvedPreferenceRows }, { data: integrations }] = await Promise.all([
-    supabase.from("websites").select("organization_id,builder_profile").eq("id", websiteId).maybeSingle(),
-    supabase.from("audits").select("id").eq("id", auditId).eq("website_id", websiteId).maybeSingle(),
-    supabase.from("keyword_preferences").select("keyword").eq("website_id", websiteId).eq("decision", "approved"),
-    supabase.from("integrations").select("provider,status").eq("website_id", websiteId),
+    db.website("organization_id,builder_profile").maybeSingle(),
+    db.select("audits", "id").eq("id", auditId).maybeSingle(),
+    db.select("keyword_preferences", "keyword").eq("decision", "approved"),
+    db.select("integrations", "provider,status"),
   ]);
   if (!website?.organization_id || !audit) return NextResponse.json({ error: "This website or audit is not available to the account." }, { status: 404 });
   const approvedKeywords = (approvedPreferenceRows ?? []).flatMap((item) => typeof item.keyword === "string" ? [item.keyword] : []);
@@ -94,8 +88,7 @@ export async function PUT(request: Request) {
   if (manualCmsPlan && input.mode === "automatic") return NextResponse.json({ error: "Automatic CMS scheduling is available only for a verified WordPress connection." }, { status: 409 });
 
   const dates = buildWeeklySchedule(input.startDate, calendar.length, input.timezone);
-  const db = supabase as unknown as SupabaseClient;
-  const { data: plan, error: planError } = await db.from("publishing_plans").upsert({
+  const { data: plan, error: planError } = await db.upsert("publishing_plans", {
     organization_id: website.organization_id,
     website_id: websiteId,
     audit_id: auditId,
@@ -111,7 +104,7 @@ export async function PUT(request: Request) {
   }, { onConflict: "website_id,audit_id" }).select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").single();
   if (planError || !plan) return NextResponse.json({ error: "Destiny could not save the publishing plan." }, { status: 500 });
 
-  const { data: existing } = await db.from("publishing_schedule_items").select("position,state").eq("plan_id", plan.id);
+  const { data: existing } = await db.select("publishing_schedule_items", "position,state").eq("plan_id", plan.id);
   const protectedPositions = new Set((existing ?? []).filter((item) => ["scheduled", "published", "managed_externally"].includes(item.state)).map((item) => item.position));
   const rows = calendar.filter((item) => !protectedPositions.has(item.position)).map((item, index) => ({
     plan_id: plan.id,
@@ -127,15 +120,13 @@ export async function PUT(request: Request) {
     state: manualCmsPlan ? "managed_externally" : "planned",
     review_recommended: input.mode === "automatic" && item.position <= 2,
   }));
-  const { error: itemError } = rows.length ? await db.from("publishing_schedule_items").upsert(rows, { onConflict: "plan_id,position" }) : { error: null };
+  const { error: itemError } = rows.length ? await db.upsert("publishing_schedule_items", rows, { onConflict: "plan_id,position" }) : { error: null };
   if (itemError) return NextResponse.json({ error: "The plan was saved, but Destiny could not save every calendar slot." }, { status: 500 });
-  const { data: items } = await db.from("publishing_schedule_items").select(ITEM_SELECT).eq("plan_id", plan.id).order("position");
+  const { data: items } = await db.select("publishing_schedule_items", ITEM_SELECT).eq("plan_id", plan.id).order("position");
   return NextResponse.json({ plan, items: items ?? [] });
 }
 
 export async function POST(request: Request) {
-  const { supabase, userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Sign in again to add content." }, { status: 401 });
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   const websiteId = validId(body.websiteId);
   const title = typeof body.title === "string" ? body.title.trim().slice(0, 500) : "";
@@ -144,23 +135,23 @@ export async function POST(request: Request) {
   const relatedArticleTitle = typeof body.relatedArticleTitle === "string" ? body.relatedArticleTitle.trim().slice(0, 500) : "";
   const scheduledFor = typeof body.scheduledFor === "string" && Number.isFinite(Date.parse(body.scheduledFor)) ? new Date(body.scheduledFor).toISOString() : null;
   if (!websiteId || !title || !contentType || !scheduledFor) return NextResponse.json({ error: "Choose a content type, title, and date." }, { status: 400 });
+  const db = await scopedClient(websiteId);
+  const userId = await db.getClaims();
+  if (!userId) return NextResponse.json({ error: "Sign in again to add content." }, { status: 401 });
   if ((contentType === "Article" || contentType === "Approved draft") && !focusKeyword) return NextResponse.json({ error: "Add the focus keyword for this article." }, { status: 400 });
   if ((contentType === "LinkedIn post" || contentType === "X post") && !relatedArticleTitle) return NextResponse.json({ error: "Choose the article this social post will promote." }, { status: 400 });
 
-  const db = supabase as unknown as SupabaseClient;
-  const { data: plan, error: planError } = await db.from("publishing_plans")
-    .select("id,organization_id,website_id,audit_id")
-    .eq("website_id", websiteId)
+  const { data: plan, error: planError } = await db.select("publishing_plans", "id,organization_id,website_id,audit_id")
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (planError || !plan) return NextResponse.json({ error: "Create a publishing plan before adding calendar content." }, { status: 409 });
-  const { data: existing, error: existingError } = await db.from("publishing_schedule_items").select("position").eq("plan_id", plan.id).order("position", { ascending: false }).limit(1);
+  const { data: existing, error: existingError } = await db.select("publishing_schedule_items", "position").eq("plan_id", plan.id).order("position", { ascending: false }).limit(1);
   if (existingError) return NextResponse.json({ error: "Destiny could not check the calendar." }, { status: 500 });
   const position = Number(existing?.[0]?.position ?? 0) + 1;
   if (position > 72) return NextResponse.json({ error: "This calendar already has 72 items. Move or remove an item before adding another." }, { status: 409 });
   const keyword = focusKeyword || relatedArticleTitle;
-  const { data: item, error } = await db.from("publishing_schedule_items").insert({
+  const { data: item, error } = await db.insert("publishing_schedule_items", {
     plan_id: plan.id,
     organization_id: plan.organization_id,
     website_id: plan.website_id,
@@ -180,14 +171,14 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const { supabase, userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Sign in again to update the publishing plan." }, { status: 401 });
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
   const websiteId = validId(body.websiteId);
   const status = body.status === "paused" || body.status === "active" ? body.status : null;
   if (!websiteId || !status) return NextResponse.json({ error: "Choose a valid publishing plan action." }, { status: 400 });
-  const db = supabase as unknown as SupabaseClient;
-  const { data: plan, error } = await db.from("publishing_plans").update({ status }).eq("website_id", websiteId).select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").single();
+  const db = await scopedClient(websiteId);
+  const userId = await db.getClaims();
+  if (!userId) return NextResponse.json({ error: "Sign in again to update the publishing plan." }, { status: 401 });
+  const { data: plan, error } = await db.update("publishing_plans", { status }).select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").single();
   if (error || !plan) return NextResponse.json({ error: "Destiny could not update the publishing plan." }, { status: 500 });
   return NextResponse.json({ plan });
 }

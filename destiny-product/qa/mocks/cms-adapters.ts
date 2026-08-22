@@ -56,6 +56,26 @@ const LIVE_CLIENT_HOSTS = [
   "joseangelostudios.com",
 ] as const;
 
+export const OFFLINE_CMS_DESTINATION_POLICY = Object.freeze({
+  protocols: ["https:"] as const,
+  exactHostnames: ["invalid"] as const,
+  hostnameSuffixes: [".invalid"] as const,
+});
+
+export function isOfflineCmsDestinationAllowed(value: string) {
+  let destination: URL;
+  try {
+    destination = new URL(value);
+  } catch {
+    return false;
+  }
+  const hostname = destination.hostname.toLocaleLowerCase();
+  const allowedHostname = OFFLINE_CMS_DESTINATION_POLICY.exactHostnames.includes(hostname as "invalid")
+    || OFFLINE_CMS_DESTINATION_POLICY.hostnameSuffixes.some((suffix) => hostname.endsWith(suffix));
+  return OFFLINE_CMS_DESTINATION_POLICY.protocols.includes(destination.protocol as "https:")
+    && !destination.username && !destination.password && allowedHostname;
+}
+
 function assertOfflineDestination(value: string) {
   let destination: URL;
   try {
@@ -68,13 +88,7 @@ function assertOfflineDestination(value: string) {
   const isNamedLiveClient = LIVE_CLIENT_HOSTS.some(
     (host) => hostname === host || hostname.endsWith(`.${host}`),
   );
-  if (
-    destination.protocol !== "https:" ||
-    destination.username ||
-    destination.password ||
-    isNamedLiveClient ||
-    !(hostname === "invalid" || hostname.endsWith(".invalid"))
-  ) {
+  if (isNamedLiveClient || !isOfflineCmsDestinationAllowed(value)) {
     throw new Error(`Offline CMS harness refused live or unsafe destination: ${hostname || "unknown"}.`);
   }
 
