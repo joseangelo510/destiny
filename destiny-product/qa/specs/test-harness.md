@@ -6,7 +6,7 @@ As Destiny's product owner, I want every product change to prove its intended be
 
 ## Acceptance criteria
 
-1. Pull requests and pushes to `main` run the same locked Node.js, pnpm, inventory, migration, lint, test, build, and Playwright checks.
+1. Pull requests and pushes to `main` run the same locked Node.js, pnpm, inventory, migration, lint, unit, disposable Supabase, build, and Playwright checks.
 2. Any failed check makes the GitHub `ci` job red.
 3. A route or interactive control added without refreshing `qa/inventory/` makes CI red.
 4. A malformed, duplicated, missing, or renamed recorded migration makes CI red.
@@ -15,6 +15,11 @@ As Destiny's product owner, I want every product change to prove its intended be
 7. The policy documents red-green-refactor and forbids weakening a test to bypass a failure.
 8. The deployed application remains unchanged by Phase 0.
 9. Public browser tests run from a clean clone without Supabase secrets or a live Supabase connection.
+10. A three-user, three-organization, same-domain fixture proves cross-site read,
+    update, delete, blended-parent, shared-membership, and revoked-membership isolation.
+11. Every public application table is checked against the migrated Postgres RLS catalog.
+12. Every privileged Edge Function receives an executable negative authorization request.
+13. WordPress, Webflow, and Wix publishing proofs remain offline and cannot contact a live host.
 
 ## Scenarios
 
@@ -76,4 +81,9 @@ flowchart LR
 
 ## Phase boundary
 
-Phase 0 enforces the harness that already exists. It does not add customer-facing behavior, create a staging tenant, or introduce mutation in production. Repository-rule tests, a disposable three-site write matrix, scheduled production QA, and automated SQL isolation execution are subsequent phases governed by this same specification.
+The current harness branch does not deploy or mutate production. It now includes
+repository-rule tests, a disposable three-site write matrix, automated SQL and
+Postgres-catalog audits, privileged Edge Function denials, and offline CMS
+lifecycle tests. Authenticated browser journeys and any post-deploy verification
+remain separate, credential-gated lanes. File-size, language-scope, static query,
+and Deploy Log policy thresholds remain reserved for product-owner approval.

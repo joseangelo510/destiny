@@ -25,6 +25,9 @@ The required `ci` check from the repository-root `.github/workflows/ci.yml` must
 - append-only migration filenames and the recorded production migration ledger;
 - lint;
 - the full Vitest suite;
+- a disposable, migrated Supabase database with three isolated tenants;
+- live Postgres RLS and relationship audits;
+- negative authorization requests through the local Edge Runtime;
 - the production build; and
 - public and local Playwright journeys on desktop and mobile.
 
