@@ -1,7 +1,8 @@
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { renderRankDigestEmail } from "./email.ts";
-import { buildRankDigest, nextDigestAt, reconcileDeliveryReceipt, selectDigestOpportunities, shouldSendDigest, type RankDigestLedgerState, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
+import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestLedgerState, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
+import { reconcileRankDigestSend } from "./reconciliation.ts";
 
 type PreferenceRow = {
   website_id: string;
@@ -140,25 +141,19 @@ async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey
   for (const send of data ?? []) {
     const event = await providerEvent(apiKey, send.provider_message_id);
     if (!event) continue;
-    const receipt = reconcileDeliveryReceipt(
-      send.status as RankDigestLedgerState,
-      event,
-      new Date().toISOString(),
-    );
-    await context.supabaseAdmin.from("rank_digest_sends").update({
-      status: receipt.status,
-      provider_event: receipt.providerEvent,
-      last_checked_at: receipt.checkedAt,
-      delivered_at: receipt.deliveredAt,
-      error: receipt.error,
-    }).eq("id", send.id);
-    if (!send.is_test) {
-      await context.supabaseAdmin.from("notification_preferences").update({
-        last_digest_status: receipt.status,
-        last_digest_error: receipt.error,
-        updated_at: receipt.checkedAt,
-      }).eq("website_id", send.website_id);
-    }
+    await reconcileRankDigestSend({
+      id: send.id,
+      websiteId: send.website_id,
+      status: send.status as RankDigestLedgerState,
+      isTest: send.is_test === true,
+    }, event, new Date().toISOString(), {
+      updateSend: async (sendId, update) => {
+        await context.supabaseAdmin.from("rank_digest_sends").update(update).eq("id", sendId);
+      },
+      updatePreference: async (websiteId, update) => {
+        await context.supabaseAdmin.from("notification_preferences").update(update).eq("website_id", websiteId);
+      },
+    });
   }
 }
 
