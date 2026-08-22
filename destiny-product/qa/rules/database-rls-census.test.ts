@@ -91,4 +91,25 @@ describe("database RLS census", () => {
     expect(audit).toContain("pg_policy");
     expect(audit).toContain("cms_transfers");
   });
+
+  it("registers every authenticated table in the runtime tenant matrix", async () => {
+    const entries = JSON.parse(await readFile(manifestPath, "utf8")) as ManifestEntry[];
+    const runner = await readFile(path.join(productRoot, "scripts", "qa-isolation.mjs"), "utf8");
+    const isolation = await readFile(
+      path.join(productRoot, "qa", "isolation", "two-tenant.integration.test.ts"),
+      "utf8",
+    );
+    const block = runner.match(/export const ISOLATION_TABLES = \[([\s\S]*?)\];/)?.[1] ?? "";
+    const registered = [...block.matchAll(/"([a-z0-9_]+)"/g)].map((match) => match[1]).sort();
+    const expected = entries
+      .filter((entry) => entry.access === "authenticated")
+      .map((entry) => entry.table)
+      .sort();
+
+    expect(registered).toEqual(expected);
+    for (const table of registered) {
+      expect(isolation, `${table} is registered but absent from the executable tenant suite.`)
+        .toContain(`"${table}"`);
+    }
+  });
 });
