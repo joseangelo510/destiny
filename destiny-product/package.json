@@ -14,8 +14,10 @@
     "logos:embed": "node scripts/embed-logos-wasm.mjs",
     "port:preflight": "bash scripts/check-replit-port-manifest.sh",
     "test": "vitest run",
+    "test:isolation": "vitest run --config vitest.isolation.config.mjs",
     "qa:migrations": "node scripts/qa-migrations.mjs",
     "qa:inventory": "node scripts/qa-inventory.mjs",
+    "qa:isolation": "node scripts/qa-isolation.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
     "test:links": "playwright test qa/e2e/links.spec.ts",
@@ -41,6 +43,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "supabase": "2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "4.1.10"

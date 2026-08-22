@@ -56,6 +56,17 @@ jobs:
       - name: Run unit and integration tests
         run: pnpm test
 
+      - name: Start disposable Supabase isolation stack
+        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Run two-tenant isolation matrix
+        run: pnpm qa:isolation
+
+      - name: Destroy disposable Supabase isolation stack
+        if: always()
+        continue-on-error: true
+        run: pnpm exec supabase stop --no-backup
+
       - name: Build the production application
         run: pnpm build
 

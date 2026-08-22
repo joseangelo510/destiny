@@ -10,6 +10,10 @@ with mismatches as (
   from public.article_drafts draft join public.audits audit on audit.id = draft.audit_id
   where draft.website_id <> audit.website_id
   union all
+  select 'keyword_decisions.audit', decision.id::text
+  from public.keyword_decisions decision join public.audits audit on audit.id = decision.audit_id
+  where decision.website_id <> audit.website_id
+  union all
   select 'integrations.organization', integration.id::text
   from public.integrations integration join public.websites website on website.id = integration.website_id
   where integration.organization_id <> website.organization_id
@@ -33,6 +37,22 @@ with mismatches as (
   select 'publishing_schedule.plan', item.id::text
   from public.publishing_schedule_items item join public.publishing_plans plan on plan.id = item.plan_id
   where item.website_id <> plan.website_id or item.organization_id <> plan.organization_id or item.audit_id <> plan.audit_id
+  union all
+  select 'interviews.organization', interview.id::text
+  from public.interviews interview join public.websites website on website.id = interview.website_id
+  where interview.organization_id <> website.organization_id
+  union all
+  select 'interviews.audit', interview.id::text
+  from public.interviews interview join public.audits audit on audit.id = interview.audit_id
+  where interview.audit_id is not null and interview.website_id <> audit.website_id
+  union all
+  select 'interlink_runs.organization', run.id::text
+  from public.interlink_runs run join public.websites website on website.id = run.website_id
+  where run.organization_id <> website.organization_id
+  union all
+  select 'interlink_runs.audit', run.id::text
+  from public.interlink_runs run join public.audits audit on audit.id = run.audit_id
+  where run.website_id <> audit.website_id
   union all
   select 'cms_transfers.integration', transfer.id::text
   from public.cms_transfers transfer join public.integrations integration on integration.id = transfer.integration_id

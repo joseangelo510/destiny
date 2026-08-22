@@ -1,9 +1,13 @@
 import { fileURLToPath } from "node:url";
-import { configDefaults, defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: [...configDefaults.exclude, "qa/e2e/**", "qa/isolation/**"],
+    include: ["qa/isolation/**/*.test.ts"],
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
+    fileParallelism: false,
+    maxWorkers: 1,
   },
   resolve: {
     alias: {
