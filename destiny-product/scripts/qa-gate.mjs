@@ -61,6 +61,7 @@ try {
   runPnpm(["qa:inventory"]);
   run("git", ["diff", "--exit-code", "--", "destiny-product/qa/inventory"], { cwd: repositoryRoot });
   runPnpm(["qa:migrations"]);
+  runPnpm(["qa:audit"]);
   runPnpm(["lint"]);
   runPnpm(["test"]);
 

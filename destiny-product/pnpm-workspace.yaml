@@ -4,3 +4,11 @@ allowBuilds:
   unrs-resolver: true
 overrides:
   nanoid: 3.3.18
+  postcss: 8.5.23
+  sharp: 0.35.3
+auditConfig:
+  # Bundled into html-to-docx; user-controlled images are removed at the Word-export boundary.
+  # Re-check the registry for a real patched release by 2026-09-05.
+  ignoreGhsas:
+    - GHSA-w3rx-r6r6-pgpr
+    - GHSA-5p2g-fcmc-qvqq

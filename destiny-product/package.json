@@ -6,13 +6,10 @@
   "engines": {
     "node": ">=22"
   },
-  "pnpm": {
-    "overrides": {
-      "nanoid": "3.3.18"
-    }
-  },
   "overrides": {
-    "nanoid": "3.3.18"
+    "nanoid": "3.3.18",
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
   },
   "scripts": {
     "dev": "next dev",
@@ -24,6 +21,7 @@
     "test": "vitest run",
     "test:isolation": "vitest run --config vitest.isolation.config.mjs",
     "qa:migrations": "node scripts/qa-migrations.mjs",
+    "qa:audit": "node scripts/qa-audit.mjs",
     "qa:inventory": "node scripts/qa-inventory.mjs",
     "qa:repository": "node scripts/qa-repository-policy.mjs",
     "qa:commits": "node scripts/qa-commit-policy.mjs",
