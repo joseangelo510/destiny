@@ -79,6 +79,18 @@ describe("disposable three-site isolation harness", () => {
     expect(matrix).toContain("verifyBlendedPairRejection(b, c)");
   });
 
+  it("proves shared membership revocation and blocks member role escalation", async () => {
+    const matrix = await readFile(
+      path.join(productRoot, "qa", "isolation", "two-tenant.integration.test.ts"),
+      "utf8",
+    );
+
+    expect(matrix).toContain("grantSharedMembership(a, c)");
+    expect(matrix).toContain("verifyMemberCannotEscalate(a, c, b)");
+    expect(matrix).toContain("verifyRevokedMembership(a, c)");
+    expect(matrix).toContain("same signed-in session must lose access");
+  });
+
   it("provides offline CMS mocks and a smoke test for every supported handoff mode", async () => {
     const adapterPath = path.join(productRoot, "qa", "mocks", "cms-adapters.ts");
     const smokePath = path.join(productRoot, "qa", "mocks", "cms-adapters.test.ts");

@@ -15,6 +15,7 @@ As Destiny's product owner, I want the repository to recreate Destiny in a dispo
 7. Cleanup removes all three organizations and Auth users even after a failed matrix cell; CI always destroys the local stack with no backup.
 8. The default unit-test lane remains Docker-free. The isolation lane runs explicitly in the required GitHub `ci` job with no repository secrets.
 9. The two remote-only communication migrations remain a named coverage limitation rather than being silently reconstructed.
+10. A user who belongs to their own organization and temporarily belongs to another can read both while authorized, cannot promote their own role or add another member, and loses all access to the shared organization immediately after the owner removes the membership—even while reusing the same signed-in client session.
 
 ## Scenarios
 
@@ -50,6 +51,14 @@ As Destiny's product owner, I want the repository to recreate Destiny in a dispo
 
 **Then** `site-isolation-audit.sql` names the expected check and rollback restores zero findings.
 
+### Scenario: revoked membership invalidates a still-signed-in session
+
+**Given** user C owns site C and is also a basic member of organization A
+
+**When** C attempts to promote their membership and organization A's owner then removes C
+
+**Then** the promotion is rejected, C's existing signed-in client can no longer read or mutate A, and C can still access site C.
+
 ## Flow
 
 ```mermaid
@@ -60,7 +69,10 @@ flowchart LR
   C --> D[Create users A, B, and C]
   D --> E[Create three organizations and websites]
   E --> F[Run same-tenant and cross-tenant matrix]
-  F --> G[Run isolation audit: zero rows]
+  F --> M[Grant C temporary membership in A]
+  M --> N[Reject C role escalation]
+  N --> O[Revoke C and reuse the same signed-in session]
+  O --> G[Run isolation audit: zero rows]
   G --> H[Insert poison inside transaction]
   H --> I[Audit detects poison]
   I --> J[Rollback and audit: zero rows]
