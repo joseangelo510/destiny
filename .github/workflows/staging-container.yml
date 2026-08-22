@@ -179,9 +179,24 @@ jobs:
         run: |
           flyctl status --app "${FLY_APP}" --json > status.json
           flyctl machines list --app "${FLY_APP}" --json > machines.json
+          READY=0
+          for i in $(seq 1 30); do
+            SHA=$(curl -sS --max-time 5 "${SITE_URL}/_next/static/build-sha.txt" || true)
+            TAG=$(curl -sS --max-time 5 "${SITE_URL}/_next/static/build-tag.txt" || true)
+            if [ "$SHA" = "${RELEASE_SHA}" ] && [ "$TAG" = "${RELEASE_TAG}" ]; then
+              READY=1
+              break
+            fi
+            sleep 2
+          done
+          test "$READY" = "1"
+          echo "ready after $i attempts"
+          flyctl checks list --app "${FLY_APP}" | tee checks.txt | grep -qi passing
+          sleep 10
           flyctl logs --app "${FLY_APP}" --no-tail > runtime.log
-          grep -q "${RELEASE_SHA}" runtime.log
-          grep -q "${RELEASE_TAG}" runtime.log
+          grep "DESTINY_BUILD_SHA=${RELEASE_SHA}" runtime.log
+          grep "DESTINY_BUILD_TAG=${RELEASE_TAG}" runtime.log
+          grep -q "Ready" runtime.log
           curl --fail --silent --show-error --location --output root.html --write-out '%{http_code}\n' "${SITE_URL}/" | tee root-status.txt
           test "$(cat root-status.txt)" = "200"
           curl --fail --silent --show-error "${SITE_URL}/_next/static/build-sha.txt" | tee build-sha.txt
@@ -236,6 +251,7 @@ jobs:
             fly-inspect.txt
             status.json
             machines.json
+            checks.txt
             runtime.log
             root-status.txt
             root.html
