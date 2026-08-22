@@ -5,7 +5,7 @@ RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 WORKDIR /app
 
 FROM base AS deps
-COPY src/destiny-product/package.json src/destiny-product/pnpm-lock.yaml ./
+COPY src/destiny-product/package.json src/destiny-product/pnpm-lock.yaml src/destiny-product/pnpm-workspace.yaml src/destiny-product/.npmrc ./
 RUN pnpm install --frozen-lockfile
 
 FROM base AS build
@@ -30,7 +30,7 @@ RUN test "$GIT_SHA" = "fc7f050e1201ff5ee6ebece98560592257de127f" \
  && printf '%s\n' "$RELEASE_TAG" > .next/static/build-tag.txt
 
 FROM base AS prod-deps
-COPY src/destiny-product/package.json src/destiny-product/pnpm-lock.yaml ./
+COPY src/destiny-product/package.json src/destiny-product/pnpm-lock.yaml src/destiny-product/pnpm-workspace.yaml src/destiny-product/.npmrc ./
 RUN pnpm install --frozen-lockfile --prod
 
 FROM node:22-bookworm-slim AS runtime
