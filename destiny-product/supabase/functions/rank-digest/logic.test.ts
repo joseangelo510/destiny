@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRankDigest, deliveryStateFromProviderEvent, nextDigestAt, selectDigestOpportunities, shouldSendDigest } from "./logic";
+import { buildRankDigest, deliveryStateFromProviderEvent, nextDigestAt, reconcileDeliveryReceipt, selectDigestOpportunities, shouldSendDigest } from "./logic";
 
 describe("rank digest logic", () => {
   it("summarizes upward, downward, top-ten, new, and lost movement truthfully", () => {
@@ -49,6 +49,38 @@ describe("rank digest logic", () => {
     expect(deliveryStateFromProviderEvent("opened")).toBe("delivered");
     expect(deliveryStateFromProviderEvent("bounced")).toBe("failed");
     expect(deliveryStateFromProviderEvent("suppressed")).toBe("failed");
+  });
+
+  it("reconciles accepted, delivered, and failed provider receipts without inventing delivery", () => {
+    const checkedAt = "2026-08-22T06:45:00.000Z";
+
+    expect(reconcileDeliveryReceipt("accepted", "sent", checkedAt)).toEqual({
+      status: "accepted",
+      providerEvent: "sent",
+      checkedAt,
+      deliveredAt: null,
+      error: null,
+    });
+    expect(reconcileDeliveryReceipt("accepted", "delivered", checkedAt)).toEqual({
+      status: "delivered",
+      providerEvent: "delivered",
+      checkedAt,
+      deliveredAt: checkedAt,
+      error: null,
+    });
+    expect(reconcileDeliveryReceipt("accepted", "bounced", checkedAt)).toEqual({
+      status: "failed",
+      providerEvent: "bounced",
+      checkedAt,
+      deliveredAt: null,
+      error: "Email provider reported bounced.",
+    });
+  });
+
+  it("does not downgrade a terminal receipt when the provider repeats an older accepted event", () => {
+    const checkedAt = "2026-08-22T06:46:00.000Z";
+    expect(reconcileDeliveryReceipt("delivered", "sent", checkedAt).status).toBe("delivered");
+    expect(reconcileDeliveryReceipt("failed", "sent", checkedAt).status).toBe("failed");
   });
 
   it("requires fresh observations after the previous digest", () => {
