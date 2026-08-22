@@ -2,3 +2,5 @@ allowBuilds:
   sharp: true
   supabase: true
   unrs-resolver: true
+overrides:
+  nanoid: 3.3.18
