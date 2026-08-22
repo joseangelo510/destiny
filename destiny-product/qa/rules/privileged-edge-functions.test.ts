@@ -116,10 +116,15 @@ describe("privileged Edge Function authorization boundaries", () => {
       const websiteLookup = source.indexOf('context.supabase.from("websites")');
       const denial = source.indexOf("You do not have access to that website.");
       const privileged = source.indexOf("context.supabaseAdmin");
+      const environmentRead = source.indexOf("Deno.env.get(");
 
       expect(claim, `${entry.path} must derive the user from verified claims.`).toBeGreaterThanOrEqual(0);
       expect(websiteLookup, `${entry.path} must authorize the website through RLS.`).toBeGreaterThan(claim);
       expect(denial, `${entry.path} must fail closed when RLS hides the website.`).toBeGreaterThan(websiteLookup);
+      if (environmentRead >= 0) {
+        expect(environmentRead, `${entry.path} must authorize the website before exposing configuration state.`)
+          .toBeGreaterThan(denial);
+      }
       expect(privileged, `${entry.path} must authorize before using the service role.`).toBeGreaterThan(denial);
     }
   });
