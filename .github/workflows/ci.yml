@@ -59,7 +59,7 @@ jobs:
       - name: Start disposable Supabase isolation stack
         run: pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
-      - name: Run two-tenant isolation matrix
+      - name: Run three-site isolation matrix
         run: pnpm qa:isolation
 
       - name: Destroy disposable Supabase isolation stack

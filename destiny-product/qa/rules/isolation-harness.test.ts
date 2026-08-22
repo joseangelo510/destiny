@@ -14,7 +14,7 @@ async function exists(file: string) {
   }
 }
 
-describe("disposable two-tenant isolation harness", () => {
+describe("disposable three-site isolation harness", () => {
   it("pins the local Supabase CLI and exposes an explicit Docker-only lane", async () => {
     const packageJson = JSON.parse(await readFile(path.join(productRoot, "package.json"), "utf8")) as {
       scripts?: Record<string, string>;
@@ -60,7 +60,7 @@ describe("disposable two-tenant isolation harness", () => {
       "interlink_runs",
       "notifications",
     ]) {
-      expect(runner, `Expected the two-tenant matrix to register ${table}.`).toContain(`\"${table}\"`);
+      expect(runner, `Expected the three-site matrix to register ${table}.`).toContain(`\"${table}\"`);
     }
     expect(runner).toContain("site-isolation-audit.sql");
     expect(runner).toContain("assertLoopbackSupabaseUrl");

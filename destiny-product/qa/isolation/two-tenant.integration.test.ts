@@ -82,7 +82,7 @@ async function insertOne(client: Client, table: string, values: Record<string, u
   return requireRow(data, error, label);
 }
 
-async function createTenant(label: "A" | "B"): Promise<Tenant> {
+async function createTenant(label: "A" | "B" | "C"): Promise<Tenant> {
   const email = `qa-${runId}-${label.toLowerCase()}@isolation.destiny.invalid`;
   const password = `Local-only-${randomUUID()}!`;
   const userResult = await service.auth.admin.createUser({
@@ -367,7 +367,7 @@ function expectDatabaseSqlRejected(sql: string, message: RegExp) {
 
 function verifyExecutableAudit(a: Tenant, b: Tenant) {
   const auditSql = readFileSync(auditSqlPath, "utf8");
-  expect(runDatabaseSql(auditSql), "The clean two-tenant fixture should have zero mismatches.").toBe("");
+  expect(runDatabaseSql(auditSql), "The clean three-site fixture should have zero mismatches.").toBe("");
 
   const poisonKeyword = `poison-${runId}`;
   const poison = `
@@ -385,17 +385,21 @@ function verifyExecutableAudit(a: Tenant, b: Tenant) {
   expect(runDatabaseSql(auditSql), "The poison transaction must roll back completely.").toBe("");
 }
 
-test("two real local users cannot read, mutate, or blend each other's website data", async () => {
+test("three real local users cannot read, mutate, or blend each other's website data", async () => {
   await sweepAbandonedLocalFixtures();
   try {
     const a = await createTenant("A");
     const b = await createTenant("B");
+    const c = await createTenant("C");
 
     expect(a.websiteId).not.toBe(b.websiteId);
+    expect(b.websiteId).not.toBe(c.websiteId);
+    expect(c.websiteId).not.toBe(a.websiteId);
     await verifyTenantBoundary(a, b);
-    await verifyTenantBoundary(b, a);
+    await verifyTenantBoundary(b, c);
+    await verifyTenantBoundary(c, a);
     await verifyBlendedPairRejection(a, b);
-    await verifyBlendedPairRejection(b, a);
+    await verifyBlendedPairRejection(b, c);
     verifyExecutableAudit(a, b);
   } finally {
     await deleteLocalFixtures();

@@ -76,4 +76,4 @@ flowchart LR
 
 ## Phase boundary
 
-Phase 0 enforces the harness that already exists. It does not add customer-facing behavior, create a staging tenant, or introduce mutation in production. Repository-rule tests, a disposable two-tenant write matrix, scheduled production QA, and automated SQL isolation execution are subsequent phases governed by this same specification.
+Phase 0 enforces the harness that already exists. It does not add customer-facing behavior, create a staging tenant, or introduce mutation in production. Repository-rule tests, a disposable three-site write matrix, scheduled production QA, and automated SQL isolation execution are subsequent phases governed by this same specification.
