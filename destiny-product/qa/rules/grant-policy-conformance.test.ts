@@ -35,5 +35,18 @@ describe("hosted grant and policy conformance", () => {
     expect(audit).toContain("public_policy_role");
     expect(audit).toContain("browser_public_function_execute");
     expect(audit).toContain("unsafe_browser_view");
+    expect(audit).toContain("service_role_missing_table_privilege");
+    expect(audit).toContain("service_role_missing_function_execute");
+    expect(audit).toContain("public_grantee_grant");
+  });
+
+  it("makes service-role worker privileges explicit and durable", async () => {
+    const entries = await migrationSource();
+    const serviceRole = entries.find((entry) => entry.file.endsWith("_grant_service_role_explicit_privileges.sql"));
+    expect(serviceRole, "Fresh stacks need the same explicit service-role ACL as hosted projects.").toBeDefined();
+    expect(serviceRole?.sql).toContain("grant all on all tables in schema public to service_role");
+    expect(serviceRole?.sql).toContain("grant all on all sequences in schema public to service_role");
+    expect(serviceRole?.sql).toContain("grant execute on all functions in schema public to service_role");
+    expect(serviceRole?.sql).toContain("alter default privileges for role postgres in schema public");
   });
 });
