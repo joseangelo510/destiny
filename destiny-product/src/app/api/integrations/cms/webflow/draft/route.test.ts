@@ -1,0 +1,33 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { getClaims, invoke } = vi.hoisted(() => ({
+  getClaims: vi.fn(),
+  invoke: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({
+    auth: { getClaims },
+    functions: { invoke },
+  }),
+}));
+
+import { POST } from "./route";
+
+describe("POST /api/integrations/cms/webflow/draft", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getClaims.mockResolvedValue({ data: { claims: null } });
+  });
+
+  it("returns 401 before invoking Webflow for an anonymous draft request", async () => {
+    const response = await POST(new Request("http://localhost/api/integrations/cms/webflow/draft", {
+      method: "POST",
+      body: JSON.stringify({}),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Sign in again to continue." });
+    expect(invoke).not.toHaveBeenCalled();
+  });
+});
