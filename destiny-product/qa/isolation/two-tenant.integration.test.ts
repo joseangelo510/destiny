@@ -54,8 +54,7 @@ function requireRow<T>(data: T | null, error: { message: string } | null, label:
 
 async function deleteLocalFixtures() {
   if (createdOrganizationIds.length > 0) {
-    const { error } = await service.from("organizations").delete().in("id", createdOrganizationIds);
-    if (error) throw new Error(`Isolation cleanup organizations: ${error.message}`);
+    runDatabaseSql(`delete from public.organizations where id in (${createdOrganizationIds.map((id) => `'${id}'`).join(",")});`);
     createdOrganizationIds.length = 0;
   }
 
@@ -66,16 +65,7 @@ async function deleteLocalFixtures() {
 }
 
 async function sweepAbandonedLocalFixtures() {
-  const { data: organizations, error: organizationError } = await service
-    .from("organizations")
-    .select("id")
-    .like("name", "Destiny isolation %");
-  if (organizationError) throw new Error(`Isolation pre-run organization sweep: ${organizationError.message}`);
-  const organizationIds = (organizations ?? []).map((row) => row.id);
-  if (organizationIds.length > 0) {
-    const { error } = await service.from("organizations").delete().in("id", organizationIds);
-    if (error) throw new Error(`Isolation pre-run organization cleanup: ${error.message}`);
-  }
+  runDatabaseSql("delete from public.organizations where name like 'Destiny isolation %';");
 
   const { data: users, error: userError } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (userError) throw new Error(`Isolation pre-run user sweep: ${userError.message}`);
@@ -209,14 +199,14 @@ async function createTenant(label: "A" | "B"): Promise<Tenant> {
     completed_at: new Date().toISOString(),
   }, `Create tenant ${label} interlink run`);
 
-  const notification = await insertOne(service, "notifications", {
-    organization_id: organizationId,
-    website_id: website.id,
-    user_id: user.id,
-    kind: "welcome",
-    title: `Tenant ${label} notification`,
-    body: "Local isolation fixture",
-  }, `Create tenant ${label} notification`);
+  const notificationId = randomUUID();
+  runDatabaseSql(`
+    insert into public.notifications
+      (id, organization_id, website_id, user_id, kind, title, body)
+    values
+      ('${notificationId}', '${organizationId}', '${website.id}', '${user.id}', 'welcome',
+       'Tenant ${label} notification', 'Local isolation fixture');
+  `);
 
   return {
     userId: user.id,
@@ -234,7 +224,7 @@ async function createTenant(label: "A" | "B"): Promise<Tenant> {
       { table: "publishing_schedule_items", id: schedule.id, field: "state", original: "planned", attempted: "drafting" },
       { table: "interviews", id: interview.id, field: "status", original: "in_progress", attempted: "partial" },
       { table: "interlink_runs", id: interlink.id, field: "status", original: "complete", attempted: "running" },
-      { table: "notifications", id: notification.id, field: "read_at", original: null, attempted: new Date().toISOString() },
+      { table: "notifications", id: notificationId, field: "read_at", original: null, attempted: new Date().toISOString() },
     ],
   };
 }
@@ -262,15 +252,15 @@ async function verifyTenantBoundary(owner: Tenant, outsider: Tenant) {
       .select("id");
     expect(crossUpdate.data ?? [], `${row.table}: cross-tenant update affected a row.`).toHaveLength(0);
 
-    const afterUpdate = await service.from(row.table).select(`id,${row.field}`).eq("id", row.id).single();
-    expect(afterUpdate.error, `${row.table}: service verification after update failed.`).toBeNull();
+    const afterUpdate = await owner.client.from(row.table).select(`id,${row.field}`).eq("id", row.id).single();
+    expect(afterUpdate.error, `${row.table}: owner verification after update failed.`).toBeNull();
     expect(afterUpdate.data?.[row.field], `${row.table}: cross-tenant update changed protected data.`).toEqual(row.original);
 
     const crossDelete = await outsider.client.from(row.table).delete().eq("id", row.id).select("id");
     expect(crossDelete.data ?? [], `${row.table}: cross-tenant delete affected a row.`).toHaveLength(0);
 
-    const afterDelete = await service.from(row.table).select("id").eq("id", row.id).maybeSingle();
-    expect(afterDelete.error, `${row.table}: service verification after delete failed.`).toBeNull();
+    const afterDelete = await owner.client.from(row.table).select("id").eq("id", row.id).maybeSingle();
+    expect(afterDelete.error, `${row.table}: owner verification after delete failed.`).toBeNull();
     expect(afterDelete.data?.id, `${row.table}: cross-tenant delete removed protected data.`).toBe(row.id);
   }
 }
@@ -342,17 +332,16 @@ async function verifyBlendedPairRejection(a: Tenant, b: Tenant) {
     user_id: a.userId,
     pages_checked: 1,
   });
-  await expectInsertRejected(service, "notifications", {
-    organization_id: a.organizationId,
-    website_id: b.websiteId,
-    user_id: a.userId,
-    kind: "welcome",
-    title: "Blended notification",
-  });
+  expectDatabaseSqlRejected(`
+    insert into public.notifications
+      (id, organization_id, website_id, user_id, kind, title)
+    values
+      ('${randomUUID()}', '${a.organizationId}', '${b.websiteId}', '${a.userId}', 'welcome', 'Blended notification');
+  `, /does not belong to its organization/i);
 }
 
-function runAuditSql(sql: string) {
-  const result = spawnSync("docker", [
+function runPsql(sql: string) {
+  return spawnSync("docker", [
     "exec", "-i", databaseContainer,
     "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-qAt",
   ], {
@@ -360,15 +349,25 @@ function runAuditSql(sql: string) {
     input: sql,
     maxBuffer: 4 * 1024 * 1024,
   });
+}
+
+function runDatabaseSql(sql: string) {
+  const result = runPsql(sql);
   if (result.status !== 0) {
-    throw new Error(`Isolation SQL audit failed: ${result.stderr || result.stdout}`);
+    throw new Error(`Isolation database command failed: ${result.stderr || result.stdout}`);
   }
   return result.stdout.trim();
 }
 
+function expectDatabaseSqlRejected(sql: string, message: RegExp) {
+  const result = runPsql(sql);
+  expect(result.status, "A privileged blended-pair insert unexpectedly succeeded.").not.toBe(0);
+  expect(`${result.stderr}\n${result.stdout}`).toMatch(message);
+}
+
 function verifyExecutableAudit(a: Tenant, b: Tenant) {
   const auditSql = readFileSync(auditSqlPath, "utf8");
-  expect(runAuditSql(auditSql), "The clean two-tenant fixture should have zero mismatches.").toBe("");
+  expect(runDatabaseSql(auditSql), "The clean two-tenant fixture should have zero mismatches.").toBe("");
 
   const poisonKeyword = `poison-${runId}`;
   const poison = `
@@ -380,10 +379,10 @@ function verifyExecutableAudit(a: Tenant, b: Tenant) {
     ${auditSql}
     rollback;
   `;
-  const poisonOutput = runAuditSql(poison);
+  const poisonOutput = runDatabaseSql(poison);
   expect(poisonOutput).toContain("article_drafts.organization");
   expect(poisonOutput).toContain("article_drafts.audit");
-  expect(runAuditSql(auditSql), "The poison transaction must roll back completely.").toBe("");
+  expect(runDatabaseSql(auditSql), "The poison transaction must roll back completely.").toBe("");
 }
 
 test("two real local users cannot read, mutate, or blend each other's website data", async () => {
