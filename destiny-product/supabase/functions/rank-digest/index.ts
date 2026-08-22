@@ -1,7 +1,7 @@
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { renderRankDigestEmail } from "./email.ts";
-import { buildRankDigest, deliveryStateFromProviderEvent, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
+import { buildRankDigest, nextDigestAt, reconcileDeliveryReceipt, selectDigestOpportunities, shouldSendDigest, type RankDigestLedgerState, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
 
 type PreferenceRow = {
   website_id: string;
@@ -132,7 +132,7 @@ async function providerEvent(apiKey: string, messageId: string) {
 
 async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey: string) {
   const { data } = await context.supabaseAdmin.from("rank_digest_sends")
-    .select("id,provider_message_id")
+    .select("id,website_id,provider_message_id,status,is_test")
     .in("status", ["sending", "sent", "accepted"])
     .not("provider_message_id", "is", null)
     .order("created_at", { ascending: false })
@@ -140,14 +140,25 @@ async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey
   for (const send of data ?? []) {
     const event = await providerEvent(apiKey, send.provider_message_id);
     if (!event) continue;
-    const status = deliveryStateFromProviderEvent(event);
+    const receipt = reconcileDeliveryReceipt(
+      send.status as RankDigestLedgerState,
+      event,
+      new Date().toISOString(),
+    );
     await context.supabaseAdmin.from("rank_digest_sends").update({
-      status,
-      provider_event: event,
-      last_checked_at: new Date().toISOString(),
-      delivered_at: status === "delivered" ? new Date().toISOString() : null,
-      error: status === "failed" ? `Email provider reported ${event}.` : null,
+      status: receipt.status,
+      provider_event: receipt.providerEvent,
+      last_checked_at: receipt.checkedAt,
+      delivered_at: receipt.deliveredAt,
+      error: receipt.error,
     }).eq("id", send.id);
+    if (!send.is_test) {
+      await context.supabaseAdmin.from("notification_preferences").update({
+        last_digest_status: receipt.status,
+        last_digest_error: receipt.error,
+        updated_at: receipt.checkedAt,
+      }).eq("website_id", send.website_id);
+    }
   }
 }
 
