@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 type SiteFixture = {
@@ -18,7 +18,7 @@ type BrowserFixture = {
 
 const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath
-  ? JSON.parse(await readFile(fixturePath, "utf8")) as BrowserFixture
+  ? JSON.parse(readFileSync(fixturePath, "utf8")) as BrowserFixture
   : null;
 
 test.describe("@gate authenticated local website switching", () => {
