@@ -1,7 +1,14 @@
 import htmlToDocx from "html-to-docx";
 
+export function sanitizeDocxHtml(html: string) {
+  return html
+    .replace(/<\s*img\b[^>]*>/gi, "")
+    .replace(/<\s*source\b[^>]*>/gi, "")
+    .replace(/<\/?\s*picture\b[^>]*>/gi, "");
+}
+
 export async function createDocxFromHtml(html: string, title: string) {
-  const result = await htmlToDocx(html, null, {
+  const result = await htmlToDocx(sanitizeDocxHtml(html), null, {
     title,
     creator: "Destiny",
     description: "Editable document created by Destiny",
