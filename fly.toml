@@ -7,6 +7,10 @@ primary_region = "sjc"
 [env]
   PORT = "3000"
   NODE_ENV = "production"
+  ANTHROPIC_COPY_MODEL = "claude-opus-4-8"
+  DESTINY_SEO_PROVIDER = "demo"
+  OPENAI_INFOGRAPHIC_IMAGE_MODEL = "gpt-image-2"
+  OPENAI_INFOGRAPHIC_RESEARCH_MODEL = "gpt-5.6-sol"
 
 [http_service]
   internal_port = 3000
