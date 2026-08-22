@@ -1,0 +1,106 @@
+name: staging-container
+
+on:
+  push:
+    branches: [container-staging]
+
+concurrency:
+  group: staging-container
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  RELEASE_SHA: fc7f050e1201ff5ee6ebece98560592257de127f
+  RELEASE_TAG: step-zero-v1.1
+  SITE_URL: https://destiny-staging-stepzero.fly.dev
+  DEPLOY: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    environment: staging
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Assert trigger branch
+        run: test "${{ github.ref }}" = "refs/heads/container-staging"
+
+      - name: Checkout wrapper branch
+        uses: actions/checkout@v4
+
+      - name: Checkout release tag into src
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          path: src
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Source provenance
+        working-directory: src
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test "$(git cat-file -t $RELEASE_TAG)" = "tag"
+          test "$(git rev-parse $RELEASE_TAG^{})" = "$RELEASE_SHA"
+          test "$(git describe --tags --exact-match HEAD)" = "$RELEASE_TAG"
+          test -z "$(git status --porcelain)"
+          echo "SRC_HEAD=$(git rev-parse HEAD)"
+          echo "SRC_TAG=$(git describe --tags --exact-match HEAD)"
+
+      - name: Assert staging Supabase URL
+        run: echo "${{ vars.NEXT_PUBLIC_SUPABASE_URL }}" | grep -q titjatewvcjiuhisoppp
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: true
+          sbom: true
+          build-args: |
+            GIT_SHA=${{ env.RELEASE_SHA }}
+            RELEASE_TAG=${{ env.RELEASE_TAG }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ env.SITE_URL }}
+          tags: |
+            ghcr.io/joseangelo510/destiny-staging:${{ env.RELEASE_TAG }}
+            ghcr.io/joseangelo510/destiny-staging:${{ env.RELEASE_SHA }}
+
+      - name: Record image evidence
+        run: |
+          echo "IMAGE_DIGEST=${{ steps.build.outputs.digest }}"
+          docker buildx imagetools inspect ghcr.io/joseangelo510/destiny-staging@${{ steps.build.outputs.digest }} --raw > manifest.json
+          docker buildx imagetools inspect ghcr.io/joseangelo510/destiny-staging@${{ steps.build.outputs.digest }} > inspect.txt
+          echo "${{ steps.build.outputs.digest }}" > digest.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staging-evidence-${{ github.run_id }}
+          path: |
+            digest.txt
+            manifest.json
+            inspect.txt
+
+  deploy:
+    needs: build
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - run: echo "Deploy job intentionally unimplemented until G2 passes. Digest ${{ needs.build.outputs.digest }}"

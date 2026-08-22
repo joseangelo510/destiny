@@ -1,0 +1,1 @@
+This orphan branch contains only the deterministic staging-container wrapper for the immutable Destiny release `step-zero-v1.1`; the verified source is checked out separately during the workflow, the former `staging/destiny/` prefix was a Replit workspace artifact rather than a repository path, and this branch must never be merged into `main` without a separate CTO decision.
