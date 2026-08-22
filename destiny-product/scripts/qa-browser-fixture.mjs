@@ -61,9 +61,9 @@ async function createOrganization(client, label) {
   return requireValue(result.data, result.error, `Create browser ${label} organization`);
 }
 
-async function createWebsite(organizationId, label, ownerId) {
+async function createWebsite(client, organizationId, label, ownerId) {
   const normalizedDomain = `browser-${label.toLowerCase()}.example`;
-  const result = await service.from("websites").insert({
+  const result = await client.from("websites").insert({
     organization_id: organizationId,
     url: `https://${normalizedDomain}/`,
     normalized_domain: normalizedDomain,
@@ -79,26 +79,15 @@ async function createWebsite(organizationId, label, ownerId) {
   const auditIds = [];
   const count = label === "Alpha" ? 1 : label === "Beta" ? 2 : label === "Member" ? 3 : 4;
   for (let index = 0; index < count; index += 1) {
-    const auditResult = await service.from("audits").insert({
+    const auditResult = await client.from("audits").insert({
       website_id: website.id,
       requested_by: ownerId,
       provider: "dataforseo",
-      status: "complete",
-      progress: 100,
-      started_at: new Date(Date.now() - 60_000).toISOString(),
-      completed_at: new Date().toISOString(),
+      status: "queued",
+      progress: 0,
     }).select("id").single();
     const audit = requireValue(auditResult.data, auditResult.error, `Create browser ${label} audit ${index + 1}`);
     auditIds.push(audit.id);
-    const metricsResult = await service.from("audit_metrics").insert({
-      audit_id: audit.id,
-      ranking_keywords: count * 10 + index,
-      raw_provider_payload: {
-        tenant: label,
-        providerResult: { issues: [], metrics: { onPageScore: 80 + count }, pages: [] },
-      },
-    });
-    if (metricsResult.error) throw new Error(`Create browser ${label} metrics: ${metricsResult.error.message}`);
   }
   return { auditIds, businessName: `Browser ${label}`, normalizedDomain, websiteId: website.id };
 }
@@ -140,16 +129,23 @@ const organizationB = await createOrganization(ownerB.client, "Beta");
 const organizationC = await createOrganization(member.client, "Member");
 const organizationD = await createOrganization(outsider.client, "Outsider");
 
-const alpha = await createWebsite(organizationA, "Alpha", ownerA.userId);
-const beta = await createWebsite(organizationB, "Beta", ownerB.userId);
-const memberSite = await createWebsite(organizationC, "Member", member.userId);
-const outsiderSite = await createWebsite(organizationD, "Outsider", outsider.userId);
+const alpha = await createWebsite(ownerA.client, organizationA, "Alpha", ownerA.userId);
+const beta = await createWebsite(ownerB.client, organizationB, "Beta", ownerB.userId);
+const memberSite = await createWebsite(member.client, organizationC, "Member", member.userId);
+const outsiderSite = await createWebsite(outsider.client, organizationD, "Outsider", outsider.userId);
 
-const membershipResult = await service.from("organization_members").insert([
-  { organization_id: organizationA, user_id: member.userId, role: "member" },
-  { organization_id: organizationB, user_id: member.userId, role: "member" },
-]);
-if (membershipResult.error) throw new Error(`Grant shared browser memberships: ${membershipResult.error.message}`);
+const alphaMembership = await ownerA.client.from("organization_members").insert({
+  organization_id: organizationA,
+  user_id: member.userId,
+  role: "member",
+});
+if (alphaMembership.error) throw new Error(`Grant Alpha browser membership: ${alphaMembership.error.message}`);
+const betaMembership = await ownerB.client.from("organization_members").insert({
+  organization_id: organizationB,
+  user_id: member.userId,
+  role: "member",
+});
+if (betaMembership.error) throw new Error(`Grant Beta browser membership: ${betaMembership.error.message}`);
 
 await mkdir(artifactRoot, { recursive: true });
 await writeFile(authStatePath, JSON.stringify({ cookies: await createBrowserCookies(member.email, member.password), origins: [] }, null, 2));
