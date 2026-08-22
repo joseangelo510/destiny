@@ -120,6 +120,21 @@ jobs:
       - name: Checkout wrapper branch
         uses: actions/checkout@v4
 
+      - name: Checkout release tree for QA inventory
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          path: release
+          fetch-depth: 1
+
+      - name: Assert release tree and QA inventory
+        working-directory: release
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test -f destiny-product/qa/inventory/routes.json
+          jq -e 'type == "array" and length > 0' destiny-product/qa/inventory/routes.json > /dev/null
+          echo "routes=$(jq 'length' destiny-product/qa/inventory/routes.json)"
+
       - name: Assert immutable Fly configuration
         run: |
           grep -q '^app = "destiny-staging-stepzero"$' fly.toml
