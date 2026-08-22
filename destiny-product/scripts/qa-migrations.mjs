@@ -40,13 +40,46 @@ const productionHistory = [
   "20260814033523_scope_notifications_to_website.sql",
   "20260814033535_google_sync_state_lock.sql",
   "20260814135202_harden_authenticated_rpcs.sql",
-];
-const stagingForwardHistory = [
   "20260815024644_reconcile_llm_visibility_tasks.sql",
   "20260815024645_website_notification_email.sql",
   "20260815025015_index_llm_visibility_completed_by.sql",
+  "20260815231204_wordpress_publication_reconciliation.sql",
+  "20260816192759_publishing_plans.sql",
+  "20260816193402_publishing_plan_fk_indexes.sql",
+  "20260816210000_rank_digest_notifications.sql",
+  "20260816213000_rank_digest_sends_organization_index.sql",
+  "20260817153000_rank_digest_delivery_truth.sql",
+  "20260820072129_expand_editorial_calendar_items.sql",
+  "20260820170000_content_repurpose.sql",
+  "20260821183000_internal_links.sql",
+  "20260822005528_index_internal_link_foreign_keys.sql",
+  "20260822030000_destiny_interviews.sql",
+  "20260822030500_index_interview_foreign_keys.sql",
 ];
-const recordedHistory = [...productionHistory, ...stagingForwardHistory];
+const recordedHistory = [...productionHistory];
+
+// Supabase assigns its own version when a migration is applied through the
+// Management API. This snapshot maps the verified production history back to
+// the source files that must remain append-only in this repository.
+const remoteProductionHistory = [
+  ["20260816024617", "reconcile_llm_visibility_tasks_backfill", "20260815024644_reconcile_llm_visibility_tasks.sql"],
+  ["20260816024624", "website_notification_email_backfill", "20260815024645_website_notification_email.sql"],
+  ["20260816024632", "index_llm_visibility_completed_by_backfill", "20260815025015_index_llm_visibility_completed_by.sql"],
+  ["20260816024639", "destiny_comms_beta", null],
+  ["20260816031057", "index_comms_website_foreign_keys", null],
+  ["20260815231204", "wordpress_publication_reconciliation", "20260815231204_wordpress_publication_reconciliation.sql"],
+  ["20260816193243", "publishing_plans", "20260816192759_publishing_plans.sql"],
+  ["20260816193418", "publishing_plan_fk_indexes", "20260816193402_publishing_plan_fk_indexes.sql"],
+  ["20260817034716", "rank_digest_notifications", "20260816210000_rank_digest_notifications.sql"],
+  ["20260817041127", "rank_digest_sends_organization_index", "20260816213000_rank_digest_sends_organization_index.sql"],
+  ["20260818034653", "rank_digest_delivery_truth", "20260817153000_rank_digest_delivery_truth.sql"],
+  ["20260820073127", "expand_editorial_calendar_items", "20260820072129_expand_editorial_calendar_items.sql"],
+  ["20260820181414", "content_repurpose", "20260820170000_content_repurpose.sql"],
+  ["20260822005356", "internal_links", "20260821183000_internal_links.sql"],
+  ["20260822005616", "index_internal_link_foreign_keys", "20260822005528_index_internal_link_foreign_keys.sql"],
+  ["20260822032510", "destiny_interviews", "20260822030000_destiny_interviews.sql"],
+  ["20260822032511", "index_interview_foreign_keys", "20260822030500_index_interview_foreign_keys.sql"],
+];
 
 const files = (await readdir(migrationDirectory))
   .filter((file) => file.endsWith(".sql"))
@@ -57,12 +90,19 @@ const duplicateVersions = versions.filter((version, index) => versions.indexOf(v
 const missingHistory = recordedHistory.filter((file) => !files.includes(file));
 const recordedVersions = new Set(recordedHistory.map((file) => file.slice(0, 14)));
 const renamedHistory = files.filter((file) => recordedVersions.has(file.slice(0, 14)) && !recordedHistory.includes(file));
+const remoteVersions = remoteProductionHistory.map(([version]) => version);
+const duplicateRemoteVersions = remoteVersions.filter((version, index) => remoteVersions.indexOf(version) !== index);
+const missingRemoteSources = remoteProductionHistory
+  .filter(([, , localFile]) => localFile && !recordedHistory.includes(localFile))
+  .map(([version, name, localFile]) => `${version}_${name} -> ${localFile}`);
 
 const problems = [
   ...malformed.map((file) => `Malformed migration filename: ${file}`),
   ...[...new Set(duplicateVersions)].map((version) => `Duplicate migration version: ${version}`),
   ...missingHistory.map((file) => `Missing recorded production migration: ${file}`),
   ...renamedHistory.map((file) => `Recorded production migration was renamed: ${file}`),
+  ...[...new Set(duplicateRemoteVersions)].map((version) => `Duplicate remote production migration version: ${version}`),
+  ...missingRemoteSources.map((mapping) => `Remote production migration lost its local source mapping: ${mapping}`),
 ];
 
 if (problems.length) {
@@ -70,4 +110,5 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`Migration history verified: ${productionHistory.length} production migrations and ${stagingForwardHistory.length} staging migrations preserved; ${files.length - recordedHistory.length} unapplied forward migrations present.`);
+const remoteOnly = remoteProductionHistory.filter(([, , localFile]) => !localFile).length;
+console.log(`Migration history verified: ${productionHistory.length} production source migrations preserved; ${remoteProductionHistory.length} remote applied aliases recorded (${remoteOnly} legacy remote-only); ${files.length - recordedHistory.length} unapplied forward migrations present.`);

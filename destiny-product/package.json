@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "logos:embed": "node scripts/embed-logos-wasm.mjs",
@@ -19,7 +19,7 @@
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
     "test:links": "playwright test qa/e2e/links.spec.ts",
-    "gate": "pnpm qa:inventory && pnpm lint && pnpm test && pnpm build && pnpm test:e2e"
+    "gate": "pnpm qa:inventory && pnpm qa:migrations && pnpm lint && pnpm test && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

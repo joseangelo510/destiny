@@ -1,0 +1,69 @@
+name: Destiny test harness
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: destiny-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the exact commit
+        uses: actions/checkout@v7
+
+      - name: Install pnpm from package.json
+        uses: pnpm/action-setup@v6
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate the QA inventory
+        run: pnpm qa:inventory
+
+      - name: Require a committed, current QA inventory
+        run: git diff --exit-code -- qa/inventory
+
+      - name: Protect the migration ledger
+        run: pnpm qa:migrations
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Run unit and integration tests
+        run: pnpm test
+
+      - name: Build the production application
+        run: pnpm build
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run browser journeys
+        run: pnpm test:e2e
+
+      - name: Preserve browser evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: destiny-playwright-failure-${{ github.run_id }}
+          path: qa/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
