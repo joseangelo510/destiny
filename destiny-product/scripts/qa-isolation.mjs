@@ -40,6 +40,7 @@ export const ISOLATION_TABLES = [
 const productRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const auditSql = path.join(productRoot, "qa", "sql", "site-isolation-audit.sql");
 const rlsPolicyAuditSql = path.join(productRoot, "qa", "sql", "rls-policy-audit.sql");
+const grantPolicyAuditSql = path.join(productRoot, "qa", "sql", "grant-policy-conformance-audit.sql");
 const supabaseBin = path.join(productRoot, "node_modules", ".bin", "supabase");
 const vitestBin = path.join(productRoot, "node_modules", ".bin", "vitest");
 
@@ -73,6 +74,7 @@ const result = spawnSync(vitestBin, ["run", "--config", "vitest.isolation.config
     QA_DATABASE_URL: status.databaseUrl,
     QA_ISOLATION_AUDIT_SQL: auditSql,
     QA_RLS_POLICY_AUDIT_SQL: rlsPolicyAuditSql,
+    QA_GRANT_POLICY_AUDIT_SQL: grantPolicyAuditSql,
   },
 });
 
