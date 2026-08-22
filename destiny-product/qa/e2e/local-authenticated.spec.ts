@@ -33,8 +33,14 @@ test.describe("@gate authenticated local website switching", () => {
     await expect(page.locator(".workspace-header .eyebrow")).toHaveText(alpha.normalizedDomain);
     await expect(page.locator(".audit-history-compact .audit-section-heading > span")).toHaveText("1 saved");
 
-    await page.locator(`[data-site-switch="${beta.websiteId}"]`).click({ force: true });
-    await expect(page).toHaveURL(new RegExp(`site=${beta.websiteId}`));
+    const betaSwitch = page.locator(`[data-site-switch="${beta.websiteId}"]`);
+    await betaSwitch.locator("xpath=ancestor::details").locator("summary").click();
+    await expect(betaSwitch).toBeVisible();
+    await expect(betaSwitch).toHaveAttribute("href", new RegExp(`site=${beta.websiteId}`));
+    await Promise.all([
+      page.waitForURL(new RegExp(`site=${beta.websiteId}`)),
+      betaSwitch.click(),
+    ]);
     await expect(page.locator(`[data-workspace-website="${beta.websiteId}"]`)).toBeVisible();
     await expect(page.locator(".workspace-header .eyebrow")).toHaveText(beta.normalizedDomain);
     await expect(page.locator(".audit-history-compact .audit-section-heading > span")).toHaveText("2 saved");
