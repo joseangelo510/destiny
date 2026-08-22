@@ -20,6 +20,7 @@ As Destiny's product owner, I want every product change to prove its intended be
 11. Every public application table is checked against the migrated Postgres RLS catalog.
 12. Every privileged Edge Function receives an executable negative authorization request.
 13. WordPress, Webflow, and Wix publishing proofs remain offline and cannot contact a live host.
+14. A temporary authenticated Playwright fixture switches between two accessible organizations, preserves the selected website across navigation, and receives `404` for an outsider audit.
 
 ## Scenarios
 
@@ -84,6 +85,8 @@ flowchart LR
 The current harness branch does not deploy or mutate production. It now includes
 repository-rule tests, a disposable three-site write matrix, automated SQL and
 Postgres-catalog audits, privileged Edge Function denials, and offline CMS
-lifecycle tests. Authenticated browser journeys and any post-deploy verification
-remain separate, credential-gated lanes. File-size, language-scope, static query,
-and Deploy Log policy thresholds remain reserved for product-owner approval.
+lifecycle tests. Authenticated browser journeys now run against a fourth,
+temporary local-only fixture before the disposable stack is destroyed. Any
+post-deploy verification remains a separate, credential-gated, read-only lane.
+File-size, language-scope, static query, and Deploy Log policy thresholds remain
+reserved for product-owner approval.

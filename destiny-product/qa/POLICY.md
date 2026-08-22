@@ -49,7 +49,7 @@ Production browser checks may use GET, HEAD, and OPTIONS only. The authenticatio
 
 Mutating integration and journey tests belong in a disposable staging tenant. Smart & Fast Background Checks remains the default production read-only workspace until the product owner changes that decision.
 
-Public pull-request browser tests use only the reserved `supabase.invalid` hostname and a non-secret placeholder publishable key. This keeps forked pull requests safe and proves that public pages and unauthenticated redirects do not depend on a live database. Authenticated browser journeys run only in the separate `QA_AUTH_STATE` lane.
+Public pull-request browser tests use only the reserved `supabase.invalid` hostname and a non-secret placeholder publishable key. This keeps forked pull requests safe and proves that public pages and unauthenticated redirects do not depend on a live database. Authenticated browser journeys use a generated `QA_AUTH_STATE` against disposable loopback Supabase; its cookies and fixture manifest stay in the runner's temporary directory and disappear with the stack.
 
 ## Critical invariants
 

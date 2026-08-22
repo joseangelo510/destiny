@@ -82,4 +82,4 @@ flowchart LR
 
 ## Coverage boundary
 
-Phase 2 covers tables represented by migrations in this repository. Production contains two legacy communication migrations without local source files, `destiny_comms_beta` and `index_comms_website_foreign_keys`; their tables cannot be recreated or claimed by this matrix. Authenticated Playwright against the disposable stack, within-organization role escalation, local Edge Functions, scheduled production read-only QA, and production audit execution remain later phases.
+The harness covers tables represented by migrations in this repository. Production contains two legacy communication migrations without local source files, `destiny_comms_beta` and `index_comms_website_foreign_keys`; their tables cannot be recreated or claimed by this matrix. Authenticated Playwright, membership escalation and revocation, and privileged local Edge Function denials now run against the disposable stack. Scheduled production read-only QA and production audit execution remain later, credential-gated lanes.
