@@ -30,13 +30,14 @@ const localUrl = process.env.QA_SUPABASE_URL ?? "";
 const anonKey = process.env.QA_SUPABASE_ANON_KEY ?? "";
 const serviceRoleKey = process.env.QA_SUPABASE_SERVICE_ROLE_KEY ?? "";
 const auditSqlPath = process.env.QA_ISOLATION_AUDIT_SQL ?? "";
+const rlsPolicyAuditSqlPath = process.env.QA_RLS_POLICY_AUDIT_SQL ?? "";
 const databaseContainer = process.env.QA_SUPABASE_DB_CONTAINER ?? "supabase_db_destiny-isolation";
 
 if (process.env.QA_ISOLATION !== "1") {
   throw new Error("The isolation suite must run through pnpm qa:isolation.");
 }
 assertLoopbackSupabaseUrl(localUrl);
-if (!anonKey || !serviceRoleKey || !auditSqlPath) {
+if (!anonKey || !serviceRoleKey || !auditSqlPath || !rlsPolicyAuditSqlPath) {
   throw new Error("The disposable Supabase stack did not provide the isolation test environment.");
 }
 
@@ -503,6 +504,14 @@ function verifyExecutableAudit(a: Tenant, b: Tenant) {
   expect(runDatabaseSql(auditSql), "The poison transaction must roll back completely.").toBe("");
 }
 
+function verifyRlsPolicyAudit() {
+  const auditSql = readFileSync(rlsPolicyAuditSqlPath, "utf8");
+  expect(
+    runDatabaseSql(auditSql),
+    "Every public application table must enable RLS and expose a reviewed policy boundary.",
+  ).toBe("");
+}
+
 test("three real local users cannot read, mutate, or blend each other's website data", async () => {
   await sweepAbandonedLocalFixtures();
   try {
@@ -522,6 +531,7 @@ test("three real local users cannot read, mutate, or blend each other's website 
     await verifyMemberCannotEscalate(a, c, b);
     await verifyRevokedMembership(a, c);
     verifyExecutableAudit(a, b);
+    verifyRlsPolicyAudit();
   } finally {
     await deleteLocalFixtures();
   }
