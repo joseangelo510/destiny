@@ -6,6 +6,7 @@ const productRoot = process.cwd();
 const repositoryRoot = path.resolve(productRoot, "..");
 const fixtureScript = path.join(productRoot, "scripts", "qa-browser-fixture.mjs");
 const browserJourney = path.join(productRoot, "qa", "e2e", "local-authenticated.spec.ts");
+const productionJourney = path.join(productRoot, "qa", "e2e", "prod-readonly.spec.ts");
 
 async function exists(file: string) {
   try {
@@ -51,5 +52,11 @@ describe("authenticated local browser harness", () => {
     expect(journey).toContain("data-site-switch");
     expect(journey).toContain("outsiderAuditId");
     expect(journey).toContain("/api/audits/");
+  });
+
+  it("keeps the production read-only suite out of disposable local browser runs", async () => {
+    const journey = await readFile(productionJourney, "utf8");
+
+    expect(journey).toContain('process.env.QA_PROD_READONLY === "1"');
   });
 });
