@@ -97,7 +97,7 @@ test("owner can update their website and mark their notification read", async ()
     .select("read_at")
     .single();
   expect(notification.error).toBeNull();
-  expect(notification.data?.read_at).toBe(readAt);
+  expect(Date.parse(String(notification.data?.read_at))).toBe(Date.parse(readAt));
 });
 
 test("grant and policy conformance audit returns zero rows", () => {
