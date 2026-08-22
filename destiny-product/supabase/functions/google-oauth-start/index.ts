@@ -34,14 +34,14 @@ export default {
     const userId = context.userClaims?.id;
     if (!userId) return Response.json({ error: "Sign in again to continue." }, { status: 401 });
 
+    const { data: website } = await context.supabase.from("websites").select("id").eq("id", body.websiteId).maybeSingle();
+    if (!website) return Response.json({ error: "You do not have access to that website." }, { status: 403 });
+
     const clientId = Deno.env.get("GOOGLE_CLIENT_ID")?.trim();
     const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim().replace(/\/$/, "");
     if (!clientId || !supabaseUrl) {
       return Response.json({ error: "Google OAuth is not configured yet." }, { status: 503 });
     }
-
-    const { data: website } = await context.supabase.from("websites").select("id").eq("id", body.websiteId).maybeSingle();
-    if (!website) return Response.json({ error: "You do not have access to that website." }, { status: 403 });
 
     const random = new Uint8Array(32);
     crypto.getRandomValues(random);

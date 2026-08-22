@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const invoke = vi.fn();
+const { getClaims, invoke } = vi.hoisted(() => ({
+  getClaims: vi.fn(),
+  invoke: vi.fn(),
+}));
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: async () => ({ functions: { invoke } }),
+  createClient: async () => ({
+    auth: { getClaims },
+    functions: { invoke },
+  }),
 }));
 
 import { POST } from "./route";
@@ -21,7 +27,22 @@ const requestBody = {
 };
 
 describe("POST /api/integrations/cms/wordpress/draft", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
+  });
+
+  it("returns 401 before invoking WordPress for an anonymous draft request", async () => {
+    getClaims.mockResolvedValue({ data: { claims: null } });
+    const response = await POST(new Request("http://localhost/api/integrations/cms/wordpress/draft", {
+      method: "POST",
+      body: JSON.stringify(requestBody),
+    }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "Sign in again to continue." });
+    expect(invoke).not.toHaveBeenCalled();
+  });
 
   it("sends only a normalized approved draft to the authenticated Edge Function", async () => {
     invoke.mockResolvedValue({ data: { delivered: true, remoteEditUrl: "https://example.com/wp-admin/post.php?post=42&action=edit" }, error: null });

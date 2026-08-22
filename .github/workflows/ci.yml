@@ -1,28 +1,61 @@
-name: Validate Destiny
+name: Destiny test harness
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: destiny-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  validate:
+  ci:
+    name: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: destiny-product
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Check out the exact commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm 11.9.0
+        uses: pnpm/action-setup@v6
         with:
           version: 11.9.0
-      - uses: actions/setup-node@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
           cache-dependency-path: destiny-product/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm qa:migrations
-      - run: pnpm test
-      - run: pnpm lint
-      - run: pnpm build
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the complete Destiny harness
+        run: pnpm gate
+
+      - name: Destroy disposable Supabase isolation stack
+        if: always()
+        continue-on-error: true
+        run: pnpm exec supabase stop --no-backup
+
+      - name: Preserve browser evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: destiny-playwright-failure-${{ github.run_id }}
+          path: destiny-product/qa/artifacts/
+          if-no-files-found: ignore
+          retention-days: 14

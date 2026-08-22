@@ -13,6 +13,7 @@
 # testing
 /coverage
 /qa/artifacts/
+/supabase/.temp/
 
 # next.js
 /.next/

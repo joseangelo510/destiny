@@ -1,11 +1,34 @@
 export type RankingDigestFrequency = "three_day" | "weekly" | "off";
 export type RankDigestDeliveryState = "accepted" | "delivered" | "failed";
+export type RankDigestLedgerState = "sending" | RankDigestDeliveryState;
 
 export function deliveryStateFromProviderEvent(value: unknown): RankDigestDeliveryState {
   const event = String(value ?? "").trim().toLowerCase();
   if (["delivered", "opened", "clicked"].includes(event)) return "delivered";
   if (["bounced", "failed", "cancelled", "canceled", "complained", "suppressed"].includes(event)) return "failed";
   return "accepted";
+}
+
+export function reconcileDeliveryReceipt(
+  currentStatus: RankDigestLedgerState,
+  value: unknown,
+  checkedAt: string,
+) {
+  const providerEvent = String(value ?? "").trim().toLowerCase();
+  const reportedStatus = deliveryStateFromProviderEvent(providerEvent);
+  const status = reportedStatus === "accepted" && (currentStatus === "delivered" || currentStatus === "failed")
+    ? currentStatus
+    : reportedStatus;
+
+  return {
+    status,
+    providerEvent,
+    checkedAt,
+    deliveredAt: status === "delivered" ? checkedAt : null,
+    error: status === "failed" && reportedStatus === "failed"
+      ? `Email provider reported ${providerEvent}.`
+      : null,
+  };
 }
 
 export type RankDigestReading = {

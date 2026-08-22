@@ -1,0 +1,62 @@
+[
+  {
+    "path": "supabase/functions/delete-account/index.ts",
+    "auth": "user",
+    "boundary": "account_claim"
+  },
+  {
+    "path": "supabase/functions/google-oauth-callback/index.ts",
+    "auth": "none",
+    "boundary": "oauth_state"
+  },
+  {
+    "path": "supabase/functions/google-oauth-start/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/google-sync/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/process-audit/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/rank-digest/index.ts",
+    "auth": "none",
+    "boundary": "signed_token_or_cron"
+  },
+  {
+    "path": "supabase/functions/rank-tracker-refresh/index.ts",
+    "auth": "none",
+    "boundary": "cron_secret"
+  },
+  {
+    "path": "supabase/functions/webflow-connect/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/webflow-draft/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/wordpress-connect/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/wordpress-draft/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/wordpress-reconcile/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  }
+]

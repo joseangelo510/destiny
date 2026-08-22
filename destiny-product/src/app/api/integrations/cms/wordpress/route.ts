@@ -10,6 +10,12 @@ type RequestBody = {
 };
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (!claimsData?.claims?.sub) {
+    return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
+  }
+
   let body: RequestBody;
   try {
     body = await request.json() as RequestBody;
@@ -29,7 +35,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Check the WordPress connection details." }, { status: 400 });
   }
 
-  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{ connected?: boolean; siteUrl?: string; displayName?: string; error?: string }>("wordpress-connect", {
     body: {
       websiteId: body.websiteId,

@@ -42,6 +42,13 @@ export default defineConfig({
     : {
         command: "pnpm dev --hostname 127.0.0.1 --port 4173",
         url: "http://127.0.0.1:4173",
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_URL:
+            process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://supabase.invalid",
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+            process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_playwright_placeholder",
+        },
         reuseExistingServer: true,
         timeout: 120_000,
       },

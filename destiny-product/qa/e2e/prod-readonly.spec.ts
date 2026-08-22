@@ -4,7 +4,7 @@ import { installProductionReadOnlyGuard } from "./support/read-only-guard";
 
 const siteId = process.env.QA_SITE_ID ?? "fea021ec-1019-40ab-833b-536dfe154d8f";
 const auditId = process.env.QA_AUDIT_ID ?? "e6f224d2-3da9-4e7d-9a88-2909cb0ae73d";
-const authenticated = Boolean(process.env.QA_AUTH_STATE);
+const authenticated = process.env.QA_PROD_READONLY === "1" && Boolean(process.env.QA_AUTH_STATE);
 
 const routes = [
   "/this-week", "/roadmap", "/results", "/analytics", "/audits", `/audits/${auditId}`,
