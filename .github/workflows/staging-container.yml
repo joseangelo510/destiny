@@ -287,6 +287,7 @@ jobs:
           flyctl machines list --app "${FLY_APP}" --json > machines.json
           test "$(jq '[.[] | select(.state == "started")] | length' machines.json)" = "1"
           test "$(jq -r '[.[] | select(.state == "started")][0].region' machines.json)" = "${FLY_REGION}"
+          jq -e 'any(.[]; .config.env.DESTINY_SEO_PROVIDER == "dataforseo")' machines.json > /dev/null
           child_digest="$(cat candidate-child-digest.txt)"
           jq -e --arg digest "${child_digest}" 'any(.[]; .image_ref.digest == $digest)' machines.json > /dev/null
           jq -e --arg sha "${RELEASE_SHA}" --arg tag "${RELEASE_TAG}" 'any(.[]; .image_ref.labels["org.opencontainers.image.revision"] == $sha and .image_ref.labels["org.opencontainers.image.version"] == $tag)' machines.json > /dev/null
@@ -515,6 +516,7 @@ jobs:
           flyctl machines list --app "${FLY_APP}" --json > machines-post-cutover.json
           test "$(jq '[.[] | select(.state == "started")] | length' machines-post-cutover.json)" = "1"
           test "$(jq -r '[.[] | select(.state == "started")][0].region' machines-post-cutover.json)" = "${FLY_REGION}"
+          jq -e 'any(.[]; .config.env.DESTINY_SEO_PROVIDER == "dataforseo")' machines-post-cutover.json > /dev/null
           child_digest="$(cat candidate-child-digest-post-cutover.txt)"
           jq -e --arg digest "${child_digest}" 'any(.[]; .image_ref.digest == $digest)' machines-post-cutover.json > /dev/null
           jq -e --arg sha "${RELEASE_SHA}" --arg tag "${RELEASE_TAG}" 'any(.[]; .image_ref.labels["org.opencontainers.image.revision"] == $sha and .image_ref.labels["org.opencontainers.image.version"] == $tag)' machines-post-cutover.json > /dev/null
