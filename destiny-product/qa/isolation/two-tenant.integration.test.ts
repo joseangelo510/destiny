@@ -459,6 +459,57 @@ async function verifyRevokedMembership(owner: Tenant, member: Tenant) {
   expect(ownSite.data?.id).toBe(member.websiteId);
 }
 
+async function edgeRequest(pathname: string, body?: Record<string, unknown>, accessToken?: string) {
+  const headers: Record<string, string> = {
+    apikey: anonKey,
+    "Content-Type": "application/json",
+  };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  return fetch(`${localUrl}${pathname}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body ?? {}),
+  });
+}
+
+async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tenant) {
+  const session = await owner.client.auth.getSession();
+  const accessToken = session.data.session?.access_token;
+  expect(session.error, "The Edge denial suite could not read user A's local session.").toBeNull();
+  expect(accessToken, "The Edge denial suite requires a real user A JWT.").toBeTruthy();
+
+  const article = `<p>${"Approved local article content. ".repeat(8)}</p>`;
+  const crossTenantRequests = [
+    ["/functions/v1/google-oauth-start", { websiteId: outsider.websiteId, provider: "google_search_console" }],
+    ["/functions/v1/google-sync", { websiteId: outsider.websiteId, provider: "google_search_console" }],
+    ["/functions/v1/process-audit", { websiteId: outsider.websiteId }],
+    ["/functions/v1/webflow-connect", { websiteId: outsider.websiteId, apiToken: "qa_webflow_token_that_never_leaves_localhost" }],
+    ["/functions/v1/webflow-draft", { websiteId: outsider.websiteId, articleKey: "qa-webflow", title: "QA article", contentHtml: article }],
+    ["/functions/v1/wordpress-connect", { websiteId: outsider.websiteId, siteUrl: "https://cms.invalid", username: "qa-user", applicationPassword: "local-only-password" }],
+    ["/functions/v1/wordpress-draft", { websiteId: outsider.websiteId, articleKey: "qa-wordpress", title: "QA article", contentHtml: article }],
+    ["/functions/v1/wordpress-reconcile", { websiteId: outsider.websiteId, articleKey: "qa-wordpress" }],
+  ] as const;
+
+  for (const [pathname, body] of crossTenantRequests) {
+    const response = await edgeRequest(pathname, body, accessToken);
+    expect(response.status, `${pathname} did not reject user A operating website B.`).toBe(403);
+  }
+
+  const deleteAccount = await edgeRequest("/functions/v1/delete-account");
+  expect(deleteAccount.status, "Account deletion accepted an anonymous caller.").toBe(401);
+
+  const callback = await fetch(`${localUrl}/functions/v1/google-oauth-callback?state=invalid&code=invalid`, {
+    headers: { apikey: anonKey },
+  });
+  expect(callback.status, "Google OAuth accepted an invalid one-time state.").toBe(400);
+
+  const digest = await edgeRequest("/functions/v1/rank-digest");
+  expect(digest.status, "Rank digest accepted a caller without its cron secret.").toBe(401);
+
+  const refresh = await edgeRequest("/functions/v1/rank-tracker-refresh");
+  expect(refresh.status, "Rank refresh accepted a caller without its cron secret.").toBe(401);
+}
+
 function runPsql(sql: string) {
   return spawnSync("docker", [
     "exec", "-i", databaseContainer,
@@ -527,6 +578,7 @@ test("three real local users cannot read, mutate, or blend each other's website 
     await verifyTenantBoundary(c, a);
     await verifyBlendedPairRejection(a, b);
     await verifyBlendedPairRejection(b, c);
+    await verifyPrivilegedEdgeFunctionDenials(a, b);
     await grantSharedMembership(a, c);
     await verifyMemberCannotEscalate(a, c, b);
     await verifyRevokedMembership(a, c);

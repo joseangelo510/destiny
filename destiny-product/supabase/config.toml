@@ -39,3 +39,12 @@ minimum_password_length = 8
 enable_signup = true
 enable_confirmations = false
 double_confirm_changes = true
+
+[functions.google-oauth-callback]
+verify_jwt = false
+
+[functions.rank-digest]
+verify_jwt = false
+
+[functions.rank-tracker-refresh]
+verify_jwt = false

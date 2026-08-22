@@ -57,7 +57,7 @@ jobs:
         run: pnpm test
 
       - name: Start disposable Supabase isolation stack
-        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,logflare,vector,supavisor
 
       - name: Run three-site isolation matrix
         run: pnpm qa:isolation
