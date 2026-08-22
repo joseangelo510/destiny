@@ -4,12 +4,12 @@
 
 ## Specification
 
-- Spec: `qa/specs/`
+- Spec: `destiny-product/qa/specs/`
 - Red test commit: <!-- commit SHA proving the new or changed test failed before implementation -->
 
 ## Evidence
 
-- [ ] `pnpm gate` passes locally
+- [ ] `pnpm gate` passes locally from `destiny-product/`
 - [ ] The QA inventory is regenerated and committed
 - [ ] Any applied migration is appended to the production migration ledger
 - [ ] No production mutation was used for verification

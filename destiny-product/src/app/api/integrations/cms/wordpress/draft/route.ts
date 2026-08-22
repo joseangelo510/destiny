@@ -7,6 +7,12 @@ import sharp from "sharp";
 import { wordpressRemoteIdFromEditUrl } from "@/lib/content/publishing-plan";
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (!claimsData?.claims?.sub) {
+    return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
+  }
+
   let body: WordPressDraftRequest;
   try {
     body = await request.json() as WordPressDraftRequest;
@@ -34,7 +40,6 @@ export async function POST(request: Request) {
     };
   }));
 
-  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     delivered?: boolean;
     remoteEditUrl?: string;

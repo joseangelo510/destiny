@@ -207,9 +207,9 @@
     "context": "const { data, error } = await supabase.from(\"profiles\").update({ founder_why: founderWhy }).eq(\"id\", userId).select(\"founder_why\").maybeSingle(); if (error) return NextResponse.json({ error: \"Destiny could not save your why.\" }, { status: 500 });"
   },
   {
-    "control_id": "src/app/api/integrations/cms/wordpress/draft/route.ts:49:data-mutation:1",
+    "control_id": "src/app/api/integrations/cms/wordpress/draft/route.ts:54:data-mutation:1",
     "file": "src/app/api/integrations/cms/wordpress/draft/route.ts",
-    "line": 49,
+    "line": 54,
     "type": "data-mutation",
     "route": "/api/integrations/cms/wordpress/draft",
     "side_effect_class": 3,

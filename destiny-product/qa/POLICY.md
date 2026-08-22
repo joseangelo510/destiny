@@ -18,7 +18,7 @@ Agents build to satisfy the specification and tests. They may not weaken, delete
 
 ## Pull-request blockers
 
-The required `ci` check must pass on the exact commit. It verifies:
+The required `ci` check from the repository-root `.github/workflows/ci.yml` must pass on the exact commit. It verifies:
 
 - frozen-lockfile installation with Node.js 22 and pnpm 11.9.0;
 - a freshly generated and committed route/control inventory;

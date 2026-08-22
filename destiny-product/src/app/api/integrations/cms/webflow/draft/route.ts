@@ -3,6 +3,12 @@ import { prepareWebflowDraft, type WebflowDraftRequest } from "@/lib/cms/webflow
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (!claimsData?.claims?.sub) {
+    return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
+  }
+
   let body: WebflowDraftRequest;
   try {
     body = await request.json() as WebflowDraftRequest;
@@ -17,7 +23,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Review the article before sending it." }, { status: 400 });
   }
 
-  const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke<{
     delivered?: boolean;
     remoteEditUrl?: string;
