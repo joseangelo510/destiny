@@ -8,6 +8,8 @@ const workflowPath = path.join(repositoryRoot, ".github", "workflows", "ci.yml")
 const workflowDirectory = path.join(productRoot, ".github", "workflows");
 const pullRequestTemplatePath = path.join(repositoryRoot, ".github", "pull_request_template.md");
 const shadowPullRequestTemplatePath = path.join(productRoot, ".github", "pull_request_template.md");
+const gateRunnerPath = path.join(productRoot, "scripts", "qa-gate.mjs");
+const browserFixturePath = path.join(productRoot, "scripts", "qa-browser-fixture.mjs");
 
 async function exists(file: string) {
   try {
@@ -87,5 +89,33 @@ describe("GitHub harness workflow", () => {
     expect(template).toContain("Red test commit");
     expect(template).toContain("pnpm gate");
     expect(template).toContain("Site isolation");
+  });
+
+  it("uses one local and CI command for the complete disposable harness", async () => {
+    const packageJson = JSON.parse(await readFile(path.join(productRoot, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    const workflow = await readFile(workflowPath, "utf8");
+
+    expect(packageJson.scripts?.gate).toBe("node scripts/qa-gate.mjs");
+    expect(await exists(gateRunnerPath)).toBe(true);
+    expect(workflow).toContain("run: pnpm gate");
+
+    const gate = await readFile(gateRunnerPath, "utf8");
+    for (const fragment of [
+      "qa:inventory",
+      "qa:migrations",
+      "qa:isolation",
+      "qa:browser-fixture",
+      "playwright",
+      "test:e2e",
+      "supabase",
+      "stop",
+      "--no-backup",
+      "finally",
+    ]) expect(gate).toContain(fragment);
+
+    const fixture = await readFile(browserFixturePath, "utf8");
+    expect(fixture).toContain("QA_BROWSER_ENV_FILE");
   });
 });
