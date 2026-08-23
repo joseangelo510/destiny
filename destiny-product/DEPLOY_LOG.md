@@ -32,3 +32,14 @@ Copy this commented template for each release. Remove the comment markers only a
 - Last fully green pre-policy gate: https://github.com/joseangelo510/destiny/actions/runs/32560700136
 - Pre-policy counts: 155 Vitest files, 1,064 tests, 10 authenticated/public desktop and mobile browser journeys
 - Status: evidence only; this is not a shipped release entry
+
+## CTO governance decision: GOV-1
+
+- date: 2026-08-23
+- deciding authority: Fable 5 High, acting as Destiny CTO at Jose Gallegos's direction
+- decision record: https://claude.ai/chat/1eed0b57-2045-4cdc-a738-df1c67dcdbdc
+- scope: authorize implementation of the durable Destiny harness-governance system on a protected branch and PR
+- decision: create one canonical root `HARNESS_POLICY.md`; add thin root `AGENTS.md` and `CLAUDE.md` pointers; add the `destiny-harness` project skill and cloud knowledge pointer; enforce classification, frozen paths, evidence, and completion rules in GitHub Actions; validate the GOV-1 test matrix before claiming completion
+- frozen actions retained: no Supabase Auth Site URL change, Replit modification or decommissioning, database migration, wrapper merge to `main`, or new `container-staging` push without a new recorded Fable 5 High decision
+- implementation branch: `codex/destiny-governance-gov-1`
+- production effect: none authorized; governance implementation only
