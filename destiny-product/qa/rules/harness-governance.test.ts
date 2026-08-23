@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   classifyGovernanceChange,
+  compareDependencyManifests,
   evaluateChecklist,
   evaluatePolicyGuard,
 } from "../../scripts/governance-policy.mjs";
@@ -87,6 +88,23 @@ describe("Destiny GOV-1 harness governance", () => {
       labelActors: { "cto-approved": "joseangelo510", "policy-change": "joseangelo510" },
     });
     expect(approved.errors).toEqual([]);
+  });
+
+  it("keeps ordinary dependency updates MEDIUM and escalates risky updates", () => {
+    expect(compareDependencyManifests(
+      { dependencies: { zod: "^4.1.0" } },
+      { dependencies: { zod: "^4.2.0" } },
+    )).toEqual({ high: false, reasons: [] });
+
+    for (const [before, after] of [
+      [{ dependencies: { zod: "^4.1.0" } }, { dependencies: { zod: "^5.0.0" } }],
+      [{ dependencies: {} }, { dependencies: { zod: "^4.2.0" } }],
+      [{ dependencies: { "@supabase/supabase-js": "^2.111.0" } }, { dependencies: { "@supabase/supabase-js": "^2.112.0" } }],
+    ]) {
+      const decision = compareDependencyManifests(before, after);
+      expect(decision.high).toBe(true);
+      expect(decision.reasons.length).toBeGreaterThan(0);
+    }
   });
 
   it("rejects incomplete claims and requires a recorded CTO decision for HIGH work", () => {
