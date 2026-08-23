@@ -45,6 +45,23 @@ export function findForbiddenTestMarkers(diff) {
     .filter((line) => markerPatterns.some((pattern) => pattern.test(line.slice(1))));
 }
 
+export function commitsRequiringShapeValidation({ commits, protectedMainReachableShas }) {
+  if (!(protectedMainReachableShas instanceof Set) || protectedMainReachableShas.size === 0) {
+    throw new Error("origin/main reachability is unavailable; commit validation fails closed.");
+  }
+  return commits.filter((commit) => !protectedMainReachableShas.has(commit.sha));
+}
+
+function originMainReachableShas() {
+  try {
+    const commits = git(["rev-list", "origin/main"]).split("\n").filter(Boolean);
+    if (!commits.length) throw new Error("origin/main has no reachable commits");
+    return new Set(commits);
+  } catch (error) {
+    throw new Error(`origin/main reachability is unavailable; commit validation fails closed: ${error.message}`);
+  }
+}
+
 function changedFiles(commit) {
   return git(["diff-tree", "--no-commit-id", "--name-status", "-r", "--root", commit])
     .split("\n").filter(Boolean).map((line) => {
@@ -74,12 +91,16 @@ async function main() {
   if (policyChanges.length) throw new Error("commit-policy.json is immutable after activation unless a future policy-version gate explicitly permits it.");
 
   const commits = git(["log", "--reverse", "--format=%H%x09%s", `${policy.activationSha}..HEAD`])
-    .split("\n").filter(Boolean);
+    .split("\n").filter(Boolean).map((line) => {
+      const separator = line.indexOf("\t");
+      return { sha: line.slice(0, separator), subject: line.slice(separator + 1) };
+    });
   const errors = [];
-  for (const line of commits) {
-    const separator = line.indexOf("\t");
-    const sha = line.slice(0, separator);
-    const subject = line.slice(separator + 1);
+  const commitsToValidate = commitsRequiringShapeValidation({
+    commits,
+    protectedMainReachableShas: originMainReachableShas(),
+  });
+  for (const { sha, subject } of commitsToValidate) {
     if (isMergeCommit(sha)) continue;
     for (const error of validateCommitShape({ subject, files: changedFiles(sha) })) errors.push(`${sha.slice(0, 12)}: ${error}`);
   }
