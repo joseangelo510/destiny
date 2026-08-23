@@ -5,9 +5,19 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(import.meta.dirname, "..");
 const policyPath = path.join(root, "commit-policy.json");
+const repositoryRoot = path.resolve(root, "..");
+const canonicalRemoteUrls = new Set([
+  "https://github.com/joseangelo510/destiny",
+  "git@github.com:joseangelo510/destiny",
+  "ssh://git@github.com/joseangelo510/destiny",
+]);
+
+function gitAt(cwd, args) {
+  return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
+}
 
 function git(args) {
-  return execFileSync("git", args, { cwd: path.resolve(root, ".."), encoding: "utf8" }).trim();
+  return gitAt(repositoryRoot, args);
 }
 
 export function isTestFile(file) {
@@ -52,10 +62,42 @@ export function commitsRequiringShapeValidation({ commits, protectedMainReachabl
   return commits.filter((commit) => !protectedMainReachableShas.has(commit.sha));
 }
 
-function originMainReachableShas() {
+function normalizedRemoteUrl(url) {
+  let normalized = url.endsWith("/") ? url.slice(0, -1) : url;
+  if (normalized.endsWith(".git")) normalized = normalized.slice(0, -4);
+  return normalized;
+}
+
+export function resolveProtectedMainRef(cwd = repositoryRoot) {
+  const diagnostics = [];
+  for (const name of ["origin", "github"]) {
+    let url;
+    try {
+      url = gitAt(cwd, ["config", "--get", `remote.${name}.url`]);
+    } catch {
+      diagnostics.push(`${name}: url=<absent>; remote URL is missing`);
+      continue;
+    }
+    if (!canonicalRemoteUrls.has(normalizedRemoteUrl(url))) {
+      diagnostics.push(`${name}: url=${url}; non-canonical repository identity`);
+      continue;
+    }
+    const ref = `refs/remotes/${name}/main`;
+    try {
+      gitAt(cwd, ["rev-parse", "--verify", "--quiet", ref]);
+      return ref;
+    } catch {
+      diagnostics.push(`${name}: url=${url}; remote-tracking main ref is missing (${ref})`);
+    }
+  }
+  throw new Error(`Canonical protected main ref is unavailable; ${diagnostics.join("; ")}`);
+}
+
+function protectedMainReachableShas() {
   try {
-    const commits = git(["rev-list", "origin/main"]).split("\n").filter(Boolean);
-    if (!commits.length) throw new Error("origin/main has no reachable commits");
+    const protectedRef = resolveProtectedMainRef();
+    const commits = git(["rev-list", protectedRef]).split("\n").filter(Boolean);
+    if (!commits.length) throw new Error(`${protectedRef} has no reachable commits`);
     return new Set(commits);
   } catch (error) {
     throw new Error(`origin/main reachability is unavailable; commit validation fails closed: ${error.message}`);
@@ -98,7 +140,7 @@ async function main() {
   const errors = [];
   const commitsToValidate = commitsRequiringShapeValidation({
     commits,
-    protectedMainReachableShas: originMainReachableShas(),
+    protectedMainReachableShas: protectedMainReachableShas(),
   });
   for (const { sha, subject } of commitsToValidate) {
     if (isMergeCommit(sha)) continue;
