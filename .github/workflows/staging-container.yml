@@ -25,7 +25,7 @@ env:
   WRAPPER_WORKFLOW_PATH: .github/workflows/staging-container.yml
   FLY_APP: destiny-production
   FLY_REGION: sjc
-  CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R1
+  CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R2
   CTO_GO_POST_CUTOVER: ""
 
 jobs:
@@ -63,8 +63,8 @@ jobs:
           fi
           manifest_commits="$(git log --format='%H' -- production/run.json | wc -l | tr -d ' ')"
           echo "run manifest commits including this one: ${manifest_commits}"
-          # ceiling 5: slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect
-          test "${manifest_commits}" -le 5
+          # ceiling 6 (final): slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect; slot 3 = 11e16de3 R1 certificate status field mismatch, no deploy effect
+          test "${manifest_commits}" -le 6
           echo "phase=${phase}" >> "${GITHUB_OUTPUT}"
           echo "site_url=${site_url}" >> "${GITHUB_OUTPUT}"
           echo "candidate_digest=${candidate_digest}" >> "${GITHUB_OUTPUT}"
@@ -225,8 +225,11 @@ jobs:
           jq -e \
             --arg hostname "${production_host}" \
             '.hostname == $hostname
-             and .status == "active"
+             and .configured == true
              and .acme_requested == true
+             and (.validation_errors | length) == 0
+             and .validation.dns_configured == true
+             and (.status == "Ready" or .status == "active")
              and any(.certificates[]; .source == "fly" and .status == "active")' \
             certificate-pre-candidate.json > /dev/null
 
@@ -367,12 +370,13 @@ jobs:
 
       - name: Capture and remove failed candidate machine
         if: ${{ failure() }}
+        timeout-minutes: 10
         run: |
           if ! command -v flyctl > /dev/null 2>&1; then
             echo "flyctl was not installed; deployment could not have started" > failure-cleanup.txt
             exit 0
           fi
-          flyctl logs --app "${FLY_APP}" --no-tail > runtime-at-failure.log 2>&1 || true
+          timeout 60 flyctl logs --app "${FLY_APP}" --no-tail > runtime-at-failure.log 2>&1 || echo "log capture timed out or empty" >> runtime-at-failure.log
           flyctl machines list --app "${FLY_APP}" --json > machines-at-failure.json
           mapfile -t machine_ids < <(jq -r '.[].id' machines-at-failure.json)
           if [ "${#machine_ids[@]}" -gt 0 ]; then
@@ -482,8 +486,11 @@ jobs:
           jq -e \
             --arg hostname "${production_host}" \
             '.hostname == $hostname
-             and .status == "active"
+             and .configured == true
              and .acme_requested == true
+             and (.validation_errors | length) == 0
+             and .validation.dns_configured == true
+             and (.status == "Ready" or .status == "active")
              and any(.certificates[]; .source == "fly" and .status == "active")' \
             certificate-post-cutover.json > /dev/null
 
