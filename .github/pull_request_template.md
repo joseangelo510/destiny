@@ -22,7 +22,8 @@ Delete the unused classification and frozen-zone lines. For MEDIUM work, remove 
 
 ## Harness evidence
 
-- [ ] `pnpm gate` passes locally from `destiny-product/`
+- [ ] Complete `pnpm gate` passes in GitHub Actions for this PR SHA
+  - Local run: <!-- Record pass, or the exact environment limitation. Never claim a local pass when Docker/Podman is unavailable. -->
 - [ ] Vitest full suite green
   - Run: <!-- https://github.com/joseangelo510/destiny/actions/runs/... -->
 - [ ] ESLint, English-only rule, and file-length ratchet green
