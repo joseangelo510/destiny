@@ -26,7 +26,7 @@ env:
   FLY_APP: destiny-production
   FLY_REGION: sjc
   CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R3
-  CTO_GO_POST_CUTOVER: ""
+  CTO_GO_POST_CUTOVER: FABLE5-GO-POSTCUTOVER-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-849894e8-2026-08-23
 
 jobs:
   manifest:
@@ -63,7 +63,7 @@ jobs:
           fi
           manifest_commits="$(git log --format='%H' -- production/run.json | wc -l | tr -d ' ')"
           echo "run manifest commits including this one: ${manifest_commits}"
-          # ceiling 6 (final): slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect; slot 3 = 11e16de3 R1 certificate status field mismatch, no deploy effect; slot 4 = f5743276 R2 machine-state assertion before start, machine destroyed
+          # ceiling 6 (final): slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect; slot 3 = 11e16de3 R1 certificate status field mismatch, no deploy effect; slot 4 = f5743276 R2 machine-state assertion before start, machine destroyed; slot 5 = c3cc8bba R3 candidate success
           test "${manifest_commits}" -le 6
           echo "phase=${phase}" >> "${GITHUB_OUTPUT}"
           echo "site_url=${site_url}" >> "${GITHUB_OUTPUT}"

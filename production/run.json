@@ -1,6 +1,6 @@
 {
-  "candidate_digest": "",
-  "cto_go": "FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R3",
-  "phase": "candidate",
+  "candidate_digest": "sha256:849894e8430027e8807b5b4e973b31fe28b3b840d7759ddcf717ba411fcadf31",
+  "cto_go": "FABLE5-GO-POSTCUTOVER-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-849894e8-2026-08-23",
+  "phase": "post-cutover",
   "site_url": "https://app.caminoseo.com"
 }
