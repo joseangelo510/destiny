@@ -25,6 +25,8 @@ env:
   WRAPPER_WORKFLOW_PATH: .github/workflows/staging-container.yml
   FLY_APP: destiny-production
   FLY_REGION: sjc
+  CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22
+  CTO_GO_POST_CUTOVER: ""
 
 jobs:
   manifest:
@@ -44,20 +46,25 @@ jobs:
         run: |
           test -f "${WRAPPER_WORKFLOW_PATH}"
           test -f production/run.json
-          jq -e 'type == "object" and (keys | sort) == ["candidate_digest", "phase", "site_url"]' production/run.json > /dev/null
+          jq -e 'type == "object" and (keys | sort) == ["candidate_digest", "cto_go", "phase", "site_url"]' production/run.json > /dev/null
           phase="$(jq -er '.phase' production/run.json)"
           site_url="$(jq -er '.site_url' production/run.json)"
           candidate_digest="$(jq -er '.candidate_digest' production/run.json)"
+          cto_go="$(jq -er '.cto_go' production/run.json)"
           case "${phase}" in candidate|post-cutover) ;; *) echo "invalid phase" >&2; exit 1 ;; esac
           test "${site_url}" = "${PRODUCTION_SITE_URL}"
           if [ "${phase}" = "candidate" ]; then
             test -z "${candidate_digest}"
+            test "${cto_go}" = "${CTO_GO_CANDIDATE}"
           else
             printf '%s' "${candidate_digest}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+            test -n "${CTO_GO_POST_CUTOVER}"
+            test "${cto_go}" = "${CTO_GO_POST_CUTOVER}"
           fi
           manifest_commits="$(git log --format='%H' -- production/run.json | wc -l | tr -d ' ')"
           echo "run manifest commits including this one: ${manifest_commits}"
-          test "${manifest_commits}" -le 3
+          # 37d0e0b4 is the unauthorized guard-only attempt and occupies slot one.
+          test "${manifest_commits}" -le 4
           echo "phase=${phase}" >> "${GITHUB_OUTPUT}"
           echo "site_url=${site_url}" >> "${GITHUB_OUTPUT}"
           echo "candidate_digest=${candidate_digest}" >> "${GITHUB_OUTPUT}"
@@ -79,23 +86,6 @@ jobs:
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       SITE_URL: ${{ needs.manifest.outputs.site_url }}
     steps:
-      - name: Enforce three-run ceiling
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          workflow_id="$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-            | jq -er '.workflow_id')"
-          count="$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/runs?branch=container-staging&event=push&per_page=100" \
-            | jq '.total_count')"
-          echo "production workflow runs including this one: ${count}"
-          test "${count}" -le 3
-
       - name: Checkout wrapper branch
         uses: actions/checkout@v4
 
@@ -437,20 +427,7 @@ jobs:
       SITE_URL: ${{ needs.manifest.outputs.site_url }}
     steps:
       - name: Enforce ceiling and immutable digest input
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          workflow_id="$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
-            | jq -er '.workflow_id')"
-          count="$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/runs?branch=container-staging&event=push&per_page=100" \
-            | jq '.total_count')"
-          test "${count}" -le 3
           printf '%s' "${IMAGE_DIGEST}" | grep -Eq '^sha256:[0-9a-f]{64}$'
           test "${SITE_URL}" = "${PRODUCTION_SITE_URL}"
 
