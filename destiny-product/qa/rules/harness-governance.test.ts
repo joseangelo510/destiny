@@ -114,7 +114,11 @@ describe("Destiny GOV-1 harness governance", () => {
 
     const highWithoutDecision = completeMediumBody
       .replace("Classification: MEDIUM", "Classification: HIGH")
-      .replace("Fable review: Medium is sufficient", "Fable review: High required");
+      .replace("Fable review: Medium is sufficient", "Fable review: High required")
+      .replace(
+        "Frozen zone: no frozen files or actions are touched",
+        "Frozen zone changes are authorized by the linked CTO decision",
+      );
     expect(evaluateChecklist(highWithoutDecision).errors)
       .toEqual(expect.arrayContaining([expect.stringMatching(/CTO decision/i)]));
 
