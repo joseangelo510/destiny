@@ -8,10 +8,11 @@
 - [ ] Classification: HIGH
 - [ ] Fable review: Medium is sufficient, or High decision is linked below
 - [ ] Frozen zone: no frozen files or actions are touched
+- [ ] Frozen zone changes are authorized by the linked CTO decision
 - [ ] CTO decision recorded before implementation
   - Decision: <!-- Required for HIGH: destiny-product/DEPLOY_LOG.md#... -->
 
-Delete the unused classification line. For MEDIUM work, remove the CTO-decision checkbox and line. HIGH work requires `cto-approved`; policy changes also require `policy-change`. Jose must apply both labels.
+Delete the unused classification and frozen-zone lines. For MEDIUM work, remove the CTO-decision checkbox and line. HIGH work requires `cto-approved`; policy changes also require `policy-change`. Jose must apply both labels.
 
 ## Specification and TDD
 

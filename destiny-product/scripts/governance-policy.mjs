@@ -107,7 +107,6 @@ export function evaluateChecklist(body = "") {
     "Playwright journeys green",
     "Build stamp on staging matches this PR SHA",
     "Touched staging routes checked with zero 5xx",
-    "Frozen zone: no frozen files or actions are touched",
   ]) if (!checked(body, label)) errors.push(`Missing checked evidence item: ${label}.`);
 
   const runUrls = body.match(runUrlPattern) ?? [];
@@ -116,8 +115,13 @@ export function evaluateChecklist(body = "") {
   if (!/zero 5xx/i.test(body)) errors.push("Touched-route evidence must state zero 5xx.");
 
   if (unique[0] === "HIGH") {
+    if (!checked(body, "Frozen zone changes are authorized by the linked CTO decision")) {
+      errors.push("HIGH work must confirm its frozen-zone changes are authorized by the linked CTO decision.");
+    }
     if (!checked(body, "CTO decision recorded before implementation")) errors.push("HIGH work requires a checked CTO decision item.");
     if (!/destiny-product\/DEPLOY_LOG\.md(?:#[-a-z0-9]+)?/i.test(body)) errors.push("HIGH work requires a CTO decision link to destiny-product/DEPLOY_LOG.md.");
+  } else if (unique[0] === "MEDIUM" && !checked(body, "Frozen zone: no frozen files or actions are touched")) {
+    errors.push("MEDIUM work must confirm that no frozen files or actions are touched.");
   }
 
   return { classification: unique[0] ?? null, errors: [...new Set(errors)] };
