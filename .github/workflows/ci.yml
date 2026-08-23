@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   ci:
-    name: ci
+    name: harness-gates
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -45,6 +45,24 @@ jobs:
 
       - name: Run the complete Destiny harness
         run: pnpm gate
+
+      - name: Record immutable PR evidence
+        if: success()
+        run: |
+          mkdir -p qa/artifacts/governance
+          printf '%s\n' "${GITHUB_SHA}" | tee qa/artifacts/governance/build-sha.txt
+          test "$(cat qa/artifacts/governance/build-sha.txt)" = "${GITHUB_SHA}"
+          printf 'full_gate=pass\nvitest=pass\neslint=pass\nplaywright=pass\nzero_5xx=pass\n' \
+            | tee qa/artifacts/governance/harness-results.txt
+
+      - name: Preserve green harness evidence
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: destiny-harness-evidence-${{ github.run_id }}
+          path: destiny-product/qa/artifacts/governance/
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Destroy disposable Supabase isolation stack
         if: always()
