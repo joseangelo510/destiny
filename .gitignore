@@ -3,6 +3,15 @@
 # version control.
 *
 !/.gitignore
+!/AGENTS.md
+!/CLAUDE.md
+!/HARNESS_POLICY.md
+!/.claude/
+!/.claude/**
+!/.github/
+!/.github/**
+!/docs/
+!/docs/**
 !/destiny-product/
 !/destiny-product/**
 !/destiny-logic-engine/
