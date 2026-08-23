@@ -25,7 +25,7 @@ env:
   WRAPPER_WORKFLOW_PATH: .github/workflows/staging-container.yml
   FLY_APP: destiny-production
   FLY_REGION: sjc
-  CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R2
+  CTO_GO_CANDIDATE: FABLE5-GO-CANDIDATE-step-zero-v1.1-fc7f050e1201ff5ee6ebece98560592257de127f-2026-08-22-R3
   CTO_GO_POST_CUTOVER: ""
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
           fi
           manifest_commits="$(git log --format='%H' -- production/run.json | wc -l | tr -d ' ')"
           echo "run manifest commits including this one: ${manifest_commits}"
-          # ceiling 6 (final): slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect; slot 3 = 11e16de3 R1 certificate status field mismatch, no deploy effect
+          # ceiling 6 (final): slot 1 = 37d0e0b4 unauthorized guard-only; slot 2 = d205b1ad stale route-count assertion, no effect; slot 3 = 11e16de3 R1 certificate status field mismatch, no deploy effect; slot 4 = f5743276 R2 machine-state assertion before start, machine destroyed
           test "${manifest_commits}" -le 6
           echo "phase=${phase}" >> "${GITHUB_OUTPUT}"
           echo "site_url=${site_url}" >> "${GITHUB_OUTPUT}"
@@ -276,8 +276,15 @@ jobs:
         env:
           IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
+          STARTED=0
+          for i in $(seq 1 60); do
+            flyctl machines list --app "${FLY_APP}" --json > machines.json
+            if [ "$(jq '[.[] | select(.state == "started")] | length' machines.json)" = "1" ]; then STARTED=1; break; fi
+            sleep 5
+          done
+          echo "machine started after ${i} polls"
+          test "${STARTED}" = "1"
           flyctl status --app "${FLY_APP}" --json > status.json
-          flyctl machines list --app "${FLY_APP}" --json > machines.json
           test "$(jq '[.[] | select(.state == "started")] | length' machines.json)" = "1"
           test "$(jq -r '[.[] | select(.state == "started")][0].region' machines.json)" = "${FLY_REGION}"
           jq -e 'any(.[]; .config.env.DESTINY_SEO_PROVIDER == "dataforseo")' machines.json > /dev/null
