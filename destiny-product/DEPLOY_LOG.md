@@ -126,6 +126,17 @@ Mutations: none. Publish/schedule/social: halted.
 Next: PR A (gov/recovery-1) version endpoint + preflight; then detached checkout of new main in Replit; redeploy a5e94a27 in place; verify /api/version.
 Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
 
+## CTO governance decision: D-MVP-RECOVERY-1B
+
+[2026-08-24] D-MVP-RECOVERY-1B
+Second gate amendment to D-MVP-RECOVERY-1. PR #13, head a95058fac3d1bc6dbbbc0770de49268f8cbf50ac before amendment.
+Gate at a95058f: repo policy, commit policy, deploy log policy, inventory, migrations, dependency audit, lint passed. Vitest failed.
+Failure 1: route-auth-census rejected src/app/api/version/route.ts. Decision: GO, path 13 authorized, one allowlist entry with written justification, no logic change.
+Failure 2: two commit-policy-canonical-main-ref tests timed out at 5s, no assertion failure. Decision: no file change, one unchanged rerun, CI harness authoritative, halt if repeated.
+Sequence: PR body amended to 13 paths, test-change: commit (census test only), green: commit (decision + log only), full gate once, CI run.
+Mutations: none. Publish/schedule/social: still halted. P1 still NO GO until deploy and /api/version verification.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
+
 ## CTO governance decision: D-MVP-RECOVERY-1A
 
 [2026-08-24] D-MVP-RECOVERY-1A

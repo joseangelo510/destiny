@@ -44,3 +44,19 @@ Placement: new commit on PR #13 after GREEN `4181bed`. `4181bed` is not rewritte
 Trigger: full `pnpm gate` stopped at `qa:inventory` after GREEN; Codex halted correctly without committing.
 
 All other scope unchanged. No further paths authorized.
+
+## Amendment D-MVP-RECOVERY-1B (2026-08-24)
+
+Trigger: full `pnpm gate` at `a95058f` passed all policy stages and failed in Vitest.
+
+Failure 1: `qa/rules/route-auth-census.test.ts` rejected `src/app/api/version/route.ts` (unauthenticated API route not in allowlist).
+
+Failure 2: two tests in `qa/rules/commit-policy-canonical-main-ref.test.ts` exceeded the 5 second Vitest timeout. Timeout only, no assertion failure, no files changed.
+
+Decision on failure 1: GO. Path 13 authorized: `destiny-product/qa/rules/route-auth-census.test.ts`, limited to one added allowlist Map entry keyed `src/app/api/version/route.ts` with written justification (fail closed P1 provenance verification before auth; payload `sha`, `tree`, `builtAt`, `env` only; no secrets or customer data; GET only). No logic change, no wildcard, no other entries.
+
+Decision on failure 2: NO change authorized to `commit-policy-canonical-main-ref.test.ts`. One unchanged rerun of the two focused tests after the 1B commit. GitHub harness on the branch head is the authoritative gate. If timeouts repeat locally and in CI, halt and return with evidence. No timeout increase, no skip, no retry loops.
+
+Placement: PR body amended before commit; `test-change:` commit (census test only) after `a95058f`; `green:` commit (decision record and DEPLOY_LOG only). No rewrites.
+
+All other scope unchanged. Thirteen paths total. No further paths authorized.
