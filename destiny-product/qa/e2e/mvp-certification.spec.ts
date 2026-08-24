@@ -24,11 +24,12 @@ test.describe("@gate certified MVP journey", () => {
     if (await reveal.isVisible()) await reveal.getByRole("button", { name: "Close plan reveal" }).click();
 
     await expect(page.getByRole("heading", { name: "Choose a category to see its complete checklist." })).toBeVisible();
-    await expect(page.getByLabel("Weekly plan categories").getByRole("button")).toHaveCount(4);
+    const planCategories = page.getByLabel("Weekly plan categories");
+    await expect(planCategories.getByRole("button")).toHaveCount(4);
     await expect(page.getByLabel("0 of 4 weekly tasks complete")).toBeVisible();
-    await expect(page.getByText("Approve your priority keyword strategy", { exact: true })).toBeVisible();
-    await expect(page.getByText("Review this week’s article", { exact: true })).toBeVisible();
-    await expect(page.getByText("No task needed here this week.", { exact: true })).toBeVisible();
+    await expect(planCategories.getByText("Approve your priority keyword strategy", { exact: true })).toBeVisible();
+    await expect(planCategories.getByText("Review this week’s article", { exact: true })).toBeVisible();
+    await expect(planCategories.getByText("No task needed here this week.", { exact: true })).toBeVisible();
     await expect(page.getByText("Share the article on social media", { exact: true })).toHaveCount(0);
   });
 
@@ -66,8 +67,11 @@ test.describe("@gate certified MVP journey", () => {
     await expect(page.getByText("Draft delivered", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: "View verified live article" })).toHaveCount(0);
 
+    await expect.poll(() => reconciliations).toBeGreaterThanOrEqual(1);
+    await expect(page.getByRole("button", { name: "Check WordPress status" })).toBeEnabled();
     await page.getByRole("button", { name: "Check WordPress status" }).click();
-    await expect(page.getByText("Verified live", { exact: true })).toBeVisible();
+    await expect.poll(() => reconciliations).toBeGreaterThanOrEqual(2);
+    await expect(page.locator(".cms-status-chip.verified_live")).toHaveText("Verified live");
     await expect(page.getByRole("link", { name: "View verified live article" })).toHaveAttribute("href", permalink);
     expect(reconciliations).toBeGreaterThanOrEqual(2);
   });
@@ -78,7 +82,7 @@ test.describe("@gate certified MVP journey", () => {
     await expect(page.getByRole("heading", { name: "What changed in your search visibility" })).toBeVisible();
     await expect(page.locator(".rank-weekly-report-metrics article").filter({ hasText: "Moved up" }).locator("strong")).toHaveText("1");
     await expect(page.getByText(fixture!.mvp.keyword, { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("#9", { exact: true })).toBeVisible();
+    await expect(page.getByRole("table").getByText("#9", { exact: true })).toBeVisible();
     await expect(page.getByText("#0", { exact: true })).toHaveCount(0);
   });
 });
