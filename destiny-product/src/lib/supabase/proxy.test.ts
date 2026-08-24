@@ -26,6 +26,19 @@ describe("updateSession authentication perimeter", () => {
     expect(await response.json()).toEqual({ error: "Sign in again to continue." });
   });
 
+  it("exposes only GET /api/version before authentication", async () => {
+    const versionGet = await updateSession(request("/api/version", { method: "GET" }));
+    expect(versionGet.status).toBe(200);
+
+    const protectedGet = await updateSession(request("/api/audits", { method: "GET" }));
+    expect(protectedGet.status).toBe(401);
+    expect(await protectedGet.json()).toEqual({ error: "Sign in again to continue." });
+
+    const versionPost = await updateSession(request("/api/version", { method: "POST" }));
+    expect(versionPost.status).toBe(401);
+    expect(await versionPost.json()).toEqual({ error: "Sign in again to continue." });
+  });
+
   it("redirects an unauthenticated page to login with a safe internal next path", async () => {
     const response = await updateSession(request("/keywords?site=not-a-uuid"));
     expect(response.status).toBe(307);
