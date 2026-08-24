@@ -14,10 +14,9 @@ const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath
   ? JSON.parse(readFileSync(fixturePath, "utf8")) as BrowserFixture
   : null;
+if (!fixture) throw new Error("Run pnpm qa:browser-fixture against disposable local Supabase before MVP browser certification.");
 
 test.describe("@gate certified MVP journey", () => {
-  test.skip(!fixture, "Run pnpm qa:browser-fixture against disposable local Supabase first.");
-
   test("This Week presents only the four launch-certified actions", async ({ page }) => {
     await page.goto(`/this-week?site=${fixture!.mvp.websiteId}`);
 
