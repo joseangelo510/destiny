@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/write-build-stamp.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
@@ -28,6 +29,7 @@
     "qa:deploy-log": "node scripts/qa-deploy-log.mjs",
     "qa:isolation": "node scripts/qa-isolation.mjs",
     "qa:browser-fixture": "node scripts/qa-browser-fixture.mjs",
+    "qa:live-version": "node scripts/qa-live-version.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
     "test:links": "playwright test qa/e2e/links.spec.ts",
