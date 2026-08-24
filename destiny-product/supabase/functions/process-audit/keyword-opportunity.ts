@@ -1,4 +1,9 @@
 import type { BusinessSearchBrief, KeywordTheme } from "./business-search-brief.ts";
+// @ts-expect-error Supabase Edge Functions require explicit TypeScript extensions.
+import { contextIsServiceBusiness, isNoise, keywordHasGeographicConflict, keywordQualityGate, KNOWN_LOCATION_PHRASES } from "./keyword-quality-gate.ts";
+import type { KeywordQualityGateResult, KeywordQualityRejectionReason } from "./keyword-quality-gate.ts";
+export { keywordHasGeographicConflict, keywordQualityGate };
+export type { KeywordQualityGateResult, KeywordQualityRejectionReason };
 
 export type KeywordCandidate = {
   keyword: string;
@@ -22,19 +27,6 @@ export type KeywordBusinessContext = {
   differentiation?: string;
   market?: string;
   locationEvidence?: string;
-};
-
-export type KeywordQualityRejectionReason =
-  | "no_measured_demand"
-  | "not_a_search_phrase"
-  | "unsupported_business_model"
-  | "unsupported_location"
-  | "missing_business_evidence"
-  | "search_noise";
-
-export type KeywordQualityGateResult = {
-  accepted: boolean;
-  rejectionReasons: KeywordQualityRejectionReason[];
 };
 
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
@@ -93,7 +85,6 @@ const TOKEN_FAMILIES: Record<string, string> = {
 const TRANSACTIONAL = /\b(?:book|buy|call|cost|coupon|discount|fees?|for sale|hire|near me|order|price|prices|pricing|promo code|quote|schedule|sign up|subscribe)\b/i;
 const COMMERCIAL = /\b(?:affordable|agency|alternative|alternatives|best|cheap|coach|coaches|coaching|compare|comparison|consultant|consultants|consulting|counseling|counselor|counselors|expert|experts|reviews?|services?|top|versus|vs\.?)\b/i;
 const INFORMATIONAL = /^(?:how|what|when|where|why|guide|tips?|examples?|ideas?|checklist)\b/i;
-const NOISE = /\b(?:careers?|jobs?|login|password|portal|sign in|torrent|download free)\b/i;
 const PHYSICS_QUERY = /\bspeed of light\b/i;
 const LLM_BUSINESS = /\b(?:ai agents?|large language models?|llm|multiagent)\b/i;
 const LLM_KEYWORD_ANCHOR = /\b(?:ai|agents?|inference|llm|models?|tokens?)\b/i;
@@ -121,7 +112,6 @@ const INSTITUTION = /\b(?:academy|colleges?|school|universit(?:y|ies))\b/i;
 const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|best|deadline|essay|get into|requirements?|ranking|top|tuition)\b/i;
 const SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX = /\b(?:acceptance rate|admissions? requirements?|how to get into)\b/i;
 const PROOF_OR_SENTENCE_FRAGMENT = /\b(?:customers? need|earned|five[ -]star|served)\b/i;
-const COPIED_BUSINESS_LANGUAGE = /(?:^\s*(?:serve|serving)\b|\b\d+\s*(?:five[ -]star|5[ -]star|star)\s+reviews?\b)/i;
 const RECURRING_COLLECTION_QUERY = /\b(?:interstate waste services?|pick up rubbish services?|rubbish collection services?|rubbish pickup|trash pickup(?: services?)?|trash services?|waste collection services?|waste management residential services?|waste pickup|bulk pickup trash|garbage waste pickup|curbside pickup waste management)\b/i;
 const RENTAL_SERVICE_QUERY = /\b(?:dumpster|truck) rentals?\b/i;
 const TRUCK_EQUIPMENT_QUERY = /\b(?:disposal|dump|garbage|waste) trucks?\b/i;
@@ -130,20 +120,6 @@ const GRADUATE_AUDIENCE = /\b(?:business school|graduate school|law school|mba|m
 const HIGH_SCHOOL_AUDIENCE = /\b(?:high school|teen|undergraduate)\b/i;
 const GENERIC_OFFER_TOKENS = new Set(["advice", "application", "guidance", "management", "planning", "solution", "strategy", "support"]);
 const GENERIC_OFFER_ANCHORS = new Set(["company", "estimate", "free", "local", "pickup", "provider", "removal"]);
-const KNOWN_LOCATION_PHRASES = [
-  "albuquerque", "anaheim", "anchorage", "arlington", "athens", "atlanta", "austin", "bakersfield", "baltimore", "barrie", "boston",
-  "buffalo", "chandler", "charlotte", "chicago", "chula vista", "cincinnati", "cleveland", "columbus", "corpus christi",
-  "dallas", "denver", "detroit", "durham", "fort worth", "garland", "gilbert", "glendale", "green bay", "greensboro",
-  "henderson", "hialeah", "honolulu", "houston", "indianapolis", "irvine", "jacksonville", "jersey city", "kansas city",
-  "las vegas", "lexington", "long beach", "los angeles", "louisville", "madison", "manhattan", "memphis", "mesa", "miami",
-  "milwaukee", "minneapolis", "nashville", "new orleans", "new york", "new york city", "newark", "norfolk", "north las vegas", "nyc",
-  "oklahoma city", "omaha", "orlando", "ottawa", "philadelphia", "phoenix", "pittsburgh", "plano", "portland", "raleigh", "reno", "riverside",
-  "roswell", "saint louis", "san antonio", "san diego", "santa ana", "scottsdale", "seattle", "st louis", "stockton",
-  "tampa", "tucson", "tulsa", "virginia beach", "washington dc", "wichita", "winston salem", "york pa",
-  "berkeley", "fremont", "livermore", "los altos", "los gatos", "menlo park", "mill valley", "mountain view",
-  "oakland", "palo alto", "pleasanton", "redwood city", "sacramento", "san carlos", "san francisco", "san jose",
-  "san mateo", "san ramon", "santa clara", "south san francisco", "walnut creek",
-] as const;
 const OFFER_CONTEXT_ONLY_TOKENS = new Set([
   ...GENERIC_OFFER_TOKENS,
   ...GENERIC_OFFER_ANCHORS,
@@ -167,27 +143,6 @@ const STRONG_EVIDENCE_IGNORED_TOKENS = new Set([
   ...DISCOVERY_MODIFIER_TOKENS,
   ...WEAK_DOMAIN_EVIDENCE_TOKENS,
 ]);
-
-function normalizedPhrase(value: string) {
-  return ` ${value.normalize("NFKC").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
-}
-
-export function keywordHasGeographicConflict(
-  candidate: Pick<KeywordCandidate, "keyword" | "opportunity">,
-  context: KeywordBusinessContext,
-) {
-  if (candidate.opportunity === "existing_rank") return false;
-  const keyword = normalizedPhrase(candidate.keyword);
-  const evidence = normalizedPhrase([
-    context.productsServices,
-    context.problemSolved,
-    context.idealCustomer,
-    context.audienceChallengesGoals,
-    context.differentiation,
-    context.locationEvidence,
-  ].filter(Boolean).join(" "));
-  return KNOWN_LOCATION_PHRASES.some((place) => keyword.includes(` ${place} `) && !evidence.includes(` ${place} `));
-}
 
 function canonicalToken(token: string) {
   const explicit = TOKEN_FAMILIES[token];
@@ -220,66 +175,6 @@ function contextProfile(context: KeywordBusinessContext) {
     all: new Set(canonicalTokens(description)),
     description,
   };
-}
-
-function contextIsServiceBusiness(context: KeywordBusinessContext, description: string) {
-  return SERVICE_BUSINESS.test(description)
-    || SERVICE_ACTION_QUERY.test(context.productsServices ?? "");
-}
-
-function isNoise(keyword: string) {
-  const normalized = keyword.trim();
-  if (!normalized || NOISE.test(normalized)) return true;
-  const tokens = normalized.match(/[a-z]+|\d+/gi) ?? [];
-  const numeric = tokens.filter((token) => /^\d+$/.test(token)).length;
-  return numeric >= 2 && numeric / Math.max(tokens.length, 1) >= 0.4;
-}
-
-/**
- * A small, deterministic admission gate for owner-facing keyword ideas.
- *
- * This deliberately runs before scoring. Provider rows and onboarding prose
- * are research inputs; they are not recommendations until they describe a
- * measured search, fit the business model, and pass the basic phrase checks.
- */
-export function keywordQualityGate(
-  candidate: KeywordCandidate,
-  context: KeywordBusinessContext,
-): KeywordQualityGateResult {
-  const volume = Number(candidate.searchVolume);
-  if (!Number.isFinite(volume) || volume <= 0) {
-    return { accepted: false, rejectionReasons: ["no_measured_demand"] };
-  }
-
-  const keyword = String(candidate.keyword ?? "").normalize("NFKC").trim();
-  const tokens = keyword.match(/[a-z]+|\d+/gi) ?? [];
-  if (
-    tokens.length < 2
-    || PROOF_OR_SENTENCE_FRAGMENT.test(keyword)
-    || COPIED_BUSINESS_LANGUAGE.test(keyword)
-  ) {
-    return { accepted: false, rejectionReasons: ["not_a_search_phrase"] };
-  }
-
-  if (isNoise(keyword)) {
-    return { accepted: false, rejectionReasons: ["search_noise"] };
-  }
-
-  const business = contextProfile(context);
-  const serviceBusiness = contextIsServiceBusiness(context, business.description);
-  const businessOffersSoftware = SOFTWARE_PRODUCT.test(business.description);
-  if (
-    (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(keyword))
-    || (businessOffersSoftware && !serviceBusiness && SERVICE_PROVIDER_QUERY.test(keyword))
-  ) {
-    return { accepted: false, rejectionReasons: ["unsupported_business_model"] };
-  }
-
-  if (keywordHasGeographicConflict(candidate, context)) {
-    return { accepted: false, rejectionReasons: ["unsupported_location"] };
-  }
-
-  return { accepted: true, rejectionReasons: [] };
 }
 
 function isLowEvidenceSiteIdea(candidate: KeywordCandidate, businessTokens: Set<string>) {

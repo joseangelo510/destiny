@@ -34,7 +34,6 @@ export type ArticleGenerationContext = {
   differentiation: string;
   internalPages: ArticleInternalPage[];
 };
-
 function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
   const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
   // A saved article keeps its content, but may only claim "generated" status
@@ -598,11 +597,7 @@ export function ArticleReviewWorkspace({
       {connectedProviders.map((provider) => {
         const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
         if (!result) return null;
-        const publication = provider.id === "wordpress" ? buildPublicationReceipt({
-          provider: provider.id,
-          articleKey: `${auditId}:${draft.keyword}`,
-          ...result,
-        }) : null;
+        const publication = provider.id === "wordpress" ? buildPublicationReceipt({ provider: provider.id, articleKey: `${auditId}:${draft.keyword}`, ...result }) : null;
         const transferred = result.fieldReport?.filter((entry) => entry.status === "transferred") ?? [];
         const needsReview = result.fieldReport?.filter((entry) => entry.status === "needs_review") ?? [];
         const unavailable = result.fieldReport?.filter((entry) => entry.status === "unavailable") ?? [];
