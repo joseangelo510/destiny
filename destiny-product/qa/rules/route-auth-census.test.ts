@@ -9,6 +9,10 @@ const allowlist = new Map([
     "src/app/api/integrations/google/start/route.ts",
     "Interactive OAuth entrypoint; the proxy preserves the requested URL through the login redirect and the Edge Function validates the authenticated session.",
   ],
+  [
+    "src/app/api/version/route.ts",
+    "GET-only fail-closed P1 production provenance verification prior to authentication; payload is exactly sha, tree, builtAt, and env, with no secrets, tokens, or customer data; authorized by D-MVP-RECOVERY-1B.",
+  ],
 ]);
 
 async function walk(directory: string): Promise<string[]> {
