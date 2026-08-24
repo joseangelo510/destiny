@@ -21,6 +21,7 @@ type IntegrationsPageProps = {
 
 function syncSummary(provider: string, value: unknown) {
   const metadata = record(value);
+  if (metadata.selectionRequired === true) return "Choose the matching website property to finish syncing.";
   if (provider === "google_search_console" && metadata.syncedAt) return `${Number(metadata.clicks ?? 0).toLocaleString()} clicks · ${Number(metadata.impressions ?? 0).toLocaleString()} impressions`;
   if (provider === "google_analytics" && metadata.syncedAt) return `${Number(metadata.organicSessions ?? 0).toLocaleString()} organic sessions · ${Number(metadata.organicKeyEvents ?? 0).toLocaleString()} key events`;
   if (provider === "google_business_profile" && metadata.syncedAt) return `${Number(metadata.reviewCount ?? 0).toLocaleString()} reviews · ${Number(metadata.averageRating ?? 0).toFixed(1)} average rating`;

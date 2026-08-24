@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { buildInAppRankingReport } from "../lib/notifications/in-app-ranking-report";
 import { rankFreshnessFromPolicy, rankMovementFromPolicy, rankPolicyInput, rankReadingFromPolicy } from "../lib/seo/rank-tracker";
 import { runDestinyLogic } from "../lib/logicaffeine";
 
@@ -23,9 +24,9 @@ export type RankTrackerKeyword = {
   policyView?: { reading: { label: string; tone: string }; movement: { label: string; tone: string }; freshness: { message: string }; bucket: number };
 };
 
-type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; rankingDigestFrequency?: "three_day" | "weekly" | "off" };
+type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; rankingDigestFrequency?: "three_day" | "weekly" | "off"; reportGeneratedAt?: string };
 
-export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, rankingDigestFrequency = "weekly" }: Props) {
+export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, rankingDigestFrequency = "weekly", reportGeneratedAt }: Props) {
   const [lists, setLists] = useState(initialLists);
   const [keywords, setKeywords] = useState(initialKeywords);
   const [activeList, setActiveList] = useState<string>("all");
@@ -60,6 +61,17 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
   const visible = useMemo(() => activeList === "all" ? keywords : activeList === "general" ? keywords.filter((item) => !item.listId) : keywords.filter((item) => item.listId === activeList), [activeList, keywords]);
   const planKeywordCount = keywords.filter((item) => item.source === "strategy").length;
   const watchlistCount = keywords.length - planKeywordCount;
+  const reportNow = reportGeneratedAt
+    ?? keywords.map((item) => item.checkedAt).filter((value): value is string => Boolean(value)).sort().at(-1)
+    ?? new Date(0).toISOString();
+  const weeklyReport = useMemo(() => buildInAppRankingReport(keywords.map((row) => ({
+    keyword: row.keyword,
+    currentPosition: row.currentPosition,
+    currentFound: row.found === true,
+    previousPosition: row.previousPosition,
+    previousFound: row.previousFound ?? null,
+    observedAt: row.checkedAt,
+  })), reportNow), [keywords, reportNow]);
 
   async function addKeyword(event: FormEvent) {
     event.preventDefault();
@@ -105,6 +117,22 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
       <article><span>Top 3</span><strong>{summary.top3}</strong><small>Confirmed positions</small></article>
       <article><span>Top 10</span><strong>{summary.top10}</strong><small>Confirmed positions</small></article>
       <article><span>Average position</span><strong>{summary.averagePosition ?? "—"}</strong><small>Ranked keywords only</small></article>
+    </section>
+
+    <section className="rank-weekly-report" aria-labelledby="rank-weekly-report-title">
+      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Destiny will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {new Date(weeklyReport.evidenceAt).toLocaleString()}</small> : <small>No fresh observation yet</small>}</header>
+      {weeklyReport.state === "ready" ? <>
+        <div className="rank-weekly-report-metrics">
+          <article><strong>{weeklyReport.summary.movedUp}</strong><span>Moved up</span></article>
+          <article><strong>{weeklyReport.summary.movedDown}</strong><span>Moved down</span></article>
+          <article><strong>{weeklyReport.summary.enteredTop10}</strong><span>Entered top 10</span></article>
+          <article><strong>{weeklyReport.summary.baselines.length}</strong><span>New baselines</span></article>
+        </div>
+        <div className="rank-weekly-report-details">
+          <div><strong>Best current positions</strong>{weeklyReport.topRanked.length ? <ol>{weeklyReport.topRanked.slice(0, 5).map((item) => <li key={item.keyword}><span>{item.keyword}</span><b>#{item.position}</b></li>)}</ol> : <p>No ranked keyword was observed in the first 100 results this week.</p>}</div>
+          <div><strong>Not visible in the first 100</strong>{weeklyReport.notVisible.length ? <ul>{weeklyReport.notVisible.slice(0, 5).map((item) => <li key={item}>{item}</li>)}</ul> : <p>Every fresh reading in this report had a confirmed position.</p>}</div>
+        </div>
+      </> : null}
     </section>
 
     <section aria-label="Keyword tracking sources" className="rank-source-summary">

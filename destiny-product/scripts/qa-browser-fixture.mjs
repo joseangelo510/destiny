@@ -119,6 +119,150 @@ async function createBrowserCookies(email, password) {
   }));
 }
 
+async function seedMvpCertification({ auditId, organizationId, ownerId, websiteId }) {
+  const now = new Date();
+  const completedAt = now.toISOString();
+  const keywords = [
+    { keyword: "seo consulting services", intent: "commercial", searchVolume: 900, difficulty: 35, cpc: 8.4, opportunity: "site_idea", themeId: "seo-services", themeLabel: "SEO services", themeRole: "core" },
+    { keyword: "small business seo consultant", intent: "commercial", searchVolume: 600, difficulty: 31, cpc: 7.2, opportunity: "site_idea", themeId: "seo-services", themeLabel: "SEO services", themeRole: "core" },
+    { keyword: "seo audit services", intent: "commercial", searchVolume: 450, difficulty: 29, cpc: 6.8, opportunity: "site_idea", themeId: "seo-audits", themeLabel: "SEO audits", themeRole: "supporting" },
+  ];
+
+  const auditUpdate = await service.from("audits").update({
+    status: "complete",
+    progress: 100,
+    started_at: new Date(now.getTime() - 90_000).toISOString(),
+    completed_at: completedAt,
+  }).eq("id", auditId);
+  if (auditUpdate.error) throw new Error(`Complete MVP browser audit: ${auditUpdate.error.message}`);
+
+  const metrics = await service.from("audit_metrics").insert({
+    audit_id: auditId,
+    critical_issues: 1,
+    warnings: 3,
+    ranking_keywords: 3,
+    new_keywords: 1,
+    lost_keywords: 0,
+    estimated_organic_traffic: 125,
+    referring_domains: 12,
+    content_gaps: 3,
+    google_reviews: 8,
+    raw_provider_payload: {
+      growthStage: "foundation",
+      providerResult: {
+        sourceLabel: "Disposable browser certification evidence",
+        keywords,
+        pages: [{
+          role: "homepage",
+          title: "Browser Member SEO Consulting",
+          url: "https://browser-member.example/",
+          text: "SEO consulting services and practical SEO audits for small businesses across the United States.",
+        }],
+      },
+    },
+  });
+  if (metrics.error) throw new Error(`Create MVP browser metrics: ${metrics.error.message}`);
+
+  const preferences = await service.from("keyword_preferences").insert(keywords.map((item) => ({
+    organization_id: organizationId,
+    website_id: websiteId,
+    user_id: ownerId,
+    source_audit_id: auditId,
+    keyword: item.keyword,
+    normalized_keyword: item.keyword,
+    decision: "approved",
+    theme_id: item.themeId,
+    theme_label: item.themeLabel,
+    provider_intent: item.intent,
+    search_intent: "consideration",
+    search_volume: item.searchVolume,
+    difficulty: item.difficulty,
+    priority_score: 90,
+  })));
+  if (preferences.error) throw new Error(`Create MVP browser keyword preferences: ${preferences.error.message}`);
+
+  const quests = await service.from("quests").insert([
+    { website_id: websiteId, audit_id: auditId, title: "Approve your priority keyword strategy", description: "Confirm the searches that match the business.", category: "content", status: "todo", priority: 1, task_type: "keyword_review", action_path: "/keywords", estimated_minutes: 8, requires_approval: true, week_number: 1 },
+    { website_id: websiteId, audit_id: auditId, title: "Review this week’s article", description: "Review the generated article before CMS delivery.", category: "content", status: "todo", priority: 2, task_type: "content_review", action_path: "/content", estimated_minutes: 15, requires_approval: true, week_number: 1 },
+    { website_id: websiteId, audit_id: auditId, title: "Fix the highest-impact technical issue", description: "Use the saved audit evidence to complete one technical improvement.", category: "technical", status: "todo", priority: 3, task_type: "primary_quest", action_path: `/audits/${auditId}`, estimated_minutes: 20, requires_approval: false, week_number: 1 },
+    { website_id: websiteId, audit_id: auditId, title: "Review the technical evidence", description: "Confirm the crawl and performance findings.", category: "technical", status: "todo", priority: 4, task_type: "technical_review", action_path: `/audits/${auditId}#technical-evidence`, estimated_minutes: 12, requires_approval: false, week_number: 1 },
+    { website_id: websiteId, audit_id: auditId, title: "Share the article on social media", description: "This post-launch activity must not enter the certified MVP checklist.", category: "distribution", status: "todo", priority: 5, task_type: "social_distribution", action_path: "/distribution#social", estimated_minutes: 10, requires_approval: true, week_number: 1 },
+  ]);
+  if (quests.error) throw new Error(`Create MVP browser quests: ${quests.error.message}`);
+
+  const integrationResult = await service.from("integrations").insert({
+    organization_id: organizationId,
+    website_id: websiteId,
+    provider: "wordpress",
+    external_account_id: "browser-member.example",
+    status: "connected",
+    metadata: { siteUrl: "https://browser-member.example/", label: "Disposable WordPress certification" },
+    connected_at: completedAt,
+    last_synced_at: completedAt,
+  }).select("id").single();
+  const integration = requireValue(integrationResult.data, integrationResult.error, "Create MVP browser WordPress integration");
+
+  const body = "# SEO Consulting Services: A Practical Guide\n\nThis saved certification draft proves that CMS state is rendered from persisted website-scoped data.\n\n## What to review\n\nConfirm the business claims, links, and next step before publishing.";
+  const drafts = await service.from("article_drafts").insert(keywords.map((item) => ({
+    organization_id: organizationId,
+    website_id: websiteId,
+    audit_id: auditId,
+    user_id: ownerId,
+    keyword: item.keyword,
+    draft: {
+      keyword: item.keyword,
+      title: `${item.keyword}: a practical guide`,
+      metaTitle: `${item.keyword}: a practical guide`,
+      titleCandidates: [],
+      metaDescription: `A practical guide to ${item.keyword} for small businesses.`,
+      metaDescriptions: [`A practical guide to ${item.keyword} for small businesses.`],
+      body,
+      sources: [],
+      infographics: [],
+      bucketBrigades: [],
+      generationStatus: "needs_generation",
+      qualityIssues: [],
+      optimization: [],
+    },
+  })));
+  if (drafts.error) throw new Error(`Create MVP browser article drafts: ${drafts.error.message}`);
+
+  const transfers = await service.from("cms_transfers").insert(keywords.map((item, index) => ({
+    website_id: websiteId,
+    integration_id: integration.id,
+    article_key: `${auditId}:${item.keyword}`,
+    content_hash: `browser-certification-${index + 1}`,
+    remote_id: String(800 + index),
+    remote_edit_url: `https://browser-member.example/wp-admin/post.php?post=${800 + index}&action=edit`,
+    status: "succeeded",
+    publication_status: "delivered_draft",
+    remote_status: "draft",
+    last_reconciled_at: completedAt,
+    field_report: [{ field: "title", label: "Article title", status: "transferred", note: "Saved in the WordPress draft." }],
+    completed_at: completedAt,
+  })));
+  if (transfers.error) throw new Error(`Create MVP browser CMS transfers: ${transfers.error.message}`);
+
+  const trackedResult = await service.from("tracked_keywords").insert({
+    website_id: websiteId,
+    created_by: ownerId,
+    keyword: keywords[0].keyword,
+    normalized_keyword: keywords[0].keyword,
+    source: "strategy",
+    status: "active",
+    last_checked_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
+    next_check_at: new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+  }).select("id").single();
+  const tracked = requireValue(trackedResult.data, trackedResult.error, "Create MVP browser tracked keyword");
+  const observations = await service.from("rank_observations").insert([
+    { tracked_keyword_id: tracked.id, website_id: websiteId, observed_at: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(), found: true, position: 18, result_url: "https://browser-member.example/seo-consulting", search_depth: 100, evidence: { fixture: true, phase: "previous" } },
+    { tracked_keyword_id: tracked.id, website_id: websiteId, observed_at: new Date(now.getTime() - 60 * 60 * 1000).toISOString(), found: true, position: 9, result_url: "https://browser-member.example/seo-consulting", search_depth: 100, evidence: { fixture: true, phase: "current" } },
+  ]);
+  if (observations.error) throw new Error(`Create MVP browser rank observations: ${observations.error.message}`);
+
+  return { auditId, keyword: keywords[0].keyword, trackedKeywordId: tracked.id, websiteId };
+}
+
 const ownerA = await createUser("Owner-A");
 const ownerB = await createUser("Owner-B");
 const member = await createUser("Member-C");
@@ -133,6 +277,13 @@ const alpha = await createWebsite(ownerA.client, organizationA, "Alpha", ownerA.
 const beta = await createWebsite(ownerB.client, organizationB, "Beta", ownerB.userId);
 const memberSite = await createWebsite(member.client, organizationC, "Member", member.userId);
 const outsiderSite = await createWebsite(outsider.client, organizationD, "Outsider", outsider.userId);
+
+const mvp = await seedMvpCertification({
+  auditId: memberSite.auditIds.at(-1),
+  organizationId: organizationC,
+  ownerId: member.userId,
+  websiteId: memberSite.websiteId,
+});
 
 const alphaMembership = await ownerA.client.from("organization_members").insert({
   organization_id: organizationA,
@@ -153,6 +304,7 @@ await writeFile(manifestPath, JSON.stringify({
   alpha,
   beta,
   member: memberSite,
+  mvp,
   outsiderAuditId: outsiderSite.auditIds[0],
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));

@@ -52,6 +52,9 @@ describe("Google read-only synchronization", () => {
       if (url.includes("accountSummaries")) {
         return response({ accountSummaries: [{ displayName: "Example", propertySummaries: [{ property: "properties/123", displayName: "Example site" }] }] });
       }
+      if (url.includes("properties/123/dataStreams")) {
+        return response({ dataStreams: [{ name: "properties/123/dataStreams/456", type: "WEB_DATA_STREAM", webStreamData: { defaultUri: "https://example.com" } }] });
+      }
       const body = JSON.parse(String(init?.body ?? "{}")) as { requests?: unknown[]; dateRanges?: Array<{ startDate: string; endDate: string }> };
       if (url.includes("batchRunReports")) {
         const totals = (sessions: string, users: string, engaged: string, events: string) => ({ rows: [{ metricValues: [{ value: sessions }, { value: users }, { value: engaged }, { value: events }] }] });
@@ -73,7 +76,7 @@ describe("Google read-only synchronization", () => {
       return response({}, 404);
     });
 
-    const result = await syncGoogleAnalytics("analytics-secret");
+    const result = await syncGoogleAnalytics("analytics-secret", "example.com");
 
     expect(result.externalAccountId).toBe("properties/123");
     expect(result.metadata).toMatchObject({
@@ -90,7 +93,7 @@ describe("Google read-only synchronization", () => {
       { source: "chatgpt.com", medium: "referral", sessions: 7 },
     ]);
     expect(JSON.stringify(result)).not.toContain("analytics-secret");
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("parses YouTube channel and recent analytics without exposing credentials", async () => {

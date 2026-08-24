@@ -4,8 +4,8 @@ import { latestVerifiedShareTarget } from "./share-target";
 describe("latestVerifiedShareTarget", () => {
   it("uses only the latest verified published article for the selected website", () => {
     expect(latestVerifiedShareTarget([
-      { articleKey: "audit:older-article", publicationStatus: "verified_live", remotePermalink: "https://example.com/older", verifiedLiveAt: "2026-08-10T12:00:00Z" },
-      { articleKey: "audit:newer-article", publicationStatus: "verified_live", remotePermalink: "https://example.com/newer", verifiedLiveAt: "2026-08-12T12:00:00Z" },
+      { articleKey: "audit:older-article", publicationStatus: "verified_live", remotePermalink: "https://example.com/older", verifiedLiveAt: "2026-08-10T12:00:00Z", verificationEvidence: { verified: true, httpStatus: 200, canonicalMatches: true, contentMatches: true, indexable: true } },
+      { articleKey: "audit:newer-article", publicationStatus: "verified_live", remotePermalink: "https://example.com/newer", verifiedLiveAt: "2026-08-12T12:00:00Z", verificationEvidence: { verified: true, httpStatus: 200, canonicalMatches: true, contentMatches: true, indexable: true } },
       { articleKey: "audit:draft", publicationStatus: "delivered_draft", remotePermalink: "https://example.com/draft", verifiedLiveAt: "2026-08-13T12:00:00Z" },
     ], "https://example.com", "Example Co")).toEqual({
       url: "https://example.com/newer",

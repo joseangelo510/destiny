@@ -20,7 +20,8 @@ import {
   type ArticleInternalPage,
 } from "@/lib/content/article-generation";
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
-import { publicationCopy, type CmsPublicationState } from "@/lib/cms/publication-state";
+import { buildPublicationReceipt } from "@/lib/cms/publication-receipt";
+import type { CmsPublicationState } from "@/lib/cms/publication-state";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 
 type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
@@ -33,7 +34,6 @@ export type ArticleGenerationContext = {
   differentiation: string;
   internalPages: ArticleInternalPage[];
 };
-
 function normalizeSavedDraft(value: unknown, fallback: ArticleDraft): EditableDraft {
   const saved = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<EditableDraft> : {};
   // A saved article keeps its content, but may only claim "generated" status
@@ -597,23 +597,23 @@ export function ArticleReviewWorkspace({
       {connectedProviders.map((provider) => {
         const result = cmsDrafts[`${provider.id}:${draft.keyword}`];
         if (!result) return null;
-        const publication = provider.id === "wordpress" ? publicationCopy(result.publicationStatus ?? "delivered_draft") : null;
+        const publication = provider.id === "wordpress" ? buildPublicationReceipt({ provider: provider.id, articleKey: `${auditId}:${draft.keyword}`, ...result }) : null;
         const transferred = result.fieldReport?.filter((entry) => entry.status === "transferred") ?? [];
         const needsReview = result.fieldReport?.filter((entry) => entry.status === "needs_review") ?? [];
         const unavailable = result.fieldReport?.filter((entry) => entry.status === "unavailable") ?? [];
         return <div className="integration-banner success" key={provider.id} role="status">
           <div className="cms-publication-heading">
-            <div><span className={`cms-status-chip ${result.publicationStatus ?? "delivered_draft"}`}>{publication?.label ?? (result.updated ? "Draft updated" : "Draft created")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div>
+            <div><span className={`cms-status-chip ${publication?.recordedStatus ?? result.publicationStatus ?? "delivered_draft"}`}>{publication?.label ?? (result.updated ? "Draft updated" : "Draft created")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div>
             {provider.id === "wordpress" && <button className="secondary-button" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type="button">{checkingCms === `wordpress:${draft.keyword}` ? "Checking WordPress…" : "Check WordPress status"}</button>}
           </div>
           {provider.id === "wordpress" && <ol className="cms-publication-timeline" aria-label="WordPress publication progress">
             <li className="complete"><span>1</span><div><strong>Draft delivered</strong><small>Article and planned graphics sent to WordPress</small></div></li>
-            <li className={result.publicationStatus === "scheduled" || result.publicationStatus === "published_unverified" || result.publicationStatus === "verified_live" || result.publicationStatus === "verification_failed" ? "complete" : "current"}><span>2</span><div><strong>Review and publish</strong><small>Formatting and SEO plugin fields remain under your control</small></div></li>
-            <li className={result.publicationStatus === "verified_live" ? "complete" : result.publicationStatus === "published_unverified" || result.publicationStatus === "verification_failed" ? "current" : ""}><span>3</span><div><strong>Verify the live page</strong><small>HTTP, canonical, content match, and indexability</small></div></li>
+            <li className={publication?.stage === "scheduled" || publication?.stage === "published_unverified" || publication?.stage === "live_verified" || publication?.stage === "attention" ? "complete" : "current"}><span>2</span><div><strong>Review and publish</strong><small>Formatting and SEO plugin fields remain under your control</small></div></li>
+            <li className={publication?.stage === "live_verified" ? "complete" : publication?.stage === "published_unverified" || publication?.stage === "attention" ? "current" : ""}><span>3</span><div><strong>Verify the live page</strong><small>HTTP, canonical, content match, and indexability</small></div></li>
           </ol>}
           <div className="cms-publication-actions">
             <a className="secondary-button" href={result.url} rel="noreferrer" target="_blank">Open WordPress editor</a>
-            {result.publicationStatus === "verified_live" && result.remotePermalink && <a className="primary-button" href={result.remotePermalink} rel="noreferrer" target="_blank">View verified live article</a>}
+            {publication?.canShare && publication.canonicalUrl && <a className="primary-button" href={publication.canonicalUrl} rel="noreferrer" target="_blank">View verified live article</a>}
           </div>
           {result.lastReconciledAt && <small className="cms-checked-at">Last checked {new Date(result.lastReconciledAt).toLocaleString()}</small>}
           {result.seoTitleRendered && <p><strong>Live search title:</strong> {result.seoTitleRendered} · about {estimateMetaTitleWidth(result.seoTitleRendered)}px</p>}

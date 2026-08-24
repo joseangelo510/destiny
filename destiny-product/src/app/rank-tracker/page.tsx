@@ -56,6 +56,6 @@ export default async function RankTrackerPage() {
   return <WorkspaceShell active="/rank-tracker" eyebrow={context.website.normalized_domain} title="Rank tracker" description="Follow the keywords you approved, organize them into lists, and compare evidence-backed Google positions on a consistent schedule.">
     <StrategyPipelineStrip active="rankings" approvedKeywords={approvedCount ?? 0} contentDrafts={draftCount ?? 0} watchedKeywords={(tracked ?? []).filter((row) => row.source !== "strategy").length} />
     <FeatureJourneyCallout actionHref="#rank-tracker-workspace" actionLabel="Track one approved keyword" milestone="Signs it’s working" description="Measure the customer searches your strategy says matter." doneLooksLike="A saved keyword has a fresh observation, or clearly says it is still pending." evidence="Timestamped provider reading, location, device, and result URL." />
-    <RankTrackerWorkspace initialKeywords={rows} initialLists={lists ?? []} rankingDigestFrequency={preference?.ranking_digest_frequency === "three_day" || preference?.ranking_digest_frequency === "off" ? preference.ranking_digest_frequency : "weekly"} websiteId={context.website.id} />
+    <RankTrackerWorkspace initialKeywords={rows} initialLists={lists ?? []} rankingDigestFrequency={preference?.ranking_digest_frequency === "three_day" || preference?.ranking_digest_frequency === "off" ? preference.ranking_digest_frequency : "weekly"} reportGeneratedAt={new Date().toISOString()} websiteId={context.website.id} />
   </WorkspaceShell>;
 }

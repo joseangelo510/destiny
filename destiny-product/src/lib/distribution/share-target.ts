@@ -1,9 +1,12 @@
+import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
+
 export type CmsTransferShareCandidate = {
   articleKey?: unknown;
   publicationStatus?: unknown;
   remotePermalink?: unknown;
   verifiedLiveAt?: unknown;
-};
+  verificationEvidence?: unknown;
+} & PublicationReceiptInput;
 
 export function latestVerifiedShareTarget(
   transfers: CmsTransferShareCandidate[],
@@ -11,12 +14,11 @@ export function latestVerifiedShareTarget(
   businessName: string,
 ) {
   const live = transfers
-    .filter((transfer) => transfer.publicationStatus === "verified_live")
-    .filter((transfer) => typeof transfer.remotePermalink === "string" && /^https:\/\//i.test(transfer.remotePermalink))
-    .filter((transfer) => typeof transfer.verifiedLiveAt === "string" && !Number.isNaN(Date.parse(transfer.verifiedLiveAt)))
+    .map((transfer) => buildPublicationReceipt(transfer))
+    .filter((receipt) => receipt.canShare && receipt.canonicalUrl)
     .sort((left, right) => String(right.verifiedLiveAt ?? "").localeCompare(String(left.verifiedLiveAt ?? "")))[0];
-  const url = typeof live?.remotePermalink === "string" ? live.remotePermalink : fallbackUrl;
-  const keyword = typeof live?.articleKey === "string" ? live.articleKey.split(":").at(-1)?.replaceAll("-", " ").trim() : "";
+  const url = live?.canonicalUrl ?? fallbackUrl;
+  const keyword = live?.articleKey.split(":").at(-1)?.replaceAll("-", " ").trim() ?? "";
   return {
     url,
     title: live ? `New from ${businessName}${keyword ? `: ${keyword}` : ""}` : `Explore ${businessName}`,

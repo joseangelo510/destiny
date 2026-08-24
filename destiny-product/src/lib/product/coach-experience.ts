@@ -3,6 +3,18 @@ import { isActionableGuidanceState } from "../quests/guidance-state";
 
 export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
+export const MVP_CERTIFIED_WEEKLY_TASK_TYPES = new Set([
+  "keyword_review",
+  "content_review",
+  "primary_quest",
+  "technical_review",
+]);
+
+/** Keep the launch checklist limited to actions covered by the MVP evidence journey. */
+export function certifiedMvpWeeklyTasks<T extends { task_type: string }>(tasks: T[]) {
+  return tasks.filter((task) => MVP_CERTIFIED_WEEKLY_TASK_TYPES.has(task.task_type));
+}
+
 export const PRIMARY_NAVIGATION = [
   { label: "This week", href: "/this-week" },
   { label: "Roadmap", href: "/roadmap" },
