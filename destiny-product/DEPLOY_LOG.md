@@ -125,3 +125,13 @@ Rollback reference: tag rollback/pre-recovery-1 = db1a17ad, deployment a5e94a27
 Mutations: none. Publish/schedule/social: halted.
 Next: PR A (gov/recovery-1) version endpoint + preflight; then detached checkout of new main in Replit; redeploy a5e94a27 in place; verify /api/version.
 Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
+
+## CTO governance decision: D-MVP-RECOVERY-1A
+
+[2026-08-24] D-MVP-RECOVERY-1A
+Scope amendment to D-MVP-RECOVERY-1. PR #13.
+RED: 030b646 (failed correctly, /api/version absent). GREEN: 4181bed (four focused tests pass).
+Gate: qa:inventory regenerated destiny-product/qa/inventory/routes.json (+5 lines, /api/version registration). No other changes.
+Decision: path 12 authorized, generated only, new commit after 4181bed, PR description amended before commit.
+Mutations: none. Publish/schedule/social: still halted. P1 still NO GO until deploy and /api/version verification.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1

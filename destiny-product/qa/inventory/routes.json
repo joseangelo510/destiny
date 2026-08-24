@@ -241,6 +241,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/version",
+    "file": "src/app/api/version/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/website-profile",
     "file": "src/app/api/website-profile/route.ts"
   },
