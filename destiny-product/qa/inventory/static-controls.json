@@ -999,9 +999,9 @@
     "context": "<section className=\"review-grid\"> <article className=\"workspace-card review-score\"><span className={`status-chip ${synced ? \"\" : \"amber\"}`}>{synced ? \"Synced\" : googleBusiness?.status ?? \"Not connected\"}</span><strong>{reviewCount.toLocaleString()}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!).toLocaleString()}.`"
   },
   {
-    "control_id": "src/app/this-week/page.tsx:52:summary:1",
+    "control_id": "src/app/this-week/page.tsx:53:summary:1",
     "file": "src/app/this-week/page.tsx",
-    "line": 52,
+    "line": 53,
     "type": "summary",
     "route": "/this-week",
     "side_effect_class": 1,
@@ -1662,7 +1662,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div><span className={`cms-status-chip ${result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type=\"button\">{c"
+    "context": "<div><span className={`cms-status-chip ${publication?.recordedStatus ?? result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(d"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:607:onClick:2",
@@ -1671,7 +1671,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div><span className={`cms-status-chip ${result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type=\"button\">{c"
+    "context": "<div><span className={`cms-status-chip ${publication?.recordedStatus ?? result.publicationStatus ?? \"delivered_draft\"}`}>{publication?.label ?? (result.updated ? \"Draft updated\" : \"Draft created\")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div> {provider.id === \"wordpress\" && <button className=\"secondary-button\" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(d"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:615:a:1",
@@ -1680,7 +1680,7 @@
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"cms-publication-actions\"> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {result.publicationStatus === \"verified_live\" && result.remotePermalink && <a className=\"primary-button\" href={result.remotePermalink} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>}"
+    "context": "<div className=\"cms-publication-actions\"> <a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {publication?.canShare && publication.canonicalUrl && <a className=\"primary-button\" href={publication.canonicalUrl} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>}"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:616:a:1",
@@ -1689,7 +1689,7 @@
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {result.publicationStatus === \"verified_live\" && result.remotePermalink && <a className=\"primary-button\" href={result.remotePermalink} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>} </div>"
+    "context": "<a className=\"secondary-button\" href={result.url} rel=\"noreferrer\" target=\"_blank\">Open WordPress editor</a> {publication?.canShare && publication.canonicalUrl && <a className=\"primary-button\" href={publication.canonicalUrl} rel=\"noreferrer\" target=\"_blank\">View verified live article</a>} </div>"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:636:Link:1",
@@ -2592,31 +2592,67 @@
     "context": "</div> <Link className=\"game-plan-text-link\" href={auditHref}>Read the full audit →</Link> </section>"
   },
   {
-    "control_id": "src/components/google-integration-action.tsx:32:button:1",
+    "control_id": "src/components/google-integration-action.tsx:66:button:1",
     "file": "src/components/google-integration-action.tsx",
-    "line": 32,
+    "line": 66,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
-    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{message && <small>{message}</small>}</div>; }"
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
   },
   {
-    "control_id": "src/components/google-integration-action.tsx:32:onClick:2",
+    "control_id": "src/components/google-integration-action.tsx:66:onClick:2",
     "file": "src/components/google-integration-action.tsx",
-    "line": 32,
+    "line": 66,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
-    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{message && <small>{message}</small>}</div>; }"
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
   },
   {
-    "control_id": "src/components/google-integration-action.tsx:32:Link:3",
+    "control_id": "src/components/google-integration-action.tsx:66:Link:3",
     "file": "src/components/google-integration-action.tsx",
-    "line": 32,
+    "line": 66,
     "type": "Link",
     "route": "component",
     "side_effect_class": 2,
-    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{message && <small>{message}</small>}</div>; }"
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
+  },
+  {
+    "control_id": "src/components/google-integration-action.tsx:66:select:4",
+    "file": "src/components/google-integration-action.tsx",
+    "line": 66,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
+  },
+  {
+    "control_id": "src/components/google-integration-action.tsx:66:onChange:5",
+    "file": "src/components/google-integration-action.tsx",
+    "line": 66,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
+  },
+  {
+    "control_id": "src/components/google-integration-action.tsx:66:button:6",
+    "file": "src/components/google-integration-action.tsx",
+    "line": 66,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
+  },
+  {
+    "control_id": "src/components/google-integration-action.tsx:66:onClick:7",
+    "file": "src/components/google-integration-action.tsx",
+    "line": 66,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className=\"integration-actions\">{connected && <button className=\"primary-button\" disabled={syncing} onClick={() => void sync()} type=\"button\">{syncing ? \"Syncing…\" : \"Sync now\"}</button>}<Link className=\"secondary-button integration-action\" href={connectHref}>{connected ? \"Reconnect\" : \"Connect Google\"}</Link>{choices.length > 0 && <div className=\"google-resource-picker\"><label><span>Website property</span><select aria-label=\"Google website property\" disabled={syncing} onChange={(eve"
   },
   {
     "control_id": "src/components/infographic-generator.tsx:93:select:1",
@@ -5274,171 +5310,171 @@
     "context": "return <div className=\"quest-completion\"><button className={complete ? \"secondary-button\" : \"primary-button\"} disabled={saving} onClick={() => void update()} type=\"button\">{saving ? \"Saving…\" : complete ? (completedLabel ?? \"Reopen quest\") : (completeLabel ?? \"Mark complete\")}</button>{error && <span>{error}</span>}</div>; }"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:119:button:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:147:button:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 119,
+    "line": 147,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:119:onClick:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:147:onClick:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 119,
+    "line": 147,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:120:button:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:148:button:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 120,
+    "line": 148,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:120:onClick:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:148:onClick:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 120,
+    "line": 148,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:121:button:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:149:button:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 121,
+    "line": 149,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:121:onClick:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:149:onClick:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 121,
+    "line": 149,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:122:form:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:form:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 122,
+    "line": 150,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:122:onSubmit:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:onSubmit:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 122,
+    "line": 150,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:122:input:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:input:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 122,
+    "line": 150,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:122:onChange:4",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:onChange:4",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 122,
+    "line": 150,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:122:button:5",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:button:5",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 122,
+    "line": 150,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:126:form:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:154:form:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 126,
+    "line": 154,
     "type": "form",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:126:onSubmit:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:154:onSubmit:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 126,
+    "line": 154,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:126:input:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:154:input:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 126,
+    "line": 154,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:126:onChange:4",
+    "control_id": "src/components/rank-tracker-workspace.tsx:154:onChange:4",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 126,
+    "line": 154,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:126:button:5",
+    "control_id": "src/components/rank-tracker-workspace.tsx:154:button:5",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 126,
+    "line": 154,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:131:a:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:159:a:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 131,
+    "line": 159,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:131:select:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:159:select:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 131,
+    "line": 159,
     "type": "select",
     "route": "component",
     "side_effect_class": 0,
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:131:onChange:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:159:onChange:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 131,
+    "line": 159,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
