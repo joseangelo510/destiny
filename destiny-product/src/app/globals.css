@@ -611,6 +611,10 @@ button { cursor: pointer; }
 .integration-action { white-space: nowrap; }
 .integration-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .integration-actions small { color: var(--muted); flex-basis: 100%; text-align: right; }
+.google-resource-picker { align-items: end; background: #f3f7f5; border: 1px solid #d9e5df; border-radius: 12px; display: grid; flex-basis: 100%; gap: 8px; grid-template-columns: minmax(190px, 1fr) auto; padding: 10px; }
+.google-resource-picker label { display: grid; gap: 4px; }
+.google-resource-picker label span { color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.google-resource-picker select { background: white; border: 1px solid var(--line); border-radius: 8px; min-height: 38px; padding: 7px 9px; }
 .integration-banner { background: #f2f5f3; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); padding: 16px 18px; }
 .integration-banner.success { background: #eaf6ef; border-color: #c8e4d3; color: var(--forest-dark); }
 .integration-banner.warning { background: #fff5dc; border-color: #f0dca7; color: #785a17; }

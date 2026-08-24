@@ -34,7 +34,7 @@ async function freshAccessToken(token: Record<string, unknown>) {
 export default {
   fetch: withSupabase({ auth: "user" }, async (request, context) => {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
-    const body = await request.json().catch(() => ({})) as { provider?: unknown; websiteId?: unknown };
+    const body = await request.json().catch(() => ({})) as { provider?: unknown; websiteId?: unknown; selectedResourceId?: unknown };
     if (typeof body.provider !== "string" || !providers.has(body.provider) || typeof body.websiteId !== "string") {
       return json({ error: "Choose a supported Google connection and website." }, 400);
     }
@@ -43,7 +43,7 @@ export default {
 
     const [{ data: website }, { data: integration }] = await Promise.all([
       context.supabase.from("websites").select("id,normalized_domain").eq("id", body.websiteId).maybeSingle(),
-      context.supabase.from("integrations").select("id,provider,status,scopes,updated_at").eq("website_id", body.websiteId).eq("provider", body.provider).maybeSingle(),
+      context.supabase.from("integrations").select("id,provider,status,scopes,updated_at,external_account_id,metadata").eq("website_id", body.websiteId).eq("provider", body.provider).maybeSingle(),
     ]);
     if (!website) return json({ error: "You do not have access to that website." }, 403);
     if (!integration) return json({ error: "Connect this Google product before syncing it." }, 409);
@@ -72,10 +72,15 @@ export default {
       });
       if (tokenError || !tokenData || typeof tokenData !== "object" || Array.isArray(tokenData)) throw new Error("Google credentials were not found. Reconnect this account.");
       const { accessToken, refreshedToken } = await freshAccessToken(tokenData as Record<string, unknown>);
+      const requestedResourceId = typeof body.selectedResourceId === "string" && body.selectedResourceId.trim()
+        ? body.selectedResourceId.trim()
+        : typeof integration.external_account_id === "string" && integration.external_account_id.trim()
+        ? integration.external_account_id.trim()
+        : null;
       const result = integration.provider === "google_search_console"
-        ? await syncSearchConsole(accessToken, website.normalized_domain)
+        ? await syncSearchConsole(accessToken, website.normalized_domain, requestedResourceId)
         : integration.provider === "google_analytics"
-        ? await syncGoogleAnalytics(accessToken)
+        ? await syncGoogleAnalytics(accessToken, website.normalized_domain, requestedResourceId)
         : integration.provider === "google_business_profile"
         ? await syncBusinessProfile(accessToken, website.normalized_domain)
         : await syncYouTube(accessToken);
@@ -97,7 +102,7 @@ export default {
         status: "connected",
       }).eq("id", integration.id);
       if (updateError) throw new Error("Destiny could not save the Google data snapshot.");
-      return json({ provider: integration.provider, syncedAt, summary: result.metadata });
+      return json({ provider: integration.provider, syncedAt, selectionRequired: result.metadata.selectionRequired === true, summary: result.metadata });
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Destiny could not sync this Google connection.";
       console.error("Google sync failed", integration.provider, message);

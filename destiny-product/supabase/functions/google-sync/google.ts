@@ -18,6 +18,13 @@ function domainFromUrl(value: string) {
   try { return new URL(value).hostname.toLowerCase().replace(/^www\./, ""); } catch { return ""; }
 }
 
+function normalizedDomain(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("sc-domain:")) return trimmed.slice("sc-domain:".length).replace(/^www\./, "").replace(/\.$/, "");
+  return domainFromUrl(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+}
+
 async function googleJson(url: string, accessToken: string, init?: RequestInit) {
   const response = await fetch(url, {
     ...init,
@@ -53,15 +60,33 @@ function searchDaily(payload: unknown) {
   }).sort((left, right) => left.date.localeCompare(right.date));
 }
 
-export async function syncSearchConsole(accessToken: string, domain: string): Promise<GoogleSyncResult> {
+export async function syncSearchConsole(accessToken: string, domain: string, requestedSiteUrl?: string | null): Promise<GoogleSyncResult> {
+  const requestedDomain = normalizedDomain(domain);
+  if (!requestedDomain) throw new Error("Destiny could not verify the website domain for Search Console.");
   const sitesPayload = record(await googleJson("https://www.googleapis.com/webmasters/v3/sites", accessToken));
   const sites = list(sitesPayload.siteEntry).map(record);
-  const selected = sites.find((site) => text(site.siteUrl) === `sc-domain:${domain}`)
-    ?? sites.find((site) => domainFromUrl(text(site.siteUrl)) === domain)
-    ?? sites[0];
-  if (!selected) return { externalAccountId: null, metadata: { siteCount: 0, notice: "No Search Console property was available to this Google account." } };
+  const availableSites = sites.slice(0, 25).map((site) => {
+    const siteUrl = text(site.siteUrl);
+    return {
+      siteUrl,
+      permissionLevel: text(site.permissionLevel),
+      matchesWebsite: normalizedDomain(siteUrl) === requestedDomain,
+    };
+  });
+  const matches = availableSites.filter((site) => site.matchesWebsite);
+  if (!matches.length) throw new Error(`No Search Console property matches ${requestedDomain}. Connect a Google account that can access this website.`);
+  if (!requestedSiteUrl && matches.length > 1) {
+    return {
+      externalAccountId: null,
+      metadata: { selectionRequired: true, requestedDomain, siteCount: sites.length, availableSites },
+    };
+  }
+  const selectedSite = requestedSiteUrl
+    ? availableSites.find((site) => site.siteUrl === requestedSiteUrl)
+    : matches[0];
+  if (!selectedSite?.matchesWebsite) throw new Error(`The selected Search Console property does not match ${requestedDomain}.`);
 
-  const siteUrl = text(selected.siteUrl);
+  const siteUrl = selectedSite.siteUrl;
   const endpoint = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`;
   const current30 = reportingDates(30);
   const previous30 = reportingDates(30, true);
@@ -98,7 +123,8 @@ export async function syncSearchConsole(accessToken: string, domain: string): Pr
     metadata: {
       ...current30,
       selectedSiteUrl: siteUrl,
-      availableSites: sites.slice(0, 25).map((site) => ({ siteUrl: text(site.siteUrl), permissionLevel: text(site.permissionLevel) })),
+      requestedDomain,
+      availableSites,
       clicks: totals30.clicks, impressions: totals30.impressions, ctr: totals30.ctr, position: totals30.position, topQueries,
       periods: {
         "30": period(current30, previous30, totals30, prior30),
@@ -138,7 +164,9 @@ function analyticsTrafficSources(payload: unknown) {
   });
 }
 
-export async function syncGoogleAnalytics(accessToken: string): Promise<GoogleSyncResult> {
+export async function syncGoogleAnalytics(accessToken: string, domain?: string, requestedProperty?: string | null): Promise<GoogleSyncResult> {
+  const requestedDomain = normalizedDomain(domain ?? "");
+  if (!requestedDomain) throw new Error("Destiny could not verify the website domain for Google Analytics.");
   const accountsPayload = record(await googleJson("https://analyticsadmin.googleapis.com/v1beta/accountSummaries?pageSize=200", accessToken));
   const properties = list(accountsPayload.accountSummaries).flatMap((accountValue) => {
     const account = record(accountValue);
@@ -147,8 +175,44 @@ export async function syncGoogleAnalytics(accessToken: string): Promise<GoogleSy
       return { property: text(property.property), displayName: text(property.displayName), accountName: text(account.displayName) };
     });
   }).filter((property) => property.property);
-  const selected = properties[0];
-  if (!selected) return { externalAccountId: null, metadata: { propertyCount: 0, notice: "No GA4 property was available to this Google account." } };
+  if (!properties.length) return { externalAccountId: null, metadata: { propertyCount: 0, notice: "No GA4 property was available to this Google account." } };
+  const propertiesWithStreams = await Promise.all(properties.slice(0, 50).map(async (property) => {
+    const payload = record(await googleJson(`https://analyticsadmin.googleapis.com/v1beta/${property.property}/dataStreams?pageSize=200`, accessToken));
+    const streams = list(payload.dataStreams).map(record).flatMap((stream) => {
+      const defaultUri = text(record(stream.webStreamData).defaultUri);
+      if (!defaultUri) return [];
+      return [{
+        name: text(stream.name),
+        displayName: text(stream.displayName),
+        defaultUri,
+        domain: normalizedDomain(defaultUri),
+      }];
+    });
+    const matchesWebsite = streams.some((stream) => stream.domain === requestedDomain);
+    return {
+      ...property,
+      streams,
+      matchesWebsite,
+      matchedDomain: matchesWebsite ? requestedDomain : null,
+    };
+  }));
+  const matches = propertiesWithStreams.filter((property) => property.matchesWebsite);
+  if (!matches.length) throw new Error(`No GA4 web data stream matches ${requestedDomain}. Connect or configure the Analytics property for this website.`);
+  if (!requestedProperty && matches.length > 1) {
+    return {
+      externalAccountId: null,
+      metadata: {
+        selectionRequired: true,
+        requestedDomain,
+        propertyCount: propertiesWithStreams.length,
+        availableProperties: propertiesWithStreams,
+      },
+    };
+  }
+  const selected = requestedProperty
+    ? propertiesWithStreams.find((property) => property.property === requestedProperty)
+    : matches[0];
+  if (!selected?.matchesWebsite) throw new Error(`The selected GA4 property does not match ${requestedDomain}.`);
 
   const current30 = reportingDates(30);
   const previous30 = reportingDates(30, true);
@@ -210,7 +274,8 @@ export async function syncGoogleAnalytics(accessToken: string): Promise<GoogleSy
     externalAccountId: selected.property,
     metadata: {
       selectedProperty: selected,
-      availableProperties: properties.slice(0, 50),
+      requestedDomain,
+      availableProperties: propertiesWithStreams,
       dateRange: "Last 30 complete days",
       organicSessions: currentPeriod.organicSessions,
       organicActiveUsers: currentPeriod.organicActiveUsers,
