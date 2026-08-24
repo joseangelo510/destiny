@@ -5,7 +5,7 @@ import { DiscoveryMomentCard, FounderWhyVault, WitnessLog } from "@/components/f
 import { WeeklyLoop } from "@/components/weekly-loop";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
-import { buildCoachTaskSet } from "@/lib/product/coach-experience";
+import { buildCoachTaskSet, certifiedMvpWeeklyTasks } from "@/lib/product/coach-experience";
 import { buildWitnessLog, selectDiscoveryMoment } from "@/lib/product/founder-journey";
 import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
@@ -21,7 +21,8 @@ export default async function ThisWeekPage() {
   if (!context.audit || context.audit.status !== "complete") {
     return <WorkspaceShell active="/this-week" eyebrow={context.website.normalized_domain} title="This week" description="Destiny turns your audit into one clear, guided checklist."><WorkspaceEmpty title="Your audit is still being prepared" description="Destiny will notify you when the evidence and weekly plan are ready." /></WorkspaceShell>;
   }
-  const allTasks = context.quests.filter((task) => task.audit_id === context.audit?.id);
+  const auditTasks = context.quests.filter((task) => task.audit_id === context.audit?.id);
+  const allTasks = certifiedMvpWeeklyTasks(auditTasks);
   const coach = await buildCoachTaskSet(allTasks);
   const actionableTasks = coach.actionable;
   const groups = coach.loopGroups;
