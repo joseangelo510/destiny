@@ -100,3 +100,49 @@ Copy this commented template for each release. Remove the comment markers only a
 - pull-request control: the HIGH PR requires the `cto-approved` label applied by `joseangelo510`; no actor may substitute for Jose or weaken this requirement
 - completion rule: this program is not complete until the protected PR is merged, all required checks are green for the merge SHA, and the completion report contains the PR URL, merge SHA, and check-run URLs
 - rollback: protected revert PR only; no direct production edit, history rewrite, migration rollback, tag mutation, or admin bypass
+
+## CTO product decision: D-MVP-CERTIFICATION-2
+
+2026-08-24 | D-MVP-CERTIFICATION-2 | HIGH | CONDITIONAL GO | Issued by: Fable 5 High (Destiny CTO, HARNESS_POLICY.md GOV-1)
+Scope: Live end-to-end certification on production customer properties joseangelostudios.com and clearcheck.app.
+Canonical build: main @ 8e2100323196c9cf0145ef78824294213df169ba (PR #12). Post-merge harness green: https://github.com/joseangelo510/destiny/actions/runs/32698351937
+Extends: D-MVP-CERTIFICATION-1 (non-production only). Does not revoke it.
+Authorized: onboarding; GSC + GA connection; keyword strategy; keyword add/remove/approve/decline; editorial calendar; content generation + expert review to DRAFT only; CMS draft delivery; ONE immediate publish of a pre-existing approved post per site; ONE scheduled publish of a pre-existing approved post per site at approximately +60 min; schedule execution verification; social share of verified live URL to connected LinkedIn and X per site; site-bound receipt verification; cross-site isolation verification.
+Not authorized: publishing any content generated today; email sends; Fly production deploy; code/migration/RLS/secret/tag/billing/redirect changes; any action on clearcheck.app production or client social accounts without written client authorization on file (section 3 condition C1).
+Runtime environment executing test: [RECORD: instance URL, env name, running SHA, operator account] (preflight P1, must equal 8e21003).
+Stop conditions: section 7 of decision record. Rollback owner: Jose. Evidence ledger: [RECORD: path].
+Status: OPEN. Close with PASS / PASS-WITH-EXCEPTIONS / FAIL and evidence ledger link.
+
+## CTO governance decision: D-MVP-RECOVERY-1
+
+[2026-08-24] D-MVP-RECOVERY-1
+Status: P1 HARD NO GO. Certification OPEN. Production UNVERIFIED.
+Canonical main: 8e2100323196c9cf0145ef78824294213df169ba (tree e3baafcd2300c5bde18ccabbf5c6ab3a23b642a7)
+Harness: https://github.com/joseangelo510/destiny/actions/runs/32698351937
+Live: https://destiny-seo.replit.app, Replit VM deployment a5e94a27-6ca6-4f32-a8a7-08e671bf965d, runtime SHA not exposed
+Replit workspace: codex/interviews-feature @ db1a17adccad9f2a29d3241146fc4f65651a0dcf (tree c492deeec56cbe82aca6b9bbcda573dbb8dcfeb7), merge base 28d184fd, ahead 1 behind 63
+Rollback reference: tag rollback/pre-recovery-1 = db1a17ad, deployment a5e94a27
+Mutations: none. Publish/schedule/social: halted.
+Next: PR A (gov/recovery-1) version endpoint + preflight; then detached checkout of new main in Replit; redeploy a5e94a27 in place; verify /api/version.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
+
+## CTO governance decision: D-MVP-RECOVERY-1B
+
+[2026-08-24] D-MVP-RECOVERY-1B
+Second gate amendment to D-MVP-RECOVERY-1. PR #13, head a95058fac3d1bc6dbbbc0770de49268f8cbf50ac before amendment.
+Gate at a95058f: repo policy, commit policy, deploy log policy, inventory, migrations, dependency audit, lint passed. Vitest failed.
+Failure 1: route-auth-census rejected src/app/api/version/route.ts. Decision: GO, path 13 authorized, one allowlist entry with written justification, no logic change.
+Failure 2: two commit-policy-canonical-main-ref tests timed out at 5s, no assertion failure. Decision: no file change, one unchanged rerun, CI harness authoritative, halt if repeated.
+Sequence: PR body amended to 13 paths, test-change: commit (census test only), green: commit (decision + log only), full gate once, CI run.
+Mutations: none. Publish/schedule/social: still halted. P1 still NO GO until deploy and /api/version verification.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
+
+## CTO governance decision: D-MVP-RECOVERY-1A
+
+[2026-08-24] D-MVP-RECOVERY-1A
+Scope amendment to D-MVP-RECOVERY-1. PR #13.
+RED: 030b646 (failed correctly, /api/version absent). GREEN: 4181bed (four focused tests pass).
+Gate: qa:inventory regenerated destiny-product/qa/inventory/routes.json (+5 lines, /api/version registration). No other changes.
+Decision: path 12 authorized, generated only, new commit after 4181bed, PR description amended before commit.
+Mutations: none. Publish/schedule/social: still halted. P1 still NO GO until deploy and /api/version verification.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
