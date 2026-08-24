@@ -1,0 +1,59 @@
+name: Destiny staging evidence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: destiny-staging-evidence-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  staging-evidence:
+    name: staging-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: destiny-product
+    env:
+      DESTINY_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      DESTINY_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      DESTINY_STAGING_PORT: "4173"
+
+    steps:
+      - name: Check out the exact PR head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Install pnpm 11.9.0
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: destiny-product/pnpm-lock.yaml
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and probe the CI-ephemeral staging candidate
+        run: pnpm exec node scripts/staging-evidence.mjs
+
+      - name: Preserve staging evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: destiny-staging-evidence-${{ github.run_id }}
+          path: destiny-product/qa/artifacts/staging-evidence/
+          if-no-files-found: warn
+          retention-days: 30
