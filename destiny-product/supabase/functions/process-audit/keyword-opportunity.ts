@@ -24,6 +24,19 @@ export type KeywordBusinessContext = {
   locationEvidence?: string;
 };
 
+export type KeywordQualityRejectionReason =
+  | "no_measured_demand"
+  | "not_a_search_phrase"
+  | "unsupported_business_model"
+  | "unsupported_location"
+  | "missing_business_evidence"
+  | "search_noise";
+
+export type KeywordQualityGateResult = {
+  accepted: boolean;
+  rejectionReasons: KeywordQualityRejectionReason[];
+};
+
 export type ProviderIntent = "transactional" | "commercial" | "navigational" | "informational";
 export type CustomerIntent = "conversion" | "consideration" | "awareness";
 
@@ -108,6 +121,7 @@ const INSTITUTION = /\b(?:academy|colleges?|school|universit(?:y|ies))\b/i;
 const INSTITUTION_RESEARCH = /\b(?:acceptance rate|admissions?|application|best|deadline|essay|get into|requirements?|ranking|top|tuition)\b/i;
 const SCHOOL_RESEARCH_WITHOUT_INSTITUTION_SUFFIX = /\b(?:acceptance rate|admissions? requirements?|how to get into)\b/i;
 const PROOF_OR_SENTENCE_FRAGMENT = /\b(?:customers? need|earned|five[ -]star|served)\b/i;
+const COPIED_BUSINESS_LANGUAGE = /(?:^\s*(?:serve|serving)\b|\b\d+\s*(?:five[ -]star|5[ -]star|star)\s+reviews?\b)/i;
 const RECURRING_COLLECTION_QUERY = /\b(?:interstate waste services?|pick up rubbish services?|rubbish collection services?|rubbish pickup|trash pickup(?: services?)?|trash services?|waste collection services?|waste management residential services?|waste pickup|bulk pickup trash|garbage waste pickup|curbside pickup waste management)\b/i;
 const RENTAL_SERVICE_QUERY = /\b(?:dumpster|truck) rentals?\b/i;
 const TRUCK_EQUIPMENT_QUERY = /\b(?:disposal|dump|garbage|waste) trucks?\b/i;
@@ -208,12 +222,64 @@ function contextProfile(context: KeywordBusinessContext) {
   };
 }
 
+function contextIsServiceBusiness(context: KeywordBusinessContext, description: string) {
+  return SERVICE_BUSINESS.test(description)
+    || SERVICE_ACTION_QUERY.test(context.productsServices ?? "");
+}
+
 function isNoise(keyword: string) {
   const normalized = keyword.trim();
   if (!normalized || NOISE.test(normalized)) return true;
   const tokens = normalized.match(/[a-z]+|\d+/gi) ?? [];
   const numeric = tokens.filter((token) => /^\d+$/.test(token)).length;
   return numeric >= 2 && numeric / Math.max(tokens.length, 1) >= 0.4;
+}
+
+/**
+ * A small, deterministic admission gate for owner-facing keyword ideas.
+ *
+ * This deliberately runs before scoring. Provider rows and onboarding prose
+ * are research inputs; they are not recommendations until they describe a
+ * measured search, fit the business model, and pass the basic phrase checks.
+ */
+export function keywordQualityGate(
+  candidate: KeywordCandidate,
+  context: KeywordBusinessContext,
+): KeywordQualityGateResult {
+  const volume = Number(candidate.searchVolume);
+  if (!Number.isFinite(volume) || volume <= 0) {
+    return { accepted: false, rejectionReasons: ["no_measured_demand"] };
+  }
+
+  const keyword = String(candidate.keyword ?? "").normalize("NFKC").trim();
+  const tokens = keyword.match(/[a-z]+|\d+/gi) ?? [];
+  if (
+    tokens.length < 2
+    || PROOF_OR_SENTENCE_FRAGMENT.test(keyword)
+    || COPIED_BUSINESS_LANGUAGE.test(keyword)
+  ) {
+    return { accepted: false, rejectionReasons: ["not_a_search_phrase"] };
+  }
+
+  if (isNoise(keyword)) {
+    return { accepted: false, rejectionReasons: ["search_noise"] };
+  }
+
+  const business = contextProfile(context);
+  const serviceBusiness = contextIsServiceBusiness(context, business.description);
+  const businessOffersSoftware = SOFTWARE_PRODUCT.test(business.description);
+  if (
+    (serviceBusiness && !businessOffersSoftware && SOFTWARE_PRODUCT.test(keyword))
+    || (businessOffersSoftware && !serviceBusiness && SERVICE_PROVIDER_QUERY.test(keyword))
+  ) {
+    return { accepted: false, rejectionReasons: ["unsupported_business_model"] };
+  }
+
+  if (keywordHasGeographicConflict(candidate, context)) {
+    return { accepted: false, rejectionReasons: ["unsupported_location"] };
+  }
+
+  return { accepted: true, rejectionReasons: [] };
 }
 
 function isLowEvidenceSiteIdea(candidate: KeywordCandidate, businessTokens: Set<string>) {
@@ -485,15 +551,13 @@ export function rankKeywordOpportunities<T extends KeywordCandidate>(
 ): Array<RankedKeywordOpportunity<T>> {
   const business = contextProfile(context);
   const businessDescription = business.description;
-  const serviceBusiness = SERVICE_BUSINESS.test(businessDescription);
+  const serviceBusiness = contextIsServiceBusiness(context, businessDescription);
   const businessOffersSoftware = SOFTWARE_PRODUCT.test(businessDescription);
   const seen = new Set<string>();
   const ranked = candidates.flatMap((candidate) => {
+    const quality = keywordQualityGate(candidate, context);
+    if (!quality.accepted) return [];
     const volume = Number(candidate.searchVolume);
-    // Recommendations must be backed by a positive DataForSEO demand record.
-    // Raw onboarding phrases can be useful as expansion queries, never as
-    // recommendable keywords in their own right.
-    if (!Number.isFinite(volume) || volume <= 0) return [];
     const identity = canonicalTokens(candidate.keyword).join(" ");
     if (!identity || seen.has(identity) || isNoise(candidate.keyword)) return [];
     const keywordTokens = new Set(canonicalTokens(candidate.keyword));
