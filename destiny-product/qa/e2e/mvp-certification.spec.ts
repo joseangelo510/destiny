@@ -76,7 +76,7 @@ test.describe("@gate certified MVP journey", () => {
     expect(reconciliations).toBeGreaterThanOrEqual(2);
   });
 
-  test("Editorial calendar verifies a past-due WordPress schedule before calling it live", async ({ page }) => {
+  test("Editorial calendar keeps a past-due WordPress schedule unverified until reconciliation", async ({ page }) => {
     const permalink = "https://browser-member.example/guides/seo-consulting-services/";
     let calendarChecks = 0;
     await page.route("**/api/content/publishing-plan/reconcile", async (route) => {
