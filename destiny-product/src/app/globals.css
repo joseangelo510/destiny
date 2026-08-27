@@ -2591,6 +2591,12 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 .keyword-insight-card button, .keyword-serp-questions button, .research-row-action { background: white; border: 1px solid #bfd0c7; border-radius: 8px; color: var(--forest); cursor: pointer; font-size: 9px; font-weight: 850; padding: 7px 9px; white-space: nowrap; }
 .keyword-insight-card button:hover, .keyword-serp-questions button:hover, .research-row-action:hover { background: #edf6f1; }
 .keyword-insight-empty { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 0; }
+.keyword-sample-card { background: #f7f3e8; border-color: #ddd1ae; }
+.keyword-sample-badge { background: #e6d9b6; border: 1px solid #d5c393; border-radius: 999px; color: #665729; display: inline-flex; font-size: 8px; font-weight: 900; letter-spacing: .08em; padding: 4px 7px; text-transform: uppercase; }
+.keyword-sample-note { color: #6e654d; font-size: 10px; line-height: 1.55; margin: 0 0 10px; }
+.keyword-sample-serp { grid-column: 1 / -1; }
+.keyword-sample-results li { background: rgba(255, 255, 255, .56); border-color: #ddd1ae; }
+.keyword-sample-results strong { color: var(--ink); display: block; font-size: 11px; }
 .research-row-action.saved { background: #e7f2ec; border-color: #c7ddd2; color: #2e7658; }
 .research-row-action:disabled { cursor: not-allowed; opacity: .55; }
 .keyword-serp-drawer, .keyword-save-panel { background: #fff; border: 1px solid #bcd1c6; border-radius: 20px; box-shadow: 0 18px 45px rgba(24, 58, 47, .09); padding: 22px; }
