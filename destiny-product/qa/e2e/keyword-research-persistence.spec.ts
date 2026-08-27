@@ -41,6 +41,30 @@ const researchResult = {
 };
 
 test.describe("@gate keyword research persistence", () => {
+  test("labels unavailable SERP surfaces as non-interactive sample data", async ({ page }) => {
+    await page.route("**/api/research/keywords", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ ...researchResult, serpEvidenceStatus: "unavailable" }),
+        status: 200,
+      });
+    });
+
+    await page.goto(`/keyword-research?site=${fixture!.mvp.websiteId}`);
+    const searchPanel = page.locator(".research-search-panel");
+    await searchPanel.getByRole("button", { name: "Keyword", exact: true }).click();
+    await searchPanel.getByLabel("Keyword phrase").fill(query);
+    await searchPanel.getByRole("button", { name: "Search", exact: true }).click();
+
+    await expect(page.getByText("Sample data", { exact: true })).toHaveCount(3);
+    await expect(page.getByText("These are example questions to show how this section works. Live questions from Google aren't connected yet.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Example opportunities shown as a preview. Live suggestions are coming soon.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Example first-page results", { exact: true })).toBeVisible();
+    await expect(page.getByText("Live first-page evidence", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "First-page preview (sample)" }).first()).toBeDisabled();
+    await expect(page.getByLabel(`First-page results for ${query}`)).toHaveCount(0);
+  });
+
   test("researches first-page evidence and keeps two saved ideas in their named list after revisit", async ({ page }, testInfo) => {
     const mobile = testInfo.project.name === "mobile";
     const question = mobile
