@@ -199,3 +199,35 @@ Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts fo
   first; `clearcheck.app` only with client authorization recorded here; no
   generated-today content).
 Status: AUTHORIZED — awaiting execution + P1 evidence.
+
+## D-MVP-M3-P1-REDEPLOY-2 — 2026-08-26
+
+Authority: Fable 5 High (CTO decision) after the first M3 publish lacked verifiable
+build provenance and the public version endpoint remained on the old behavior.
+Decision: CONDITIONAL GO — exactly one owner-account Replit UI redeploy of the
+existing deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d` from the already
+verified detached workspace commit `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`,
+tree `235f628315cbfb58f55766456985828557d798e6`.
+First-attempt receipt: the connector reported the same deployment pending, building,
+then running; Replit reported an active successful VM build but exposed no independent
+build ID, timestamp, source SHA, or logs. Public `/` returned 200 while exact GET
+`/api/version` returned 401. P1 therefore remained NO GO. No rollback was performed
+because the live root stayed healthy and no 5xx was observed.
+Required preconditions: detached commit and tree still match and the worktree is clean;
+the workspace contains the public version route and build-stamp code; deployment config
+rebuilds the served artifact from this workspace; the public domain maps only to the
+existing deployment; a cache-busted, no-cache version request still returns 401.
+Mechanism: Replit Deployments UI only, using the existing deployment's Redeploy or
+Republish action. Capture deployment history before and after plus the post-initiation
+successful build log and timestamp.
+Proof required: post-initiation UI build receipt; root 200; `/api/version` 200 with the
+authorized commit/tree build stamp; and zero 5xx on touched routes.
+Prohibited: a second connector publish, Replit Agent mutation, new deployment, code or
+configuration edits, environment/secret/domain/dependency changes, or any third publish.
+Stop: if any precondition fails, do not redeploy. After redeploy, `/api/version` still
+401 or stamp mismatch means halt with P1 NO GO and no third attempt. Roll back through
+deployment history only if root becomes non-200 or core routes return 5xx.
+Merge hold: PRs #17 and #18 remain unmerged until P1 is green.
+Status: AUTHORIZED — awaiting recorded protected merge, preconditions, one UI redeploy,
+and P1 evidence.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
