@@ -1,3 +1,5 @@
+import { formatUtcDate } from "../format-date";
+
 export type GuidanceState = "active" | "waiting" | "blocked";
 
 export type GuidanceStateInput = {
@@ -16,7 +18,7 @@ export function isActionableGuidanceState(state?: string | null, followUpAt?: st
 
 export function guidancePresentation(task: { guidance_state?: string | null; follow_up_at?: string | null; blocker_reason?: string | null; blocker_owner?: string | null }) {
   if (task.guidance_state === "waiting") {
-    return { label: "Waiting", detail: task.follow_up_at ? `Resumes ${new Date(task.follow_up_at).toLocaleDateString()}.` : "Needs a follow-up date.", tone: "waiting" as const };
+    return { label: "Waiting", detail: task.follow_up_at ? `Resumes ${formatUtcDate(task.follow_up_at)}.` : "Needs a follow-up date.", tone: "waiting" as const };
   }
   if (task.guidance_state === "blocked") {
     return { label: "Blocked", detail: `${task.blocker_owner || "An owner"} needs to resolve: ${task.blocker_reason || "No reason saved."}`, tone: "blocked" as const };
