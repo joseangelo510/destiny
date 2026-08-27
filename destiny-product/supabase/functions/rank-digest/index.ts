@@ -2,7 +2,7 @@ import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { renderRankDigestEmail } from "./email.ts";
 import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestLedgerState, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
-import { reconcileRankDigestSend } from "./reconciliation.ts";
+import { reconcileRankDigestProviderReceipt } from "./reconciliation.ts";
 
 type PreferenceRow = {
   website_id: string;
@@ -118,19 +118,6 @@ async function sendWithRetry(input: { apiKey: string; from: string; recipient: s
   return { sent: false as const, error: lastError, attempts: 3 };
 }
 
-async function providerEvent(apiKey: string, messageId: string) {
-  try {
-    const response = await fetch(`https://api.resend.com/emails/${encodeURIComponent(messageId)}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(10_000),
-    });
-    const payload = await response.json().catch(() => ({})) as { last_event?: unknown };
-    return response.ok && typeof payload.last_event === "string" ? payload.last_event : null;
-  } catch {
-    return null;
-  }
-}
-
 async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey: string) {
   const { data } = await context.supabaseAdmin.from("rank_digest_sends")
     .select("id,website_id,provider_message_id,status,is_test")
@@ -139,19 +126,28 @@ async function reconcileProviderReceipts(context: { supabaseAdmin: any }, apiKey
     .order("created_at", { ascending: false })
     .limit(100);
   for (const send of data ?? []) {
-    const event = await providerEvent(apiKey, send.provider_message_id);
-    if (!event) continue;
-    await reconcileRankDigestSend({
+    const checkedAt = new Date().toISOString();
+    await reconcileRankDigestProviderReceipt({
       id: send.id,
       websiteId: send.website_id,
       status: send.status as RankDigestLedgerState,
       isTest: send.is_test === true,
-    }, event, new Date().toISOString(), {
+    }, {
+      apiKey,
+      messageId: send.provider_message_id,
+      checkedAt,
+    }, {
       updateSend: async (sendId, update) => {
         await context.supabaseAdmin.from("rank_digest_sends").update(update).eq("id", sendId);
       },
       updatePreference: async (websiteId, update) => {
         await context.supabaseAdmin.from("notification_preferences").update(update).eq("website_id", websiteId);
+      },
+      updateAttempt: async (sendId, update) => {
+        await context.supabaseAdmin.from("rank_digest_sends").update(update).eq("id", sendId);
+      },
+      logFailure: (failure) => {
+        console.error(JSON.stringify({ event: "rank_digest_receipt_lookup_failed", ...failure }));
       },
     });
   }
