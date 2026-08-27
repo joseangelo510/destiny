@@ -5580,31 +5580,13 @@
     "context": "return <div className=\"quest-completion\"><button className={complete ? \"secondary-button\" : \"primary-button\"} disabled={saving} onClick={() => void update()} type=\"button\">{saving ? \"Saving…\" : complete ? (completedLabel ?? \"Reopen quest\") : (completeLabel ?? \"Mark complete\")}</button>{error && <span>{error}</span>}</div>; }"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:147:button:1",
-    "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 147,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
-  },
-  {
-    "control_id": "src/components/rank-tracker-workspace.tsx:147:onClick:2",
-    "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 147,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
-  },
-  {
     "control_id": "src/components/rank-tracker-workspace.tsx:148:button:1",
     "file": "src/components/rank-tracker-workspace.tsx",
     "line": 148,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
+    "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:148:onClick:2",
@@ -5613,7 +5595,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
+    "context": "<div><strong>Keyword lists</strong><small>Organize services, campaigns, or markets.</small></div> <button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button>"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:149:button:1",
@@ -5622,7 +5604,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New"
+    "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:149:onClick:2",
@@ -5631,120 +5613,138 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<button className={activeList === \"all\" ? \"active\" : \"\"} onClick={() => setActiveList(\"all\")} type=\"button\"><span>All keywords</span><b>{keywords.length}</b></button> <button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)}"
+  },
+  {
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:button:1",
+    "file": "src/components/rank-tracker-workspace.tsx",
+    "line": 150,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:150:form:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:150:onClick:2",
     "file": "src/components/rank-tracker-workspace.tsx",
     "line": 150,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<button className={activeList === \"general\" ? \"active\" : \"\"} onClick={() => setActiveList(\"general\")} type=\"button\"><span>General</span><b>{keywords.filter((item) => !item.listId).length}</b></button> {lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New"
+  },
+  {
+    "control_id": "src/components/rank-tracker-workspace.tsx:151:form:1",
+    "file": "src/components/rank-tracker-workspace.tsx",
+    "line": 151,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:150:onSubmit:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:151:onSubmit:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 150,
+    "line": 151,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:150:input:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:151:input:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 150,
+    "line": 151,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:150:onChange:4",
+    "control_id": "src/components/rank-tracker-workspace.tsx:151:onChange:4",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 150,
+    "line": 151,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:150:button:5",
+    "control_id": "src/components/rank-tracker-workspace.tsx:151:button:5",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 150,
+    "line": 151,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{lists.map((list) => <button className={activeList === list.id ? \"active\" : \"\"} key={list.id} onClick={() => setActiveList(list.id)} type=\"button\"><span>{list.name}</span><b>{keywords.filter((item) => item.listId === list.id).length}</b></button>)} <form onSubmit={createList}><input aria-label=\"New list name\" onChange={(event) => setListName(event.target.value)} placeholder=\"New list name\" value={listName} /><button className=\"secondary-button\" type=\"submit\">Create list</button></form> </aside>"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:154:form:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:155:form:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 154,
+    "line": 155,
     "type": "form",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:154:onSubmit:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:155:onSubmit:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 154,
+    "line": 155,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:154:input:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:155:input:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 154,
+    "line": 155,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:154:onChange:4",
+    "control_id": "src/components/rank-tracker-workspace.tsx:155:onChange:4",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 154,
+    "line": 155,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:154:button:5",
+    "control_id": "src/components/rank-tracker-workspace.tsx:155:button:5",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 154,
+    "line": 155,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"rank-table-panel\"> <form className=\"rank-add-form\" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label=\"Keyword to track\" onChange={(event) => setKeyword(event.target.value)} placeholder=\"Enter a keyword\" value={keyword} /></label><button className=\"primary-button\" disabled={adding} type=\"submit\">{adding ? \"Adding…\" : \"Track keyword\"}</button></form> <div className=\"rank-table-scroll\"><table className=\"rank-table\"><thead><tr><th>Keyword</th><th>Position</th><t"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:159:a:1",
+    "control_id": "src/components/rank-tracker-workspace.tsx:160:a:1",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 159,
+    "line": 160,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:159:select:2",
+    "control_id": "src/components/rank-tracker-workspace.tsx:160:select:2",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 159,
+    "line": 160,
     "type": "select",
     "route": "component",
     "side_effect_class": 0,
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rank-tracker-workspace.tsx:159:onChange:3",
+    "control_id": "src/components/rank-tracker-workspace.tsx:160:onChange:3",
     "file": "src/components/rank-tracker-workspace.tsx",
-    "line": 159,
+    "line": 160,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
