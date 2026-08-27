@@ -207,7 +207,6 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
     organization_id: organizationId,
     website_id: websiteId,
     audit_id: auditId,
-    created_by: ownerId,
     user_id: ownerId,
     keyword: item.keyword,
     draft: {
@@ -249,6 +248,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
     organization_id: organizationId,
     website_id: websiteId,
     audit_id: auditId,
+    created_by: ownerId,
     mode: "automatic",
     status: "active",
     timezone: "UTC",
