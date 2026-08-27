@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { WeeklyTaskList } from "./weekly-task-list";
+import { WorkspaceLink } from "./workspace-link";
 import { coachingTaskCopy, completionPresentation } from "../lib/product/coach-experience";
 
 type WeeklyLoopTask = {
@@ -166,7 +167,7 @@ export function WeeklyLoop({
       </>}
     </section>
 
-    <a className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</a>
+    <WorkspaceLink className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</WorkspaceLink>
 
     <button className="weekly-plan-replay" onClick={() => setRevealOpen(true)} type="button"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>
 
