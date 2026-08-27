@@ -14,9 +14,6 @@ const fixture = fixturePath
 if (!fixture) throw new Error("Run pnpm qa:browser-fixture against disposable local Supabase before keyword research certification.");
 
 const query = "small business seo consultant";
-const question = "How do small businesses choose an SEO consultant?";
-const related = "affordable seo consultant for small business";
-const listName = "Launch questions";
 const checkedAt = "2026-08-27T18:00:00.000Z";
 
 const researchResult = {
@@ -31,8 +28,8 @@ const researchResult = {
     averageDifficulty: 31,
     estimatedTraffic: 0,
   },
-  questions: [question],
-  related: [related],
+  questions: [],
+  related: [],
   serpCheckedAt: checkedAt,
   serpEvidenceStatus: "live",
   rows: [
@@ -44,9 +41,22 @@ const researchResult = {
 };
 
 test.describe("@gate keyword research persistence", () => {
-  test("researches first-page evidence and preserves two saved ideas in their list after revisit", async ({ page }) => {
+  test("researches first-page evidence and preserves two saved ideas in their list after revisit", async ({ page }, testInfo) => {
+    const mobile = testInfo.project.name === "mobile";
+    const question = mobile
+      ? "What should a growing business look for in an SEO consultant?"
+      : "How do small businesses choose an SEO consultant?";
+    const related = mobile
+      ? "best seo consultant for growing small business"
+      : "affordable seo consultant for small business";
+    const listName = mobile ? "Growth questions" : "Launch questions";
+
     await page.route("**/api/research/keywords", async (route) => {
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify(researchResult), status: 200 });
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ ...researchResult, questions: [question], related: [related] }),
+        status: 200,
+      });
     });
     await page.route("**/api/research/keyword-serp", async (route) => {
       await route.fulfill({
