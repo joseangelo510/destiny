@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { creatorSearchRequests, organicHistoryWindowStart, parseArticleEvidence, parseCreatorSearchResults, parseOrganicPerformance } from "./logic";
+import { classifyPageType, creatorSearchRequests, organicHistoryWindowStart, parseArticleEvidence, parseCreatorSearchResults, parseKeywordSerp, parseOrganicPerformance } from "./logic";
 
 const successfulPayload = (items: unknown[]) => ({
   status_code: 20000,
@@ -78,5 +78,63 @@ describe("article evidence", () => {
     ]));
     expect(rows).toHaveLength(3);
     expect(rows[0]).toEqual(expect.objectContaining({ publisher: "commission.europa.eu", url: "https://commission.europa.eu/guidance" }));
+  });
+});
+
+describe("keyword SERP evidence", () => {
+  it("returns bounded first-page competitors, questions, and related searches", () => {
+    const snapshot = parseKeywordSerp(successfulPayload([
+      { type: "organic", rank_group: 1, title: "YouTube Ads Agency", url: "https://agency.example/youtube-ads-agency" },
+      { type: "organic", rank_group: 2, title: "YouTube ads guide", url: "https://publisher.example/blog/youtube-ads-guide" },
+      { type: "people_also_ask", items: [{ title: "How much does a YouTube ads agency cost?" }, { title: "Are YouTube ads worth it?" }] },
+      { type: "related_searches", items: [{ title: "best youtube advertising agency" }, { title: "youtube ads management services" }] },
+    ]), "youtube ads agency", "United States", new Date("2026-08-27T18:00:00Z"));
+
+    expect(snapshot).toEqual(expect.objectContaining({
+      keyword: "youtube ads agency",
+      location: "United States",
+      checkedAt: "2026-08-27T18:00:00.000Z",
+      questions: ["How much does a YouTube ads agency cost?", "Are YouTube ads worth it?"],
+      related: ["best youtube advertising agency", "youtube ads management services"],
+    }));
+    expect(snapshot.organic).toEqual([
+      expect.objectContaining({ position: 1, domain: "agency.example", pageType: "service_page" }),
+      expect.objectContaining({ position: 2, domain: "publisher.example", pageType: "blog_post" }),
+    ]);
+  });
+
+  it("uses truthful empty arrays when Google returns no questions or related searches", () => {
+    const snapshot = parseKeywordSerp(successfulPayload([
+      { type: "organic", rank_group: 1, title: "Homepage", url: "https://example.com/" },
+    ]), "niche phrase", "United States");
+    expect(snapshot.questions).toEqual([]);
+    expect(snapshot.related).toEqual([]);
+  });
+
+  it("deduplicates and limits organic results to the first ten valid HTTPS pages", () => {
+    const organic = Array.from({ length: 14 }, (_, index) => ({
+      type: "organic",
+      rank_group: index + 1,
+      title: `Result ${index + 1}`,
+      url: `https://example${index + 1}.com/page`,
+    }));
+    organic.splice(1, 0, { ...organic[0] });
+    const snapshot = parseKeywordSerp(successfulPayload(organic), "example", "United States");
+    expect(snapshot.organic).toHaveLength(10);
+    expect(new Set(snapshot.organic.map((row) => row.url)).size).toBe(10);
+  });
+
+  it("classifies page types conservatively from public URL evidence", () => {
+    expect(classifyPageType("https://example.com/", "Homepage")).toBe("homepage");
+    expect(classifyPageType("https://example.com/blog/seo-guide", "SEO guide")).toBe("blog_post");
+    expect(classifyPageType("https://example.com/services/youtube-ads", "YouTube advertising services")).toBe("service_page");
+    expect(classifyPageType("https://shop.example.com/products/widget", "Widget")).toBe("product_page");
+    expect(classifyPageType("https://shop.example.com/collections/widgets", "Widgets")).toBe("category_page");
+    expect(classifyPageType("https://youtube.com/watch?v=abc", "Video")).toBe("video");
+    expect(classifyPageType("https://example.com/about", "About us")).toBe("other");
+  });
+
+  it("rejects provider failures instead of fabricating a snapshot", () => {
+    expect(() => parseKeywordSerp({ status_code: 20000, tasks: [{ status_code: 40501, status_message: "Invalid keyword" }] }, "keyword", "United States")).toThrow("Invalid keyword");
   });
 });
