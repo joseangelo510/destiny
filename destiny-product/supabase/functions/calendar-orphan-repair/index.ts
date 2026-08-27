@@ -9,6 +9,7 @@ import {
   type CalendarRepairInput,
   type CalendarRepairItem,
   type CalendarRepairMatch,
+  type CalendarRepairPreference,
   type CalendarRepairTransfer,
 } from "./logic.ts";
 
@@ -39,6 +40,14 @@ type StoredDraft = {
   audit_id?: unknown;
   keyword?: unknown;
   draft?: unknown;
+};
+
+type StoredPreference = {
+  id?: unknown;
+  website_id?: unknown;
+  source_audit_id?: unknown;
+  normalized_keyword?: unknown;
+  decision?: unknown;
 };
 
 type StoredTransfer = {
@@ -97,6 +106,16 @@ function articleDraft(row: StoredDraft): CalendarRepairDraft {
   };
 }
 
+function approvedPreference(row: StoredPreference): CalendarRepairPreference {
+  return {
+    id: text(row.id),
+    websiteId: text(row.website_id),
+    auditId: text(row.source_audit_id),
+    normalizedKeyword: text(row.normalized_keyword),
+    decision: text(row.decision),
+  };
+}
+
 function cmsTransfer(row: StoredTransfer): CalendarRepairTransfer {
   return {
     id: text(row.id),
@@ -132,6 +151,7 @@ function confirmationEvidence(match: CalendarRepairMatch, userId: string, checke
     itemId: match.itemId,
     transferId: match.transferId,
     draftId: match.draftId,
+    preferenceId: match.preferenceId,
     websiteId: match.websiteId,
     auditId: match.auditId,
     normalizedKeyword: match.normalizedKeyword,
@@ -140,7 +160,7 @@ function confirmationEvidence(match: CalendarRepairMatch, userId: string, checke
     remoteId: match.remoteId,
     remotePermalink: match.remotePermalink,
     publicHttpStatus: 200,
-    matchingMethod: "exact_website_audit_keyword_title_article_key",
+    matchingMethod: "exact_website_audit_approved_keyword_title_article_key",
   };
 }
 
@@ -173,13 +193,20 @@ export default {
     const requested = scheduleItem(requestedRow as StoredScheduleItem);
     const keyword = normalizedKeyword(requested.normalizedKeyword || requested.keyword);
     const articleKey = `${requested.auditId}:${keyword}`;
-    const [itemsResult, draftsResult, transfersResult] = await Promise.all([
+    const [itemsResult, preferencesResult, draftsResult, transfersResult] = await Promise.all([
       context.supabaseAdmin.from("publishing_schedule_items")
         .select("id,website_id,audit_id,keyword,normalized_keyword,title,state,article_key,remote_id,remote_permalink")
         .eq("website_id", websiteId)
         .eq("audit_id", requested.auditId)
         .eq("normalized_keyword", keyword)
         .eq("title", requested.title)
+        .limit(10),
+      context.supabaseAdmin.from("keyword_preferences")
+        .select("id,website_id,source_audit_id,normalized_keyword,decision")
+        .eq("website_id", websiteId)
+        .eq("source_audit_id", requested.auditId)
+        .eq("normalized_keyword", keyword)
+        .eq("decision", "approved")
         .limit(10),
       context.supabaseAdmin.from("article_drafts")
         .select("id,website_id,audit_id,keyword,draft")
@@ -193,7 +220,7 @@ export default {
         .eq("publication_status", "verified_live")
         .limit(10),
     ]);
-    if (itemsResult.error || draftsResult.error || transfersResult.error) {
+    if (itemsResult.error || preferencesResult.error || draftsResult.error || transfersResult.error) {
       return json({ error: "Destiny could not complete the exact calendar comparison." }, 502);
     }
 
@@ -201,6 +228,7 @@ export default {
       websiteId,
       requestedItemId: itemId,
       items: (itemsResult.data ?? []).map((row) => scheduleItem(row as StoredScheduleItem)),
+      preferences: (preferencesResult.data ?? []).map((row) => approvedPreference(row as StoredPreference)),
       drafts: (draftsResult.data ?? []).map((row) => articleDraft(row as StoredDraft)),
       transfers: (transfersResult.data ?? []).map((row) => cmsTransfer(row as StoredTransfer)),
     };
