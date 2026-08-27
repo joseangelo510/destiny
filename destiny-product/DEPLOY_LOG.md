@@ -199,3 +199,23 @@ Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts fo
   first; `clearcheck.app` only with client authorization recorded here; no
   generated-today content).
 Status: AUTHORIZED — awaiting execution + P1 evidence.
+
+## D-LAUNCH-HARNESS-TIMEOUT-1 — 2026-08-27
+
+Authority: Fable 5 High (Destiny CTO under `HARNESS_POLICY.md`).
+Classification: HIGH because this changes a governance-guard test.
+Decision: GO for one test-scoped 30-second Vitest timeout on
+`qa/rules/commit-policy-canonical-main-ref.test.ts` test
+`accepts only the enumerated canonical URL normalization matrix`.
+Basis: the unchanged 12-repository URL matrix passed alone in 2.6 seconds, but
+timed out at the five-second default twice under full-gate load after 7.1 and
+8.1 seconds. All URL cases, assertions, and failure semantics must remain
+unchanged.
+Constraints: no global or suite timeout; no retry, skip, todo, or only marker;
+no matrix, assertion, or configuration change; no performance refactor under
+this decision. The timeout change must be a distinct commit on the protected
+PR path.
+Evidence required: the two recorded full-gate timeout failures, a diff proving
+the timeout is the only change to the guard test, and two consecutive green
+full `pnpm gate` runs at the PR head SHA.
+Decided by: Fable 5 High. Status: AUTHORIZED — implementation and evidence pending.
