@@ -17,7 +17,10 @@ describe("guided task pauses", () => {
   });
 
   it("labels waiting and blocked work without calling it complete", () => {
-    expect(guidancePresentation({ guidance_state: "waiting", follow_up_at: "2026-08-12T12:00:00.000Z" }).label).toBe("Waiting");
+    expect(guidancePresentation({ guidance_state: "waiting", follow_up_at: "2026-08-27T02:30:00.000Z" })).toMatchObject({
+      label: "Waiting",
+      detail: "Resumes Aug 27, 2026.",
+    });
     expect(guidancePresentation({ guidance_state: "blocked", blocker_reason: "Need approval", blocker_owner: "Client" })).toMatchObject({ label: "Blocked", tone: "blocked" });
   });
 });
