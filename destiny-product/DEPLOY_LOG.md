@@ -199,3 +199,131 @@ Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts fo
   first; `clearcheck.app` only with client authorization recorded here; no
   generated-today content).
 Status: AUTHORIZED — awaiting execution + P1 evidence.
+
+## D-MVP-M3-P1-REDEPLOY-2 — 2026-08-26
+
+Authority: Fable 5 High (CTO decision) after the first M3 publish lacked verifiable
+build provenance and the public version endpoint remained on the old behavior.
+Decision: CONDITIONAL GO — exactly one owner-account Replit UI redeploy of the
+existing deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d` from the already
+verified detached workspace commit `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`,
+tree `235f628315cbfb58f55766456985828557d798e6`.
+First-attempt receipt: the connector reported the same deployment pending, building,
+then running; Replit reported an active successful VM build but exposed no independent
+build ID, timestamp, source SHA, or logs. Public `/` returned 200 while exact GET
+`/api/version` returned 401. P1 therefore remained NO GO. No rollback was performed
+because the live root stayed healthy and no 5xx was observed.
+Required preconditions: detached commit and tree still match and the worktree is clean;
+the workspace contains the public version route and build-stamp code; deployment config
+rebuilds the served artifact from this workspace; the public domain maps only to the
+existing deployment; a cache-busted, no-cache version request still returns 401.
+Mechanism: Replit Deployments UI only, using the existing deployment's Redeploy or
+Republish action. Capture deployment history before and after plus the post-initiation
+successful build log and timestamp.
+Proof required: post-initiation UI build receipt; root 200; `/api/version` 200 with the
+authorized commit/tree build stamp; and zero 5xx on touched routes.
+Prohibited: a second connector publish, Replit Agent mutation, new deployment, code or
+configuration edits, environment/secret/domain/dependency changes, or any third publish.
+Stop: if any precondition fails, do not redeploy. After redeploy, `/api/version` still
+401 or stamp mismatch means halt with P1 NO GO and no third attempt. Roll back through
+deployment history only if root becomes non-200 or core routes return 5xx.
+Merge hold: PRs #17 and #18 remain unmerged until P1 is green.
+Status: AUTHORIZED — awaiting recorded protected merge, preconditions, one UI redeploy,
+and P1 evidence.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+## DEC-2026-08-26-DESTINY-SOCIAL-01 — guided social sharing launch scope
+
+Authority: Fable 5 High (CTO decision) requested by Jose after the M3 production
+republish sequence was already governed separately.
+Classification: split. Read-only verification of the existing guided-sharing flow is
+MEDIUM; automatic provider publishing is HIGH because it introduces OAuth, provider
+credentials, runtime configuration, storage/schema ambiguity, and representational
+communication.
+Decision: GO for guided sharing only. NO GO for automatic provider publishing in this
+launch. Destiny may expose `draft`, `ready to share`, `opened in composer`, and
+`shared (manual, unverified)` states with evidence appropriate to each state. Destiny
+must not claim `published` until it can retain an authoritative provider post ID and a
+resolvable public post URL. `scheduled` may describe only Destiny's internal calendar
+intent, not provider-side scheduling.
+Verification contract: after the truthful social UI reaches production, verify LinkedIn,
+X, and Facebook composer URLs, exact encoded copy and canonical URL, shared URL HTTP
+200, correct preview metadata, truthful calendar language, and absence of false
+published/success claims. Any real post remains a Jose-performed provider-UI action
+after action-time confirmation of the exact copy, destination account, and link.
+Automatic publishing: deferred. A future implementation requires a new HIGH decision
+after Jose chooses whether automatic publishing is desired and identifies the intended
+LinkedIn identity, X account, and Facebook Page.
+Correction: the original advisory response included an inconsistent release-order
+clause saying PR #17 should merge before the final M3 republish. That clause is void and
+is superseded by `DEC-2026-08-26-DESTINY-RECONCILE-01` below. This decision does not
+change, consume, or add a Replit republish attempt.
+Status: AUTHORIZED for guided-sharing verification only after its separately governed
+protected merge and production deployment. Automatic publishing remains NO GO.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+## DEC-2026-08-26-DESTINY-RECONCILE-01 — M3 republish and PR #17 order
+
+Authority: Fable 5 High (CTO reconciliation decision) after Codex identified a direct
+ordering conflict between `D-MVP-M3-P1-REDEPLOY-2-A1` and the advisory sequence in
+`DEC-2026-08-26-DESTINY-SOCIAL-01`.
+Decision: Sequence A controls. `D-MVP-M3-P1-REDEPLOY-2-A1` remains controlling and
+unmodified. Jose first performs the one second-and-final owner-account Replit UI
+Republish of the authorized M3 tree
+`235f628315cbfb58f55766456985828557d798e6`, after every A1 precondition is
+reconfirmed. Codex and automation must not click or retry. PRs #17 and #18 remain held
+until P1 is green.
+Reason: merging PR #17 first would change the authorized tree and spend the final
+attempt on an unverified tree, contradicting the narrow earlier decision. The social
+decision's guided-sharing-only scope survives; only its release-order clause is void.
+Sequence: (1) record the social decision, correction, and this reconciliation; (2)
+capture clean-tree, empty-diff, one-deployment, one-domain, and pre-publish 401 evidence;
+(3) verify current-head owner `cto-approved` and all required checks green; (4) Jose
+clicks Republish exactly once; (5) Codex verifies deployment identity, cache-busted
+`/api/version` 200 with `no-store` and the authorized tree, root 200, zero 5xx, and
+appends evidence. PR #20 may then complete through protected main. PRs #17 and #18 may
+then resume through their own protected gates, with any production deployment governed
+by a new HIGH decision.
+Stop conditions: dirty tree, tree mismatch, non-empty diff, extra deployment or domain,
+missing current-head owner approval, red/skipped/wrong-SHA checks, post-publish 401,
+wrong tree, or any 5xx. No third attempt exists.
+Status: AUTHORIZED — conditional GO for Jose's final UI Republish only after actions
+1–3 are proven at the current head.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+### D-MVP-M3-P1-REDEPLOY-2-A1 — Fable 5 High amendment
+
+Trigger: read-only preflight found Replit-created detached commit
+`3fca8286853c12715530f9e9fb91abd5a5a9b4c4`, parent `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`,
+with the same tree `235f628315cbfb58f55766456985828557d798e6` and an empty
+diff. Replit metadata also could not independently expose the deployment ID or routing
+history. Codex correctly halted before a second redeploy.
+Decision: CONDITIONAL GO — amend the verification anchor from exact commit identity to
+exact tree identity. Do not realign the workspace. A clean commit is authorized only if
+its tree equals `235f628315cbfb58f55766456985828557d798e6` and its diff
+against `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa` is empty. A
+post-publish build stamp may name a further Replit-created empty child, but its tree must
+match and the workspace diff must remain empty.
+Domain proof substitute: before publish, capture the Replit Deployments pane showing
+exactly one deployment for this app, its visible ID matching `a5e94a27`, status, and
+timestamp, plus the domain view showing `destiny-seo.replit.app` attached to that
+deployment with no additional domains. Multiple deployments or any unexpected domain is
+a stop. After publish, a cache-busted GET `/api/version` must return 200 with
+`Cache-Control: no-store` and JSON tree `235f628315cbfb58f55766456985828557d798e6`;
+the stamped commit must have an empty diff against `61745a2`. The current pre-publish
+401 is the expected before state, not a pre-publish stop.
+Sequence: record this amendment; capture clean-tree, empty-diff, deployment, and domain
+evidence; Jose re-applies `cto-approved` at the amended head; required checks become
+green; Jose performs exactly one owner-account UI redeploy; verify version attestation,
+root 200, and zero 5xx; append evidence on this PR; re-apply approval at the final head;
+then merge through protected main with a completion receipt.
+Executor boundary: Codex must not click publish or retry. Jose performs the single UI
+redeploy. Any dirty tree, tree mismatch, multiple deployment/unexpected domain, post-
+publish 401/non-200, wrong tree, any 5xx, red/skipped/wrong-SHA check, or absent current-
+head approval means halt and return to Fable High. No rollback is authorized without a
+new High decision.
+Hold: PRs #17 and #18 remain unmerged.
+Status: AUTHORIZED — amendment recorded; awaiting pre-publish proof, current-head owner
+approval and green checks, Jose's single UI redeploy, post-publish evidence, final-head
+approval, and protected merge.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
