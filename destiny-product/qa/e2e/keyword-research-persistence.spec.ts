@@ -89,13 +89,13 @@ test.describe("@gate keyword research persistence", () => {
     const savePanel = page.getByLabel("Save keywords to a list");
     await savePanel.getByLabel("New keyword list name").fill(listName);
     await savePanel.getByRole("button", { name: "Create list", exact: true }).click();
-    await expect(savePanel.getByLabel("Keyword list")).not.toHaveValue("");
+    await expect(savePanel.getByLabel("Keyword list", { exact: true })).not.toHaveValue("");
     await savePanel.getByRole("button", { name: "Save keywords", exact: true }).click();
     await expect(questionsCard.getByRole("button", { name: `Saved to ${listName} ✓`, exact: true })).toBeDisabled();
 
     const relatedCard = page.locator(".keyword-insight-card").filter({ hasText: "Other keyword opportunities" });
     await relatedCard.getByRole("listitem").filter({ hasText: related }).getByRole("button", { name: "Save", exact: true }).click();
-    await savePanel.getByLabel("Keyword list").selectOption({ label: listName });
+    await savePanel.getByLabel("Keyword list", { exact: true }).selectOption({ label: listName });
     await savePanel.getByRole("button", { name: "Save keywords", exact: true }).click();
     await expect(relatedCard.getByRole("button", { name: `Saved to ${listName} ✓`, exact: true })).toBeDisabled();
 
@@ -107,6 +107,6 @@ test.describe("@gate keyword research persistence", () => {
     await expect(page.locator(".keyword-insight-card").filter({ hasText: "Other keyword opportunities" }).getByRole("button", { name: `Saved to ${listName} ✓`, exact: true })).toBeDisabled();
 
     await page.getByRole("row", { name: /seo consultant pricing/ }).getByRole("button", { name: "Save", exact: true }).click();
-    await expect(savePanel.getByLabel("Keyword list").getByRole("option", { name: listName, exact: true })).toHaveCount(1);
+    await expect(savePanel.getByLabel("Keyword list", { exact: true }).getByRole("option", { name: listName, exact: true })).toHaveCount(1);
   });
 });
