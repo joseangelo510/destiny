@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { fingerprintFromRemote, fingerprintMatches, publicationState, verifyPublicPage } from "./logic";
+import { fingerprintFromRemote, fingerprintMatches, publicationState, scheduleItemTransition, verifyPublicPage } from "./logic";
 
 describe("WordPress reconciliation", () => {
+  it("advances only a verified live scheduled item to published", () => {
+    expect(scheduleItemTransition("scheduled", "verified_live")).toEqual({ to: "published" });
+    for (const status of ["published_unverified", "delivered_draft", "changed_in_cms", "stale", "unpublished", "verification_failed"]) {
+      expect(scheduleItemTransition("scheduled", status)).toBeNull();
+    }
+  });
+
+  it("is idempotent once the schedule item is already published", () => {
+    expect(scheduleItemTransition("published", "verified_live")).toBeNull();
+    expect(scheduleItemTransition("needs_review", "verified_live")).toBeNull();
+  });
+
   it.each([
     ["draft", true, undefined, "delivered_draft"],
     ["draft", false, undefined, "changed_in_cms"],
