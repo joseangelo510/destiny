@@ -180,3 +180,22 @@ Trigger: PR #14 (approved head 04b8815) became unmergeable after PR #15 [D-MVP-R
 Decision: PR #14 retained unchanged and closed as superseded; implementation re carried by cherry-pick onto b6caa00 in gov/recovery-1c-r2; the five implementation paths are byte identical to PR #14; DEPLOY_LOG resolved by appending 1C then 1E after main's content. Merge commit route rejected (unclassifiable under commit policy).
 Mutations: none. Replit/production/publish/schedule/social: untouched.
 Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1
+
+## D-MVP-M3-DEPLOY-1 — 2026-08-26
+
+Authority: Fable High (CTO decision), explicitly requested by Jose for launch certification.
+Decision: GO — one-time scoped lift of production freeze.
+Scope: Align Replit workspace from detached `961bca1` (tree `28daab`) to exact M3
+  commit `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`
+  tree   `235f628315cbfb58f55766456985828557d798e6`
+  and republish existing deployment `a5e94a27` in place. NO other changes:
+  no new commits, no env/secret/domain changes, no new deployments.
+Checks basis: green post-merge harness run `32776255636` / job `97587896513` on `origin/main`.
+Proof required (P1): `/api/version` stamp == exact commit+tree above (public or
+  authenticated read), plus 15-min zero-5xx window. Evidence appended below on completion.
+Rollback: republish `961bca1` snapshot (`a5e94a27` known-good); freeze re-engages.
+Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts for this
+  runtime only; `D-MVP-CERTIFICATION-2` narrow tests activate (`joseangelostudios.com`
+  first; `clearcheck.app` only with client authorization recorded here; no
+  generated-today content).
+Status: AUTHORIZED — awaiting execution + P1 evidence.
