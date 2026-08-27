@@ -243,6 +243,38 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   })));
   if (transfers.error) throw new Error(`Create MVP browser CMS transfers: ${transfers.error.message}`);
 
+  const scheduledFor = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const planResult = await service.from("publishing_plans").insert({
+    organization_id: organizationId,
+    website_id: websiteId,
+    audit_id: auditId,
+    mode: "automatic",
+    status: "active",
+    timezone: "UTC",
+    holdback_hours: 72,
+    start_date: scheduledFor.slice(0, 10),
+    end_date: new Date(now.getTime() + 11 * 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    confirmed_post_count: 1,
+    automatic_confirmed_at: completedAt,
+  }).select("id").single();
+  const plan = requireValue(planResult.data, planResult.error, "Create MVP browser publishing plan");
+  const scheduleResult = await service.from("publishing_schedule_items").insert({
+    organization_id: organizationId,
+    website_id: websiteId,
+    plan_id: plan.id,
+    position: 1,
+    keyword: keywords[0].keyword,
+    title: `${keywords[0].keyword}: a practical guide`,
+    content_type: "Blog guide",
+    scheduled_for: scheduledFor,
+    state: "scheduled",
+    article_key: `${auditId}:${keywords[0].keyword}`,
+    review_recommended: false,
+    remote_id: "800",
+    remote_edit_url: "https://browser-member.example/wp-admin/post.php?post=800&action=edit",
+  });
+  if (scheduleResult.error) throw new Error(`Create MVP browser publishing schedule: ${scheduleResult.error.message}`);
+
   const trackedResult = await service.from("tracked_keywords").insert({
     website_id: websiteId,
     created_by: ownerId,
