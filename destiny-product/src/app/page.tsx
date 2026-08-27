@@ -38,7 +38,7 @@ export default function HomePage() {
               You built something worth finding. Now <em>get found.</em>
             </h1>
             <p className="lede">
-              Most tools stop at publish. Destiny takes you the extra mile, sharing your content where it matters:
+              Most tools stop at publish. Destiny takes you the extra mile, guiding your distribution where it matters:
               Reddit, LinkedIn, creators, Product Hunt, and that&apos;s just the start.
             </p>
             <div className="hero-ctas">
@@ -112,7 +112,7 @@ export default function HomePage() {
               <div className="noticed">
                 <span className="check">✓</span>
                 <div>
-                  <b>Last week&apos;s article was shared.</b> <span>LinkedIn and X, saved to your record.</span>
+                  <b>Last week&apos;s article is live.</b> <span>Share kit prepared for LinkedIn and X.</span>
                 </div>
                 <span className="verify">Verified by Destiny</span>
               </div>
@@ -375,7 +375,7 @@ export default function HomePage() {
             <div className="tl-card">
               <div className="when">Month 1</div>
               <h3>The fundamentals are moving</h3>
-              <p>Your biggest site issues are fixed, your keyword direction is approved, and your first articles are live and shared.</p>
+               <p>Your biggest site issues are fixed, your keyword direction is approved, and your first articles are live, with guided sharing ready for LinkedIn and X.</p>
             </div>
             <div className="tl-card">
               <div className="when">Month 3</div>

@@ -1,7 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, canScheduleArticle, editorialContentChannel, isArticleCalendarItem, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { attachCmsPublicationReceipts, buildWeeklySchedule, calendarLocalDateTimeAsUtc, canScheduleArticle, editorialContentChannel, isArticleCalendarItem, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
+  it("shows a CMS-delivered post as unverified until public proof exists", () => {
+    const item = {
+      id: "item-1",
+      article_key: "plan:1:guide",
+      state: "scheduled",
+      remote_id: "20208955",
+      remote_permalink: null,
+    } as PublishingScheduleItemRecord;
+    const [effective] = attachCmsPublicationReceipts([item], [{
+      article_key: "plan:1:guide",
+      publication_status: "published_unverified",
+      remote_permalink: "https://example.com/guide",
+    }]);
+    expect(publishingCalendarState(effective, "wordpress")).toBe("delivered_unverified");
+  });
+
+  it("derives verified live calendar proof and leaves unmatched items untouched", () => {
+    const matching = {
+      id: "item-1",
+      article_key: "plan:1:guide",
+      state: "scheduled",
+      remote_id: "20208955",
+      remote_permalink: null,
+    } as PublishingScheduleItemRecord;
+    const unmatched = { ...matching, id: "item-2", article_key: "plan:2:other" };
+    const result = attachCmsPublicationReceipts([matching, unmatched], [{
+      article_key: "plan:1:guide",
+      publication_status: "verified_live",
+      remote_permalink: "https://example.com/guide",
+    }]);
+    expect(publishingCalendarState(result[0], "wordpress")).toBe("published");
+    expect(result[1]).toEqual(unmatched);
+  });
+
   it("keeps social calendar entries out of the CMS article scheduler", () => {
     expect(editorialContentChannel("Blog guide")).toBe("article");
     expect(editorialContentChannel("LinkedIn post")).toBe("linkedin");
