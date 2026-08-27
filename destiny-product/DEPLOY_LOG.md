@@ -268,3 +268,80 @@ Status: AUTHORIZED — amendment recorded; awaiting pre-publish proof, current-h
 approval and green checks, Jose's single UI redeploy, post-publish evidence, final-head
 approval, and protected merge.
 Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+## DEC-2026-08-26-DESTINY-SOCIAL-01 — guided social sharing launch scope
+
+Authority: Fable 5 High (CTO decision) requested by Jose after the M3 production
+republish sequence was already governed separately.
+Classification: split. Read-only verification of the existing guided-sharing flow is
+MEDIUM; automatic provider publishing is HIGH because it introduces OAuth, provider
+credentials, runtime configuration, storage/schema ambiguity, and representational
+communication.
+Decision: GO for guided sharing only. NO GO for automatic provider publishing in this
+launch. Destiny may expose `draft`, `ready to share`, `opened in composer`, and
+`shared (manual, unverified)` states with evidence appropriate to each state. Destiny
+must not claim `published` until it can retain an authoritative provider post ID and a
+resolvable public post URL. `scheduled` may describe only Destiny's internal calendar
+intent, not provider-side scheduling.
+Verification contract: after the truthful social UI reaches production, verify LinkedIn,
+X, and Facebook composer URLs, exact encoded copy and canonical URL, shared URL HTTP
+200, correct preview metadata, truthful calendar language, and absence of false
+published/success claims. Any real post remains a Jose-performed provider-UI action
+after action-time confirmation of the exact copy, destination account, and link.
+Automatic publishing: deferred. A future implementation requires a new HIGH decision
+after Jose chooses whether automatic publishing is desired and identifies the intended
+LinkedIn identity, X account, and Facebook Page.
+Correction: the original advisory response included an inconsistent release-order
+clause saying PR #17 should merge before the final M3 republish. That clause is void and
+is superseded by `DEC-2026-08-26-DESTINY-RECONCILE-01` below. This decision does not
+change, consume, or add a Replit republish attempt.
+Status: AUTHORIZED for guided-sharing verification only after its separately governed
+protected merge and production deployment. Automatic publishing remains NO GO.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+## DEC-2026-08-26-DESTINY-RECONCILE-01 — M3 republish and PR #17 order
+
+Authority: Fable 5 High (CTO reconciliation decision) after Codex identified a direct
+ordering conflict between `D-MVP-M3-P1-REDEPLOY-2-A1` and the advisory sequence in
+`DEC-2026-08-26-DESTINY-SOCIAL-01`.
+Decision: Sequence A controls. `D-MVP-M3-P1-REDEPLOY-2-A1` remains controlling and
+unmodified. Jose first performs the one second-and-final owner-account Replit UI
+Republish of the authorized M3 tree
+`235f628315cbfb58f55766456985828557d798e6`, after every A1 precondition is
+reconfirmed. Codex and automation must not click or retry. PRs #17 and #18 remain held
+until P1 is green.
+Reason: merging PR #17 first would change the authorized tree and spend the final
+attempt on an unverified tree, contradicting the narrow earlier decision. The social
+decision's guided-sharing-only scope survives; only its release-order clause is void.
+Sequence: (1) record the social decision, correction, and this reconciliation; (2)
+capture clean-tree, empty-diff, one-deployment, one-domain, and pre-publish 401 evidence;
+(3) verify current-head owner `cto-approved` and all required checks green; (4) Jose
+clicks Republish exactly once; (5) Codex verifies deployment identity, cache-busted
+`/api/version` 200 with `no-store` and the authorized tree, root 200, zero 5xx, and
+appends evidence. PR #20 may then complete through protected main. PRs #17 and #18 may
+then resume through their own protected gates, with any production deployment governed
+by a new HIGH decision.
+Stop conditions: dirty tree, tree mismatch, non-empty diff, extra deployment or domain,
+missing current-head owner approval, red/skipped/wrong-SHA checks, post-publish 401,
+wrong tree, or any 5xx. No third attempt exists.
+Status: AUTHORIZED — conditional GO for Jose's final UI Republish only after actions
+1–3 are proven at the current head.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+## DEC-2026-08-26-DESTINY-PR20-RECOVERY-01 — replacement PR recovery
+
+Authority: Fable 5 High (CTO recovery decision) after Codex recorded the two preceding
+decisions with an invalid `docs:` commit subject on PR #20.
+Decision: GO for an additive replacement PR. Commit
+`4fe8b5f43597b3545fcf4f9d861f2439daef3593` permanently fails the repository's
+commit-subject policy; force push, history rewrite, admin bypass, and non-linear history
+remain prohibited. Create the replacement branch from PR #20's previous green head
+`55e91b835e429229809dcd13740923503a405c6b`, and carry the two decision records plus
+this recovery reason in one `green:` commit. The replacement must have all required
+checks green and Jose's current-head `cto-approved` label before PR #20 is closed
+unmerged as superseded.
+Effect: content remains identical except for this recovery receipt. The authorized M3
+tree, A1 sequence, actor boundary, and single remaining Replit Republish attempt are
+unchanged. No one touches Republish until the replacement PR satisfies every A1 gate.
+Status: AUTHORIZED — replacement protected PR recovery only.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
