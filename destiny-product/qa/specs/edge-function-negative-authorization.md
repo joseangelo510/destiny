@@ -16,6 +16,8 @@ an external provider, or mutate data.
 5. Rank refresh and digest jobs receive no cron secret and return `401`.
 6. Test payloads contain only `.invalid` external URLs and dummy content.
 7. The three disposable users and organizations are removed after the suite.
+8. Calendar orphan repair receives a real user A JWT with user B's website and
+   returns `403` before reading service-role calendar, draft, or transfer data.
 
 ## Scenarios
 
@@ -36,6 +38,17 @@ an external provider, or mutate data.
 **When** a caller invokes a cron function without the configured secret
 
 **Then** the function returns `401` before privileged queries.
+
+### Scenario: a user cannot repair another website's calendar
+
+**Given** user A and user B own different websites
+
+**When** user A dry-runs calendar repair using user B's website and item IDs
+
+**Then** the function returns `403`
+
+**And** no calendar row or transfer evidence is read or changed through the
+service-role client.
 
 ```mermaid
 flowchart LR

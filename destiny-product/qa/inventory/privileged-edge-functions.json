@@ -1,5 +1,10 @@
 [
   {
+    "path": "supabase/functions/calendar-orphan-repair/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
     "path": "supabase/functions/delete-account/index.ts",
     "auth": "user",
     "boundary": "account_claim"
