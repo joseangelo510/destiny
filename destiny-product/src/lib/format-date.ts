@@ -1,23 +1,36 @@
-const utcDate = new Intl.DateTimeFormat("en-US", {
-  timeZone: "UTC",
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
 
-const utcDateTime = new Intl.DateTimeFormat("en-US", {
-  timeZone: "UTC",
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
+function parseDate(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError(`Invalid date: ${iso}`);
+  }
+  return date;
+}
 
 export function formatUtcDate(iso: string) {
-  return utcDate.format(new Date(iso));
+  const date = parseDate(iso);
+  return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
 }
 
 export function formatUtcDateTime(iso: string) {
-  return `${utcDateTime.format(new Date(iso))} UTC`;
+  const date = parseDate(iso);
+  const hour = date.getUTCHours();
+  const displayHour = hour % 12 || 12;
+  const minute = String(date.getUTCMinutes()).padStart(2, "0");
+  const period = hour >= 12 ? "PM" : "AM";
+  return `${formatUtcDate(iso)}, ${displayHour}:${minute} ${period} UTC`;
 }
