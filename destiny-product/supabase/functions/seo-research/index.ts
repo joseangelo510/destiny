@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -57,7 +57,7 @@ export default {
         const providerBody = body.mode === "domain"
           ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
           : { keyword: query, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
-        const [payload, historyPayload] = await Promise.all([
+        const [payload, historyPayload, seedSerpPayload] = await Promise.all([
           providerPost(path, [providerBody], login, password),
           body.mode === "domain"
             ? providerPost("/v3/dataforseo_labs/google/historical_rank_overview/live", [{
@@ -68,14 +68,27 @@ export default {
               correlate: true,
             }], login, password).catch(() => null)
             : Promise.resolve(null),
+          body.mode === "keyword"
+            ? providerPost("/v3/serp/google/organic/live/advanced", [{ keyword: query, location_name: location, language_code: "en", depth: 10 }], login, password).catch(() => null)
+            : Promise.resolve(null),
         ]);
         const rows = parseKeywordRows(payload);
         const providerResult = firstResult(payload);
         const providerTotal = typeof providerResult.total_count === "number" ? providerResult.total_count : 0;
+        let seedSerp: ReturnType<typeof parseKeywordSerp> | null = null;
+        if (seedSerpPayload) {
+          try { seedSerp = parseKeywordSerp(seedSerpPayload, query, location); } catch { seedSerp = null; }
+        }
         return json({
           sourceLabel: "Live DataForSEO keyword index", query, mode: body.mode, location, updatedAt: new Date().toISOString(),
           metrics: summarizeKeywordRows(rows, providerTotal), rows,
           performance: historyPayload ? parseOrganicPerformance(historyPayload) : [],
+          ...(body.mode === "keyword" ? {
+            questions: seedSerp?.questions ?? [],
+            related: seedSerp?.related ?? [],
+            serpCheckedAt: seedSerp?.checkedAt,
+            serpEvidenceStatus: seedSerp ? "live" : "unavailable",
+          } : {}),
           notices: [
             "Search volume, difficulty, CPC, and traffic are third-party estimates and may differ from first-party Google data.",
             body.mode === "domain" ? "Positions show the domain's current organic rankings." : "Intent reflects the most likely purpose behind each search.",
@@ -91,6 +104,14 @@ export default {
           providerPost("/v3/backlinks/backlinks/live", [{ target, include_subdomains: true, backlinks_status_type: "all", order_by: ["domain_from_rank,desc", "rank,desc"], limit: 100 }], login, password),
         ]);
         return json(parseBacklinks(summary, links, target));
+      }
+
+      if (body.kind === "keyword_serp") {
+        const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 200) : "";
+        if (keyword.length < 2) return json({ error: "Enter a keyword between 2 and 200 characters." }, 400);
+        const location = typeof body.locationName === "string" && body.locationName.trim() ? body.locationName.trim() : "United States";
+        const payload = await providerPost("/v3/serp/google/organic/live/advanced", [{ keyword, location_name: location, language_code: "en", depth: 10 }], login, password);
+        return json(parseKeywordSerp(payload, keyword, location));
       }
 
       if (body.kind === "creators") {
@@ -123,7 +144,7 @@ export default {
         return json({ sourceLabel: "Live DataForSEO article evidence", updatedAt: new Date().toISOString(), keyword, location, rows });
       }
 
-      return json({ error: "Select keyword, backlink, creator, or article evidence research." }, 400);
+      return json({ error: "Select keyword, keyword SERP, backlink, creator, or article evidence research." }, 400);
     } catch (cause) {
       return json({ error: cause instanceof Error ? cause.message : "Destiny could not complete live SEO research." }, 502);
     }

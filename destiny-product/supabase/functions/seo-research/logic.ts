@@ -18,6 +18,23 @@ function string(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function tidy(value: string) {
+  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function stringsByKey(value: unknown, accepted: Set<string>, output: string[] = []): string[] {
+  if (Array.isArray(value)) {
+    value.forEach((item) => stringsByKey(item, accepted, output));
+    return output;
+  }
+  const row = record(value);
+  for (const [key, item] of Object.entries(row)) {
+    if (accepted.has(key) && typeof item === "string" && item.trim()) output.push(tidy(item));
+    if (item && typeof item === "object") stringsByKey(item, accepted, output);
+  }
+  return output;
+}
+
 export function firstResult(payload: unknown) {
   const root = record(payload);
   const task = record(array(root.tasks)[0]);
@@ -86,6 +103,52 @@ export function parseOrganicPerformance(payload: unknown) {
   }).filter((point) => /^\d{4}-\d{2}-01$/.test(point.date))
     .sort((left, right) => left.date.localeCompare(right.date))
     .slice(-3);
+}
+
+export type KeywordPageType = "homepage" | "blog_post" | "service_page" | "product_page" | "category_page" | "video" | "tool_or_app" | "other";
+
+export function classifyPageType(value: string, title = ""): KeywordPageType {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    const path = url.pathname.toLowerCase().replace(/\/+$/, "") || "/";
+    const evidence = `${path} ${title.toLowerCase()}`;
+    if (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be" || host === "vimeo.com" || host.endsWith(".vimeo.com")) return "video";
+    if (path === "/") return "homepage";
+    if (/(^|\/)(blog|blogs|post|posts|article|articles|news|guides?)(\/|$)/.test(path) || /\/\d{4}\/\d{1,2}\//.test(path)) return "blog_post";
+    if (/(^|\/)(products?|shop|dp|p)(\/|$)/.test(path)) return "product_page";
+    if (/(^|\/)(category|categories|collections?|c)(\/|$)/.test(path)) return "category_page";
+    if (/(^|\/)(tools?|apps?|calculator|generator)(\/|$)/.test(path)) return "tool_or_app";
+    if (/(^|\/)(services?|solutions?|consulting|agency)(\/|$)/.test(path) || /\b(services?|agency|consulting)\b/.test(evidence)) return "service_page";
+    return "other";
+  } catch {
+    return "other";
+  }
+}
+
+export function parseKeywordSerp(payload: unknown, keyword: string, location: string, checkedAt = new Date()) {
+  const items = array(firstResult(payload).items).map(record);
+  const seenUrls = new Set<string>();
+  const organic = items.flatMap((item) => {
+    if (string(item.type) !== "organic") return [];
+    const url = string(item.url).trim();
+    if (!/^https:\/\//i.test(url) || seenUrls.has(url)) return [];
+    let domain = "";
+    try { domain = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
+    seenUrls.add(url);
+    const title = tidy(string(item.title));
+    return [{
+      position: number(item.rank_group) || number(item.rank_absolute),
+      domain,
+      title,
+      url,
+      pageType: classifyPageType(url, title),
+    }];
+  }).slice(0, 10);
+  const unique = (values: string[], limit = 12) => [...new Set(values.map(tidy).filter(Boolean))].slice(0, limit);
+  const questions = unique(items.filter((item) => string(item.type) === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"]))));
+  const related = unique(items.filter((item) => string(item.type) === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"]))));
+  return { keyword, location, checkedAt: checkedAt.toISOString(), organic, questions, related };
 }
 
 export function organicHistoryWindowStart(now = new Date()) {

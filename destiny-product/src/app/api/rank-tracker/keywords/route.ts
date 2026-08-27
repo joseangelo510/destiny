@@ -23,11 +23,12 @@ function responseKeyword(row: {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({})) as { websiteId?: unknown; keyword?: unknown; listId?: unknown; source?: unknown };
+  const body = await request.json().catch(() => ({})) as { websiteId?: unknown; keyword?: unknown; listId?: unknown; source?: unknown; track?: unknown };
   const websiteId = typeof body.websiteId === "string" ? body.websiteId : "";
   const keyword = typeof body.keyword === "string" ? body.keyword.trim().replace(/\s+/g, " ").slice(0, 500) : "";
   const listId = typeof body.listId === "string" && body.listId ? body.listId : null;
   const source = body.source === "strategy" || body.source === "research" ? body.source : "manual";
+  const track = body.track !== false;
   if (!websiteId || !keyword) return NextResponse.json({ error: "Choose a website and enter a keyword." }, { status: 400 });
 
   const supabase = await createClient();
@@ -48,8 +49,9 @@ export async function POST(request: Request) {
     .eq("website_id", websiteId).eq("normalized_keyword", normalizedKeyword)
     .eq("location_code", 2840).eq("language_code", "en").eq("device", "desktop").maybeSingle();
   if (existing) {
+    const shouldResume = track && existing.status === "paused";
     const { data, error } = await supabase.from("tracked_keywords")
-      .update({ list_id: listId ?? existing.list_id, status: existing.status === "paused" ? "pending" : existing.status, next_check_at: new Date().toISOString() })
+      .update({ list_id: listId ?? existing.list_id, status: shouldResume ? "pending" : existing.status, ...(shouldResume ? { next_check_at: new Date().toISOString() } : {}) })
       .eq("id", existing.id)
       .select("id,keyword,list_id,status,source,created_at,last_checked_at").single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -63,6 +65,7 @@ export async function POST(request: Request) {
     keyword,
     normalized_keyword: normalizedKeyword,
     source,
+    status: track ? "pending" : "paused",
   }).select("id,keyword,list_id,status,source,created_at,last_checked_at").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ keyword: responseKeyword(data), alreadyTracked: false });

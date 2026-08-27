@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import type { KeywordResearchResult, KeywordResearchRow, SearchIntent } from "@/lib/seo/research";
+import type { KeywordResearchResult, KeywordResearchRow, KeywordSerpSnapshot, SearchIntent } from "@/lib/seo/research";
+import { KeywordSavePanel, KeywordSerpDrawer, KeywordSerpInsights, type KeywordListOption } from "./keyword-serp-insights";
 import { INITIAL_KEYWORD_VISIBLE_LIMIT, keywordDisclosureState } from "../lib/seo/keyword-disclosure";
 import { nextKeywordSort, sortKeywordRows, type KeywordSort, type KeywordSortKey } from "../lib/seo/keyword-sort";
 
@@ -105,7 +106,17 @@ export function PerformanceChart({ points, metric, onMetricChange }: { points: P
   </section>;
 }
 
-export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", auditId = "" }: { initialQuery?: string; websiteId?: string; auditId?: string }) {
+type KeywordResearchWorkspaceProps = {
+  initialQuery?: string;
+  websiteId?: string;
+  auditId?: string;
+  initialLists?: KeywordListOption[];
+  initialSavedKeywords?: Array<{ keyword: string; listId: string | null }>;
+};
+
+const SERP_SESSION_LIMIT = 25;
+
+export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", auditId = "", initialLists = [], initialSavedKeywords = [] }: KeywordResearchWorkspaceProps) {
   const [mode, setMode] = useState<"keyword" | "domain">("domain");
   const [query, setQuery] = useState(initialQuery);
   const [result, setResult] = useState<KeywordResearchResult | null>(null);
@@ -119,7 +130,16 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   const [tracking, setTracking] = useState("");
   const [strategized, setStrategized] = useState<Set<string>>(() => new Set());
   const [savingStrategy, setSavingStrategy] = useState("");
+  const [lists, setLists] = useState(initialLists);
+  const [saved, setSaved] = useState<Set<string>>(() => new Set(initialSavedKeywords.map((item) => item.keyword)));
+  const [saveSelection, setSaveSelection] = useState<string[]>([]);
+  const [savingKeywords, setSavingKeywords] = useState(false);
+  const [activeSerpKeyword, setActiveSerpKeyword] = useState("");
+  const [serpSnapshots, setSerpSnapshots] = useState<Record<string, KeywordSerpSnapshot>>({});
+  const [serpLoading, setSerpLoading] = useState(false);
+  const [serpError, setSerpError] = useState("");
   const [revealed, setRevealed] = useState(false);
+  const serpFetchCountRef = useRef(0);
   const shouldFocusFirstRevealedRef = useRef(false);
   const firstRevealedKeywordRef = useRef<HTMLTableCellElement | null>(null);
 
@@ -162,25 +182,84 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
 
   const intentCounts = useMemo(() => (result?.rows ?? []).reduce<Record<string, number>>((counts, row) => ({ ...counts, [row.intent]: (counts[row.intent] ?? 0) + 1 }), {}), [result]);
 
-  async function run(event: FormEvent) {
-    event.preventDefault();
+  async function requestResearch(nextQuery: string, nextMode: "keyword" | "domain") {
     setLoading(true);
     setError("");
     try {
       const response = await fetch("/api/research/keywords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, mode, locationName: "United States" }),
+        body: JSON.stringify({ query: nextQuery, mode: nextMode, locationName: "United States" }),
       });
       const payload = await response.json() as KeywordResearchResult & { error?: string };
       if (!response.ok) throw new Error(payload.error || "Keyword research failed.");
       shouldFocusFirstRevealedRef.current = false;
       setRevealed(false);
       setResult(payload);
+      setQuery(nextQuery);
+      setMode(nextMode);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Keyword research failed.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function run(event: FormEvent) {
+    event.preventDefault();
+    await requestResearch(query, mode);
+  }
+
+  async function openSerp(value: string, retry = false) {
+    const cacheKey = value.trim().toLocaleLowerCase("en-US");
+    setActiveSerpKeyword(value);
+    setSerpError("");
+    if (!retry && serpSnapshots[cacheKey]) return;
+    if (serpFetchCountRef.current >= SERP_SESSION_LIMIT) {
+      setSerpError("You’ve viewed 25 live first-page snapshots this session. Refresh the page to begin a new research session.");
+      return;
+    }
+    setSerpLoading(true);
+    serpFetchCountRef.current += 1;
+    try {
+      const response = await fetch("/api/research/keyword-serp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword: value, locationName: "United States" }) });
+      const payload = await response.json() as KeywordSerpSnapshot & { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Destiny could not load live first-page results.");
+      setSerpSnapshots((current) => ({ ...current, [cacheKey]: payload }));
+    } catch (cause) {
+      setSerpError(cause instanceof Error ? cause.message : "Destiny could not load live first-page results.");
+    } finally {
+      setSerpLoading(false);
+    }
+  }
+
+  async function createList(name: string) {
+    if (!websiteId || !name.trim()) return null;
+    setError("");
+    const response = await fetch("/api/rank-tracker/lists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, name }) });
+    const payload = await response.json() as { list?: KeywordListOption; error?: string };
+    if (!response.ok || !payload.list) { setError(payload.error || "Destiny could not create this list."); return null; }
+    setLists((current) => [...current, payload.list as KeywordListOption]);
+    return payload.list;
+  }
+
+  async function saveKeywords(listId: string | null, track: boolean) {
+    if (!websiteId || !saveSelection.length) return;
+    setSavingKeywords(true);
+    setError("");
+    try {
+      await Promise.all(saveSelection.map(async (keyword) => {
+        const response = await fetch("/api/rank-tracker/keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword, listId, source: "research", track }) });
+        const payload = await response.json() as { error?: string };
+        if (!response.ok) throw new Error(payload.error || `Destiny could not save ${keyword}.`);
+      }));
+      setSaved((current) => new Set([...current, ...saveSelection]));
+      if (track) setTracked((current) => new Set([...current, ...saveSelection]));
+      setSaveSelection([]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Destiny could not save these keywords.");
+    } finally {
+      setSavingKeywords(false);
     }
   }
 
@@ -261,20 +340,37 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         <article><span>Estimated traffic</span><strong>{numberFormat.format(result.metrics.estimatedTraffic)}</strong><small>{result.mode === "domain" ? "From current rankings" : "Available for domain reports"}</small></article>
       </section>
       {result.mode === "domain" ? <PerformanceChart metric={performanceMetric} onMetricChange={setPerformanceMetric} points={result.performance ?? []} /> : null}
+      {result.mode === "keyword" ? <KeywordSerpInsights
+        available={result.serpEvidenceStatus !== "unavailable"}
+        checkedAt={result.serpCheckedAt}
+        onResearch={(keyword) => void requestResearch(keyword, "keyword")}
+        onSave={(keyword) => setSaveSelection([keyword])}
+        questions={result.questions ?? []}
+        related={result.related ?? []}
+      /> : null}
       <section className="research-overview-grid">
         <article className="research-card"><div className="research-card-heading"><strong>Search intent</strong><span>Why people search</span></div><div className="intent-distribution">{(["transactional", "commercial", "informational", "navigational", "unknown"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type="button"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></button>)}</div></article>
         <article className="research-card research-guidance"><div className="research-card-heading"><strong>How to use this report</strong><span>Destiny guidance</span></div><ol><li>Start with transactional and commercial searches tied to a service or sale.</li><li>Confirm there is credible volume and a difficulty you can compete for.</li><li>Move approved opportunities into Keyword strategy for the three-month plan.</li></ol></article>
       </section>
+      {saveSelection.length ? <KeywordSavePanel keywords={saveSelection} lists={lists} onCancel={() => setSaveSelection([])} onCreateList={createList} onSave={saveKeywords} saving={savingKeywords} /> : null}
       <section className="research-card research-table-card">
         <div className="research-toolbar">
           <div><strong>Keyword ideas</strong><span aria-live="polite">{disclosure.toolbarLabel}</span></div>
           <input aria-label="Filter keywords" onChange={(event) => updateSearch(event.target.value)} placeholder="Filter keywords" value={search} />
           <select aria-label="Filter by intent" onChange={(event) => updateIntent(event.target.value as SearchIntent | "all")} value={intent}><option value="all">All intent</option><option value="transactional">Transactional</option><option value="commercial">Commercial</option><option value="informational">Informational</option><option value="navigational">Navigational</option><option value="unknown">Unknown</option></select>
         </div>
-        <div className="research-table-scroll"><table className="research-table"><thead><tr><SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}{auditId ? <th>Strategy</th> : null}<th>Rank tracker</th></tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}><td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}{auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? "tracked" : ""}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type="button">{strategized.has(row.keyword) ? "In strategy ✓" : savingStrategy === row.keyword ? "Adding…" : "Add to strategy"}</button></td> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td></tr>)}</tbody></table></div>
+        <div className="research-table-scroll"><table className="research-table"><thead><tr>
+          <SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}<th>First page</th><th>Save</th>{auditId ? <th>Strategy</th> : null}<th>Rank tracker</th>
+        </tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}>
+          <td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}
+          <td><button className="research-row-action" onClick={() => void openSerp(row.keyword)} type="button">View first page</button></td>
+          <td><button className={`research-row-action ${saved.has(row.keyword) ? "saved" : ""}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type="button">{saved.has(row.keyword) ? "Saved ✓" : "Save"}</button></td>
+          {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? "tracked" : ""}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type="button">{strategized.has(row.keyword) ? "In strategy ✓" : savingStrategy === row.keyword ? "Adding…" : "Add to strategy"}</button></td> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td>
+        </tr>)}</tbody></table></div>
         {disclosure.buttonLabel ? <div className="research-more-keywords"><button onClick={revealKeywords} type="button">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null}
         {!rows.length ? <p className="research-no-rows">No keywords match these filters.</p> : null}
       </section>
+      {activeSerpKeyword ? <KeywordSerpDrawer error={serpError} keyword={activeSerpKeyword} loading={serpLoading} onClose={() => { setActiveSerpKeyword(""); setSerpError(""); }} onRetry={() => void openSerp(activeSerpKeyword, true)} onSave={(keyword) => setSaveSelection([keyword])} snapshot={serpSnapshots[activeSerpKeyword.trim().toLocaleLowerCase("en-US")]} /> : null}
       <aside className="research-notices">{result.notices.map((notice) => <p key={notice}>ⓘ {notice}</p>)}</aside>
     </>}
   </div>;
