@@ -41,7 +41,7 @@ const researchResult = {
 };
 
 test.describe("@gate keyword research persistence", () => {
-  test("researches first-page evidence and preserves two saved ideas in their list after revisit", async ({ page }, testInfo) => {
+  test("researches first-page evidence and keeps two saved ideas in their named list after revisit", async ({ page }, testInfo) => {
     const mobile = testInfo.project.name === "mobile";
     const question = mobile
       ? "What should a growing business look for in an SEO consultant?"
