@@ -207,6 +207,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
     organization_id: organizationId,
     website_id: websiteId,
     audit_id: auditId,
+    created_by: ownerId,
     user_id: ownerId,
     keyword: item.keyword,
     draft: {
@@ -261,9 +262,11 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   const scheduleResult = await service.from("publishing_schedule_items").insert({
     organization_id: organizationId,
     website_id: websiteId,
+    audit_id: auditId,
     plan_id: plan.id,
     position: 1,
     keyword: keywords[0].keyword,
+    normalized_keyword: keywords[0].keyword,
     title: `${keywords[0].keyword}: a practical guide`,
     content_type: "Blog guide",
     scheduled_for: scheduledFor,
