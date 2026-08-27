@@ -2,12 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   rankMovement,
   rankMovementFromReadings,
+  rankProviderState,
   rankReadingState,
   summarizeRankings,
   trackerFreshness,
 } from "./rank-tracker";
 
 describe("rank tracker evidence rules", () => {
+  it("distinguishes automatic retrying from a degraded provider state", () => {
+    expect(rankProviderState('{"c":"transient","a":2,"m":"Internal SE Server Error."}')).toEqual({ label: "Retrying", state: "retrying" });
+    expect(rankProviderState('{"c":"transient","a":4,"m":"Internal SE Server Error."}')).toEqual({ label: "Degraded — provider errors", state: "degraded" });
+    expect(rankProviderState('{"c":"permanent","a":1,"m":"HTTP 401"}')).toEqual({ label: "Degraded — provider errors", state: "degraded" });
+    expect(rankProviderState(null)).toBeNull();
+  });
+
   it("never presents a pending keyword as rank zero", async () => {
     await expect(rankReadingState({ status: "pending", position: null, found: null })).resolves.toEqual({
       label: "First check pending",
