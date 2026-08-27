@@ -76,6 +76,33 @@ test.describe("@gate certified MVP journey", () => {
     expect(reconciliations).toBeGreaterThanOrEqual(2);
   });
 
+  test("Editorial calendar verifies a past-due WordPress schedule before calling it live", async ({ page }) => {
+    const permalink = "https://browser-member.example/guides/seo-consulting-services/";
+    let calendarChecks = 0;
+    await page.route("**/api/content/publishing-plan/reconcile", async (route) => {
+      calendarChecks += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          verified: true,
+          state: "published",
+          remotePermalink: permalink,
+          verifiedLiveAt: new Date().toISOString(),
+        }),
+        status: 200,
+      });
+    });
+
+    await page.goto(`/content?site=${fixture!.mvp.websiteId}`);
+    await expect(page.getByText("Scheduled — past due, not yet verified", { exact: true }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Refresh WordPress status" }).first().click();
+
+    await expect.poll(() => calendarChecks).toBe(1);
+    await expect(page.getByText("WordPress confirmed that this post is live.")).toBeVisible();
+    await expect(page.getByText("Live and verified", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Scheduled — past due, not yet verified", { exact: true })).toHaveCount(0);
+  });
+
   test("Rank tracker reports saved weekly movement without inventing position zero", async ({ page }) => {
     await page.goto(`/rank-tracker?site=${fixture!.mvp.websiteId}`);
 
