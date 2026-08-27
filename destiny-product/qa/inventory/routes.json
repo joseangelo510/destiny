@@ -66,6 +66,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/content/publishing-plan/reconcile",
+    "file": "src/app/api/content/publishing-plan/reconcile/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/content/publishing-plan/run",
     "file": "src/app/api/content/publishing-plan/run/route.ts"
   },
