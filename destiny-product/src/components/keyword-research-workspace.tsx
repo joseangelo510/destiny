@@ -131,7 +131,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   const [strategized, setStrategized] = useState<Set<string>>(() => new Set());
   const [savingStrategy, setSavingStrategy] = useState("");
   const [lists, setLists] = useState(initialLists);
-  const [saved, setSaved] = useState<Set<string>>(() => new Set(initialSavedKeywords.map((item) => item.keyword)));
+  const [saved, setSaved] = useState<Map<string, string | null>>(() => new Map(initialSavedKeywords.map((item) => [item.keyword, item.listId])));
   const [saveSelection, setSaveSelection] = useState<string[]>([]);
   const [savingKeywords, setSavingKeywords] = useState(false);
   const [activeSerpKeyword, setActiveSerpKeyword] = useState("");
@@ -152,6 +152,10 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
     revealed,
   });
   const visibleRows = rows.slice(0, disclosure.visibleCount);
+  const savedLabels = useMemo(() => Object.fromEntries([...saved.entries()].map(([keyword, listId]) => {
+    const listName = listId ? lists.find((list) => list.id === listId)?.name ?? "Saved list" : "General";
+    return [keyword, listName];
+  })), [lists, saved]);
 
   useEffect(() => {
     if (!revealed || !shouldFocusFirstRevealedRef.current) return;
@@ -253,7 +257,11 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         const payload = await response.json() as { error?: string };
         if (!response.ok) throw new Error(payload.error || `Destiny could not save ${keyword}.`);
       }));
-      setSaved((current) => new Set([...current, ...saveSelection]));
+      setSaved((current) => {
+        const next = new Map(current);
+        saveSelection.forEach((keyword) => next.set(keyword, listId));
+        return next;
+      });
       if (track) setTracked((current) => new Set([...current, ...saveSelection]));
       setSaveSelection([]);
     } catch (cause) {
@@ -347,6 +355,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         onSave={(keyword) => setSaveSelection([keyword])}
         questions={result.questions ?? []}
         related={result.related ?? []}
+        savedLabels={savedLabels}
       /> : null}
       <section className="research-overview-grid">
         <article className="research-card"><div className="research-card-heading"><strong>Search intent</strong><span>Why people search</span></div><div className="intent-distribution">{(["transactional", "commercial", "informational", "navigational", "unknown"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type="button"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></button>)}</div></article>
@@ -364,13 +373,13 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         </tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}>
           <td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}
           <td><button className="research-row-action" onClick={() => void openSerp(row.keyword)} type="button">View first page</button></td>
-          <td><button className={`research-row-action ${saved.has(row.keyword) ? "saved" : ""}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type="button">{saved.has(row.keyword) ? "Saved ✓" : "Save"}</button></td>
+          <td><button className={`research-row-action ${saved.has(row.keyword) ? "saved" : ""}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type="button">{saved.has(row.keyword) ? `Saved to ${savedLabels[row.keyword]} ✓` : "Save"}</button></td>
           {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? "tracked" : ""}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type="button">{strategized.has(row.keyword) ? "In strategy ✓" : savingStrategy === row.keyword ? "Adding…" : "Add to strategy"}</button></td> : null}<td><button className={`track-keyword-button ${tracked.has(row.keyword) ? "tracked" : ""}`} disabled={!websiteId || tracking === row.keyword || tracked.has(row.keyword)} onClick={() => void trackKeyword(row.keyword)} type="button">{tracked.has(row.keyword) ? "Tracking ✓" : tracking === row.keyword ? "Adding…" : "Track"}</button></td>
         </tr>)}</tbody></table></div>
         {disclosure.buttonLabel ? <div className="research-more-keywords"><button onClick={revealKeywords} type="button">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null}
         {!rows.length ? <p className="research-no-rows">No keywords match these filters.</p> : null}
       </section>
-      {activeSerpKeyword ? <KeywordSerpDrawer error={serpError} keyword={activeSerpKeyword} loading={serpLoading} onClose={() => { setActiveSerpKeyword(""); setSerpError(""); }} onRetry={() => void openSerp(activeSerpKeyword, true)} onSave={(keyword) => setSaveSelection([keyword])} snapshot={serpSnapshots[activeSerpKeyword.trim().toLocaleLowerCase("en-US")]} /> : null}
+      {activeSerpKeyword ? <KeywordSerpDrawer error={serpError} keyword={activeSerpKeyword} loading={serpLoading} onClose={() => { setActiveSerpKeyword(""); setSerpError(""); }} onRetry={() => void openSerp(activeSerpKeyword, true)} onSave={(keyword) => setSaveSelection([keyword])} savedLabels={savedLabels} snapshot={serpSnapshots[activeSerpKeyword.trim().toLocaleLowerCase("en-US")]} /> : null}
       <aside className="research-notices">{result.notices.map((notice) => <p key={notice}>ⓘ {notice}</p>)}</aside>
     </>}
   </div>;

@@ -23,23 +23,29 @@ type InsightProps = {
   questions: string[];
   related: string[];
   available?: boolean;
+  savedLabels?: Record<string, string>;
   onResearch: (keyword: string) => void;
   onSave: (keyword: string) => void;
 };
 
-export function KeywordSerpInsights({ checkedAt, questions, related, available = true, onResearch, onSave }: InsightProps) {
+function SaveKeywordButton({ keyword, savedLabels, onSave }: { keyword: string; savedLabels: Record<string, string>; onSave: (keyword: string) => void }) {
+  const savedTo = savedLabels[keyword];
+  return <button disabled={Boolean(savedTo)} onClick={() => onSave(keyword)} type="button">{savedTo ? `Saved to ${savedTo} ✓` : "Save"}</button>;
+}
+
+export function KeywordSerpInsights({ checkedAt, questions, related, available = true, savedLabels = {}, onResearch, onSave }: InsightProps) {
   const evidence = checkedAt ? `From live Google results · checked ${new Date(checkedAt).toLocaleDateString()}` : "Live Google evidence unavailable";
   return <section className="keyword-insight-grid" aria-label="Keyword opportunities from Google">
     <article className="research-card keyword-insight-card">
       <div className="research-card-heading"><strong>Questions people ask</strong><span>{evidence}</span></div>
       {!available ? <p className="keyword-insight-empty" role="alert">Destiny couldn’t load Google’s question results for this search. Your keyword ideas are still available below.</p>
-        : questions.length ? <ul>{questions.map((question) => <li key={question}><span>{question}</span><button onClick={() => onSave(question)} type="button">Save</button></li>)}</ul>
+        : questions.length ? <ul>{questions.map((question) => <li key={question}><span>{question}</span><SaveKeywordButton keyword={question} onSave={onSave} savedLabels={savedLabels} /></li>)}</ul>
           : <p className="keyword-insight-empty">Google didn’t show a questions box for this search.</p>}
     </article>
     <article className="research-card keyword-insight-card">
       <div className="research-card-heading"><strong>Other keyword opportunities</strong><span>{evidence}</span></div>
       {!available ? <p className="keyword-insight-empty" role="alert">Related Google searches are unavailable right now.</p>
-        : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><button onClick={() => onSave(keyword)} type="button">Save</button><button onClick={() => onResearch(keyword)} type="button">Research this</button></div></li>)}</ul>
+        : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><SaveKeywordButton keyword={keyword} onSave={onSave} savedLabels={savedLabels} /><button onClick={() => onResearch(keyword)} type="button">Research this</button></div></li>)}</ul>
           : <p className="keyword-insight-empty">No additional related searches appeared in this result.</p>}
     </article>
   </section>;
@@ -53,9 +59,10 @@ type DrawerProps = {
   onRetry: () => void;
   onClose: () => void;
   onSave: (keyword: string) => void;
+  savedLabels?: Record<string, string>;
 };
 
-export function KeywordSerpDrawer({ keyword, snapshot, loading, error, onRetry, onClose, onSave }: DrawerProps) {
+export function KeywordSerpDrawer({ keyword, snapshot, loading, error, onRetry, onClose, onSave, savedLabels = {} }: DrawerProps) {
   return <section className="keyword-serp-drawer" aria-label={`First-page results for ${keyword}`}>
     <header><div><span className="research-kicker">Live first-page evidence</span><h3>{keyword}</h3><p>{snapshot ? `Google · ${snapshot.location} · checked ${new Date(snapshot.checkedAt).toLocaleString()}` : "Google · United States · English"}</p></div><button aria-label="Close first-page results" onClick={onClose} type="button">×</button></header>
     {loading ? <div className="keyword-serp-loading" aria-live="polite">Checking Google’s first page…</div> : null}
@@ -63,7 +70,7 @@ export function KeywordSerpDrawer({ keyword, snapshot, loading, error, onRetry, 
     {snapshot ? <>
       <div className="keyword-serp-heading"><strong>Who ranks on page one</strong><span>Page types are estimated from the public page address.</span></div>
       {snapshot.organic.length ? <ol className="keyword-serp-results">{snapshot.organic.map((row) => <li key={`${row.position}-${row.url}`}><b>{row.position}</b><div><a href={row.url} rel="noreferrer" target="_blank">{row.title || row.domain} ↗</a><small>{row.domain}</small></div><span className={`page-type-chip ${row.pageType}`}>{pageTypeLabel(row.pageType)}</span></li>)}</ol> : <p className="keyword-insight-empty">Google did not return ten standard organic pages for this search.</p>}
-      <div className="keyword-serp-questions"><strong>Questions connected to this keyword</strong>{snapshot.questions.length ? <ul>{snapshot.questions.map((question) => <li key={question}><span>{question}</span><button onClick={() => onSave(question)} type="button">Save</button></li>)}</ul> : <p>Google didn’t show a questions box for this keyword.</p>}</div>
+      <div className="keyword-serp-questions"><strong>Questions connected to this keyword</strong>{snapshot.questions.length ? <ul>{snapshot.questions.map((question) => <li key={question}><span>{question}</span><SaveKeywordButton keyword={question} onSave={onSave} savedLabels={savedLabels} /></li>)}</ul> : <p>Google didn’t show a questions box for this keyword.</p>}</div>
     </> : null}
   </section>;
 }
