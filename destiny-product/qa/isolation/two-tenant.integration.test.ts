@@ -693,6 +693,7 @@ async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tena
 
   const article = `<p>${"Approved local article content. ".repeat(8)}</p>`;
   const crossTenantRequests = [
+    ["/functions/v1/calendar-orphan-repair", { websiteId: outsider.websiteId, itemId: randomUUID(), mode: "dry_run" }],
     ["/functions/v1/google-oauth-start", { websiteId: outsider.websiteId, provider: "google_search_console" }],
     ["/functions/v1/google-sync", { websiteId: outsider.websiteId, provider: "google_search_console" }],
     ["/functions/v1/process-audit", { websiteId: outsider.websiteId }],

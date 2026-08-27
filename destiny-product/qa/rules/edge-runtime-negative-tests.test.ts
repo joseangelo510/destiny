@@ -33,6 +33,7 @@ describe("Edge Function negative authorization harness", () => {
       "utf8",
     );
     const paths = [
+      "calendar-orphan-repair",
       "delete-account",
       "google-oauth-callback",
       "google-oauth-start",
