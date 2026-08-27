@@ -15,7 +15,7 @@ import { rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
 import { parseInterviewArticleDraft } from "@/lib/interviews/interviews";
-import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { attachCmsPublicationReceipts, type PublishingPlanRecord, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -140,12 +140,15 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const { data: publishingItemRows } = publishingPlanRow
     ? await (context.supabase as unknown as SupabaseClient)
       .from("publishing_schedule_items")
-      .select("id,plan_id,position,keyword,title,content_type,related_article_title,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
+      .select("id,plan_id,position,keyword,title,content_type,related_article_title,article_key,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
       .eq("plan_id", publishingPlanRow.id)
       .order("position")
     : { data: [] };
   const publishingPlan = publishingPlanRow as PublishingPlanRecord | null;
-  const publishingItems = (publishingItemRows ?? []) as PublishingScheduleItemRecord[];
+  const publishingItems = attachCmsPublicationReceipts(
+    (publishingItemRows ?? []) as PublishingScheduleItemRecord[],
+    initialCmsTransfers,
+  );
   const wordpressScheduleByKeyword: Record<string, string> = {};
   if (publishingPlan?.status === "active" && publishingPlan.mode !== "review_each") {
     for (const item of publishingItems) {

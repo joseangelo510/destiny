@@ -82,3 +82,9 @@ export function publicationState(remoteStatus: string, contentMatches: boolean, 
   }
   return "stale" as const;
 }
+
+export function scheduleItemTransition(currentState: string, publicationStatus: string) {
+  return currentState === "scheduled" && publicationStatus === "verified_live"
+    ? { to: "published" as const }
+    : null;
+}

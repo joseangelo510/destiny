@@ -24,13 +24,24 @@ export type PublishingScheduleItemRecord = {
   title: string;
   content_type: string;
   related_article_title?: string | null;
+  article_key?: string | null;
   scheduled_for: string;
   state: PublishingState;
   review_recommended: boolean;
   remote_id: string | null;
   remote_edit_url: string | null;
   remote_permalink: string | null;
+  cms_publication_status?: string | null;
   last_error: string | null;
+};
+
+export type CmsPublicationReceipt = {
+  article_key?: string | null;
+  articleKey?: string | null;
+  publication_status?: string | null;
+  publicationStatus?: string | null;
+  remote_permalink?: string | null;
+  remotePermalink?: string | null;
 };
 
 export type EditorialContentChannel = "article" | "linkedin" | "x" | "approved_draft";
@@ -47,7 +58,7 @@ export function isArticleCalendarItem(item: Pick<PublishingScheduleItemRecord, "
   return item.position <= confirmedPostCount && editorialContentChannel(item.content_type) === "article";
 }
 
-export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
+export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "delivered_unverified" | "published" | "failed" | "missed" | "manual";
 export type PublishingDeliveryMode = "direct_wordpress" | "manual_webflow" | "manual_wix" | "unavailable";
 
 export function publishingDeliveryMode(websitePlatform: string | null, connectedProviders: Iterable<string>): PublishingDeliveryMode {
@@ -61,11 +72,31 @@ export function publishingDeliveryMode(websitePlatform: string | null, connected
 export function publishingCalendarState(item: PublishingScheduleItemRecord, websitePlatform: string | null): PublishingCalendarState {
   if (websitePlatform === "wix" && ["article", "approved_draft"].includes(editorialContentChannel(item.content_type))) return "manual";
   if (item.state === "managed_externally") return "manual";
+  if (item.cms_publication_status === "published_unverified") return "delivered_unverified";
+  if (item.cms_publication_status === "verified_live") return item.remote_permalink ? "published" : "planned";
   if (item.state === "published") return item.remote_permalink ? "published" : "planned";
   if (item.state === "scheduled") return item.remote_id ? "scheduled" : "planned";
   if (item.state === "failed") return "failed";
   if (item.state === "needs_review") return /missed|date passed|past due/i.test(item.last_error ?? "") ? "missed" : "needs_review";
   return "planned";
+}
+
+export function attachCmsPublicationReceipts(items: PublishingScheduleItemRecord[], receipts: CmsPublicationReceipt[]) {
+  const byArticleKey = new Map(receipts.flatMap((receipt) => {
+    const articleKey = receipt.article_key ?? receipt.articleKey;
+    return articleKey ? [[articleKey, receipt] as const] : [];
+  }));
+  return items.map((item) => {
+    if (!item.article_key) return item;
+    const receipt = byArticleKey.get(item.article_key);
+    if (!receipt) return item;
+    const publicationStatus = receipt.publication_status ?? receipt.publicationStatus ?? null;
+    const remotePermalink = receipt.remote_permalink ?? receipt.remotePermalink ?? item.remote_permalink;
+    if (publicationStatus === "verified_live") {
+      return { ...item, state: "published" as const, cms_publication_status: publicationStatus, remote_permalink: remotePermalink };
+    }
+    return { ...item, cms_publication_status: publicationStatus, remote_permalink: remotePermalink };
+  });
 }
 
 export function wordpressRemoteIdFromEditUrl(value: string | null | undefined) {

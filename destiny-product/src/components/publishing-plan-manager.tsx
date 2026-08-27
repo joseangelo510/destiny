@@ -16,6 +16,7 @@ const STATE_META: Record<PublishingCalendarState, { label: string; short: string
   planned: { label: "Planned", short: "Plan", icon: "", description: "This topic has a place in the plan, but it is not scheduled in a CMS yet." },
   needs_review: { label: "Needs review", short: "Review", icon: "!", description: "Your review is required before this article can move forward." },
   scheduled: { label: "CMS-confirmed scheduled", short: "Sched", icon: "◷", description: "The CMS confirmed this post and its future publication time." },
+  delivered_unverified: { label: "Delivered to CMS — verification pending", short: "Verify", icon: "◷", description: "The CMS received this post, but Destiny has not verified the public page yet." },
   published: { label: "Live and verified", short: "Live", icon: "✓", description: "Destiny verified that this post is live." },
   failed: { label: "Failed", short: "Failed", icon: "×", description: "The CMS did not complete this publishing attempt." },
   missed: { label: "Missed", short: "Missed", icon: "◷", description: "The planned time passed without a verified publication." },
@@ -360,7 +361,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
             return <button className="publishing-list-row" key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className="publishing-list-type"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? "Review recommended" : item.keyword}</small></span><span>{item.related_article_title || "Not applicable"}</span><span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span><span className="publishing-list-action">{state === "needs_review" ? "Review" : state === "published" ? "View live" : state === "scheduled" ? "Open" : "View"}</span></button>;
           })}</div>}
 
-          <div aria-label="Publishing state legend" className="publishing-calendar-legend">{(["planned", "needs_review", "scheduled", "published", "failed", ...(manualCmsPlan ? ["manual"] : [])] as PublishingCalendarState[]).map((state) => <span className={state} key={state}><i aria-hidden="true" />{state === "failed" ? "Failed / missed" : STATE_META[state].label}</span>)}</div>
+          <div aria-label="Publishing state legend" className="publishing-calendar-legend">{(["planned", "needs_review", "scheduled", "delivered_unverified", "published", "failed", ...(manualCmsPlan ? ["manual"] : [])] as PublishingCalendarState[]).map((state) => <span className={state} key={state}><i aria-hidden="true" />{state === "failed" ? "Failed / missed" : STATE_META[state].label}</span>)}</div>
         </div>
 
         {selectedItem && (() => {
@@ -378,6 +379,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
               {state === "planned" && <a className="primary-button" href={social ? "/distribution" : "#article-review-workspace"}>{social ? "Prepare social post" : "Generate article"}</a>}
               {state === "needs_review" && <a className="primary-button" href={social ? "/distribution" : "#article-review-workspace"}>Review content</a>}
               {state === "scheduled" && selectedItem.remote_edit_url && <a className="primary-button" href={selectedItem.remote_edit_url} rel="noreferrer" target="_blank">View in WordPress ↗</a>}
+              {state === "delivered_unverified" && selectedItem.remote_permalink && <a className="primary-button" href={selectedItem.remote_permalink} rel="noreferrer" target="_blank">Check public page ↗</a>}
               {state === "published" && selectedItem.remote_permalink && <a className="primary-button" href={selectedItem.remote_permalink} rel="noreferrer" target="_blank">View live post ↗</a>}
               {(state === "failed" || state === "missed") && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Retry scheduling check"}</button>}
               {state === "manual" && <><a className="primary-button" href="#article-review-workspace">Prepare article</a><a className="secondary-button" href={websitePlatform === "wix" ? "https://manage.wix.com/dashboard/" : "https://webflow.com/dashboard"} rel="noreferrer" target="_blank">Open {websitePlatform === "wix" ? "Wix" : "Webflow"} ↗</a></>}

@@ -2913,6 +2913,8 @@ body { background: #f3f6f3; font-family: var(--font-body); }
 @media(max-width:900px){.publishing-calendar-layout.has-detail{grid-template-columns:1fr}.publishing-calendar-toolbar{align-items:flex-start}.publishing-toolbar-left{align-items:flex-start}.publishing-list-view{overflow-x:auto}.publishing-week-row{grid-template-columns:130px minmax(0,1fr)}.publishing-week-row>.publishing-detail-status{grid-column:2;justify-self:start}}
 @media(max-width:620px){.publishing-heading-actions{align-items:stretch;display:grid;width:100%}.publishing-heading-actions .primary-button{justify-content:center}.publishing-toolbar-left{display:grid;width:100%}.publishing-view-toggle{width:max-content}.publishing-month-controls strong{font-size:17px}.publishing-week-row{grid-template-columns:1fr}.publishing-week-row>.publishing-detail-status{grid-column:1}.publishing-week-title strong{white-space:normal}.publishing-week-heading{align-items:flex-start;display:grid;gap:4px}.publishing-add-types{grid-template-columns:1fr 1fr}.publishing-add-form{grid-template-columns:1fr}.publishing-add-form label.wide{grid-column:auto}.publishing-add-actions>*{flex:1}.publishing-add-layer{padding:12px}.publishing-add-dialog{max-height:90vh;overflow:auto;padding:19px}}
 
+.publishing-calendar-chip.delivered_unverified,.publishing-agenda-state.delivered_unverified,.publishing-detail-status.delivered_unverified{background:#eef2f7;border-color:#bcc9d8;color:#3f5f7b}.publishing-calendar-legend .delivered_unverified i{background:#eef2f7;border-color:#bcc9d8;border-style:solid}
+
 /* =====================================================
    Repurpose workspace
    ===================================================== */

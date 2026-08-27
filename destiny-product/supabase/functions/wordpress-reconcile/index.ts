@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { fingerprintFromRemote, fingerprintMatches, plainText, publicationState, verifyPublicPage } from "./logic.ts";
+import { fingerprintFromRemote, fingerprintMatches, plainText, publicationState, scheduleItemTransition, verifyPublicPage } from "./logic.ts";
 
 type ConnectionSecret = { integration_id?: unknown; credentials?: unknown };
 
@@ -102,6 +102,17 @@ export default {
       updated_at: now,
     }).eq("id", transfer.id);
     if (updateError) return json({ error: "Destiny checked WordPress but could not save the result." }, 502);
+
+    const scheduleTransition = scheduleItemTransition("scheduled", state);
+    if (scheduleTransition) {
+      const { error: scheduleError } = await context.supabaseAdmin.from("publishing_schedule_items").update({
+        state: scheduleTransition.to,
+        remote_id: String(transfer.remote_id),
+        remote_permalink: permalink || null,
+        last_error: null,
+      }).eq("website_id", websiteId).eq("article_key", articleKey).eq("state", "scheduled");
+      if (scheduleError) return json({ error: "Destiny verified the post but could not update its calendar status." }, 502);
+    }
 
     return json({ reconciled: true, publicationStatus: state, remotePermalink: permalink || null, lastReconciledAt: now, verifiedLiveAt, verificationEvidence: evidence, seoTitleRendered: renderedTitle || null });
   }),
