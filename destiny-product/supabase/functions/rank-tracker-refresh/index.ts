@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { parseRankObservation } from "./logic.ts";
+import { parseRankObservation, rankRetryPlan } from "./logic.ts";
 
 type DueKeyword = {
   id: string;
@@ -9,6 +9,7 @@ type DueKeyword = {
   language_code: string;
   device: string;
   search_depth: number;
+  last_error: string | null;
   websites: { normalized_domain: string } | { normalized_domain: string }[];
 };
 
@@ -57,7 +58,7 @@ export default {
 
     const now = new Date();
     const { data, error } = await context.supabaseAdmin.from("tracked_keywords")
-      .select("id,website_id,keyword,location_code,language_code,device,search_depth,websites!inner(normalized_domain)")
+      .select("id,website_id,keyword,location_code,language_code,device,search_depth,last_error,websites!inner(normalized_domain)")
       .in("status", ["pending", "active", "error"])
       .lte("next_check_at", now.toISOString())
       .order("next_check_at")
@@ -102,7 +103,8 @@ export default {
         } catch (cause) {
           failed += 1;
           const message = cause instanceof Error ? cause.message : "Rank check failed.";
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("id", row.id);
+          const retry = rankRetryPlan(message, row.last_error, now);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: retry.lastError, next_check_at: retry.nextCheckAt }).eq("id", row.id);
         }
       }
       const status = failed === 0 ? "complete" : completed === 0 ? "failed" : "partial";

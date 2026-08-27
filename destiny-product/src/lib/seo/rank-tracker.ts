@@ -13,6 +13,21 @@ export function normalizeTrackedKeyword(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
 }
 
+export function rankProviderState(lastError: string | null | undefined) {
+  if (!lastError) return null;
+  try {
+    const parsed = JSON.parse(lastError) as { c?: unknown; a?: unknown };
+    const classification = parsed.c;
+    const attempt = Number(parsed.a);
+    if ((classification !== "transient" && classification !== "permanent") || !Number.isInteger(attempt) || attempt < 1) return null;
+    return classification === "permanent" || attempt >= 4
+      ? { label: "Degraded — provider errors", state: "degraded" as const }
+      : { label: "Retrying", state: "retrying" as const };
+  } catch {
+    return { label: "Retrying", state: "retrying" as const };
+  }
+}
+
 const baseInput = { auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0 };
 
 export function rankPolicyInput(reading: RankReading, previous: { position: number | null; found: boolean | null } | null = null, timing?: { createdAt: string; lastCheckedAt: string | null; now: Date }): DestinyLogicInput {

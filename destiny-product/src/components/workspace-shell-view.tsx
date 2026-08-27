@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "../lib/product/coach-experience";
-import { siteScopedHref } from "../lib/workspace-selection";
+import { canonicalWebsites, siteScopedHref } from "../lib/workspace-selection";
 import { WorkspaceNotifications } from "./workspace-notifications";
 import { WorkspaceWebsiteProvider } from "./workspace-link";
 import styles from "./workspace-shell.module.css";
@@ -17,17 +17,18 @@ function FeatureNavigationLink({ active, item, websiteId }: { active: string; it
 }
 
 function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId: string | null; pathname: string; websites: WorkspaceSite[] }) {
-  const current = websites.find((website) => website.id === activeWebsiteId) ?? websites[0];
+  const visibleWebsites = canonicalWebsites(websites, activeWebsiteId);
+  const current = visibleWebsites.find((website) => website.id === activeWebsiteId) ?? visibleWebsites[0];
   if (!current) return <Link className={styles.singleSiteAdd} href="/onboarding?new=1">Add your first website</Link>;
   const mark = siteLabel(current).slice(0, 2);
-  if (websites.length === 1) return <div className={styles.siteContext}>
+  if (visibleWebsites.length === 1) return <div className={styles.siteContext}>
     <div className={styles.singleSite}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></div>
     <Link className={styles.singleSiteAdd} href="/onboarding?new=1">+ Add another website</Link>
   </div>;
   return <details className={styles.siteContext}>
     <summary aria-label={`Current website: ${siteLabel(current)}. Choose another website.`}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></summary>
     <div className={styles.siteMenu}>
-      {websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : ""}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)}
+      {visibleWebsites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : ""}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)}
       <Link className={styles.addSite} href="/onboarding?new=1">+ Add another website</Link>
     </div>
   </details>;
