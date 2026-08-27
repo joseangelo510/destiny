@@ -199,3 +199,52 @@ Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts fo
   first; `clearcheck.app` only with client authorization recorded here; no
   generated-today content).
 Status: AUTHORIZED — awaiting execution + P1 evidence.
+
+## D-LAUNCH-HARNESS-TIMEOUT-1 — 2026-08-27
+
+Authority: Fable 5 High (Destiny CTO under `HARNESS_POLICY.md`).
+Classification: HIGH because this changes a governance-guard test.
+Decision: GO for one test-scoped 30-second Vitest timeout on
+`qa/rules/commit-policy-canonical-main-ref.test.ts` test
+`accepts only the enumerated canonical URL normalization matrix`.
+Basis: the unchanged 12-repository URL matrix passed alone in 2.6 seconds, but
+timed out at the five-second default twice under full-gate load after 7.1 and
+8.1 seconds. All URL cases, assertions, and failure semantics must remain
+unchanged.
+Constraints: no global or suite timeout; no retry, skip, todo, or only marker;
+no matrix, assertion, or configuration change; no performance refactor under
+this decision. The timeout change must be a distinct commit on the protected
+PR path.
+Evidence required: the two recorded full-gate timeout failures, a diff proving
+the timeout is the only change to the guard test, and two consecutive green
+full `pnpm gate` runs at the PR head SHA.
+Decided by: Fable 5 High. Status: AUTHORIZED — implementation and evidence pending.
+
+## D-LAUNCH-PR23-EVIDENCE-EQUIVALENCE-1 — 2026-08-27
+
+Authority: Fable 5 High (Destiny CTO under `HARNESS_POLICY.md`).
+Classification: HIGH release-evidence interpretation for PR #23.
+Decision: GO to accept two consecutive green full `pnpm gate` attempts on
+GitHub's synthetic pull-request merge commit as PR-head evidence only when the
+synthetic merge tree is byte-identical to the branch-head tree, the base is an
+ancestor of the head, and an independent exact-head staging workflow proves
+the literal head SHA.
+Evidence at decision time: harness attempts 1 and 2 both passed on synthetic
+merge commit `1daf2d0e88343f8491cb475ae1c362e78e4c6ec3`, whose parents are base
+`450ae943fde32ad479692a851e09bc6d58a27944` and head
+`62d92b4bffa89ac5991878bb58e3036b8f22409f`. The merge commit and head shared
+tree `4178d5693c5d3837de79e48a66072d3c0f4ba0bd`; the base was an ancestor of
+the head. Exact-head staging proved build stamp
+`62d92b4bffa89ac5991878bb58e3036b8f22409f`, `/=200`,
+`/api/version=200`, and zero 5xx.
+Run URLs:
+- harness attempt 1: https://github.com/joseangelo510/destiny/actions/runs/33109081247/attempts/1
+- harness attempt 2: https://github.com/joseangelo510/destiny/actions/runs/33109081247/attempts/2
+- exact-head staging: https://github.com/joseangelo510/destiny/actions/runs/33109081297
+Constraints: no `.github/workflows/ci.yml` change is authorized. Any new branch
+commit or base movement invalidates the recorded proof and re-arms the two-green
+and exact-head staging requirements for the new graph. Production-only
+read-only journeys remain separate and are not waived. This decision authorizes
+no merge, tag, production deployment, or provider mutation.
+Decided by: Fable 5 High. Status: RECORDED — prior proof invalidated by this
+recording commit; fresh evidence is required at the resulting PR head.

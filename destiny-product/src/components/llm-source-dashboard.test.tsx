@@ -68,6 +68,8 @@ describe("LLM source dashboard", () => {
     expect(html).not.toContain("You are now AI visible");
     expect(html).toContain("Public proof URL");
     expect(html).toContain("Proof is user-attached and not provider verification");
+    expect(html).toContain('href="/content?site=11111111-1111-4111-8111-111111111111"');
+    expect(html).toContain('href="/audits?site=11111111-1111-4111-8111-111111111111"');
   });
 
   it("renders attached proof separately from a provider-detected citation", async () => {

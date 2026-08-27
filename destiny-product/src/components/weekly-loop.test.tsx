@@ -5,6 +5,7 @@ import { runDestinyLogic } from "../lib/logicaffeine";
 import { buildCoachTaskSet } from "../lib/product/coach-experience";
 import { JUNKIT_RECOMMENDATION_FIXTURE } from "../../supabase/functions/process-audit/fixtures/98junkit-recommendation";
 import { WeeklyLoop } from "./weekly-loop";
+import { WorkspaceWebsiteProvider } from "./workspace-link";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -147,6 +148,16 @@ describe("WeeklyLoop", () => {
     expect(html).toContain("See full audit details");
     expect(html).toContain('href="/audits/audit-1"');
     expect(html).toContain("Replay plan reveal");
+  });
+
+  it("keeps the audit detail link scoped to the active website", () => {
+    const html = renderToStaticMarkup(
+      <WorkspaceWebsiteProvider websiteId="11111111-1111-4111-8111-111111111111">
+        <WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} remainingTasks={2} />
+      </WorkspaceWebsiteProvider>,
+    );
+
+    expect(html).toContain('href="/audits/audit-1?site=11111111-1111-4111-8111-111111111111"');
   });
 
   it("can make the week smaller without changing or completing any task", () => {
