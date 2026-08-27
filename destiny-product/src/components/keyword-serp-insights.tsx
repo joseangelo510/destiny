@@ -23,6 +23,7 @@ type InsightProps = {
   questions: string[];
   related: string[];
   available?: boolean;
+  sampleKeyword?: string;
   savedLabels?: Record<string, string>;
   onResearch: (keyword: string) => void;
   onSave: (keyword: string) => void;
@@ -33,21 +34,31 @@ function SaveKeywordButton({ keyword, savedLabels, onSave }: { keyword: string; 
   return <button disabled={Boolean(savedTo)} onClick={() => onSave(keyword)} type="button">{savedTo ? `Saved to ${savedTo} ✓` : "Save"}</button>;
 }
 
-export function KeywordSerpInsights({ checkedAt, questions, related, available = true, savedLabels = {}, onResearch, onSave }: InsightProps) {
-  const evidence = checkedAt ? `From live Google results · checked ${new Date(checkedAt).toLocaleDateString()}` : "Live Google evidence unavailable";
-  return <section className="keyword-insight-grid" aria-label="Keyword opportunities from Google">
-    <article className="research-card keyword-insight-card">
-      <div className="research-card-heading"><strong>Questions people ask</strong><span>{evidence}</span></div>
-      {!available ? <p className="keyword-insight-empty" role="alert">Destiny couldn’t load Google’s question results for this search. Your keyword ideas are still available below.</p>
+export function KeywordSerpInsights({ checkedAt, questions, related, available = true, sampleKeyword = "this keyword", savedLabels = {}, onResearch, onSave }: InsightProps) {
+  const evidence = checkedAt ? `From live Google results · checked ${new Date(checkedAt).toLocaleDateString()}` : "Google evidence is unavailable";
+  const sampleQuestions = [`What should someone compare before choosing ${sampleKeyword}?`];
+  const sampleRelated = [`best ${sampleKeyword}`, `${sampleKeyword} pricing`];
+  return <section className="keyword-insight-grid" aria-label={available ? "Keyword opportunities from Google" : "Sample keyword research previews"}>
+    <article className={`research-card keyword-insight-card ${available ? "" : "keyword-sample-card"}`}>
+      <div className="research-card-heading"><strong>Questions people ask</strong><span className={available ? "" : "keyword-sample-badge"}>{available ? evidence : "Sample data"}</span></div>
+      {!available ? <><p className="keyword-sample-note">These are example questions to show how this section works. Live questions from Google aren&apos;t connected yet.</p><ul>{sampleQuestions.map((question) => <li key={question}><span>{question}</span></li>)}</ul></>
         : questions.length ? <ul>{questions.map((question) => <li key={question}><span>{question}</span><SaveKeywordButton keyword={question} onSave={onSave} savedLabels={savedLabels} /></li>)}</ul>
           : <p className="keyword-insight-empty">Google didn’t show a questions box for this search.</p>}
     </article>
-    <article className="research-card keyword-insight-card">
-      <div className="research-card-heading"><strong>Other keyword opportunities</strong><span>{evidence}</span></div>
-      {!available ? <p className="keyword-insight-empty" role="alert">Related Google searches are unavailable right now.</p>
+    <article className={`research-card keyword-insight-card ${available ? "" : "keyword-sample-card"}`}>
+      <div className="research-card-heading"><strong>Other keyword opportunities</strong><span className={available ? "" : "keyword-sample-badge"}>{available ? evidence : "Sample data"}</span></div>
+      {!available ? <><p className="keyword-sample-note">Example opportunities shown as a preview. Live suggestions are coming soon.</p><ul>{sampleRelated.map((keyword) => <li key={keyword}><span>{keyword}</span></li>)}</ul></>
         : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><SaveKeywordButton keyword={keyword} onSave={onSave} savedLabels={savedLabels} /><button onClick={() => onResearch(keyword)} type="button">Research this</button></div></li>)}</ul>
           : <p className="keyword-insight-empty">No additional related searches appeared in this result.</p>}
     </article>
+    {!available ? <article className="research-card keyword-insight-card keyword-sample-card keyword-sample-serp">
+      <div className="research-card-heading"><strong>Example first-page results</strong><span className="keyword-sample-badge">Sample data</span></div>
+      <p className="keyword-sample-note">This is a sample of what a first-page competitor check looks like. We can&apos;t show real Google results for this keyword yet.</p>
+      <ol className="keyword-serp-results keyword-sample-results">
+        <li><b>1</b><div><strong>Example service result</strong><small>example.com/services</small></div><span className="page-type-chip service_page">Service page</span></li>
+        <li><b>2</b><div><strong>Example guide result</strong><small>example.org/guides</small></div><span className="page-type-chip blog_post">Blog post</span></li>
+      </ol>
+    </article> : null}
   </section>;
 }
 
@@ -64,9 +75,9 @@ type DrawerProps = {
 
 export function KeywordSerpDrawer({ keyword, snapshot, loading, error, onRetry, onClose, onSave, savedLabels = {} }: DrawerProps) {
   return <section className="keyword-serp-drawer" aria-label={`First-page results for ${keyword}`}>
-    <header><div><span className="research-kicker">Live first-page evidence</span><h3>{keyword}</h3><p>{snapshot ? `Google · ${snapshot.location} · checked ${new Date(snapshot.checkedAt).toLocaleString()}` : "Google · United States · English"}</p></div><button aria-label="Close first-page results" onClick={onClose} type="button">×</button></header>
+    <header><div><span className="research-kicker">{snapshot ? "Live first-page evidence" : "First-page check"}</span><h3>{keyword}</h3><p>{snapshot ? `Google · ${snapshot.location} · checked ${new Date(snapshot.checkedAt).toLocaleString()}` : "Google · United States · English"}</p></div><button aria-label="Close first-page results" onClick={onClose} type="button">×</button></header>
     {loading ? <div className="keyword-serp-loading" aria-live="polite">Checking Google’s first page…</div> : null}
-    {error ? <div className="keyword-serp-error" role="alert"><strong>We couldn’t load live results for this keyword.</strong><p>{error}</p><button onClick={onRetry} type="button">Try again</button></div> : null}
+    {error ? <div className="keyword-serp-error" role="alert"><strong>Google evidence is unavailable.</strong><p>{error}</p><button onClick={onRetry} type="button">Try again</button></div> : null}
     {snapshot ? <>
       <div className="keyword-serp-heading"><strong>Who ranks on page one</strong><span>Page types are estimated from the public page address.</span></div>
       {snapshot.organic.length ? <ol className="keyword-serp-results">{snapshot.organic.map((row) => <li key={`${row.position}-${row.url}`}><b>{row.position}</b><div><a href={row.url} rel="noreferrer" target="_blank">{row.title || row.domain} ↗</a><small>{row.domain}</small></div><span className={`page-type-chip ${row.pageType}`}>{pageTypeLabel(row.pageType)}</span></li>)}</ol> : <p className="keyword-insight-empty">Google did not return ten standard organic pages for this search.</p>}
