@@ -77,6 +77,11 @@ test.describe("@gate certified MVP journey", () => {
   });
 
   test("Rank tracker reports saved weekly movement without inventing position zero", async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+
     await page.goto(`/rank-tracker?site=${fixture!.mvp.websiteId}`);
 
     await expect(page.getByRole("heading", { name: "What changed in your search visibility" })).toBeVisible();
@@ -84,5 +89,6 @@ test.describe("@gate certified MVP journey", () => {
     await expect(page.getByText(fixture!.mvp.keyword, { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("table").getByText("#9", { exact: true })).toBeVisible();
     await expect(page.getByText("#0", { exact: true })).toHaveCount(0);
+    expect(consoleErrors.filter((message) => /hydration|React error #418|server rendered HTML/i.test(message))).toEqual([]);
   });
 });
