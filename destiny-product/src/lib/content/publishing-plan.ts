@@ -27,6 +27,7 @@ export type PublishingScheduleItemRecord = {
   scheduled_for: string;
   state: PublishingState;
   review_recommended: boolean;
+  article_key?: string | null;
   remote_id: string | null;
   remote_edit_url: string | null;
   remote_permalink: string | null;
@@ -66,6 +67,20 @@ export function publishingCalendarState(item: PublishingScheduleItemRecord, webs
   if (item.state === "failed") return "failed";
   if (item.state === "needs_review") return /missed|date passed|past due/i.test(item.last_error ?? "") ? "missed" : "needs_review";
   return "planned";
+}
+
+export function needsWordPressScheduleVerification(
+  item: Pick<PublishingScheduleItemRecord, "content_type" | "state" | "scheduled_for" | "remote_id">,
+  websitePlatform: string | null,
+  wordpressConnected: boolean,
+  now = new Date().toISOString(),
+) {
+  if (!wordpressConnected || websitePlatform === "wix") return false;
+  if (editorialContentChannel(item.content_type) !== "article") return false;
+  if (item.state !== "scheduled" || !item.remote_id) return false;
+  const scheduled = Date.parse(item.scheduled_for);
+  const current = Date.parse(now);
+  return Number.isFinite(scheduled) && Number.isFinite(current) && scheduled <= current;
 }
 
 export function wordpressRemoteIdFromEditUrl(value: string | null | undefined) {
