@@ -236,6 +236,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/research/keyword-serp",
+    "file": "src/app/api/research/keyword-serp/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/research/keywords",
     "file": "src/app/api/research/keywords/route.ts"
   },

@@ -441,27 +441,27 @@
     "context": "const update = buildQuestCompletionUpdate(body.status as QuestStatus, new Date().toISOString(), policy); const { data: quest, error } = await supabase.from(\"quests\").update(update) .eq(\"id\", id)"
   },
   {
-    "control_id": "src/app/api/rank-tracker/keywords/route.ts:52:data-mutation:1",
+    "control_id": "src/app/api/rank-tracker/keywords/route.ts:54:data-mutation:1",
     "file": "src/app/api/rank-tracker/keywords/route.ts",
-    "line": 52,
+    "line": 54,
     "type": "data-mutation",
     "route": "/api/rank-tracker/keywords",
     "side_effect_class": 1,
-    "context": "const { data, error } = await supabase.from(\"tracked_keywords\") .update({ list_id: listId ?? existing.list_id, status: existing.status === \"paused\" ? \"pending\" : existing.status, next_check_at: new Date().toISOString() }) .eq(\"id\", existing.id)"
+    "context": "const { data, error } = await supabase.from(\"tracked_keywords\") .update({ list_id: listId ?? existing.list_id, status: shouldResume ? \"pending\" : existing.status, ...(shouldResume ? { next_check_at: new Date().toISOString() } : {}) }) .eq(\"id\", existing.id)"
   },
   {
-    "control_id": "src/app/api/rank-tracker/keywords/route.ts:59:data-mutation:1",
+    "control_id": "src/app/api/rank-tracker/keywords/route.ts:61:data-mutation:1",
     "file": "src/app/api/rank-tracker/keywords/route.ts",
-    "line": 59,
+    "line": 61,
     "type": "data-mutation",
     "route": "/api/rank-tracker/keywords",
     "side_effect_class": 1,
     "context": "const { data, error } = await supabase.from(\"tracked_keywords\").insert({ website_id: websiteId,"
   },
   {
-    "control_id": "src/app/api/rank-tracker/keywords/route.ts:89:data-mutation:1",
+    "control_id": "src/app/api/rank-tracker/keywords/route.ts:92:data-mutation:1",
     "file": "src/app/api/rank-tracker/keywords/route.ts",
-    "line": 89,
+    "line": 92,
     "type": "data-mutation",
     "route": "/api/rank-tracker/keywords",
     "side_effect_class": 1,
@@ -765,9 +765,9 @@
     "context": "function UpgradePreview({ detail, title }: { detail: string; title: string }) { return <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>{title}</strong><p>{detail}</p></div><Link className=\"primary-button\" href=\"/#pricing\">View upgrade options</Link></aside>; }"
   },
   {
-    "control_id": "src/app/keyword-research/page.tsx:19:Link:1",
+    "control_id": "src/app/keyword-research/page.tsx:23:Link:1",
     "file": "src/app/keyword-research/page.tsx",
-    "line": 19,
+    "line": 23,
     "type": "Link",
     "route": "/keyword-research",
     "side_effect_class": 1,
@@ -3267,40 +3267,22 @@
     "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Destiny will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Destiny-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCount} confi"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:49:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:50:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 49,
+    "line": 50,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "return <th aria-sort={state}> <button aria-label={`Sort by ${label}. Currently ${meaning}.`} className={`research-sort-button ${active ? \"active\" : \"\"}`} onClick={() => onSort(sortKey)} type=\"button\"> <span>{label}</span><span aria-hidden=\"true\" className=\"research-sort-arrows\"><i className={direction === \"asc\" ? \"active\" : \"\"}>↑</i><i className={direction === \"desc\" ? \"active\" : \"\"}>↓</i></span>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:49:onClick:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:50:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 49,
+    "line": 50,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "return <th aria-sort={state}> <button aria-label={`Sort by ${label}. Currently ${meaning}.`} className={`research-sort-button ${active ? \"active\" : \"\"}`} onClick={() => onSort(sortKey)} type=\"button\"> <span>{label}</span><span aria-hidden=\"true\" className=\"research-sort-arrows\"><i className={direction === \"asc\" ? \"active\" : \"\"}>↑</i><i className={direction === \"desc\" ? \"active\" : \"\"}>↓</i></span>"
-  },
-  {
-    "control_id": "src/components/keyword-research-workspace.tsx:80:button:1",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 80,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className=\"performance-tabs\" role=\"group\" aria-label=\"Performance metric\"> <button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button>"
-  },
-  {
-    "control_id": "src/components/keyword-research-workspace.tsx:80:onClick:2",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 80,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className=\"performance-tabs\" role=\"group\" aria-label=\"Performance metric\"> <button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button>"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:81:button:1",
@@ -3309,7 +3291,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button> </div>"
+    "context": "<div className=\"performance-tabs\" role=\"group\" aria-label=\"Performance metric\"> <button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button>"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:81:onClick:2",
@@ -3318,223 +3300,511 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<div className=\"performance-tabs\" role=\"group\" aria-label=\"Performance metric\"> <button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button>"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:82:button:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 82,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button> </div>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:240:form:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:82:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 240,
+    "line": 82,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<button className={metric === \"traffic\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"traffic\")} type=\"button\">Organic traffic</button> <button className={metric === \"keywords\" ? \"active\" : \"\"} onClick={() => onMetricChange(\"keywords\")} type=\"button\">Ranking keywords</button> </div>"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:319:form:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 319,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> <form onSubmit={run}> <div className=\"research-mode-switch\" role=\"group\" aria-label=\"Research mode\">"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:240:onSubmit:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:319:onSubmit:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 240,
+    "line": 319,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> <form onSubmit={run}> <div className=\"research-mode-switch\" role=\"group\" aria-label=\"Research mode\">"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:242:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:321:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 242,
+    "line": 321,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className=\"research-mode-switch\" role=\"group\" aria-label=\"Research mode\"> <button className={mode === \"domain\" ? \"active\" : \"\"} onClick={() => setMode(\"domain\")} type=\"button\">Domain</button> <button className={mode === \"keyword\" ? \"active\" : \"\"} onClick={() => setMode(\"keyword\")} type=\"button\">Keyword</button>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:242:onClick:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:321:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 242,
+    "line": 321,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className=\"research-mode-switch\" role=\"group\" aria-label=\"Research mode\"> <button className={mode === \"domain\" ? \"active\" : \"\"} onClick={() => setMode(\"domain\")} type=\"button\">Domain</button> <button className={mode === \"keyword\" ? \"active\" : \"\"} onClick={() => setMode(\"keyword\")} type=\"button\">Keyword</button>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:243:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:322:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 243,
+    "line": 322,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={mode === \"domain\" ? \"active\" : \"\"} onClick={() => setMode(\"domain\")} type=\"button\">Domain</button> <button className={mode === \"keyword\" ? \"active\" : \"\"} onClick={() => setMode(\"keyword\")} type=\"button\">Keyword</button> </div>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:243:onClick:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:322:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 243,
+    "line": 322,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={mode === \"domain\" ? \"active\" : \"\"} onClick={() => setMode(\"domain\")} type=\"button\">Domain</button> <button className={mode === \"keyword\" ? \"active\" : \"\"} onClick={() => setMode(\"keyword\")} type=\"button\">Keyword</button> </div>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:245:input:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:324:input:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 245,
+    "line": 324,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> <label><span>{mode === \"domain\" ? \"Domain\" : \"Keyword phrase\"}</span><input aria-label={mode === \"domain\" ? \"Domain\" : \"Keyword phrase\"} onChange={(event) => setQuery(event.target.value)} placeholder={mode === \"domain\" ? \"example.com\" : \"college admissions consultant\"} required value={query} /></label> <span className=\"research-location\">Google · United States · English</span>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:245:onChange:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:324:onChange:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 245,
+    "line": 324,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "</div> <label><span>{mode === \"domain\" ? \"Domain\" : \"Keyword phrase\"}</span><input aria-label={mode === \"domain\" ? \"Domain\" : \"Keyword phrase\"} onChange={(event) => setQuery(event.target.value)} placeholder={mode === \"domain\" ? \"example.com\" : \"college admissions consultant\"} required value={query} /></label> <span className=\"research-location\">Google · United States · English</span>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:247:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:326:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 247,
+    "line": 326,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className=\"research-location\">Google · United States · English</span> <button className=\"primary-button\" disabled={loading} type=\"submit\">{loading ? \"Researching…\" : \"Search\"}</button> </form>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:255:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:334:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 255,
+    "line": 334,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><span className=\"research-kicker\">{result.mode === \"domain\" ? \"Organic keyword overview\" : \"Keyword overview\"}</span><h2>{result.query}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div> <button className=\"secondary-button\" onClick={() => exportKeywords(rows)} type=\"button\">Export CSV</button> </section>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:255:onClick:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:334:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 255,
+    "line": 334,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><span className=\"research-kicker\">{result.mode === \"domain\" ? \"Organic keyword overview\" : \"Keyword overview\"}</span><h2>{result.query}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div> <button className=\"secondary-button\" onClick={() => exportKeywords(rows)} type=\"button\">Export CSV</button> </section>"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:265:button:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:352:button:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 265,
+    "line": 352,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<section className=\"research-overview-grid\"> <article className=\"research-card\"><div className=\"research-card-heading\"><strong>Search intent</strong><span>Why people search</span></div><div className=\"intent-distribution\">{([\"transactional\", \"commercial\", \"informational\", \"navigational\", \"unknown\"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type=\"button\"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></bu"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:265:onClick:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:352:onClick:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 265,
+    "line": 352,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<section className=\"research-overview-grid\"> <article className=\"research-card\"><div className=\"research-card-heading\"><strong>Search intent</strong><span>Why people search</span></div><div className=\"intent-distribution\">{([\"transactional\", \"commercial\", \"informational\", \"navigational\", \"unknown\"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type=\"button\"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></bu"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:271:input:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:359:input:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 271,
+    "line": 359,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Keyword ideas</strong><span aria-live=\"polite\">{disclosure.toolbarLabel}</span></div> <input aria-label=\"Filter keywords\" onChange={(event) => updateSearch(event.target.value)} placeholder=\"Filter keywords\" value={search} /> <select aria-label=\"Filter by intent\" onChange={(event) => updateIntent(event.target.value as SearchIntent | \"all\")} value={intent}><option value=\"all\">All intent</option><option value=\"transactional\">Transactional</option><option value=\"commercial\">Commercial</"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:271:onChange:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:359:onChange:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 271,
+    "line": 359,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Keyword ideas</strong><span aria-live=\"polite\">{disclosure.toolbarLabel}</span></div> <input aria-label=\"Filter keywords\" onChange={(event) => updateSearch(event.target.value)} placeholder=\"Filter keywords\" value={search} /> <select aria-label=\"Filter by intent\" onChange={(event) => updateIntent(event.target.value as SearchIntent | \"all\")} value={intent}><option value=\"all\">All intent</option><option value=\"transactional\">Transactional</option><option value=\"commercial\">Commercial</"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:272:select:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:360:select:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 272,
+    "line": 360,
     "type": "select",
     "route": "component",
     "side_effect_class": 1,
     "context": "<input aria-label=\"Filter keywords\" onChange={(event) => updateSearch(event.target.value)} placeholder=\"Filter keywords\" value={search} /> <select aria-label=\"Filter by intent\" onChange={(event) => updateIntent(event.target.value as SearchIntent | \"all\")} value={intent}><option value=\"all\">All intent</option><option value=\"transactional\">Transactional</option><option value=\"commercial\">Commercial</option><option value=\"informational\">Informational</option><option value=\"navigational\">Navigationa"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:272:onChange:2",
+    "control_id": "src/components/keyword-research-workspace.tsx:360:onChange:2",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 272,
+    "line": 360,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<input aria-label=\"Filter keywords\" onChange={(event) => updateSearch(event.target.value)} placeholder=\"Filter keywords\" value={search} /> <select aria-label=\"Filter by intent\" onChange={(event) => updateIntent(event.target.value as SearchIntent | \"all\")} value={intent}><option value=\"all\">All intent</option><option value=\"transactional\">Transactional</option><option value=\"commercial\">Commercial</option><option value=\"informational\">Informational</option><option value=\"navigational\">Navigationa"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:274:a:1",
+    "control_id": "src/components/keyword-research-workspace.tsx:365:a:1",
     "file": "src/components/keyword-research-workspace.tsx",
-    "line": 274,
+    "line": 365,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}> <td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 7"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:366:button:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 366,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? \"hard\" : row.difficulty >= 40 ? \"medium\" : \"easy\"}`}>{row.difficulty || \"—\"}</span></td><td>{row."
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:366:onClick:2",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 366,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? \"hard\" : row.difficulty >= 40 ? \"medium\" : \"easy\"}`}>{row.difficulty || \"—\"}</span></td><td>{row."
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:367:button:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 367,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className=\"research-row-action\" onClick={() => void openSerp(row.keyword)} type=\"button\">View first page</button></td> <td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disab"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:367:onClick:2",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 367,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className=\"research-row-action\" onClick={() => void openSerp(row.keyword)} type=\"button\">View first page</button></td> <td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disab"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:368:button:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 368,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type=\"button\">{strateg"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:368:onClick:2",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 368,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type=\"button\">{strateg"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:368:button:3",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 368,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type=\"button\">{strateg"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:368:onClick:4",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 368,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td><button className={`research-row-action ${saved.has(row.keyword) ? \"saved\" : \"\"}`} disabled={!websiteId || saved.has(row.keyword)} onClick={() => setSaveSelection([row.keyword])} type=\"button\">{saved.has(row.keyword) ? \"Saved ✓\" : \"Save\"}</button></td> {auditId ? <td><button className={`track-keyword-button ${strategized.has(row.keyword) ? \"tracked\" : \"\"}`} disabled={savingStrategy === row.keyword || strategized.has(row.keyword)} onClick={() => void addToStrategy(row)} type=\"button\">{strateg"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:370:button:1",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 370,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {!rows.length ? <p className=\"research-no-rows\">No keywords match these filters.</p> : null}"
+  },
+  {
+    "control_id": "src/components/keyword-research-workspace.tsx:370:onClick:2",
+    "file": "src/components/keyword-research-workspace.tsx",
+    "line": 370,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {!rows.length ? <p className=\"research-no-rows\">No keywords match these filters.</p> : null}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:36:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 36,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Destiny couldn’t load Google’s question results for this search. Your keyword ideas are still available below.</p> : questions.length ? <ul>{questions.map((question) => <li key={question}><span>{question}</span><button onClick={() => onSave(question)} type=\"button\">Save</button></li>)}</ul> : <p className=\"keyword-insight-empty\">Google didn’t show a questions box for this search.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:36:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 36,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Destiny couldn’t load Google’s question results for this search. Your keyword ideas are still available below.</p> : questions.length ? <ul>{questions.map((question) => <li key={question}><span>{question}</span><button onClick={() => onSave(question)} type=\"button\">Save</button></li>)}</ul> : <p className=\"keyword-insight-empty\">Google didn’t show a questions box for this search.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:42:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 42,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Related Google searches are unavailable right now.</p> : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><button onClick={() => onSave(keyword)} type=\"button\">Save</button><button onClick={() => onResearch(keyword)} type=\"button\">Research this</button></div></li>)}</ul> : <p className=\"keyword-insight-empty\">No additional related searches appeared in this result.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:42:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 42,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Related Google searches are unavailable right now.</p> : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><button onClick={() => onSave(keyword)} type=\"button\">Save</button><button onClick={() => onResearch(keyword)} type=\"button\">Research this</button></div></li>)}</ul> : <p className=\"keyword-insight-empty\">No additional related searches appeared in this result.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:42:button:3",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 42,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Related Google searches are unavailable right now.</p> : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><button onClick={() => onSave(keyword)} type=\"button\">Save</button><button onClick={() => onResearch(keyword)} type=\"button\">Research this</button></div></li>)}</ul> : <p className=\"keyword-insight-empty\">No additional related searches appeared in this result.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:42:onClick:4",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 42,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!available ? <p className=\"keyword-insight-empty\" role=\"alert\">Related Google searches are unavailable right now.</p> : related.length ? <ul>{related.map((keyword) => <li key={keyword}><span>{keyword}</span><div><button onClick={() => onSave(keyword)} type=\"button\">Save</button><button onClick={() => onResearch(keyword)} type=\"button\">Research this</button></div></li>)}</ul> : <p className=\"keyword-insight-empty\">No additional related searches appeared in this result.</p>}"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:60:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 60,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <section className=\"keyword-serp-drawer\" aria-label={`First-page results for ${keyword}`}> <header><div><span className=\"research-kicker\">Live first-page evidence</span><h3>{keyword}</h3><p>{snapshot ? `Google · ${snapshot.location} · checked ${new Date(snapshot.checkedAt).toLocaleString()}` : \"Google · United States · English\"}</p></div><button aria-label=\"Close first-page results\" onClick={onClose} type=\"button\">×</button></header> {loading ? <div className=\"keyword-serp-loading\" aria-l"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:60:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 60,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <section className=\"keyword-serp-drawer\" aria-label={`First-page results for ${keyword}`}> <header><div><span className=\"research-kicker\">Live first-page evidence</span><h3>{keyword}</h3><p>{snapshot ? `Google · ${snapshot.location} · checked ${new Date(snapshot.checkedAt).toLocaleString()}` : \"Google · United States · English\"}</p></div><button aria-label=\"Close first-page results\" onClick={onClose} type=\"button\">×</button></header> {loading ? <div className=\"keyword-serp-loading\" aria-l"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:62:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 62,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{loading ? <div className=\"keyword-serp-loading\" aria-live=\"polite\">Checking Google’s first page…</div> : null} {error ? <div className=\"keyword-serp-error\" role=\"alert\"><strong>We couldn’t load live results for this keyword.</strong><p>{error}</p><button onClick={onRetry} type=\"button\">Try again</button></div> : null} {snapshot ? <>"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:62:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 62,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{loading ? <div className=\"keyword-serp-loading\" aria-live=\"polite\">Checking Google’s first page…</div> : null} {error ? <div className=\"keyword-serp-error\" role=\"alert\"><strong>We couldn’t load live results for this keyword.</strong><p>{error}</p><button onClick={onRetry} type=\"button\">Try again</button></div> : null} {snapshot ? <>"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:65:a:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 65,
     "type": "a",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHead"
+    "context": "<div className=\"keyword-serp-heading\"><strong>Who ranks on page one</strong><span>Page types are estimated from the public page address.</span></div> {snapshot.organic.length ? <ol className=\"keyword-serp-results\">{snapshot.organic.map((row) => <li key={`${row.position}-${row.url}`}><b>{row.position}</b><div><a href={row.url} rel=\"noreferrer\" target=\"_blank\">{row.title || row.domain} ↗</a><small>{row.domain}</small></div><span className={`page-type-chip ${row.pageType}`}>{pageTypeLabel(row.pageT"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:274:button:2",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 274,
+    "control_id": "src/components/keyword-serp-insights.tsx:66:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 66,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHead"
+    "context": "{snapshot.organic.length ? <ol className=\"keyword-serp-results\">{snapshot.organic.map((row) => <li key={`${row.position}-${row.url}`}><b>{row.position}</b><div><a href={row.url} rel=\"noreferrer\" target=\"_blank\">{row.title || row.domain} ↗</a><small>{row.domain}</small></div><span className={`page-type-chip ${row.pageType}`}>{pageTypeLabel(row.pageType)}</span></li>)}</ol> : <p className=\"keyword-insight-empty\">Google did not return ten standard organic pages for this search.</p>} <div className="
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:274:onClick:3",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 274,
+    "control_id": "src/components/keyword-serp-insights.tsx:66:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 66,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHead"
+    "context": "{snapshot.organic.length ? <ol className=\"keyword-serp-results\">{snapshot.organic.map((row) => <li key={`${row.position}-${row.url}`}><b>{row.position}</b><div><a href={row.url} rel=\"noreferrer\" target=\"_blank\">{row.title || row.domain} ↗</a><small>{row.domain}</small></div><span className={`page-type-chip ${row.pageType}`}>{pageTypeLabel(row.pageType)}</span></li>)}</ol> : <p className=\"keyword-insight-empty\">Google did not return ten standard organic pages for this search.</p>} <div className="
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:274:button:4",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 274,
+    "control_id": "src/components/keyword-serp-insights.tsx:93:select:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 93,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div><span className=\"research-kicker\">Save for later</span><h3>{keywords.length === 1 ? keywords[0] : `${keywords.length} keyword ideas selected`}</h3><p>Saving keeps the idea in this website’s workspace. Rank checks start only when you choose tracking.</p></div> <label><span>Keyword list</span><select aria-label=\"Keyword list\" onChange={(event) => setListId(event.target.value)} value={listId}><option value=\"\">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:93:onChange:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 93,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div><span className=\"research-kicker\">Save for later</span><h3>{keywords.length === 1 ? keywords[0] : `${keywords.length} keyword ideas selected`}</h3><p>Saving keeps the idea in this website’s workspace. Rank checks start only when you choose tracking.</p></div> <label><span>Keyword list</span><select aria-label=\"Keyword list\" onChange={(event) => setListId(event.target.value)} value={listId}><option value=\"\">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:94:input:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 94,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label><span>Keyword list</span><select aria-label=\"Keyword list\" onChange={(event) => setListId(event.target.value)} value={listId}><option value=\"\">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></label> <label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keyword"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:94:onChange:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 94,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label><span>Keyword list</span><select aria-label=\"Keyword list\" onChange={(event) => setListId(event.target.value)} value={listId}><option value=\"\">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></label> <label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keyword"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:95:button:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 95,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHead"
+    "context": "<label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keywords.</small></span></label> <div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button c"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:274:onClick:5",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 274,
+    "control_id": "src/components/keyword-serp-insights.tsx:95:onClick:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 95,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHead"
+    "context": "<label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keywords.</small></span></label> <div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button c"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:275:button:1",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 275,
+    "control_id": "src/components/keyword-serp-insights.tsx:95:button:3",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 95,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHeader labe"
+    "context": "<label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keywords.</small></span></label> <div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button c"
   },
   {
-    "control_id": "src/components/keyword-research-workspace.tsx:275:onClick:2",
-    "file": "src/components/keyword-research-workspace.tsx",
-    "line": 275,
+    "control_id": "src/components/keyword-serp-insights.tsx:95:onClick:4",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 95,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"research-table-scroll\"><table className=\"research-table\"><thead><tr><SortHeader label=\"Keyword\" onSort={updateSort} sort={sort} sortKey=\"keyword\" /><SortHeader label=\"Intent\" onSort={updateSort} sort={sort} sortKey=\"intent\" /><SortHeader label=\"Volume\" onSort={updateSort} sort={sort} sortKey=\"volume\" /><th>Trend</th><SortHeader label=\"KD\" onSort={updateSort} sort={sort} sortKey=\"difficulty\" /><SortHeader label=\"CPC\" onSort={updateSort} sort={sort} sortKey=\"cpc\" /><SortHeader labe"
+    "context": "<label className=\"keyword-track-choice\"><input checked={track} onChange={(event) => setTrack(event.target.checked)} type=\"checkbox\" /><span><strong>Also track rankings weekly</strong><small>Starts provider rank checks for these keywords.</small></span></label> <div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button c"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:96:form:1",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 96,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:96:onSubmit:2",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 96,
+    "type": "onSubmit",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:96:input:3",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 96,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:96:onChange:4",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 96,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
+  },
+  {
+    "control_id": "src/components/keyword-serp-insights.tsx:96:button:5",
+    "file": "src/components/keyword-serp-insights.tsx",
+    "line": 96,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
   },
   {
     "control_id": "src/components/keyword-strategy-review.tsx:81:button:1",
