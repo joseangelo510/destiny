@@ -21,6 +21,7 @@ function fixture(overrides: Partial<CalendarRepairInput> = {}): CalendarRepairIn
     websiteId,
     requestedItemId: itemId,
     items: [{ id: itemId, websiteId, auditId, keyword: "background check fcra compliance", normalizedKeyword: "background check fcra compliance", title, state: "needs_review", articleKey: null, remoteId: null, remotePermalink: null }],
+    preferences: [{ id: "approved-preference", websiteId, auditId, normalizedKeyword: "background check fcra compliance", decision: "approved" }],
     drafts: [{ id: "6851e267-a7fb-40aa-9073-a29626dfc9cc", websiteId, auditId, keyword: "background check fcra compliance", title }],
     transfers: [{ id: transferId, websiteId, articleKey, publicationStatus: "verified_live", remoteId: "20208951", remotePermalink: permalink }],
     ...overrides,
@@ -49,6 +50,10 @@ describe("orphaned CMS/calendar repair", () => {
 
   it("makes no change when no verified transfer exists", () => {
     expect(selectCalendarRepair(fixture({ transfers: [] }))).toMatchObject({ status: "no_match", reason: "transfer_not_found" });
+  });
+
+  it("rejects a keyword that has no exact approved preference for the originating audit", () => {
+    expect(selectCalendarRepair(fixture({ preferences: [] }))).toMatchObject({ status: "no_match", reason: "approved_keyword_not_found" });
   });
 
   it("rejects a similar title when the stored approved title is not exact", () => {
