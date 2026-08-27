@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { scopedClient } from "@/lib/db";
-import { needsWordPressScheduleVerification } from "@/lib/content/publishing-plan";
+import { needsWordPressScheduleVerification, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -26,7 +26,13 @@ export async function POST(request: Request) {
     .eq("id", itemId)
     .maybeSingle();
   if (itemError || !item) return NextResponse.json({ error: "Destiny could not find that calendar item for this website." }, { status: 404 });
-  if (!needsWordPressScheduleVerification(item, "wordpress", true) || typeof item.article_key !== "string" || !item.article_key.trim()) {
+  const verificationItem = {
+    content_type: item.content_type,
+    state: item.state as PublishingScheduleItemRecord["state"],
+    scheduled_for: item.scheduled_for,
+    remote_id: item.remote_id,
+  };
+  if (!needsWordPressScheduleVerification(verificationItem, "wordpress", true) || typeof item.article_key !== "string" || !item.article_key.trim()) {
     return NextResponse.json({ error: "Only a past-due scheduled WordPress article can be checked here." }, { status: 409 });
   }
 
