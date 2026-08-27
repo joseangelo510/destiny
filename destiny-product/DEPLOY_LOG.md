@@ -231,3 +231,40 @@ Merge hold: PRs #17 and #18 remain unmerged until P1 is green.
 Status: AUTHORIZED — awaiting recorded protected merge, preconditions, one UI redeploy,
 and P1 evidence.
 Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
+
+### D-MVP-M3-P1-REDEPLOY-2-A1 — Fable 5 High amendment
+
+Trigger: read-only preflight found Replit-created detached commit
+`3fca8286853c12715530f9e9fb91abd5a5a9b4c4`, parent `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`,
+with the same tree `235f628315cbfb58f55766456985828557d798e6` and an empty
+diff. Replit metadata also could not independently expose the deployment ID or routing
+history. Codex correctly halted before a second redeploy.
+Decision: CONDITIONAL GO — amend the verification anchor from exact commit identity to
+exact tree identity. Do not realign the workspace. A clean commit is authorized only if
+its tree equals `235f628315cbfb58f55766456985828557d798e6` and its diff
+against `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa` is empty. A
+post-publish build stamp may name a further Replit-created empty child, but its tree must
+match and the workspace diff must remain empty.
+Domain proof substitute: before publish, capture the Replit Deployments pane showing
+exactly one deployment for this app, its visible ID matching `a5e94a27`, status, and
+timestamp, plus the domain view showing `destiny-seo.replit.app` attached to that
+deployment with no additional domains. Multiple deployments or any unexpected domain is
+a stop. After publish, a cache-busted GET `/api/version` must return 200 with
+`Cache-Control: no-store` and JSON tree `235f628315cbfb58f55766456985828557d798e6`;
+the stamped commit must have an empty diff against `61745a2`. The current pre-publish
+401 is the expected before state, not a pre-publish stop.
+Sequence: record this amendment; capture clean-tree, empty-diff, deployment, and domain
+evidence; Jose re-applies `cto-approved` at the amended head; required checks become
+green; Jose performs exactly one owner-account UI redeploy; verify version attestation,
+root 200, and zero 5xx; append evidence on this PR; re-apply approval at the final head;
+then merge through protected main with a completion receipt.
+Executor boundary: Codex must not click publish or retry. Jose performs the single UI
+redeploy. Any dirty tree, tree mismatch, multiple deployment/unexpected domain, post-
+publish 401/non-200, wrong tree, any 5xx, red/skipped/wrong-SHA check, or absent current-
+head approval means halt and return to Fable High. No rollback is authorized without a
+new High decision.
+Hold: PRs #17 and #18 remain unmerged.
+Status: AUTHORIZED — amendment recorded; awaiting pre-publish proof, current-head owner
+approval and green checks, Jose's single UI redeploy, post-publish evidence, final-head
+approval, and protected merge.
+Decided by: Destiny CTO under HARNESS_POLICY.md GOV-1.
