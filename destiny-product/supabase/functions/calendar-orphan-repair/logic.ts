@@ -19,6 +19,14 @@ export type CalendarRepairDraft = {
   title: string;
 };
 
+export type CalendarRepairPreference = {
+  id: string;
+  websiteId: string;
+  auditId: string;
+  normalizedKeyword: string;
+  decision: string;
+};
+
 export type CalendarRepairTransfer = {
   id: string;
   websiteId: string;
@@ -32,6 +40,7 @@ export type CalendarRepairInput = {
   websiteId: string;
   requestedItemId: string;
   items: CalendarRepairItem[];
+  preferences: CalendarRepairPreference[];
   drafts: CalendarRepairDraft[];
   transfers: CalendarRepairTransfer[];
 };
@@ -40,6 +49,7 @@ export type CalendarRepairMatch = {
   itemId: string;
   transferId: string;
   draftId: string;
+  preferenceId: string;
   websiteId: string;
   auditId: string;
   normalizedKeyword: string;
@@ -52,8 +62,8 @@ export type CalendarRepairMatch = {
 export type CalendarRepairResult =
   | { status: "ready"; match: CalendarRepairMatch }
   | { status: "already_repaired"; match: CalendarRepairMatch }
-  | { status: "ambiguous"; reason: "multiple_items" | "multiple_drafts" | "multiple_transfers" }
-  | { status: "no_match"; reason: "item_not_found" | "item_not_orphan" | "draft_not_found" | "transfer_not_found" | "transfer_incomplete" };
+  | { status: "ambiguous"; reason: "multiple_items" | "multiple_approved_keywords" | "multiple_drafts" | "multiple_transfers" }
+  | { status: "no_match"; reason: "item_not_found" | "item_not_orphan" | "approved_keyword_not_found" | "draft_not_found" | "transfer_not_found" | "transfer_incomplete" };
 
 export function normalizedKeyword(value: string) {
   return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
@@ -72,6 +82,7 @@ function isOrphan(item: CalendarRepairItem) {
 
 function completeMatch(
   item: CalendarRepairItem,
+  preference: CalendarRepairPreference,
   draft: CalendarRepairDraft,
   transfer: CalendarRepairTransfer,
 ): CalendarRepairMatch | null {
@@ -82,6 +93,7 @@ function completeMatch(
     itemId: item.id,
     transferId: transfer.id,
     draftId: draft.id,
+    preferenceId: preference.id,
     websiteId: item.websiteId,
     auditId: item.auditId,
     normalizedKeyword: normalizedKeyword(item.normalizedKeyword || item.keyword),
@@ -99,6 +111,14 @@ export function selectCalendarRepair(input: CalendarRepairInput): CalendarRepair
   const keyword = normalizedKeyword(requested.normalizedKeyword || requested.keyword);
   const title = exactTitle(requested.title);
   const articleKey = `${requested.auditId}:${keyword}`;
+  const preferences = input.preferences.filter((preference) => (
+    preference.websiteId === input.websiteId
+    && preference.auditId === requested.auditId
+    && normalizedKeyword(preference.normalizedKeyword) === keyword
+    && preference.decision === "approved"
+  ));
+  if (preferences.length === 0) return { status: "no_match", reason: "approved_keyword_not_found" };
+  if (preferences.length > 1) return { status: "ambiguous", reason: "multiple_approved_keywords" };
   const drafts = input.drafts.filter((draft) => (
     draft.websiteId === input.websiteId
     && draft.auditId === requested.auditId
@@ -116,7 +136,7 @@ export function selectCalendarRepair(input: CalendarRepairInput): CalendarRepair
   if (transfers.length === 0) return { status: "no_match", reason: "transfer_not_found" };
   if (transfers.length > 1) return { status: "ambiguous", reason: "multiple_transfers" };
 
-  const match = completeMatch(requested, drafts[0], transfers[0]);
+  const match = completeMatch(requested, preferences[0], drafts[0], transfers[0]);
   if (!match) return { status: "no_match", reason: "transfer_incomplete" };
 
   const alreadyRepaired = requested.state === "published"
@@ -153,6 +173,7 @@ function confirmationPayload(match: CalendarRepairMatch, userId: string, checked
     itemId: match.itemId,
     transferId: match.transferId,
     draftId: match.draftId,
+    preferenceId: match.preferenceId,
     websiteId: match.websiteId,
     auditId: match.auditId,
     normalizedKeyword: match.normalizedKeyword,
