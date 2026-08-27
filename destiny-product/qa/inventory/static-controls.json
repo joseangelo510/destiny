@@ -36,9 +36,9 @@
     "context": "const sources = infographicPlan.sources.map((source) => `<li><a href=\"${escapeHtml(source.url)}\">${escapeHtml(source.title)}</a> — ${escapeHtml(source.publisher)} (${escapeHtml(source.publishedAt)})</li>`).join(\"\"); const reusablePosts = infographicPlan.repurposeCards.map((card) => `<h3>${escapeHtml(card.title)}</h3><p><strong>Recommended channel:</strong> ${escapeHtml(card.recommendedChannel)}</p><p>${escapeHtml(card.copy)}</p>`).join(\"\");"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:46:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:52:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/reconcile/route.ts",
-    "line": 46,
+    "line": 52,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/reconcile",
     "side_effect_class": 3,
