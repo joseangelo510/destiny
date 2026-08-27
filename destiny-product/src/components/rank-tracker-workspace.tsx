@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { buildInAppRankingReport } from "../lib/notifications/in-app-ranking-report";
-import { rankFreshnessFromPolicy, rankMovementFromPolicy, rankPolicyInput, rankReadingFromPolicy } from "../lib/seo/rank-tracker";
+import { rankFreshnessFromPolicy, rankMovementFromPolicy, rankPolicyInput, rankProviderState, rankReadingFromPolicy } from "../lib/seo/rank-tracker";
 import { runDestinyLogic } from "../lib/logicaffeine";
 
 export type RankTrackerList = { id: string; name: string };
@@ -14,6 +14,7 @@ export type RankTrackerKeyword = {
   source: string;
   createdAt: string;
   lastCheckedAt: string | null;
+  lastError?: string | null;
   currentPosition: number | null;
   previousPosition: number | null;
   previousFound?: boolean | null;
@@ -153,7 +154,8 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
       <div className="rank-table-panel">
         <form className="rank-add-form" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label="Keyword to track" onChange={(event) => setKeyword(event.target.value)} placeholder="Enter a keyword" value={keyword} /></label><button className="primary-button" disabled={adding} type="submit">{adding ? "Adding…" : "Track keyword"}</button></form>
         <div className="rank-table-scroll"><table className="rank-table"><thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Trend</th><th>Ranking page</th><th>Last checked</th><th>List</th></tr></thead><tbody>{visible.map((row) => {
-          const reading = row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
+          const providerState = row.status === "error" ? rankProviderState(row.lastError) : null;
+          const reading = providerState ? { label: providerState.label, tone: "error" } : row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
           const movement = row.policyView?.movement ?? { label: "—", tone: "flat" };
           const freshness = row.policyView?.freshness ?? { message: "Calculating freshness…" };
           return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? new Date(row.checkedAt).toLocaleDateString() : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td></tr>;

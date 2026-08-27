@@ -15,7 +15,7 @@ export default async function RankTrackerPage() {
 
   const [{ data: lists }, { data: tracked }, { data: observations }, { count: approvedCount }, { count: draftCount }, { data: preference }] = await Promise.all([
     context.supabase.from("rank_tracker_lists").select("id,name").eq("website_id", context.website.id).order("name"),
-    context.supabase.from("tracked_keywords").select("id,keyword,list_id,status,source,created_at,last_checked_at").eq("website_id", context.website.id).neq("status", "paused").order("created_at"),
+    context.supabase.from("tracked_keywords").select("id,keyword,list_id,status,source,created_at,last_checked_at,last_error").eq("website_id", context.website.id).neq("status", "paused").order("created_at"),
     context.supabase.from("rank_observations").select("tracked_keyword_id,observed_at,found,position,result_url").eq("website_id", context.website.id).order("observed_at", { ascending: false }).limit(2000),
     context.supabase.from("keyword_preferences").select("id", { count: "exact", head: true }).eq("website_id", context.website.id).eq("decision", "approved"),
     (context.supabase as unknown as SupabaseClient).from("article_drafts").select("id", { count: "exact", head: true }).eq("website_id", context.website.id),
@@ -42,6 +42,7 @@ export default async function RankTrackerPage() {
       source: row.source,
       createdAt: row.created_at,
       lastCheckedAt: row.last_checked_at,
+      lastError: row.last_error,
       currentPosition: latest?.found ? latest.position : null,
       previousPosition: previous?.found ? previous.position : null,
       previousFound: previous ? previous.found : null,

@@ -1,5 +1,43 @@
 type JsonRecord = Record<string, unknown>;
 
+export type RankErrorClass = "transient" | "permanent";
+type RetryMetadata = { c: RankErrorClass; a: number; m: string };
+
+export function classifyRankError(message: string): RankErrorClass {
+  const normalized = message.toLocaleLowerCase();
+  if (/\b(?:401|402|403)\b|auth(?:entication|orization)?|payment|invalid|unsupported/.test(normalized)) return "permanent";
+  if (/internal se server error|timeout|temporar|\b429\b|\b5\d\d\b|econnreset|socket/.test(normalized)) return "transient";
+  return "transient";
+}
+
+function retryMetadata(value: string | null | undefined): RetryMetadata | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<RetryMetadata>;
+    if ((parsed.c === "transient" || parsed.c === "permanent") && Number.isInteger(parsed.a) && Number(parsed.a) > 0) {
+      return { c: parsed.c, a: Number(parsed.a), m: typeof parsed.m === "string" ? parsed.m : "Rank check failed." };
+    }
+  } catch { /* Legacy plain-text errors start a new bounded retry sequence. */ }
+  return null;
+}
+
+export function rankRetryPlan(message: string, previousLastError: string | null | undefined, now = new Date()) {
+  const classification = classifyRankError(message);
+  const previous = retryMetadata(previousLastError);
+  const attempt = previous?.c === classification ? previous.a + 1 : 1;
+  const state = classification === "permanent" || attempt >= 4 ? "degraded" as const : "retrying" as const;
+  const transientHours = [1, 6, 24, 72];
+  const delayHours = classification === "permanent" ? 24 * 7 : attempt <= transientHours.length ? transientHours[attempt - 1] : 24 * 7;
+  const compactMessage = message.replace(/\s+/g, " ").trim().slice(0, 240) || "Rank check failed.";
+  return {
+    classification,
+    attempt,
+    state,
+    nextCheckAt: new Date(now.getTime() + delayHours * 3_600_000).toISOString(),
+    lastError: JSON.stringify({ c: classification, a: attempt, m: compactMessage } satisfies RetryMetadata),
+  };
+}
+
 function record(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {};
 }

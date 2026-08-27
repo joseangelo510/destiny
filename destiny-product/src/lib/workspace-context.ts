@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ACTIVE_WEBSITE_COOKIE, activeWebsiteFrom } from "@/lib/workspace-selection";
+import { ACTIVE_WEBSITE_COOKIE, activeWebsiteFrom, canonicalWebsites } from "@/lib/workspace-selection";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -36,9 +36,10 @@ export const getWorkspaceContext = cache(async function getWorkspaceContext() {
   ]);
   const accessibleWebsites = websites ?? [];
   const website = activeWebsiteFrom(accessibleWebsites, cookieStore.get(ACTIVE_WEBSITE_COOKIE)?.value);
+  const displayWebsites = canonicalWebsites(accessibleWebsites, website?.id);
 
   if (!website) {
-    return { supabase, userId, profile, websites: accessibleWebsites, website: null, audit: null, metrics: null, quests: [], competitors: [], integrations: [] };
+    return { supabase, userId, profile, websites: displayWebsites, website: null, audit: null, metrics: null, quests: [], competitors: [], integrations: [] };
   }
 
   const [{ data: audit }, { data: quests }, { data: competitors }, { data: integrations }] = await Promise.all([
@@ -56,7 +57,7 @@ export const getWorkspaceContext = cache(async function getWorkspaceContext() {
     supabase,
     userId,
     profile,
-    websites: accessibleWebsites,
+    websites: displayWebsites,
     website,
     audit,
     metrics,
