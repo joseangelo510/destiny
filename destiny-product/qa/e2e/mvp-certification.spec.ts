@@ -94,13 +94,13 @@ test.describe("@gate certified MVP journey", () => {
     });
 
     await page.goto(`/content?site=${fixture!.mvp.websiteId}`);
-    await expect(page.getByText("Scheduled — past due, not yet verified", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Scheduled — past due, not yet verified/ }).first()).toBeVisible();
     await page.getByRole("button", { name: "Refresh WordPress status" }).first().click();
 
     await expect.poll(() => calendarChecks).toBe(1);
     await expect(page.getByText("WordPress confirmed that this post is live.")).toBeVisible();
-    await expect(page.getByText("Live and verified", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Scheduled — past due, not yet verified", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Live and verified/ }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Scheduled — past due, not yet verified/ })).toHaveCount(0);
   });
 
   test("Rank tracker reports saved weekly movement without inventing position zero", async ({ page }) => {
