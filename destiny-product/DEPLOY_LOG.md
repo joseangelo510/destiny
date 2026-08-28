@@ -199,3 +199,39 @@ Effect on prior decisions: on P1 pass, `D-MVP-RECOVERY-1..1E` live halt lifts fo
   first; `clearcheck.app` only with client authorization recorded here; no
   generated-today content).
 Status: AUTHORIZED — awaiting execution + P1 evidence.
+
+## CTO product decision: DEC-2026-08-27-SEO-RESEARCH-REDEPLOY
+
+- date: 2026-08-27
+- deciding authority: Fable 5 High, acting as Destiny CTO under `HARNESS_POLICY.md` policy `GOV-1`
+- parent decision: `DEC-2026-08-27-SEO-RESEARCH-REDEPLOY`
+- amendment: `DEC-2026-08-27-SEO-RESEARCH-REDEPLOY-A1`
+- decision record: https://claude.ai/chat/bbdba982-9e3a-4b70-957c-6e61752fc275
+- classification: HIGH production single-function redeploy
+- decision: CONDITIONAL GO on Route B; the existing `keywords` response enrichment is accepted
+- status: AUTHORIZED PENDING; this entry and its evidence packet authorize the protected decision-record PR, not an immediate deploy
+- authorized source commit SHA: `450ae943fde32ad479692a851e09bc6d58a27944`
+- authorized source repository tree: `2ec2f8919700c7ff7a1fae13d55f99970f45cf1d`
+- authorized `seo-research` function tree: `903ecae5e0d868f1390fe2128733f71113f13101`
+- target: Supabase project `etkksjebqgtkkdqznnxa`, function `seo-research`, function ID `6b6d5160-7376-4e8b-8081-900d637a1aec`
+- current production: version `12`, JWT verification `true`, package SHA-256 `e9e8bea879002b80be9c30e26e9b92754a8f2e61cb784ead2ce7d44840aa4f37`
+- shipped commit SHA: pending; no deployment has occurred
+- tag: none authorized
+- PR links: pending protected docs-only HIGH PR
+- gate run link: pending exact PR-SHA required checks; local gate passed every pre-container stage and then stopped at Supabase local start because Docker and Podman are unavailable
+- summary counts: transient Deno check `1/1` pass; focused Vitest `11/11` pass; full local Vitest `177/177` files and `1,159/1,159` tests pass; last-24-hour production sample `2/2` HTTP 200; production smokes `0/5` until the post-merge deployment gate
+- RED evidence links: not applicable to this docs-only decision record; the accepted product implementation already exists on protected main and focused behavior evidence is recorded under `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/PREFLIGHT_EVIDENCE.md`
+- commit discipline: this decision record uses one `green:` non-test commit; no product, test, config, dependency, or lockfile change is included
+- isolation matrix: future smoke uses a Jose-owned domain only; no customer write, database mutation, CMS publish, email, or social action is authorized
+- test-change: none; no test file is changed by the decision-record PR
+- migrations: none authorized or applied
+- features and blast radius: one existing Edge Function; keyword-mode requests may add one depth-10 live SERP call and the new `keyword_serp` kind adds one depth-10 live SERP call; old kinds must remain healthy
+- provider evidence: DataForSEO balance `$42.129398`; available seven-day spend `$1.3700`; live 10-result SERP price `$0.002`; observed incremental upper bound `$0.004/day`
+- absolute cost guardrails: escalate above `$5` added rolling-24-hour spend or equivalent balance drift; roll back above `$10`; details and latency, 5xx, response-shape, and UI guardrails are in the linked evidence packet
+- rollback artifact: `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/rollback-v12/`; source manifest and production package SHA are separate identities
+- rollback command: no blind command is authorized; verify the manifest, deploy the captured version-12 source as a new function version with JWT verification retained, confirm active state, then smoke the four old kinds
+- deployer: Codex may execute only after this record merges and every post-merge pre-deploy gate in the Fable decision passes; Jose remains rollback owner and sole `cto-approved` label authority
+- post-deploy smoke: pending all five kinds (`keywords`, `keyword_serp`, `backlinks`, `creators`, `article_evidence`) plus Jose-owned live UI; required immediately after any future deploy
+- observation: continuous 60-minute watch, then 6-hour, 24-hour, and 72-hour checks
+- legacy-evidence: production provenance substitute and known `/api/version` `401` gap are recorded in `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/FABLE_HIGH_DECISION.md`
+- forbidden scope: no schema or migration, auth or RLS change, credential or environment mutation, release tag, Replit change, traffic redirect, CMS publish, email, social post, or other production surface
