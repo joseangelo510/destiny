@@ -1,3 +1,7 @@
+import { execFileSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 async function loadReplayModule() {
   const modulePath = "../../scripts/harness/" + "red-replay.mjs";
@@ -89,4 +93,80 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       reason: "RED failed for the declared reason.",
     }));
   });
+
+  it("executes and cleans up real detached RED and GREEN worktrees", async () => {
+    const { readReplayPlan, runRedReplay } = await loadReplayModule();
+    const repositoryRoot = await mkdtemp(path.join(tmpdir(), "destiny-replay-test-"));
+    const productRoot = path.join(repositoryRoot, "destiny-product");
+    const artifactDirectory = path.join(repositoryRoot, "artifacts");
+    const git = (...args: string[]) => execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
+    try {
+      await mkdir(path.join(productRoot, "node_modules"), { recursive: true });
+      await writeFile(path.join(productRoot, "implementation.txt"), "red\n");
+      git("init", "--quiet");
+      git("config", "user.email", "harness@example.invalid");
+      git("config", "user.name", "Harness Test");
+      git("add", ".");
+      git("commit", "--quiet", "-m", "red fixture");
+      const redCommit = git("rev-parse", "HEAD");
+      await writeFile(path.join(productRoot, "implementation.txt"), "green\n");
+      await writeFile(path.join(productRoot, "added-at-green.txt"), "new\n");
+      git("add", ".");
+      git("commit", "--quiet", "-m", "green fixture");
+      const greenCommit = git("rev-parse", "HEAD");
+      const command = [
+        process.execPath,
+        "-e",
+        "const fs=require('node:fs');const value=fs.readFileSync('implementation.txt','utf8').trim();if(value==='red'){console.error('expected fixture failure');process.exit(1)}console.log('1 test passed')",
+        "qa/rules/example.test.ts",
+      ];
+      const fixturePlan = {
+        ...plan,
+        redCommit,
+        command,
+        failurePattern: "expected fixture failure",
+        implementationPaths: [
+          "destiny-product/implementation.txt",
+          "destiny-product/added-at-green.txt",
+        ],
+      };
+      const planFile = path.join(repositoryRoot, "plan.json");
+      await writeFile(planFile, JSON.stringify({ redReplay: fixturePlan }));
+      await expect(readReplayPlan(planFile)).resolves.toEqual(fixturePlan);
+
+      const receipts = await runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: fixturePlan,
+        headCommit: greenCommit,
+        artifactDirectory,
+        timeoutMs: 10_000,
+      });
+      expect(receipts.red.verdict).toEqual(expect.objectContaining({ accepted: true }));
+      expect(receipts.green.verdict).toEqual(expect.objectContaining({ accepted: true }));
+      await expect(readFile(path.join(artifactDirectory, "red-replay.json"), "utf8"))
+        .resolves.toContain('"schemaVersion": "2.0.0"');
+      expect(git("worktree", "list", "--porcelain")).not.toContain("destiny-red-replay-");
+
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: {
+          ...fixturePlan,
+          command: [
+            process.execPath,
+            "-e",
+            "console.error('expected fixture failure');process.exit(1)",
+            "qa/rules/example.test.ts",
+          ],
+        },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "failed-artifacts"),
+        timeoutMs: 10_000,
+      })).rejects.toThrow("RED/GREEN replay did not satisfy the evidence contract.");
+      expect(git("worktree", "list", "--porcelain")).not.toContain("destiny-red-replay-");
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  }, 30_000);
 });
