@@ -369,6 +369,23 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/ratchet.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "7f2ac5048820081d789780e6dc70c06bdf3c7d13",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "to contain",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.sota.config.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
