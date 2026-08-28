@@ -91,8 +91,9 @@ describe("network and flake controls", () => {
     const local = await readFile(path.join(process.cwd(), "qa/e2e/local-authenticated.spec.ts"), "utf8");
     const production = await readFile(path.join(process.cwd(), "qa/e2e/prod-readonly.spec.ts"), "utf8");
     const config = await readFile(path.join(process.cwd(), "playwright.config.ts"), "utf8");
-    expect(local).not.toContain("test.skip(");
-    expect(production).not.toContain("test.skip(");
+    const disabledCall = ["test", ".skip", "("].join("");
+    expect(local).not.toContain(disabledCall);
+    expect(production).not.toContain(disabledCall);
     expect(local).toContain("if (!fixture) throw new Error");
     expect(production).toContain("if (!authenticated) throw new Error");
     expect(config).toContain("prod-readonly.spec.ts");
