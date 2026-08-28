@@ -10,8 +10,8 @@
     "mode": "required",
     "redCommit": "4accc91cfd07db499d453acb09383a0234978377",
     "command": [
-      "pnpm",
-      "vitest",
+      "node",
+      "node_modules/vitest/vitest.mjs",
       "run",
       "qa/rules/harness-evidence-v2.test.ts",
       "qa/rules/harness-red-replay-v2.test.ts",
@@ -42,8 +42,8 @@
       "mode": "required",
       "redCommit": "3ab01419fae7aaaeddc213723c71ea3c6ba1704c",
       "command": [
-        "pnpm",
-        "vitest",
+        "node",
+        "node_modules/vitest/vitest.mjs",
         "run",
         "src/lib/observability/logging.test.ts",
         "qa/rules/harness-quality-v2.test.ts"
