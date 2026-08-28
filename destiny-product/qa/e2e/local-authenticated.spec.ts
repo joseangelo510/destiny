@@ -20,10 +20,9 @@ const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath
   ? JSON.parse(readFileSync(fixturePath, "utf8")) as BrowserFixture
   : null;
+if (!fixture) throw new Error("Run pnpm qa:browser-fixture against disposable local Supabase first.");
 
 test.describe("@gate authenticated local website switching", () => {
-  test.skip(!fixture, "Run pnpm qa:browser-fixture against disposable local Supabase first.");
-
   test("shared user switches real websites without blending state", async ({ page }) => {
     const alpha = fixture!.alpha;
     const beta = fixture!.beta;
