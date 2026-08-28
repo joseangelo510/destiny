@@ -248,6 +248,26 @@
         "destiny-product/scripts/harness/ratchet.mjs",
         "destiny-product/scripts/qa-quality-gate.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "9170c60a86ad63a994a611b73c0135b83497b015",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/dependency-audit-policy.test.ts"
+      ],
+      "failurePattern": "validateAuditExceptions",
+      "testFiles": [
+        "destiny-product/qa/rules/dependency-audit-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/audit-exceptions.schema.json",
+        "destiny-product/qa/harness/audit-exceptions.v2.json",
+        "destiny-product/scripts/harness/audit-policy.mjs",
+        "destiny-product/scripts/qa-audit.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
