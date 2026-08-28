@@ -72,6 +72,13 @@ describe("structured application observability", () => {
     expect(() => createLogEvent({ correlationId: "bad", event: "valid.event", severity: "info" })).toThrow(/correlationId/);
     expect(() => createLogEvent({ correlationId, event: "invalid", severity: "info" })).toThrow(/event/);
     expect(() => createLogEvent({ correlationId, event: "valid.event", severity: "fatal" as never })).toThrow(/severity/);
+    expect(() => createLogEvent({ correlationId: `x${correlationId}`, event: "valid.event", severity: "info" })).toThrow(/correlationId/);
+    expect(() => createLogEvent({ correlationId: `${correlationId}x`, event: "valid.event", severity: "info" })).toThrow(/correlationId/);
+    for (const event of ["xaudit.started!", "audit.started!", "1audit.started", "audit..started", "audit.Started", "audit.1started"]) {
+      expect(() => createLogEvent({ correlationId, event, severity: "info" })).toThrow(/event/);
+    }
+    expect(() => createLogEvent({ correlationId: "bad", event: "invalid", severity: "fatal" as never }))
+      .toThrow("Invalid structured log event fields: correlationId, event, severity.");
   });
 
   it("normalizes IDs and redacts arrays, bearer tokens, and cycles", async () => {
@@ -86,6 +93,40 @@ describe("structured application observability", () => {
     });
     expect(JSON.parse(serialized).context).toEqual({
       values: ["Bearer [REDACTED]", { self: "[CIRCULAR]" }], phone: "[REDACTED]",
+    });
+  });
+
+  it("redacts every credential-key spelling and complete bearer values", async () => {
+    const { serializeLogEvent } = await loadLoggingModule();
+    const serialized = serializeLogEvent({
+      correlationId: "018f3f5d-3e16-7c2a-9f2e-3c227fd77e11",
+      event: "audit.completed",
+      severity: "debug",
+      context: {
+        cookie: "private",
+        password: "private",
+        secret: "private",
+        service_role_key: "private",
+        "service-role-key": "private",
+        token: "private",
+        api_key: "private",
+        "api-key": "private",
+        message: "before Bearer abc.def-123+/= after",
+        nullable: null,
+      },
+    });
+    expect(serialized).not.toContain("private");
+    expect(JSON.parse(serialized).context).toEqual({
+      cookie: "[REDACTED]",
+      password: "[REDACTED]",
+      secret: "[REDACTED]",
+      service_role_key: "[REDACTED]",
+      "service-role-key": "[REDACTED]",
+      token: "[REDACTED]",
+      api_key: "[REDACTED]",
+      "api-key": "[REDACTED]",
+      message: "before Bearer [REDACTED] after",
+      nullable: null,
     });
   });
 });

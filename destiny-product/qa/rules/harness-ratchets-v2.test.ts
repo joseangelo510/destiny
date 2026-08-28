@@ -45,6 +45,13 @@ describe("measured quality ratchets", () => {
     expect(compareRatchetMetrics(baseline, { ...baseline, prLaneSeconds: 121 }, {
       ceilings: { prLaneSeconds: 120 },
     })).toContain("prLaneSeconds exceeded its 120 ceiling with 121.");
+    expect(compareRatchetMetrics({ changedLineCoverage: 80 }, {
+      changedLineCoverage: 80,
+      prLaneSeconds: 120,
+    }, { ceilings: { prLaneSeconds: 120 } })).toEqual([]);
+    expect(compareRatchetMetrics({ changedLineCoverage: 80 }, {})).toEqual([]);
+    expect(compareRatchetMetrics({ changedLineCoverage: Number.NaN }, { changedLineCoverage: 1 })).toEqual([]);
+    expect(compareRatchetMetrics({ changedLineCoverage: 80 }, { changedLineCoverage: Number.POSITIVE_INFINITY })).toEqual([]);
   });
 
   it("requires an owner, expiry, decision, and reason for temporary regression", async () => {
@@ -85,6 +92,12 @@ describe("measured quality ratchets", () => {
       "Ratchet exception requires a reason.", "Ratchet exception expiry is invalid.",
     ]));
     expect(validateRatchetException({ decisionId: "D-VALID-1", owner: "joseangelo510", reason: "bounded", expiresAt: "2026-08-26T00:00:00Z" }, now))
+      .toContain("Ratchet exception has expired.");
+    expect(validateRatchetException({ decisionId: "xD-VALID-1", owner: "owner", reason: "bounded", expiresAt: "2026-09-01T00:00:00Z" }, now))
+      .toContain("Ratchet exception requires a Fable High decision ID.");
+    expect(validateRatchetException({ decisionId: "D-VALID-1x!", owner: "owner", reason: "bounded", expiresAt: "2026-09-01T00:00:00Z" }, now))
+      .toContain("Ratchet exception requires a Fable High decision ID.");
+    expect(validateRatchetException({ decisionId: "D-VALID-1", owner: "owner", reason: "bounded", expiresAt: now.toISOString() }, now))
       .toContain("Ratchet exception has expired.");
   });
 });
