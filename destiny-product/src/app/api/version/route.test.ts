@@ -59,6 +59,7 @@ describe("GET /api/version", () => {
       correlationId,
       event: "version.read",
       severity: "info",
+      context: { buildIdentityKnown: true },
     }));
     log.mockRestore();
   });
@@ -95,6 +96,26 @@ describe("GET /api/version", () => {
     await expect((await GET(versionRequest())).json()).resolves.toEqual({
       sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
     });
+    for (const primitive of ["7", '"stamp"', "true", "{not-json"]) {
+      await writeFile(stampPath, primitive);
+      await expect((await GET(versionRequest())).json()).resolves.toEqual({
+        sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
+      });
+    }
+    await writeFile(stampPath, JSON.stringify({ sha: true, tree: 7, builtAt: false, env: [] }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
+    });
+    log.mockRestore();
+  });
+
+  it("fails closed when the build stamp is absent", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    await rm(stampPath, { force: true });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
+    });
+    expect(JSON.parse(String(log.mock.calls[0][0])).context).toEqual({ buildIdentityKnown: false });
     log.mockRestore();
   });
 
