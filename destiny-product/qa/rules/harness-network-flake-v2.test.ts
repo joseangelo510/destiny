@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import * as flakeModule from "../../scripts/harness/flake.mjs";
-import * as networkModule from "../../scripts/harness/network-policy.mjs";
 async function loadNetworkModule() {
-  return networkModule;
+  const modulePath = "../../scripts/harness/" + "network-policy.mjs";
+  return import(/* @vite-ignore */ modulePath);
 }
 
 async function loadFlakeModule() {
-  return flakeModule;
+  const modulePath = "../../scripts/harness/" + "flake.mjs";
+  return import(/* @vite-ignore */ modulePath);
 }
 
 describe("network and flake controls", () => {
