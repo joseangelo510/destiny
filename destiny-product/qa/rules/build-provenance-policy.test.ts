@@ -29,7 +29,7 @@ describe("build provenance policy", () => {
     const validRunner = [
       "write-build-stamp.mjs",
       '[\"next\", \"build\", \"--webpack\"]',
-      "evaluateBuildWarnings",
+      "const evaluation = evaluateBuildWarnings(",
       "writeFile(artifactPath",
     ].join("\n");
 
@@ -46,7 +46,7 @@ describe("build provenance policy", () => {
       runnerSource: [
         '[\"next\", \"build\", \"--webpack\"]',
         "write-build-stamp.mjs",
-        "evaluateBuildWarnings",
+        "const evaluation = evaluateBuildWarnings(",
       ].join("\n"),
     })).toEqual(expect.arrayContaining([
       "Build stamp must run before the Next.js production build.",
