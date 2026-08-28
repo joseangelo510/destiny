@@ -32,8 +32,18 @@ const validManifest = {
 
 describe("SOTA harness evidence contract", () => {
   it("validates typed evidence and rejects unknown or incomplete fields", async () => {
-    const { validateEvidenceManifest } = await loadEvidenceModule();
+    const { replayPlansFromManifest, validateEvidenceManifest } = await loadEvidenceModule();
     expect(validateEvidenceManifest(validManifest)).toEqual([]);
+    const withTwoRedCycles = {
+      ...validManifest,
+      additionalRedReplays: [{
+        ...validManifest.redReplay,
+        redCommit: "b".repeat(40),
+        testFiles: ["destiny-product/qa/rules/harness-quality-v2.test.ts"],
+      }],
+    };
+    expect(validateEvidenceManifest(withTwoRedCycles)).toEqual([]);
+    expect(replayPlansFromManifest(withTwoRedCycles)).toHaveLength(2);
     expect(validateEvidenceManifest({ ...validManifest, surprise: true })).toContain(
       "Unexpected evidence field: surprise.",
     );
