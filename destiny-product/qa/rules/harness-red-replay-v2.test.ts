@@ -145,6 +145,15 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       accepted: true,
       reason: "RED failed for the declared reason.",
     }));
+    expect(classifyReplayAttempt({
+      exitCode: 1,
+      output: "0 tests are mentioned in source documentation\ndeclared failure",
+      plan: { ...plan, failurePattern: "declared failure" },
+      phase: "red",
+    })).toEqual(expect.objectContaining({
+      accepted: true,
+      reason: "RED failed for the declared reason.",
+    }));
     for (const output of ["tests\nno tests", "tests  \n no tests", "0 test", "0 tests"]) {
       expect(classifyReplayAttempt({ exitCode: 1, output, plan, phase: "red" }))
         .toEqual(expect.objectContaining({ accepted: false, reason: "RED collected zero tests." }));
