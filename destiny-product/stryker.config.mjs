@@ -10,9 +10,9 @@ const config = {
     related: false,
   },
   coverageAnalysis: "perTest",
-  // Static module-initialization mutants leak across Vitest workers and make
-  // identical runs order-dependent. Mutate executable boundaries instead.
-  ignoreStatic: true,
+  // Top-level policies and regex contracts are production behavior. Execute
+  // their mutants in fresh test runs instead of classifying them as survivors.
+  ignoreStatic: false,
   reporters: ["clear-text", "json"],
   jsonReporter: {
     fileName: process.env.QA_MUTATION_REPORT ?? "qa/artifacts/harness/mutation/mutation.json",
