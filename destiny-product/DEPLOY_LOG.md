@@ -360,6 +360,60 @@ Deploy receipt: at `2026-08-28T09:12:33Z`, Supabase project `etkksjebqgtkkdqznnx
 Dry-run receipt: not executed. No safe existing user JWT was available to the executor, and extracting, manufacturing, or working around a user credential is not authorized. The exact candidate remained singular, and the post-smoke readback proved zero mutation: item `10e64100-6b99-4dc5-8e64-9318e75f9955` stayed `needs_review` with null CMS linkage and unchanged `updated_at` `2026-08-16 20:25:31.058693+00`; transfer `558f3d60-1f46-41c6-b745-d7675d72fb7e` retained unchanged `updated_at` `2026-08-18 23:15:04.755+00`. Resume only with a safely available authenticated Destiny user session; do not use a service-role token or credential workaround. No confirmation token was issued or consumed.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
 
+## CTO production decision: D-REPLIT-REPUBLISH-2
+
+[2026-08-28] D-REPLIT-REPUBLISH-2
+Title: Void D-REPLIT-REPUBLISH-1 as unsatisfiable; re-authorize exactly one controlled Replit production republish, bound to immutable application content, with a non-recursive governance-equivalence rule.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1, at Jose Gallegos's direction.
+Classification: HIGH — frozen action 2 (Replit production modification) plus supersession of a recorded HIGH decision.
+
+### 1. Status of D-REPLIT-REPUBLISH-1: VOID
+
+D-REPLIT-REPUBLISH-1 is void by its own validity clause. Its step 2 required `origin/main` tip to equal `082c70f1aecc8d3c395ea12f3542bd146fc57a01` after merging the decision-record PR, which its step 1 mandated first; the required merge necessarily advances `main`, so step 2 can never be true. This is a specification defect (pinning a moving branch tip instead of immutable content), not a security event. No production mutation occurred under D-REPLIT-REPUBLISH-1, and none may occur under it. Its PR #43 merge (`612b84c42bebaf7bb92cf36e26fcbeef786c8c45`, `cto-approved` by `joseangelo510`, required checks green) remains a valid governance record of intent and is incorporated here as evidence, not as deploy authorization.
+
+### 2. Authorized immutable application artifact
+
+Authorization binds to application content, not a branch tip. The authorized artifact is the application content of commit `082c70f1aecc8d3c395ea12f3542bd146fc57a01` (tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`), defined as the full repository tree excluding the governance ledger path `destiny-product/DEPLOY_LOG.md`. This definition is immutable: no future merge can change it, and it is mechanically checkable at any tip via the equivalence predicate below.
+
+### 3. Governance-equivalence rule (the non-recursion mechanism)
+
+A commit T is application-equivalent to the authorized artifact if and only if both hold:
+
+- `git merge-base --is-ancestor 082c70f1aecc8d3c395ea12f3542bd146fc57a01 T` succeeds; and
+- `git diff --name-only 082c70f1aecc8d3c395ea12f3542bd146fc57a01 T -- . ':(exclude)destiny-product/DEPLOY_LOG.md'` is empty.
+
+A governance-only descendant (a merge that appends only to `destiny-product/DEPLOY_LOG.md`) is application-equivalent and does not invalidate this authorization. Because every future decision-record merge is by construction governance-only, this decision's own record PR — and any later governance appends — satisfy the predicate automatically. No decision under this rule may ever pin the post-merge tip SHA of its own record PR; that pattern is retired as defective. Already verified: `612b84c42bebaf7bb92cf36e26fcbeef786c8c45` is application-equivalent (ancestor check passes; excluded diff is empty).
+
+### 4. Mandatory prechecks
+
+All prechecks must pass immediately before republish; any failure means STOP and this decision voids.
+
+1. Governance record merged with `cto-approved` by `joseangelo510` and `policy-guard`, `checklist-guard`, and `harness-gates` green at the PR SHA, with verifiable run URLs.
+2. Live `origin/main` tip passes the application-equivalence predicate in section 3, evidenced by the two command outputs.
+3. The green exact-SHA harness run for `082c70f1aecc8d3c395ea12f3542bd146fc57a01` (run `33163480250`) is confirmed by verifiable URL.
+4. Replit state parity: because the Replit publish connector deploys current app state and accepts no Git SHA, prove before publishing that current Replit app state content-matches the authorized application artifact (build stamp or file-level comparison against tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, `DEPLOY_LOG.md` excluded). Any divergence means STOP; do not fix Replit state to force a match.
+5. Capture the current Replit deployment identity or snapshot before touching anything as the rollback baseline.
+6. Supabase `seo-research` v13 is `ACTIVE_HEALTHY`, `verify_jwt=true`, with recent HTTP 200 responses.
+7. Auth-boundary smoke: authenticated `keyword_serp` returns 200 through a real Destiny user session, while unauthenticated returns 401 or 403. No service-role token or credential workaround.
+8. Frontend parity: keyword-research UI and same-origin `keyword_serp` route are verified on staging or preview built from the authorized artifact, with zero console errors and zero 5xx.
+
+### 5. New protected decision PR: REQUIRED
+
+This record must merge via a protected decision-record PR before execution, with `cto-approved` from `joseangelo510` and all required checks green at the PR SHA. Its merge SHA is not pinned in advance and is not a precheck input; after merge, it is validated solely by the section 3 predicate and must be a governance-only descendant. That closes the recursion: the record's own merge cannot contradict the conditions it imposes.
+
+### 6. Execution, rollback, and stop rules
+
+- GO only after section 5 merges and every section 4 precheck passes, in that order. Then execute exactly one Replit production republish of the verified current app state. Nothing else.
+- Postchecks: live build identity matches the authorized artifact; auth journey (login, session, callback) is unregressed; zero 5xx on touched routes; keyword-research UI renders and same-origin `keyword_serp` succeeds authenticated and rejects unauthenticated; core journeys are spot-checked; `seo-research` remains v13, `verify_jwt=true`, and healthy.
+- Rollback: on build-identity mismatch, any auth regression, any 5xx on touched routes, `keyword_serp` production failure, function degradation, or any precheck/postcheck discrepancy — immediately republish the section 4.5 snapshot, record trigger and timestamps, and STOP. No retry or second republish without a new recorded Fable 5 High decision.
+- Prohibited: Supabase Auth Site URL change; any secret, environment, configuration, or domain change; any function deploy or change (including `seo-research`); database migration or schema change; auth, RLS, or security-model change; `container-staging` push; Replit-to-Fly traffic redirect; release tag creation or mutation; parallel-launch (`app.caminoseo.com`) change; Replit decommissioning; more than one republish.
+- Truthful-claim boundary: status is AUTHORIZED — NOT DEPLOYED until postcheck evidence is appended. The only permitted completion claim is that Replit production was republished at application content equivalent to `082c70f1aecc8d3c395ea12f3542bd146fc57a01` (tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`) with required checks green and postchecks passed, backed by run URLs. A successful republish plus a passing `keyword_serp` postcheck flips keyword research to GO under D-LAUNCH-READINESS-1; no broader launch claim is authorized.
+
+Evidence required for completion: this entry's PR URL and merge SHA; equivalence-predicate command outputs; exact-SHA check-run URLs; Replit parity proof; precheck receipts with tokens redacted; republish receipt with timestamp and deployed identity; postcheck results; rollback baseline identity. Missing evidence means not complete.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No execution before its merge.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
 ## CTO production decision: D-REPLIT-REPUBLISH-1
 
 [2026-08-28] D-REPLIT-REPUBLISH-1
