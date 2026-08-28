@@ -117,8 +117,14 @@ describe("SOTA harness evidence contract", () => {
     ]);
     expect(first).toEqual(second);
     expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(hashEvidenceFiles([{ path: "a.json", contents: "one" }]))
+      .toBe("6f73f38932569293198d4b5e2a2dd12c25961d8c6692d62050fd4c67bb2009af");
     expect(hashEvidenceFiles([{ path: "object.json", contents: { ok: true } }]))
       .toMatch(/^[0-9a-f]{64}$/);
+    expect(hashEvidenceFiles([
+      { path: "a.json", contents: { ok: true } },
+      { path: "b.json", contents: "two" },
+    ])).toBe("ba2bb755634f59ad089ba5fe1e5bd25b717f940c3500bbd247f0722933a42ec2");
   });
 
   it("fails closed on malformed evidence", async () => {
@@ -188,6 +194,28 @@ describe("SOTA harness evidence contract", () => {
     await defaultRecorder.start("default-clock");
     await defaultRecorder.finish("default-clock", "pass");
     expect(JSON.parse(defaults[0]).runId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(JSON.parse(defaults[1]).durationMs).toEqual(expect.any(Number));
+    await defaultRecorder.start("default-clock");
+    await defaultRecorder.finish("default-clock", "pass");
+    for (const invalidSha of [`x${"a".repeat(40)}`, `${"a".repeat(40)}x`]) {
+      expect(() => createTraceRecorder({ sha: invalidSha, write: async () => {} })).toThrow(/full Git SHA/);
+    }
+    expect(redactEvidence(null)).toBeNull();
+    expect(redactEvidence(7)).toBe(7);
+    expect(redactEvidence(false)).toBe(false);
+    expect(redactEvidence({
+      servicerole_key: "private",
+      service_rolekey: "private",
+      apikey: "private",
+      api_key: "private",
+      spaced: "Bearer   abc123",
+    })).toEqual({
+      servicerole_key: "[REDACTED]",
+      service_rolekey: "[REDACTED]",
+      apikey: "[REDACTED]",
+      api_key: "[REDACTED]",
+      spaced: "Bearer [REDACTED]",
+    });
   });
 
   it("fails closed when optional replay collections and HIGH metadata are absent", async () => {
