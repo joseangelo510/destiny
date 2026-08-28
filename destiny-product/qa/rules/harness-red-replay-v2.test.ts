@@ -29,6 +29,27 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       .toContain("The declared RED commit is not an ancestor of HEAD.");
     expect(classifyReplayAttempt({ exitCode: 1, output: "No test files found", plan, phase: "red" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "RED collected zero tests." }));
+    for (const shell of ["bash", "cmd", "dash", "fish", "powershell", "pwsh", "sh", "zsh"]) {
+      expect(validateRedReplayPlan({ ...plan, command: [`/bin/${shell.toUpperCase()}`, "script"] }, { isAncestor: true }))
+        .toContain("RED replay commands may not invoke a shell.");
+    }
+    expect(validateRedReplayPlan({ ...plan, command: ["pnpm", "-c", "safe"] }, { isAncestor: true }))
+      .toContain("RED replay commands may not invoke a shell.");
+    expect(validateRedReplayPlan({ ...plan, command: ["pnpm", ""] }, { isAncestor: true })).toEqual([
+      "RED replay must use a focused test command.",
+    ]);
+    expect(validateRedReplayPlan({
+      ...plan,
+      testFiles: [plan.testFiles[0], "destiny-product/qa/rules/missing.test.ts"],
+    }, { isAncestor: true })).toContain("RED replay must use a focused test command.");
+    expect(validateRedReplayPlan({
+      ...plan,
+      command: ["pnpm", `prefix/${plan.testFiles[0].replace(/^destiny-product\//, "")}`],
+    }, { isAncestor: true })).toEqual([]);
+    expect(validateRedReplayPlan({
+      ...plan,
+      testFiles: [`prefix/${plan.testFiles[0]}`],
+    }, { isAncestor: true })).toContain("RED replay must use a focused test command.");
   });
 
   it("accepts only the declared RED failure and a clean GREEN pass", async () => {
@@ -42,9 +63,13 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     expect(classifyReplayAttempt({ exitCode: 0, output: "1 test passed", plan, phase: "red" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "RED unexpectedly passed." }));
     expect(classifyReplayAttempt({ exitCode: 0, output: "1 test passed", plan, phase: "green" }))
-      .toEqual(expect.objectContaining({ accepted: true, phase: "green" }));
+      .toEqual({ accepted: true, phase: "green", reason: "GREEN passed." });
     expect(classifyReplayAttempt({ exitCode: 1, output: "failure", plan, phase: "green" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "GREEN did not pass." }));
+    expect(classifyReplayAttempt({ exitCode: 1, output: "failure", plan, phase: "blue" }))
+      .toEqual({ accepted: false, phase: "blue", reason: "Unknown replay phase." });
+    expect(classifyReplayAttempt({ exitCode: 1, plan: { ...plan, failurePattern: "Stryker was here!" }, phase: "red" }))
+      .toEqual({ accepted: false, phase: "red", reason: "RED failed for an undeclared reason." });
   });
 
   it("proves implementation paths were absent or unchanged at RED", async () => {
@@ -68,6 +93,12 @@ describe("mechanically replayed RED and GREEN evidence", () => {
   it("fails closed for malformed declarations and unknown phases", async () => {
     const { classifyReplayAttempt, validateRedReplayPlan } = await loadReplayModule();
     expect(validateRedReplayPlan(null, { isAncestor: true })).toEqual(["RED replay plan must use required mode."]);
+    expect(validateRedReplayPlan({ ...plan, mode: "not-required" }, { isAncestor: true }))
+      .toEqual(["RED replay plan must use required mode."]);
+    for (const redCommit of [`x${"a".repeat(40)}`, `${"a".repeat(40)}x`]) {
+      expect(validateRedReplayPlan({ ...plan, redCommit }, { isAncestor: true }))
+        .toContain("RED replay requires a full commit SHA.");
+    }
     expect(validateRedReplayPlan({
       ...plan, redCommit: "short", command: [], failurePattern: "", testFiles: [], implementationPaths: [],
     }, { isAncestor: true })).toEqual(expect.arrayContaining([
@@ -78,10 +109,10 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     const withoutOptionalFields = { ...plan } as Partial<typeof plan>;
     delete withoutOptionalFields.redCommit;
     delete withoutOptionalFields.testFiles;
-    expect(validateRedReplayPlan(withoutOptionalFields, { isAncestor: true })).toEqual(expect.arrayContaining([
+    expect(validateRedReplayPlan(withoutOptionalFields, { isAncestor: true })).toEqual([
       "RED replay requires a full commit SHA.",
       "RED replay requires test files.",
-    ]));
+    ]);
     expect(classifyReplayAttempt({ exitCode: 1, output: "wrong failure", plan, phase: "red" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "RED failed for an undeclared reason." }));
     expect(classifyReplayAttempt({ exitCode: 0, output: "one passed", plan, phase: "blue" }))
@@ -99,17 +130,32 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       accepted: true,
       reason: "RED failed for the declared reason.",
     }));
+    for (const output of ["tests\nno tests", "0 test", "0 tests"]) {
+      expect(classifyReplayAttempt({ exitCode: 1, output, plan, phase: "red" }))
+        .toEqual(expect.objectContaining({ accepted: false, reason: "RED collected zero tests." }));
+    }
+  });
+
+  it("documents only behaviorally equivalent Node plumbing mutations", async () => {
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/red-replay.mjs"), "utf8");
+    expect(source).toContain("invalid sentinel cannot satisfy the SHA validator");
+    expect(source).toContain("absent file helper returns undefined");
+    expect(source).toContain("Node process option variants are behaviorally equivalent");
+    expect(source).toContain("temporary-path label does not affect isolation");
+    expect(source).toContain("cleanup target exists before forced removal");
+    expect(source).toContain("JSON parsing accepts Buffer and UTF-8 text");
   });
 
   it("executes and cleans up real detached RED and GREEN worktrees", async () => {
     const { readReplayPlan, runRedReplay } = await loadReplayModule();
     const repositoryRoot = await mkdtemp(path.join(tmpdir(), "destiny-replay-test-"));
     const productRoot = path.join(repositoryRoot, "destiny-product");
-    const artifactDirectory = path.join(repositoryRoot, "artifacts");
+    const artifactDirectory = path.join(repositoryRoot, "artifacts", "nested");
     const git = (...args: string[]) => execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
     try {
-      await mkdir(path.join(productRoot, "node_modules"), { recursive: true });
+      await mkdir(productRoot, { recursive: true });
       await writeFile(path.join(productRoot, "implementation.txt"), "red\n");
+      await writeFile(path.join(productRoot, "unchanged.txt"), "same\n");
       git("init", "--quiet");
       git("config", "user.email", "harness@example.invalid");
       git("config", "user.name", "Harness Test");
@@ -121,10 +167,12 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       git("add", ".");
       git("commit", "--quiet", "-m", "green fixture");
       const greenCommit = git("rev-parse", "HEAD");
+      await mkdir(path.join(productRoot, "node_modules"), { recursive: true });
+      await writeFile(path.join(productRoot, "node_modules", "harness-marker.txt"), "linked\n");
       const command = [
         process.execPath,
         "-e",
-        "const fs=require('node:fs');const value=fs.readFileSync('implementation.txt','utf8').trim();if(value==='red'){console.error('expected fixture failure');process.exit(1)}console.log('1 test passed')",
+        "const fs=require('node:fs');if(process.env.QA_NETWORK_MODE!=='mocked'||!process.env.PATH)process.exit(2);if(fs.readFileSync('node_modules/harness-marker.txt','utf8').trim()!=='linked')process.exit(3);const value=fs.readFileSync('implementation.txt','utf8').trim();if(value==='red'){console.error('expected fixture failure');process.exit(1)}console.log('1 test passed')",
         "qa/rules/example.test.ts",
       ];
       const fixturePlan = {
@@ -145,7 +193,6 @@ describe("mechanically replayed RED and GREEN evidence", () => {
         repositoryRoot,
         productRoot,
         plan: fixturePlan,
-        headCommit: greenCommit,
         artifactDirectory,
         timeoutMs: 10_000,
       });
@@ -154,6 +201,52 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       await expect(readFile(path.join(artifactDirectory, "red-replay.json"), "utf8"))
         .resolves.toContain('"schemaVersion": "2.0.0"');
       expect(git("worktree", "list", "--porcelain")).not.toContain("destiny-red-replay-");
+
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: { ...fixturePlan, redCommit: "0".repeat(40) },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "non-ancestor-artifacts"),
+      })).rejects.toThrow("The declared RED commit is not an ancestor of HEAD.");
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: {
+          ...fixturePlan,
+          redCommit: "short",
+          command: [],
+          failurePattern: "",
+          testFiles: [],
+          implementationPaths: [],
+        },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "multi-invalid-artifacts"),
+      })).rejects.toThrow([
+        "RED replay requires a full commit SHA.",
+        "The declared RED commit is not an ancestor of HEAD.",
+        "RED replay command must be an argv array.",
+        "RED replay requires a failure pattern.",
+        "RED replay requires test files.",
+        "RED replay requires implementation paths.",
+      ].join("\n"));
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: { ...fixturePlan, implementationPaths: [
+          "destiny-product/missing-one.txt",
+          "destiny-product/missing-two.txt",
+        ] },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "multi-missing-artifacts"),
+      })).rejects.toThrow("destiny-product/missing-one.txt is not present at HEAD.\ndestiny-product/missing-two.txt is not present at HEAD.");
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: { ...fixturePlan, implementationPaths: ["destiny-product/unchanged.txt"] },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "unchanged-artifacts"),
+      })).rejects.toThrow("destiny-product/unchanged.txt was already identical at RED.");
 
       await expect(runRedReplay({
         repositoryRoot,
