@@ -81,6 +81,13 @@ async function runInWorktree({ command, directory, timeoutMs }) {
   };
 }
 
+export function replayDirectories(temporaryRoot) {
+  return {
+    redDirectory: path.join(temporaryRoot, "red"),
+    greenDirectory: path.join(temporaryRoot, "green"),
+  };
+}
+
 export async function runRedReplay({ repositoryRoot, productRoot, plan, headCommit = "HEAD", artifactDirectory, timeoutMs = 120_000 }) {
   const headSha = git(repositoryRoot, ["rev-parse", headCommit]);
   const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", plan.redCommit, headSha], { cwd: repositoryRoot }).status === 0;
@@ -95,10 +102,9 @@ export async function runRedReplay({ repositoryRoot, productRoot, plan, headComm
   const implementationErrors = verifyImplementationWasAbsentAtRed(plan.implementationPaths, { redFiles, headFiles });
   if (implementationErrors.length) throw new Error(implementationErrors.join("\n"));
 
-  // Stryker disable next-line StringLiteral: the temporary-path label does not affect isolation
+  // Stryker disable next-line StringLiteral: the mkdtemp prefix labels transient evidence without changing replay isolation
   const temporaryRoot = await mkdtemp(path.join(tmpdir(), "destiny-red-replay-"));
-  const redDirectory = path.join(temporaryRoot, "red");
-  const greenDirectory = path.join(temporaryRoot, "green");
+  const { redDirectory, greenDirectory } = replayDirectories(temporaryRoot);
   await mkdir(artifactDirectory, { recursive: true });
   try {
     git(repositoryRoot, ["worktree", "add", "--detach", redDirectory, plan.redCommit]);
