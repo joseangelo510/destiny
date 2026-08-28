@@ -34,7 +34,8 @@ export function calculateChangedCoverage({ changedLines, coverage }) {
 export function selectMutationTargets(files, { maximumFiles }) {
   const targets = [...new Set(files
     .map((file) => file.replaceAll("\\", "/"))
-    .filter((file) => file.startsWith("src/") && SOURCE_FILE.test(file) && !TEST_FILE.test(file)))]
+    .filter((file) => (file.startsWith("src/") || file.startsWith("scripts/harness/"))
+      && SOURCE_FILE.test(file) && !TEST_FILE.test(file)))]
     .sort();
   if (targets.length > maximumFiles) {
     throw new Error(`Changed mutation scope has ${targets.length} files; cap is ${maximumFiles}. Narrow the PR or obtain a labeled exception.`);
