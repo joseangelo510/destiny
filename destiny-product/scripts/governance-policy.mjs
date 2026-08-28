@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateEvidenceManifest } from "./harness/evidence.mjs";
 
 const JOSE_LOGIN = "joseangelo510";
 const runUrlPattern = /https:\/\/github\.com\/joseangelo510\/destiny\/actions\/runs\/\d+/gi;
@@ -13,6 +14,10 @@ const frozenRules = [
   [/^docs\/(?:HARNESS_RUNBOOK|DESTINY_GOVERNANCE_POINTER)\.md$/, "governance knowledge"],
   [/^\.github\/(?:workflows|scripts)\//, "CI or enforcement workflow"],
   [/^destiny-product\/scripts\/governance-policy\.mjs$/, "governance enforcement code"],
+  [/^\.github\/destiny-evidence\.json$/, "typed change evidence"],
+  [/^destiny-product\/qa\/harness\//, "harness schema or ratchet baseline"],
+  [/^destiny-product\/scripts\/harness\//, "harness enforcement module"],
+  [/^destiny-product\/scripts\/qa-(?:coverage|evidence|gate|harness-v2|mutation|quality-gate)\.mjs$/, "harness enforcement entrypoint"],
   [/^destiny-product\/qa\/rules\/harness-governance\.test\.ts$/, "governance enforcement test"],
   [/^destiny-product\/supabase\/migrations\//, "database migration"],
   [/^destiny-product\/supabase\/config\.toml$/, "Supabase configuration"],
@@ -127,6 +132,14 @@ export function evaluateChecklist(body = "") {
   return { classification: unique[0] ?? null, errors: [...new Set(errors)] };
 }
 
+export function evaluateTypedChecklist(body = "", manifest) {
+  const errors = validateEvidenceManifest(manifest);
+  if (!/\.github\/destiny-evidence\.json/i.test(body)) {
+    errors.push("PR body must point to .github/destiny-evidence.json.");
+  }
+  return { classification: manifest?.classification ?? null, errors: [...new Set(errors)] };
+}
+
 function gitShowJson(sha, file) {
   try {
     return JSON.parse(execFileSync("git", ["show", `${sha}:${file}`], { encoding: "utf8" }));
@@ -182,7 +195,8 @@ async function main() {
   const context = await pullRequestContext(event);
 
   if (command === "checklist") {
-    const result = evaluateChecklist(context.body);
+    const manifest = JSON.parse(await readFile(path.resolve(".github/destiny-evidence.json"), "utf8"));
+    const result = evaluateTypedChecklist(context.body, manifest);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     if (result.errors.length) process.exitCode = 1;
     return;

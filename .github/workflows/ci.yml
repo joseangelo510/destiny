@@ -60,7 +60,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: destiny-harness-evidence-${{ github.run_id }}
-          path: destiny-product/qa/artifacts/governance/
+          path: |
+            destiny-product/qa/artifacts/governance/
+            destiny-product/qa/artifacts/harness/
           if-no-files-found: error
           retention-days: 30
 
