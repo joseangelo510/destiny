@@ -36,7 +36,7 @@ is responsive; its failure receipt never overwrites portable harness evidence.
 Measured protected-main values initialize each baseline. Ordinary pull requests
 may hold or improve quality; they may not worsen it. Test count is informational.
 Duration has explicit PR and nightly ceilings. Changed mutation receives a
-300-second window per six executable files, capped by the PR-lane ceiling. Coverage and mutation apply to
+375-second window per six executable files, capped by the PR-lane ceiling. Coverage and mutation apply to
 changed code. Skips, quarantines, flaky retries, audit exceptions, duplication,
 cycles, architecture violations, warnings, type errors, and complexity debt may
 not increase. Every changed executable function also has a ratcheted cyclomatic

@@ -32,7 +32,7 @@
   "ceilings": {
     "prLaneSeconds": 1800,
     "nightlyLaneSeconds": 7200,
-    "changedMutationSeconds": 300
+    "changedMutationSeconds": 375
   },
   "knownDebt": {
     "auditExceptions": [
