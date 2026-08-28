@@ -772,17 +772,11 @@
         "node",
         "node_modules/vitest/vitest.mjs",
         "run",
-        "qa/rules/harness-ratchets-v2.test.ts",
-        "qa/rules/dependency-audit-policy.test.ts",
-        "qa/rules/harness-build-v2.test.ts",
-        "qa/rules/build-provenance-policy.test.ts"
+        "qa/rules/harness-ratchets-v2.test.ts"
       ],
-      "failurePattern": "Cannot read properties of null",
+      "failurePattern": "redundant informational guard is intentionally absent",
       "testFiles": [
-        "destiny-product/qa/rules/harness-ratchets-v2.test.ts",
-        "destiny-product/qa/rules/dependency-audit-policy.test.ts",
-        "destiny-product/qa/rules/harness-build-v2.test.ts",
-        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
       ],
       "implementationPaths": [
         "destiny-product/scripts/harness/ratchet.mjs"
