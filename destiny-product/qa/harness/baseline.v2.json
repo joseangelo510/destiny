@@ -14,8 +14,8 @@
     "auditExceptions": 2,
     "browserJourneyCoverage": 100,
     "changedMaximumFunctionComplexity": 19,
-    "changedBranchCoverage": 89,
-    "changedLineCoverage": 91,
+    "changedBranchCoverage": 91,
+    "changedLineCoverage": 100,
     "changedMutationScore": 69,
     "dependencyCycles": 0,
     "duplicateBlocks": 95,
@@ -228,6 +228,20 @@
       "from": 87.18,
       "to": 100,
       "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 89,
+      "to": 91,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedLineCoverage",
+      "from": 91,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
     }
   ]
 }
