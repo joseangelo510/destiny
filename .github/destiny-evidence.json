@@ -461,6 +461,26 @@
         "destiny-product/qa/harness/baseline.v2.json",
         "destiny-product/qa/specs/sota-harness-v2.md"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "8e162ce684962e0b4d7af66013d8e9145d7e6d5f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "browserJourneyCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
     }
   ],
   "networkMode": "mocked",

@@ -30,6 +30,23 @@
       }
     },
     {
+      "id": "public-recovery-legacy",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": ["/auth/error", "/growth-plan"],
+      "assertions": ["zero-5xx", "recovery-link", "legacy-redirect"],
+      "routeEvidence": {
+        "/auth/error": "page.goto(\"/auth/error\")",
+        "/growth-plan": "page.goto(\"/growth-plan\")"
+      },
+      "assertionEvidence": {
+        "zero-5xx": "toBeLessThan(500)",
+        "recovery-link": "Return to sign in",
+        "legacy-redirect": "toHaveURL(/\\/(?:results|login)"
+      }
+    },
+    {
       "id": "local-tenant-isolation",
       "mode": "local-isolated",
       "owner": "quality",
