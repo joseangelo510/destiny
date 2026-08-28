@@ -145,9 +145,12 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       accepted: true,
       reason: "RED failed for the declared reason.",
     }));
-    expect(classifyReplayAttempt({
+    for (const output of [
+      "0 tests are mentioned in source documentation\ndeclared failure",
+      "source documentation mentions 0 tests   \ndeclared failure",
+    ]) expect(classifyReplayAttempt({
       exitCode: 1,
-      output: "0 tests are mentioned in source documentation\ndeclared failure",
+      output,
       plan: { ...plan, failurePattern: "declared failure" },
       phase: "red",
     })).toEqual(expect.objectContaining({
