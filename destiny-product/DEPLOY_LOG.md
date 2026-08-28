@@ -253,3 +253,58 @@ Status: AUTHORIZED — awaiting execution + P1 evidence.
 - receipt: `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/POST_DEPLOY_RECEIPT.md`
 - required observation: continuous first 60 minutes, then 6-, 24-, and 72-hour checkpoints; all prior stop and rollback ceilings remain binding
 - explicit prohibition: no Replit republish, plan-tier change, Anthropic article-generation invocation, secret/config change, database write, auth/RLS change, or credential workaround is authorized
+
+## CTO launch-readiness decision: D-LAUNCH-READINESS-1
+
+[2026-08-27] D-LAUNCH-READINESS-1 | HIGH | Issued by: Fable 5 High, Destiny CTO under HARNESS_POLICY.md GOV-1
+Canonical source: origin/main 450ae943fde32ad479692a851e09bc6d58a27944 (verified equal to audit workspace HEAD).
+Verified defect basis: rank-digest v4 `providerEvent()` (`supabase/functions/rank-digest/index.ts:121-132, :143`) swallows all receipt-lookup failures (null + continue, no persisted error, `last_checked_at` never advanced); every `rank_digest_sends` row shows `last_checked_at == sent_at`, `delivered_at` null. `provider_event: "sent"` is an optimistic write at send time (`index.ts:315`), not provider evidence. Root cause is most consistent with a `sending_access`-only Resend key (`GET` requires `full_access` -> 401), but key permission is INFERRED, not confirmed; no secret was read. Production `seo-research` v12 lacks the `keyword_serp` branch present on main (`seo-research/index.ts:109`).
+
+### A. Email receipt architecture
+
+Staged two-step: APPROVED and REQUIRED.
+
+1. Step 1 (now): instrument the receipt lookup. On every reconcile attempt, advance `last_checked_at` regardless of outcome, and emit a structured function log per failure containing HTTP status, message ID, and error class. No schema change: reuse existing columns only; do not write synthetic values into `provider_event` because it feeds `deliveryStateFromProviderEvent`. If durable per-row error storage proves necessary, that is a frozen database migration requiring its own decision. Step 1 exists to convert the key-permission inference into evidence.
+2. Step 2 (after Step 1 evidence): preferred end state is a signed Resend webhook receiver (Svix signature verification) as the canonical delivery-evidence channel, with the existing poll retained only as backfill. Rotating to a `full_access` key is rejected as the primary fix because it broadens the production credential's blast radius. Step 2 is not authorized by this record; it requires its own decision informed by Step 1 evidence.
+
+### B. PR structure
+
+Keep the two HIGH items separate because they share no code, rollback path, or evidence chain.
+
+1. PR-E1 (HIGH): rank-digest receipt-lookup instrumentation. Code, tests, and this decision link.
+2. D-SEO-DEPLOY (HIGH, deploy-only, no code change): redeploy `seo-research` to production Supabase from exact main SHA `450ae943fde32ad479692a851e09bc6d58a27944` (or the then-current protected main SHA, recorded at execution), with post-deploy verification of one production `keyword_serp` response.
+
+Both may proceed in parallel once Jose approves; neither is folded into PR #27 or PR #28.
+
+### C. Next PR: PR-E1
+
+Open PR-E1 now after this record is committed as the branch's first commit.
+
+- Classification: HIGH because this is an email/provider surface whose verification requires a production function deploy and whose purpose is to drive a credentials decision; ambiguity defaults HIGH.
+- Allowed paths (exact, no expansion): `destiny-product/supabase/functions/rank-digest/index.ts`, `destiny-product/supabase/functions/rank-digest/logic.ts`, `destiny-product/supabase/functions/rank-digest/reconciliation.ts`, their focused test files (existing `logic.test.ts` plus new rank-digest test files), and `destiny-product/DEPLOY_LOG.md` for this record only. No schema, workflows, other functions, app code, or secrets.
+- RED assertions: (1) non-OK receipt lookup produces observable failure evidence and advances `last_checked_at`; (2) thrown/timeout lookup does the same; (3) failure evidence includes HTTP status. RED evidence must be recorded in the PR.
+- GREEN: implement the instrumentation while leaving success-path reconciliation outcomes unchanged and keeping existing tests green.
+- Acceptance evidence: full `pnpm gate`; `policy-guard`, `checklist-guard`, and `harness-gates` green at the head SHA; staging evidence with matching build stamp; RED and GREEN evidence; `cto-approved` label applied by `joseangelo510`.
+- Launch claim boundary: merging PR-E1 authorizes no launch claim for email. Email digests remain "accepted by provider, delivery unverified" until the instrumented function is separately deployed to production, evidence identifies the failure cause, a Step 2 decision is issued and executed, and at least one production `rank_digest_sends` row has `delivered_at` set from genuine provider evidence.
+
+### D. Launch matrix
+
+- WordPress (ClearCheck): CONDITIONAL GO, limited to the certified vertical slice with one verified-live article. PR #27 gates any calendar-accuracy claim.
+- Webflow (Smart & Fast): NO-GO for live publishing. Truthful claim ceiling: draft delivery to Webflow CMS.
+- Wix (98 Junk It / JAS): NO-GO. No CMS integration records or publishing plans exist.
+- Rank tracking: GO, scoped to certified sites with canonical pinned rows and recent successful runs, contingent on those verifications remaining true at launch.
+- Email digests: NO-GO. Sends are provider-accepted, but delivery is unverified and the verification path is broken.
+- Keyword research: NO-GO until D-SEO-DEPLOY completes with one verified production `keyword_serp` response; then GO. PR #28 does not substitute for provider proof.
+- Calendar: CONDITIONAL GO. Basic calendar is GO; schedule/live-state accuracy requires PR #27 merged and verified.
+- Social: GO only as manual share links to LinkedIn, X, and Facebook. No automatic-publishing claim.
+- Aggregate: NO-GO for any general claim that Destiny publishes and verifies across CMSes with delivery-confirmed reporting.
+
+### E. Authorization boundaries
+
+May proceed now: read-only production observation; keeping PRs #27 and #28 green and rebased; PR-E1 branch work under this approved record.
+
+Requires a separate Jose action: `cto-approved` label on PR-E1; merge authorization for PR #27 and PR #28; D-SEO-DEPLOY execution; any future rank-digest production redeploy; any Resend key rotation, webhook creation, or secret/provider mutation; any Step 2 implementation; any launch-claim publication.
+
+All GOV-1 frozen actions remain frozen. Replit remains production of record. PR #23 remains frozen and unmodified. Rollback for anything executed under this record is a protected revert PR or redeploy of the prior function version, never a production hand edit.
+
+Decided by: Fable 5 High, Destiny CTO under HARNESS_POLICY.md GOV-1
