@@ -1084,6 +1084,23 @@
       "implementationPaths": [
         "destiny-product/vitest.config.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "2bc9493ca60f3c6a30e42f04e441e30fa9a78a5d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "production-readonly-workspace route evidence",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/journeys.v2.json"
+      ]
     }
   ],
   "networkMode": "mocked",
