@@ -103,6 +103,11 @@ describe("build provenance policy", () => {
       "Build warnings must be evaluated after the production build.",
       "Production build must persist its evidence receipt.",
     ]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: "write-build-stamp.mjs" })).toEqual([
+      "Production build wrapper must invoke Next.js with webpack.",
+      "Build warnings must be evaluated after the production build.",
+      "Production build must persist its evidence receipt.",
+    ]);
     expect(validateBuildProvenance({ buildScript, runnerSource: "const evaluation = evaluateBuildWarnings(" })).toEqual([
       "Production build wrapper must create a build stamp.",
       "Production build wrapper must invoke Next.js with webpack.",
@@ -119,5 +124,9 @@ describe("build provenance policy", () => {
       '["next", "build", "--webpack"]',
       "writeFile(artifactPath",
     ].join("|") })).toContain("Build warnings must be evaluated after the production build.");
+
+    const source = await readFile(path.join(productRoot, "scripts/harness/ratchet.mjs"), "utf8");
+    expect(source).toContain("default runner sentinel cannot contain any stage marker");
+    expect(source).toContain("distinct stage markers cannot occupy the same offset");
   });
 });
