@@ -315,6 +315,24 @@
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/scripts/qa-quality-gate.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d1a48f49232c24d33174e44a8c6e5dda08a59bf4",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "validateTouchedRouteCoverage is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",

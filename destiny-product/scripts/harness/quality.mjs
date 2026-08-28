@@ -110,6 +110,17 @@ export function calculateRouteJourneyCoverage(routes, coveredRoutes) {
   };
 }
 
+export function validateTouchedRouteCoverage(touchedRoutes, { apiRoutes = new Set(), browserRoutes = new Set(), knownRoutes } = {}) {
+  const errors = [];
+  const inventory = knownRoutes ?? new Set([...apiRoutes, ...browserRoutes]);
+  for (const route of touchedRoutes) {
+    if (!inventory.has(route)) errors.push(`Touched route is absent from inventory: ${route}.`);
+    else if (route.startsWith("/api/") && !apiRoutes.has(route)) errors.push(`Touched API route lacks a contract test: ${route}.`);
+    else if (!route.startsWith("/api/") && !browserRoutes.has(route)) errors.push(`Touched browser route lacks a source-backed journey: ${route}.`);
+  }
+  return errors;
+}
+
 function evidenceValues(journey, field) {
   return journey?.[field === "routeEvidence" ? "routes" : "assertions"] ?? [];
 }
