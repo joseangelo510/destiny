@@ -19,7 +19,7 @@ export function normalizeCapabilityProbe(probe) {
     return { command, available: true, ...(version ? { version } : {}) };
   }
   const detail = bounded(probe.stderr || probe.stdout || `exit status ${probe.status ?? "unavailable"}`);
-  return { command, available: false, error: detail || "unavailable" };
+  return { command, available: false, error: detail };
 }
 
 export function evaluateCapabilities(probes, { requireContainer }) {
