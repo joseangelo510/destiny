@@ -113,11 +113,11 @@ describe("harness environment capabilities", () => {
       command: "tool",
       status: 1,
       stdout: "",
-      stderr: `  Bearer   abc.def token  =  private api-key:secret api_key = value apikey=third\n${"x".repeat(300)}  `,
+      stderr: `  Bearer   abc.def token  =  private api-key:secret api_key = value apikey=third marker   gap\n${"x".repeat(300)}  `,
     });
     expect(sanitized).toEqual(expect.objectContaining({ command: "tool", available: false }));
     expect(sanitized.error).toHaveLength(240);
-    expect(sanitized.error).toMatch(/^Bearer \[REDACTED] token=\[REDACTED] api-key=\[REDACTED] api_key=\[REDACTED] apikey=\[REDACTED] x+$/);
+    expect(sanitized.error).toMatch(/^Bearer \[REDACTED] token=\[REDACTED] api-key=\[REDACTED] api_key=\[REDACTED] apikey=\[REDACTED] marker gap x+$/);
     for (const invalid of [null, {}, { command: 7 }, { command: "   " }]) {
       expect(() => normalizeCapabilityProbe(invalid as never)).toThrow("Capability probe command");
     }
