@@ -60,8 +60,11 @@
     }
   ],
   "networkMode": "mocked",
-  "touchedRoutes": [],
+  "touchedRoutes": [
+    "/api/version"
+  ],
   "productPaths": [
+    "destiny-product/src/app/api/version/route.ts",
     "destiny-product/src/lib/observability/logging.ts"
   ]
 }
