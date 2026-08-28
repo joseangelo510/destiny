@@ -53,10 +53,14 @@ describe("SOTA harness evidence contract", () => {
         expect.stringContaining("redReplay.command"),
       ]),
     );
+    expect(validateEvidenceManifest({ ...validManifest, redReplay: null })).toContain("Evidence requires redReplay.");
+    expect(validateEvidenceManifest({ ...validManifest, additionalRedReplays: {} })).toContain(
+      "additionalRedReplays must be an array.",
+    );
   });
 
   it("requires HIGH decisions and validates RED exemptions against the actual diff", async () => {
-    const { evaluateEvidenceManifest } = await loadEvidenceModule();
+    const { evaluateEvidenceManifest, validateEvidenceManifest } = await loadEvidenceModule();
     expect(evaluateEvidenceManifest(validManifest, {
       changedFiles: ["destiny-product/scripts/harness/trace.mjs"],
       isProtectedRevert: false,
@@ -70,6 +74,10 @@ describe("SOTA harness evidence contract", () => {
       changedFiles: ["destiny-product/scripts/harness/trace.mjs"],
       isProtectedRevert: false,
     })).toContain("RED exemption docs-only does not match the changed files.");
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      decision: { ...validManifest.decision, path: "README.md" },
+    })).toContain("HIGH evidence decision.path must point to destiny-product/DEPLOY_LOG.md.");
   });
 
   it("recursively redacts credentials before emitting structured JSONL", async () => {
@@ -173,5 +181,10 @@ describe("SOTA harness evidence contract", () => {
     const circular: Record<string, unknown> = {};
     circular.self = circular;
     expect(redactEvidence(["Bearer abc123", circular])).toEqual(["Bearer [REDACTED]", { self: "[CIRCULAR]" }]);
+    const defaults: string[] = [];
+    const defaultRecorder = createTraceRecorder({ sha: "b".repeat(40), write: async (line: string) => defaults.push(line) });
+    await defaultRecorder.start("default-clock");
+    await defaultRecorder.finish("default-clock", "pass");
+    expect(JSON.parse(defaults[0]).runId).toMatch(/^[0-9a-f-]{36}$/);
   });
 });
