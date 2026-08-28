@@ -5,7 +5,7 @@
   "measurement": {
     "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
     "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
-    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 initially observed 64.13 to 66.30 percent, then improved to 68.53 to 68.73 percent over 1,951 scored mutants in 12 changed modules. The ratcheted fail-closed floor is 68 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
+    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 initially observed 64.13 to 66.30 percent, improved to 68.53 to 68.73 percent, then reached 69.53 percent over 1,959 scored mutants in 12 changed modules after replacing regex import discovery with a TypeScript AST. The ratcheted fail-closed floor is 69 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
     "journeys": "Typed qa/harness/journeys.v2.json browser evidence plus canonical src/app/api/**/route.test.ts route-contract discovery."
   },
   "metrics": {
@@ -14,9 +14,9 @@
     "auditExceptions": 2,
     "browserJourneyCoverage": 65.52,
     "changedMaximumFunctionComplexity": 19,
-    "changedBranchCoverage": 84,
-    "changedLineCoverage": 90,
-    "changedMutationScore": 68,
+    "changedBranchCoverage": 89,
+    "changedLineCoverage": 91,
+    "changedMutationScore": 69,
     "dependencyCycles": 0,
     "duplicateBlocks": 95,
     "duplicationPercentage": 3.01,
@@ -191,6 +191,29 @@
       "from": 84.62,
       "to": 87.18,
       "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 84,
+      "to": 89,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedLineCoverage",
+      "from": 90,
+      "to": 91,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 68,
+      "to": 69,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1959,
+      "observedRange": [69.53, 69.53]
     }
   ]
 }
