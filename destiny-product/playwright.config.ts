@@ -7,6 +7,7 @@ const baseURL = productionReadOnly
 
 export default defineConfig({
   testDir: "./qa/e2e",
+  testIgnore: productionReadOnly ? [] : ["**/prod-readonly.spec.ts"],
   outputDir: "./qa/artifacts/playwright",
   fullyParallel: !productionReadOnly,
   forbidOnly: Boolean(process.env.CI),
