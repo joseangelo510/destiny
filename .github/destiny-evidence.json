@@ -679,6 +679,23 @@
       "implementationPaths": [
         "destiny-product/vitest.config.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "4f10287aae00ac3aee2e22b6e432af9dfa0eacae",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "failurePattern": "Stryker disable next-line",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/architecture.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
