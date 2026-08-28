@@ -16,6 +16,7 @@ import {
   filterExecutableChanges,
   measureSourceDebt,
   validateJourneyRegistry,
+  validateTouchedRouteCoverage,
 } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
 import { protectedMainRef } from "./harness/repository.mjs";
@@ -27,6 +28,7 @@ const repositoryRoot = process.env.QA_MEASURE_REPOSITORY_ROOT
   : path.resolve(productRoot, "..");
 const artifactRoot = path.join(implementationProductRoot, "qa", "artifacts", "harness", "quality");
 const baselinePath = path.join(productRoot, "qa", "harness", "baseline.v2.json");
+const measureOnly = process.argv.includes("--measure");
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const ignored = new Set([".next", ".stryker-tmp", "coverage", "node_modules", "qa/artifacts"]);
 await mkdir(artifactRoot, { recursive: true });
@@ -50,6 +52,15 @@ function resolveExistingModule(candidate, fileSet) {
 
 function git(args) {
   return execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
+}
+
+async function readChangeEvidence() {
+  try {
+    return JSON.parse(await readFile(path.join(repositoryRoot, ".github", "destiny-evidence.json"), "utf8"));
+  } catch (error) {
+    if (measureOnly) return { touchedRoutes: [] };
+    throw error;
+  }
 }
 
 function fileAt(ref, file) {
@@ -134,6 +145,7 @@ const joinedTests = [...testSources.values()].join("\n");
 const routes = JSON.parse(await readFile(path.join(productRoot, "qa", "inventory", "routes.json"), "utf8")).map((entry) => entry.route);
 const journeyRegistry = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.v2.json"), "utf8"));
 const journeySchema = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.schema.json"), "utf8"));
+const evidenceManifest = await readChangeEvidence();
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 const schemaValid = ajv.validate(journeySchema, journeyRegistry);
 const journeyErrors = [
@@ -143,6 +155,13 @@ const journeyErrors = [
 const apiContractRoutes = testFiles
   .filter((file) => /^src\/app\/api\/.+\/route\.test\.ts$/.test(file))
   .map((file) => file.replace(/^src\/app/, "").replace(/\/route\.test\.ts$/, ""));
+const browserJourneyRoutes = journeyRegistry.journeys.flatMap((journey) => journey.routes).filter((route) => !route.startsWith("/api/"));
+const touchedRouteErrors = validateTouchedRouteCoverage(evidenceManifest.touchedRoutes ?? [], {
+  apiRoutes: new Set(apiContractRoutes),
+  browserRoutes: new Set(browserJourneyRoutes),
+  knownRoutes: new Set(routes),
+});
+journeyErrors.push(...touchedRouteErrors);
 const routeCoverage = calculateTypedJourneyCoverage(routes, journeyRegistry.journeys, apiContractRoutes);
 await writeFile(path.join(artifactRoot, "journey-coverage.json"), `${JSON.stringify({
   schemaVersion: "2.0.0",
@@ -179,11 +198,11 @@ const report = {
   schemaVersion: "2.0.0",
   measuredAtSha: git(["rev-parse", "HEAD"]),
   metrics,
-  details: { architectureErrors, changedExecutableFiles, changedFunctionComplexity, cycles, routeCoverage },
+  details: { architectureErrors, changedExecutableFiles, changedFunctionComplexity, cycles, routeCoverage, touchedRoutes: evidenceManifest.touchedRoutes ?? [] },
 };
 await writeFile(path.join(artifactRoot, "static-quality.json"), `${JSON.stringify(report, null, 2)}\n`);
 
-if (process.argv.includes("--measure")) {
+if (measureOnly) {
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   process.exit(0);
 }
