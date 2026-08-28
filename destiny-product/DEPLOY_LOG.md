@@ -957,3 +957,19 @@ Evidence manifest at final SHA including: RED and GREEN receipts per gate, measu
 Rollout: single protected HIGH PR from `codex/harness-sota-2`; merge only on Jose's explicit authorization, both labels, and green existing required checks at the final rebased SHA. Nightly lane failures open evidence issues; they never silently redefine `main` as green. Rollback: protected revert PR only; reverting this PR restores the prior harness in full because no product behavior beyond C5 primitives changes.
 
 **Status:** AUTHORIZED (conditional). Implementation may begin at the decision-record commit. Any deviation from C1–C7 voids this authorization and requires a new decision.
+
+## 2026-08-28 — DECISION RECORD: D-LOCAL-CONTAINER-RUNNER-1
+
+- deciding authority: Fable 5 High, acting as Destiny CTO under `HARNESS_POLICY.md` policy `GOV-1`
+- requested by: Jose Gallegos, with explicit direction to obtain a Docker/Podman-capable runner recommendation and implement it
+- decision record: https://claude.ai/chat/c21b610d-7a1b-4cd8-8b05-4dc8da2ba8ae
+- classification: HIGH because host provisioning is ambiguous under the policy's runtime-configuration rule; this record resolves that ambiguity before implementation
+- decision: APPROVED — provision a host-only Colima plus Docker CLI runner, with Podman as the sanctioned fallback, solely to execute the existing Destiny gate for branch `codex/harness-sota-2` beginning from commit `2e69f6507c1bad97ef9dc9c88c752262bf0ca4ba`
+- verified planned versions: Lima `2.2.0`, Colima `0.10.3`, Docker CLI `29.7.2`; install only upstream arm64 artifacts and verify published SHA-256 digests where the upstream release supplies them
+- host allocation: Apple Silicon macOS; 4 CPUs, 8 GiB memory, and 60 GiB disk for the Colima VM
+- repository effect: this decision record only; no dependency, lockfile, application, test, harness, CI, environment, credential, workflow, or runtime-configuration file change is authorized
+- external effect: local user-space container tooling and VM state only; no customer data, remote Supabase project, staging, production, Replit, Fly, CMS, email, social, or deployment mutation is authorized
+- gate scope: local capability verification, isolated Supabase stack startup, existing isolation and browser-fixture checks, existing production build, Playwright Chromium installation, and existing local E2E journeys
+- forbidden scope: no repository push, PR mutation, merge, label, branch-protection change, release tag, migration, schema, auth, RLS, security-model, secret, provider, production, traffic, or deployment action
+- completion boundary: local provisioning and local test evidence do not constitute GOV-1 completion; protected PR, exact-SHA required checks, Jose-applied labels, merge SHA, and check-run URLs remain required
+- rollback: stop and delete the local Colima VM, then remove only the pinned user-space runner files and command links installed by this decision
