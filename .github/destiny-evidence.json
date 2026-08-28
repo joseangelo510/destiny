@@ -352,6 +352,23 @@
         "destiny-product/scripts/qa-audit.mjs",
         "destiny-product/scripts/qa-build.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d0c07e891552b1191049a9dbacd1836bab7671f7",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "validateBuildProvenance is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
