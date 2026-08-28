@@ -62,4 +62,30 @@ describe("structured application observability", () => {
       },
     }));
   });
+
+  it("validates each field and permits every bounded severity", async () => {
+    const { createLogEvent } = await loadLoggingModule();
+    const correlationId = "018f3f5d-3e16-7c2a-9f2e-3c227fd77e11";
+    for (const severity of ["debug", "info", "warn", "error"] as const) {
+      expect(createLogEvent({ correlationId, event: "harness.completed", severity }).severity).toBe(severity);
+    }
+    expect(() => createLogEvent({ correlationId: "bad", event: "valid.event", severity: "info" })).toThrow(/correlationId/);
+    expect(() => createLogEvent({ correlationId, event: "invalid", severity: "info" })).toThrow(/event/);
+    expect(() => createLogEvent({ correlationId, event: "valid.event", severity: "fatal" as never })).toThrow(/severity/);
+  });
+
+  it("normalizes IDs and redacts arrays, bearer tokens, and cycles", async () => {
+    const { correlationContext, serializeLogEvent } = await loadLoggingModule();
+    const incoming = "018F3F5D-3E16-7C2A-9F2E-3C227FD77E11";
+    expect(correlationContext(new Headers({ "x-correlation-id": `  ${incoming}  ` })).correlationId).toBe(incoming.toLowerCase());
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    const serialized = serializeLogEvent({
+      correlationId: incoming.toLowerCase(), event: "audit.completed", severity: "info",
+      context: { values: ["Bearer private", circular], phone: "555-1234" },
+    });
+    expect(JSON.parse(serialized).context).toEqual({
+      values: ["Bearer [REDACTED]", { self: "[CIRCULAR]" }], phone: "[REDACTED]",
+    });
+  });
 });

@@ -37,4 +37,33 @@ describe("architecture fitness functions", () => {
       ["d", []],
     ]))).toEqual(["a -> b -> c -> a"]);
   });
+
+  it("resolves aliases, relative modules, and packages", async () => {
+    const { resolveLocalSpecifier } = await loadArchitectureModule();
+    expect(resolveLocalSpecifier("src/lib/seo/a.ts", "@/lib/value")).toBe("src/lib/value");
+    expect(resolveLocalSpecifier("src/lib/seo/a.ts", "../value")).toBe("src/lib/value");
+    expect(resolveLocalSpecifier("src/lib/seo/a.ts", "react")).toBeNull();
+  });
+
+  it("covers edge and route boundaries while allowing inward dependencies", async () => {
+    const { evaluateArchitectureImports } = await loadArchitectureModule();
+    expect(evaluateArchitectureImports([
+      { file: "supabase/functions/a/index.ts", specifier: "@/components/card" },
+      { file: "src/app/api/a/route.js", specifier: "@/app/api/b/route" },
+    ])).toHaveLength(2);
+    expect(evaluateArchitectureImports([
+      { file: "src/components/card.tsx", specifier: "@/lib/value" },
+      { file: "src/app/page.tsx", specifier: "@/components/card" },
+    ])).toEqual([]);
+  });
+
+  it("canonicalizes duplicate, rotated, and self cycles", async () => {
+    const { detectDependencyCycles } = await loadArchitectureModule();
+    expect(detectDependencyCycles(new Map([
+      ["c", ["a"]],
+      ["a", ["b"]],
+      ["b", ["c", "c"]],
+      ["z", ["z"]],
+    ]))).toEqual(["a -> b -> c -> a", "z -> z"]);
+  });
 });
