@@ -318,6 +318,18 @@ Write contract: the repair runs as a read-only dry-run first. A write requires t
 Required RED proof: unique exact match; multiple transfers; multiple rows; zero candidates; similar-title mismatch; missing, malformed, or non-2xx permalink; missing, wrong-user, or expired confirmation; idempotent rerun. Required QA: registered privileged Edge Function, executable cross-tenant denial, and exact no-extra-row mutation assertions.
 Protected order: PR #27 -> PR #28 -> PR #29 -> PR #30 -> PR #31. PR #31 is prepared from `main@450ae943fde32ad479692a851e09bc6d58a27944`, then rebased and fully reverified at the final train tail before protected merge. Jose alone applies `cto-approved` to the final PR head.
 Allowed now: decision record, RED tests, matcher, authenticated Edge Function, dry-run report, non-production QA, PR creation, and certification-document updates. Current launch verdict remains NO-GO until PR #27 through PR #31 are merged in order and post-deploy FCRA and Ban-the-Box verification passes.
+
+## CTO test decision: D-LAUNCH-PROOF-MATRIX-1
+
+[2026-08-28] D-LAUNCH-PROOF-MATRIX-1 | MEDIUM | Issued by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md`
+
+- decision record: `qa/decisions/2026-08-28-fable-launch-proof-matrix.md`
+- canonical starting SHA: `57666b1078f554ccc4b56ebff96ddd2dbf18f4d4`
+- authorized scope: public-artifact verifier, exact multi-website production read-only matrix, all six directed pairs in the disposable three-tenant isolation suite, tests, documentation, and evidence only
+- test-change justification: `prod-readonly.spec.ts` is generalized from one hard-coded website to an exact supplied website matrix and adds browser-error assertions; `two-tenant.integration.test.ts` exercises the same existing three tenants in all six directions; `isolation-harness.test.ts` is updated to enforce that stronger matrix; `commit-policy-canonical-main-ref.test.ts` receives only a 15-second local timeout after a verified timeout with no assertion failure
+- RED evidence: the two new verifier and matrix suites failed before implementation because their modules did not exist; focused output recorded locally on August 28, 2026
+- production mutations: none authorized; live publishing, social posting, credentials, schema, RLS, secrets, configuration, tags, redirects, and deployment remain HIGH and frozen
+- completion rule: protected PR, full gate, exact-SHA required checks, and per-site evidence links; saved, drafted, or scheduled states may never be reported as published
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1, at Jose Gallegos's direction.
 
 ## CTO production decision: D-CALENDAR-ORPHAN-REPAIR-2

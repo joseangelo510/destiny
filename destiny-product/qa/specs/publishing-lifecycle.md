@@ -20,3 +20,18 @@ a client CMS or public network.
 
 Webflow remains a draft-only handoff in this harness. Wix remains an explicitly
 manual handoff. Neither is represented as directly published.
+
+## Public artifact proof
+
+`pnpm qa:public-artifacts <manifest.json>` performs an unauthenticated public
+fetch. A manifest must name the exact website, exact public post URL, expected
+hostname, and at least one unique content marker. WordPress proof also requires
+the expected canonical URL. Homepages, LinkedIn share intents, X compose
+intents, and Facebook share dialogs are rejected because they are actions, not
+published artifacts.
+
+Social sharing in the Destiny UI currently opens the platform's share composer.
+That is a manual handoff, not an automatic publisher. It may be reported as
+`publicly_verified` only after the user supplies the final LinkedIn, X, or
+Facebook post URL and the unauthenticated verifier can retrieve the expected
+content. A platform login wall or bot challenge remains unverified.
