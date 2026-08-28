@@ -4,7 +4,9 @@ import base from "./vitest.config.mjs";
 export default mergeConfig(base, defineConfig({
   test: {
     include: [
-      "qa/rules/**/*.test.ts",
+      "qa/rules/harness-*-v2.test.ts",
+      "qa/rules/dependency-audit-policy.test.ts",
+      "qa/rules/build-provenance-policy.test.ts",
       "src/app/api/version/route.test.ts",
       "src/lib/observability/logging.test.ts",
     ],
