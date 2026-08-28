@@ -117,6 +117,8 @@ describe("SOTA harness evidence contract", () => {
     ]);
     expect(first).toEqual(second);
     expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(hashEvidenceFiles([{ path: "object.json", contents: { ok: true } }]))
+      .toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("fails closed on malformed evidence", async () => {
@@ -186,5 +188,22 @@ describe("SOTA harness evidence contract", () => {
     await defaultRecorder.start("default-clock");
     await defaultRecorder.finish("default-clock", "pass");
     expect(JSON.parse(defaults[0]).runId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("fails closed when optional replay collections and HIGH metadata are absent", async () => {
+    const { replayPlansFromManifest, validateEvidenceManifest } = await loadEvidenceModule();
+    expect(replayPlansFromManifest(undefined)).toEqual([]);
+    expect(replayPlansFromManifest(validManifest)).toEqual([validManifest.redReplay]);
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      changeId: undefined,
+      decision: undefined,
+      additionalRedReplays: [{ ...validManifest.redReplay, mode: "not-applicable", exemption: "docs-only" }],
+    })).toEqual(expect.arrayContaining([
+      "Evidence changeId is invalid.",
+      "Evidence requires decision.id.",
+      "HIGH evidence decision.path must point to destiny-product/DEPLOY_LOG.md.",
+      "Additional RED replays must use required mode.",
+    ]));
   });
 });

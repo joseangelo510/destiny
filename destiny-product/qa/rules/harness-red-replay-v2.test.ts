@@ -75,6 +75,13 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       "RED replay requires a failure pattern.", "RED replay requires test files.",
       "RED replay requires implementation paths.",
     ]));
+    const withoutOptionalFields = { ...plan } as Partial<typeof plan>;
+    delete withoutOptionalFields.redCommit;
+    delete withoutOptionalFields.testFiles;
+    expect(validateRedReplayPlan(withoutOptionalFields, { isAncestor: true })).toEqual(expect.arrayContaining([
+      "RED replay requires a full commit SHA.",
+      "RED replay requires test files.",
+    ]));
     expect(classifyReplayAttempt({ exitCode: 1, output: "wrong failure", plan, phase: "red" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "RED failed for an undeclared reason." }));
     expect(classifyReplayAttempt({ exitCode: 0, output: "one passed", plan, phase: "blue" }))
@@ -147,6 +154,37 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       await expect(readFile(path.join(artifactDirectory, "red-replay.json"), "utf8"))
         .resolves.toContain('"schemaVersion": "2.0.0"');
       expect(git("worktree", "list", "--porcelain")).not.toContain("destiny-red-replay-");
+
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: { ...fixturePlan, redCommit: "short" },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "invalid-plan-artifacts"),
+      })).rejects.toThrow("RED replay requires a full commit SHA.");
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: { ...fixturePlan, implementationPaths: ["destiny-product/missing-at-head.txt"] },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "missing-implementation-artifacts"),
+      })).rejects.toThrow("destiny-product/missing-at-head.txt is not present at HEAD.");
+
+      await expect(runRedReplay({
+        repositoryRoot,
+        productRoot,
+        plan: {
+          ...fixturePlan,
+          command: ["definitely-missing-harness-command", "qa/rules/example.test.ts"],
+        },
+        headCommit: greenCommit,
+        artifactDirectory: path.join(repositoryRoot, "missing-command-artifacts"),
+        timeoutMs: 1_000,
+      })).rejects.toThrow("RED/GREEN replay did not satisfy the evidence contract.");
+      const missingCommandReceipt = JSON.parse(await readFile(
+        path.join(repositoryRoot, "missing-command-artifacts", "red-replay.json"), "utf8",
+      ));
+      expect(missingCommandReceipt.red).toEqual(expect.objectContaining({ exitCode: 1, output: "" }));
 
       await expect(runRedReplay({
         repositoryRoot,
