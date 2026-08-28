@@ -33,6 +33,9 @@ describe("SOTA harness integration", () => {
     const quality = await text("destiny-product/scripts/qa-quality-gate.mjs");
     expect(quality).toContain("--max-warnings");
     expect(quality).toContain("--noEmit");
+    expect(quality).toContain("changedMaximumFunctionComplexity");
+    expect(quality).toContain("filterExecutableChanges");
+    expect(quality).toContain('"complexity"');
   });
 
   it("preserves harness receipts and runs a bounded scheduled assurance lane", async () => {

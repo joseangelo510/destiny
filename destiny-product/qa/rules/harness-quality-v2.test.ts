@@ -53,6 +53,29 @@ describe("changed-scope quality measurement", () => {
     expect(result.maximumCyclomaticComplexity).toBe(2);
   });
 
+  it("fails changed functions above an absolute complexity ceiling", async () => {
+    const { evaluateChangedFunctionComplexity } = await loadQualityModule();
+    expect(evaluateChangedFunctionComplexity([
+      {
+        filePath: "/repo/src/lib/clean.ts",
+        messages: [{ ruleId: "complexity", line: 4, message: "Function 'clean' has a complexity of 8. Maximum allowed is 0." }],
+      },
+      {
+        filePath: "/repo/scripts/harness/risky.mjs",
+        messages: [
+          { ruleId: "complexity", line: 9, message: "Async function 'risky' has a complexity of 23. Maximum allowed is 0." },
+          { ruleId: "other", line: 1, message: "not a complexity measurement" },
+        ],
+      },
+    ], { productRoot: "/repo", maximum: 20 })).toEqual({
+      maximum: 23,
+      offenders: [{ complexity: 23, file: "scripts/harness/risky.mjs", line: 9 }],
+    });
+    expect(() => evaluateChangedFunctionComplexity([
+      { filePath: "/repo/src/lib/a.ts", messages: [{ ruleId: "complexity", line: 1, message: "malformed" }] },
+    ], { productRoot: "/repo", maximum: 20 })).toThrow("Malformed ESLint complexity measurement");
+  });
+
   it("treats route inventory and journey proof as separate denominators", async () => {
     const { calculateRouteJourneyCoverage } = await loadQualityModule();
     expect(calculateRouteJourneyCoverage(
