@@ -10,7 +10,8 @@ export default defineConfig({
   outputDir: "./qa/artifacts/playwright",
   fullyParallel: !productionReadOnly,
   forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
+  // A fail-then-pass is flaky evidence, never a green gate.
+  retries: 0,
   reporter: [["list"], ["html", { open: "never", outputFolder: "qa/artifacts/playwright-report" }]],
   use: {
     baseURL,
