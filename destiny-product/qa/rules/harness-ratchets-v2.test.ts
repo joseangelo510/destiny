@@ -74,16 +74,18 @@ describe("measured quality ratchets", () => {
   it("ratchets every declared quality direction", async () => {
     const { compareRatchetMetrics } = await loadRatchetModule();
     expect(compareRatchetMetrics({
-      architectureViolations: 0, auditExceptions: 1, dependencyCycles: 1, duplicateBlocks: 1,
+      architectureViolations: 0, auditExceptions: 1, changedMaximumFunctionComplexity: 2, dependencyCycles: 1, duplicateBlocks: 1,
       duplicationPercentage: 1, eslintWarnings: 0, flakyRetries: 0, maximumCyclomaticComplexity: 2,
       quarantinedTests: 0, skippedTests: 0, typeErrors: 0, changedBranchCoverage: 80,
-      changedLineCoverage: 80, changedMutationScore: 70, routeJourneyCoverage: 50, testCount: 500,
+      changedLineCoverage: 80, changedMutationScore: 70, apiContractCoverage: 80,
+      browserJourneyCoverage: 80, routeJourneyCoverage: 50, testCount: 500,
     }, {
-      architectureViolations: 1, auditExceptions: 2, dependencyCycles: 2, duplicateBlocks: 2,
+      architectureViolations: 1, auditExceptions: 2, changedMaximumFunctionComplexity: 3, dependencyCycles: 2, duplicateBlocks: 2,
       duplicationPercentage: 2, eslintWarnings: 1, flakyRetries: 1, maximumCyclomaticComplexity: 3,
       quarantinedTests: 1, skippedTests: 1, typeErrors: 1, changedBranchCoverage: 79,
-      changedLineCoverage: 79, changedMutationScore: 69, routeJourneyCoverage: 49, testCount: 1,
-    })).toHaveLength(15);
+      changedLineCoverage: 79, changedMutationScore: 69, apiContractCoverage: 79,
+      browserJourneyCoverage: 79, routeJourneyCoverage: 49, testCount: 1,
+    })).toHaveLength(18);
   });
 
   it("rejects malformed and expired exceptions", async () => {
@@ -101,6 +103,24 @@ describe("measured quality ratchets", () => {
       .toContain("Ratchet exception requires a Fable High decision ID.");
     expect(validateRatchetException({ decisionId: "D-VALID-1", owner: "owner", reason: "bounded", expiresAt: now.toISOString() }, now))
       .toContain("Ratchet exception has expired.");
+    expect(validateRatchetException(null, now)).toEqual([
+      "Ratchet exception requires a Fable High decision ID.",
+      "Ratchet exception requires an owner.",
+      "Ratchet exception requires a reason.",
+      "Ratchet exception requires an expiry.",
+    ]);
+  });
+
+  it("skips absent and non-numeric metrics without weakening directional ratchets", async () => {
+    const { compareRatchetMetrics } = await loadRatchetModule();
+    expect(compareRatchetMetrics({ changedLineCoverage: "80" }, { changedLineCoverage: 79 })).toEqual([]);
+    expect(compareRatchetMetrics({ changedLineCoverage: 80 }, { changedLineCoverage: "79" })).toEqual([]);
+    expect(compareRatchetMetrics({ testCount: 10, changedLineCoverage: 80 }, { testCount: 1 })).toEqual([]);
+
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/ratchet.mjs"), "utf8");
+    expect(source).toContain("redundant informational guard is intentionally absent");
+    expect(source).toContain("ANSI grammar is exhaustively specified");
+    expect(source).toContain("build stage ordering is exhaustively specified");
   });
 
   it("locks newly demonstrated mutation and route-proof floors", async () => {
