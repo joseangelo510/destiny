@@ -107,11 +107,15 @@ describe("measured quality ratchets", () => {
     const baseline = JSON.parse(await readFile(path.join(process.cwd(), "qa/harness/baseline.v2.json"), "utf8"));
     expect(baseline.metrics).toEqual(expect.objectContaining({
       apiContractCoverage: 53.06,
+      changedBranchCoverage: 84,
+      changedLineCoverage: 90,
       changedMutationScore: 68,
       routeJourneyCoverage: 55.13,
     }));
     expect(baseline.ratchetHistory).toEqual(expect.arrayContaining([
       expect.objectContaining({ metric: "changedMutationScore", from: 60, to: 68 }),
+      expect.objectContaining({ metric: "changedBranchCoverage", from: 45.59, to: 84 }),
+      expect.objectContaining({ metric: "changedLineCoverage", from: 56.45, to: 90 }),
       expect.objectContaining({ metric: "apiContractCoverage", from: 42.86, to: 53.06 }),
       expect.objectContaining({ metric: "routeJourneyCoverage", from: 48.72, to: 55.13 }),
     ]));
