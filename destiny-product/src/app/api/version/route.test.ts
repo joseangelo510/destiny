@@ -118,6 +118,7 @@ describe("GET /api/version", () => {
     expect(source).toContain("defensive JSON shape guard converges to UNKNOWN_STAMP");
     expect(source).toContain("JSON scalar coercion cannot produce a full SHA");
     expect(source).toContain("unknown sentinel comparison preserves the same output");
+    expect(source).toContain("disable next-line StringLiteral,ConditionalExpression");
     expect(source).toContain("JSON.parse accepts either UTF-8 text or its Buffer equivalent");
   });
 
