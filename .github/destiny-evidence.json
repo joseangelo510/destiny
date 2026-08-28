@@ -978,6 +978,23 @@
       "implementationPaths": [
         "destiny-product/vitest.config.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "e271780824a028fac8788b9946ce61943949f764",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "fixture text, comments, or regular expressions",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
