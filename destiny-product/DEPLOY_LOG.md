@@ -360,6 +360,76 @@ Deploy receipt: at `2026-08-28T09:12:33Z`, Supabase project `etkksjebqgtkkdqznnx
 Dry-run receipt: not executed. No safe existing user JWT was available to the executor, and extracting, manufacturing, or working around a user credential is not authorized. The exact candidate remained singular, and the post-smoke readback proved zero mutation: item `10e64100-6b99-4dc5-8e64-9318e75f9955` stayed `needs_review` with null CMS linkage and unchanged `updated_at` `2026-08-16 20:25:31.058693+00`; transfer `558f3d60-1f46-41c6-b745-d7675d72fb7e` retained unchanged `updated_at` `2026-08-18 23:15:04.755+00`. Resume only with a safely available authenticated Destiny user session; do not use a service-role token or credential workaround. No confirmation token was issued or consumed.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
 
+## CTO production decision: D-REPLIT-REPUBLISH-3
+
+[2026-08-28] D-REPLIT-REPUBLISH-3
+Title: Authorize a staged deterministic reconciliation of the stale-but-clean Replit workspace to the immutable authorized application artifact, gated on read-only build-root proof and full blob-map parity, followed by exactly one controlled Replit production republish; all other frozen actions remain frozen.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — frozen action 2 (Replit production modification), successor to STOPPED-VOID D-REPLIT-REPUBLISH-2, issued under the forward gate of D-REPLIT-DIVERGENCE-AUDIT-1 section 6.
+
+### 1. Basis and inherited definitions
+
+D-REPLIT-DIVERGENCE-AUDIT-1 closed `STALE-CONFIRMED`: on Replit app Destiny SEO (`ee690524-db57-4050-86d0-03bad18452f7`), the Git-mapped workspace equals GitHub commit `1095526d70fddfa014e46e062ac00ea388c35fe4` content exactly (597 included files, 0 modified, 0 missing, 0 extra), differs from the authorized target at exactly 31 modified plus 25 missing paths with 0 extra, all classified stale, and hypothesis (c) foreign content is rejected. This decision adopts unchanged the D-REPLIT-REPUBLISH-2 section 2 immutable artifact — the application content of commit `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, excluding `destiny-product/DEPLOY_LOG.md` — and its section 3 governance-equivalence predicate. The recorded rollback baseline is published deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d`, status `success`, URL `https://destiny-seo.replit.app`, with live read-only baseline `GET /` 200, `GET /login` 200, `GET /api/version` 401, `GET /keyword-research` redirect-to-login 200.
+
+### 2. Staging decision: one decision, hard read-only gate first
+
+A separate decision cycle for the build-root inspection is not required. Stage 0 below is strictly read-only, its pass condition is specified deterministically in advance, and no workspace write may occur before Stage 0 passes; any Stage 0 surprise voids the write and publish authorizations entirely, restoring the freeze. This preserves GOV-1 — no sync or publish without deterministic build-root and parity proof — without a redundant governance round-trip. Stages execute strictly in order after the section 9 PR merges; any stop rule anywhere means STOP, record, and no further Replit action without a new recorded Fable 5 High decision.
+
+### 3. Stage 0 — read-only build-root and config proof
+
+Because the workspace carries root-level duplicate marker files, the built root must be proven, not assumed. Allowed, read-only: capture verbatim the `.replit` file (including every `[deployment]` `build`, `run`, and working-directory setting), `replit.nix`, and the read-only publish status/configuration pane; enumerate the root-level duplicate files by name and size only. Pass condition: the deployment build and run commands reference exactly one application root, that root is the Git-mapped `destiny-product/` tree proven by the audit, and no root-level duplicate file participates in the deployment build or run path. Also capture the pre-publish differential baseline: the exact unauthenticated status of `GET /api/research/keyword-serp` on the live site (this route is absent from the stale content, so its live behavior must reflect route-absence; record whatever status is observed). If the configuration is ambiguous, contradictory, references the repository root or any duplicate file, or cannot be read without a write-capable tool, STOP: the reconciliation and publish authorizations void.
+
+### 4. Stage 1 — deterministic reconciliation mechanism
+
+The only permitted mechanism is raw Git in the Replit workspace shell at the proven repository root. No natural-language agent rewrite, no per-file editor changes, no Replit Agent involvement of any kind. Exact sequence, each output recorded verbatim:
+
+1. `git status --porcelain` — must be empty or contain only approved-excluded paths; otherwise STOP.
+2. `git rev-parse HEAD` — recorded as the workspace pre-sync reference.
+3. Fetch the canonical repository (`https://github.com/joseangelo510/destiny`), then verify `git cat-file -t 082c70f1aecc8d3c395ea12f3542bd146fc57a01` reports `commit` and `git rev-parse 082c70f1aecc8d3c395ea12f3542bd146fc57a01^{tree}` equals `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. Any mismatch or unreachable object: STOP.
+4. `git checkout 082c70f1aecc8d3c395ea12f3542bd146fc57a01 -- .` — an overwrite-only pathspec restore. It writes every path present in the authorized commit, deletes nothing, and never touches untracked Replit-local files (`.replit`, `replit.nix`, env files, caches, `node_modules`), which is exactly correct because the audit proved 0 extra paths; Stage 2 re-proves it.
+5. Exactly one dependency install honoring the committed lockfile (the workspace's standard package manager with its frozen-lockfile mode) inside the proven build root, required because `package.json` is among the reconciled files. If the install mutates the lockfile or fails, STOP and execute the section 7 workspace rollback.
+
+No `git push` from Replit, ever. No branch switch, `reset --hard`, merge, or rebase. Replit auto-checkpoint commits are tolerated but must never be pushed. Secret and environment values are never read or changed; env files are referenced by name only.
+
+### 5. Stage 2 — parity proof and remaining prechecks
+
+All must pass, in order, immediately before publish; any failure means STOP and the publish authorization voids.
+
+1. Governance: this entry merged per section 9, with `cto-approved` applied by `joseangelo510` and `policy-guard`, `checklist-guard`, and `harness-gates` green at the PR SHA, with verifiable run URLs.
+2. Live `origin/main` tip passes the inherited application-equivalence predicate, evidenced by both command outputs.
+3. The green exact-SHA harness run for `082c70f1aecc8d3c395ea12f3542bd146fc57a01` (run `33163480250`) confirmed by verifiable URL.
+4. Full post-sync parity: re-run the audit's deterministic relative-path-to-Git-blob-SHA comparison with the identical approved exclusions. The result must be exactly 0 modified, 0 missing, 0 extra against tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. Sampling is insufficient; any nonzero count — including any extra path — is a STOP.
+5. Rollback baselines re-confirmed and recorded: the section 1 published deployment identity and live route baseline, plus the Stage 1 pre-sync workspace reference.
+6. Supabase `seo-research` v13 is `ACTIVE_HEALTHY`, `verify_jwt=true`, with recent HTTP 200 responses.
+7. Auth-boundary smoke against the reconciled workspace preview: authenticated same-origin `keyword_serp` returns 200 through a real Destiny user session obtained by interactive login; unauthenticated returns 401 or 403. No service-role token, no credential extraction, manufacture, or workaround, consistent with the D-CALENDAR-ORPHAN-REPAIR-2 boundary.
+8. Frontend verification on the reconciled workspace preview: keyword-research UI renders with zero console errors and zero 5xx on touched routes.
+
+### 6. Stage 3 — one republish and postchecks
+
+Execute exactly one Replit production republish of the verified reconciled workspace state through the standard publish action, accepting only existing settings — no configuration, environment, secret, domain, or machine change in any publish dialog. Postchecks, all mandatory: publish status `success` with the new deployment identity recorded; build-root differential flips — unauthenticated `GET /api/research/keyword-serp` now returns 401 or 403 (route exists), which deterministically proves the published build came from the reconciled Git-mapped root, and authenticated `GET /api/version` returns 200 with build identity consistent with the authorized artifact; authentication journey (login, session, callback) unregressed; `GET /` and `GET /login` return 200; keyword-research UI renders authenticated and same-origin `keyword_serp` succeeds authenticated and rejects unauthenticated; zero 5xx on touched routes; `seo-research` remains v13, `verify_jwt=true`, healthy.
+
+### 7. Rollback and stop rules
+
+- Workspace rollback (any failure before publish): `git checkout 1095526d70fddfa014e46e062ac00ea388c35fe4 -- .` after fetching that commit, restoring the audited pre-sync content, verified by the same blob-map comparison against `1095526d` (597 files, 0/0/0). Then STOP.
+- Production rollback (any postcheck failure): exactly one rollback republish restoring recorded deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d` via Replit's deployment rollback of that identity, never hand-edited. Then STOP. The rollback republish is the sole exception to the one-publish rule and consumes it.
+- Stop immediately and record on: any Stage 0 ambiguity; non-excluded dirty tree; unreachable pinned commit or tree-hash mismatch; any parity count other than 0/0/0; lockfile mutation; auth-smoke failure; console errors or 5xx; any tool whose read-only or write behavior is uncertain; any Replit UI prompt offering to sync, revert, apply, or checkpoint anything beyond the exact listed commands; or any evidence the workspace is not the audited stale-but-clean state — the last escalates to Jose Gallegos as a potential security event. No retry and no second forward republish without a new recorded Fable 5 High decision.
+
+### 8. Allowed and prohibited
+
+Allowed, and nothing else: the Stage 0 read-only captures; the Stage 1 command sequence; the Stage 2 precheck and parity runs including workspace preview startup; the single Stage 3 republish and its postchecks; the section 7 rollbacks.
+Prohibited: Supabase Auth Site URL change; any secret, environment, configuration, or domain change, and any secret value read; any function deploy or change including `seo-research`; database migration or schema change; auth, RLS, or security-model change; `container-staging` push; Replit-to-Fly traffic redirect; release tag creation or mutation; parallel-launch (`app.caminoseo.com`) change; Replit decommissioning; `git push` from Replit; branch switch, hard reset, merge, or rebase in the workspace; any natural-language agent rewrite or per-file manual edit of application files; more than one forward republish; service-role tokens or credential workarounds.
+
+### 9. Decision-record PR
+
+The completed D-REPLIT-DIVERGENCE-AUDIT-1 section 8 report (already committed on `gov/replit-divergence-audit-report-1` at `20e72f9`) and this decision MAY share one governance-only protected PR touching only `destiny-product/DEPLOY_LOG.md`. The audit's execution was fully authorized by the already-merged PRs #45 and #46, so its report is evidence-append only and creates no authorization coupling. The shared PR requires `cto-approved` applied by `joseangelo510` and `policy-guard`, `checklist-guard`, and `harness-gates` green at the PR SHA, with verifiable run URLs, before any Stage 0 step executes.
+
+### 10. Truthful-claim boundary
+
+Status is AUTHORIZED — NOT EXECUTED until evidence is appended. The only permitted completion claim is that Replit production was republished at application content equivalent to `082c70f1aecc8d3c395ea12f3542bd146fc57a01` (tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`) with required checks green, full blob-map parity 0/0/0, build-root proof recorded, and postchecks passed, all backed by run URLs and receipts. A successful republish plus a passing `keyword_serp` postcheck flips keyword research to GO under D-LAUNCH-READINESS-1; no broader launch, readiness, or migration claim is authorized. Evidence required for completion: the shared PR URL and merge SHA; required check-run URLs; Stage 0 config captures; Stage 1 command transcripts; the 0/0/0 parity output; precheck receipts with tokens redacted; the republish receipt with timestamp and new deployment identity; postcheck results; and both rollback baselines. Missing evidence means not complete.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No execution before its merge.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
 ## CTO production decision: D-REPLIT-DIVERGENCE-AUDIT-1-AMEND-1
 
 [2026-08-28] D-REPLIT-DIVERGENCE-AUDIT-1-AMEND-1
