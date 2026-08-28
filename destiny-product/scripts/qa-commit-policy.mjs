@@ -75,8 +75,7 @@ function maskNonExecutableSource(source) {
 export function findForbiddenTestMarkers(diff) {
   const added = diff.split("\n")
     .filter((line) => line.startsWith("+") && !line.startsWith("+++"));
-  const executableLines = maskNonExecutableSource(added.map((line) => line.slice(1)).join("\n")).split("\n");
-  return added.filter((_, index) => markerPatterns.some((pattern) => pattern.test(executableLines[index] ?? "")));
+  return added.filter((line) => markerPatterns.some((pattern) => pattern.test(maskNonExecutableSource(line.slice(1)))));
 }
 
 export function commitsRequiringShapeValidation({ commits, protectedMainReachableShas }) {
