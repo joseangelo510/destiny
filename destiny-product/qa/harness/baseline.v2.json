@@ -16,7 +16,7 @@
     "changedMaximumFunctionComplexity": 19,
     "changedBranchCoverage": 100,
     "changedLineCoverage": 100,
-    "changedMutationScore": 69,
+    "changedMutationScore": 100,
     "dependencyCycles": 0,
     "duplicateBlocks": 95,
     "duplicationPercentage": 3.01,
@@ -249,6 +249,16 @@
       "from": 91,
       "to": 100,
       "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 69,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1871,
+      "observedRange": [100, 100],
+      "durationSeconds": 297.5
     }
   ]
 }
