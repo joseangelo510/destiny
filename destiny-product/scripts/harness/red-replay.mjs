@@ -47,7 +47,12 @@ export function verifyImplementationWasAbsentAtRed(paths, { redFiles, headFiles 
 }
 
 function git(repositoryRoot, args, options = {}) {
-  return execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8", ...options }).trim();
+  return execFileSync("git", args, {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+    ...options,
+  }).trim();
 }
 
 function fileAt(repositoryRoot, sha, file) {
