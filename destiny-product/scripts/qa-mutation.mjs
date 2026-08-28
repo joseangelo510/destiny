@@ -56,6 +56,8 @@ const headOutputs = new Map(await Promise.all(candidates.map(async (file) => [
 const executableChanges = filterExecutableChanges(candidates, { baseOutputs, headOutputs });
 const targets = selectMutationTargets(executableChanges, { maximumFiles: 12 });
 const excludedTypeOnly = candidates.filter((file) => !targets.includes(file));
+const mutationRuntimeCapSeconds = Math.min(mutationBaseline.ceilings.prLaneSeconds,
+  mutationBaseline.ceilings.changedMutationSeconds * Math.ceil(targets.length / 6));
 await mkdir(mutationArtifactRoot, { recursive: true });
 if (targets.length === 0) {
   const empty = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, metrics: { changedMutationScore: 100 } };
@@ -75,17 +77,17 @@ const run = spawnSync(process.execPath, [path.join(mutationProductRoot, "node_mo
     QA_NETWORK_MODE: "mocked",
   },
   stdio: "inherit",
-  timeout: mutationBaseline.ceilings.changedMutationSeconds * 1000,
+  timeout: mutationRuntimeCapSeconds * 1000,
 });
 const durationSeconds = Math.round((performance.now() - started) / 100) / 10;
 if (run.error?.code === "ETIMEDOUT" || run.signal || run.status === 143) {
-  throw new Error(`Changed mutation exceeded its ${mutationBaseline.ceilings.changedMutationSeconds}s runtime cap.`);
+  throw new Error(`Changed mutation exceeded its ${mutationRuntimeCapSeconds}s scope-scaled runtime cap.`);
 }
 if (run.status !== 0) throw new Error(`Changed mutation run failed with status ${run.status ?? "unknown"}.`);
 const score = mutationScore(JSON.parse(await readFile(reportPath, "utf8")));
 const metrics = { changedMutationScore: score.score };
 const errors = compareRatchetMetrics(mutationBaseline.metrics, metrics);
-const receipt = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, durationSeconds, score, metrics, errors };
+const receipt = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, durationSeconds, mutationRuntimeCapSeconds, score, metrics, errors };
 await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(receipt, null, 2)}\n`);
 if (errors.length) throw new Error(errors.join("\n"));
 process.stdout.write(`Changed mutation PASS: ${score.score}% (${score.killed}/${score.total}) across ${targets.length} file(s) in ${durationSeconds}s.\n`);

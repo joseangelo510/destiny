@@ -894,6 +894,25 @@
         "destiny-product/stryker.config.mjs",
         "destiny-product/scripts/qa-mutation.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "ae417b507ea4ef5e50f9bb5aa0ea2495d9f315c3",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "Math.ceil(targets.length / 6)",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-mutation.mjs",
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
     }
   ],
   "networkMode": "mocked",
