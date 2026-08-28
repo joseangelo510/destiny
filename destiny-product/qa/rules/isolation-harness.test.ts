@@ -73,10 +73,13 @@ describe("disposable three-site isolation harness", () => {
     );
 
     expect(matrix).toContain('createTenant("C")');
-    expect(matrix).toContain("verifyTenantBoundary(a, b)");
-    expect(matrix).toContain("verifyTenantBoundary(b, c)");
-    expect(matrix).toContain("verifyTenantBoundary(c, a)");
-    expect(matrix).toContain("verifyBlendedPairRejection(b, c)");
+    expect(matrix).toContain("const directedPairs = [");
+    for (const pair of ["[a, b]", "[b, a]", "[a, c]", "[c, a]", "[b, c]", "[c, b]"]) {
+      expect(matrix, `Expected all six directed tenant boundaries; missing ${pair}.`).toContain(pair);
+    }
+    expect(matrix).toContain("verifyTenantBoundary(owner, outsider)");
+    expect(matrix).toContain("verifyExtendedReadIsolation(owner, outsider)");
+    expect(matrix).toContain("verifyBlendedPairRejection(owner, outsider)");
   });
 
   it("proves shared membership revocation and blocks member role escalation", async () => {

@@ -3,7 +3,7 @@
   "productionMax": 500,
   "testMax": 800,
   "files": {
-    "qa/isolation/two-tenant.integration.test.ts": 814,
+    "qa/isolation/two-tenant.integration.test.ts": 812,
     "src/components/article-review-workspace.tsx": 641,
     "src/components/destiny-prototype.tsx": 540,
     "src/components/repurpose-workspace.tsx": 709,

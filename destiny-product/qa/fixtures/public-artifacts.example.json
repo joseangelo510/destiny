@@ -1,0 +1,19 @@
+[
+  {
+    "label": "Exact WordPress article",
+    "websiteId": "replace-with-website-id",
+    "kind": "wordpress",
+    "publicUrl": "https://example.com/blog/exact-article-slug/",
+    "expectedHost": "example.com",
+    "expectedText": ["Exact article heading", "A unique sentence from the article"],
+    "expectedCanonical": "https://example.com/blog/exact-article-slug/"
+  },
+  {
+    "label": "Exact LinkedIn post",
+    "websiteId": "replace-with-website-id",
+    "kind": "linkedin",
+    "publicUrl": "https://www.linkedin.com/posts/account_exact-post-activity-1234567890-abcd",
+    "expectedHost": "linkedin.com",
+    "expectedText": ["A unique sentence from the public social post"]
+  }
+]

@@ -793,14 +793,12 @@ test("three real local users cannot read, mutate, or blend each other's website 
     expect(a.websiteId).not.toBe(b.websiteId);
     expect(b.websiteId).not.toBe(c.websiteId);
     expect(c.websiteId).not.toBe(a.websiteId);
-    await verifyTenantBoundary(a, b);
-    await verifyTenantBoundary(b, c);
-    await verifyTenantBoundary(c, a);
-    await verifyExtendedReadIsolation(a, b);
-    await verifyExtendedReadIsolation(b, c);
-    await verifyExtendedReadIsolation(c, a);
-    await verifyBlendedPairRejection(a, b);
-    await verifyBlendedPairRejection(b, c);
+    const directedPairs = [[a, b], [b, a], [a, c], [c, a], [b, c], [c, b]] as const;
+    for (const [owner, outsider] of directedPairs) {
+      await verifyTenantBoundary(owner, outsider);
+      await verifyExtendedReadIsolation(owner, outsider);
+      await verifyBlendedPairRejection(owner, outsider);
+    }
     await verifyPrivilegedEdgeFunctionDenials(a, b);
     await grantSharedMembership(a, c);
     await verifyMemberCannotEscalate(a, c, b);
