@@ -139,5 +139,6 @@ describe("measured quality ratchets", () => {
     ]));
     expect(stryker).toMatch(/low:\s*69/);
     expect(stryker).toMatch(/break:\s*69/);
+    expect(stryker).toMatch(/ignoreStatic:\s*false/);
   });
 });
