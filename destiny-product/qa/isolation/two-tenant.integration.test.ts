@@ -793,11 +793,7 @@ test("three real local users cannot read, mutate, or blend each other's website 
     expect(a.websiteId).not.toBe(b.websiteId);
     expect(b.websiteId).not.toBe(c.websiteId);
     expect(c.websiteId).not.toBe(a.websiteId);
-    const directedPairs = [
-      [a, b], [b, a],
-      [a, c], [c, a],
-      [b, c], [c, b],
-    ] as const;
+    const directedPairs = [[a, b], [b, a], [a, c], [c, a], [b, c], [c, b]] as const;
     for (const [owner, outsider] of directedPairs) {
       await verifyTenantBoundary(owner, outsider);
       await verifyExtendedReadIsolation(owner, outsider);
