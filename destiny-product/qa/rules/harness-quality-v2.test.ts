@@ -84,6 +84,22 @@ describe("changed-scope quality measurement", () => {
     )).toEqual({ covered: 3, percentage: 75, total: 4, uncovered: ["/keywords"] });
   });
 
+  it("requires contract or journey proof for every touched route", async () => {
+    const { validateTouchedRouteCoverage } = await loadQualityModule();
+    expect(validateTouchedRouteCoverage(
+      ["/api/version", "/app"],
+      { apiRoutes: new Set(["/api/version"]), browserRoutes: new Set(["/app"]) },
+    )).toEqual([]);
+    expect(validateTouchedRouteCoverage(
+      ["/api/audits", "/onboarding", "/unknown"],
+      { apiRoutes: new Set(["/api/version"]), browserRoutes: new Set(["/"]), knownRoutes: new Set(["/api/audits", "/onboarding"]) },
+    )).toEqual([
+      "Touched API route lacks a contract test: /api/audits.",
+      "Touched browser route lacks a source-backed journey: /onboarding.",
+      "Touched route is absent from inventory: /unknown.",
+    ]);
+  });
+
   it("handles empty coverage and deduplicates normalized mutation targets", async () => {
     const { calculateChangedCoverage, selectMutationTargets } = await loadQualityModule();
     expect(calculateChangedCoverage({ changedLines: new Map(), coverage: {} })).toEqual({
