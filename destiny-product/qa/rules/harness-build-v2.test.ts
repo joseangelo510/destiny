@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import * as buildWarningsModule from "../../scripts/harness/ratchet.mjs";
 
 async function loadBuildWarnings() {
-  return buildWarningsModule;
+  const modulePath = "../../scripts/harness/" + "ratchet.mjs";
+  return import(/* @vite-ignore */ modulePath);
 }
 
 const warning = {

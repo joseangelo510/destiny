@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import * as buildPolicyModule from "../../scripts/harness/ratchet.mjs";
 
 const productRoot = process.cwd();
 
 async function loadBuildPolicy() {
-  return buildPolicyModule;
+  const modulePath = "../../scripts/harness/" + "ratchet.mjs";
+  return import(/* @vite-ignore */ modulePath);
 }
 
 describe("build provenance policy", () => {
