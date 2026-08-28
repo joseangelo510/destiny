@@ -52,6 +52,8 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     expect(verifyImplementationWasAbsentAtRed(plan.implementationPaths, {
       redFiles: new Map([[plan.implementationPaths[0], "already implemented"]]),
       headFiles: new Map([[plan.implementationPaths[0], "already implemented"]]),
-    })).toContain(expect.stringContaining("was already identical at RED"));
+    })).toEqual(expect.arrayContaining([
+      expect.stringContaining("was already identical at RED"),
+    ]));
   });
 });
