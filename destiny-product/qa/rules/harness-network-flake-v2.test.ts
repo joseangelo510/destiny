@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 async function loadNetworkModule() {
   const modulePath = "../../scripts/harness/" + "network-policy.mjs";
   return import(/* @vite-ignore */ modulePath);
@@ -70,6 +72,12 @@ describe("network and flake controls", () => {
     expect(classifyTestAttempts([{ status: "pass" }, { status: "fail" }])).toEqual({ flaky: false, gateStatus: "fail", retries: 1 });
     expect(classifyTestAttempts([{ status: "fail" }, { status: "fail" }]).gateStatus).toBe("fail");
     expect(classifyTestAttempts([])).toEqual({ flaky: false, gateStatus: "pass", retries: 0 });
+  });
+
+  it("disables Playwright retries in every environment", async () => {
+    const config = await readFile(path.join(process.cwd(), "playwright.config.ts"), "utf8");
+    expect(config).toMatch(/retries:\s*0/);
+    expect(config).not.toMatch(/retries:\s*process\.env\.CI/);
   });
 
   it("rejects invalid and expired quarantines", async () => {
