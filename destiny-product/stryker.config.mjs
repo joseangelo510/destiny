@@ -1,7 +1,7 @@
 const mutate = JSON.parse(process.env.QA_MUTATION_TARGETS ?? "[]");
 if (!Array.isArray(mutate) || mutate.length === 0) throw new Error("QA_MUTATION_TARGETS must contain changed source files.");
 
-export default {
+const config = {
   mutate,
   plugins: ["@stryker-mutator/vitest-runner"],
   testRunner: "vitest",
@@ -29,3 +29,5 @@ export default {
   cleanTempDir: "always",
   allowConsoleColors: false,
 };
+
+export default config;
