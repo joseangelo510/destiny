@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destiny.local/schemas/harness-capabilities-v2.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sha", "collectedAt", "requireContainer", "status", "required", "missing", "containerRuntime", "probes"],
+  "properties": {
+    "schemaVersion": { "const": "2.0.0" },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "collectedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{3})?Z$" },
+    "requireContainer": { "type": "boolean" },
+    "status": { "enum": ["pass", "fail"] },
+    "required": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "missing": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "containerRuntime": { "type": ["string", "null"], "enum": ["docker", "podman", null] },
+    "probes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "pnpm", "git", "supabase", "docker", "podman"],
+      "properties": {
+        "node": { "$ref": "#/$defs/probe" },
+        "pnpm": { "$ref": "#/$defs/probe" },
+        "git": { "$ref": "#/$defs/probe" },
+        "supabase": { "$ref": "#/$defs/probe" },
+        "docker": { "$ref": "#/$defs/probe" },
+        "podman": { "$ref": "#/$defs/probe" }
+      }
+    }
+  },
+  "$defs": {
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "available"],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "available": { "type": "boolean" },
+        "version": { "type": "string", "maxLength": 240 },
+        "error": { "type": "string", "maxLength": 240 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "available": { "const": true } }, "required": ["available"] },
+          "then": { "required": ["version"], "properties": { "version": { "type": "string", "maxLength": 240 }, "error": false } },
+          "else": { "required": ["error"], "properties": { "error": { "type": "string", "maxLength": 240 }, "version": false } }
+        }
+      ]
+    }
+  }
+}
