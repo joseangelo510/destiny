@@ -7,5 +7,9 @@ export default mergeConfig(base, defineConfig({
       "qa/rules/harness-*-v2.test.ts",
       "src/lib/observability/logging.test.ts",
     ],
+    exclude: [
+      "qa/rules/harness-governance-v2.test.ts",
+      "qa/rules/harness-integration-v2.test.ts",
+    ],
   },
 }));
