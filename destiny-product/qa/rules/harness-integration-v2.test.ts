@@ -60,5 +60,6 @@ describe("SOTA harness integration", () => {
     expect(capabilityGate).toContain("Ajv2020");
     expect(capabilityGate).toContain("capabilities.schema.json");
     expect(capabilityGate).toContain("capabilities/capabilities.json");
+    expect(capabilityGate).toContain("capabilities/required-capabilities.json");
   });
 });
