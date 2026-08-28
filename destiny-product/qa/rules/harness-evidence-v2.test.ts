@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 async function loadTraceModule() {
   const modulePath = "../../scripts/harness/" + "trace.mjs";
   return import(/* @vite-ignore */ modulePath);
@@ -265,6 +267,7 @@ describe("SOTA harness evidence contract", () => {
       })).toContain("Evidence requires redReplay.failurePattern.");
     }
     expect(validateEvidenceManifest({ ...validManifest, redReplay: null })).toEqual(["Evidence requires redReplay."]);
+    expect(validateEvidenceManifest({ ...validManifest, redReplay: "invalid" })).toEqual(["Evidence requires redReplay."]);
     expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `x${"a".repeat(40)}` } }))
       .toContain("Evidence requires a full redReplay.redCommit SHA.");
     expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `${"a".repeat(40)}x` } }))
@@ -273,18 +276,32 @@ describe("SOTA harness evidence contract", () => {
       expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, command } }))
         .toContain("redReplay.command must be a non-empty argv array.");
     }
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      redReplay: { ...validManifest.redReplay, command: ["pnpm", ""] },
+    })).toContain("redReplay.command must be a non-empty argv array.");
     for (const testFiles of [
       ["qa/rules/a.test.ts.extra"],
       ["qa/rules/a.test.xts"],
       ["qa/rules/a.ts"],
     ]) expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, testFiles } }))
       .toContain("redReplay.testFiles must contain test files only.");
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      redReplay: { ...validManifest.redReplay, testFiles: [validManifest.redReplay.testFiles[0], "not-a-test.ts"] },
+    })).toContain("redReplay.testFiles must contain test files only.");
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      redReplay: { ...validManifest.redReplay, implementationPaths: [] },
+    })).toContain("Evidence requires redReplay.implementationPaths.");
     for (const testFile of ["qa/a.test.ts", "qa/a.spec.tsx", "qa/a.test.cts", "qa/a.spec.mjs"]) {
       expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, testFiles: [testFile] } }))
         .toEqual([]);
     }
 
     expect(validateEvidenceManifest([])).toEqual(["Evidence manifest must be an object."]);
+    expect(validateEvidenceManifest("manifest")).toEqual(["Evidence manifest must be an object."]);
+    expect(evaluateEvidenceManifest(null)).toEqual(["Evidence manifest must be an object."]);
     expect(evaluateEvidenceManifest({ ...validManifest, redReplay: undefined })).toEqual(expect.arrayContaining([
       "Evidence requires redReplay.",
     ]));
@@ -307,5 +324,17 @@ describe("SOTA harness evidence contract", () => {
       ...validManifest,
       redReplay: { mode: "not-applicable", exemption: "docs-only" },
     })).toContain("RED exemption docs-only does not match the changed files.");
+    expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption: "protected-revert" },
+    })).toContain("RED exemption protected-revert does not match the changed files.");
+    expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption: "docs-only" },
+    }, { changedFiles: ["ab.md"] })).toEqual([]);
+
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/evidence.mjs"), "utf8");
+    expect(source).toContain("invalid fallback cannot satisfy its validator");
+    expect(source).toContain("default changed-file sentinel cannot match an exemption");
   });
 });
