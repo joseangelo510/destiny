@@ -86,10 +86,8 @@ export async function runRedReplay({ repositoryRoot, productRoot, plan, headComm
   const ancestor = spawnSync("git", ["merge-base", "--is-ancestor", plan.redCommit, headSha], { cwd: repositoryRoot }).status === 0;
   const planErrors = validateRedReplayPlan(plan, { isAncestor: ancestor });
   if (planErrors.length) throw new Error(planErrors.join("\n"));
-  const redFiles = new Map(plan.implementationPaths.flatMap((file) => {
-    const contents = fileAt(repositoryRoot, plan.redCommit, file);
-    return contents === undefined ? [] : [[file, contents]];
-  }));
+  // The absent RED entries remain distinguishable by undefined content while preserving one record per declared path.
+  const redFiles = new Map(plan.implementationPaths.map((file) => [file, fileAt(repositoryRoot, plan.redCommit, file)]));
   const headFiles = new Map(plan.implementationPaths.flatMap((file) => {
     const contents = fileAt(repositoryRoot, headSha, file);
     return contents === undefined ? [] : [[file, contents]];
