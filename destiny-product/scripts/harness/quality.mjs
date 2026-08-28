@@ -78,6 +78,26 @@ export function measureSourceDebt(sources, { duplicateTokenFloor = 40 } = {}) {
   };
 }
 
+export function evaluateChangedFunctionComplexity(reports, { productRoot, maximum }) {
+  const root = String(productRoot).replaceAll("\\", "/").replace(/\/$/, "");
+  const measurements = [];
+  for (const report of reports) {
+    const absolute = String(report.filePath ?? "").replaceAll("\\", "/");
+    const file = absolute.startsWith(`${root}/`) ? absolute.slice(root.length + 1) : absolute;
+    for (const message of report.messages ?? []) {
+      if (message.ruleId !== "complexity") continue;
+      const match = /complexity of (\d+)\b/.exec(message.message ?? "");
+      if (!match) throw new Error(`Malformed ESLint complexity measurement for ${file}:${message.line ?? 0}.`);
+      measurements.push({ complexity: Number(match[1]), file, line: Number(message.line ?? 0) });
+    }
+  }
+  const measuredMaximum = measurements.length ? Math.max(...measurements.map((item) => item.complexity)) : 0;
+  return {
+    maximum: measuredMaximum,
+    offenders: measurements.filter((item) => item.complexity > maximum),
+  };
+}
+
 export function calculateRouteJourneyCoverage(routes, coveredRoutes) {
   const uniqueRoutes = [...new Set(routes)].sort();
   const covered = new Set(coveredRoutes);
@@ -90,25 +110,28 @@ export function calculateRouteJourneyCoverage(routes, coveredRoutes) {
   };
 }
 
-export function validateJourneyRegistry(registry, { knownRoutes = new Set(), testFiles = new Set() } = {}) {
+function validateJourney(journey, { knownRoutes, testFiles }) {
   const errors = [];
+  const id = journey?.id || "<missing>";
+  if (!JOURNEY_MODES.has(journey?.mode)) errors.push(`Journey ${id} has an invalid mode.`);
+  if (!journey?.owner) errors.push(`Journey ${id} requires an owner.`);
+  if (!journey?.testFile || !testFiles.has(journey.testFile)) errors.push(`Journey ${id} test file does not exist: ${journey?.testFile || "<missing>"}.`);
+  if (!Array.isArray(journey?.routes) || journey.routes.length === 0) errors.push(`Journey ${id} requires routes.`);
+  else for (const route of journey.routes) if (!knownRoutes.has(route)) errors.push(`Journey ${id} references unknown route ${route}.`);
+  if (!Array.isArray(journey?.assertions) || journey.assertions.length === 0) errors.push(`Journey ${id} requires assertions.`);
+  return errors;
+}
+
+export function validateJourneyRegistry(registry, { knownRoutes = new Set(), testFiles = new Set() } = {}) {
   if (!registry || typeof registry !== "object" || Array.isArray(registry)) return ["Journey registry must be an object."];
-  if (registry.schemaVersion !== "2.0.0") errors.push("Journey registry schemaVersion must be 2.0.0.");
-  if (!Array.isArray(registry.journeys) || registry.journeys.length === 0) {
-    errors.push("Journey registry requires at least one journey.");
-    return errors;
-  }
+  const errors = registry.schemaVersion === "2.0.0" ? [] : ["Journey registry schemaVersion must be 2.0.0."];
+  if (!Array.isArray(registry.journeys) || registry.journeys.length === 0) return [...errors, "Journey registry requires at least one journey."];
   const ids = new Set();
   for (const journey of registry.journeys) {
     const id = journey?.id || "<missing>";
     if (ids.has(id)) errors.push(`Journey ID is duplicated: ${id}.`);
     ids.add(id);
-    if (!JOURNEY_MODES.has(journey?.mode)) errors.push(`Journey ${id} has an invalid mode.`);
-    if (!journey?.owner) errors.push(`Journey ${id} requires an owner.`);
-    if (!journey?.testFile || !testFiles.has(journey.testFile)) errors.push(`Journey ${id} test file does not exist: ${journey?.testFile || "<missing>"}.`);
-    if (!Array.isArray(journey?.routes) || journey.routes.length === 0) errors.push(`Journey ${id} requires routes.`);
-    else for (const route of journey.routes) if (!knownRoutes.has(route)) errors.push(`Journey ${id} references unknown route ${route}.`);
-    if (!Array.isArray(journey?.assertions) || journey.assertions.length === 0) errors.push(`Journey ${id} requires assertions.`);
+    errors.push(...validateJourney(journey, { knownRoutes, testFiles }));
   }
   return [...new Set(errors)];
 }

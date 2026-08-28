@@ -2,14 +2,23 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
+import ts from "typescript";
 import {
   detectDependencyCycles,
   evaluateArchitectureImports,
   parseModuleSpecifiers,
   resolveLocalSpecifier,
 } from "./harness/architecture.mjs";
-import { calculateTypedJourneyCoverage, countSkippedTests, measureSourceDebt, validateJourneyRegistry } from "./harness/quality.mjs";
+import {
+  calculateTypedJourneyCoverage,
+  countSkippedTests,
+  evaluateChangedFunctionComplexity,
+  filterExecutableChanges,
+  measureSourceDebt,
+  validateJourneyRegistry,
+} from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
+import { protectedMainRef } from "./harness/repository.mjs";
 
 const implementationProductRoot = path.resolve(import.meta.dirname, "..");
 const productRoot = process.env.QA_MEASURE_ROOT ? path.resolve(process.env.QA_MEASURE_ROOT) : implementationProductRoot;
@@ -43,10 +52,49 @@ function git(args) {
   return execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
 }
 
+function fileAt(ref, file) {
+  try {
+    return execFileSync("git", ["show", `${ref}:destiny-product/${file}`], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch {
+    return "";
+  }
+}
+
+function emittedJavaScript(source, file) {
+  if (!source) return "";
+  return ts.transpile(source, {
+    jsx: ts.JsxEmit.ReactJSX,
+    module: ts.ModuleKind.ESNext,
+    target: ts.ScriptTarget.ES2022,
+  }, file);
+}
+
 const allFiles = await walk(productRoot);
 const productionFiles = allFiles.filter((file) => !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file));
 const testFiles = allFiles.filter((file) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file));
 const sources = new Map(await Promise.all(productionFiles.map(async (file) => [file, await readFile(path.join(productRoot, file), "utf8")])));
+const protectedRef = protectedMainRef({ repositoryRoot, override: process.env.QA_BASE_REF, purpose: "Changed function complexity" });
+const changedCandidates = git(["diff", "--name-only", `${protectedRef}...HEAD`]).split("\n")
+  .filter(Boolean)
+  .map((file) => file.replace(/^destiny-product\//, ""))
+  .filter((file) => sources.has(file));
+const baseOutputs = new Map(changedCandidates.map((file) => [file, emittedJavaScript(fileAt(protectedRef, file), file)]));
+const headOutputs = new Map(changedCandidates.map((file) => [file, emittedJavaScript(sources.get(file), file)]));
+const changedExecutableFiles = filterExecutableChanges(changedCandidates, { baseOutputs, headOutputs });
+const complexityRun = changedExecutableFiles.length === 0 ? { status: 0, stdout: "[]", stderr: "" } : spawnSync(
+  path.join(implementationProductRoot, "node_modules", ".bin", "eslint"),
+  [...changedExecutableFiles, "--format", "json", "--rule", '{"complexity":["warn",0]}'],
+  { cwd: productRoot, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+);
+if (complexityRun.status !== 0) throw new Error(`Changed function complexity measurement failed: ${complexityRun.stderr || complexityRun.stdout}`);
+const changedFunctionComplexity = evaluateChangedFunctionComplexity(JSON.parse(complexityRun.stdout || "[]"), {
+  productRoot,
+  maximum: 20,
+});
 const fileSet = new Set(productionFiles);
 const imports = [];
 const graph = new Map(productionFiles.map((file) => [file, []]));
@@ -114,6 +162,7 @@ const metrics = {
   apiContractCoverage: routeCoverage.apiContractCoverage,
   auditExceptions: [...workspace.matchAll(/^\s+- GHSA-/gm)].length,
   browserJourneyCoverage: routeCoverage.browserJourneyCoverage,
+  changedMaximumFunctionComplexity: changedFunctionComplexity.maximum,
   dependencyCycles: cycles.length,
   duplicateBlocks: duplicationReport.statistics.total.clones,
   duplicationPercentage: Math.round(duplicationReport.statistics.total.percentage * 100) / 100,
@@ -130,7 +179,7 @@ const report = {
   schemaVersion: "2.0.0",
   measuredAtSha: git(["rev-parse", "HEAD"]),
   metrics,
-  details: { architectureErrors, cycles, routeCoverage },
+  details: { architectureErrors, changedExecutableFiles, changedFunctionComplexity, cycles, routeCoverage },
 };
 await writeFile(path.join(artifactRoot, "static-quality.json"), `${JSON.stringify(report, null, 2)}\n`);
 
@@ -140,6 +189,8 @@ if (process.argv.includes("--measure")) {
 }
 
 const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
-const errors = compareRatchetMetrics(baseline.metrics, metrics, { ceilings: baseline.ceilings });
+const complexityErrors = changedFunctionComplexity.offenders.map((item) =>
+  `${item.file}:${item.line} has cyclomatic complexity ${item.complexity}; changed functions are capped at 20.`);
+const errors = [...complexityErrors, ...compareRatchetMetrics(baseline.metrics, metrics, { ceilings: baseline.ceilings })];
 if (errors.length) throw new Error(errors.join("\n"));
 process.stdout.write(`Static quality PASS: ${productionFiles.length} source files, ${architectureErrors.length} architecture violation(s), ${cycles.length} cycle(s).\n`);
