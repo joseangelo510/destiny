@@ -110,4 +110,68 @@ describe("SOTA harness evidence contract", () => {
     expect(first).toEqual(second);
     expect(first).toMatch(/^[0-9a-f]{64}$/);
   });
+
+  it("fails closed on malformed evidence", async () => {
+    const { validateEvidenceManifest } = await loadEvidenceModule();
+    expect(validateEvidenceManifest(null)).toEqual(["Evidence manifest must be an object."]);
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      schemaVersion: "1.0.0",
+      changeId: "x",
+      classification: "LOW",
+      networkMode: "internet",
+      touchedRoutes: "none",
+      productPaths: "none",
+      redReplay: { mode: "maybe" },
+    })).toEqual(expect.arrayContaining([
+      "Evidence schemaVersion must be 2.0.0.",
+      "Evidence changeId is invalid.",
+      "Evidence classification must be MEDIUM or HIGH.",
+      "Evidence networkMode is invalid.",
+      "Evidence touchedRoutes must be an array.",
+      "Evidence productPaths must be an array.",
+      "redReplay.mode must be required or not-applicable.",
+    ]));
+  });
+
+  it("accepts only mechanically provable RED exemptions", async () => {
+    const { evaluateEvidenceManifest } = await loadEvidenceModule();
+    const cases = [
+      ["decision-record-only", ["destiny-product/DEPLOY_LOG.md"], false],
+      ["docs-only", ["destiny-product/docs/a.md", "README.md"], false],
+      ["protected-revert", ["destiny-product/src/lib/a.ts"], true],
+      ["generated-inventory-only", ["destiny-product/qa/inventory/routes.json"], false],
+    ] as const;
+    for (const [exemption, changedFiles, isProtectedRevert] of cases) {
+      expect(evaluateEvidenceManifest({
+        ...validManifest,
+        redReplay: { mode: "not-applicable", exemption },
+      }, { changedFiles: [...changedFiles], isProtectedRevert })).toEqual([]);
+    }
+    expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption: "because-i-said-so" },
+    }, { changedFiles: ["README.md"] })).toEqual(expect.arrayContaining([
+      "RED exemption is not allowed.",
+      "RED exemption because-i-said-so does not match the changed files.",
+    ]));
+  });
+
+  it("enforces trace lifecycle and serializes circular evidence", async () => {
+    const { createTraceRecorder, redactEvidence } = await loadTraceModule();
+    expect(() => createTraceRecorder({ sha: "short", write: async () => {} })).toThrow(/full Git SHA/);
+    expect(() => createTraceRecorder({ sha: "a".repeat(40) })).toThrow(/write function/);
+    const lines: string[] = [];
+    let time = 10;
+    const recorder = createTraceRecorder({ sha: "A".repeat(40), write: async (line: string) => lines.push(line), now: () => time });
+    await recorder.start("build");
+    await expect(recorder.start("build")).rejects.toThrow(/already started/);
+    time = 7;
+    await recorder.finish("build", "fail");
+    expect(JSON.parse(lines[1])).toEqual(expect.objectContaining({ sha: "a".repeat(40), durationMs: 0, status: "fail" }));
+    await expect(recorder.finish("missing", "pass")).rejects.toThrow(/did not start/);
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    expect(redactEvidence(["Bearer abc123", circular])).toEqual(["Bearer [REDACTED]", { self: "[CIRCULAR]" }]);
+  });
 });
