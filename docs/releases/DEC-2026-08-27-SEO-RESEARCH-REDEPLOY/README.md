@@ -30,3 +30,5 @@ This packet records the evidence and rollback source for a proposed single-funct
 ## Boundary
 
 The record PR is documentation-only. After it merges, deployment remains separately gated by an exact-SHA checkout, re-verification of the active production package and JWT setting, a current provider-balance check, immediate five-kind production smoke tests, UI verification, and the observation windows in the CTO decision. Jose is the only actor who may apply `cto-approved`.
+
+Post-deploy evidence is recorded in [`POST_DEPLOY_RECEIPT.md`](POST_DEPLOY_RECEIPT.md). Its current status is **DEPLOYED, SMOKE INCOMPLETE**; do not infer a Replit release or a completed five-kind smoke from the active Edge Function version.
