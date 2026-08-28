@@ -52,6 +52,22 @@
         }
       ]
     },
+    "additionalRedReplays": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mode", "redCommit", "command", "failurePattern", "testFiles", "implementationPaths"],
+        "properties": {
+          "mode": { "const": "required" },
+          "redCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+          "command": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+          "failurePattern": { "type": "string", "minLength": 3 },
+          "testFiles": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "\\.(test|spec)\\.[cm]?[jt]sx?$" } },
+          "implementationPaths": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 3 } }
+        }
+      }
+    },
     "networkMode": { "enum": ["mocked", "local-isolated", "staging-readonly", "authorized-live"] },
     "touchedRoutes": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^/" } },
     "productPaths": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 3 } }
