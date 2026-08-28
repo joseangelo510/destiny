@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destiny.local/schemas/build-receipt-v2.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sha", "tree", "checkedAt", "command", "exitCode", "buildSucceeded", "warningPolicy", "matched", "unknownWarnings", "errors"],
+  "properties": {
+    "schemaVersion": { "const": "2.0.0" },
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "tree": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "checkedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{3})?Z$" },
+    "command": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "exitCode": { "type": "integer" },
+    "buildSucceeded": { "type": "boolean" },
+    "warningPolicy": { "const": "qa/harness/build-warnings.v2.json" },
+    "matched": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "count"],
+        "properties": { "id": { "type": "string" }, "count": { "type": "integer", "minimum": 0 } }
+      }
+    },
+    "unknownWarnings": { "type": "array", "items": { "type": "string" } },
+    "errors": { "type": "array", "items": { "type": "string" } }
+  }
+}
