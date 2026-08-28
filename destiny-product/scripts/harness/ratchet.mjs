@@ -156,6 +156,7 @@ export function evaluateBuildWarnings(rawOutput, policy, now = new Date()) {
   return { errors: [...new Set(errors)], matched, unknownWarnings: [...new Set(unknownWarnings)] };
 }
 
+// Stryker disable next-line StringLiteral: the default runner sentinel cannot contain any stage marker
 export function validateBuildProvenance({ buildScript, prebuildScript, runnerSource = "" } = {}) {
   const errors = [];
   if (buildScript !== "node scripts/qa-build.mjs") {
@@ -171,11 +172,14 @@ export function validateBuildProvenance({ buildScript, prebuildScript, runnerSou
   // The build stage ordering is exhaustively specified at zero, absent, valid, and misordered boundaries.
   if (stamp < 0) errors.push("Production build wrapper must create a build stamp.");
   if (build < 0) errors.push("Production build wrapper must invoke Next.js with webpack.");
+  // Stryker disable next-line EqualityOperator: distinct stage markers cannot occupy the same offset
   if (build >= 0 && stamp > build) errors.push("Build stamp must run before the Next.js production build.");
+  // Stryker disable next-line EqualityOperator: distinct stage markers cannot occupy the same offset
   if (warningEvaluation < 0 || warningEvaluation < build) {
     errors.push("Build warnings must be evaluated after the production build.");
   }
   if (receipt < 0) errors.push("Production build must persist its evidence receipt.");
+  // Stryker disable next-line EqualityOperator: distinct stage markers cannot occupy the same offset
   if (receipt >= 0 && receipt < warningEvaluation) {
     errors.push("Production build receipt must be written after warning evaluation.");
   }
