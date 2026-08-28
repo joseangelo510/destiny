@@ -61,6 +61,9 @@ describe("Fable commit discipline and deploy log", () => {
       "+// xit('commented out', () => {})",
     ].join("\n");
     expect(findForbiddenTestMarkers(diff)).toEqual([]);
+    const isolatedMarker = "+it.skip('real skip', () => {})";
+    expect(findForbiddenTestMarkers(["+const incompleteFixture = `text", isolatedMarker].join("\n")))
+      .toEqual([isolatedMarker]);
   });
 
   it("locks policy activation to a full SHA and provides every required deploy field", async () => {
