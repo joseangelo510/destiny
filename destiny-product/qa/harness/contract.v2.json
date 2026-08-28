@@ -1,0 +1,100 @@
+{
+  "$schema": "./contract.schema.json",
+  "schemaVersion": "2.0.0",
+  "decisionId": "D-HARNESS-SOTA-2",
+  "canonicalBaseSha": "1870cb3afbb7bdfa4667a0266c3e8e19bf068ade",
+  "evidence": {
+    "manifestPath": ".github/destiny-evidence.json",
+    "traceFormat": "jsonl",
+    "traceSchemaVersion": "2.0.0",
+    "hashAlgorithm": "sha256",
+    "redactedKeys": [
+      "authorization",
+      "cookie",
+      "password",
+      "secret",
+      "service_role_key",
+      "token"
+    ]
+  },
+  "redReplay": {
+    "requiredForBehaviorOrPolicyChanges": true,
+    "allowedExemptions": [
+      "decision-record-only",
+      "docs-only",
+      "protected-revert",
+      "generated-inventory-only"
+    ],
+    "requiredFailureReceiptFields": [
+      "command",
+      "exitCode",
+      "failurePattern",
+      "redCommit",
+      "testFiles"
+    ],
+    "requiredGreenReceiptFields": [
+      "command",
+      "exitCode",
+      "headCommit",
+      "testFiles"
+    ]
+  },
+  "networkModes": [
+    "mocked",
+    "local-isolated",
+    "staging-readonly",
+    "authorized-live"
+  ],
+  "architecture": {
+    "rules": [
+      {
+        "from": "src/lib/**",
+        "forbid": ["src/app/**", "src/components/**"],
+        "reason": "Domain and platform libraries must not depend on delivery UI."
+      },
+      {
+        "from": "src/components/**",
+        "forbid": ["src/app/**"],
+        "reason": "Reusable components must not depend on Next.js route implementations."
+      },
+      {
+        "from": "supabase/functions/**",
+        "forbid": ["src/app/**", "src/components/**"],
+        "reason": "Edge functions must remain independent of the web delivery layer."
+      },
+      {
+        "from": "src/app/**/route.*",
+        "forbid": ["src/app/**/route.*"],
+        "reason": "API routes share library contracts, not other route implementations."
+      }
+    ]
+  },
+  "ratchets": {
+    "baselinePath": "qa/harness/baseline.v2.json",
+    "worseningRequires": ["Fable High decision", "owner", "expiry", "policy-change label"],
+    "informationalOnly": ["testCount"],
+    "lowerIsBetter": [
+      "architectureViolations",
+      "auditExceptions",
+      "dependencyCycles",
+      "duplicateBlocks",
+      "eslintWarnings",
+      "flakyRetries",
+      "quarantinedTests",
+      "skippedTests",
+      "typeErrors"
+    ],
+    "higherIsBetter": [
+      "changedBranchCoverage",
+      "changedLineCoverage",
+      "changedMutationScore",
+      "routeJourneyCoverage"
+    ],
+    "ceilings": {
+      "prLaneSeconds": 1800,
+      "nightlyLaneSeconds": 7200,
+      "changedMutationSeconds": 300
+    }
+  },
+  "integrityLimit": "The shipping PR is governed by the pre-existing required checks and Jose's review. Harness self-tests protect later changes but cannot make their own introducing PR tamper-proof."
+}
