@@ -48,6 +48,7 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     }, { isAncestor: true })).toEqual([]);
     expect(validateRedReplayPlan({
       ...plan,
+      command: ["pnpm", `prefix/${plan.testFiles[0].replace(/^destiny-product\//, "")}`],
       testFiles: [`prefix/${plan.testFiles[0]}`],
     }, { isAncestor: true })).toContain("RED replay must use a focused test command.");
   });
@@ -130,7 +131,7 @@ describe("mechanically replayed RED and GREEN evidence", () => {
       accepted: true,
       reason: "RED failed for the declared reason.",
     }));
-    for (const output of ["tests\nno tests", "0 test", "0 tests"]) {
+    for (const output of ["tests\nno tests", "tests  \n no tests", "0 test", "0 tests"]) {
       expect(classifyReplayAttempt({ exitCode: 1, output, plan, phase: "red" }))
         .toEqual(expect.objectContaining({ accepted: false, reason: "RED collected zero tests." }));
     }
@@ -144,6 +145,7 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     expect(source).toContain("temporary-path label does not affect isolation");
     expect(source).toContain("cleanup target exists before forced removal");
     expect(source).toContain("JSON parsing accepts Buffer and UTF-8 text");
+    expect(source).toContain("absent RED entries remain distinguishable by undefined content");
   });
 
   it("executes and cleans up real detached RED and GREEN worktrees", async () => {
