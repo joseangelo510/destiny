@@ -186,7 +186,7 @@
     },
     {
       "mode": "required",
-      "redCommit": "49cc43b87aa6a7fb62759030fe0898231e9c940d",
+      "redCommit": "49cc43b905b4ac4e5dc58c7002380c30579e7fc2",
       "command": [
         "node",
         "node_modules/vitest/vitest.mjs",
