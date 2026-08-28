@@ -1050,6 +1050,23 @@
         "destiny-product/eslint.config.mjs",
         "destiny-product/scripts/qa-mutation.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "e3dca0c36cc611722a769da55c137b7350eef421",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "generatedTypeRoots",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
