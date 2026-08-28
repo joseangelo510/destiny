@@ -10,6 +10,9 @@ export default {
     related: false,
   },
   coverageAnalysis: "perTest",
+  // Static module-initialization mutants leak across Vitest workers and make
+  // identical runs order-dependent. Mutate executable boundaries instead.
+  ignoreStatic: true,
   reporters: ["clear-text", "json"],
   jsonReporter: {
     fileName: process.env.QA_MUTATION_REPORT ?? "qa/artifacts/harness/mutation/mutation.json",
