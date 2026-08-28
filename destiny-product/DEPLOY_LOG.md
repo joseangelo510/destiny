@@ -235,3 +235,21 @@ Status: AUTHORIZED — awaiting execution + P1 evidence.
 - observation: continuous 60-minute watch, then 6-hour, 24-hour, and 72-hour checks
 - legacy-evidence: production provenance substitute and known `/api/version` `401` gap are recorded in `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/FABLE_HIGH_DECISION.md`
 - forbidden scope: no schema or migration, auth or RLS change, credential or environment mutation, release tag, Replit change, traffic redirect, CMS publish, email, social post, or other production surface
+
+## CTO production hold decision: DEC-2026-08-27-SEO-RESEARCH-REDEPLOY-A2
+
+- date: 2026-08-27
+- deciding authority: Fable 5 High, acting as Destiny CTO under `HARNESS_POLICY.md` policy `GOV-1`
+- decision record: https://claude.ai/chat/bbdba982-9e3a-4b70-957c-6e61752fc275
+- parent decision: `DEC-2026-08-27-SEO-RESEARCH-REDEPLOY-A1`
+- classification: HIGH production observation and hold decision
+- observed deployment: Supabase `seo-research` version `13`, active with JWT verification retained, deployed from authorized source commit `450ae943fde32ad479692a851e09bc6d58a27944`
+- decision: HOLD version 13 active; NO ROLLBACK; NO REPLIT REPUBLISH under this decision
+- evidence basis: three version-13 Edge calls returned HTTP 200 in 992–4,730 ms; the authenticated live application rendered existing keyword and backlink responses without parser or render failure; no 5xx, timeout, or cost ceiling fired
+- application correction: the current Replit frontend predates the merged first-page route; the same-origin app POST returned a pre-existing 404 and the new questions/related UI is absent. This is outside the changed Edge Function surface and is not an A1 rollback trigger.
+- outstanding production smokes: direct `keyword_serp`, `creators`, and `article_evidence`. No direct credential is available without a secret or session-store action; the beginner-plan creator gate and article-generation-only application path may not be bypassed.
+- receipt status: `DEPLOYED, SMOKE INCOMPLETE`
+- provider balance: `$42.129398` before deploy and `$41.914722` after the completed calls; `$0.214676` change, below the `$5` escalation and `$10` rollback ceilings
+- receipt: `docs/releases/DEC-2026-08-27-SEO-RESEARCH-REDEPLOY/POST_DEPLOY_RECEIPT.md`
+- required observation: continuous first 60 minutes, then 6-, 24-, and 72-hour checkpoints; all prior stop and rollback ceilings remain binding
+- explicit prohibition: no Replit republish, plan-tier change, Anthropic article-generation invocation, secret/config change, database write, auth/RLS change, or credential workaround is authorized
