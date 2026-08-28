@@ -825,6 +825,23 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/ratchet.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "4d45db7048d05a4f90ebb3704f9bc9435db59e55",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "default runner sentinel cannot contain any stage marker",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
