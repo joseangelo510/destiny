@@ -611,3 +611,61 @@ Truthful launch-claim boundaries: until step 5 evidence is recorded, status is A
 
 Status: AUTHORIZED — NOT DEPLOYED. Awaiting protected decision-record PR, prechecks, and controlled execution.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## CTO production decision: D-REPLIT-REPUBLISH-6
+
+[2026-08-28] D-REPLIT-REPUBLISH-6
+Title: Reconcile and republish the pinned authorized artifact to Replit production with truthful detached-HEAD provenance and deterministic post-deploy identity proof.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — frozen action 2 (Replit production modification).
+Status: AUTHORIZED — conditional on every gate below, in order. D-REPLIT-REPUBLISH-3/4/5 were never recorded and are VOID.
+Recording precondition: This decision is inert until recorded via protected PR to protected `main` with `cto-approved` applied by Jose and all required checks green at the merge SHA. No Replit write, install, build, or publish before that merge.
+
+### A. Artifact and target (immutable)
+
+- Authorized artifact: commit `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, exact tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. No other ref, branch, or path subset is authorized.
+- Target app: Destiny SEO, replId `ee690524-db57-4050-86d0-03bad18452f7`, `https://destiny-seo.replit.app`. No other app.
+- Roots: Git commands only at `/home/runner/workspace`. Install and build only at `/home/runner/workspace/destiny-product`.
+
+### B. Scope
+
+Authorized: one workspace reconciliation to the pinned artifact, one dependency install, one build, one publish of the canonical app, and the verifications below. Nothing else. A successful republish plus passing `keyword_serp` postcheck flips keyword research to GO under D-LAUNCH-READINESS-1; no broader launch claim.
+
+### C. Ordered gates
+
+**G1 — Reconcile (detached HEAD; path checkout forbidden).** At `/home/runner/workspace`: fetch `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, then `git checkout --detach 082c70f1aecc8d3c395ea12f3542bd146fc57a01`. `write-build-stamp.mjs` derives SHA and tree from Git HEAD, so a path-only checkout would stamp false provenance. Baseline `1095526d` divergence (31 modified / 25 missing / 0 extra) is resolved solely by this checkout.
+
+**G2 — Tree and untracked verification.** `git rev-parse HEAD` must equal `082c70f1aecc8d3c395ea12f3542bd146fc57a01`; `git rev-parse HEAD^{tree}` must equal `324cd92ca0d06ddb20beb9a16384010a8b2cd541`; `git status --porcelain` must show zero tracked modifications and exactly the audited untracked-file set, with nothing added, removed, or mutated. Any contradiction: STOP.
+
+**G3 — Install (exactly once).** At `destiny-product`, verify `pnpm --version` equals `11.9.0`, then run `pnpm install --frozen-lockfile`. Never run `npm install`. Afterward confirm Git status shows lockfiles unchanged. Any lockfile drift: STOP.
+
+**G4 — Build (exactly once) and prepublish stamp check.** Run the package.json build once. The stamp must show exact SHA `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, exact tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, a valid `builtAt` timestamp after G1, and `source=git`. Do not require `env=production` before publish. Any mismatch: STOP; do not rebuild to fix provenance.
+
+**G5 — Preview smoke (pre-publish).** Security/auth smoke and Supabase health must pass on preview. The pre-existing unauthenticated keyword-serp 401 is security-posture evidence only. It proves nothing about build identity and may not be cited as identity proof.
+
+**G6 — Publish (exactly once).** Publish the canonical app once through the standard Replit deploy flow. No Replit Agent, duplicate or new app, or second publish under this decision.
+
+**G7 — Postpublish identity and health.** All are required: (a) a new Replit deployment ID differing from the prior one; (b) authenticated `GET /api/version` returns exact SHA `082c70f1aecc8d3c395ea12f3542bd146fc57a01` and tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, with `env=replit-production` or another explicitly pre-validated production value; (c) authentication flow works; (d) keyword route behaves as specified by the `keyword_serp` postcheck; (e) zero 5xx on touched routes; and (f) Supabase health is green. Any failure: execute rollback under section E.
+
+### D. Proof required for completion
+
+Record the decision PR URL, merge SHA, and green required check-run URLs; G2 outputs; pnpm version and lockfile-unchanged evidence; build-stamp contents; preview smoke results; old and new deployment IDs; authenticated `/api/version` body; and postcheck results. No claim without its artifact.
+
+Mandatory truthful wording: “Production now serves the pinned authorized artifact `082c70f1` / tree `324cd92c` — not current `main` (`4503cd75`).” No parity-with-main claim.
+
+### E. Stop and rollback
+
+Hard stop, freeze, report, and do not improvise on any G2 tree or untracked mismatch, lockfile drift, stamp mismatch, preview smoke failure, publish error, unexpected workspace mutation, or ambiguity. Stopped work resumes only under a new recorded Fable 5 High decision.
+
+If G7 fails after publish, immediately roll back to the previous Replit deployment through the deployments panel, verify that the prior deployment serves traffic and authentication works, record the incident with evidence, and stop. No forward fix, patch, or republish is authorized under this decision.
+
+### F. Forbidden
+
+Supabase Auth Site URL changes; database schema or migration changes; auth, RLS, or security-model changes; secret or config changes; existing-traffic redirects including Replit-to-Fly; release tags; Replit Agent; creating or duplicating apps; `npm install`; more than one install, build, or publish; path checkouts; work outside the two designated roots; and citing the 401 as identity evidence.
+
+### G. Completion
+
+Complete only when this decision PR is merged to `main` with `cto-approved` and green checks, G1 through G7 all pass, and the complete proof set in section D is attached to the deploy log. Anything less is not complete.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No Replit write or publish before its merge.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
