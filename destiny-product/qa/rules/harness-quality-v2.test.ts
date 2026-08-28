@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import * as qualityModule from "../../scripts/harness/quality.mjs";
 import * as repositoryModule from "../../scripts/harness/repository.mjs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 async function loadQualityModule() {
   return qualityModule;
@@ -139,8 +142,17 @@ describe("changed-scope quality measurement", () => {
     expect(resolveProtectedMainRef({ refExists: (ref: string) => ref === "github/main" })).toBe("github/main");
     expect(() => resolveProtectedMainRef({ refExists: () => false, purpose: "Mutation" }))
       .toThrow("Mutation requires a canonical protected-main ref.");
+    expect(() => resolveProtectedMainRef({ refExists: () => false }))
+      .toThrow("Harness requires a canonical protected-main ref.");
     expect(git(process.cwd(), ["rev-parse", "--is-inside-work-tree"])).toBe("true");
     expect(protectedMainRef({ repositoryRoot: process.cwd(), purpose: "Coverage" })).toBe("origin/main");
+    const emptyRepository = await mkdtemp(path.join(tmpdir(), "destiny-no-main-"));
+    try {
+      expect(() => protectedMainRef({ repositoryRoot: emptyRepository, purpose: "Coverage" }))
+        .toThrow("Coverage requires a canonical protected-main ref.");
+    } finally {
+      await rm(emptyRepository, { recursive: true, force: true });
+    }
   });
 
   it("measures typed browser journeys and API route contracts separately", async () => {

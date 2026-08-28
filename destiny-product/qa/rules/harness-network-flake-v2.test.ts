@@ -73,7 +73,9 @@ describe("network and flake controls", () => {
   it("never converts any failed attempt into green", async () => {
     const { classifyTestAttempts } = await loadFlakeModule();
     expect(classifyTestAttempts([{ status: "pass" }, { status: "fail" }])).toEqual({ flaky: false, gateStatus: "fail", retries: 1 });
-    expect(classifyTestAttempts([{ status: "fail" }, { status: "fail" }]).gateStatus).toBe("fail");
+    expect(classifyTestAttempts([{ status: "fail" }, { status: "fail" }])).toEqual({ flaky: false, gateStatus: "fail", retries: 1 });
+    expect(classifyTestAttempts([{ status: "pass" }, { status: "fail" }, { status: "pass" }]))
+      .toEqual({ flaky: true, gateStatus: "fail", retries: 2 });
     expect(classifyTestAttempts([])).toEqual({ flaky: false, gateStatus: "pass", retries: 0 });
   });
 
@@ -88,6 +90,24 @@ describe("network and flake controls", () => {
     const now = new Date("2026-08-27T00:00:00Z");
     expect(validateQuarantine({ owner: "a", reason: "b", expiresAt: "later" }, now)).toContain("Quarantine expiry is invalid.");
     expect(validateQuarantine({ owner: "a", reason: "b", expiresAt: "2026-08-26T00:00:00Z" }, now)).toContain("Quarantine has expired.");
+    expect(validateQuarantine({ owner: "a", reason: "b", expiresAt: now.toISOString() }, now)).toContain("Quarantine has expired.");
+    expect(validateQuarantine(undefined, now)).toEqual([
+      "Quarantine requires an owner.",
+      "Quarantine requires a reason.",
+      "Quarantine requires an expiry.",
+    ]);
+  });
+
+  it("keeps network and flake decisions minimal and exhaustive", async () => {
+    const { assertNetworkRequestAllowed } = await loadNetworkModule();
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "staging-readonly")).not.toThrow();
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "staging-readonly", "OPTIONS")).not.toThrow();
+    expect(() => assertNetworkRequestAllowed("http://[::1]:9999/a", "local-isolated")).not.toThrow();
+    const flakeSource = await readFile(path.join(process.cwd(), "scripts/harness/flake.mjs"), "utf8");
+    const networkSource = await readFile(path.join(process.cwd(), "scripts/harness/network-policy.mjs"), "utf8");
+    expect(flakeSource).not.toContain("slice(0, -1)");
+    expect(networkSource).not.toContain('"::1",');
+    expect(networkSource).not.toContain('errors.join("\\n")');
   });
 
   it("fails closed for missing browser fixtures instead of skipping gates", async () => {
