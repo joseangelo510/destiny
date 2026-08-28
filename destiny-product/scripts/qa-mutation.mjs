@@ -1,24 +1,17 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { selectMutationTargets } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
+import { git, protectedMainRef } from "./harness/repository.mjs";
 
-const productRoot = path.resolve(import.meta.dirname, "..");
-const repositoryRoot = path.resolve(productRoot, "..");
-const artifactRoot = path.join(productRoot, "qa", "artifacts", "harness", "mutation");
-const baseline = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "baseline.v2.json"), "utf8"));
-
-function git(args) {
-  return execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
-}
+const mutationProductRoot = path.resolve(import.meta.dirname, "..");
+const mutationRepositoryRoot = path.resolve(mutationProductRoot, "..");
+const mutationArtifactRoot = path.join(mutationProductRoot, "qa", "artifacts", "harness", "mutation");
+const mutationBaseline = JSON.parse(await readFile(path.join(mutationProductRoot, "qa", "harness", "baseline.v2.json"), "utf8"));
 
 function baseRef() {
-  if (process.env.QA_BASE_REF) return process.env.QA_BASE_REF;
-  for (const candidate of ["origin/main", "github/main"]) {
-    if (spawnSync("git", ["rev-parse", "--verify", "--quiet", candidate], { cwd: repositoryRoot }).status === 0) return candidate;
-  }
-  throw new Error("Changed mutation testing requires a canonical protected-main ref.");
+  return protectedMainRef({ repositoryRoot: mutationRepositoryRoot, override: process.env.QA_BASE_REF, purpose: "Changed mutation testing" });
 }
 
 function mutationScore(report) {
@@ -35,21 +28,21 @@ function mutationScore(report) {
 }
 
 const base = baseRef();
-const changed = git(["diff", "--name-only", `${base}...HEAD`]).split("\n")
+const changed = git(mutationRepositoryRoot, ["diff", "--name-only", `${base}...HEAD`]).split("\n")
   .filter(Boolean).map((file) => file.replace(/^destiny-product\//, ""));
 const targets = selectMutationTargets(changed, { maximumFiles: 12 });
-await mkdir(artifactRoot, { recursive: true });
+await mkdir(mutationArtifactRoot, { recursive: true });
 if (targets.length === 0) {
   const empty = { schemaVersion: "2.0.0", baseRef: base, targets, metrics: { changedMutationScore: 100 } };
-  await writeFile(path.join(artifactRoot, "changed-mutation.json"), `${JSON.stringify(empty, null, 2)}\n`);
+  await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(empty, null, 2)}\n`);
   process.stdout.write("Changed mutation PASS: no changed source files.\n");
   process.exit(0);
 }
 
-const reportPath = path.join(artifactRoot, "mutation.json");
+const reportPath = path.join(mutationArtifactRoot, "mutation.json");
 const started = performance.now();
-const run = spawnSync(process.execPath, [path.join(productRoot, "node_modules", "@stryker-mutator", "core", "bin", "stryker.js"), "run", "stryker.config.mjs"], {
-  cwd: productRoot,
+const run = spawnSync(process.execPath, [path.join(mutationProductRoot, "node_modules", "@stryker-mutator", "core", "bin", "stryker.js"), "run", "stryker.config.mjs"], {
+  cwd: mutationProductRoot,
   env: {
     ...process.env,
     QA_MUTATION_TARGETS: JSON.stringify(targets),
@@ -57,15 +50,15 @@ const run = spawnSync(process.execPath, [path.join(productRoot, "node_modules", 
     QA_NETWORK_MODE: "mocked",
   },
   stdio: "inherit",
-  timeout: baseline.ceilings.changedMutationSeconds * 1000,
+  timeout: mutationBaseline.ceilings.changedMutationSeconds * 1000,
 });
 const durationSeconds = Math.round((performance.now() - started) / 100) / 10;
-if (run.signal) throw new Error(`Changed mutation exceeded its ${baseline.ceilings.changedMutationSeconds}s runtime cap.`);
+if (run.signal) throw new Error(`Changed mutation exceeded its ${mutationBaseline.ceilings.changedMutationSeconds}s runtime cap.`);
 if (run.status !== 0) throw new Error(`Changed mutation run failed with status ${run.status ?? "unknown"}.`);
 const score = mutationScore(JSON.parse(await readFile(reportPath, "utf8")));
 const metrics = { changedMutationScore: score.score };
-const errors = compareRatchetMetrics(baseline.metrics, metrics);
+const errors = compareRatchetMetrics(mutationBaseline.metrics, metrics);
 const receipt = { schemaVersion: "2.0.0", baseRef: base, targets, durationSeconds, score, metrics, errors };
-await writeFile(path.join(artifactRoot, "changed-mutation.json"), `${JSON.stringify(receipt, null, 2)}\n`);
+await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(receipt, null, 2)}\n`);
 if (errors.length) throw new Error(errors.join("\n"));
 process.stdout.write(`Changed mutation PASS: ${score.score}% (${score.killed}/${score.total}) across ${targets.length} file(s) in ${durationSeconds}s.\n`);
