@@ -3,7 +3,7 @@ import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: [...configDefaults.exclude, "qa/e2e/**", "qa/isolation/**"],
+    exclude: [...configDefaults.exclude, ".stryker-tmp/**", "qa/e2e/**", "qa/isolation/**"],
     maxWorkers: 4,
     testTimeout: 20_000,
   },
