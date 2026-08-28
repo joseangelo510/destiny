@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 const SHELL_COMMANDS = new Set(["bash", "cmd", "dash", "fish", "powershell", "pwsh", "sh", "zsh"]);
-const ZERO_TEST = /(?:no test files found|no tests found|tests\s+no tests|\b0 tests?\b)/i;
+const ZERO_TEST = /^\s*(?:no test files found\b.*|no tests found\b.*|0 tests?\b.*|tests?\s+(?:no tests|0 tests?)\b.*)$/im;
 
 export function validateRedReplayPlan(plan, { isAncestor }) {
   const errors = [];
