@@ -62,7 +62,6 @@
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "4.1.10",
     "ajv": "8.20.0",
-    "dependency-cruiser": "18.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "jscpd": "5.0.16",
