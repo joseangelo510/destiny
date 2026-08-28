@@ -152,3 +152,26 @@ export function evaluateBuildWarnings(rawOutput, policy, now = new Date()) {
   }
   return { errors: [...new Set(errors)], matched, unknownWarnings: [...new Set(unknownWarnings)] };
 }
+
+export function validateBuildProvenance({ buildScript, prebuildScript, runnerSource = "" } = {}) {
+  const errors = [];
+  if (buildScript !== "node scripts/qa-build.mjs") {
+    errors.push("Production build must route through scripts/qa-build.mjs.");
+  }
+  if (prebuildScript !== undefined) {
+    errors.push("Production build must not use a bypassable prebuild lifecycle hook.");
+  }
+  const stamp = runnerSource.indexOf("write-build-stamp.mjs");
+  const build = runnerSource.indexOf('["next", "build", "--webpack"]');
+  const warningEvaluation = runnerSource.indexOf("const evaluation = evaluateBuildWarnings(");
+  const receipt = runnerSource.indexOf("writeFile(artifactPath");
+  if (stamp < 0) errors.push("Production build wrapper must create a build stamp.");
+  if (build < 0) errors.push("Production build wrapper must invoke Next.js with webpack.");
+  if (stamp >= 0 && build >= 0 && stamp > build) errors.push("Build stamp must run before the Next.js production build.");
+  if (warningEvaluation < build) errors.push("Build warnings must be evaluated after the production build.");
+  if (receipt < 0) errors.push("Production build must persist its evidence receipt.");
+  if (receipt >= 0 && warningEvaluation >= 0 && receipt < warningEvaluation) {
+    errors.push("Production build receipt must be written after warning evaluation.");
+  }
+  return errors;
+}
