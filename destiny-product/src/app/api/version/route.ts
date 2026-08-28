@@ -33,8 +33,8 @@ function normalizeStamp(value: unknown): BuildStamp {
   return { sha, tree, builtAt, env };
 }
 
-export async function GET(request?: Request) {
-  const correlation = correlationContext(request?.headers ?? new Headers());
+export async function GET(request: Request) {
+  const correlation = correlationContext(request.headers);
   const stampPath = path.join(process.cwd(), ".generated", "build-stamp.json");
   const stamp = await readFile(stampPath, "utf8")
     .then((contents) => normalizeStamp(JSON.parse(contents)))
