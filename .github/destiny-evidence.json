@@ -136,8 +136,13 @@
         "destiny-product/qa/rules/harness-quality-v2.test.ts"
       ],
       "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
         "destiny-product/qa/harness/journeys.schema.json",
         "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "destiny-product/scripts/harness/audit-policy.mjs",
+        "destiny-product/scripts/harness/build-warnings.mjs",
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/scripts/harness/ratchet.mjs",
         "destiny-product/scripts/qa-mutation.mjs",
@@ -289,6 +294,26 @@
         "destiny-product/qa/harness/build-warnings.v2.json",
         "destiny-product/scripts/harness/build-warnings.mjs",
         "destiny-product/scripts/qa-build.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "a9e5799ae4a484018183c69fc3cfc4b224adee7a",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "route evidence is not present",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/journeys.schema.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
       ]
     }
   ],

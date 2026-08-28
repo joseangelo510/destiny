@@ -93,7 +93,7 @@ const complexityRun = changedExecutableFiles.length === 0 ? { status: 0, stdout:
 if (complexityRun.status !== 0) throw new Error(`Changed function complexity measurement failed: ${complexityRun.stderr || complexityRun.stdout}`);
 const changedFunctionComplexity = evaluateChangedFunctionComplexity(JSON.parse(complexityRun.stdout || "[]"), {
   productRoot,
-  maximum: 20,
+  maximum: 19,
 });
 const fileSet = new Set(productionFiles);
 const imports = [];
@@ -129,8 +129,8 @@ const duplicationRun = spawnSync(path.join(implementationProductRoot, "node_modu
 ], { cwd: productRoot, encoding: "utf8" });
 if (duplicationRun.status !== 0) throw new Error(`jscpd measurement failed: ${duplicationRun.stderr || duplicationRun.stdout}`);
 const duplicationReport = JSON.parse(await readFile(path.join(duplicationOutput, "jscpd-report.json"), "utf8"));
-const testSources = await Promise.all(testFiles.map((file) => readFile(path.join(productRoot, file), "utf8")));
-const joinedTests = testSources.join("\n");
+const testSources = new Map(await Promise.all(testFiles.map(async (file) => [file, await readFile(path.join(productRoot, file), "utf8")])));
+const joinedTests = [...testSources.values()].join("\n");
 const routes = JSON.parse(await readFile(path.join(productRoot, "qa", "inventory", "routes.json"), "utf8")).map((entry) => entry.route);
 const journeyRegistry = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.v2.json"), "utf8"));
 const journeySchema = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.schema.json"), "utf8"));
@@ -138,7 +138,7 @@ const ajv = new Ajv2020({ allErrors: true, strict: true });
 const schemaValid = ajv.validate(journeySchema, journeyRegistry);
 const journeyErrors = [
   ...(schemaValid ? [] : (ajv.errors ?? []).map((error) => `Journey schema ${error.instancePath || "/"} ${error.message}.`)),
-  ...validateJourneyRegistry(journeyRegistry, { knownRoutes: new Set(routes), testFiles: new Set(testFiles) }),
+  ...validateJourneyRegistry(journeyRegistry, { knownRoutes: new Set(routes), testFiles: new Set(testFiles), testSources }),
 ];
 const apiContractRoutes = testFiles
   .filter((file) => /^src\/app\/api\/.+\/route\.test\.ts$/.test(file))
@@ -190,7 +190,7 @@ if (process.argv.includes("--measure")) {
 
 const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
 const complexityErrors = changedFunctionComplexity.offenders.map((item) =>
-  `${item.file}:${item.line} has cyclomatic complexity ${item.complexity}; changed functions are capped at 20.`);
+  `${item.file}:${item.line} has cyclomatic complexity ${item.complexity}; changed functions are capped at 19.`);
 const errors = [...complexityErrors, ...compareRatchetMetrics(baseline.metrics, metrics, { ceilings: baseline.ceilings })];
 if (errors.length) throw new Error(errors.join("\n"));
 process.stdout.write(`Static quality PASS: ${productionFiles.length} source files, ${architectureErrors.length} architecture violation(s), ${cycles.length} cycle(s).\n`);
