@@ -360,6 +360,46 @@ Deploy receipt: at `2026-08-28T09:12:33Z`, Supabase project `etkksjebqgtkkdqznnx
 Dry-run receipt: not executed. No safe existing user JWT was available to the executor, and extracting, manufacturing, or working around a user credential is not authorized. The exact candidate remained singular, and the post-smoke readback proved zero mutation: item `10e64100-6b99-4dc5-8e64-9318e75f9955` stayed `needs_review` with null CMS linkage and unchanged `updated_at` `2026-08-16 20:25:31.058693+00`; transfer `558f3d60-1f46-41c6-b745-d7675d72fb7e` retained unchanged `updated_at` `2026-08-18 23:15:04.755+00`. Resume only with a safely available authenticated Destiny user session; do not use a service-role token or credential workaround. No confirmation token was issued or consumed.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
 
+## CTO production decision: D-REPLIT-DIVERGENCE-AUDIT-1-AMEND-1
+
+[2026-08-28] D-REPLIT-DIVERGENCE-AUDIT-1-AMEND-1
+Title: Resolve the stuck read-only Replit provenance scan with a guarded task stop and deterministic local tree-hash proof; keep every frozen action frozen.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — execution amendment inside the already-authorized investigation of frozen surface 2 (Replit production), read-only only.
+
+### 1. Guarded stop of the stuck read-only agent task
+
+The Replit Agent's history-wide, read-only tree scan hit GitHub API rate limits and did not reach a conclusion. Clicking Stop is authorized only to halt that computation, because it does not modify Replit production files, Git, configuration, secrets, environment, or deployment state. This authorization is valid only if Stop solely halts the task. If the UI couples Stop to any checkpoint, revert, rollback, or apply/discard-changes prompt, the executor must decline every such prompt, close the pane without accepting anything, and stop. After stopping, the executor must confirm the Agent left no pending change set or checkpoint/diff panel. The stop event and confirmation must be logged in the audit report.
+
+### 2. Deterministic replacement proof
+
+After the guarded stop and confirmation, the executor may obtain exactly these read-only outputs from the Replit workspace, preferring the shell/console over another non-deterministic Agent request when reachable:
+
+1. `git status --porcelain`
+2. `git rev-parse HEAD`
+3. `git rev-parse HEAD:destiny-product`
+
+`git status --porcelain` must be empty, or empty within the already-approved exclusion set. The Replit `destiny-product` tree hash must be compared locally against `git rev-parse 61745a2c4b5a461b27d5574d6cd472ff9bc67dfa:destiny-product` in the audit clone. If the working tree is clean and the two tree hashes are equal, that is cryptographic proof that every file — including all 56 inventoried differences and all unsampled files — is byte-identical to GitHub commit `61745a2c4b5a461b27d5574d6cd472ff9bc67dfa`. The abandoned history-wide scan is then superseded.
+
+If the tree hashes differ only because approved exclusions may live inside `destiny-product/`, the only authorized fallback is one read-only `git ls-tree -r HEAD destiny-product`, compared locally against `git ls-tree -r 61745a2c4b5a461b27d5574d6cd472ff9bc67dfa destiny-product` with the approved exclusions filtered. Every non-excluded path must match by blob SHA.
+
+### 3. Sampling is insufficient
+
+The exact 31-modified/25-missing/0-extra path-status identity between Replit and the GitHub `61745a2c` to `082c70f1` diff, plus two byte-exact older-GitHub blob samples, is strong but circumstantial for the remaining modified paths. Tree-level or complete filtered blob-map equality remains mandatory before all 56 differences may be classified stale.
+
+### 4. Allowed actions and stop conditions
+
+Allowed, in order, and nothing else: (1) click Stop on the stuck read-only agent task under section 1 guards and verify no pending change set; (2) obtain the three raw read-only Git outputs in section 2; (3) compare the Replit tree hash locally against the `61745a2c` tree hash; (4) only if those hashes differ, run the one filtered `git ls-tree` fallback; (5) append all outputs and the verdict `STALE-CONFIRMED`, `DIVERGENCE-FOUND` at listed paths, or `INCONCLUSIVE` to the audit record.
+
+Stop immediately and report with no further Replit action if: the comparison completes in either direction; `git status --porcelain` shows non-excluded dirt; HEAD is unexpected; any command errors; or any Replit UI prompt offers to apply, revert, sync, or checkpoint anything. A match closes the audit `STALE-CONFIRMED`. A mismatch after the filtered fallback closes it with the divergent path list. Any subsequent reconciliation, sync, or publish requires a new recorded Fable 5 High decision.
+
+### 5. Explicitly prohibited
+
+Any Replit sync, pull, push, checkout, reset, edit, publish, redeploy, config change, dependency install, secret or environment read/change, function/database/Auth/RLS change, traffic change, release tag, further agent prompts beyond the exact deterministic replacement proof, or any other action not listed above.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. Amendment not executable before merge.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
 ## CTO production decision: D-REPLIT-DIVERGENCE-AUDIT-1
 
 [2026-08-28] D-REPLIT-DIVERGENCE-AUDIT-1
