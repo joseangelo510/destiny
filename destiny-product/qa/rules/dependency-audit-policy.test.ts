@@ -73,4 +73,44 @@ describe("production dependency audit policy", () => {
       "Ignored GHSA lacks a typed exception: GHSA-5p2g-fcmc-qvqq.",
     ]));
   });
+
+  it("fails closed for malformed policies, identities, metadata, and asymmetric mappings", async () => {
+    const { validateAuditExceptions } = await loadAuditPolicy();
+    const now = new Date("2026-08-28T00:00:00.000Z");
+    expect(validateAuditExceptions(null)).toEqual(["Audit exception policy must be an object."]);
+    expect(validateAuditExceptions([])).toEqual(["Audit exception policy must be an object."]);
+    expect(validateAuditExceptions({ schemaVersion: "1.0.0" })).toEqual([
+      "Audit exception policy schemaVersion must be 2.0.0.",
+      "Audit exception policy requires an exceptions array.",
+    ]);
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [{
+      ghsa: "xGHSA-w3rx-r6r6-pgpr",
+      owner: "",
+      reason: "",
+      boundaryTest: "",
+      expiresAt: "later",
+    }] }, { now })).toEqual(expect.arrayContaining([
+      "Audit exception GHSA is invalid: xGHSA-w3rx-r6r6-pgpr.",
+      "Audit exception xGHSA-w3rx-r6r6-pgpr requires an owner.",
+      "Audit exception xGHSA-w3rx-r6r6-pgpr requires a reason.",
+      "Audit exception xGHSA-w3rx-r6r6-pgpr boundary test does not exist: <missing>.",
+      "Audit exception xGHSA-w3rx-r6r6-pgpr expiry is invalid.",
+      "Typed audit exception is not ignored by pnpm: xGHSA-w3rx-r6r6-pgpr.",
+    ]));
+    const expiring = {
+      ghsa: "GHSA-w3rx-r6r6-pgpr",
+      owner: "platform-security",
+      reason: "Bounded exception.",
+      boundaryTest: "qa/rules/document-export-security.test.ts",
+      expiresAt: now.toISOString(),
+    };
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [expiring] }, {
+      ignoredGhsas: [],
+      testFiles: new Set([expiring.boundaryTest]),
+      now,
+    })).toEqual(expect.arrayContaining([
+      "Audit exception GHSA-w3rx-r6r6-pgpr has expired.",
+      "Typed audit exception is not ignored by pnpm: GHSA-w3rx-r6r6-pgpr.",
+    ]));
+  });
 });
