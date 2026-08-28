@@ -109,9 +109,9 @@ describe("measured quality ratchets", () => {
     expect(baseline.metrics).toEqual(expect.objectContaining({
       apiContractCoverage: 100,
       browserJourneyCoverage: 65.52,
-      changedBranchCoverage: 84,
-      changedLineCoverage: 90,
-      changedMutationScore: 68,
+      changedBranchCoverage: 89,
+      changedLineCoverage: 91,
+      changedMutationScore: 69,
       duplicationPercentage: 3.01,
       routeJourneyCoverage: 87.18,
     }));
@@ -128,8 +128,11 @@ describe("measured quality ratchets", () => {
       expect.objectContaining({ metric: "duplicationPercentage", from: 3.04, to: 3.01 }),
       expect.objectContaining({ metric: "browserJourneyCoverage", from: 58.62, to: 65.52 }),
       expect.objectContaining({ metric: "routeJourneyCoverage", from: 84.62, to: 87.18 }),
+      expect.objectContaining({ metric: "changedBranchCoverage", from: 84, to: 89 }),
+      expect.objectContaining({ metric: "changedLineCoverage", from: 90, to: 91 }),
+      expect.objectContaining({ metric: "changedMutationScore", from: 68, to: 69 }),
     ]));
-    expect(stryker).toMatch(/low:\s*68/);
-    expect(stryker).toMatch(/break:\s*68/);
+    expect(stryker).toMatch(/low:\s*69/);
+    expect(stryker).toMatch(/break:\s*69/);
   });
 });
