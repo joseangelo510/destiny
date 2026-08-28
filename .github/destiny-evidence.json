@@ -7,10 +7,61 @@
     "path": "destiny-product/DEPLOY_LOG.md#2026-08-27--decision-record-d-harness-sota-2-cto-model-decision"
   },
   "redReplay": {
-    "mode": "not-applicable",
-    "exemption": "decision-record-only"
+    "mode": "required",
+    "redCommit": "4accc91cfd07db499d453acb09383a0234978377",
+    "command": [
+      "pnpm",
+      "vitest",
+      "run",
+      "qa/rules/harness-evidence-v2.test.ts",
+      "qa/rules/harness-red-replay-v2.test.ts",
+      "qa/rules/harness-ratchets-v2.test.ts",
+      "qa/rules/harness-architecture-v2.test.ts",
+      "qa/rules/harness-network-flake-v2.test.ts"
+    ],
+    "failurePattern": "Cannot find module",
+    "testFiles": [
+      "destiny-product/qa/rules/harness-evidence-v2.test.ts",
+      "destiny-product/qa/rules/harness-red-replay-v2.test.ts",
+      "destiny-product/qa/rules/harness-ratchets-v2.test.ts",
+      "destiny-product/qa/rules/harness-architecture-v2.test.ts",
+      "destiny-product/qa/rules/harness-network-flake-v2.test.ts"
+    ],
+    "implementationPaths": [
+      "destiny-product/scripts/harness/architecture.mjs",
+      "destiny-product/scripts/harness/evidence.mjs",
+      "destiny-product/scripts/harness/flake.mjs",
+      "destiny-product/scripts/harness/network-policy.mjs",
+      "destiny-product/scripts/harness/ratchet.mjs",
+      "destiny-product/scripts/harness/red-replay.mjs",
+      "destiny-product/scripts/harness/trace.mjs"
+    ]
   },
+  "additionalRedReplays": [
+    {
+      "mode": "required",
+      "redCommit": "3ab01419fae7aaaeddc213723c71ea3c6ba1704c",
+      "command": [
+        "pnpm",
+        "vitest",
+        "run",
+        "src/lib/observability/logging.test.ts",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/src/lib/observability/logging.test.ts",
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/src/lib/observability/logging.ts"
+      ]
+    }
+  ],
   "networkMode": "mocked",
   "touchedRoutes": [],
-  "productPaths": []
+  "productPaths": [
+    "destiny-product/src/lib/observability/logging.ts"
+  ]
 }
