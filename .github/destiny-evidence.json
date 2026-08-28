@@ -764,6 +764,23 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/quality.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "da1b83785e1b689cb995689a8eeb1a255cd4fcff",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "absent report messages cannot create a complexity measurement",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",

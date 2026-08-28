@@ -85,8 +85,10 @@ export function evaluateChangedFunctionComplexity(reports, { productRoot, maximu
   for (const report of reports) {
     const absolute = String(report.filePath ?? "").replaceAll("\\", "/");
     const file = absolute.startsWith(`${root}/`) ? absolute.slice(root.length + 1) : absolute;
+    // Stryker disable next-line ArrayDeclaration: absent report messages cannot create a complexity measurement
     for (const message of report.messages ?? []) {
       if (message.ruleId !== "complexity") continue;
+      // Stryker disable next-line StringLiteral: missing message text is always malformed by the anchored complexity parser
       const match = /complexity of (\d+)\b/.exec(message.message ?? "");
       if (!match) throw new Error(`Malformed ESLint complexity measurement for ${file}:${message.line ?? 0}.`);
       measurements.push({ complexity: Number(match[1]), file, line: Number(message.line ?? 0) });
