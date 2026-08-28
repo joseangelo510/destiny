@@ -669,3 +669,69 @@ Complete only when this decision PR is merged to `main` with `cto-approved` and 
 
 Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No Replit write or publish before its merge.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## CTO production decision: D-REPLIT-BUNDLE-REMEDIATION-7
+
+[2026-08-28] D-REPLIT-BUNDLE-REMEDIATION-7
+Title: Remediate the failed Replit bundle through deterministic workspace hygiene, then authorize one pinned-artifact production retry.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — frozen action 2 (Replit production modification) plus governed remediation of a failed production bundle.
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No cleanup, install, build, or publish before its merge.
+
+### 1. Accepted failure and production state
+
+The controlled publish authorized by D-REPLIT-REPUBLISH-6 passed Provision, Security checks, and Build, then failed during Bundle before Promote with Replit's exact error: `image size is over the limit of 8 GiB: total size of layers exceeds limit`. Production was never promoted and remains on the prior deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d`; no rollback was required. The single D6 publish allowance is consumed. Replit Agent, Fix with Agent, and blind retries remain forbidden.
+
+The immutable application artifact remains commit `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. The target remains only the canonical Replit app Destiny SEO, replId `ee690524-db57-4050-86d0-03bad18452f7`, at `https://destiny-seo.replit.app`.
+
+### 2. Diagnosis and disk evidence
+
+The failure is classified as workspace hygiene, not an application-artifact failure. Read-only evidence at `/home/runner/workspace` showed: total workspace `6.0G`; root `node_modules` `774M`; `destiny-product/node_modules` `1003M`; root `.cache` `1.2G`; root `.local` `1.5G`; `destiny-product/.next` `1.2G`; root `.next` `134M`; and total `destiny-product` `2.2G`. The publish log failed while pushing the Repl/cache layer.
+
+### 3. Remediation class and exact allowlist
+
+Authorized remediation is untracked Replit workspace cleanup only. No tracked application or runtime configuration change is authorized. Before deleting root `node_modules` or root `.next`, `.replit` must prove that deployment build and run commands target `destiny-product`; otherwise STOP and delete nothing.
+
+Only these six paths may be removed, and nothing else:
+
+1. `/home/runner/workspace/.cache`
+2. `/home/runner/workspace/.local`
+3. `/home/runner/workspace/node_modules`
+4. `/home/runner/workspace/.next`
+5. `/home/runner/workspace/destiny-product/node_modules`
+6. `/home/runner/workspace/destiny-product/.next`
+
+After the authorized rebuild, only `/home/runner/workspace/destiny-product/.next/cache` may be pruned.
+
+Must not be touched: `/home/runner/workspace/.git`, `.replit`, `replit.nix`, `.config`, every `.env*` path and secret store, every tracked repository file, `destiny-product/` source, and the live production deployment or container. Secrets must not be read, printed, moved, or deleted. If credential material is discovered inside an allowlisted path, STOP before removing it.
+
+### 4. Ordered execution and attempt budget
+
+This protected HIGH docs-only decision PR must merge first with `cto-approved` applied by `joseangelo510` and all required checks green at the final PR SHA. Then, and only then:
+
+1. At `/home/runner/workspace`, verify HEAD equals `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, tree equals `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, and `git status --porcelain` is empty.
+2. Verify `.replit` build/run commands target `destiny-product`; record baseline `du -sh` for the workspace and all allowlisted paths; record pnpm version.
+3. Remove only the six allowlisted paths.
+4. Reverify empty Git status and unchanged HEAD/tree. Verify pnpm `11.9.0`; if removal of `.local` removed pnpm, the sole permitted repair is `corepack prepare pnpm@11.9.0 --activate`, followed by version verification. If Node or Git is broken, STOP.
+5. In `destiny-product`, run exactly one `pnpm install --frozen-lockfile` and exactly one build. `npm install` is forbidden. Any failure is a hard STOP, not a retry.
+6. Verify recorded sha256 values for `package.json` and `pnpm-lock.yaml` are unchanged and the build stamp contains exact pinned SHA/tree with `source=git`.
+7. Run the previously approved prepublish route, auth, receipt, security, and Supabase checks. Any failure is a hard STOP.
+8. Prune only `destiny-product/.next/cache`. Record per-path sizes and require `du -sh /home/runner/workspace` to be at most `3.0 GiB`. A larger workspace is a hard STOP with no publish.
+9. Execute exactly one Replit publish. Replit Agent and any retry are forbidden.
+
+Authorized attempt budget after cleanup: one frozen install, one build, and one publish. Any failure, including a transient network failure, consumes its corresponding allowance and stops execution.
+
+### 5. Postchecks, rollback, and truthful boundary
+
+If Bundle fails again before Promote, production remains unchanged: freeze, capture publish logs and size evidence, report, and seek a new D-REPLIT-BUNDLE-REMEDIATION-8 decision. Do not retry.
+
+If Promote succeeds, require: live production health; authenticated `/api/version` serving exact SHA `082c70f1aecc8d3c395ea12f3542bd146fc57a01` and tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`; working authentication; zero 5xx on touched routes; passing authenticated and unauthenticated `keyword_serp` behavior; and healthy Supabase `seo-research` v13 with `verify_jwt=true`. A passing publish and `keyword_serp` postcheck flips keyword research to GO under D-LAUNCH-READINESS-1 only; it authorizes no broader launch claim.
+
+If Promote succeeds but any postcheck fails, roll back through Replit to prior deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d`, verify prior production and authentication are serving, STOP, and report. If rollback controls are unavailable, escalate immediately with no forward fix.
+
+### 6. Evidence and outcome record
+
+Required evidence: this decision PR URL and merge SHA; required check URLs at the final PR SHA; `.replit` target proof; baseline and post-cleanup size table; exact HEAD/tree and clean-state outputs; pnpm version; package/lock hashes; build stamp; prepublish results; publish receipt and deployment identity; postchecks or failure evidence; and any rollback receipt. After execution, one follow-up protected docs-only PR must append the outcome to this entry. No completion claim is permitted before that outcome PR and evidence exist.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No cleanup, install, build, or publish before its merge.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
