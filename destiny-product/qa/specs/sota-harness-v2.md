@@ -27,6 +27,10 @@ exit code, artifact paths, and sanitized error details. A deterministic summary
 hashes the contract, evidence manifest, baseline, trace, and produced receipts.
 Secrets and credential-shaped values are replaced before data reaches disk.
 
+Portable and full-gate capability probes emit separate schema-validated receipts.
+The full Supabase lane fails before expensive work when neither Docker nor Podman
+is responsive; its failure receipt never overwrites portable harness evidence.
+
 ## Ratchets
 
 Measured protected-main values initialize each baseline. Ordinary pull requests
@@ -34,8 +38,15 @@ may hold or improve quality; they may not worsen it. Test count is informational
 Duration has explicit PR and nightly ceilings. Coverage and mutation apply to
 changed code. Skips, quarantines, flaky retries, audit exceptions, duplication,
 cycles, architecture violations, warnings, type errors, and complexity debt may
-not increase. Any temporary regression requires a separate Fable High decision,
-owner, reason, expiry, and policy label.
+not increase. Every changed executable function also has an absolute cyclomatic
+complexity ceiling of 20; type-only edits are excluded by comparing emitted
+JavaScript at protected main and HEAD. Any temporary regression requires a
+separate Fable High decision, owner, reason, expiry, and policy label.
+
+Browser journey coverage comes from a typed owner-and-assertion registry. API
+contract coverage comes from canonical route tests. The two denominators remain
+separate and combine into a route-journey ratchet, so literal route mentions do
+not masquerade as executed behavior.
 
 ## Architecture and observability
 
