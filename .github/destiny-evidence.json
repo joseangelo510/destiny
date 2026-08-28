@@ -498,6 +498,23 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/architecture.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "a71b389bb444f34f277d56b966484199028c3e89",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "expected false to be true",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
