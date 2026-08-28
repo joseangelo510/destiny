@@ -24,6 +24,9 @@ describe("SOTA harness integration", () => {
     for (const step of ["qa:evidence", "qa:quality", "qa:coverage", "qa:mutation"]) expect(runner).toContain(step);
     expect(runner).toContain("createTraceRecorder");
     expect(runner).toContain("hashEvidenceFiles");
+    const quality = await text("destiny-product/scripts/qa-quality-gate.mjs");
+    expect(quality).toContain("--max-warnings");
+    expect(quality).toContain("--noEmit");
   });
 
   it("preserves harness receipts and runs a bounded scheduled assurance lane", async () => {
