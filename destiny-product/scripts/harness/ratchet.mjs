@@ -1,6 +1,7 @@
 const LOWER_IS_BETTER = new Set([
   "architectureViolations",
   "auditExceptions",
+  "changedMaximumFunctionComplexity",
   "dependencyCycles",
   "duplicateBlocks",
   "duplicationPercentage",
