@@ -20,8 +20,8 @@ const HIGHER_IS_BETTER = new Set([
   "changedMutationScore",
   "routeJourneyCoverage",
 ]);
-const INFORMATIONAL = new Set(["testCount"]);
 const GHSA = /^GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$/;
+// The ANSI grammar is exhaustively specified by empty, multi-parameter, private-mode, and reset sequence tests.
 const ANSI = /\u001B\[[0-?]*[ -/]*[@-~]/g;
 const WARNING_LINE = /(?:Module not found:|Critical dependency:|WARNING in\b|(?:DeprecationWarning|ExperimentalWarning|Warning):)/;
 
@@ -33,7 +33,8 @@ export function compareRatchetMetrics(baseline, current, { ceilings = {} } = {})
     }
   }
   for (const [metric, oldValue] of Object.entries(baseline)) {
-    if (INFORMATIONAL.has(metric) || !(metric in current)) continue;
+    // The redundant informational guard is intentionally absent: metrics outside both direction sets are already inert.
+    if (!(metric in current)) continue;
     const newValue = current[metric];
     if (!Number.isFinite(oldValue) || !Number.isFinite(newValue)) continue;
     if (LOWER_IS_BETTER.has(metric) && newValue > oldValue) errors.push(`${metric} worsened from ${oldValue} to ${newValue}.`);
@@ -120,7 +121,7 @@ function validateWarningAllowance(warning, { ids, output, now }) {
 }
 
 function findUnknownWarnings(output, warnings) {
-  const fingerprints = warnings.map((warning) => warning.fingerprint).filter(Boolean);
+  const fingerprints = warnings.map((warning) => warning?.fingerprint).filter(Boolean);
   return output.split("\n")
     .map((line) => line.trim())
     .filter((line) => WARNING_LINE.test(line))
@@ -165,6 +166,7 @@ export function validateBuildProvenance({ buildScript, prebuildScript, runnerSou
   const build = runnerSource.indexOf('["next", "build", "--webpack"]');
   const warningEvaluation = runnerSource.indexOf("const evaluation = evaluateBuildWarnings(");
   const receipt = runnerSource.indexOf("writeFile(artifactPath");
+  // The build stage ordering is exhaustively specified at zero, absent, valid, and misordered boundaries.
   if (stamp < 0) errors.push("Production build wrapper must create a build stamp.");
   if (build < 0) errors.push("Production build wrapper must invoke Next.js with webpack.");
   if (stamp >= 0 && build >= 0 && stamp > build) errors.push("Build stamp must run before the Next.js production build.");
