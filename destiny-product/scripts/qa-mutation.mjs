@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { selectMutationTargets } from "./harness/quality.mjs";
+import ts from "typescript";
+import { filterExecutableChanges, selectMutationTargets } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
 import { git, protectedMainRef } from "./harness/repository.mjs";
 
@@ -27,13 +28,37 @@ function mutationScore(report) {
   };
 }
 
+function fileAt(ref, file) {
+  const result = spawnSync("git", ["show", `${ref}:destiny-product/${file}`], {
+    cwd: mutationRepositoryRoot,
+    encoding: "utf8",
+  });
+  return result.status === 0 ? result.stdout : "";
+}
+
+function emittedJavaScript(source, file) {
+  if (!source) return "";
+  return ts.transpileModule(source, {
+    fileName: file,
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+}
+
 const base = baseRef();
 const changed = git(mutationRepositoryRoot, ["diff", "--name-only", `${base}...HEAD`]).split("\n")
   .filter(Boolean).map((file) => file.replace(/^destiny-product\//, ""));
-const targets = selectMutationTargets(changed, { maximumFiles: 12 });
+const candidates = selectMutationTargets(changed, { maximumFiles: Number.MAX_SAFE_INTEGER });
+const baseOutputs = new Map(candidates.map((file) => [file, emittedJavaScript(fileAt(base, file), file)]));
+const headOutputs = new Map(await Promise.all(candidates.map(async (file) => [
+  file,
+  emittedJavaScript(await readFile(path.join(mutationProductRoot, file), "utf8"), file),
+])));
+const executableChanges = filterExecutableChanges(candidates, { baseOutputs, headOutputs });
+const targets = selectMutationTargets(executableChanges, { maximumFiles: 12 });
+const excludedTypeOnly = candidates.filter((file) => !targets.includes(file));
 await mkdir(mutationArtifactRoot, { recursive: true });
 if (targets.length === 0) {
-  const empty = { schemaVersion: "2.0.0", baseRef: base, targets, metrics: { changedMutationScore: 100 } };
+  const empty = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, metrics: { changedMutationScore: 100 } };
   await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(empty, null, 2)}\n`);
   process.stdout.write("Changed mutation PASS: no changed source files.\n");
   process.exit(0);
@@ -58,7 +83,7 @@ if (run.status !== 0) throw new Error(`Changed mutation run failed with status $
 const score = mutationScore(JSON.parse(await readFile(reportPath, "utf8")));
 const metrics = { changedMutationScore: score.score };
 const errors = compareRatchetMetrics(mutationBaseline.metrics, metrics);
-const receipt = { schemaVersion: "2.0.0", baseRef: base, targets, durationSeconds, score, metrics, errors };
+const receipt = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, durationSeconds, score, metrics, errors };
 await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(receipt, null, 2)}\n`);
 if (errors.length) throw new Error(errors.join("\n"));
 process.stdout.write(`Changed mutation PASS: ${score.score}% (${score.killed}/${score.total}) across ${targets.length} file(s) in ${durationSeconds}s.\n`);
