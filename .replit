@@ -50,7 +50,7 @@ task = "shell.exec"
 args = "cd destiny-product && pnpm exec next dev -p 5000 -H 0.0.0.0"
 waitForPort = 5000
 
-[[workflows.workflow.metadata]]
+[workflows.workflow.metadata]
 outputType = "webview"
 
 [nix]
