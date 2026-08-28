@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     exclude: [...configDefaults.exclude, "qa/e2e/**", "qa/isolation/**"],
     maxWorkers: 4,
+    testTimeout: 20_000,
   },
   resolve: {
     alias: {

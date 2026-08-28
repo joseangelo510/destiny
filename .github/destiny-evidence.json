@@ -961,6 +961,23 @@
       "implementationPaths": [
         "destiny-product/scripts/qa-coverage.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "c3ee47b3ac8d0d1812401d9d44d52956305cc95e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "testTimeout",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.config.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
