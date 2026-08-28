@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 async function loadBuildWarnings() {
-  const modulePath = "../../scripts/harness/" + "build-warnings.mjs";
+  const modulePath = "../../scripts/harness/" + "ratchet.mjs";
   return import(/* @vite-ignore */ modulePath);
 }
 
