@@ -12,6 +12,8 @@ const LOWER_IS_BETTER = new Set([
   "typeErrors",
 ]);
 const HIGHER_IS_BETTER = new Set([
+  "apiContractCoverage",
+  "browserJourneyCoverage",
   "changedBranchCoverage",
   "changedLineCoverage",
   "changedMutationScore",

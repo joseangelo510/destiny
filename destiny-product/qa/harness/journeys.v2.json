@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "2.0.0",
+  "journeys": [
+    {
+      "id": "public-home",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": ["/"],
+      "assertions": ["document", "navigation", "accessibility", "accessible-names"]
+    },
+    {
+      "id": "public-links",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/links.spec.ts",
+      "routes": ["/"],
+      "assertions": ["internal-links", "zero-5xx"]
+    },
+    {
+      "id": "local-tenant-isolation",
+      "mode": "local-isolated",
+      "owner": "quality",
+      "testFile": "qa/e2e/local-authenticated.spec.ts",
+      "routes": ["/audits", "/content", "/api/audits/[id]"],
+      "assertions": ["tenant-switch", "tenant-isolation", "not-found-boundary"]
+    },
+    {
+      "id": "local-mvp-certification",
+      "mode": "local-isolated",
+      "owner": "quality",
+      "testFile": "qa/e2e/mvp-certification.spec.ts",
+      "routes": ["/this-week", "/content", "/rank-tracker", "/api/integrations/cms/wordpress/reconcile"],
+      "assertions": ["launch-actions", "publication-evidence", "rank-integrity"]
+    },
+    {
+      "id": "production-readonly-workspace",
+      "mode": "staging-readonly",
+      "owner": "quality",
+      "testFile": "qa/e2e/prod-readonly.spec.ts",
+      "routes": [
+        "/account",
+        "/analytics",
+        "/audits",
+        "/audits/[id]",
+        "/backlinks",
+        "/content",
+        "/distribution",
+        "/integrations",
+        "/keyword-research",
+        "/keywords",
+        "/llm-visibility",
+        "/rank-tracker",
+        "/results",
+        "/reviews",
+        "/roadmap",
+        "/this-week"
+      ],
+      "assertions": ["document", "workspace-identity", "site-context", "accessibility", "no-write"]
+    }
+  ]
+}
