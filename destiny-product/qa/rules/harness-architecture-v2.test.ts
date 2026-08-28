@@ -128,4 +128,54 @@ describe("architecture fitness functions", () => {
       ["entry", ["unlisted-leaf"]],
     ]))).toEqual([]);
   });
+
+  it("enforces exact edge and route filename boundaries", async () => {
+    const { evaluateArchitectureImports } = await loadArchitectureModule();
+    expect(evaluateArchitectureImports([
+      { file: "prefix/supabase/functions/", specifier: "@/app/page" },
+      { file: "supabase/functions/a/index.ts", specifier: "@/app/page" },
+      { file: "src/lib/policy.ts", specifier: "./delivery", resolved: "./src/app/page" },
+      { file: "src/app/a/route.mts", specifier: "route", resolved: "src/app/b/route.cts" },
+      { file: "src/app/a/route.cts", specifier: "route", resolved: "src/app/b/route.mjs" },
+      { file: "src/app/a/route.js", specifier: "route", resolved: "src/app/b/route.ts" },
+      { file: "src/app/a/route.jsx", specifier: "route", resolved: "src/app/b/route.ts" },
+    ])).toEqual([
+      "supabase/functions/a/index.ts may not import web delivery module @/app/page.",
+      "src/lib/policy.ts may not import delivery module ./delivery.",
+      "src/app/a/route.mts may not import another route implementation route.",
+      "src/app/a/route.cts may not import another route implementation route.",
+      "src/app/a/route.js may not import another route implementation route.",
+    ]);
+  });
+
+  it("canonicalizes nested cycles and visits shared nodes once", async () => {
+    const { detectDependencyCycles } = await loadArchitectureModule();
+    const reads: string[] = [];
+    class ObservedGraph extends Map<string, string[]> {
+      override get(key: string) {
+        reads.push(key);
+        return super.get(key);
+      }
+    }
+    const graph = new ObservedGraph([
+      ["root", ["z", "a"]],
+      ["z", ["shared"]],
+      ["a", ["shared"]],
+      ["shared", []],
+      ["Stryker was here", []],
+    ]);
+    expect(detectDependencyCycles(graph)).toEqual([]);
+    expect(reads).toEqual(["root", "a", "shared", "z", "Stryker was here"]);
+    expect(detectDependencyCycles(new Map([
+      ["root", ["b"]],
+      ["b", ["a"]],
+      ["a", ["b"]],
+    ]))).toEqual(["a -> b -> a"]);
+  });
+
+  it("documents equivalent parser metadata and keeps one output sort", async () => {
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/architecture.mjs"), "utf8");
+    expect(source).toContain("Stryker disable next-line StringLiteral,BooleanLiteral: parser metadata does not affect dependency extraction");
+    expect(source).not.toContain("[...graph.keys()].sort()");
+  });
 });
