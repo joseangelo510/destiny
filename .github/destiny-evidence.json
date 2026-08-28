@@ -57,6 +57,32 @@
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/src/lib/observability/logging.ts"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "714aa31b0f6b69456a45eeec7362b300244d28fd",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-integration-v2.test.ts",
+        "qa/rules/harness-governance-v2.test.ts"
+      ],
+      "failurePattern": "evaluateTypedChecklist is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-integration-v2.test.ts",
+        "destiny-product/qa/rules/harness-governance-v2.test.ts"
+      ],
+      "implementationPaths": [
+        ".github/pull_request_template.md",
+        ".github/workflows/ci.yml",
+        ".github/workflows/nightly-assurance.yml",
+        "HARNESS_POLICY.md",
+        "destiny-product/package.json",
+        "destiny-product/scripts/governance-policy.mjs",
+        "destiny-product/scripts/qa-gate.mjs",
+        "destiny-product/scripts/qa-harness-v2.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
