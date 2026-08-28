@@ -6,20 +6,16 @@ import { sanitizeDocxHtml } from "../../src/lib/word-document";
 const root = process.cwd();
 
 describe("Word export dependency security", () => {
-  it("pins nanoid to the patched release in package metadata and both lockfiles", async () => {
+  it("pins nanoid to the patched release in package metadata and the canonical pnpm lockfile", async () => {
     const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as {
       overrides?: Record<string, string>;
+      pnpm?: { overrides?: Record<string, string> };
     };
-    const workspace = await readFile(path.join(root, "pnpm-workspace.yaml"), "utf8");
     const pnpmLock = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8");
-    const npmLock = JSON.parse(await readFile(path.join(root, "package-lock.json"), "utf8")) as {
-      packages?: Record<string, { version?: string }>;
-    };
 
-    expect(packageJson.overrides?.nanoid).toBe("3.3.18");
-    expect(workspace).toMatch(/overrides:\s+[\s\S]*nanoid: 3\.3\.18/);
+    expect(packageJson.pnpm?.overrides?.nanoid ?? packageJson.overrides?.nanoid).toBe("3.3.18");
     expect(pnpmLock).not.toMatch(/nanoid@3\.3\.(?:16|17)(?:\W|$)/);
-    expect(npmLock.packages?.["node_modules/nanoid"]?.version).toBe("3.3.18");
+    expect(pnpmLock).toMatch(/nanoid@3\.3\.18(?:\W|$)/);
   });
 
   it("removes user-controlled image elements before HTML reaches html-to-docx", () => {
