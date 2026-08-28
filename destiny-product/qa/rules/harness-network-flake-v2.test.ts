@@ -50,11 +50,14 @@ describe("network and flake controls", () => {
         "Quarantine requires an owner.",
         "Quarantine requires an expiry.",
       ]));
+    expect(validateQuarantine({}, new Date("2026-08-27T00:00:00Z")))
+      .toContain("Quarantine requires a reason.");
   });
 
   it("enforces every declared network mode", async () => {
     const { assertNetworkRequestAllowed, validateNetworkMode } = await loadNetworkModule();
     expect(validateNetworkMode("unknown")).toEqual(["Unknown QA_NETWORK_MODE: unknown."]);
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "unknown")).toThrow("Unknown QA_NETWORK_MODE: unknown.");
     expect(() => assertNetworkRequestAllowed("http://localhost:9999/a", "local-isolated", "post")).not.toThrow();
     expect(() => assertNetworkRequestAllowed("https://example.com/a", "local-isolated")).toThrow(/loopback only/);
     expect(() => assertNetworkRequestAllowed("https://example.com/a", "staging-readonly", "head")).not.toThrow();

@@ -70,6 +70,13 @@ describe("production build warning ratchet", () => {
       "Declared build warning disappeared; remove its allowance: html-to-docx-optional-encoding.",
       "Build warning html-to-docx-optional-encoding expiry is invalid.",
     ]));
+    expect(evaluateBuildWarnings(null, {
+      schemaVersion: "2.0.0",
+      warnings: [{ owner: "owner", reason: "reason", fingerprint: "never", expiresAt: "later" }],
+    }).errors).toEqual(expect.arrayContaining([
+      "Declared build warning disappeared; remove its allowance: <missing>.",
+      "Build warning <missing> expiry is invalid.",
+    ]));
   });
 
   it("normalizes ANSI output and rejects unrecognized warning families", async () => {

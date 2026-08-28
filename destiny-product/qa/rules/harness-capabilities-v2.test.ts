@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 async function capabilities() {
   const modulePath = "../../scripts/harness/" + "capabilities.mjs";
@@ -91,5 +93,29 @@ describe("harness environment capabilities", () => {
       missing: [],
       containerRuntime: null,
     });
+  });
+
+  it("covers every deterministic probe fallback and Docker preference", async () => {
+    const { evaluateCapabilities, normalizeCapabilityProbe } = await capabilities();
+    expect(normalizeCapabilityProbe({ command: " tool ", status: 0, stdout: "", stderr: "tool 2" }))
+      .toEqual({ command: "tool", available: true, version: "tool 2" });
+    expect(normalizeCapabilityProbe({ command: "tool", status: 0, stdout: "", stderr: "" }))
+      .toEqual({ command: "tool", available: true });
+    expect(normalizeCapabilityProbe({ command: "tool", status: 0 }))
+      .toEqual({ command: "tool", available: true });
+    expect(normalizeCapabilityProbe({ command: "tool", status: 7, stdout: "failed", stderr: "" }))
+      .toEqual({ command: "tool", available: false, error: "failed" });
+    expect(normalizeCapabilityProbe({ command: "tool", status: 7, stdout: "", stderr: "" }))
+      .toEqual({ command: "tool", available: false, error: "exit status 7" });
+    expect(normalizeCapabilityProbe({ command: "tool", stdout: "", stderr: "" }))
+      .toEqual({ command: "tool", available: false, error: "exit status unavailable" });
+    const core = Object.fromEntries(["node", "pnpm", "git", "supabase"].map((name) => [name, { available: true }]));
+    expect(evaluateCapabilities({ ...core, docker: { available: true }, podman: { available: true } }, { requireContainer: true }))
+      .toEqual(expect.objectContaining({ status: "pass", containerRuntime: "docker" }));
+  });
+
+  it("keeps one deterministic unavailable fallback", async () => {
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/capabilities.mjs"), "utf8");
+    expect(source).not.toContain('detail || "unavailable"');
   });
 });

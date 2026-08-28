@@ -121,4 +121,11 @@ describe("architecture fitness functions", () => {
     }
     expect(detectDependencyCycles(graph)).toEqual([]);
   });
+
+  it("treats referenced graph leaves as dependency-free nodes", async () => {
+    const { detectDependencyCycles } = await loadArchitectureModule();
+    expect(detectDependencyCycles(new Map([
+      ["entry", ["unlisted-leaf"]],
+    ]))).toEqual([]);
+  });
 });
