@@ -112,6 +112,9 @@ describe("production build warning ratchet", () => {
   it("fails closed for null allowances and primitive warning policies", async () => {
     const { evaluateBuildWarnings } = await loadBuildWarnings();
     expect(evaluateBuildWarnings("", "invalid").errors).toEqual(["Build warning policy must be an object."]);
+    expect(evaluateBuildWarnings(null, null)).toEqual({
+      errors: ["Build warning policy must be an object."], matched: [], unknownWarnings: [],
+    });
     expect(evaluateBuildWarnings("", { schemaVersion: "2.0.0", warnings: [null] }).errors).toEqual([
       "Build warning <missing> requires an owner.",
       "Build warning <missing> requires a reason.",

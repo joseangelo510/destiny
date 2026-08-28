@@ -121,6 +121,8 @@ describe("measured quality ratchets", () => {
     expect(source).toContain("redundant informational guard is intentionally absent");
     expect(source).toContain("ANSI grammar is exhaustively specified");
     expect(source).toContain("build stage ordering is exhaustively specified");
+    expect(source).toContain("invalid sentinels cannot satisfy their validators");
+    expect(source).toContain("invalid policy output cannot emit recognized warnings");
   });
 
   it("locks newly demonstrated mutation and route-proof floors", async () => {
