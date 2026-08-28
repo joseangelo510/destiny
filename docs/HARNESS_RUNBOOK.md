@@ -49,7 +49,7 @@ Do not mix test and implementation files in one commit. Do not add skipped, focu
 5. Never rerun a failed test to make the gate green. Playwright retries are zero. A fail-then-pass discovered by repeated nightly execution remains a failure and must be fixed or placed in an owned, expiring quarantine.
 6. Do not lower a ratchet to pass a PR. Debt metrics may hold or improve; changed coverage, mutation, and journey proof may hold or improve. Runtime is a ceiling, and raw test count is informational.
 
-The current locked floors are 100% changed-line coverage, 91% changed-branch coverage, 69% changed mutation, 100% API contract coverage, 100% browser journey coverage, and 100% combined route proof. Duplication may not exceed 3.01%. `qa/harness/baseline.v2.json` is authoritative and records each ratchet movement with its receipt.
+The current locked floors are 100% changed-line coverage, 100% changed-branch coverage, 69% changed mutation, 100% API contract coverage, 100% browser journey coverage, and 100% combined route proof. Duplication may not exceed 3.01%. `qa/harness/baseline.v2.json` is authoritative and records each ratchet movement with its receipt.
 
 Useful focused commands:
 
