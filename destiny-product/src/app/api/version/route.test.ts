@@ -84,6 +84,28 @@ describe("GET /api/version", () => {
     log.mockRestore();
   });
 
+  it("requires commit and tree identities to match the full SHA exactly", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    const builtAt = "2026-08-24T18:00:00.000Z";
+
+    await writeFile(stampPath, JSON.stringify({ sha: `x${sha}`, tree, builtAt, env: "test" }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha: "unknown",
+      tree,
+      builtAt,
+      env: "test",
+    });
+
+    await writeFile(stampPath, JSON.stringify({ sha, tree: `x${tree}`, builtAt, env: "test" }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha,
+      tree: "unknown",
+      builtAt,
+      env: "test",
+    });
+    log.mockRestore();
+  });
+
   it("normalizes environment whitespace but rejects arrays and missing fields", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
     await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: "  preview  " }));
