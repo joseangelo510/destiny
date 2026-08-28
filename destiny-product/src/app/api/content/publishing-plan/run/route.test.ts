@@ -65,6 +65,11 @@ function request() {
   });
 }
 
+async function runAndReadPayload() {
+  const response = await POST(request());
+  return { response, payload: await response.json() };
+}
+
 function configureDatabase(options: { accessiblePlan?: boolean } = {}) {
   const accessiblePlan = options.accessiblePlan ?? true;
   const updates: Array<Record<string, unknown>> = [];
@@ -159,8 +164,7 @@ describe("POST /api/content/publishing-plan/run", () => {
       error: null,
     });
 
-    const response = await POST(request());
-    const payload = await response.json();
+    const { response, payload } = await runAndReadPayload();
 
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({ checked: 1, scheduled: 1 });
@@ -182,8 +186,7 @@ describe("POST /api/content/publishing-plan/run", () => {
       error: null,
     });
 
-    const response = await POST(request());
-    const payload = await response.json();
+    const { response, payload } = await runAndReadPayload();
 
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({ checked: 1, scheduled: 0 });
