@@ -105,6 +105,7 @@ describe("measured quality ratchets", () => {
 
   it("locks newly demonstrated mutation and route-proof floors", async () => {
     const baseline = JSON.parse(await readFile(path.join(process.cwd(), "qa/harness/baseline.v2.json"), "utf8"));
+    const stryker = await readFile(path.join(process.cwd(), "stryker.config.mjs"), "utf8");
     expect(baseline.metrics).toEqual(expect.objectContaining({
       apiContractCoverage: 53.06,
       changedBranchCoverage: 84,
@@ -119,5 +120,7 @@ describe("measured quality ratchets", () => {
       expect.objectContaining({ metric: "apiContractCoverage", from: 42.86, to: 53.06 }),
       expect.objectContaining({ metric: "routeJourneyCoverage", from: 48.72, to: 55.13 }),
     ]));
+    expect(stryker).toMatch(/low:\s*68/);
+    expect(stryker).toMatch(/break:\s*68/);
   });
 });
