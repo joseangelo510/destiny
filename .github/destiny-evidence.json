@@ -1012,6 +1012,26 @@
       "implementationPaths": [
         "destiny-product/scripts/qa-commit-policy.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "760b101bd51f7ac5b0fb1b4710fc74d1d509040f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedMutationSeconds",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/contract.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "docs/HARNESS_RUNBOOK.md"
+      ]
     }
   ],
   "networkMode": "mocked",
