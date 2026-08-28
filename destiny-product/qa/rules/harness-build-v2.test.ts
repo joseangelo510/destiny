@@ -147,6 +147,7 @@ describe("production build warning ratchet", () => {
     const unitConfig = await readFile(path.join(process.cwd(), "vitest.config.mjs"), "utf8");
     const coverageRunner = await readFile(path.join(process.cwd(), "scripts/qa-coverage.mjs"), "utf8");
     expect(unitConfig).toMatch(/maxWorkers:\s*4/);
+    expect(unitConfig).toMatch(/testTimeout:\s*20_000/);
     expect(coverageRunner).toContain('"--maxWorkers", "2"');
     expect(coverageRunner).toContain('"--testTimeout", "20000"');
   });
