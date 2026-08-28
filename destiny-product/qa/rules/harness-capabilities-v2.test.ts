@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 async function capabilities() {
-  return import("../../scripts/harness/capabilities.mjs");
+  const modulePath = "../../scripts/harness/" + "capabilities.mjs";
+  return import(/* @vite-ignore */ modulePath);
 }
 
 const available = (command: string, version = `${command} 1.0.0`) => ({
