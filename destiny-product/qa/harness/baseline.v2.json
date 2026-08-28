@@ -12,7 +12,7 @@
     "architectureViolations": 0,
     "apiContractCoverage": 100,
     "auditExceptions": 2,
-    "browserJourneyCoverage": 58.62,
+    "browserJourneyCoverage": 65.52,
     "changedMaximumFunctionComplexity": 19,
     "changedBranchCoverage": 84,
     "changedLineCoverage": 90,
@@ -24,7 +24,7 @@
     "flakyRetries": 0,
     "maximumCyclomaticComplexity": 336,
     "quarantinedTests": 0,
-    "routeJourneyCoverage": 84.62,
+    "routeJourneyCoverage": 87.18,
     "skippedTests": 0,
     "testCount": 1028,
     "typeErrors": 0
@@ -177,6 +177,20 @@
       "from": 3.04,
       "to": 3.01,
       "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "browserJourneyCoverage",
+      "from": 58.62,
+      "to": 65.52,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 84.62,
+      "to": 87.18,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
     }
   ]
 }
