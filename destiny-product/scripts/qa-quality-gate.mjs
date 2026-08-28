@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
 import ts from "typescript";
@@ -129,6 +129,11 @@ function requireCleanCommand(label, executable, args) {
 
 requireCleanCommand("ESLint zero-warning gate", path.join(implementationProductRoot, "node_modules", ".bin", "eslint"), [
   ".", "--max-warnings", "0",
+]);
+const generatedTypeRoots = [path.join(productRoot, ".next", "types"), path.join(productRoot, ".next", "dev", "types")];
+await Promise.all(generatedTypeRoots.map((directory) => rm(directory, { recursive: true, force: true })));
+requireCleanCommand("Next.js route type generation", path.join(implementationProductRoot, "node_modules", ".bin", "next"), [
+  "typegen",
 ]);
 requireCleanCommand("TypeScript no-emit gate", path.join(implementationProductRoot, "node_modules", ".bin", "tsc"), [
   "--noEmit",
