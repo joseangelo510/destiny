@@ -6,11 +6,13 @@ import { evaluateCapabilities, normalizeCapabilityProbe } from "./harness/capabi
 
 const productRoot = path.resolve(import.meta.dirname, "..");
 const repositoryRoot = path.resolve(productRoot, "..");
-const artifactRelative = "capabilities/capabilities.json";
+const requireContainer = process.argv.includes("--require-container");
+const artifactRelative = requireContainer
+  ? "capabilities/required-capabilities.json"
+  : "capabilities/capabilities.json";
 const artifactPath = path.join(productRoot, "qa", "artifacts", "harness", artifactRelative);
 const schemaPath = path.join(productRoot, "qa", "harness", "capabilities.schema.json");
 const supabaseBin = path.join(productRoot, "node_modules", ".bin", "supabase");
-const requireContainer = process.argv.includes("--require-container");
 
 function probe(command, executable, args) {
   const result = spawnSync(executable, args, { cwd: productRoot, encoding: "utf8", timeout: 10_000 });
