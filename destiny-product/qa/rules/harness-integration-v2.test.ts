@@ -17,11 +17,17 @@ describe("SOTA harness integration", () => {
       "qa:quality": "node scripts/qa-quality-gate.mjs",
       "qa:coverage": "node scripts/qa-coverage.mjs",
       "qa:mutation": "node scripts/qa-mutation.mjs",
+      "qa:capabilities": "node scripts/qa-capabilities.mjs",
+      "qa:capabilities:required": "node scripts/qa-capabilities.mjs --require-container",
       "qa:harness-v2": "node scripts/qa-harness-v2.mjs",
     }));
-    expect(await text("destiny-product/scripts/qa-gate.mjs")).toContain('runPnpm(["qa:harness-v2"]);');
+    const completeGate = await text("destiny-product/scripts/qa-gate.mjs");
+    expect(completeGate).toContain('runPnpm(["qa:capabilities:required"]);');
+    expect(completeGate.indexOf('runPnpm(["qa:capabilities:required"]);'))
+      .toBeLessThan(completeGate.indexOf('runPnpm(["qa:harness-v2"]);'));
     const runner = await text("destiny-product/scripts/qa-harness-v2.mjs");
-    for (const step of ["qa:evidence", "qa:quality", "qa:coverage", "qa:mutation"]) expect(runner).toContain(step);
+    for (const step of ["qa:capabilities", "qa:evidence", "qa:quality", "qa:coverage", "qa:mutation"]) expect(runner).toContain(step);
+    expect(runner).toContain("capabilities/capabilities.json");
     expect(runner).toContain("createTraceRecorder");
     expect(runner).toContain("hashEvidenceFiles");
     const quality = await text("destiny-product/scripts/qa-quality-gate.mjs");
