@@ -50,6 +50,46 @@ describe("production build warning ratchet", () => {
       .toContain("Build warning allowance has expired: html-to-docx-optional-encoding.");
   });
 
+  it("fails closed for malformed policies and incomplete or duplicated allowances", async () => {
+    const { evaluateBuildWarnings } = await loadBuildWarnings();
+    expect(evaluateBuildWarnings("", null).errors).toEqual(["Build warning policy must be an object."]);
+    expect(evaluateBuildWarnings("", []).errors).toEqual(["Build warning policy must be an object."]);
+    expect(evaluateBuildWarnings("", { schemaVersion: "1.0.0" }).errors).toEqual([
+      "Build warning policy schemaVersion must be 2.0.0.",
+      "Build warning policy requires a warnings array.",
+    ]);
+    const malformed = { id: warning.id, fingerprint: "", owner: "", reason: "", expiresAt: "later" };
+    expect(evaluateBuildWarnings(warning.fingerprint, {
+      schemaVersion: "2.0.0",
+      warnings: [warning, malformed],
+    }, new Date("2026-08-28T00:00:00.000Z")).errors).toEqual(expect.arrayContaining([
+      "Build warning allowance is duplicated: html-to-docx-optional-encoding.",
+      "Build warning html-to-docx-optional-encoding requires an owner.",
+      "Build warning html-to-docx-optional-encoding requires a reason.",
+      "Build warning html-to-docx-optional-encoding requires a fingerprint.",
+      "Declared build warning disappeared; remove its allowance: html-to-docx-optional-encoding.",
+      "Build warning html-to-docx-optional-encoding expiry is invalid.",
+    ]));
+  });
+
+  it("normalizes ANSI output and rejects unrecognized warning families", async () => {
+    const { evaluateBuildWarnings } = await loadBuildWarnings();
+    expect(evaluateBuildWarnings(`${warning.fingerprint}\n\u001b[33m⚠ Compiled with warnings\u001b[0m`, {
+      schemaVersion: "2.0.0", warnings: [warning],
+    }, new Date("2026-08-28T00:00:00.000Z"))).toEqual({
+      errors: [], matched: [{ count: 1, id: warning.id }], unknownWarnings: [],
+    });
+    const unknown = evaluateBuildWarnings("Compiled with warnings\nWarning: first\nDeprecationWarning: second\nWarning: first", {
+      schemaVersion: "2.0.0", warnings: [],
+    });
+    expect(unknown.unknownWarnings).toEqual(["Warning: first", "DeprecationWarning: second"]);
+    expect(unknown.errors).toEqual(expect.arrayContaining([
+      "Unknown build warning: Warning: first",
+      "Unknown build warning: DeprecationWarning: second",
+      "Build reported warnings without a recognized fingerprint.",
+    ]));
+  });
+
   it("routes the production build through the receipt-producing wrapper", async () => {
     const packageJson = JSON.parse(await readFile(path.join(process.cwd(), "package.json"), "utf8"));
     expect(packageJson.scripts.build).toBe("node scripts/qa-build.mjs");

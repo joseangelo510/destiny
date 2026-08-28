@@ -53,4 +53,25 @@ describe("build provenance policy", () => {
       "Production build must persist its evidence receipt.",
     ]));
   });
+
+  it("rejects each missing or misordered wrapper stage independently", async () => {
+    const { validateBuildProvenance } = await loadBuildPolicy();
+    expect(validateBuildProvenance({ buildScript: "node scripts/qa-build.mjs", runnerSource: "" })).toEqual([
+      "Production build wrapper must create a build stamp.",
+      "Production build wrapper must invoke Next.js with webpack.",
+      "Build warnings must be evaluated after the production build.",
+      "Production build must persist its evidence receipt.",
+    ]);
+    expect(validateBuildProvenance({
+      buildScript: "node scripts/qa-build.mjs",
+      runnerSource: [
+        "writeFile(artifactPath",
+        "const evaluation = evaluateBuildWarnings(",
+        "write-build-stamp.mjs",
+        '["next", "build", "--webpack"]',
+      ].join("\n"),
+    })).toEqual(expect.arrayContaining([
+      "Production build receipt must be written after warning evaluation.",
+    ]));
+  });
 });
