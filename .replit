@@ -1,0 +1,57 @@
+run = "cd destiny-product && pnpm run dev -- -H 0.0.0.0 -p 3000"
+modules = ["nodejs-22", "python-base-3.13"]
+
+[deployment]
+build = "cd destiny-product && pnpm install --frozen-lockfile && pnpm run build"
+run = "cd destiny-product && pnpm run start -- -H 0.0.0.0 -p 3000"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[[ports]]
+localPort = 3010
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 5100
+externalPort = 3001
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[postMerge]
+path = ".replit-scripts/post-merge.sh"
+timeoutMs = 180000
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd destiny-product && pnpm exec next dev -p 5000 -H 0.0.0.0"
+waitForPort = 5000
+
+[[workflows.workflow.metadata]]
+outputType = "webview"
+
+[nix]
+channel = "stable-25_05"

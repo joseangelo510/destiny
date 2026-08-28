@@ -800,3 +800,92 @@ After execution, append the outcome through a second protected docs-only PR with
 
 Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No further Replit write before its merge and exact merge-SHA harness success.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## CTO production decision supplement: D8.1-CONT through D8.4b-CONT
+
+[2026-08-28] D8.1-CONT, D8.2-CONT, D8.3-CONT, D8.4-CONT, D8.4a-CONT, and D8.4b-CONT
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — deterministic package-manager and effective Replit runtime-configuration remediation.
+Status: DECIDED — AWAITING PROTECTED CONFIG-GOVERNANCE PR. No dependency install, build, run, or publish is authorized before its protected merge, exact merge-SHA harness success, new artifact pin, and D8.5 execution decision.
+
+### A. Stops and environment provenance
+
+The D8 execution correctly stopped before project dependency installation, build, or publish when `pnpm` first resolved to `/home/runner/workspace/.config/npm/node_global/bin/pnpm` instead of a user-local pinned shim. Removal of the stale `pnpm` and `pnpx` symlinks exposed Replit's lower Nix pnpm `10.26.1`, and removal of the stale Corepack shim exposed Nix Corepack `0.34.0`. These were nonconforming fallback paths, not acceptable release provenance.
+
+Read-only npm diagnostics showed the effective prefix remained `/home/runner/workspace/.config/npm/node_global`; the configured user prefix `/home/runner/.local` was reported as overridden by environment. Git porcelain remained empty. D8.3-CONT therefore authorized one command-line-prefix-pinned install of Corepack `0.34.7` under `/home/runner/.local`, followed by `corepack enable --install-directory /home/runner/.local/bin` and activation of pnpm `11.9.0`. Verification passed:
+
+- `command -v corepack` -> `/home/runner/.local/bin/corepack`; `corepack --version` -> `0.34.7`
+- `command -v pnpm` -> `/home/runner/.local/bin/pnpm`; `pnpm --version` -> `11.9.0`
+- pre-install workspace size -> `353 MB`, below the binding `6144 MB` gate
+- pinned Replit HEAD -> `082c70f1aecc8d3c395ea12f3542bd146fc57a01`; Git porcelain empty
+
+The lower Nix binaries and inert old-prefix Corepack library residue are left untouched. Any pnpm invocation in the eventual D8.5 execution must first reassert `/home/runner/.local/bin/pnpm` at exactly `11.9.0` in the same shell.
+
+### B. Canonical package manager and lockfile
+
+Pinned-tree evidence showed both `destiny-product/package-lock.json` and `destiny-product/pnpm-lock.yaml`. Last-touch evidence was:
+
+- `destiny-product/package.json`: `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, `2026-08-28T03:28:20-07:00`
+- `destiny-product/package-lock.json`: `4cbb139d7783c5e3573bdd8b5b5ca55a00c2f3f7`, `2026-08-22T08:44:48-07:00`
+- `destiny-product/pnpm-lock.yaml`: `53f18c2194d681c7c168008464d4d37eb10ed843`, `2026-08-22T09:01:43-07:00`
+
+The manifest declares `packageManager: pnpm@11.9.0`; CI and staging already install pnpm `11.9.0` and use `pnpm install --frozen-lockfile`; exact-main harness run `33191216200` succeeded on the frozen pnpm path. The manifest diff since the pnpm-lock touch changed only build and QA scripts and no dependency-bearing field. D8.4a-CONT therefore selected R0: pnpm `11.9.0` is canonical, `pnpm-lock.yaml` is semantically current and must not be regenerated, and `package-lock.json` is the orphan that must be deleted.
+
+Permanent no-mixed-manager rule: Destiny tracks exactly one application lockfile, `destiny-product/pnpm-lock.yaml`, and application dependency installation in Replit, CI, staging, documentation, and release execution uses pnpm only.
+
+### C. Effective Replit configuration governance
+
+The pinned commit did not contain root `.replit` (`git show 082c70f1:.replit` exited `128`) even though `/home/runner/workspace/.replit` was the effective Replit build/deploy configuration. `git check-ignore -v .replit` identified the tracked root `.gitignore` catch-all rule as the ignore source. The effective file hash before governance was `cdd50b7a73bba292f2ff21278433f0d5a6e4e754e48e6eb7ff5eebdbbeadd2f1`. The tracked `destiny-product/.replit` was an inert subdirectory copy and did not include all effective root workflow, post-merge, port, or Nix configuration.
+
+D8.4b-CONT establishes the permanent single-config rule: exactly one `.replit`, at repository root, tracked, pinned, and harness-covered. This PR must:
+
+1. add `!/.replit` to the tracked root `.gitignore` allowlist;
+2. add the effective root `.replit` configuration, preserving every existing line except replacing all npm/npx invocations with pnpm equivalents and setting the build to `cd destiny-product && pnpm install --frozen-lockfile && pnpm run build`;
+3. delete inert `destiny-product/.replit`;
+4. delete orphan `destiny-product/package-lock.json`;
+5. append this decision supplement only.
+
+No other path is authorized. The pnpm lockfile ships byte-identically.
+
+### D. Merge, pin, and execution boundary
+
+The config-governance PR requires branch protection, the `cto-approved` label applied by `joseangelo510`, all final PR checks green, protected merge, and an exact merge-SHA harness success. After merge, the Replit workspace may fast-forward to the new main only if the old-to-new diff lists exactly the five scoped paths above, Git remains clean, and the effective disk `.replit` hash is byte-identical to `git show HEAD:.replit | sha256sum`.
+
+The resulting commit and tree become the new pinned artifact, superseding `082c70f1aecc8d3c395ea12f3542bd146fc57a01` and `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. D8.4b-CONT authorizes no dependency install for building, no build, no run, and no publish. Fable 5 High must issue D8.5 against the new green pin before the single controlled build/publish sequence.
+
+Status: DECIDED — AWAITING PROTECTED CONFIG-GOVERNANCE PR, EXACT-MERGE HARNESS, NEW PIN, AND D8.5.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## CTO production decision supplement: D8.4c-CONT
+
+[2026-08-28] D8.4c-CONT, successor to D8.4b-CONT under D-REPLIT-BUNDLE-REMEDIATION-8
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — canonical-lockfile security-test alignment discovered at pre-open verification.
+
+The five-path scope approved by D8.4b-CONT would have failed the exact-main harness after deletion of `destiny-product/package-lock.json`: tracked test `destiny-product/qa/rules/document-export-security.test.ts` still opened the deleted npm lockfile and asserted the nanoid security pin in both lockfiles. Codex found this contradiction during pre-open verification, before creating the PR. D8.4c-CONT therefore widened the protected PR to exactly six paths and retained the identical supply-chain invariant against the canonical pnpm lockfile instead of preserving mixed-manager state for a test fixture.
+
+Read-only evidence, recorded verbatim:
+
+```text
+$ grep -nE 'nanoid' destiny-product/pnpm-lock.yaml
+8:  nanoid: 3.3.18
+2224:  nanoid@3.3.18:
+4617:      nanoid: 3.3.18
+5030:  nanoid@3.3.18: {}
+5185:      nanoid: 3.3.18
+
+$ grep -nE '"nanoid"' destiny-product/package.json
+10:    "nanoid": "3.3.18",
+
+$ grep -nE '"overrides"|"pnpm"' destiny-product/package.json
+9:  "overrides": {
+```
+
+Decision path: Variant V2. The canonical lockfile contains `nanoid@3.3.18`, contains no `nanoid@3.3.16` or `nanoid@3.3.17`, and the manifest contains an `overrides.nanoid` pin at `3.3.18`. The test removes all npm-lockfile reads, renames its wording to the canonical pnpm lockfile, asserts the actual manifest override through `pnpm.overrides` or `overrides`, rejects the vulnerable releases, and requires `nanoid@3.3.18` in `pnpm-lock.yaml`. Unrelated Word-export sanitization assertions remain unchanged.
+
+Amended exact PR scope: `.gitignore`, new root `.replit`, deleted `destiny-product/.replit`, deleted `destiny-product/package-lock.json`, `destiny-product/DEPLOY_LOG.md`, and `destiny-product/qa/rules/document-export-security.test.ts`. Any seventh path is forbidden; `destiny-product/pnpm-lock.yaml` remains byte-identical under R0.
+
+Nothing in D8.4c-CONT authorizes dependency installation, build, run, or publish in Replit. Protected merge still requires the `cto-approved` label, all final PR checks green, protected merge, and exact merge-SHA harness success. D8.5 remains the sole execution decision after the new green pin and root `.replit` disk-to-pin hash identity check.
+
+Status: DECIDED — AWAITING EXACT-SIX-PATH PROTECTED PR, EXACT-MERGE HARNESS, NEW PIN, AND D8.5.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.

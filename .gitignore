@@ -3,6 +3,7 @@
 # version control.
 *
 !/.gitignore
+!/.replit
 !/AGENTS.md
 !/CLAUDE.md
 !/HARNESS_POLICY.md
