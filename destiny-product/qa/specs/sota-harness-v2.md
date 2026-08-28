@@ -50,7 +50,7 @@ not masquerade as executed behavior.
 
 The demonstrated floors are locked at 91% changed-line coverage, 89%
 changed-branch coverage, 69% changed mutation, 100% API contract coverage,
-65.52% browser journey coverage, 87.18% combined route proof, and at most 3.01%
+100% browser journey coverage, 100% combined route proof, and at most 3.01%
 duplication. The versioned
 baseline ledger records the receipt and prior value for every upward movement.
 

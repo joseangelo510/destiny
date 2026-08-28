@@ -47,6 +47,44 @@
       }
     },
     {
+      "id": "public-and-guarded-boundaries",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": [
+        "/app",
+        "/auth/confirm",
+        "/auth/signout",
+        "/content/infographics",
+        "/content/repurpose",
+        "/internal-links",
+        "/interviews",
+        "/login",
+        "/onboarding",
+        "/reoptimization/[id]"
+      ],
+      "assertions": ["zero-5xx", "public-heading", "confirmation-redirect", "signout-redirect", "guarded-redirect"],
+      "routeEvidence": {
+        "/app": "\"/app\"",
+        "/auth/confirm": "page.goto(\"/auth/confirm\"",
+        "/auth/signout": "page.request.post(\"/auth/signout\"",
+        "/content/infographics": "\"/content/infographics\"",
+        "/content/repurpose": "\"/content/repurpose\"",
+        "/internal-links": "\"/internal-links\"",
+        "/interviews": "\"/interviews\"",
+        "/login": "\"/login\"",
+        "/onboarding": "\"/onboarding?new=1\"",
+        "/reoptimization/[id]": "\"/reoptimization/missing-document\""
+      },
+      "assertionEvidence": {
+        "zero-5xx": "toBeLessThan(500)",
+        "public-heading": "getByRole(\"heading\", { level: 1 })",
+        "confirmation-redirect": "toHaveURL(/\\/auth\\/error$/)",
+        "signout-redirect": "expect(signout.status()).toBe(303)",
+        "guarded-redirect": "toHaveURL(/\\/(?:login|onboarding)"
+      }
+    },
+    {
       "id": "local-tenant-isolation",
       "mode": "local-isolated",
       "owner": "quality",
