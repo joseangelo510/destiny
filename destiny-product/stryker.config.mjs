@@ -22,7 +22,7 @@ const config = {
     low: 69,
     break: 69,
   },
-  concurrency: 2,
+  concurrency: 4,
   timeoutMS: 10_000,
   dryRunTimeoutMinutes: 2,
   tempDirName: ".stryker-tmp",
