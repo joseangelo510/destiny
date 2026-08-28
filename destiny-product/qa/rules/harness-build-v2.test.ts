@@ -115,4 +115,9 @@ describe("production build warning ratchet", () => {
     expect(mutationConfig).toContain('"qa/mutation/**/*.test.ts"');
     expect(mutationConfig).not.toContain('"qa/rules/**/*.test.ts"');
   });
+
+  it("caps unit-test workers for deterministic execution under host contention", async () => {
+    const unitConfig = await readFile(path.join(process.cwd(), "vitest.config.mjs"), "utf8");
+    expect(unitConfig).toMatch(/maxWorkers:\s*4/);
+  });
 });
