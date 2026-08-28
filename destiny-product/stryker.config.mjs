@@ -19,8 +19,8 @@ const config = {
   },
   thresholds: {
     high: 80,
-    low: 60,
-    break: 60,
+    low: 68,
+    break: 68,
   },
   concurrency: 2,
   timeoutMS: 10_000,
