@@ -153,9 +153,12 @@ describe("production build warning ratchet", () => {
   });
 
   it("meets the mutation ceiling through bounded parallelism and explicit timeout classification", async () => {
+    const eslintConfig = await readFile(path.join(process.cwd(), "eslint.config.mjs"), "utf8");
     const mutationConfig = await readFile(path.join(process.cwd(), "stryker.config.mjs"), "utf8");
     const mutationRunner = await readFile(path.join(process.cwd(), "scripts/qa-mutation.mjs"), "utf8");
+    expect(eslintConfig).toContain('".stryker-tmp/**"');
     expect(mutationConfig).toMatch(/concurrency:\s*4/);
+    expect(mutationRunner.match(/rm\(mutationTemporaryRoot/g)).toHaveLength(2);
     expect(mutationRunner).toContain('run.error?.code === "ETIMEDOUT"');
     expect(mutationRunner).toContain("run.status === 143");
     expect(mutationRunner).toContain("Math.ceil(targets.length / 6)");
