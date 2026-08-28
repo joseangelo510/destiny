@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   findForbiddenTestMarkers,
+  isTestFile,
   validateCommitShape,
 } from "../../scripts/qa-commit-policy.mjs";
 
@@ -21,6 +22,12 @@ describe("Fable commit discipline and deploy log", () => {
     expect(validateCommitShape({
       subject: "qa: cover the edge case",
       files: [{ path: "qa/rules/edge.test.ts", status: "A" }],
+    })).toEqual([]);
+    expect(isTestFile("destiny-product/qa/helpers/api-route-contract.ts")).toBe(true);
+    expect(isTestFile("destiny-product/src/helpers/api-route-contract.ts")).toBe(false);
+    expect(validateCommitShape({
+      subject: "qa: add reusable route-test support",
+      files: [{ path: "destiny-product/qa/helpers/api-route-contract.ts", status: "A" }],
     })).toEqual([]);
     expect(validateCommitShape({
       subject: "green: mix implementation and tests",
