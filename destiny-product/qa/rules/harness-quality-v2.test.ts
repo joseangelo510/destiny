@@ -340,6 +340,18 @@ describe("changed-scope quality measurement", () => {
       ["a.ts", "if (a) while (b) value ?? fallback"],
       ["b.ts", "plain"],
     ]), { duplicateTokenFloor: 50 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 4 });
+    expect(measureSourceDebt(new Map([
+      ["a.ts", ""],
+      ["b.ts", "   "],
+    ]), { duplicateTokenFloor: 1 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 1 });
+    expect(measureSourceDebt(new Map([
+      ["a.ts", "alpha beta"],
+      ["b.ts", "gamma delta"],
+    ]), { duplicateTokenFloor: 2 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 1 });
+    expect(measureSourceDebt(new Map([
+      ["a.ts", "ab c"],
+      ["b.ts", "a bc"],
+    ]), { duplicateTokenFloor: 2 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 1 });
   });
 
   it("exhausts complexity paths, route ordering, and typed route denominators", async () => {
@@ -351,8 +363,14 @@ describe("changed-scope quality measurement", () => {
       maximum: 4,
       offenders: [{ complexity: 4, file: "src/b.ts", line: 4 }],
     });
+    expect(evaluateChangedFunctionComplexity([
+      { filePath: "/outside/exact.ts", messages: [{ ruleId: "complexity", line: 1, message: "complexity of 3" }] },
+    ], { productRoot: "/repo", maximum: 3 })).toEqual({ maximum: 3, offenders: [] });
     expect(calculateRouteJourneyCoverage(["/b", "/a", "/b"], ["/a"])).toEqual({
       covered: 1, percentage: 50, total: 2, uncovered: ["/b"],
+    });
+    expect(calculateRouteJourneyCoverage(["/z", "/a"], [])).toEqual({
+      covered: 0, percentage: 0, total: 2, uncovered: ["/a", "/z"],
     });
     expect(calculateTypedJourneyCoverage(
       ["/z", "/api/b", "/a", "/api/a", "/z"],
@@ -373,13 +391,13 @@ describe("changed-scope quality measurement", () => {
   it("fails closed for null journeys and accepts every declared journey mode", async () => {
     const { validateJourneyRegistry } = await loadQualityModule();
     const nullErrors = validateJourneyRegistry({ schemaVersion: "2.0.0", journeys: [null] });
-    expect(nullErrors).toEqual(expect.arrayContaining([
+    expect(nullErrors).toEqual([
       "Journey <missing> has an invalid mode.",
       "Journey <missing> requires an owner.",
       "Journey <missing> test file does not exist: <missing>.",
       "Journey <missing> requires routes.",
       "Journey <missing> requires assertions.",
-    ]));
+    ]);
     for (const mode of ["public", "local-isolated", "staging-readonly"]) {
       const testFile = `${mode}.spec.ts`;
       expect(validateJourneyRegistry({
@@ -415,15 +433,35 @@ describe("changed-scope quality measurement", () => {
     }, {
       knownRoutes: new Set(["/"]),
       testFiles: new Set(["scalar.spec.ts"]),
-    })).toEqual(expect.arrayContaining([
+    })).toEqual([
       "Journey scalar-evidence requires route evidence: /.",
       "Journey scalar-evidence requires assertion evidence: visible.",
-    ]));
+    ]);
+    expect(validateJourneyRegistry("invalid")).toEqual(["Journey registry must be an object."]);
+    expect(validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{
+        id: "missing-source",
+        mode: "public",
+        owner: "quality",
+        testFile: "missing-source.spec.ts",
+        routes: ["/"],
+        assertions: ["visible"],
+        routeEvidence: { "/": "Stryker was here!" },
+        assertionEvidence: { visible: "Stryker was here!" },
+      }],
+    }, {
+      knownRoutes: new Set(["/"]),
+      testFiles: new Set(["missing-source.spec.ts"]),
+    })).toEqual([
+      "Journey missing-source route evidence is not present in missing-source.spec.ts: /.",
+      "Journey missing-source assertion evidence is not present in missing-source.spec.ts: visible.",
+    ]);
   });
 
   it("exhausts emitted-code normalization and executable skip syntax", async () => {
     const { countSkippedTests, filterExecutableChanges } = await loadQualityModule();
-    const files = ["empty.ts", "strict.ts", "export.ts", "anchored.ts", "spaced.ts"];
+    const files = ["empty.ts", "strict.ts", "export.ts", "anchored.ts", "spaced.ts", "whitespace.ts", "strict-tail.ts"];
     expect(filterExecutableChanges(files, {
       baseOutputs: new Map(files.map((file) => [file, ""])),
       headOutputs: new Map([
@@ -432,13 +470,37 @@ describe("changed-scope quality measurement", () => {
         ["export.ts", "\n export { } \n"],
         ["anchored.ts", "const before = true; 'use strict';"],
         ["spaced.ts", "\n\t\"use strict\";\n export { }; \n"],
+        ["whitespace.ts", "  \n\t"],
+        ["strict-tail.ts", "'use strict';XYZ"],
       ]),
-    })).toEqual(["anchored.ts"]);
+    })).toEqual(["anchored.ts", "strict-tail.ts"]);
+    expect(filterExecutableChanges(["inline-strict.ts", "inline-export.ts", "tight-export.ts", "export-tail.ts"], {
+      baseOutputs: new Map([
+        ["inline-strict.ts", "const x = 1;"],
+        ["inline-export.ts", "const x = 1;"],
+        ["tight-export.ts", ""],
+        ["export-tail.ts", "const x = 1;"],
+      ]),
+      headOutputs: new Map([
+        ["inline-strict.ts", "const x = 1; 'use strict';"],
+        ["inline-export.ts", "const x = 1; export {};"],
+        ["tight-export.ts", "export{}"],
+        ["export-tail.ts", "export {}; const x = 1;"],
+      ]),
+    })).toEqual(["inline-strict.ts", "inline-export.ts", "export-tail.ts"]);
     expect(countSkippedTests("test.skipper('not a skip', () => {})")).toBe(0);
     expect(countSkippedTests("describe.skip(\n  'suite', () => {}\n)\nit.skip('case', () => {})")).toBe(2);
 
     const source = await readFile(path.join(process.cwd(), "scripts/harness/quality.mjs"), "utf8");
     expect(source).toContain("token grammar is exhaustively specified");
     expect(source).toContain("emitted preamble normalization is exhaustively specified");
+    expect(source).toContain("absent report messages cannot create a complexity measurement");
+    expect(source).toContain("missing message text is always malformed");
+  });
+
+  it("does not confuse embedded test-like suffixes with test files", async () => {
+    const { selectMutationTargets } = await loadQualityModule();
+    expect(selectMutationTargets(["src/a.test.ts.fake.ts"], { maximumFiles: 1 }))
+      .toEqual(["src/a.test.ts.fake.ts"]);
   });
 });
