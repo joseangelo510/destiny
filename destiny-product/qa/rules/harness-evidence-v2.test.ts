@@ -268,6 +268,18 @@ describe("SOTA harness evidence contract", () => {
     }
     expect(validateEvidenceManifest({ ...validManifest, redReplay: null })).toEqual(["Evidence requires redReplay."]);
     expect(validateEvidenceManifest({ ...validManifest, redReplay: "invalid" })).toEqual(["Evidence requires redReplay."]);
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      redReplay: { ...validManifest.redReplay, command: [] },
+    })).toContain("Evidence requires redReplay.command.");
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      redReplay: { ...validManifest.redReplay, testFiles: [] },
+    })).toContain("Evidence requires redReplay.testFiles.");
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      additionalRedReplays: [{ ...validManifest.redReplay, command: [] }],
+    })).toContain("Evidence requires additionalRedReplays[0].command.");
     expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `x${"a".repeat(40)}` } }))
       .toContain("Evidence requires a full redReplay.redCommit SHA.");
     expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `${"a".repeat(40)}x` } }))
