@@ -55,4 +55,20 @@ describe("changed-scope quality measurement", () => {
       ["/", "/app", "/api/version"],
     )).toEqual({ covered: 3, percentage: 75, total: 4, uncovered: ["/keywords"] });
   });
+
+  it("handles empty coverage and deduplicates normalized mutation targets", async () => {
+    const { calculateChangedCoverage, selectMutationTargets } = await loadQualityModule();
+    expect(calculateChangedCoverage({ changedLines: new Map(), coverage: {} })).toEqual({
+      branchCoverage: 100, coveredBranches: 0, coveredLines: 0, lineCoverage: 100, totalBranches: 0, totalLines: 0,
+    });
+    expect(selectMutationTargets([
+      "src\\lib\\a.ts", "src/lib/a.ts", "src/lib/a.test.ts", "scripts/other.mjs", "scripts/harness/a.mjs",
+    ], { maximumFiles: 2 })).toEqual(["scripts/harness/a.mjs", "src/lib/a.ts"]);
+  });
+
+  it("deduplicates route inventory and handles an empty route set", async () => {
+    const { calculateRouteJourneyCoverage } = await loadQualityModule();
+    expect(calculateRouteJourneyCoverage(["/a", "/a"], ["/a"])).toEqual({ covered: 1, percentage: 100, total: 1, uncovered: [] });
+    expect(calculateRouteJourneyCoverage([], [])).toEqual({ covered: 0, percentage: 100, total: 0, uncovered: [] });
+  });
 });

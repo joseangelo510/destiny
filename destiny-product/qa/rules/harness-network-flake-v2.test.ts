@@ -49,4 +49,33 @@ describe("network and flake controls", () => {
         "Quarantine requires an expiry.",
       ]));
   });
+
+  it("enforces every declared network mode", async () => {
+    const { assertNetworkRequestAllowed, validateNetworkMode } = await loadNetworkModule();
+    expect(validateNetworkMode("unknown")).toEqual(["Unknown QA_NETWORK_MODE: unknown."]);
+    expect(() => assertNetworkRequestAllowed("http://localhost:9999/a", "local-isolated", "post")).not.toThrow();
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "local-isolated")).toThrow(/loopback only/);
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "staging-readonly", "head")).not.toThrow();
+    const before = process.env.QA_LIVE_AUTHORIZED;
+    delete process.env.QA_LIVE_AUTHORIZED;
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "authorized-live")).toThrow(/QA_LIVE_AUTHORIZED=1/);
+    process.env.QA_LIVE_AUTHORIZED = "1";
+    expect(() => assertNetworkRequestAllowed("https://example.com/a", "authorized-live", "POST")).not.toThrow();
+    if (before === undefined) delete process.env.QA_LIVE_AUTHORIZED;
+    else process.env.QA_LIVE_AUTHORIZED = before;
+  });
+
+  it("never converts any failed attempt into green", async () => {
+    const { classifyTestAttempts } = await loadFlakeModule();
+    expect(classifyTestAttempts([{ status: "pass" }, { status: "fail" }])).toEqual({ flaky: false, gateStatus: "fail", retries: 1 });
+    expect(classifyTestAttempts([{ status: "fail" }, { status: "fail" }]).gateStatus).toBe("fail");
+    expect(classifyTestAttempts([])).toEqual({ flaky: false, gateStatus: "pass", retries: 0 });
+  });
+
+  it("rejects invalid and expired quarantines", async () => {
+    const { validateQuarantine } = await loadFlakeModule();
+    const now = new Date("2026-08-27T00:00:00Z");
+    expect(validateQuarantine({ owner: "a", reason: "b", expiresAt: "later" }, now)).toContain("Quarantine expiry is invalid.");
+    expect(validateQuarantine({ owner: "a", reason: "b", expiresAt: "2026-08-26T00:00:00Z" }, now)).toContain("Quarantine has expired.");
+  });
 });

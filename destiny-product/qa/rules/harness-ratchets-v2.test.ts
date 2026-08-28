@@ -61,4 +61,30 @@ describe("measured quality ratchets", () => {
         "Ratchet exception requires an expiry.",
       ]));
   });
+
+  it("ratchets every declared quality direction", async () => {
+    const { compareRatchetMetrics } = await loadRatchetModule();
+    expect(compareRatchetMetrics({
+      architectureViolations: 0, auditExceptions: 1, dependencyCycles: 1, duplicateBlocks: 1,
+      duplicationPercentage: 1, eslintWarnings: 0, flakyRetries: 0, maximumCyclomaticComplexity: 2,
+      quarantinedTests: 0, skippedTests: 0, typeErrors: 0, changedBranchCoverage: 80,
+      changedLineCoverage: 80, changedMutationScore: 70, routeJourneyCoverage: 50, testCount: 500,
+    }, {
+      architectureViolations: 1, auditExceptions: 2, dependencyCycles: 2, duplicateBlocks: 2,
+      duplicationPercentage: 2, eslintWarnings: 1, flakyRetries: 1, maximumCyclomaticComplexity: 3,
+      quarantinedTests: 1, skippedTests: 1, typeErrors: 1, changedBranchCoverage: 79,
+      changedLineCoverage: 79, changedMutationScore: 69, routeJourneyCoverage: 49, testCount: 1,
+    })).toHaveLength(15);
+  });
+
+  it("rejects malformed and expired exceptions", async () => {
+    const { validateRatchetException } = await loadRatchetModule();
+    const now = new Date("2026-08-27T00:00:00Z");
+    expect(validateRatchetException({ decisionId: "no", expiresAt: "later" }, now)).toEqual(expect.arrayContaining([
+      "Ratchet exception requires a Fable High decision ID.", "Ratchet exception requires an owner.",
+      "Ratchet exception requires a reason.", "Ratchet exception expiry is invalid.",
+    ]));
+    expect(validateRatchetException({ decisionId: "D-VALID-1", owner: "joseangelo510", reason: "bounded", expiresAt: "2026-08-26T00:00:00Z" }, now))
+      .toContain("Ratchet exception has expired.");
+  });
 });
