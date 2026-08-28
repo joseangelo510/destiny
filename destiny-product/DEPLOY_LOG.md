@@ -735,3 +735,68 @@ Required evidence: this decision PR URL and merge SHA; required check URLs at th
 
 Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No cleanup, install, build, or publish before its merge.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## CTO production decision: D-REPLIT-BUNDLE-REMEDIATION-8
+
+[2026-08-28] D-REPLIT-BUNDLE-REMEDIATION-8
+Title: Stop the live workspace writer, finish the bounded Replit cleanup, restore the pinned pnpm toolchain, and authorize one production retry.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — frozen Replit production surface, toolchain repair, and governed remediation of a failed cleanup.
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No further Replit write before its merge and exact merge-SHA harness success.
+
+### A. Immutable facts
+
+The pinned application artifact remains commit `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`. Production remains unchanged on deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d`. Workspace process changes cannot modify that separate live deployment.
+
+D7 was properly recorded through PR #49, labeled `cto-approved` by `joseangelo510`, protected-merged at `9fb6c1b2bc73936c84bb5eacbfd5bb0d8f6b281f`, with exact merge-SHA harness run `33189440317` successful.
+
+The single D7 cleanup command exited nonzero because a live Turbopack writer kept `/home/runner/workspace/.next/dev/cache/turbopack` nonempty. The first three ordered paths — root `.cache`, `.local`, and `node_modules` — were removed; root `.next` remained partial; `destiny-product/node_modules` and `destiny-product/.next` were not reached. The cleanup allowance was consumed. No install, build, or publish allowance was used.
+
+Post-failure checks still showed the pinned HEAD/tree and an empty Git status. Removing `.local` removed Corepack from PATH. Replit/Nix displayed an interactive package-selection prompt, which Codex cancelled without selecting or installing anything.
+
+### B. Determinations and supersession
+
+D8 supersedes and voids every unused D7 allowance once this decision is recorded. D8 is then the sole authorization. It permits targeted termination of the workspace dev/Turbopack writer, bounded re-deletion of only the three remaining allowlisted paths, user-local restoration of Corepack and pnpm `11.9.0`, and one frozen install, build, and republish attempt. It does not authorize a new deployment, a Repl reboot, tracked-file or runtime-config changes, or any Replit/Nix package selection.
+
+### C. Authorized writes
+
+- Append this decision and the later outcome record to `destiny-product/DEPLOY_LOG.md` through protected docs-only PRs.
+- Send SIGTERM, and only if necessary after a ten-second recheck SIGKILL, to individually enumerated workspace dev/Turbopack writer PIDs.
+- Remove exactly `/home/runner/workspace/.next`, `/home/runner/workspace/destiny-product/node_modules`, and `/home/runner/workspace/destiny-product/.next`.
+- Write only untracked user-home locations required for the toolchain repair: `~/.npmrc`, `~/.local/**`, `~/.cache/**`, and npm/Corepack cache directories.
+- Run one `pnpm install --frozen-lockfile`, one verbatim `.replit` build, and one republish of the existing deployment.
+
+### D. Forbidden actions
+
+Do not answer any interactive Nix/Replit package prompt. Do not edit `.replit`, `replit.nix`, shell rc files, secrets, environment files, or any tracked application file. Do not use `nix profile install`, `nix-env`, switch or install Node versions, remove anything outside the three remaining paths, mutate Git in the Replit workspace, create or duplicate a deployment, change deployment configuration or secrets, use Replit Agent or Fix with Agent, or retry beyond the budgets below.
+
+### E. Ordered execution
+
+1. Record D8 in a docs-only PR, have `joseangelo510` apply `cto-approved`, require all final-PR checks green, protected-merge it, and require the exact merge-SHA harness run to succeed before another Replit write.
+2. Read-only verify pinned HEAD/tree, empty `git status --porcelain`, and working `node --version` and `git --version`. Any mismatch or failure is a hard STOP.
+3. Enumerate workspace processes with `ps -eo pid,ppid,etime,command | grep -Ei 'next|turbopack|node|pnpm' | grep -v grep`. Send SIGTERM to each confirmed writer individually, excluding PID 1, the current shell and its ancestors, and every Git/SSH process. Wait about ten seconds and re-enumerate. Send SIGKILL only to the same still-present writer PIDs. If writers respawn after two complete passes, STOP.
+4. Remove the three remaining paths one command at a time in this order: root `.next`, `destiny-product/node_modules`, `destiny-product/.next`. Verify each is absent with `ls -d`. If one path fails again because of a live writer, one additional attempt of only that path is permitted after repeating the process-stop step successfully; otherwise STOP. Reverify pinned HEAD/tree and clean Git.
+5. Restore the toolchain only by exporting `$HOME/.local/bin` first in the session, requiring `npm --version` to succeed, recording `npm config get prefix`, setting the npm prefix to `$HOME/.local`, running `npm install -g corepack` once, verifying `corepack --version`, running `corepack prepare pnpm@11.9.0 --activate`, and requiring both `corepack pnpm --version` and `pnpm --version` to print exactly `11.9.0`, with `pnpm` resolving under `$HOME/.local`. Any nonzero exit, unexpected version, or interactive prompt is a hard STOP. Reverify pinned HEAD/tree and clean Git.
+6. In the directory containing `pnpm-lock.yaml`, run exactly one `pnpm install --frozen-lockfile`. Any failure or lockfile mutation is a hard STOP.
+7. Execute the verbatim build command from `.replit` exactly once. Reverify byte-identical tracked state and the pinned HEAD/tree.
+8. Record `du -sm /home/runner/workspace`, `destiny-product/.next`, and every `node_modules`. The workspace must be at most `6144 MB`; a larger result is a hard STOP.
+9. Run the approved prepublish checks. Then republish the existing Replit deployment once with no configuration change. Run production route, zero-5xx, authentication, version, `keyword_serp`, and Supabase postchecks.
+
+### F. Attempt budget, stop, rollback, and claim boundary
+
+D8 authorizes one Corepack install, one frozen pnpm install, one build, and one publish. Every nonzero exit or ambiguous state consumes the corresponding allowance and requires STOP. No ungoverned retry exists.
+
+Universal stop conditions include broken Node or Git, artifact or tracked-tree drift, any interactive prompt, missing npm, pnpm not exactly `11.9.0`, lockfile mutation, build failure, size-gate breach, publish error, unavailable required evidence, or any ambiguity.
+
+Production remains on the current build until republish succeeds. If republish or any required postcheck fails after promotion, re-promote the prior successful deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d` through Replit's previous-deployment restore exactly once, verify it, STOP, and report. If restore is unavailable or fails, STOP without a forward fix.
+
+A successful republish proves runtime parity with the pinned main artifact only. Passing `keyword_serp` may flip keyword research to GO under D-LAUNCH-READINESS-1; it does not authorize a broader launch claim.
+
+### G. Required completion evidence
+
+Record the decision PR URL, `cto-approved` label, merge SHA, final check URLs, and exact merge-SHA harness receipt; full Step 2 through Step 9 command transcripts and exit codes; process lists before/after; absent-path proofs; Node/npm/Corepack/pnpm versions; package and lock hashes; build stamp; Git identity and clean-state checks; size measurements; prepublish results; publish receipt and deployment identity; production/postcheck results; and any rollback receipt.
+
+After execution, append the outcome through a second protected docs-only PR with the same approval, merge, and green-check standard. Complete means the D8 decision PR is merged green, the bounded execution finishes within budget, production is postchecked or rolled back and reported, and the outcome PR is merged green at its merge SHA.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No further Replit write before its merge and exact merge-SHA harness success.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
