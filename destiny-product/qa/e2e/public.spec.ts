@@ -38,3 +38,32 @@ test("public recovery and legacy routes fail safely", async ({ page }) => {
   expect(growthPlanResponse?.status()).toBeLessThan(500);
   await expect(page).toHaveURL(/\/(?:results|login)(?:[?#]|$)/);
 });
+
+test("public entry and guarded workspace routes fail closed without a session", async ({ page }) => {
+  for (const route of ["/login", "/onboarding?new=1"]) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), route).toBeLessThan(500);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  const confirmation = await page.goto("/auth/confirm", { waitUntil: "domcontentloaded" });
+  expect(confirmation?.status()).toBeLessThan(500);
+  await expect(page).toHaveURL(/\/auth\/error$/);
+
+  const signout = await page.request.post("/auth/signout", { maxRedirects: 0 });
+  expect(signout.status()).toBe(303);
+  expect(new URL(signout.headers().location).pathname).toBe("/");
+
+  for (const route of [
+    "/app",
+    "/content/infographics",
+    "/content/repurpose",
+    "/internal-links",
+    "/interviews",
+    "/reoptimization/missing-document",
+  ]) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), route).toBeLessThan(500);
+    await expect(page).toHaveURL(/\/(?:login|onboarding)(?:[?#]|$)/);
+  }
+});
