@@ -109,9 +109,27 @@ describe("harness environment capabilities", () => {
       .toEqual({ command: "tool", available: false, error: "exit status 7" });
     expect(normalizeCapabilityProbe({ command: "tool", stdout: "", stderr: "" }))
       .toEqual({ command: "tool", available: false, error: "exit status unavailable" });
+    const sanitized = normalizeCapabilityProbe({
+      command: "tool",
+      status: 1,
+      stdout: "",
+      stderr: `  Bearer   abc.def token  =  private api-key:secret api_key = value apikey=third\n${"x".repeat(300)}  `,
+    });
+    expect(sanitized).toEqual(expect.objectContaining({ command: "tool", available: false }));
+    expect(sanitized.error).toHaveLength(240);
+    expect(sanitized.error).toMatch(/^Bearer \[REDACTED] token=\[REDACTED] api-key=\[REDACTED] api_key=\[REDACTED] apikey=\[REDACTED] x+$/);
+    for (const invalid of [null, {}, { command: 7 }, { command: "   " }]) {
+      expect(() => normalizeCapabilityProbe(invalid as never)).toThrow("Capability probe command");
+    }
     const core = Object.fromEntries(["node", "pnpm", "git", "supabase"].map((name) => [name, { available: true }]));
     expect(evaluateCapabilities({ ...core, docker: { available: true }, podman: { available: true } }, { requireContainer: true }))
       .toEqual(expect.objectContaining({ status: "pass", containerRuntime: "docker" }));
+    expect(evaluateCapabilities({}, { requireContainer: true })).toEqual({
+      status: "fail",
+      required: ["node", "pnpm", "git", "supabase", "container-engine"],
+      missing: ["node", "pnpm", "git", "supabase", "container-engine"],
+      containerRuntime: null,
+    });
   });
 
   it("keeps one deterministic unavailable fallback", async () => {
