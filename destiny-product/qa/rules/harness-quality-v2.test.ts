@@ -119,11 +119,14 @@ describe("changed-scope quality measurement", () => {
         testFile: "qa/e2e/public.spec.ts",
         routes: ["/"],
         assertions: ["document", "accessibility"],
+        routeEvidence: { "/": "page.goto(\"/\")" },
+        assertionEvidence: { document: "toHaveTitle", accessibility: "AxeBuilder" },
       }],
     };
     expect(validateJourneyRegistry(registry, {
       knownRoutes: new Set(["/", "/app", "/api/version"]),
       testFiles: new Set(["qa/e2e/public.spec.ts"]),
+      testSources: new Map([["qa/e2e/public.spec.ts", 'page.goto("/"); toHaveTitle(); AxeBuilder();']]),
     })).toEqual([]);
     expect(calculateTypedJourneyCoverage(
       ["/", "/app", "/api/version"],
@@ -139,6 +142,34 @@ describe("changed-scope quality measurement", () => {
         combined: { covered: 2, total: 3, uncovered: ["/app"] },
       },
     });
+  });
+
+  it("rejects journey route or assertion claims without source evidence", async () => {
+    const { validateJourneyRegistry } = await loadQualityModule();
+    const testFile = "qa/e2e/public.spec.ts";
+    const errors = validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{
+        id: "public-home",
+        mode: "public",
+        owner: "quality",
+        testFile,
+        routes: ["/", "/app"],
+        assertions: ["document", "accessibility"],
+        routeEvidence: { "/": "page.goto(\"/\")", "/app": "page.goto(\"/app\")", "/extra": "fabricated" },
+        assertionEvidence: { document: "toHaveTitle", accessibility: "AxeBuilder", fabricated: "never" },
+      }],
+    }, {
+      knownRoutes: new Set(["/", "/app"]),
+      testFiles: new Set([testFile]),
+      testSources: new Map([[testFile, 'page.goto("/"); toHaveTitle();']]),
+    });
+    expect(errors).toEqual(expect.arrayContaining([
+      "Journey public-home route evidence is not present in qa/e2e/public.spec.ts: /app.",
+      "Journey public-home assertion evidence is not present in qa/e2e/public.spec.ts: accessibility.",
+      "Journey public-home has undeclared route evidence: /extra.",
+      "Journey public-home has undeclared assertion evidence: fabricated.",
+    ]));
   });
 
   it("rejects unowned, missing-test, duplicate, and unknown-route journeys", async () => {
