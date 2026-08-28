@@ -10,10 +10,9 @@ const fallbackSites = JSON.stringify([{
   businessName: process.env.QA_BUSINESS_NAME ?? "Smart & Fast Background Checks",
 }]);
 const sites = parseProductionSiteMatrix(process.env.QA_PROD_SITES_JSON ?? fallbackSites);
+if (!authenticated) throw new Error("Set QA_PROD_READONLY=1 and QA_AUTH_STATE before production read-only verification.");
 
 test.describe("@gate production website matrix read-only", () => {
-  test.skip(!authenticated, "Set QA_AUTH_STATE to an authenticated Playwright storage-state file.");
-
   for (const site of sites) {
     const routes = [
       "/this-week", "/roadmap", "/results", "/analytics", "/audits", `/audits/${site.auditId}`,
