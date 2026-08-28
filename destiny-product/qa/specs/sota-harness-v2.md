@@ -38,8 +38,8 @@ may hold or improve quality; they may not worsen it. Test count is informational
 Duration has explicit PR and nightly ceilings. Coverage and mutation apply to
 changed code. Skips, quarantines, flaky retries, audit exceptions, duplication,
 cycles, architecture violations, warnings, type errors, and complexity debt may
-not increase. Every changed executable function also has an absolute cyclomatic
-complexity ceiling of 20; type-only edits are excluded by comparing emitted
+not increase. Every changed executable function also has a ratcheted cyclomatic
+complexity ceiling, currently 19; type-only edits are excluded by comparing emitted
 JavaScript at protected main and HEAD. Any temporary regression requires a
 separate Fable High decision, owner, reason, expiry, and policy label.
 
