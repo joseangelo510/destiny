@@ -86,6 +86,18 @@ The parallel launch at `https://app.caminoseo.com` receives production changes o
 9. Merge through protected `main`. Do not force push and do not use an admin bypass.
 10. Create a release tag only under a separate HIGH decision.
 
+## Harness v2 evidence contract
+
+`.github/destiny-evidence.json` is the typed, schema-validated change contract. PR prose points to it but may not replace it. The contract declares classification, Fable decision provenance, exact replayable RED commits and focused argv commands, network mode, touched routes, and every changed non-test product path.
+
+RED is accepted only when the declared tests are collected and fail for the declared reason at an ancestor commit. GREEN is accepted only when the same focused command passes at HEAD. A fail-then-pass remains red and is classified as flaky; retries never convert it to green. RED may be not applicable only for decision-record-only, docs-only, protected-revert, or generated-inventory-only diffs, and the exemption must match the actual diff.
+
+The PR lane runs `pnpm qa:harness-v2` and produces versioned JSONL traces plus validation, architecture, changed-coverage, changed-mutation, and deterministic hash receipts under `destiny-product/qa/artifacts/harness/`. Network access fails closed unless a declared mode permits it. Application telemetry uses correlation IDs and versioned structured events with recursive secret and PII redaction.
+
+Quality thresholds are measured ratchets. Architecture violations, dependency cycles, duplication, complexity, skips, quarantines, retries, lint warnings, and type errors may not increase. Changed coverage, mutation score, and journey coverage may not decrease. Raw test count is informational. Runtime uses fixed ceilings. Any temporary regression requires an expiring, owned exception backed by a new Fable High decision.
+
+The scheduled assurance lane repeats selected browser journeys to discover flakes, runs mutation and coverage, and preserves all receipts. It does not weaken the required PR lane or authorize live writes, deployment, issue creation, or production verification.
+
 ## Scenario rules
 
 - UX-only: MEDIUM; full gate and touched-route check; no full 79-route sweep.
@@ -106,7 +118,7 @@ The parallel launch at `https://app.caminoseo.com` receives production changes o
 - A PR changing this policy must also have `policy-change` applied by `joseangelo510`.
 - A label from any other actor is invalid.
 - `policy-guard` blocks frozen or HIGH paths without valid labels.
-- `checklist-guard` blocks missing classification, incomplete evidence, unchecked items, or a HIGH PR without a deploy-log decision link.
+- `checklist-guard` validates `.github/destiny-evidence.json` and the PR's stable pointer to it.
 - `harness-gates` runs the complete product harness.
 - All three checks are required by branch protection. No force pushes, admin bypasses, or non-linear history.
 
