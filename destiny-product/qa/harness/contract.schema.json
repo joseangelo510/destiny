@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destiny.local/schemas/harness-contract-v2.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "decisionId",
+    "canonicalBaseSha",
+    "evidence",
+    "redReplay",
+    "networkModes",
+    "architecture",
+    "ratchets",
+    "integrityLimit"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "2.0.0" },
+    "decisionId": { "const": "D-HARNESS-SOTA-2" },
+    "canonicalBaseSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "evidence": { "type": "object" },
+    "redReplay": { "type": "object" },
+    "networkModes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["mocked", "local-isolated", "staging-readonly", "authorized-live"] }
+    },
+    "architecture": { "type": "object" },
+    "ratchets": { "type": "object" },
+    "integrityLimit": { "type": "string", "minLength": 40 }
+  }
+}
