@@ -48,7 +48,7 @@ contract coverage comes from canonical route tests. The two denominators remain
 separate and combine into a route-journey ratchet, so literal route mentions do
 not masquerade as executed behavior.
 
-The demonstrated floors are locked at 91% changed-line coverage, 89%
+The demonstrated floors are locked at 100% changed-line coverage, 91%
 changed-branch coverage, 69% changed mutation, 100% API contract coverage,
 100% browser journey coverage, 100% combined route proof, and at most 3.01%
 duplication. The versioned
