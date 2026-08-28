@@ -183,6 +183,31 @@
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/scripts/qa-quality-gate.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "7910b8b90245f663f2fbb719d0a7017282ab4f35",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-capabilities-v2.test.ts",
+        "qa/rules/harness-integration-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-capabilities-v2.test.ts",
+        "destiny-product/qa/rules/harness-integration-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "HARNESS_POLICY.md",
+        "destiny-product/package.json",
+        "destiny-product/qa/harness/capabilities.schema.json",
+        "destiny-product/scripts/harness/capabilities.mjs",
+        "destiny-product/scripts/qa-capabilities.mjs",
+        "destiny-product/scripts/qa-gate.mjs",
+        "destiny-product/scripts/qa-harness-v2.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
