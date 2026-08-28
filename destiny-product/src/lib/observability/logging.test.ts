@@ -108,10 +108,13 @@ describe("structured application observability", () => {
         secret: "private",
         service_role_key: "private",
         "service-role-key": "private",
+        servicerole_key: "private",
+        service_rolekey: "private",
         token: "private",
         api_key: "private",
         "api-key": "private",
         message: "before Bearer abc.def-123+/= after",
+        spaced: "before Bearer   abc123 after",
         nullable: null,
       },
     });
@@ -122,11 +125,23 @@ describe("structured application observability", () => {
       secret: "[REDACTED]",
       service_role_key: "[REDACTED]",
       "service-role-key": "[REDACTED]",
+      servicerole_key: "[REDACTED]",
+      service_rolekey: "[REDACTED]",
       token: "[REDACTED]",
       api_key: "[REDACTED]",
       "api-key": "[REDACTED]",
       message: "before Bearer [REDACTED] after",
+      spaced: "before Bearer [REDACTED] after",
       nullable: null,
     });
+  });
+
+  it("accepts multi-segment structured event names", async () => {
+    const { createLogEvent } = await loadLoggingModule();
+    expect(createLogEvent({
+      correlationId: "018f3f5d-3e16-7c2a-9f2e-3c227fd77e11",
+      event: "audit.scan.completed",
+      severity: "info",
+    }).event).toBe("audit.scan.completed");
   });
 });
