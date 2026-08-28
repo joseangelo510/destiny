@@ -574,6 +574,23 @@
         "destiny-product/qa/harness/baseline.v2.json",
         "destiny-product/qa/specs/sota-harness-v2.md"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "23d261b2d0d31bb8fdfc812ea283bca879727f27",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-capabilities-v2.test.ts"
+      ],
+      "failurePattern": "detail ||",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-capabilities-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/capabilities.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
