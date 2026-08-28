@@ -747,6 +747,23 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/evidence.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "e4e1b0e417821fe6a028e5a5445d900045f67f11",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "token grammar is exhaustively specified",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
