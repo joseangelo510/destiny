@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { installProductionReadOnlyGuard } from "./support/read-only-guard";
-import { parseProductionSiteMatrix } from "./support/prod-site-matrix";
+import { parseProductionSiteMatrix } from "../support/prod-site-matrix";
 
 const authenticated = process.env.QA_PROD_READONLY === "1" && Boolean(process.env.QA_AUTH_STATE);
 const fallbackSites = JSON.stringify([{
