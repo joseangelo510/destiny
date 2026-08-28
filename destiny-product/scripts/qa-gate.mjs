@@ -54,6 +54,7 @@ async function readEnvironment(file) {
 }
 
 try {
+  runPnpm(["qa:capabilities:required"]);
   runPnpm(["qa:repository"]);
   run("git", ["diff", "--exit-code", "--", "destiny-product/file-length-baseline.json"], { cwd: repositoryRoot });
   runPnpm(["qa:commits"]);
@@ -62,6 +63,7 @@ try {
   run("git", ["diff", "--exit-code", "--", "destiny-product/qa/inventory"], { cwd: repositoryRoot });
   runPnpm(["qa:migrations"]);
   runPnpm(["qa:audit"]);
+  runPnpm(["qa:harness-v2"]);
   runPnpm(["lint"]);
   runPnpm(["test"]);
 

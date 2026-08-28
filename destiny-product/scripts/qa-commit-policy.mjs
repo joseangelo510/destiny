@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const root = path.resolve(import.meta.dirname, "..");
 const policyPath = path.join(root, "commit-policy.json");
@@ -21,7 +22,8 @@ function git(args) {
 }
 
 export function isTestFile(file) {
-  return /(?:^|\/)[^/]+\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(file);
+  return /(?:^|\/)[^/]+\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(file)
+    || /(?:^|\/)qa\/helpers\/.+\.[cm]?[jt]sx?$/i.test(file);
 }
 
 export function validateCommitShape({ subject, files }) {
@@ -49,10 +51,31 @@ const markerPatterns = [
   /@pytest\.mark\.skip\b/,
 ];
 
+const NON_EXECUTABLE_TOKENS = new Set([
+  ts.SyntaxKind.SingleLineCommentTrivia,
+  ts.SyntaxKind.MultiLineCommentTrivia,
+  ts.SyntaxKind.StringLiteral,
+  ts.SyntaxKind.RegularExpressionLiteral,
+  ts.SyntaxKind.NoSubstitutionTemplateLiteral,
+  ts.SyntaxKind.TemplateHead,
+  ts.SyntaxKind.TemplateMiddle,
+  ts.SyntaxKind.TemplateTail,
+]);
+
+function maskNonExecutableSource(source) {
+  const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.JSX, source);
+  let masked = "";
+  for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
+    const text = scanner.getTokenText();
+    masked += NON_EXECUTABLE_TOKENS.has(token) ? text.replace(/[^\r\n]/g, " ") : text;
+  }
+  return masked;
+}
+
 export function findForbiddenTestMarkers(diff) {
-  return diff.split("\n")
-    .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
-    .filter((line) => markerPatterns.some((pattern) => pattern.test(line.slice(1))));
+  const added = diff.split("\n")
+    .filter((line) => line.startsWith("+") && !line.startsWith("+++"));
+  return added.filter((line) => markerPatterns.some((pattern) => pattern.test(maskNonExecutableSource(line.slice(1)))));
 }
 
 export function commitsRequiringShapeValidation({ commits, protectedMainReachableShas }) {

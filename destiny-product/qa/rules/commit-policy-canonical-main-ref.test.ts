@@ -87,6 +87,8 @@ describe("canonical protected main ref resolution", () => {
   });
 
   it("accepts only the enumerated canonical URL normalization matrix", async () => {
+    const { repository, sha } = await createRepository();
+    addRemote(repository, "github", "https://github.com/joseangelo510/destiny", sha);
     const canonicalBases = [
       "https://github.com/joseangelo510/destiny",
       "git@github.com:joseangelo510/destiny",
@@ -94,14 +96,15 @@ describe("canonical protected main ref resolution", () => {
     ];
     for (const base of canonicalBases) {
       for (const suffix of ["", ".git", "/", ".git/"]) {
-        const { repository, sha } = await createRepository();
-        addRemote(repository, "github", `${base}${suffix}`, sha);
+        git(repository, ["remote", "set-url", "github", `${base}${suffix}`]);
         expect(resolveProtectedMainRef(repository), `${base}${suffix}`).toBe("refs/remotes/github/main");
       }
     }
-  }, 15_000);
+  }, 20_000);
 
   it("rejects near-miss repository identities", async () => {
+    const { repository, sha } = await createRepository();
+    addRemote(repository, "github", "https://github.com/other/destiny.git", sha);
     for (const url of [
       "https://github.com/other/destiny.git",
       "https://github.com/joseangelo510/destiny-fork.git",
@@ -109,11 +112,10 @@ describe("canonical protected main ref resolution", () => {
       "https://github.com/prefix/joseangelo510/destiny.git",
       "https://github.com/joseangelo510/destiny/extra.git",
     ]) {
-      const { repository, sha } = await createRepository();
-      addRemote(repository, "github", url, sha);
+      git(repository, ["remote", "set-url", "github", url]);
       expect(() => resolveProtectedMainRef(repository), url).toThrow(/non-canonical/i);
     }
-  });
+  }, 20_000);
 
   it("rejects a local branch spoof named github/main", async () => {
     const { repository } = await createRepository();

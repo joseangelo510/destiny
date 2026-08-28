@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "2.0.0",
+  "journeys": [
+    {
+      "id": "public-home",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": ["/"],
+      "assertions": ["document", "navigation", "accessibility", "accessible-names"],
+      "routeEvidence": { "/": "page.goto(\"/\")" },
+      "assertionEvidence": {
+        "document": "toHaveTitle(/Destiny/i)",
+        "navigation": "a[href*=\"/onboarding\"]",
+        "accessibility": "new AxeBuilder",
+        "accessible-names": "Unnamed visible controls"
+      }
+    },
+    {
+      "id": "public-links",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/links.spec.ts",
+      "routes": ["/"],
+      "assertions": ["internal-links", "zero-5xx"],
+      "routeEvidence": { "/": "page.goto(\"/\")" },
+      "assertionEvidence": {
+        "internal-links": "a[href^=\"/\"]",
+        "zero-5xx": "toBeLessThan(500)"
+      }
+    },
+    {
+      "id": "public-recovery-legacy",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": ["/auth/error", "/growth-plan"],
+      "assertions": ["zero-5xx", "recovery-link", "legacy-redirect"],
+      "routeEvidence": {
+        "/auth/error": "page.goto(\"/auth/error\")",
+        "/growth-plan": "page.goto(\"/growth-plan\")"
+      },
+      "assertionEvidence": {
+        "zero-5xx": "toBeLessThan(500)",
+        "recovery-link": "Return to sign in",
+        "legacy-redirect": "toHaveURL(/\\/(?:results|login)"
+      }
+    },
+    {
+      "id": "public-and-guarded-boundaries",
+      "mode": "public",
+      "owner": "quality",
+      "testFile": "qa/e2e/public.spec.ts",
+      "routes": [
+        "/app",
+        "/auth/confirm",
+        "/auth/signout",
+        "/content/infographics",
+        "/content/repurpose",
+        "/internal-links",
+        "/interviews",
+        "/login",
+        "/onboarding",
+        "/reoptimization/[id]"
+      ],
+      "assertions": ["zero-5xx", "public-heading", "confirmation-redirect", "signout-redirect", "guarded-redirect"],
+      "routeEvidence": {
+        "/app": "\"/app\"",
+        "/auth/confirm": "page.goto(\"/auth/confirm\"",
+        "/auth/signout": "page.request.post(\"/auth/signout\"",
+        "/content/infographics": "\"/content/infographics\"",
+        "/content/repurpose": "\"/content/repurpose\"",
+        "/internal-links": "\"/internal-links\"",
+        "/interviews": "\"/interviews\"",
+        "/login": "\"/login\"",
+        "/onboarding": "\"/onboarding?new=1\"",
+        "/reoptimization/[id]": "\"/reoptimization/missing-document\""
+      },
+      "assertionEvidence": {
+        "zero-5xx": "toBeLessThan(500)",
+        "public-heading": "getByRole(\"heading\", { level: 1 })",
+        "confirmation-redirect": "toHaveURL(/\\/auth\\/error$/)",
+        "signout-redirect": "expect(signout.status()).toBe(303)",
+        "guarded-redirect": "toHaveURL(/\\/(?:login|onboarding)"
+      }
+    },
+    {
+      "id": "local-tenant-isolation",
+      "mode": "local-isolated",
+      "owner": "quality",
+      "testFile": "qa/e2e/local-authenticated.spec.ts",
+      "routes": ["/audits", "/content", "/api/audits/[id]"],
+      "assertions": ["tenant-switch", "tenant-isolation", "not-found-boundary"],
+      "routeEvidence": {
+        "/audits": "/audits?site=${alpha.websiteId}",
+        "/content": "page.goto(\"/content\")",
+        "/api/audits/[id]": "/api/audits/${fixture!.outsiderAuditId}"
+      },
+      "assertionEvidence": {
+        "tenant-switch": "data-site-switch",
+        "tenant-isolation": "data-workspace-website",
+        "not-found-boundary": "toBe(404)"
+      }
+    },
+    {
+      "id": "local-mvp-certification",
+      "mode": "local-isolated",
+      "owner": "quality",
+      "testFile": "qa/e2e/mvp-certification.spec.ts",
+      "routes": ["/this-week", "/content", "/rank-tracker", "/api/integrations/cms/wordpress/reconcile"],
+      "assertions": ["launch-actions", "publication-evidence", "rank-integrity"],
+      "routeEvidence": {
+        "/this-week": "/this-week?site=${fixture!.mvp.websiteId}",
+        "/content": "/content?site=${fixture!.mvp.websiteId}",
+        "/rank-tracker": "/rank-tracker?site=${fixture!.mvp.websiteId}",
+        "/api/integrations/cms/wordpress/reconcile": "**/api/integrations/cms/wordpress/reconcile"
+      },
+      "assertionEvidence": {
+        "launch-actions": "toHaveCount(4)",
+        "publication-evidence": "verified_live",
+        "rank-integrity": "#0"
+      }
+    },
+    {
+      "id": "production-readonly-workspace",
+      "mode": "staging-readonly",
+      "owner": "quality",
+      "testFile": "qa/e2e/prod-readonly.spec.ts",
+      "routes": [
+        "/account",
+        "/analytics",
+        "/audits",
+        "/audits/[id]",
+        "/backlinks",
+        "/content",
+        "/distribution",
+        "/integrations",
+        "/keyword-research",
+        "/keywords",
+        "/llm-visibility",
+        "/rank-tracker",
+        "/results",
+        "/reviews",
+        "/roadmap",
+        "/this-week"
+      ],
+      "assertions": ["document", "workspace-identity", "site-context", "accessibility", "no-write"],
+      "routeEvidence": {
+        "/account": "\"/account\"",
+        "/analytics": "\"/analytics\"",
+        "/audits": "\"/audits\"",
+        "/audits/[id]": "/audits/${site.auditId}",
+        "/backlinks": "\"/backlinks\"",
+        "/content": "\"/content\"",
+        "/distribution": "\"/distribution\"",
+        "/integrations": "\"/integrations\"",
+        "/keyword-research": "\"/keyword-research\"",
+        "/keywords": "\"/keywords\"",
+        "/llm-visibility": "\"/llm-visibility\"",
+        "/rank-tracker": "\"/rank-tracker\"",
+        "/results": "\"/results\"",
+        "/reviews": "\"/reviews\"",
+        "/roadmap": "\"/roadmap\"",
+        "/this-week": "\"/this-week\""
+      },
+      "assertionEvidence": {
+        "document": "response?.status()",
+        "workspace-identity": "Smart & Fast Background Checks",
+        "site-context": "Links lost ${site.businessName} context",
+        "accessibility": "new AxeBuilder",
+        "no-write": "guard.assertNoMutationAttempt()"
+      }
+    }
+  ]
+}

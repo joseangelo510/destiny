@@ -27,3 +27,43 @@ test("all visible homepage controls have an accessible name", async ({ page }) =
   );
   expect(unnamed, `Unnamed visible controls:\n${unnamed.join("\n")}`).toEqual([]);
 });
+
+test("public recovery and legacy routes fail safely", async ({ page }) => {
+  const authErrorResponse = await page.goto("/auth/error");
+  expect(authErrorResponse?.status()).toBeLessThan(500);
+  await expect(page.getByRole("heading", { name: "Let’s send a fresh one." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Return to sign in" })).toHaveAttribute("href", "/login");
+
+  const growthPlanResponse = await page.goto("/growth-plan");
+  expect(growthPlanResponse?.status()).toBeLessThan(500);
+  await expect(page).toHaveURL(/\/(?:results|login)(?:[?#]|$)/);
+});
+
+test("public entry and guarded workspace routes fail closed without a session", async ({ page }) => {
+  for (const route of ["/login", "/onboarding?new=1"]) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), route).toBeLessThan(500);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  }
+
+  const confirmation = await page.goto("/auth/confirm", { waitUntil: "domcontentloaded" });
+  expect(confirmation?.status()).toBeLessThan(500);
+  await expect(page).toHaveURL(/\/auth\/error$/);
+
+  const signout = await page.request.post("/auth/signout", { maxRedirects: 0 });
+  expect(signout.status()).toBe(303);
+  expect(new URL(signout.headers().location).pathname).toBe("/");
+
+  for (const route of [
+    "/app",
+    "/content/infographics",
+    "/content/repurpose",
+    "/internal-links",
+    "/interviews",
+    "/reoptimization/missing-document",
+  ]) {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), route).toBeLessThan(500);
+    await expect(page).toHaveURL(/\/(?:login|onboarding)(?:[?#]|$)/);
+  }
+});

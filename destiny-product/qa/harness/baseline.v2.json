@@ -1,0 +1,264 @@
+{
+  "schemaVersion": "2.0.0",
+  "decisionId": "D-HARNESS-SOTA-2",
+  "measuredAtSha": "1870cb3afbb7bdfa4667a0266c3e8e19bf068ade",
+  "measurement": {
+    "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
+    "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
+    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 initially observed 64.13 to 66.30 percent, improved to 68.53 to 68.73 percent, then reached 69.53 percent over 1,959 scored mutants in 12 changed modules after replacing regex import discovery with a TypeScript AST. The ratcheted fail-closed floor is 69 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
+    "journeys": "Typed qa/harness/journeys.v2.json browser evidence plus canonical src/app/api/**/route.test.ts route-contract discovery."
+  },
+  "metrics": {
+    "architectureViolations": 0,
+    "apiContractCoverage": 100,
+    "auditExceptions": 2,
+    "browserJourneyCoverage": 100,
+    "changedMaximumFunctionComplexity": 19,
+    "changedBranchCoverage": 100,
+    "changedLineCoverage": 100,
+    "changedMutationScore": 100,
+    "dependencyCycles": 0,
+    "duplicateBlocks": 95,
+    "duplicationPercentage": 3.01,
+    "eslintWarnings": 0,
+    "flakyRetries": 0,
+    "maximumCyclomaticComplexity": 336,
+    "quarantinedTests": 0,
+    "routeJourneyCoverage": 100,
+    "skippedTests": 0,
+    "testCount": 1028,
+    "typeErrors": 0
+  },
+  "ceilings": {
+    "prLaneSeconds": 1800,
+    "nightlyLaneSeconds": 7200,
+    "changedMutationSeconds": 375
+  },
+  "knownDebt": {
+    "auditExceptions": [
+      "GHSA-w3rx-r6r6-pgpr expires for review on 2026-09-05",
+      "GHSA-5p2g-fcmc-qvqq expires for review on 2026-09-05"
+    ]
+  },
+  "ratchetHistory": [
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 0,
+      "to": 60,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1258,
+      "observedRange": [64.13, 66.3]
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "dependencyCycles",
+      "from": 1,
+      "to": 0,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 20.51,
+      "to": 48.72,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "browserJourneyCoverage",
+      "from": 0,
+      "to": 58.62,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 0,
+      "to": 42.86,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "skippedTests",
+      "from": 3,
+      "to": 0,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMaximumFunctionComplexity",
+      "from": "unbounded",
+      "to": 20,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMaximumFunctionComplexity",
+      "from": 20,
+      "to": 19,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 60,
+      "to": 68,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1951,
+      "observedRange": [68.53, 68.73]
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 45.59,
+      "to": 84,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedLineCoverage",
+      "from": 56.45,
+      "to": 90,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 42.86,
+      "to": 53.06,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 48.72,
+      "to": 55.13,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "duplicationPercentage",
+      "from": 3.1,
+      "to": 3.04,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 53.06,
+      "to": 65.31,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 55.13,
+      "to": 62.82,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 65.31,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 62.82,
+      "to": 84.62,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "duplicationPercentage",
+      "from": 3.04,
+      "to": 3.01,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "browserJourneyCoverage",
+      "from": 58.62,
+      "to": 65.52,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 84.62,
+      "to": 87.18,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 84,
+      "to": 89,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedLineCoverage",
+      "from": 90,
+      "to": 91,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 68,
+      "to": 69,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1959,
+      "observedRange": [69.53, 69.53]
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "browserJourneyCoverage",
+      "from": 65.52,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 87.18,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 89,
+      "to": 91,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedLineCoverage",
+      "from": 91,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedBranchCoverage",
+      "from": 91,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/coverage/changed-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 69,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1871,
+      "observedRange": [100, 100],
+      "durationSeconds": 297.5
+    }
+  ]
+}

@@ -2,6 +2,10 @@
 
 <!-- What user-visible outcome or safety improvement does this change create? -->
 
+Evidence manifest: `.github/destiny-evidence.json`
+
+The manifest is the machine-readable source of truth for classification, decision provenance, RED replay, network mode, touched routes, and product paths. Update it to match the actual PR diff; do not duplicate those claims in prose.
+
 ## Governance classification
 
 - [ ] Classification: MEDIUM

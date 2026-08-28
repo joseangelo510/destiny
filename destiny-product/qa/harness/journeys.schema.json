@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destiny.local/qa/harness/journeys.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "journeys"],
+  "properties": {
+    "schemaVersion": { "const": "2.0.0" },
+    "journeys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "mode", "owner", "testFile", "routes", "assertions", "routeEvidence", "assertionEvidence"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "mode": { "enum": ["public", "local-isolated", "staging-readonly"] },
+          "owner": { "type": "string", "minLength": 2 },
+          "testFile": { "type": "string", "pattern": "^qa/e2e/.+\\.spec\\.ts$" },
+          "routes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^/" }
+          },
+          "assertions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+          },
+          "routeEvidence": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          },
+          "assertionEvidence": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

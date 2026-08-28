@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "2.0.0",
+  "exceptions": [
+    {
+      "ghsa": "GHSA-w3rx-r6r6-pgpr",
+      "owner": "platform-security",
+      "reason": "The vulnerable image parser is bundled through html-to-docx; user-controlled images are removed before conversion.",
+      "boundaryTest": "qa/rules/document-export-security.test.ts",
+      "expiresAt": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "ghsa": "GHSA-5p2g-fcmc-qvqq",
+      "owner": "platform-security",
+      "reason": "The vulnerable image parser is bundled through html-to-docx; user-controlled images are removed before conversion.",
+      "boundaryTest": "qa/rules/document-export-security.test.ts",
+      "expiresAt": "2026-09-05T00:00:00.000Z"
+    }
+  ]
+}

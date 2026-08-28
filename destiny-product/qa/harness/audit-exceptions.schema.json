@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://destiny.local/schemas/audit-exceptions-v2.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "exceptions"],
+  "properties": {
+    "schemaVersion": { "const": "2.0.0" },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ghsa", "owner", "reason", "boundaryTest", "expiresAt"],
+        "properties": {
+          "ghsa": { "type": "string", "pattern": "^GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$" },
+          "owner": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "boundaryTest": { "type": "string", "pattern": "\\.(?:test|spec)\\.[cm]?[jt]sx?$" },
+          "expiresAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{3})?Z$" }
+        }
+      }
+    }
+  }
+}

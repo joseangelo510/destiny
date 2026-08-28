@@ -889,3 +889,87 @@ Nothing in D8.4c-CONT authorizes dependency installation, build, run, or publish
 
 Status: DECIDED — AWAITING EXACT-SIX-PATH PROTECTED PR, EXACT-MERGE HARNESS, NEW PIN, AND D8.5.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+## 2026-08-27 — DECISION RECORD: D-HARNESS-SOTA-2 (CTO Model Decision)
+
+**Decision:** CONDITIONAL GO — harness replacement authorized under the corrections and conditions below. The proposal as submitted is NOT authorized verbatim; conditions C1–C7 are binding amendments.
+**Deciding authority:** Fable 5 High — authenticated model label: Claude Fable 5 (`claude-fable-5`), acting as deciding Destiny CTO authority under `HARNESS_POLICY.md` GOV-1. Codex may not self-authorize; Codex executes under this record only.
+**Requested by:** Jose Gallegos (explicit direction).
+**Classification:** HIGH — governance policy, enforcement scripts, PR template, and CI workflows change.
+**Canonical repository:** `joseangelo510/destiny`
+**Canonical base:** `origin/main` @ `1870cb3afbb7bdfa4667a0266c3e8e19bf068ade` (verified present).
+**Implementation branch:** `codex/harness-sota-2` (protected PR; HIGH lane).
+
+### Skeptical corrections to the submitted proposal (binding)
+
+- **C1 — Test-count ratchet removed as a gate.** Raw test count is a Goodhart target that rewards junk tests and punishes legitimate test consolidation. It is recorded as an informational metric in the ledger only. Enforcement signal comes from changed-code branch/line coverage and changed-module mutation score.
+- **C2 — Harness duration is a ceiling budget, not an improve-only ratchet.** A monotonic "equal or better" duration ratchet is self-defeating: every added test worsens it, which pressures deletion of tests. Authorized form: explicit per-lane duration ceilings (PR lane, nightly lane), adjustable only via a separately labeled Fable High policy decision.
+- **C3 — RED-replay not-applicable classes are a fixed, guard-validated enumeration**, not "decision-record-only" alone: (a) decision-record-only changes, (b) docs-only changes, (c) protected revert PRs, (d) regeneration of generated inventories with no hand-written source change. Each N/A claim is validated mechanically against the diff by the policy guard. Any other exemption requires a separately labeled Fable High policy decision with owner and expiry.
+- **C4 — All floors and baselines initialize from measured `main`, never from aspiration.** First commit of each ratchet records the measured baseline at the canonical base SHA; the gate begins as "equal or better than measured." No fabricated targets, no 100% requirements. Changed-scope mutation testing carries a hard per-PR runtime cap; if scope exceeds the cap, the gate fails closed with instructions to narrow scope or obtain a labeled exception — never a silent skip.
+- **C5 — Product-code touch is capped.** The only product changes permitted are a correlation-ID/structured-logging primitive module and its wiring, with zero route/business-logic/behavior change, delivered in isolated, individually reviewable commits and enumerated in the evidence manifest. Any product diff outside that module class voids this authorization for that PR.
+- **C6 — Tamper-resistance claim is scoped honestly.** Harness self-tests prove fail-closed behavior, schema compatibility, redaction, ratchet enforcement, and RED replay for future PRs. They cannot prove tamper resistance of the PR that ships them, because that PR can modify the self-tests. Pre-merge integrity therefore rests on: existing required checks remaining authoritative until merge, Jose's line review of all enforcement-script and workflow diffs, and manifest hashes recorded in evidence. Documentation must state this limit; no stronger claim may be made.
+- **C7 — Retry-classification runs never turn a run green.** A test that fails then passes on repeat is recorded as flaky and counts against the flake budget; it does not convert the gate outcome. No retry logic outside the classifier; no quarantine without owner, reason, and expiry.
+
+### Authorized objectives and path classes
+
+Objectives 1–12 as proposed, as amended by C1–C7. Authorized write paths, all within the repository on branch `codex/harness-sota-2`:
+- `destiny-product/HARNESS_POLICY.md`, PR template, governance/checklist/qa-gate enforcement scripts, and new verifier/ratchet/schema/self-test code under the existing scripts/tests/harness directories.
+- `.github` workflows for the PR lane and a new nightly lane.
+- Versioned harness contract, evidence schema, evidence manifests, metrics/ratchet ledger, and JSONL trace emission (secrets redacted; schema versioned).
+- Architecture-test, coverage, mutation, duplication, complexity, and dependency-boundary configuration.
+- Product code: correlation/logging primitive module only, per C5.
+- `destiny-product/DEPLOY_LOG.md` (this record, appended first) and harness documentation.
+- AGENTS/CLAUDE pointer files only if a path they reference actually moves.
+
+### Dependency allowance (dev-only, named capability classes)
+
+Authorized: mutation testing (StrykerJS class), dependency-graph/architecture boundary enforcement (dependency-cruiser or ESLint-boundary-plugin class), code-duplication detection (jscpd class), JSON Schema validation (ajv/zod class), coverage provider (`@vitest/coverage-v8` class). Lockfile changes included. Constraints: exact version pinning; CI installs run with scripts disabled (`--ignore-scripts`) or equivalent verification; established, widely used packages only; **no runtime dependencies, no telemetry SDKs, no packages that phone home.** Anything outside these classes requires a new labeled decision.
+
+### Minimum acceptance criteria
+
+1. RED replay verifier: proves ancestor relationship, absence/unmodified state of implementation paths at RED where applicable, focused-test failure at RED for the right reason, success at HEAD; rejects missing/zero-test/wrong-reason cases; both receipts recorded. N/A only per C3.
+2. Typed, checked-in evidence manifest fully replaces exact-text PR-body parsing; human-readable PR summary retained.
+3. Every gate emits schema-versioned JSONL trace events plus deterministic summary and manifest hashes; redaction self-test passes.
+4. All ratchets of item 4 (minus C1's test count, with C2's duration form) enforce equal-or-better against a measured-ledger baseline; worsening requires a separately labeled Fable High decision with owner and expiry.
+5. Architecture tests fail on dependency cycles and forbidden imports against a declared layer map.
+6. Changed-code coverage and changed-module mutation gates run deterministically within the C4 runtime cap; nightly runs the full-depth versions.
+7. Flake controls per C7; hermetic fixtures with declared network mode per item 9; fail-closed on undeclared network use.
+8. Harness self-tests cover every fail-closed path, schema compatibility, redaction, ratchet, and RED replay (scope per C6).
+9. Full local evidence (where Docker is available) and green existing required checks at the final PR SHA.
+
+### Sequencing
+
+(1) Decision-record commit appending this record verbatim → (2) contract/schema + evidence manifest → (3) harness self-tests RED → (4) verifiers/ratchets GREEN, baselines measured from `main` → (5) architecture/coverage/mutation/flake/observability gates RED→GREEN → (6) workflow split (PR lane / nightly lane) → (7) policy, PR template, docs → (8) QA/self-test evidence commits → (9) protected HIGH PR. Jose applies `cto-approved` and `policy-change` labels; **existing required checks remain authoritative until merge.** New checks become branch-protection-required only after one green post-merge run on `main`, flipped by Jose alone.
+
+### Stop conditions (halt and return to Jose, no improvisation)
+
+RED replay infeasible under CI checkout constraints; any measured baseline unobtainable deterministically; runtime cap unachievable for changed-scope mutation; any need to touch product code beyond C5; any need for a dependency outside the allowance; any conflict with a required check that tempts weakening it; discovery that a "gap" claim above is factually wrong in a way that changes design.
+
+### Forbidden scope
+
+No production or staging deployment; no Replit modification; no container-staging push; no release tag; no migration/schema/RLS/auth change; no secret/env/provider change; no customer-data access; no external message or publish; no branch-protection change by the model; no runtime telemetry vendor or dependency; no weakening, bypassing, or redefining of existing required checks pre-merge; no self-application of labels.
+
+### Evidence requirements
+
+Evidence manifest at final SHA including: RED and GREEN receipts per gate, measured baseline ledger entries, JSONL trace samples, redaction test output, self-test results, dependency diff with pinned versions, product-diff enumeration proving C5 compliance, and local full-gate output where Docker was available (explicit note where it was not).
+
+### Rollout and rollback
+
+Rollout: single protected HIGH PR from `codex/harness-sota-2`; merge only on Jose's explicit authorization, both labels, and green existing required checks at the final rebased SHA. Nightly lane failures open evidence issues; they never silently redefine `main` as green. Rollback: protected revert PR only; reverting this PR restores the prior harness in full because no product behavior beyond C5 primitives changes.
+
+**Status:** AUTHORIZED (conditional). Implementation may begin at the decision-record commit. Any deviation from C1–C7 voids this authorization and requires a new decision.
+
+## 2026-08-28 — DECISION RECORD: D-LOCAL-CONTAINER-RUNNER-1
+
+- deciding authority: Fable 5 High, acting as Destiny CTO under `HARNESS_POLICY.md` policy `GOV-1`
+- requested by: Jose Gallegos, with explicit direction to obtain a Docker/Podman-capable runner recommendation and implement it
+- decision record: https://claude.ai/chat/c21b610d-7a1b-4cd8-8b05-4dc8da2ba8ae
+- classification: HIGH because host provisioning is ambiguous under the policy's runtime-configuration rule; this record resolves that ambiguity before implementation
+- decision: APPROVED — provision a host-only Colima plus Docker CLI runner, with Podman as the sanctioned fallback, solely to execute the existing Destiny gate for branch `codex/harness-sota-2` beginning from commit `2e69f6507c1bad97ef9dc9c88c752262bf0ca4ba`
+- verified planned versions: Lima `2.2.0`, Colima `0.10.3`, Docker CLI `29.7.2`; install only upstream arm64 artifacts and verify published SHA-256 digests where the upstream release supplies them
+- host allocation: Apple Silicon macOS; 4 CPUs, 8 GiB memory, and 60 GiB disk for the Colima VM
+- repository effect: this decision record only; no dependency, lockfile, application, test, harness, CI, environment, credential, workflow, or runtime-configuration file change is authorized
+- external effect: local user-space container tooling and VM state only; no customer data, remote Supabase project, staging, production, Replit, Fly, CMS, email, social, or deployment mutation is authorized
+- gate scope: local capability verification, isolated Supabase stack startup, existing isolation and browser-fixture checks, existing production build, Playwright Chromium installation, and existing local E2E journeys
+- forbidden scope: no repository push, PR mutation, merge, label, branch-protection change, release tag, migration, schema, auth, RLS, security-model, secret, provider, production, traffic, or deployment action
+- completion boundary: local provisioning and local test evidence do not constitute GOV-1 completion; protected PR, exact-SHA required checks, Jose-applied labels, merge SHA, and check-run URLs remain required
+- rollback: stop and delete the local Colima VM, then remove only the pinned user-space runner files and command links installed by this decision

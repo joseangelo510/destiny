@@ -40,6 +40,32 @@ The canonical rules are in root `HARNESS_POLICY.md`. This runbook explains how t
 
 Do not mix test and implementation files in one commit. Do not add skipped, focused, or todo tests.
 
+## Harness v2 operating loop
+
+1. Update `.github/destiny-evidence.json` so its classification, decision link, network mode, routes, and `productPaths` match the actual branch diff.
+2. For each behavioral or policy cycle, declare the ancestor RED commit, focused argv command, expected failure text, test files, and implementation paths. The replay must collect tests, fail for that reason at RED, and pass at HEAD.
+3. Run `pnpm qa:harness-v2` from `destiny-product/`. This records portable environment capabilities, runs typed evidence and every RED replay, architecture and debt fitness functions, enforces the current cyclomatic-complexity ratchet of 19 on every changed executable function, measures changed-line and changed-branch coverage, then runs capped changed-scope mutation testing. The mutation cap is 375 seconds per six executable files, bounded by the 1,800-second PR lane; the maximum 12-file scope therefore receives 750 seconds, providing measured contention headroom without weakening the six-file cap. Type-only refactors do not consume executable mutation or complexity scope.
+4. Inspect `qa/artifacts/harness/summary.json`, `trace.jsonl`, and `capabilities/capabilities.json`. The summary binds the exact SHA to a deterministic hash of the component receipts. Traces are versioned, correlated, and recursively redact secrets.
+5. Never rerun a failed test to make the gate green. Playwright retries are zero. A fail-then-pass discovered by repeated nightly execution remains a failure and must be fixed or placed in an owned, expiring quarantine.
+6. Do not lower a ratchet to pass a PR. Debt metrics may hold or improve; changed coverage, mutation, and journey proof may hold or improve. Runtime is a ceiling, and raw test count is informational.
+
+The current locked floors are 100% changed-line coverage, 100% changed-branch coverage, 100% changed mutation, 100% API contract coverage, 100% browser journey coverage, and 100% combined route proof. Duplication may not exceed 3.01%. `qa/harness/baseline.v2.json` is authoritative and records each ratchet movement with its receipt.
+
+Useful focused commands:
+
+```bash
+pnpm qa:evidence
+pnpm qa:capabilities
+pnpm qa:quality
+pnpm qa:coverage
+pnpm qa:mutation
+pnpm qa:harness-v2
+```
+
+`pnpm gate` first runs `qa:capabilities:required`. Its Supabase and authenticated-browser lanes require a responsive Docker- or Podman-compatible engine. When that infrastructure is missing, the gate fails immediately and preserves a separate `capabilities/required-capabilities.json` receipt without overwriting the portable-lane receipt.
+
+The default network mode is `mocked`. Local integration tests must explicitly use `local-isolated`; staging is read-only; authorized live access requires the separate live authorization gate and is never implied by a test command.
+
 ## Staging evidence
 
 The harness workflow records:

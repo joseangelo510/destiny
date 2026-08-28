@@ -1,0 +1,1134 @@
+{
+  "schemaVersion": "2.0.0",
+  "changeId": "D-HARNESS-SOTA-2",
+  "classification": "HIGH",
+  "decision": {
+    "id": "D-HARNESS-SOTA-2",
+    "path": "destiny-product/DEPLOY_LOG.md#2026-08-27--decision-record-d-harness-sota-2-cto-model-decision"
+  },
+  "redReplay": {
+    "mode": "required",
+    "redCommit": "4f507488f5c9856c1d196a28f23bcff892a950a1",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "qa/rules/harness-evidence-v2.test.ts",
+      "qa/rules/harness-red-replay-v2.test.ts",
+      "qa/rules/harness-ratchets-v2.test.ts",
+      "qa/rules/harness-architecture-v2.test.ts",
+      "qa/rules/harness-network-flake-v2.test.ts"
+    ],
+    "failurePattern": "Cannot find module",
+    "testFiles": [
+      "destiny-product/qa/rules/harness-evidence-v2.test.ts",
+      "destiny-product/qa/rules/harness-red-replay-v2.test.ts",
+      "destiny-product/qa/rules/harness-ratchets-v2.test.ts",
+      "destiny-product/qa/rules/harness-architecture-v2.test.ts",
+      "destiny-product/qa/rules/harness-network-flake-v2.test.ts"
+    ],
+    "implementationPaths": [
+      "destiny-product/scripts/harness/architecture.mjs",
+      "destiny-product/scripts/harness/evidence.mjs",
+      "destiny-product/scripts/harness/flake.mjs",
+      "destiny-product/scripts/harness/network-policy.mjs",
+      "destiny-product/scripts/harness/ratchet.mjs",
+      "destiny-product/scripts/harness/red-replay.mjs",
+      "destiny-product/scripts/harness/trace.mjs"
+    ]
+  },
+  "additionalRedReplays": [
+    {
+      "mode": "required",
+      "redCommit": "e015ffbe4d015da09d7b7d02d466413bf9011242",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/observability/logging.test.ts",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/src/lib/observability/logging.test.ts",
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/src/lib/observability/logging.ts"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "fd09b9f9b970868f992da5acf93c01ea3e6331c1",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-integration-v2.test.ts",
+        "qa/rules/harness-governance-v2.test.ts"
+      ],
+      "failurePattern": "evaluateTypedChecklist is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-integration-v2.test.ts",
+        "destiny-product/qa/rules/harness-governance-v2.test.ts"
+      ],
+      "implementationPaths": [
+        ".github/pull_request_template.md",
+        ".github/workflows/ci.yml",
+        ".github/workflows/nightly-assurance.yml",
+        "HARNESS_POLICY.md",
+        "destiny-product/package.json",
+        "destiny-product/scripts/governance-policy.mjs",
+        "destiny-product/scripts/qa-gate.mjs",
+        "destiny-product/scripts/qa-harness-v2.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d3ac3032ee24b7b346cac4b4d093597cf829aca2",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/repository.mjs",
+        "destiny-product/scripts/qa-coverage.mjs",
+        "destiny-product/scripts/qa-mutation.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "f4311c2dc4bc5c966e5ea95d87a97e6283381766",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "failurePattern": "reoptimization-document.ts -> src/lib/seo/reoptimization-strategy.ts",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/src/lib/seo/reoptimization-document.ts",
+        "destiny-product/src/lib/seo/reoptimization-strategy.ts",
+        "destiny-product/src/lib/seo/reoptimization-types.ts"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "5e0ba91891da54d15f633047284e6bf08d026b7d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "validateJourneyRegistry is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/journeys.schema.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-mutation.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "78ddafd8a4b71c44a335557f87cf4d4c703c590e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "RED collected zero tests",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "84c507845964d97cb603a2a67d2e78fc01f89ca4",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts",
+        "qa/rules/harness-network-flake-v2.test.ts"
+      ],
+      "failurePattern": "countSkippedTests is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts",
+        "destiny-product/qa/rules/harness-network-flake-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/playwright.config.ts",
+        "destiny-product/qa/e2e/local-authenticated.spec.ts",
+        "destiny-product/qa/e2e/prod-readonly.spec.ts",
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "46f9e9fd4e809d2df1de32feaf986fa654051230",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-capabilities-v2.test.ts",
+        "qa/rules/harness-integration-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-capabilities-v2.test.ts",
+        "destiny-product/qa/rules/harness-integration-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "HARNESS_POLICY.md",
+        "destiny-product/package.json",
+        "destiny-product/qa/harness/capabilities.schema.json",
+        "destiny-product/scripts/harness/capabilities.mjs",
+        "destiny-product/scripts/qa-capabilities.mjs",
+        "destiny-product/scripts/qa-gate.mjs",
+        "destiny-product/scripts/qa-harness-v2.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "4bbe42edc99c4e8522abc5fffc55d2be240b79e6",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-integration-v2.test.ts"
+      ],
+      "failurePattern": "required-capabilities.json",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-integration-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-capabilities.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "b03fefcefb56df43c55ec015ac688bd3135cc120",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts",
+        "qa/rules/harness-integration-v2.test.ts"
+      ],
+      "failurePattern": "evaluateChangedFunctionComplexity is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts",
+        "destiny-product/qa/rules/harness-integration-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/scripts/harness/evidence.mjs",
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "94b3c84668236616aa9bd2bd48bd918f42707162",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/dependency-audit-policy.test.ts"
+      ],
+      "failurePattern": "validateAuditExceptions",
+      "testFiles": [
+        "destiny-product/qa/rules/dependency-audit-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/audit-exceptions.schema.json",
+        "destiny-product/qa/harness/audit-exceptions.v2.json",
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-audit.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d3653333dedb96002ec32b3cdbbd3eeacb43050b",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/package.json",
+        "destiny-product/qa/harness/build-receipt.schema.json",
+        "destiny-product/qa/harness/build-warnings.schema.json",
+        "destiny-product/qa/harness/build-warnings.v2.json",
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-build.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "66add74fcdad51a0e453a1b7a913a1a376cf736f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "route evidence is not present",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/journeys.schema.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "795292e18249c854b13dd3b25eff48a8ece0ee8e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "validateTouchedRouteCoverage is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs",
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "84a723e2746e18bea0f7638fd7d9279ba956045b",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/dependency-audit-policy.test.ts",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/dependency-audit-policy.test.ts",
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-audit.mjs",
+        "destiny-product/scripts/qa-build.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "188a29e6ad766ce4c4c630bcac96676514be361d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "validateBuildProvenance is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d924948dcc32a6e53f021fcd84b3fe6acbccebb2",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "to contain",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.sota.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "391016b9b500efdece1a20fd16198b3597bdbe9d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "Build warnings must be evaluated after the production build",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "ccb55dba6561bca4d2ef3906930bafd1066a993b",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "apiContractCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "destiny-product/stryker.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "ad5718c82be36c21e3cf57f819488a1b95f21dc2",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "apiContractCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "2ef98756246b379376b986c9e5c5ec8bec78c98d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "apiContractCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "bbd291b6af8a2378495dc862ef0b3159ac8d5e29",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "browserJourneyCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "2b89507ee210157d859b7ffd40889c37b408b878",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "failurePattern": "string-decoy",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/architecture.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "867566abd21236866eeb565aa430fdb07aa51400",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "expected false to be true",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "c9dba55ab793a920b095b531b6fdeb822d3abb41",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedBranchCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "destiny-product/stryker.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "91a3a5dd05bfd6f0aff65b8794e4f4aea0b538e1",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "browserJourneyCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/journeys.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "7cbcee79aa5d96096b6d48a797c2fef611297dae",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedBranchCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "8ec8f586b452fc925462083994bc3d6f6cb16bda",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-capabilities-v2.test.ts"
+      ],
+      "failurePattern": "detail ||",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-capabilities-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/capabilities.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "1da0bc3dbfeb456516bf7429e948812ea82e7532",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedBranchCoverage",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "a014f89c8ffc2757d4c89adc33796caf7c32a61f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "ignoreStatic",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/stryker.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "275597e263142134647f1c36c58a11ffe2895bd4",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-network-flake-v2.test.ts"
+      ],
+      "failurePattern": "slice(0, -1)",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-network-flake-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/flake.mjs",
+        "destiny-product/scripts/harness/network-policy.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "550e6bed21d9ca776f5bed85267579dee9534e52",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "qa/mutation",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.sota.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "dee790c88d1b70a39c0138458ac50054b85f42dd",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "maxWorkers",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "26f0646ea965da0cc965712fa04f32b7a0a6dd92",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "failurePattern": "Stryker disable next-line",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/architecture.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "591185f8bd2430348c9e892aa9ebeb0444f33aac",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/app/api/version/route.test.ts"
+      ],
+      "failurePattern": "defensive JSON shape guard",
+      "testFiles": [
+        "destiny-product/src/app/api/version/route.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/src/app/api/version/route.ts"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "c6906a7ec2e8140301af6ba5c4f268c308d2d925",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-evidence-v2.test.ts"
+      ],
+      "failurePattern": "invalid fallback cannot satisfy its validator",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-evidence-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/evidence.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "3d71c7d00e253ef7b592b1e2736e160d6991ae5c",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "token grammar is exhaustively specified",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "ee0059f1711e7af09df12f8212d7c2a97c8e52cf",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "absent report messages cannot create a complexity measurement",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/quality.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "55982a933d033b7c9c6f9a34b3a00e041547813b",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "redundant informational guard is intentionally absent",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "dc691ca5097a71da11e2b53f0ca33046d2bc6171",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts",
+        "qa/rules/harness-build-v2.test.ts",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "invalid sentinels cannot satisfy their validators",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts",
+        "destiny-product/qa/rules/harness-build-v2.test.ts",
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "e85ce36c3f921f875f5ac0a17100b9d08f6de87f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "default runner sentinel cannot contain any stage marker",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "cc99f075e7bab877e0d81f8dd425d34ee9a2b42f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "invalid sentinel cannot satisfy the SHA validator",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "68077ccdfa2b1ca46507e699a5b07fa7849e059a",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "absent RED entries remain distinguishable by undefined content",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d1fafc89d644b715bafaa1f3fc881b6d038aed32",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "concurrency",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/stryker.config.mjs",
+        "destiny-product/scripts/qa-mutation.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "7ed05a283cc248473e9d1ebfe60abc02e37411e3",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "Math.ceil(targets.length / 6)",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-mutation.mjs",
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "96b7616e23213bb632cdd65314e4f078712c30e2",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedMutationScore",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/stryker.config.mjs",
+        "docs/HARNESS_RUNBOOK.md",
+        "destiny-product/qa/specs/sota-harness-v2.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "e2a35b5538657e42dc38555db51f83e852d0f02b",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "RED collected zero tests",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "8be40598c4a5c61baff401a0c7845ed25d2acd1c",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "RED collected zero tests",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "72f72d64e1dc3b04a5dc3f8cff08191448c5f27e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "--maxWorkers",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-coverage.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "1d39aceb5d1afb74c1b52d021f6dced8f28daf1a",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "testTimeout",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "b5cb36d63781176f60e5d4438e06e1b12080fa74",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "fixture text, comments, or regular expressions",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "43d3745bbf1f33cb063e537593b9dfb225b71d01",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "real skip",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "04c2c6a32131e3dc53add6ce31bd506b4cb462bc",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "failurePattern": "changedMutationSeconds",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/baseline.v2.json",
+        "destiny-product/qa/harness/contract.v2.json",
+        "destiny-product/qa/specs/sota-harness-v2.md",
+        "docs/HARNESS_RUNBOOK.md"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "8bf053781d239d7b97f8cc0e44b98045bcea259c",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": ".stryker-tmp/**",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/eslint.config.mjs",
+        "destiny-product/scripts/qa-mutation.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "dc4c15a04245109aa598109890398ee3de06f05e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "generatedTypeRoots",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d8a0f2f4be060bf2e3f225eefa6f7bc7417343dc",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": ".stryker-tmp/**",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/vitest.config.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "47de6ef44278864fe859446fe209fde84abfa6f6",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-quality-v2.test.ts"
+      ],
+      "failurePattern": "production-readonly-workspace route evidence",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-quality-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/qa/harness/journeys.v2.json"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "9df5d3662632b25073b429ee97943cf42f787f9d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "failurePattern": "replayDirectories is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-red-replay-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/red-replay.mjs"
+      ]
+    }
+  ],
+  "networkMode": "mocked",
+  "touchedRoutes": [
+    "/api/version"
+  ],
+  "productPaths": [
+    "destiny-product/src/app/api/version/route.ts",
+    "destiny-product/src/lib/observability/logging.ts",
+    "destiny-product/src/lib/seo/reoptimization-document.ts",
+    "destiny-product/src/lib/seo/reoptimization-strategy.ts",
+    "destiny-product/src/lib/seo/reoptimization-types.ts"
+  ]
+}
