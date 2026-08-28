@@ -7,10 +7,15 @@ import { GET } from "./route";
 const stampPath = path.join(process.cwd(), ".generated", "build-stamp.json");
 const sha = "1234567890abcdef1234567890abcdef12345678";
 const tree = "abcdef1234567890abcdef1234567890abcdef12";
+const unknownStamp = { sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown" };
 let priorStamp: string | null = null;
 
 function versionRequest() {
   return new Request("http://localhost/api/version");
+}
+
+function expectBuildIdentity(log: ReturnType<typeof vi.spyOn>, known: boolean) {
+  expect(JSON.parse(String(log.mock.calls[0][0])).context).toEqual({ buildIdentityKnown: known });
 }
 
 beforeEach(async () => {
@@ -74,13 +79,8 @@ describe("GET /api/version", () => {
       env: "unknown",
     }));
     const response = await GET(versionRequest());
-    await expect(response.json()).resolves.toEqual({
-      sha: "unknown",
-      tree: "unknown",
-      builtAt: "unknown",
-      env: "unknown",
-    });
-    expect(JSON.parse(String(log.mock.calls[0][0])).context).toEqual({ buildIdentityKnown: false });
+    await expect(response.json()).resolves.toEqual(unknownStamp);
+    expectBuildIdentity(log, false);
     log.mockRestore();
   });
 
@@ -89,33 +89,23 @@ describe("GET /api/version", () => {
     await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: "  preview  " }));
     await expect((await GET(versionRequest())).json()).resolves.toEqual({ sha, tree, builtAt: "2026-08-27", env: "preview" });
     await writeFile(stampPath, "[]");
-    await expect((await GET(versionRequest())).json()).resolves.toEqual({
-      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
-    });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
     await writeFile(stampPath, "null");
-    await expect((await GET(versionRequest())).json()).resolves.toEqual({
-      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
-    });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
     for (const primitive of ["7", '"stamp"', "true", "{not-json"]) {
       await writeFile(stampPath, primitive);
-      await expect((await GET(versionRequest())).json()).resolves.toEqual({
-        sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
-      });
+      await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
     }
     await writeFile(stampPath, JSON.stringify({ sha: true, tree: 7, builtAt: false, env: [] }));
-    await expect((await GET(versionRequest())).json()).resolves.toEqual({
-      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
-    });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
     log.mockRestore();
   });
 
   it("fails closed when the build stamp is absent", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
     await rm(stampPath, { force: true });
-    await expect((await GET(versionRequest())).json()).resolves.toEqual({
-      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
-    });
-    expect(JSON.parse(String(log.mock.calls[0][0])).context).toEqual({ buildIdentityKnown: false });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
+    expectBuildIdentity(log, false);
     log.mockRestore();
   });
 
