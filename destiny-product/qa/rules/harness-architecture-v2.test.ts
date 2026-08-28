@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 async function loadArchitectureModule() {
   const modulePath = "../../scripts/harness/" + "architecture.mjs";
   return import(/* @vite-ignore */ modulePath);
@@ -65,5 +67,24 @@ describe("architecture fitness functions", () => {
       ["b", ["c", "c"]],
       ["z", ["z"]],
     ]))).toEqual(["a -> b -> c -> a", "z -> z"]);
+  });
+
+  it("keeps reoptimization domain contracts acyclic", async () => {
+    const { detectDependencyCycles, parseModuleSpecifiers, resolveLocalSpecifier } = await loadArchitectureModule();
+    const files = [
+      "src/lib/seo/reoptimization-document.ts",
+      "src/lib/seo/reoptimization-strategy.ts",
+      "src/lib/seo/reoptimization-types.ts",
+    ];
+    const present = new Set(files);
+    const graph = new Map<string, string[]>();
+    for (const file of files) {
+      const source = await readFile(path.join(process.cwd(), file), "utf8").catch(() => "");
+      graph.set(file, parseModuleSpecifiers(source)
+        .map((specifier: string) => resolveLocalSpecifier(file, specifier))
+        .map((candidate: string | null) => candidate && !candidate.endsWith(".ts") ? `${candidate}.ts` : candidate)
+        .filter((candidate: string | null): candidate is string => Boolean(candidate && present.has(candidate))));
+    }
+    expect(detectDependencyCycles(graph)).toEqual([]);
   });
 });
