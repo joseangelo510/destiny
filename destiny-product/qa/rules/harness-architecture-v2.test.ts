@@ -24,11 +24,17 @@ describe("architecture fitness functions", () => {
       import{compact}from"./compact";
       export{named}from"./named";
       import type{Contract}from"./contract";
+      import legacyAlias=require("./import-equals");
       const lazy=import("./lazy");
       const legacy=require("./legacy");
+      const variable="./variable-decoy";
+      other("./call-decoy");
+      require(variable);
+      require();
+      require(42);
       const decoy='import fake from "./string-decoy"';
       // export { fake } from "./comment-decoy";
-    `)).toEqual(["./star", "./compact", "./named", "./contract", "./lazy", "./legacy"]);
+    `)).toEqual(["./star", "./compact", "./named", "./contract", "./import-equals", "./lazy", "./legacy"]);
   });
 
   it("forbids lower layers from importing delivery implementations", async () => {
@@ -70,6 +76,20 @@ describe("architecture fitness functions", () => {
     expect(evaluateArchitectureImports([
       { file: "src/components/card.tsx", specifier: "@/lib/value" },
       { file: "src/app/page.tsx", specifier: "@/components/card" },
+    ])).toEqual([]);
+  });
+
+  it("normalizes operating-system paths and anchors every delivery boundary", async () => {
+    const { evaluateArchitectureImports } = await loadArchitectureModule();
+    expect(evaluateArchitectureImports([
+      { file: "src\\lib\\seo\\policy.ts", specifier: "@/app/page", resolved: "src/app/page" },
+    ])).toEqual(["src/lib/seo/policy.ts may not import delivery module @/app/page."]);
+    expect(evaluateArchitectureImports([
+      { file: "src/lib/seo/policy.ts", specifier: "./app/page", resolved: "./app/page" },
+      { file: "prefix/src/app/api/a/route.ts", specifier: "@/app/api/b/route", resolved: "src/app/api/b/route" },
+      { file: "src/app/api/a/route.ts.extra", specifier: "@/app/api/b/route", resolved: "src/app/api/b/route" },
+      { file: "src/app/api/a/route.ts", specifier: "@/app/api/b/route-extra", resolved: "src/app/api/b/route-extra" },
+      { file: "supabase/functions/a/index.ts", specifier: "./domain/value", resolved: "./domain/value" },
     ])).toEqual([]);
   });
 
