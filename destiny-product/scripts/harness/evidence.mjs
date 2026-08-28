@@ -26,6 +26,7 @@ function validateReplay(replay, errors, prefix) {
   if (!replay || typeof replay !== "object") {
     errors.push(`Evidence requires ${prefix}.`);
   } else if (replay.mode === "required") {
+    // Stryker disable next-line StringLiteral: invalid fallback cannot satisfy its validator
     if (!SHA.test(replay.redCommit ?? "")) errors.push(`Evidence requires a full ${prefix}.redCommit SHA.`);
     if (!required(errors, replay.command, `${prefix}.command`) || replay.command.some((item) => typeof item !== "string" || !item)) {
       errors.push(`${prefix}.command must be a non-empty argv array.`);
@@ -47,10 +48,12 @@ export function replayPlansFromManifest(manifest) {
 function validateEvidenceHeader(manifest, errors) {
   for (const key of Object.keys(manifest)) if (!TOP_LEVEL_FIELDS.has(key)) errors.push(`Unexpected evidence field: ${key}.`);
   if (manifest.schemaVersion !== "2.0.0") errors.push("Evidence schemaVersion must be 2.0.0.");
+  // Stryker disable next-line StringLiteral: invalid fallback cannot satisfy its validator
   if (!/^[A-Z0-9][A-Z0-9._-]{2,79}$/.test(manifest.changeId ?? "")) errors.push("Evidence changeId is invalid.");
   if (!new Set(["MEDIUM", "HIGH"]).has(manifest.classification)) errors.push("Evidence classification must be MEDIUM or HIGH.");
   if (manifest.classification === "HIGH") {
     required(errors, manifest.decision?.id, "decision.id");
+    // Stryker disable next-line StringLiteral: invalid fallback cannot satisfy its validator
     if (!/^destiny-product\/DEPLOY_LOG\.md(?:#[-a-z0-9]+)?$/.test(manifest.decision?.path ?? "")) {
       errors.push("HIGH evidence decision.path must point to destiny-product/DEPLOY_LOG.md.");
     }
@@ -82,6 +85,7 @@ function onlyMatches(files, pattern) {
   return files.length > 0 && files.every((file) => pattern.test(file));
 }
 
+// Stryker disable next-line ArrayDeclaration: default changed-file sentinel cannot match an exemption
 export function evaluateEvidenceManifest(manifest, { changedFiles = [], isProtectedRevert = false } = {}) {
   const errors = validateEvidenceManifest(manifest);
   const replay = manifest?.redReplay;
