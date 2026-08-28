@@ -145,3 +145,7 @@ function executableSignature(output) {
 export function filterExecutableChanges(files, { baseOutputs = new Map(), headOutputs = new Map() }) {
   return files.filter((file) => executableSignature(baseOutputs.get(file)) !== executableSignature(headOutputs.get(file)));
 }
+
+export function countSkippedTests(source) {
+  return (String(source).match(/^\s*(?:it|test|describe)\.skip\s*\(/gm) ?? []).length;
+}

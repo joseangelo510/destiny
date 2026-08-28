@@ -24,7 +24,7 @@
     "maximumCyclomaticComplexity": 336,
     "quarantinedTests": 0,
     "routeJourneyCoverage": 48.72,
-    "skippedTests": 3,
+    "skippedTests": 0,
     "testCount": 1028,
     "typeErrors": 0
   },
@@ -76,6 +76,13 @@
       "from": 0,
       "to": 42.86,
       "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "skippedTests",
+      "from": 3,
+      "to": 0,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
     }
   ]
 }

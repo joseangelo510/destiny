@@ -8,7 +8,7 @@ import {
   parseModuleSpecifiers,
   resolveLocalSpecifier,
 } from "./harness/architecture.mjs";
-import { calculateTypedJourneyCoverage, measureSourceDebt, validateJourneyRegistry } from "./harness/quality.mjs";
+import { calculateTypedJourneyCoverage, countSkippedTests, measureSourceDebt, validateJourneyRegistry } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
 
 const implementationProductRoot = path.resolve(import.meta.dirname, "..");
@@ -122,7 +122,7 @@ const metrics = {
   maximumCyclomaticComplexity: debt.maximumCyclomaticComplexity,
   quarantinedTests: (joinedTests.match(/QA_QUARANTINE/g) ?? []).length,
   routeJourneyCoverage: routeCoverage.routeJourneyCoverage,
-  skippedTests: (joinedTests.match(/\b(?:it|test|describe)\.skip\s*\(/g) ?? []).length,
+  skippedTests: countSkippedTests(joinedTests),
   testCount: (joinedTests.match(/\b(?:it|test)\s*\(/g) ?? []).length,
   typeErrors: 0,
 };
