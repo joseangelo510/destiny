@@ -53,6 +53,16 @@ describe("Fable commit discipline and deploy log", () => {
     expect(findForbiddenTestMarkers("+it('runs', () => {})\n-context.only")).toEqual([]);
   });
 
+  it("does not mistake fixture text, comments, or regular expressions for executable test markers", () => {
+    const diff = [
+      "+expect(countSkippedTests(\"describe.skip('suite', () => {})\\nit.skip('case', () => {})\")).toBe(2)",
+      "+const marker = /test\\.only\\s*\\(/",
+      "+const documentation = `describe.todo('documented')`",
+      "+// xit('commented out', () => {})",
+    ].join("\n");
+    expect(findForbiddenTestMarkers(diff)).toEqual([]);
+  });
+
   it("locks policy activation to a full SHA and provides every required deploy field", async () => {
     const policy = JSON.parse(await readFile(path.join(root, "commit-policy.json"), "utf8")) as {
       policyVersion?: number;
