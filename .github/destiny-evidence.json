@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "2.0.0",
+  "changeId": "D-HARNESS-SOTA-2",
+  "classification": "HIGH",
+  "decision": {
+    "id": "D-HARNESS-SOTA-2",
+    "path": "destiny-product/DEPLOY_LOG.md#2026-08-27--decision-record-d-harness-sota-2-cto-model-decision"
+  },
+  "redReplay": {
+    "mode": "not-applicable",
+    "exemption": "decision-record-only"
+  },
+  "networkMode": "mocked",
+  "touchedRoutes": [],
+  "productPaths": []
+}
