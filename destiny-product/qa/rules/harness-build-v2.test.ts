@@ -112,6 +112,7 @@ describe("production build warning ratchet", () => {
     expect(mutationConfig).toContain('"qa/rules/harness-*-v2.test.ts"');
     expect(mutationConfig).toContain('"qa/rules/dependency-audit-policy.test.ts"');
     expect(mutationConfig).toContain('"qa/rules/build-provenance-policy.test.ts"');
+    expect(mutationConfig).toContain('"qa/mutation/**/*.test.ts"');
     expect(mutationConfig).not.toContain('"qa/rules/**/*.test.ts"');
   });
 });
