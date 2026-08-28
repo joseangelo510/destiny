@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -301,5 +301,144 @@ describe("changed-scope quality measurement", () => {
       // ${skipCall}"comment only", () => {});
     `)).toBe(1);
     expect(countSkippedTests("test('clean', () => {})")).toBe(0);
+  });
+
+  it("exhausts coverage counters and mutation-target path boundaries", async () => {
+    const { calculateChangedCoverage, selectMutationTargets } = await loadQualityModule();
+    expect(calculateChangedCoverage({
+      changedLines: new Map([["src/a.ts", new Set([1])]]),
+      coverage: { "src/a.ts": {} },
+    })).toEqual({ branchCoverage: 100, coveredBranches: 0, coveredLines: 0, lineCoverage: 0, totalBranches: 0, totalLines: 1 });
+    expect(calculateChangedCoverage({
+      changedLines: new Map([["src/a.ts", new Set([1, 2])]]),
+      coverage: { "src/a.ts": { lines: { 1: -1, 2: 0 }, branches: { 1: [1, 1] } } },
+    })).toEqual({ branchCoverage: 100, coveredBranches: 2, coveredLines: 0, lineCoverage: 0, totalBranches: 2, totalLines: 2 });
+    expect(selectMutationTargets(["src\\lib\\only.ts"], { maximumFiles: 1 })).toEqual(["src/lib/only.ts"]);
+    expect(selectMutationTargets([
+      "src/a.ts.extra",
+      "src/a.test.ts.extra",
+      "src/a.test.cts",
+      "src/a.spec.mjs",
+      "src/real.cts",
+      "src/real.mts",
+    ], { maximumFiles: 2 })).toEqual(["src/real.cts", "src/real.mts"]);
+  });
+
+  it("exhausts structural-debt token windows and maximum selection", async () => {
+    const { measureSourceDebt } = await loadQualityModule();
+    const exactWindow = "alpha_1 = 123.45 && beta$ !== 9;";
+    expect(measureSourceDebt(new Map([
+      ["a.ts", exactWindow],
+      ["b.ts", exactWindow],
+    ]), { duplicateTokenFloor: 8 })).toEqual({ duplicateBlocks: 1, maximumCyclomaticComplexity: 2 });
+    expect(measureSourceDebt(new Map([
+      ["a.ts", "same"],
+      ["b.ts", "same"],
+      ["c.ts", "different"],
+    ]), { duplicateTokenFloor: 1 })).toEqual({ duplicateBlocks: 1, maximumCyclomaticComplexity: 1 });
+    expect(measureSourceDebt(new Map([
+      ["a.ts", "if (a) while (b) value ?? fallback"],
+      ["b.ts", "plain"],
+    ]), { duplicateTokenFloor: 50 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 4 });
+  });
+
+  it("exhausts complexity paths, route ordering, and typed route denominators", async () => {
+    const { calculateRouteJourneyCoverage, calculateTypedJourneyCoverage, evaluateChangedFunctionComplexity } = await loadQualityModule();
+    expect(evaluateChangedFunctionComplexity([
+      { filePath: "C:\\repo\\src\\a.ts", messages: [{ ruleId: "complexity", line: 3, message: "complexity of 2" }] },
+      { filePath: "C:\\repo\\src\\b.ts", messages: [{ ruleId: "complexity", line: 4, message: "complexity of 4" }] },
+    ], { productRoot: "C:\\repo\\", maximum: 3 })).toEqual({
+      maximum: 4,
+      offenders: [{ complexity: 4, file: "src/b.ts", line: 4 }],
+    });
+    expect(calculateRouteJourneyCoverage(["/b", "/a", "/b"], ["/a"])).toEqual({
+      covered: 1, percentage: 50, total: 2, uncovered: ["/b"],
+    });
+    expect(calculateTypedJourneyCoverage(
+      ["/z", "/api/b", "/a", "/api/a", "/z"],
+      [{ routes: ["/z"] }],
+      ["/api/a", "/api/a", "/not-in-inventory"],
+    )).toEqual({
+      apiContractCoverage: 50,
+      browserJourneyCoverage: 50,
+      routeJourneyCoverage: 50,
+      details: {
+        api: { covered: 1, total: 2, uncovered: ["/api/b"] },
+        browser: { covered: 1, total: 2, uncovered: ["/a"] },
+        combined: { covered: 2, total: 4, uncovered: ["/a", "/api/b"] },
+      },
+    });
+  });
+
+  it("fails closed for null journeys and accepts every declared journey mode", async () => {
+    const { validateJourneyRegistry } = await loadQualityModule();
+    const nullErrors = validateJourneyRegistry({ schemaVersion: "2.0.0", journeys: [null] });
+    expect(nullErrors).toEqual(expect.arrayContaining([
+      "Journey <missing> has an invalid mode.",
+      "Journey <missing> requires an owner.",
+      "Journey <missing> test file does not exist: <missing>.",
+      "Journey <missing> requires routes.",
+      "Journey <missing> requires assertions.",
+    ]));
+    for (const mode of ["public", "local-isolated", "staging-readonly"]) {
+      const testFile = `${mode}.spec.ts`;
+      expect(validateJourneyRegistry({
+        schemaVersion: "2.0.0",
+        journeys: [{
+          id: mode,
+          mode,
+          owner: "quality",
+          testFile,
+          routes: ["/"],
+          assertions: ["visible"],
+          routeEvidence: { "/": "goto-root" },
+          assertionEvidence: { visible: "visible-check" },
+        }],
+      }, {
+        knownRoutes: new Set(["/"]),
+        testFiles: new Set([testFile]),
+        testSources: new Map([[testFile, "goto-root visible-check"]]),
+      })).toEqual([]);
+    }
+    expect(validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{
+        id: "scalar-evidence",
+        mode: "public",
+        owner: "quality",
+        testFile: "scalar.spec.ts",
+        routes: ["/"],
+        assertions: ["visible"],
+        routeEvidence: "invalid",
+        assertionEvidence: 7,
+      }],
+    }, {
+      knownRoutes: new Set(["/"]),
+      testFiles: new Set(["scalar.spec.ts"]),
+    })).toEqual(expect.arrayContaining([
+      "Journey scalar-evidence requires route evidence: /.",
+      "Journey scalar-evidence requires assertion evidence: visible.",
+    ]));
+  });
+
+  it("exhausts emitted-code normalization and executable skip syntax", async () => {
+    const { countSkippedTests, filterExecutableChanges } = await loadQualityModule();
+    const files = ["empty.ts", "strict.ts", "export.ts", "anchored.ts", "spaced.ts"];
+    expect(filterExecutableChanges(files, {
+      baseOutputs: new Map(files.map((file) => [file, ""])),
+      headOutputs: new Map([
+        ["empty.ts", undefined],
+        ["strict.ts", "  'use strict'  "],
+        ["export.ts", "\n export { } \n"],
+        ["anchored.ts", "const before = true; 'use strict';"],
+        ["spaced.ts", "\n\t\"use strict\";\n export { }; \n"],
+      ]),
+    })).toEqual(["anchored.ts"]);
+    expect(countSkippedTests("test.skipper('not a skip', () => {})")).toBe(0);
+    expect(countSkippedTests("describe.skip(\n  'suite', () => {}\n)\nit.skip('case', () => {})")).toBe(2);
+
+    const source = await readFile(path.join(process.cwd(), "scripts/harness/quality.mjs"), "utf8");
+    expect(source).toContain("token grammar is exhaustively specified");
+    expect(source).toContain("emitted preamble normalization is exhaustively specified");
   });
 });
