@@ -13,7 +13,7 @@
     "apiContractCoverage": 42.86,
     "auditExceptions": 2,
     "browserJourneyCoverage": 58.62,
-    "changedMaximumFunctionComplexity": 20,
+    "changedMaximumFunctionComplexity": 19,
     "changedBranchCoverage": 45.59,
     "changedLineCoverage": 56.45,
     "changedMutationScore": 60,
@@ -90,6 +90,13 @@
       "metric": "changedMaximumFunctionComplexity",
       "from": "unbounded",
       "to": 20,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMaximumFunctionComplexity",
+      "from": 20,
+      "to": 19,
       "evidence": "qa/artifacts/harness/quality/static-quality.json"
     }
   ]
