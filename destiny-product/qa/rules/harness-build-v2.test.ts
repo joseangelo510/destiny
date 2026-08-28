@@ -154,5 +154,8 @@ describe("production build warning ratchet", () => {
     expect(mutationConfig).toMatch(/concurrency:\s*4/);
     expect(mutationRunner).toContain('run.error?.code === "ETIMEDOUT"');
     expect(mutationRunner).toContain("run.status === 143");
+    expect(mutationRunner).toContain("Math.ceil(targets.length / 6)");
+    expect(mutationRunner).toContain("Math.min(mutationBaseline.ceilings.prLaneSeconds");
+    expect(mutationRunner).toContain("timeout: mutationRuntimeCapSeconds * 1000");
   });
 });
