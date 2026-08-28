@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { formatUtcDate, formatUtcDateTime } from "../lib/format-date";
 import { buildInAppRankingReport } from "../lib/notifications/in-app-ranking-report";
 import { rankFreshnessFromPolicy, rankMovementFromPolicy, rankPolicyInput, rankReadingFromPolicy } from "../lib/seo/rank-tracker";
 import { runDestinyLogic } from "../lib/logicaffeine";
@@ -120,7 +121,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     </section>
 
     <section className="rank-weekly-report" aria-labelledby="rank-weekly-report-title">
-      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Destiny will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {new Date(weeklyReport.evidenceAt).toLocaleString()}</small> : <small>No fresh observation yet</small>}</header>
+      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Destiny will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {formatUtcDateTime(weeklyReport.evidenceAt)}</small> : <small>No fresh observation yet</small>}</header>
       {weeklyReport.state === "ready" ? <>
         <div className="rank-weekly-report-metrics">
           <article><strong>{weeklyReport.summary.movedUp}</strong><span>Moved up</span></article>
@@ -156,7 +157,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
           const reading = row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
           const movement = row.policyView?.movement ?? { label: "—", tone: "flat" };
           const freshness = row.policyView?.freshness ?? { message: "Calculating freshness…" };
-          return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? new Date(row.checkedAt).toLocaleDateString() : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td></tr>;
+          return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? formatUtcDate(row.checkedAt) : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td></tr>;
         })}</tbody></table></div>
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}
       </div>
