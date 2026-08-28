@@ -2,6 +2,7 @@ import path from "node:path";
 import ts from "typescript";
 
 export function parseModuleSpecifiers(source) {
+  // Stryker disable next-line StringLiteral,BooleanLiteral: parser metadata does not affect dependency extraction
   const sourceFile = ts.createSourceFile("architecture-input.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const specifiers = [];
   const collect = (candidate) => {
@@ -24,7 +25,7 @@ export function parseModuleSpecifiers(source) {
 
 function destination(specifier) {
   if (specifier.startsWith("@/")) return `src/${specifier.slice(2)}`;
-  return specifier.replace(/^\.\//, "");
+  return specifier.startsWith("./") ? specifier.slice(2) : specifier;
 }
 
 export function evaluateArchitectureImports(imports) {
@@ -76,6 +77,6 @@ export function detectDependencyCycles(graph) {
     visited.add(node);
   }
 
-  for (const node of [...graph.keys()].sort()) visit(node);
+  for (const node of graph.keys()) visit(node);
   return [...cycles].sort();
 }
