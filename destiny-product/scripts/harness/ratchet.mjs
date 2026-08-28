@@ -168,7 +168,9 @@ export function validateBuildProvenance({ buildScript, prebuildScript, runnerSou
   if (stamp < 0) errors.push("Production build wrapper must create a build stamp.");
   if (build < 0) errors.push("Production build wrapper must invoke Next.js with webpack.");
   if (stamp >= 0 && build >= 0 && stamp > build) errors.push("Build stamp must run before the Next.js production build.");
-  if (warningEvaluation < build) errors.push("Build warnings must be evaluated after the production build.");
+  if (warningEvaluation < 0 || (build >= 0 && warningEvaluation < build)) {
+    errors.push("Build warnings must be evaluated after the production build.");
+  }
   if (receipt < 0) errors.push("Production build must persist its evidence receipt.");
   if (receipt >= 0 && warningEvaluation >= 0 && receipt < warningEvaluation) {
     errors.push("Production build receipt must be written after warning evaluation.");
