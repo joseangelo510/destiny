@@ -10,7 +10,7 @@
   },
   "metrics": {
     "architectureViolations": 0,
-    "apiContractCoverage": 65.31,
+    "apiContractCoverage": 100,
     "auditExceptions": 2,
     "browserJourneyCoverage": 58.62,
     "changedMaximumFunctionComplexity": 19,
@@ -19,12 +19,12 @@
     "changedMutationScore": 68,
     "dependencyCycles": 0,
     "duplicateBlocks": 95,
-    "duplicationPercentage": 3.04,
+    "duplicationPercentage": 3.01,
     "eslintWarnings": 0,
     "flakyRetries": 0,
     "maximumCyclomaticComplexity": 336,
     "quarantinedTests": 0,
-    "routeJourneyCoverage": 62.82,
+    "routeJourneyCoverage": 84.62,
     "skippedTests": 0,
     "testCount": 1028,
     "typeErrors": 0
@@ -156,6 +156,27 @@
       "from": 55.13,
       "to": 62.82,
       "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 65.31,
+      "to": 100,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 62.82,
+      "to": 84.62,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "duplicationPercentage",
+      "from": 3.04,
+      "to": 3.01,
+      "evidence": "qa/artifacts/harness/quality/static-quality.json"
     }
   ]
 }
