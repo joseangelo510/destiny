@@ -4,6 +4,7 @@ const TOP_LEVEL_FIELDS = new Set([
   "classification",
   "decision",
   "redReplay",
+  "additionalRedReplays",
   "networkMode",
   "touchedRoutes",
   "productPaths",
@@ -19,6 +20,28 @@ function required(errors, value, field) {
     return false;
   }
   return true;
+}
+
+function validateReplay(replay, errors, prefix) {
+  if (!replay || typeof replay !== "object") {
+    errors.push(`Evidence requires ${prefix}.`);
+  } else if (replay.mode === "required") {
+    if (!SHA.test(replay.redCommit ?? "")) errors.push(`Evidence requires a full ${prefix}.redCommit SHA.`);
+    if (!required(errors, replay.command, `${prefix}.command`) || replay.command.some((item) => typeof item !== "string" || !item)) {
+      errors.push(`${prefix}.command must be a non-empty argv array.`);
+    }
+    required(errors, replay.failurePattern, `${prefix}.failurePattern`);
+    if (!required(errors, replay.testFiles, `${prefix}.testFiles`) || replay.testFiles.some((file) => !TEST_FILE.test(file))) {
+      errors.push(`${prefix}.testFiles must contain test files only.`);
+    }
+    required(errors, replay.implementationPaths, `${prefix}.implementationPaths`);
+  } else if (replay.mode === "not-applicable") {
+    if (!EXEMPTIONS.has(replay.exemption)) errors.push("RED exemption is not allowed.");
+  } else errors.push(`${prefix}.mode must be required or not-applicable.`);
+}
+
+export function replayPlansFromManifest(manifest) {
+  return [manifest?.redReplay, ...(manifest?.additionalRedReplays ?? [])].filter(Boolean);
 }
 
 export function validateEvidenceManifest(manifest) {
@@ -38,21 +61,13 @@ export function validateEvidenceManifest(manifest) {
   if (!Array.isArray(manifest.touchedRoutes)) errors.push("Evidence touchedRoutes must be an array.");
   if (!Array.isArray(manifest.productPaths)) errors.push("Evidence productPaths must be an array.");
 
-  const replay = manifest.redReplay;
-  if (!replay || typeof replay !== "object") errors.push("Evidence requires redReplay.");
-  else if (replay.mode === "required") {
-    if (!SHA.test(replay.redCommit ?? "")) errors.push("Evidence requires a full redReplay.redCommit SHA.");
-    if (!required(errors, replay.command, "redReplay.command") || replay.command.some((item) => typeof item !== "string" || !item)) {
-      errors.push("redReplay.command must be a non-empty argv array.");
-    }
-    required(errors, replay.failurePattern, "redReplay.failurePattern");
-    if (!required(errors, replay.testFiles, "redReplay.testFiles") || replay.testFiles.some((file) => !TEST_FILE.test(file))) {
-      errors.push("redReplay.testFiles must contain test files only.");
-    }
-    required(errors, replay.implementationPaths, "redReplay.implementationPaths");
-  } else if (replay.mode === "not-applicable") {
-    if (!EXEMPTIONS.has(replay.exemption)) errors.push("RED exemption is not allowed.");
-  } else errors.push("redReplay.mode must be required or not-applicable.");
+  validateReplay(manifest.redReplay, errors, "redReplay");
+  if (manifest.additionalRedReplays !== undefined && !Array.isArray(manifest.additionalRedReplays)) {
+    errors.push("additionalRedReplays must be an array.");
+  } else for (const [index, replay] of (manifest.additionalRedReplays ?? []).entries()) {
+    validateReplay(replay, errors, `additionalRedReplays[${index}]`);
+    if (replay.mode !== "required") errors.push("Additional RED replays must use required mode.");
+  }
   return [...new Set(errors)];
 }
 
