@@ -55,5 +55,25 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     })).toEqual(expect.arrayContaining([
       expect.stringContaining("was already identical at RED"),
     ]));
+    expect(verifyImplementationWasAbsentAtRed(plan.implementationPaths, {
+      redFiles: new Map(),
+      headFiles: new Map(),
+    })).toEqual([`${plan.implementationPaths[0]} is not present at HEAD.`]);
+  });
+
+  it("fails closed for malformed declarations and unknown phases", async () => {
+    const { classifyReplayAttempt, validateRedReplayPlan } = await loadReplayModule();
+    expect(validateRedReplayPlan(null, { isAncestor: true })).toEqual(["RED replay plan must use required mode."]);
+    expect(validateRedReplayPlan({
+      ...plan, redCommit: "short", command: [], failurePattern: "", testFiles: [], implementationPaths: [],
+    }, { isAncestor: true })).toEqual(expect.arrayContaining([
+      "RED replay requires a full commit SHA.", "RED replay command must be an argv array.",
+      "RED replay requires a failure pattern.", "RED replay requires test files.",
+      "RED replay requires implementation paths.",
+    ]));
+    expect(classifyReplayAttempt({ exitCode: 1, output: "wrong failure", plan, phase: "red" }))
+      .toEqual(expect.objectContaining({ accepted: false, reason: "RED failed for an undeclared reason." }));
+    expect(classifyReplayAttempt({ exitCode: 0, output: "one passed", plan, phase: "blue" }))
+      .toEqual(expect.objectContaining({ accepted: false, reason: "Unknown replay phase." }));
   });
 });
