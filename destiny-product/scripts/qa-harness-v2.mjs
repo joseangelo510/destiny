@@ -37,13 +37,14 @@ async function runStep(stepId) {
   if (result.status !== 0) throw new Error(`${stepId} failed with status ${result.status ?? "unknown"}.`);
 }
 
-for (const step of ["qa:evidence", "qa:quality", "qa:coverage", "qa:mutation"]) await runStep(step);
+for (const step of ["qa:capabilities", "qa:evidence", "qa:quality", "qa:coverage", "qa:mutation"]) await runStep(step);
 
 const durationSeconds = Math.round((performance.now() - started) / 100) / 10;
 if (durationSeconds > baseline.ceilings.prLaneSeconds) {
   throw new Error(`Harness exceeded its ${baseline.ceilings.prLaneSeconds}s PR-lane ceiling with ${durationSeconds}s.`);
 }
 const evidencePaths = [
+  "capabilities/capabilities.json",
   "evidence/validation.json",
   "quality/static-quality.json",
   "coverage/changed-coverage.json",

@@ -34,6 +34,8 @@
     "qa:quality": "node scripts/qa-quality-gate.mjs",
     "qa:coverage": "node scripts/qa-coverage.mjs",
     "qa:mutation": "node scripts/qa-mutation.mjs",
+    "qa:capabilities": "node scripts/qa-capabilities.mjs",
+    "qa:capabilities:required": "node scripts/qa-capabilities.mjs --require-container",
     "qa:harness-v2": "node scripts/qa-harness-v2.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod-readonly": "QA_PROD_READONLY=1 playwright test qa/e2e/prod-readonly.spec.ts",
