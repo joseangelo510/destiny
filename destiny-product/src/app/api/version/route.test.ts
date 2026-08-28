@@ -59,6 +59,41 @@ describe("GET /api/version", () => {
     log.mockRestore();
   });
 
+  it("fails closed for malformed or partially trusted build stamps", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    const invalidSha = `x${sha}`;
+    await writeFile(stampPath, JSON.stringify({
+      sha: invalidSha,
+      tree: `${tree}x`,
+      builtAt: "not-a-date",
+      env: "unknown",
+    }));
+    const response = await GET();
+    await expect(response.json()).resolves.toEqual({
+      sha: "unknown",
+      tree: "unknown",
+      builtAt: "unknown",
+      env: "unknown",
+    });
+    expect(JSON.parse(String(log.mock.calls[0][0])).context).toEqual({ buildIdentityKnown: false });
+    log.mockRestore();
+  });
+
+  it("normalizes environment whitespace but rejects arrays and missing fields", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: "  preview  " }));
+    await expect((await GET()).json()).resolves.toEqual({ sha, tree, builtAt: "2026-08-27", env: "preview" });
+    await writeFile(stampPath, "[]");
+    await expect((await GET()).json()).resolves.toEqual({
+      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
+    });
+    await writeFile(stampPath, "null");
+    await expect((await GET()).json()).resolves.toEqual({
+      sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
+    });
+    log.mockRestore();
+  });
+
   it("fails the production preflight when provenance is unknown", () => {
     const result = spawnSync(process.execPath, [
       "scripts/qa-live-version.mjs",
