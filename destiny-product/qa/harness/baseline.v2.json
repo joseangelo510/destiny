@@ -5,7 +5,7 @@
   "measurement": {
     "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
     "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
-    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 initially observed 64.13 to 66.30 percent, then improved to 68.58 percent over 1,951 scored mutants in 12 changed modules. The ratcheted fail-closed floor is 68 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
+    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 initially observed 64.13 to 66.30 percent, then improved to 68.53 to 68.58 percent over 1,951 scored mutants in 12 changed modules. The ratcheted fail-closed floor is 68 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
     "journeys": "Typed qa/harness/journeys.v2.json browser evidence plus canonical src/app/api/**/route.test.ts route-contract discovery."
   },
   "metrics": {
@@ -106,7 +106,7 @@
       "to": 68,
       "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
       "mutants": 1951,
-      "observedRange": [68.58, 68.58]
+      "observedRange": [68.53, 68.58]
     },
     {
       "decisionId": "D-HARNESS-SOTA-2",
