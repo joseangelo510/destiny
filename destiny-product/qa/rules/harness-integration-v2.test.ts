@@ -48,4 +48,17 @@ describe("SOTA harness integration", () => {
     expect(await text("HARNESS_POLICY.md")).toContain(".github/destiny-evidence.json");
     expect(await text(".github/pull_request_template.md")).toContain(".github/destiny-evidence.json");
   });
+
+  it("schema-validates capability receipts before any full local gate", async () => {
+    const schema = JSON.parse(await text("destiny-product/qa/harness/capabilities.schema.json"));
+    expect(schema).toEqual(expect.objectContaining({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      additionalProperties: false,
+      type: "object",
+    }));
+    const capabilityGate = await text("destiny-product/scripts/qa-capabilities.mjs");
+    expect(capabilityGate).toContain("Ajv2020");
+    expect(capabilityGate).toContain("capabilities.schema.json");
+    expect(capabilityGate).toContain("capabilities/capabilities.json");
+  });
 });
