@@ -9,6 +9,10 @@ const sha = "1234567890abcdef1234567890abcdef12345678";
 const tree = "abcdef1234567890abcdef1234567890abcdef12";
 let priorStamp: string | null = null;
 
+function versionRequest() {
+  return new Request("http://localhost/api/version");
+}
+
 beforeEach(async () => {
   priorStamp = await readFile(stampPath, "utf8").catch(() => null);
   await mkdir(path.dirname(stampPath), { recursive: true });
@@ -27,7 +31,7 @@ afterEach(async () => {
 
 describe("GET /api/version", () => {
   it("returns the build-generated provenance without caching", async () => {
-    const response = await GET();
+    const response = await GET(versionRequest());
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
@@ -68,7 +72,7 @@ describe("GET /api/version", () => {
       builtAt: "not-a-date",
       env: "unknown",
     }));
-    const response = await GET();
+    const response = await GET(versionRequest());
     await expect(response.json()).resolves.toEqual({
       sha: "unknown",
       tree: "unknown",
@@ -82,13 +86,13 @@ describe("GET /api/version", () => {
   it("normalizes environment whitespace but rejects arrays and missing fields", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
     await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: "  preview  " }));
-    await expect((await GET()).json()).resolves.toEqual({ sha, tree, builtAt: "2026-08-27", env: "preview" });
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({ sha, tree, builtAt: "2026-08-27", env: "preview" });
     await writeFile(stampPath, "[]");
-    await expect((await GET()).json()).resolves.toEqual({
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
       sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
     });
     await writeFile(stampPath, "null");
-    await expect((await GET()).json()).resolves.toEqual({
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
       sha: "unknown", tree: "unknown", builtAt: "unknown", env: "unknown",
     });
     log.mockRestore();
