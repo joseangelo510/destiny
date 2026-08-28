@@ -78,7 +78,9 @@ const run = spawnSync(process.execPath, [path.join(mutationProductRoot, "node_mo
   timeout: mutationBaseline.ceilings.changedMutationSeconds * 1000,
 });
 const durationSeconds = Math.round((performance.now() - started) / 100) / 10;
-if (run.signal) throw new Error(`Changed mutation exceeded its ${mutationBaseline.ceilings.changedMutationSeconds}s runtime cap.`);
+if (run.error?.code === "ETIMEDOUT" || run.signal || run.status === 143) {
+  throw new Error(`Changed mutation exceeded its ${mutationBaseline.ceilings.changedMutationSeconds}s runtime cap.`);
+}
 if (run.status !== 0) throw new Error(`Changed mutation run failed with status ${run.status ?? "unknown"}.`);
 const score = mutationScore(JSON.parse(await readFile(reportPath, "utf8")));
 const metrics = { changedMutationScore: score.score };

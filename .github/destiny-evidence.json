@@ -876,6 +876,24 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/red-replay.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "28d41c8d65d7b1404b53d753eb473b8fd6f5e1c8",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "concurrency",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/stryker.config.mjs",
+        "destiny-product/scripts/qa-mutation.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
