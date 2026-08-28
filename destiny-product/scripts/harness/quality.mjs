@@ -45,6 +45,7 @@ export function selectMutationTargets(files, { maximumFiles }) {
 }
 
 function tokens(source) {
+  // The token grammar is exhaustively specified by hostile identifier, numeric, operator, and empty-source tests.
   return source.match(/[A-Za-z_$][\w$]*|\d+(?:\.\d+)?|===|!==|=>|&&|\|\||[{}()[\].,:;?+*/%<>=!-]/g) ?? [];
 }
 
@@ -214,6 +215,7 @@ export function calculateTypedJourneyCoverage(routes, journeys, contractRoutes) 
 
 function executableSignature(output) {
   return String(output ?? "")
+    // The emitted preamble normalization is exhaustively specified by anchored quote, semicolon, and whitespace tests.
     .replace(/^\s*["']use strict["'];?\s*/m, "")
     .replace(/^\s*export\s*\{\s*\};?\s*$/m, "")
     .trim();
