@@ -20,9 +20,9 @@ export default {
   thresholds: {
     high: 80,
     low: 60,
-    break: 0,
+    break: 60,
   },
-  concurrency: 1,
+  concurrency: 2,
   timeoutMS: 10_000,
   dryRunTimeoutMinutes: 2,
   tempDirName: ".stryker-tmp",
