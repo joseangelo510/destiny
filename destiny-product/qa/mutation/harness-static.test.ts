@@ -12,9 +12,9 @@ import * as trace from "../../scripts/harness/trace.mjs";
 
 describe("static mutation module isolation", () => {
   it("loads every changed harness policy in the mutation worker", () => {
-    for (const module of [
+    for (const harnessModule of [
       architecture, capabilities, evidence, flake, networkPolicy,
       quality, ratchet, redReplay, repository, trace,
-    ]) expect(Object.keys(module).length).toBeGreaterThan(0);
+    ]) expect(Object.keys(harnessModule).length).toBeGreaterThan(0);
   });
 });
