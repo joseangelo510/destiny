@@ -191,6 +191,21 @@ describe("changed-scope quality measurement", () => {
     });
   });
 
+  it("keeps the production read-only journey evidence synchronized with its executable test", async () => {
+    const { validateJourneyRegistry } = await loadQualityModule();
+    const productRoot = path.resolve(import.meta.dirname, "../..");
+    const registry = JSON.parse(await readFile(path.join(productRoot, "qa/harness/journeys.v2.json"), "utf8"));
+    const journey = registry.journeys.find((candidate: { id?: string }) => candidate.id === "production-readonly-workspace");
+    const testFile = "qa/e2e/prod-readonly.spec.ts";
+    const testSource = await readFile(path.join(productRoot, testFile), "utf8");
+
+    expect(validateJourneyRegistry({ schemaVersion: registry.schemaVersion, journeys: [journey] }, {
+      knownRoutes: new Set(journey.routes),
+      testFiles: new Set([testFile]),
+      testSources: new Map([[testFile, testSource]]),
+    })).toEqual([]);
+  });
+
   it("rejects journey route or assertion claims without source evidence", async () => {
     const { validateJourneyRegistry } = await loadQualityModule();
     const testFile = "qa/e2e/public.spec.ts";
