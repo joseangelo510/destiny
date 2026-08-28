@@ -5,6 +5,11 @@ async function loadQualityModule() {
   return import(/* @vite-ignore */ modulePath);
 }
 
+async function loadRepositoryModule() {
+  const modulePath = "../../scripts/harness/" + "repository.mjs";
+  return import(/* @vite-ignore */ modulePath);
+}
+
 describe("changed-scope quality measurement", () => {
   it("computes changed-line coverage without rewarding unexecuted files", async () => {
     const { calculateChangedCoverage } = await loadQualityModule();
@@ -70,5 +75,13 @@ describe("changed-scope quality measurement", () => {
     const { calculateRouteJourneyCoverage } = await loadQualityModule();
     expect(calculateRouteJourneyCoverage(["/a", "/a"], ["/a"])).toEqual({ covered: 1, percentage: 100, total: 1, uncovered: [] });
     expect(calculateRouteJourneyCoverage([], [])).toEqual({ covered: 0, percentage: 100, total: 0, uncovered: [] });
+  });
+
+  it("centralizes protected-main resolution and fail-closes without a canonical ref", async () => {
+    const { resolveProtectedMainRef } = await loadRepositoryModule();
+    expect(resolveProtectedMainRef({ override: "base", refExists: () => false })).toBe("base");
+    expect(resolveProtectedMainRef({ refExists: (ref: string) => ref === "github/main" })).toBe("github/main");
+    expect(() => resolveProtectedMainRef({ refExists: () => false, purpose: "Mutation" }))
+      .toThrow("Mutation requires a canonical protected-main ref.");
   });
 });
