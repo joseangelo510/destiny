@@ -995,6 +995,23 @@
       "implementationPaths": [
         "destiny-product/scripts/qa-commit-policy.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "a99932796ae8dbdeef8fac415005ea168bd3667e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "failurePattern": "real skip",
+      "testFiles": [
+        "destiny-product/qa/rules/commit-and-deploy-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/qa-commit-policy.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
