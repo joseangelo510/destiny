@@ -1,4 +1,4 @@
-import type { ReoptimizationEvidence, ReoptimizationPageSnapshot } from "./reoptimization-document";
+import type { ReoptimizationEvidence, ReoptimizationPageSnapshot } from "./reoptimization-types";
 import type { ReoptimizationResearchResult } from "./research";
 import { normalizeInternalUrl } from "./interlinking";
 
