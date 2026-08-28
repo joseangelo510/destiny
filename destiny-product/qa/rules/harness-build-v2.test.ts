@@ -62,7 +62,9 @@ describe("production build warning ratchet", () => {
 
   it("keeps every harness policy suite in mutation test selection", async () => {
     const mutationConfig = await readFile(path.join(process.cwd(), "vitest.sota.config.mjs"), "utf8");
-    expect(mutationConfig).toContain('"qa/rules/**/*.test.ts"');
-    expect(mutationConfig).not.toContain('"qa/rules/harness-*-v2.test.ts"');
+    expect(mutationConfig).toContain('"qa/rules/harness-*-v2.test.ts"');
+    expect(mutationConfig).toContain('"qa/rules/dependency-audit-policy.test.ts"');
+    expect(mutationConfig).toContain('"qa/rules/build-provenance-policy.test.ts"');
+    expect(mutationConfig).not.toContain('"qa/rules/**/*.test.ts"');
   });
 });
