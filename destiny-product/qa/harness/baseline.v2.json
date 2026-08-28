@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "2.0.0",
+  "decisionId": "D-HARNESS-SOTA-2",
+  "measuredAtSha": "1870cb3afbb7bdfa4667a0266c3e8e19bf068ade",
+  "measurement": {
+    "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
+    "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
+    "mutation": "No changed production module exists when origin/main is compared to itself; the measured changed-scope score is zero."
+  },
+  "metrics": {
+    "architectureViolations": 0,
+    "auditExceptions": 2,
+    "changedBranchCoverage": 45.59,
+    "changedLineCoverage": 56.45,
+    "changedMutationScore": 0,
+    "dependencyCycles": 1,
+    "duplicateBlocks": 95,
+    "duplicationPercentage": 3.23,
+    "eslintWarnings": 0,
+    "flakyRetries": 0,
+    "maximumCyclomaticComplexity": 336,
+    "quarantinedTests": 0,
+    "routeJourneyCoverage": 20.51,
+    "skippedTests": 3,
+    "testCount": 1028,
+    "typeErrors": 0
+  },
+  "ceilings": {
+    "prLaneSeconds": 1800,
+    "nightlyLaneSeconds": 7200,
+    "changedMutationSeconds": 300
+  },
+  "knownDebt": {
+    "dependencyCycles": [
+      "src/lib/seo/reoptimization-document.ts -> src/lib/seo/reoptimization-strategy.ts -> src/lib/seo/reoptimization-document.ts"
+    ],
+    "auditExceptions": [
+      "GHSA-w3rx-r6r6-pgpr expires for review on 2026-09-05",
+      "GHSA-5p2g-fcmc-qvqq expires for review on 2026-09-05"
+    ]
+  }
+}
