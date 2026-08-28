@@ -1,34 +1,27 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { calculateChangedCoverage } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
+import { git, protectedMainRef } from "./harness/repository.mjs";
 
 const productRoot = path.resolve(import.meta.dirname, "..");
 const repositoryRoot = path.resolve(productRoot, "..");
 const artifactRoot = path.join(productRoot, "qa", "artifacts", "harness", "coverage");
 const baseline = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "baseline.v2.json"), "utf8"));
 
-function git(args) {
-  return execFileSync("git", args, { cwd: repositoryRoot, encoding: "utf8" }).trim();
-}
-
 function baseRef() {
-  if (process.env.QA_BASE_REF) return process.env.QA_BASE_REF;
-  for (const candidate of ["origin/main", "github/main"]) {
-    if (spawnSync("git", ["rev-parse", "--verify", "--quiet", candidate], { cwd: repositoryRoot }).status === 0) return candidate;
-  }
-  throw new Error("Changed coverage requires a canonical protected-main ref.");
+  return protectedMainRef({ repositoryRoot, override: process.env.QA_BASE_REF, purpose: "Changed coverage" });
 }
 
 function changedSourceFiles(base) {
-  return git(["diff", "--name-only", `${base}...HEAD`]).split("\n").filter((file) =>
+  return git(repositoryRoot, ["diff", "--name-only", `${base}...HEAD`]).split("\n").filter((file) =>
     /^destiny-product\/(?:src\/.*\.[jt]sx?|scripts\/harness\/.*\.mjs)$/.test(file)
     && !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file));
 }
 
 function changedLines(base, repositoryFile) {
-  const diff = git(["diff", "--unified=0", "--no-color", `${base}...HEAD`, "--", repositoryFile]);
+  const diff = git(repositoryRoot, ["diff", "--unified=0", "--no-color", `${base}...HEAD`, "--", repositoryFile]);
   const lines = new Set();
   for (const match of diff.matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)) {
     const start = Number(match[1]);
