@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "2.0.0",
+  "warnings": [
+    {
+      "id": "html-to-docx-optional-encoding",
+      "fingerprint": "Module not found: Can't resolve 'encoding'",
+      "owner": "platform-build",
+      "reason": "html-to-docx reaches node-fetch's optional encoding peer through image-to-base64; adding a runtime dependency is outside D-HARNESS-SOTA-2.",
+      "expiresAt": "2026-09-05T00:00:00.000Z"
+    }
+  ]
+}

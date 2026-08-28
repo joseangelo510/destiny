@@ -268,6 +268,28 @@
         "destiny-product/scripts/harness/audit-policy.mjs",
         "destiny-product/scripts/qa-audit.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "10d0866d3b270e32ed9184862bc7e74a371dbe5d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "Cannot find module",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/package.json",
+        "destiny-product/qa/harness/build-receipt.schema.json",
+        "destiny-product/qa/harness/build-warnings.schema.json",
+        "destiny-product/qa/harness/build-warnings.v2.json",
+        "destiny-product/scripts/harness/build-warnings.mjs",
+        "destiny-product/scripts/qa-build.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
