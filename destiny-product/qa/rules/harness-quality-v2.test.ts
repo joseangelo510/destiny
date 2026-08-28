@@ -117,11 +117,13 @@ describe("changed-scope quality measurement", () => {
   });
 
   it("centralizes protected-main resolution and fail-closes without a canonical ref", async () => {
-    const { resolveProtectedMainRef } = await loadRepositoryModule();
+    const { git, protectedMainRef, resolveProtectedMainRef } = await loadRepositoryModule();
     expect(resolveProtectedMainRef({ override: "base", refExists: () => false })).toBe("base");
     expect(resolveProtectedMainRef({ refExists: (ref: string) => ref === "github/main" })).toBe("github/main");
     expect(() => resolveProtectedMainRef({ refExists: () => false, purpose: "Mutation" }))
       .toThrow("Mutation requires a canonical protected-main ref.");
+    expect(git(process.cwd(), ["rev-parse", "--is-inside-work-tree"])).toBe("true");
+    expect(protectedMainRef({ repositoryRoot: process.cwd(), purpose: "Coverage" })).toBe("origin/main");
   });
 
   it("measures typed browser journeys and API route contracts separately", async () => {
