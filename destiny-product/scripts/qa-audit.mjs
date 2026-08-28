@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
-import { validateAuditExceptions } from "./harness/audit-policy.mjs";
+import { validateAuditExceptions } from "./harness/ratchet.mjs";
 
 const productRoot = path.resolve(import.meta.dirname, "..");
 const repositoryRoot = path.resolve(productRoot, "..");
