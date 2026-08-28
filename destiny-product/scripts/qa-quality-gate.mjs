@@ -60,6 +60,19 @@ for (const [file, source] of sources) {
 const architectureErrors = evaluateArchitectureImports(imports);
 const cycles = detectDependencyCycles(graph);
 const debt = measureSourceDebt(sources, { duplicateTokenFloor: 40 });
+function requireCleanCommand(label, executable, args) {
+  const result = spawnSync(executable, args, { cwd: productRoot, encoding: "utf8" });
+  if (result.status !== 0) {
+    throw new Error(`${label} failed.\n${result.stdout ?? ""}${result.stderr ?? ""}`.trim());
+  }
+}
+
+requireCleanCommand("ESLint zero-warning gate", path.join(implementationProductRoot, "node_modules", ".bin", "eslint"), [
+  ".", "--max-warnings", "0",
+]);
+requireCleanCommand("TypeScript no-emit gate", path.join(implementationProductRoot, "node_modules", ".bin", "tsc"), [
+  "--noEmit",
+]);
 const duplicationOutput = path.join(artifactRoot, "jscpd");
 const duplicationRun = spawnSync(path.join(implementationProductRoot, "node_modules", ".bin", "jscpd"), [
   "src", "scripts", "--min-tokens", "50", "--min-lines", "5", "--format", "typescript,javascript",
