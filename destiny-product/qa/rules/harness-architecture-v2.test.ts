@@ -101,6 +101,11 @@ describe("architecture fitness functions", () => {
       ["b", ["c", "c"]],
       ["z", ["z"]],
     ]))).toEqual(["a -> b -> c -> a", "z -> z"]);
+    expect(detectDependencyCycles(new Map([
+      ["z", ["z"]],
+      ["b", ["a"]],
+      ["a", ["b"]],
+    ]))).toEqual(["a -> b -> a", "z -> z"]);
   });
 
   it("keeps reoptimization domain contracts acyclic", async () => {
