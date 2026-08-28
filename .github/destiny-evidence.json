@@ -781,6 +781,29 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/quality.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "c7b0b0e0f0bc71a39225a5b81265566607b9507d",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-ratchets-v2.test.ts",
+        "qa/rules/dependency-audit-policy.test.ts",
+        "qa/rules/harness-build-v2.test.ts",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "Cannot read properties of null",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-ratchets-v2.test.ts",
+        "destiny-product/qa/rules/dependency-audit-policy.test.ts",
+        "destiny-product/qa/rules/harness-build-v2.test.ts",
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
