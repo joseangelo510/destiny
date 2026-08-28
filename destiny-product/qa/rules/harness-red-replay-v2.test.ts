@@ -91,6 +91,16 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     })).toEqual([`${plan.implementationPaths[0]} is not present at HEAD.`]);
   });
 
+  it("isolates RED and GREEN worktrees in explicitly named sibling directories", async () => {
+    const { replayDirectories } = await loadReplayModule();
+    const temporaryRoot = path.join(tmpdir(), "destiny-replay-root");
+
+    expect(replayDirectories(temporaryRoot)).toEqual({
+      redDirectory: path.join(temporaryRoot, "red"),
+      greenDirectory: path.join(temporaryRoot, "green"),
+    });
+  });
+
   it("fails closed for malformed declarations and unknown phases", async () => {
     const { classifyReplayAttempt, validateRedReplayPlan } = await loadReplayModule();
     expect(validateRedReplayPlan(null, { isAncestor: true })).toEqual(["RED replay plan must use required mode."]);
@@ -175,7 +185,6 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     expect(source).toContain("invalid sentinel cannot satisfy the SHA validator");
     expect(source).toContain("absent file helper returns undefined");
     expect(source).toContain("Node process option variants are behaviorally equivalent");
-    expect(source).toContain("temporary-path label does not affect isolation");
     expect(source).toContain("cleanup target exists before forced removal");
     expect(source).toContain("JSON parsing accepts Buffer and UTF-8 text");
     expect(source).toContain("absent RED entries remain distinguishable by undefined content");
