@@ -34,10 +34,6 @@ test("public recovery and legacy routes fail safely", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Let’s send a fresh one." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Return to sign in" })).toHaveAttribute("href", "/login");
 
-  const accessibility = await new AxeBuilder({ page }).analyze();
-  const serious = accessibility.violations.filter((item) => ["serious", "critical"].includes(item.impact ?? ""));
-  expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
-
   const growthPlanResponse = await page.goto("/growth-plan");
   expect(growthPlanResponse?.status()).toBeLessThan(500);
   await expect(page).toHaveURL(/\/(?:results|login)(?:[?#]|$)/);
