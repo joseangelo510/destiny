@@ -1,13 +1,14 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
 import {
   detectDependencyCycles,
   evaluateArchitectureImports,
   parseModuleSpecifiers,
   resolveLocalSpecifier,
 } from "./harness/architecture.mjs";
-import { calculateRouteJourneyCoverage, measureSourceDebt } from "./harness/quality.mjs";
+import { calculateTypedJourneyCoverage, measureSourceDebt, validateJourneyRegistry } from "./harness/quality.mjs";
 import { compareRatchetMetrics } from "./harness/ratchet.mjs";
 
 const implementationProductRoot = path.resolve(import.meta.dirname, "..");
@@ -83,14 +84,36 @@ const duplicationReport = JSON.parse(await readFile(path.join(duplicationOutput,
 const testSources = await Promise.all(testFiles.map((file) => readFile(path.join(productRoot, file), "utf8")));
 const joinedTests = testSources.join("\n");
 const routes = JSON.parse(await readFile(path.join(productRoot, "qa", "inventory", "routes.json"), "utf8")).map((entry) => entry.route);
-const e2eFiles = testFiles.filter((file) => file.startsWith("qa/e2e/"));
-const e2eSource = (await Promise.all(e2eFiles.map((file) => readFile(path.join(productRoot, file), "utf8")))).join("\n");
-const routeLiterals = [...e2eSource.matchAll(/["'`](\/[A-Za-z0-9_\/\[\]-]+)(?:\?[^"'`]*)?["'`]/g)].map((match) => match[1]);
-const routeCoverage = calculateRouteJourneyCoverage(routes, routeLiterals);
+const journeyRegistry = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.v2.json"), "utf8"));
+const journeySchema = JSON.parse(await readFile(path.join(productRoot, "qa", "harness", "journeys.schema.json"), "utf8"));
+const ajv = new Ajv2020({ allErrors: true, strict: true });
+const schemaValid = ajv.validate(journeySchema, journeyRegistry);
+const journeyErrors = [
+  ...(schemaValid ? [] : (ajv.errors ?? []).map((error) => `Journey schema ${error.instancePath || "/"} ${error.message}.`)),
+  ...validateJourneyRegistry(journeyRegistry, { knownRoutes: new Set(routes), testFiles: new Set(testFiles) }),
+];
+const apiContractRoutes = testFiles
+  .filter((file) => /^src\/app\/api\/.+\/route\.test\.ts$/.test(file))
+  .map((file) => file.replace(/^src\/app/, "").replace(/\/route\.test\.ts$/, ""));
+const routeCoverage = calculateTypedJourneyCoverage(routes, journeyRegistry.journeys, apiContractRoutes);
+await writeFile(path.join(artifactRoot, "journey-coverage.json"), `${JSON.stringify({
+  schemaVersion: "2.0.0",
+  registry: "qa/harness/journeys.v2.json",
+  metrics: {
+    apiContractCoverage: routeCoverage.apiContractCoverage,
+    browserJourneyCoverage: routeCoverage.browserJourneyCoverage,
+    routeJourneyCoverage: routeCoverage.routeJourneyCoverage,
+  },
+  details: routeCoverage.details,
+  errors: journeyErrors,
+}, null, 2)}\n`);
+if (journeyErrors.length) throw new Error(journeyErrors.join("\n"));
 const workspace = await readFile(path.join(productRoot, "pnpm-workspace.yaml"), "utf8");
 const metrics = {
   architectureViolations: architectureErrors.length,
+  apiContractCoverage: routeCoverage.apiContractCoverage,
   auditExceptions: [...workspace.matchAll(/^\s+- GHSA-/gm)].length,
+  browserJourneyCoverage: routeCoverage.browserJourneyCoverage,
   dependencyCycles: cycles.length,
   duplicateBlocks: duplicationReport.statistics.total.clones,
   duplicationPercentage: Math.round(duplicationReport.statistics.total.percentage * 100) / 100,
@@ -98,7 +121,7 @@ const metrics = {
   flakyRetries: 0,
   maximumCyclomaticComplexity: debt.maximumCyclomaticComplexity,
   quarantinedTests: (joinedTests.match(/QA_QUARANTINE/g) ?? []).length,
-  routeJourneyCoverage: routeCoverage.percentage,
+  routeJourneyCoverage: routeCoverage.routeJourneyCoverage,
   skippedTests: (joinedTests.match(/\b(?:it|test|describe)\.skip\s*\(/g) ?? []).length,
   testCount: (joinedTests.match(/\b(?:it|test)\s*\(/g) ?? []).length,
   typeErrors: 0,

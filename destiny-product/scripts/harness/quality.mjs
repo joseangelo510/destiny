@@ -1,5 +1,6 @@
 const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]sx?$/;
+const JOURNEY_MODES = new Set(["public", "local-isolated", "staging-readonly"]);
 
 function roundedPercentage(covered, total) {
   return total === 0 ? 100 : Math.round((covered / total) * 10_000) / 100;
@@ -87,4 +88,60 @@ export function calculateRouteJourneyCoverage(routes, coveredRoutes) {
     total: uniqueRoutes.length,
     uncovered,
   };
+}
+
+export function validateJourneyRegistry(registry, { knownRoutes = new Set(), testFiles = new Set() } = {}) {
+  const errors = [];
+  if (!registry || typeof registry !== "object" || Array.isArray(registry)) return ["Journey registry must be an object."];
+  if (registry.schemaVersion !== "2.0.0") errors.push("Journey registry schemaVersion must be 2.0.0.");
+  if (!Array.isArray(registry.journeys) || registry.journeys.length === 0) {
+    errors.push("Journey registry requires at least one journey.");
+    return errors;
+  }
+  const ids = new Set();
+  for (const journey of registry.journeys) {
+    const id = journey?.id || "<missing>";
+    if (ids.has(id)) errors.push(`Journey ID is duplicated: ${id}.`);
+    ids.add(id);
+    if (!JOURNEY_MODES.has(journey?.mode)) errors.push(`Journey ${id} has an invalid mode.`);
+    if (!journey?.owner) errors.push(`Journey ${id} requires an owner.`);
+    if (!journey?.testFile || !testFiles.has(journey.testFile)) errors.push(`Journey ${id} test file does not exist: ${journey?.testFile || "<missing>"}.`);
+    if (!Array.isArray(journey?.routes) || journey.routes.length === 0) errors.push(`Journey ${id} requires routes.`);
+    else for (const route of journey.routes) if (!knownRoutes.has(route)) errors.push(`Journey ${id} references unknown route ${route}.`);
+    if (!Array.isArray(journey?.assertions) || journey.assertions.length === 0) errors.push(`Journey ${id} requires assertions.`);
+  }
+  return [...new Set(errors)];
+}
+
+export function calculateTypedJourneyCoverage(routes, journeys, contractRoutes) {
+  const inventory = [...new Set(routes)].sort();
+  const apiRoutes = inventory.filter((route) => route.startsWith("/api/"));
+  const browserRoutes = inventory.filter((route) => !route.startsWith("/api/"));
+  const journeyRoutes = new Set(journeys.flatMap((journey) => journey.routes));
+  const browserCovered = browserRoutes.filter((route) => journeyRoutes.has(route));
+  const contractSet = new Set(contractRoutes);
+  const apiCovered = apiRoutes.filter((route) => contractSet.has(route));
+  const combined = new Set([...browserCovered, ...apiCovered]);
+  const details = {
+    api: { covered: apiCovered.length, total: apiRoutes.length, uncovered: apiRoutes.filter((route) => !contractSet.has(route)) },
+    browser: { covered: browserCovered.length, total: browserRoutes.length, uncovered: browserRoutes.filter((route) => !journeyRoutes.has(route)) },
+    combined: { covered: combined.size, total: inventory.length, uncovered: inventory.filter((route) => !combined.has(route)) },
+  };
+  return {
+    apiContractCoverage: roundedPercentage(details.api.covered, details.api.total),
+    browserJourneyCoverage: roundedPercentage(details.browser.covered, details.browser.total),
+    routeJourneyCoverage: roundedPercentage(details.combined.covered, details.combined.total),
+    details,
+  };
+}
+
+function executableSignature(output) {
+  return String(output ?? "")
+    .replace(/^\s*["']use strict["'];?\s*/m, "")
+    .replace(/^\s*export\s*\{\s*\};?\s*$/m, "")
+    .trim();
+}
+
+export function filterExecutableChanges(files, { baseOutputs = new Map(), headOutputs = new Map() }) {
+  return files.filter((file) => executableSignature(baseOutputs.get(file)) !== executableSignature(headOutputs.get(file)));
 }

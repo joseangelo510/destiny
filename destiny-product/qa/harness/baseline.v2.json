@@ -5,22 +5,25 @@
   "measurement": {
     "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
     "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
-    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 observed 64.13 to 66.30 percent over 1,258 mutants in 11 changed modules. The stable fail-closed floor is 60 percent; static mutants are excluded and Stryker independently enforces the same break threshold."
+    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 observed 64.13 to 66.30 percent over 1,258 mutants in 11 changed modules. The stable fail-closed floor is 60 percent; static mutants are excluded and Stryker independently enforces the same break threshold.",
+    "journeys": "Typed qa/harness/journeys.v2.json browser evidence plus canonical src/app/api/**/route.test.ts route-contract discovery."
   },
   "metrics": {
     "architectureViolations": 0,
+    "apiContractCoverage": 42.86,
     "auditExceptions": 2,
+    "browserJourneyCoverage": 58.62,
     "changedBranchCoverage": 45.59,
     "changedLineCoverage": 56.45,
     "changedMutationScore": 60,
     "dependencyCycles": 0,
     "duplicateBlocks": 95,
-    "duplicationPercentage": 3.23,
+    "duplicationPercentage": 3.1,
     "eslintWarnings": 0,
     "flakyRetries": 0,
     "maximumCyclomaticComplexity": 336,
     "quarantinedTests": 0,
-    "routeJourneyCoverage": 20.51,
+    "routeJourneyCoverage": 48.72,
     "skippedTests": 3,
     "testCount": 1028,
     "typeErrors": 0
@@ -52,6 +55,27 @@
       "from": 1,
       "to": 0,
       "evidence": "qa/artifacts/harness/quality/static-quality.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "routeJourneyCoverage",
+      "from": 20.51,
+      "to": 48.72,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "browserJourneyCoverage",
+      "from": 0,
+      "to": 58.62,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
+    },
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "apiContractCoverage",
+      "from": 0,
+      "to": 42.86,
+      "evidence": "qa/artifacts/harness/quality/journey-coverage.json"
     }
   ]
 }
