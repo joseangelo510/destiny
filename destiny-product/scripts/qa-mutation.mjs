@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
 import { filterExecutableChanges, selectMutationTargets } from "./harness/quality.mjs";
@@ -9,6 +9,7 @@ import { git, protectedMainRef } from "./harness/repository.mjs";
 const mutationProductRoot = path.resolve(import.meta.dirname, "..");
 const mutationRepositoryRoot = path.resolve(mutationProductRoot, "..");
 const mutationArtifactRoot = path.join(mutationProductRoot, "qa", "artifacts", "harness", "mutation");
+const mutationTemporaryRoot = path.join(mutationProductRoot, ".stryker-tmp");
 const mutationBaseline = JSON.parse(await readFile(path.join(mutationProductRoot, "qa", "harness", "baseline.v2.json"), "utf8"));
 
 function baseRef() {
@@ -59,6 +60,7 @@ const excludedTypeOnly = candidates.filter((file) => !targets.includes(file));
 const mutationRuntimeCapSeconds = Math.min(mutationBaseline.ceilings.prLaneSeconds,
   mutationBaseline.ceilings.changedMutationSeconds * Math.ceil(targets.length / 6));
 await mkdir(mutationArtifactRoot, { recursive: true });
+await rm(mutationTemporaryRoot, { recursive: true, force: true });
 if (targets.length === 0) {
   const empty = { schemaVersion: "2.0.0", baseRef: base, targets, excludedTypeOnly, metrics: { changedMutationScore: 100 } };
   await writeFile(path.join(mutationArtifactRoot, "changed-mutation.json"), `${JSON.stringify(empty, null, 2)}\n`);
@@ -79,6 +81,7 @@ const run = spawnSync(process.execPath, [path.join(mutationProductRoot, "node_mo
   stdio: "inherit",
   timeout: mutationRuntimeCapSeconds * 1000,
 });
+await rm(mutationTemporaryRoot, { recursive: true, force: true });
 const durationSeconds = Math.round((performance.now() - started) / 100) / 10;
 if (run.error?.code === "ETIMEDOUT" || run.signal || run.status === 143) {
   throw new Error(`Changed mutation exceeded its ${mutationRuntimeCapSeconds}s scope-scaled runtime cap.`);

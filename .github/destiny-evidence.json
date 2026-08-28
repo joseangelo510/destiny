@@ -1032,6 +1032,24 @@
         "destiny-product/qa/specs/sota-harness-v2.md",
         "docs/HARNESS_RUNBOOK.md"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "d89edc227071cdc3ee6306f4b493ec1fda3689ec",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": ".stryker-tmp/**",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/eslint.config.mjs",
+        "destiny-product/scripts/qa-mutation.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
