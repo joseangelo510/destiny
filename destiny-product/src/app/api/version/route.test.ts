@@ -98,7 +98,27 @@ describe("GET /api/version", () => {
     }
     await writeFile(stampPath, JSON.stringify({ sha: true, tree: 7, builtAt: false, env: [] }));
     await expect((await GET(versionRequest())).json()).resolves.toEqual(unknownStamp);
+    await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: 7 }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha, tree, builtAt: "2026-08-27", env: "unknown",
+    });
+    await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: "2026-08-27", env: "   " }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha, tree, builtAt: "2026-08-27", env: "unknown",
+    });
+    await writeFile(stampPath, JSON.stringify({ sha, tree, builtAt: 0, env: "test" }));
+    await expect((await GET(versionRequest())).json()).resolves.toEqual({
+      sha, tree, builtAt: "unknown", env: "test",
+    });
     log.mockRestore();
+  });
+
+  it("documents equivalent JSON and encoding mutation boundaries", async () => {
+    const source = await readFile(path.join(process.cwd(), "src/app/api/version/route.ts"), "utf8");
+    expect(source).toContain("defensive JSON shape guard converges to UNKNOWN_STAMP");
+    expect(source).toContain("JSON scalar coercion cannot produce a full SHA");
+    expect(source).toContain("unknown sentinel comparison preserves the same output");
+    expect(source).toContain("JSON.parse accepts either UTF-8 text or its Buffer equivalent");
   });
 
   it("fails closed when the build stamp is absent", async () => {
