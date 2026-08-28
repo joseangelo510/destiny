@@ -690,9 +690,9 @@ async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tena
   const accessToken = session.data.session?.access_token;
   expect(session.error, "The Edge denial suite could not read user A's local session.").toBeNull();
   expect(accessToken, "The Edge denial suite requires a real user A JWT.").toBeTruthy();
-
   const article = `<p>${"Approved local article content. ".repeat(8)}</p>`;
   const crossTenantRequests = [
+    ["/functions/v1/calendar-orphan-repair", { websiteId: outsider.websiteId, itemId: randomUUID(), mode: "dry_run" }],
     ["/functions/v1/google-oauth-start", { websiteId: outsider.websiteId, provider: "google_search_console" }],
     ["/functions/v1/google-sync", { websiteId: outsider.websiteId, provider: "google_search_console" }],
     ["/functions/v1/process-audit", { websiteId: outsider.websiteId }],
