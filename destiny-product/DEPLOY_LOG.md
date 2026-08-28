@@ -319,3 +319,31 @@ Required RED proof: unique exact match; multiple transfers; multiple rows; zero 
 Protected order: PR #27 -> PR #28 -> PR #29 -> PR #30 -> PR #31. PR #31 is prepared from `main@450ae943fde32ad479692a851e09bc6d58a27944`, then rebased and fully reverified at the final train tail before protected merge. Jose alone applies `cto-approved` to the final PR head.
 Allowed now: decision record, RED tests, matcher, authenticated Edge Function, dry-run report, non-production QA, PR creation, and certification-document updates. Current launch verdict remains NO-GO until PR #27 through PR #31 are merged in order and post-deploy FCRA and Ban-the-Box verification passes.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1, at Jose Gallegos's direction.
+
+## CTO production decision: D-CALENDAR-ORPHAN-REPAIR-2
+
+[2026-08-28] D-CALENDAR-ORPHAN-REPAIR-2
+Title: Calendar orphan repair — authorize scoped deploy and authenticated dry_run only; confirm/write remains frozen.
+Issued by: Fable 5 High, acting CTO of record for Destiny.
+Classification: HIGH. This decision supersedes the deployment freeze in D-CALENDAR-ORPHAN-REPAIR-1 only to the exact extent stated below.
+Baseline: protected main `150a4d526672f3f9d2b25b27ef928ce630192eac`, tree `e9298ce726979f2f587cca7c869ea42f775adcca`; PR #38 merged with Jose's `cto-approved` label. Exact-main Harness run `33155703806` passed 183 files / 1,183 tests, isolation 3/5, and production-readonly Playwright 22 pass / 32 policy skips. Harness artifact digest: `50e1e706e6eb024e517584cdce8b925adeed112f3ecf0f9ff2839d5f9efd229b`. Focused calendar/security tests 14/14, policy QA, and lint passed. A local URL-normalization matrix test exceeded its five-second timeout under concurrent Stryker load; because the identical SHA is fully green in GitHub and no assertion failed, this is an environmental timing artifact and is not a blocker. Only the exact-SHA GitHub run is release evidence.
+Validity: this decision is conditional on every stated fact being reverified from live sources immediately before execution. Any discrepancy voids this decision and restores the D-CALENDAR-ORPHAN-REPAIR-1 freeze. No unstated action may be inferred.
+Target: Supabase project `etkksjebqgtkkdqznnxa`, function `calendar-orphan-repair` only.
+Decision: CONDITIONAL GO in this strict order: (1) merge this protected decision-record PR with required checks green; (2) reverify the live target is `ACTIVE_HEALTHY`, `seo-research` v13 remains active with JWT verification retained and recent 200s, `calendar-orphan-repair` remains absent, and the CLI remains v2.115.0; (3) deploy only `calendar-orphan-repair` with `verify_jwt=true`; (4) execute the read-only post-deploy smoke; (5) execute exactly one authenticated `dry_run` and capture the required evidence; (6) STOP. Confirm/write remains frozen.
+Authorized: deployment of the single new Edge Function with `verify_jwt=true`; read-only smoke checks; one authenticated `dry_run` that performs no write.
+Prohibited: any confirm/write invocation; prune; database migration or schema change; RLS or policy change; Supabase Auth Site URL change; Replit modification, decommissioning, republish, or traffic redirect; container-staging push; release tag; change to `seo-research` or any other function; CLI upgrade; secret or configuration change beyond the single-function deployment; CMS publish; email; or social action.
+Security finding: the Supabase advisor INFO finding that `cms_transfers` has RLS enabled with no policies is acknowledged and accepted as intentional default-deny behavior for non-service roles. The function is the service-role-only write boundary. No policy or RLS change is authorized.
+JWT: `verify_jwt=true` is mandatory and must be reverified from live function configuration after deployment. The function must also enforce its authenticated user boundary, exact-match targeting, and 15-minute user- and match-bound HMAC confirmation token. If live configuration reports JWT verification false or absent, delete the new function and halt.
+Post-deploy smoke: (a) function listed active with `verify_jwt=true`; (b) unauthenticated request rejected with 401/403; (c) `seo-research` v13 remains healthy and returns 200; (d) capture a pre-dry-run read of the candidate row for later no-write comparison.
+Stop conditions: any write during `dry_run`; any match count other than exactly one; any new-function 5xx; JWT verification not true; degradation of `seo-research` or other production behavior; an authentication-error pattern change; or any discrepancy in the stated live facts. On any stop condition, execute the rollback and do not retry without a new recorded Fable 5 High decision.
+Authenticated dry run: one invocation is authorized. Evidence required: timestamp; invoking JWT subject with token redacted; full request and response bodies; the exactly-one matched row identifier; before-and-after target-row reads proving zero mutation including unchanged `updated_at`; invocation logs; and proof that the HMAC confirmation token was issued but not consumed. Missing evidence invalidates the dry run.
+Confirm/write: NOT AUTHORIZED. Review of the complete dry-run packet plus a new protected and merged Fable 5 High decision `D-CALENDAR-ORPHAN-REPAIR-3` is required before any production write.
+Rollback: the new function has no callers; delete `calendar-orphan-repair` to restore the prior production state. Record rollback trigger and timestamps in this entry. No data rollback is expected because no write is authorized.
+Interaction: the `seo-research` v13 Decision C remains unchanged; passive health observation only. Replit remains production of record and fully frozen.
+Status: AUTHORIZED PENDING. Deployment remains frozen until this exact record is merged through a protected PR with required checks green and the PR URL, merge SHA, and check-run URLs are appended below.
+PR: pending.
+Merge SHA: pending.
+Required check runs: pending.
+Deploy receipt: pending.
+Dry-run receipt: pending.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
