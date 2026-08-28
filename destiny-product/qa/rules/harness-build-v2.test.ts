@@ -145,7 +145,10 @@ describe("production build warning ratchet", () => {
 
   it("caps unit-test workers for deterministic execution under host contention", async () => {
     const unitConfig = await readFile(path.join(process.cwd(), "vitest.config.mjs"), "utf8");
+    const coverageRunner = await readFile(path.join(process.cwd(), "scripts/qa-coverage.mjs"), "utf8");
     expect(unitConfig).toMatch(/maxWorkers:\s*4/);
+    expect(coverageRunner).toContain('"--maxWorkers", "2"');
+    expect(coverageRunner).toContain('"--testTimeout", "20000"');
   });
 
   it("meets the mutation ceiling through bounded parallelism and explicit timeout classification", async () => {
