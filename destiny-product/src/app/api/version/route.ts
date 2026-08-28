@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { correlationContext, serializeLogEvent } from "@/lib/observability/logging";
 
 type BuildStamp = {
   sha: string;
@@ -32,14 +33,21 @@ function normalizeStamp(value: unknown): BuildStamp {
   return { sha, tree, builtAt, env };
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
+  const correlation = correlationContext(request?.headers ?? new Headers());
   const stampPath = path.join(process.cwd(), ".generated", "build-stamp.json");
   const stamp = await readFile(stampPath, "utf8")
     .then((contents) => normalizeStamp(JSON.parse(contents)))
     .catch(() => UNKNOWN_STAMP);
 
+  console.info(serializeLogEvent({
+    correlationId: correlation.correlationId,
+    event: "version.read",
+    severity: "info",
+    context: { buildIdentityKnown: stamp.sha !== "unknown" },
+  }));
+
   return NextResponse.json(stamp, {
-    headers: { "Cache-Control": "no-store" },
+    headers: { "Cache-Control": "no-store", ...correlation.responseHeaders },
   });
 }
-
