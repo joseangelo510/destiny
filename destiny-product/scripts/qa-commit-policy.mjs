@@ -21,7 +21,8 @@ function git(args) {
 }
 
 export function isTestFile(file) {
-  return /(?:^|\/)[^/]+\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(file);
+  return /(?:^|\/)[^/]+\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(file)
+    || /(?:^|\/)qa\/helpers\/.+\.[cm]?[jt]sx?$/i.test(file);
 }
 
 export function validateCommitShape({ subject, files }) {
