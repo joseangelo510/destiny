@@ -149,6 +149,7 @@ describe("production build warning ratchet", () => {
     const qualityRunner = await readFile(path.join(process.cwd(), "scripts/qa-quality-gate.mjs"), "utf8");
     expect(unitConfig).toMatch(/maxWorkers:\s*4/);
     expect(unitConfig).toMatch(/testTimeout:\s*20_000/);
+    expect(unitConfig).toContain('".stryker-tmp/**"');
     expect(coverageRunner).toContain('"--maxWorkers", "2"');
     expect(coverageRunner).toContain('"--testTimeout", "20000"');
     expect(qualityRunner).toContain("generatedTypeRoots");
