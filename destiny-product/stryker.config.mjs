@@ -18,9 +18,9 @@ const config = {
     fileName: process.env.QA_MUTATION_REPORT ?? "qa/artifacts/harness/mutation/mutation.json",
   },
   thresholds: {
-    high: 80,
-    low: 69,
-    break: 69,
+    high: 100,
+    low: 100,
+    break: 100,
   },
   concurrency: 4,
   timeoutMS: 10_000,
