@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import * as architectureModule from "../../scripts/harness/architecture.mjs";
 async function loadArchitectureModule() {
-  const modulePath = "../../scripts/harness/" + "architecture.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return architectureModule;
 }
 
 describe("architecture fitness functions", () => {
