@@ -84,4 +84,75 @@ describe("changed-scope quality measurement", () => {
     expect(() => resolveProtectedMainRef({ refExists: () => false, purpose: "Mutation" }))
       .toThrow("Mutation requires a canonical protected-main ref.");
   });
+
+  it("measures typed browser journeys and API route contracts separately", async () => {
+    const { calculateTypedJourneyCoverage, validateJourneyRegistry } = await loadQualityModule();
+    const registry = {
+      schemaVersion: "2.0.0",
+      journeys: [{
+        id: "public-home",
+        mode: "public",
+        owner: "quality",
+        testFile: "qa/e2e/public.spec.ts",
+        routes: ["/"],
+        assertions: ["document", "accessibility"],
+      }],
+    };
+    expect(validateJourneyRegistry(registry, {
+      knownRoutes: new Set(["/", "/app", "/api/version"]),
+      testFiles: new Set(["qa/e2e/public.spec.ts"]),
+    })).toEqual([]);
+    expect(calculateTypedJourneyCoverage(
+      ["/", "/app", "/api/version"],
+      registry.journeys,
+      ["/api/version"],
+    )).toEqual({
+      apiContractCoverage: 100,
+      browserJourneyCoverage: 50,
+      routeJourneyCoverage: 66.67,
+      details: {
+        api: { covered: 1, total: 1, uncovered: [] },
+        browser: { covered: 1, total: 2, uncovered: ["/app"] },
+        combined: { covered: 2, total: 3, uncovered: ["/app"] },
+      },
+    });
+  });
+
+  it("rejects unowned, missing-test, duplicate, and unknown-route journeys", async () => {
+    const { validateJourneyRegistry } = await loadQualityModule();
+    expect(validateJourneyRegistry({
+      schemaVersion: "1.0.0",
+      journeys: [
+        { id: "same", mode: "live", testFile: "missing.spec.ts", routes: ["/unknown"], assertions: [] },
+        { id: "same", mode: "public", owner: "quality", testFile: "qa/e2e/public.spec.ts", routes: ["/"], assertions: ["document"] },
+      ],
+    }, { knownRoutes: new Set(["/"]), testFiles: new Set(["qa/e2e/public.spec.ts"]) })).toEqual(expect.arrayContaining([
+      "Journey registry schemaVersion must be 2.0.0.",
+      "Journey same has an invalid mode.",
+      "Journey same requires an owner.",
+      "Journey same test file does not exist: missing.spec.ts.",
+      "Journey same references unknown route /unknown.",
+      "Journey same requires assertions.",
+      "Journey ID is duplicated: same.",
+    ]));
+  });
+
+  it("mutates only files whose emitted JavaScript changed", async () => {
+    const { filterExecutableChanges } = await loadQualityModule();
+    expect(filterExecutableChanges([
+      "src/lib/types.ts",
+      "src/lib/logic.ts",
+      "src/lib/same.ts",
+    ], {
+      baseOutputs: new Map([
+        ["src/lib/logic.ts", "export const value = 1;"],
+        ["src/lib/same.ts", "export const same = true;"],
+      ]),
+      headOutputs: new Map([
+        ["src/lib/types.ts", "export {};"],
+        ["src/lib/logic.ts", "export const value = 2;"],
+        ["src/lib/same.ts", "export const same = true;"],
+      ]),
+    })).toEqual(["src/lib/logic.ts"]);
+  });
 });
