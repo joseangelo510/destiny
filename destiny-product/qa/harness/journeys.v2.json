@@ -149,7 +149,7 @@
         "/account": "\"/account\"",
         "/analytics": "\"/analytics\"",
         "/audits": "\"/audits\"",
-        "/audits/[id]": "/audits/${auditId}",
+        "/audits/[id]": "/audits/${site.auditId}",
         "/backlinks": "\"/backlinks\"",
         "/content": "\"/content\"",
         "/distribution": "\"/distribution\"",
@@ -166,7 +166,7 @@
       "assertionEvidence": {
         "document": "response?.status()",
         "workspace-identity": "Smart & Fast Background Checks",
-        "site-context": "Links lost Smart & Fast context",
+        "site-context": "Links lost ${site.businessName} context",
         "accessibility": "new AxeBuilder",
         "no-write": "guard.assertNoMutationAttempt()"
       }
