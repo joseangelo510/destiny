@@ -364,8 +364,12 @@ describe("changed-scope quality measurement", () => {
       offenders: [{ complexity: 4, file: "src/b.ts", line: 4 }],
     });
     expect(evaluateChangedFunctionComplexity([
-      { filePath: "/outside/exact.ts", messages: [{ ruleId: "complexity", line: 1, message: "complexity of 3" }] },
-    ], { productRoot: "/repo", maximum: 3 })).toEqual({ maximum: 3, offenders: [] });
+      { filePath: "/outside/exact.ts", messages: [{ ruleId: "complexity", line: 1, message: "complexity of 4" }] },
+      { filePath: "/repo/src/exact.ts", messages: [{ ruleId: "complexity", line: 2, message: "complexity of 3" }] },
+    ], { productRoot: "/repo", maximum: 3 })).toEqual({
+      maximum: 4,
+      offenders: [{ complexity: 4, file: "/outside/exact.ts", line: 1 }],
+    });
     expect(calculateRouteJourneyCoverage(["/b", "/a", "/b"], ["/a"])).toEqual({
       covered: 1, percentage: 50, total: 2, uncovered: ["/b"],
     });
@@ -398,6 +402,8 @@ describe("changed-scope quality measurement", () => {
       "Journey <missing> requires routes.",
       "Journey <missing> requires assertions.",
     ]);
+    expect(validateJourneyRegistry({ schemaVersion: "2.0.0", journeys: [null, null] }))
+      .toContain("Journey ID is duplicated: <missing>.");
     for (const mode of ["public", "local-isolated", "staging-readonly"]) {
       const testFile = `${mode}.spec.ts`;
       expect(validateJourneyRegistry({
@@ -461,12 +467,13 @@ describe("changed-scope quality measurement", () => {
 
   it("exhausts emitted-code normalization and executable skip syntax", async () => {
     const { countSkippedTests, filterExecutableChanges } = await loadQualityModule();
-    const files = ["empty.ts", "strict.ts", "export.ts", "anchored.ts", "spaced.ts", "whitespace.ts", "strict-tail.ts"];
+    const files = ["empty.ts", "strict.ts", "strict-tight.ts", "export.ts", "anchored.ts", "spaced.ts", "whitespace.ts", "strict-tail.ts"];
     expect(filterExecutableChanges(files, {
       baseOutputs: new Map(files.map((file) => [file, ""])),
       headOutputs: new Map([
         ["empty.ts", undefined],
         ["strict.ts", "  'use strict'  "],
+        ["strict-tight.ts", "'use strict'"],
         ["export.ts", "\n export { } \n"],
         ["anchored.ts", "const before = true; 'use strict';"],
         ["spaced.ts", "\n\t\"use strict\";\n export { }; \n"],
