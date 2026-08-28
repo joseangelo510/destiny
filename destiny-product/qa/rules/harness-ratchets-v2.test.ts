@@ -108,11 +108,12 @@ describe("measured quality ratchets", () => {
     const stryker = await readFile(path.join(process.cwd(), "stryker.config.mjs"), "utf8");
     expect(baseline.metrics).toEqual(expect.objectContaining({
       apiContractCoverage: 100,
+      browserJourneyCoverage: 65.52,
       changedBranchCoverage: 84,
       changedLineCoverage: 90,
       changedMutationScore: 68,
       duplicationPercentage: 3.01,
-      routeJourneyCoverage: 84.62,
+      routeJourneyCoverage: 87.18,
     }));
     expect(baseline.ratchetHistory).toEqual(expect.arrayContaining([
       expect.objectContaining({ metric: "changedMutationScore", from: 60, to: 68 }),
@@ -125,6 +126,8 @@ describe("measured quality ratchets", () => {
       expect.objectContaining({ metric: "apiContractCoverage", from: 65.31, to: 100 }),
       expect.objectContaining({ metric: "routeJourneyCoverage", from: 62.82, to: 84.62 }),
       expect.objectContaining({ metric: "duplicationPercentage", from: 3.04, to: 3.01 }),
+      expect.objectContaining({ metric: "browserJourneyCoverage", from: 58.62, to: 65.52 }),
+      expect.objectContaining({ metric: "routeJourneyCoverage", from: 84.62, to: 87.18 }),
     ]));
     expect(stryker).toMatch(/low:\s*68/);
     expect(stryker).toMatch(/break:\s*68/);
