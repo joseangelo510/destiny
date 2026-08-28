@@ -481,6 +481,23 @@
         "destiny-product/qa/harness/journeys.v2.json",
         "destiny-product/qa/specs/sota-harness-v2.md"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "006f9b0746adc994c61d6873ee5dbe9593727e6f",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "failurePattern": "string-decoy",
+      "testFiles": [
+        "destiny-product/qa/rules/harness-architecture-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/architecture.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
