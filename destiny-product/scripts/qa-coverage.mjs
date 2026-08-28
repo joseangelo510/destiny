@@ -66,6 +66,8 @@ const vitest = path.join(productRoot, "node_modules", "vitest", "vitest.mjs");
 const run = spawnSync(process.execPath, [
   vitest,
   "run",
+  "--maxWorkers", "2",
+  "--testTimeout", "20000",
   "--coverage.enabled",
   "--coverage.provider", "v8",
   "--coverage.reporter", "json",
