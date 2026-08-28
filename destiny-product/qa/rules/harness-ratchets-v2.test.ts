@@ -127,7 +127,10 @@ describe("measured quality ratchets", () => {
 
   it("locks newly demonstrated mutation and route-proof floors", async () => {
     const baseline = JSON.parse(await readFile(path.join(process.cwd(), "qa/harness/baseline.v2.json"), "utf8"));
+    const contract = JSON.parse(await readFile(path.join(process.cwd(), "qa/harness/contract.v2.json"), "utf8"));
     const stryker = await readFile(path.join(process.cwd(), "stryker.config.mjs"), "utf8");
+    expect(baseline.ceilings.changedMutationSeconds).toBe(375);
+    expect(contract.ratchets.ceilings.changedMutationSeconds).toBe(375);
     expect(baseline.metrics).toEqual(expect.objectContaining({
       apiContractCoverage: 100,
       browserJourneyCoverage: 100,
