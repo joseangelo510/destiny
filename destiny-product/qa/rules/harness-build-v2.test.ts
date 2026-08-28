@@ -147,4 +147,12 @@ describe("production build warning ratchet", () => {
     const unitConfig = await readFile(path.join(process.cwd(), "vitest.config.mjs"), "utf8");
     expect(unitConfig).toMatch(/maxWorkers:\s*4/);
   });
+
+  it("meets the mutation ceiling through bounded parallelism and explicit timeout classification", async () => {
+    const mutationConfig = await readFile(path.join(process.cwd(), "stryker.config.mjs"), "utf8");
+    const mutationRunner = await readFile(path.join(process.cwd(), "scripts/qa-mutation.mjs"), "utf8");
+    expect(mutationConfig).toMatch(/concurrency:\s*4/);
+    expect(mutationRunner).toContain('run.error?.code === "ETIMEDOUT"');
+    expect(mutationRunner).toContain("run.status === 143");
+  });
 });
