@@ -5,6 +5,7 @@ export default mergeConfig(base, defineConfig({
   test: {
     include: [
       "qa/rules/harness-*-v2.test.ts",
+      "src/app/api/version/route.test.ts",
       "src/lib/observability/logging.test.ts",
     ],
     exclude: [
