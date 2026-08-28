@@ -141,8 +141,6 @@
         "destiny-product/qa/harness/journeys.schema.json",
         "destiny-product/qa/harness/journeys.v2.json",
         "destiny-product/qa/specs/sota-harness-v2.md",
-        "destiny-product/scripts/harness/audit-policy.mjs",
-        "destiny-product/scripts/harness/build-warnings.mjs",
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/scripts/harness/ratchet.mjs",
         "destiny-product/scripts/qa-mutation.mjs",
@@ -270,7 +268,7 @@
       "implementationPaths": [
         "destiny-product/qa/harness/audit-exceptions.schema.json",
         "destiny-product/qa/harness/audit-exceptions.v2.json",
-        "destiny-product/scripts/harness/audit-policy.mjs",
+        "destiny-product/scripts/harness/ratchet.mjs",
         "destiny-product/scripts/qa-audit.mjs"
       ]
     },
@@ -292,7 +290,7 @@
         "destiny-product/qa/harness/build-receipt.schema.json",
         "destiny-product/qa/harness/build-warnings.schema.json",
         "destiny-product/qa/harness/build-warnings.v2.json",
-        "destiny-product/scripts/harness/build-warnings.mjs",
+        "destiny-product/scripts/harness/ratchet.mjs",
         "destiny-product/scripts/qa-build.mjs"
       ]
     },
@@ -332,6 +330,27 @@
       "implementationPaths": [
         "destiny-product/scripts/harness/quality.mjs",
         "destiny-product/scripts/qa-quality-gate.mjs"
+      ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "ff9f62e6ce41458d4c94c5f92eecc19a5793950e",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/dependency-audit-policy.test.ts",
+        "qa/rules/harness-build-v2.test.ts"
+      ],
+      "failurePattern": "is not a function",
+      "testFiles": [
+        "destiny-product/qa/rules/dependency-audit-policy.test.ts",
+        "destiny-product/qa/rules/harness-build-v2.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs",
+        "destiny-product/scripts/qa-audit.mjs",
+        "destiny-product/scripts/qa-build.mjs"
       ]
     }
   ],
