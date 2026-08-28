@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
 const stampPath = path.join(process.cwd(), ".generated", "build-stamp.json");
@@ -37,6 +37,26 @@ describe("GET /api/version", () => {
       builtAt: "2026-08-24T18:00:00.000Z",
       env: "test",
     });
+  });
+
+  it("propagates correlation identity and emits a redacted structured event", async () => {
+    const correlationId = "018f3f5d-3e16-7c2a-9f2e-3c227fd77e11";
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    const response = await GET(new Request("http://localhost/api/version", {
+      headers: { "x-correlation-id": correlationId, authorization: "Bearer private" },
+    }));
+
+    expect(response.headers.get("x-correlation-id")).toBe(correlationId);
+    expect(log).toHaveBeenCalledOnce();
+    const event = String(log.mock.calls[0][0]);
+    expect(event).not.toContain("private");
+    expect(JSON.parse(event)).toEqual(expect.objectContaining({
+      schemaVersion: "1.0.0",
+      correlationId,
+      event: "version.read",
+      severity: "info",
+    }));
+    log.mockRestore();
   });
 
   it("fails the production preflight when provenance is unknown", () => {
