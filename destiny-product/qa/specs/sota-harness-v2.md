@@ -49,8 +49,8 @@ separate and combine into a route-journey ratchet, so literal route mentions do
 not masquerade as executed behavior.
 
 The demonstrated floors are locked at 90% changed-line coverage, 84%
-changed-branch coverage, 68% changed mutation, 53.06% API contract coverage,
-58.62% browser journey coverage, and 55.13% combined route proof. The versioned
+changed-branch coverage, 68% changed mutation, 65.31% API contract coverage,
+58.62% browser journey coverage, and 62.82% combined route proof. The versioned
 baseline ledger records the receipt and prior value for every upward movement.
 
 ## Architecture and observability
