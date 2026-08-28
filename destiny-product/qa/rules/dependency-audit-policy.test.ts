@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = process.cwd();
 
 async function loadAuditPolicy() {
-  const modulePath = "../../scripts/harness/" + "audit-policy.mjs";
+  const modulePath = "../../scripts/harness/" + "ratchet.mjs";
   return import(/* @vite-ignore */ modulePath);
 }
 
