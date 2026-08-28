@@ -76,4 +76,17 @@ describe("mechanically replayed RED and GREEN evidence", () => {
     expect(classifyReplayAttempt({ exitCode: 0, output: "one passed", plan, phase: "blue" }))
       .toEqual(expect.objectContaining({ accepted: false, reason: "Unknown replay phase." }));
   });
+
+  it("does not misclassify double-digit test totals as zero tests", async () => {
+    const { classifyReplayAttempt } = await loadReplayModule();
+    expect(classifyReplayAttempt({
+      exitCode: 1,
+      output: "quality-v2.test.ts (10 tests | 3 failed) validateJourneyRegistry is not a function",
+      plan: { ...plan, failurePattern: "validateJourneyRegistry is not a function" },
+      phase: "red",
+    })).toEqual(expect.objectContaining({
+      accepted: true,
+      reason: "RED failed for the declared reason.",
+    }));
+  });
 });
