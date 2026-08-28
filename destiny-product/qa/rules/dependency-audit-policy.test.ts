@@ -97,6 +97,11 @@ describe("production dependency audit policy", () => {
       "Audit exception xGHSA-w3rx-r6r6-pgpr expiry is invalid.",
       "Typed audit exception is not ignored by pnpm: xGHSA-w3rx-r6r6-pgpr.",
     ]));
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [{}] }, { now }))
+      .toEqual(expect.arrayContaining([
+        "Audit exception GHSA is invalid: <missing>.",
+        "Audit exception <missing> requires an owner.",
+      ]));
     const expiring = {
       ghsa: "GHSA-w3rx-r6r6-pgpr",
       owner: "platform-security",

@@ -51,6 +51,10 @@ describe("changed-scope quality measurement", () => {
     ]), { duplicateTokenFloor: 8 });
     expect(result.duplicateBlocks).toBeGreaterThan(0);
     expect(result.maximumCyclomaticComplexity).toBe(2);
+    expect(measureSourceDebt(new Map([
+      ["src/lib/plain.ts", "   "],
+    ]), { duplicateTokenFloor: 8 })).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 1 });
+    expect(measureSourceDebt(new Map())).toEqual({ duplicateBlocks: 0, maximumCyclomaticComplexity: 0 });
   });
 
   it("fails changed functions above an absolute complexity ceiling", async () => {
@@ -74,6 +78,19 @@ describe("changed-scope quality measurement", () => {
     expect(() => evaluateChangedFunctionComplexity([
       { filePath: "/repo/src/lib/a.ts", messages: [{ ruleId: "complexity", line: 1, message: "malformed" }] },
     ], { productRoot: "/repo", maximum: 20 })).toThrow("Malformed ESLint complexity measurement");
+    expect(evaluateChangedFunctionComplexity([
+      { messages: [] },
+      { filePath: "/external/file.ts" },
+    ], { productRoot: "/repo/", maximum: 20 })).toEqual({ maximum: 0, offenders: [] });
+    expect(evaluateChangedFunctionComplexity([
+      { filePath: "/repo/src/lib/no-line.ts", messages: [{ ruleId: "complexity", message: "Function has a complexity of 1." }] },
+    ], { productRoot: "/repo", maximum: 20 })).toEqual({
+      maximum: 1,
+      offenders: [],
+    });
+    expect(() => evaluateChangedFunctionComplexity([
+      { messages: [{ ruleId: "complexity" }] },
+    ], { productRoot: "/repo", maximum: 20 })).toThrow("Malformed ESLint complexity measurement for :0");
   });
 
   it("treats route inventory and journey proof as separate denominators", async () => {
@@ -228,6 +245,40 @@ describe("changed-scope quality measurement", () => {
     })).toEqual(["src/lib/logic.ts"]);
   });
 
+  it("fails closed for malformed registries and completely missing journey evidence", async () => {
+    const { validateJourneyRegistry } = await loadQualityModule();
+    expect(validateJourneyRegistry(null)).toEqual(["Journey registry must be an object."]);
+    expect(validateJourneyRegistry([])).toEqual(["Journey registry must be an object."]);
+    expect(validateJourneyRegistry({ schemaVersion: "2.0.0", journeys: [] })).toEqual([
+      "Journey registry requires at least one journey.",
+    ]);
+    const errors = validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{ routes: ["/"], assertions: ["document"], routeEvidence: {}, assertionEvidence: {} }],
+    }, { knownRoutes: new Set(["/"]) });
+    expect(errors).toEqual(expect.arrayContaining([
+      "Journey <missing> has an invalid mode.",
+      "Journey <missing> requires an owner.",
+      "Journey <missing> test file does not exist: <missing>.",
+      "Journey <missing> requires route evidence: /.",
+      "Journey <missing> requires assertion evidence: document.",
+    ]));
+    expect(validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{ id: "empty", mode: "public", owner: "quality", testFile: "empty.spec.ts", routes: [], assertions: [] }],
+    }, { testFiles: new Set(["empty.spec.ts"]) })).toEqual(expect.arrayContaining([
+      "Journey empty requires routes.",
+      "Journey empty requires assertions.",
+    ]));
+    expect(validateJourneyRegistry({
+      schemaVersion: "2.0.0",
+      journeys: [{ id: "absent", mode: "public", owner: "quality", testFile: "empty.spec.ts" }],
+    }, { testFiles: new Set(["empty.spec.ts"]) })).toEqual(expect.arrayContaining([
+      "Journey absent requires routes.",
+      "Journey absent requires assertions.",
+    ]));
+  });
+
   it("counts executable skip calls without counting test fixture strings", async () => {
     const { countSkippedTests } = await loadQualityModule();
     const executableSkip = "test" + ".skip";
@@ -237,5 +288,6 @@ describe("changed-scope quality measurement", () => {
       const fixture = "+${skipCall}'text only', () => {})";
       // ${skipCall}"comment only", () => {});
     `)).toBe(1);
+    expect(countSkippedTests("test('clean', () => {})")).toBe(0);
   });
 });
