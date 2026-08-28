@@ -95,6 +95,30 @@ describe("production build warning ratchet", () => {
       "Unknown build warning: DeprecationWarning: second",
       "Build reported warnings without a recognized fingerprint.",
     ]));
+    for (const ansi of ["\u001b[m", "\u001b[1;33m", "\u001b[?25m"]) {
+      expect(evaluateBuildWarnings(`${warning.fingerprint}\n${ansi}⚠ Compiled with warnings\u001b[0m`, {
+        schemaVersion: "2.0.0", warnings: [warning],
+      }, new Date("2026-08-28T00:00:00.000Z")).errors).toEqual([]);
+    }
+    expect(evaluateBuildWarnings("  Warning: padded  ", { schemaVersion: "2.0.0", warnings: [] }).unknownWarnings)
+      .toEqual(["Warning: padded"]);
+    expect(evaluateBuildWarnings("⚠Compiled with warnings", { schemaVersion: "2.0.0", warnings: [warning] }).errors)
+      .toEqual(expect.arrayContaining([
+        "Declared build warning disappeared; remove its allowance: html-to-docx-optional-encoding.",
+        "Build reported warnings without a recognized fingerprint.",
+      ]));
+  });
+
+  it("fails closed for null allowances and primitive warning policies", async () => {
+    const { evaluateBuildWarnings } = await loadBuildWarnings();
+    expect(evaluateBuildWarnings("", "invalid").errors).toEqual(["Build warning policy must be an object."]);
+    expect(evaluateBuildWarnings("", { schemaVersion: "2.0.0", warnings: [null] }).errors).toEqual([
+      "Build warning <missing> requires an owner.",
+      "Build warning <missing> requires a reason.",
+      "Build warning <missing> requires a fingerprint.",
+      "Declared build warning disappeared; remove its allowance: <missing>.",
+      "Build warning <missing> expiry is invalid.",
+    ]);
   });
 
   it("routes the production build through the receipt-producing wrapper", async () => {

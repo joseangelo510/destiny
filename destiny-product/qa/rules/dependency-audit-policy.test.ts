@@ -79,6 +79,8 @@ describe("production dependency audit policy", () => {
     const now = new Date("2026-08-28T00:00:00.000Z");
     expect(validateAuditExceptions(null)).toEqual(["Audit exception policy must be an object."]);
     expect(validateAuditExceptions([])).toEqual(["Audit exception policy must be an object."]);
+    expect(validateAuditExceptions("invalid")).toEqual(["Audit exception policy must be an object."]);
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [] })).toEqual([]);
     expect(validateAuditExceptions({ schemaVersion: "1.0.0" })).toEqual([
       "Audit exception policy schemaVersion must be 2.0.0.",
       "Audit exception policy requires an exceptions array.",
@@ -102,6 +104,20 @@ describe("production dependency audit policy", () => {
         "Audit exception GHSA is invalid: <missing>.",
         "Audit exception <missing> requires an owner.",
       ]));
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [null] }, { now })).toEqual([
+      "Audit exception GHSA is invalid: <missing>.",
+      "Audit exception <missing> requires an owner.",
+      "Audit exception <missing> requires a reason.",
+      "Audit exception <missing> boundary test does not exist: <missing>.",
+      "Audit exception <missing> expiry is invalid.",
+      "Typed audit exception is not ignored by pnpm: <missing>.",
+    ]);
+    expect(validateAuditExceptions({ schemaVersion: "2.0.0", exceptions: [{
+      ghsa: "GHSA-w3rx-r6r6-pgpr-extra", owner: "owner", reason: "reason",
+      boundaryTest: "boundary.test.ts", expiresAt: "2026-09-05T00:00:00.000Z",
+    }] }, { testFiles: new Set(["boundary.test.ts"]), now })).toContain(
+      "Audit exception GHSA is invalid: GHSA-w3rx-r6r6-pgpr-extra.",
+    );
     const expiring = {
       ghsa: "GHSA-w3rx-r6r6-pgpr",
       owner: "platform-security",
