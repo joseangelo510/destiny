@@ -85,6 +85,19 @@ describe("build provenance policy", () => {
       "writeFile(artifactPath",
     ].join("|");
     expect(validateBuildProvenance({ buildScript, runnerSource: valid })).toEqual([]);
+    expect(validateBuildProvenance()).toEqual([
+      "Production build must route through scripts/qa-build.mjs.",
+      "Production build wrapper must create a build stamp.",
+      "Production build wrapper must invoke Next.js with webpack.",
+      "Build warnings must be evaluated after the production build.",
+      "Production build must persist its evidence receipt.",
+    ]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: [
+      '["next", "build", "--webpack"]',
+      "write-build-stamp.mjs",
+      "const evaluation = evaluateBuildWarnings(",
+      "writeFile(artifactPath",
+    ].join("|") })).toContain("Build stamp must run before the Next.js production build.");
     expect(validateBuildProvenance({ buildScript, runnerSource: '["next", "build", "--webpack"]' })).toEqual([
       "Production build wrapper must create a build stamp.",
       "Build warnings must be evaluated after the production build.",
