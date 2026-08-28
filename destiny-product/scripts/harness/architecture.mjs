@@ -1,9 +1,25 @@
 import path from "node:path";
-
-const IMPORT_PATTERN = /(?:\bimport\s*(?:[^"'()]*?\sfrom\s*)?\(??\s*|\bexport\s+[^"']*?\sfrom\s*|\brequire\s*\(\s*)["']([^"']+)["']/g;
+import ts from "typescript";
 
 export function parseModuleSpecifiers(source) {
-  return [...source.matchAll(IMPORT_PATTERN)].map((match) => match[1]);
+  const sourceFile = ts.createSourceFile("architecture-input.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const specifiers = [];
+  const collect = (candidate) => {
+    if (candidate && ts.isStringLiteralLike(candidate)) specifiers.push(candidate.text);
+  };
+  const visit = (node) => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) collect(node.moduleSpecifier);
+    else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      collect(node.moduleReference.expression);
+    } else if (ts.isCallExpression(node)) {
+      const dynamicImport = node.expression.kind === ts.SyntaxKind.ImportKeyword;
+      const commonJsRequire = ts.isIdentifier(node.expression) && node.expression.text === "require";
+      if (dynamicImport || commonJsRequire) collect(node.arguments[0]);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return specifiers;
 }
 
 function destination(specifier) {
