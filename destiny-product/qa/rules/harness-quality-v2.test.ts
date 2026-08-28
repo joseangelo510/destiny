@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
+import * as qualityModule from "../../scripts/harness/quality.mjs";
+import * as repositoryModule from "../../scripts/harness/repository.mjs";
 
 async function loadQualityModule() {
-  const modulePath = "../../scripts/harness/" + "quality.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return qualityModule;
 }
 
 async function loadRepositoryModule() {
-  const modulePath = "../../scripts/harness/" + "repository.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return repositoryModule;
 }
 
 describe("changed-scope quality measurement", () => {

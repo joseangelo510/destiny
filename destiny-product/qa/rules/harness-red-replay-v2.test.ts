@@ -3,9 +3,9 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import * as replayModule from "../../scripts/harness/red-replay.mjs";
 async function loadReplayModule() {
-  const modulePath = "../../scripts/harness/" + "red-replay.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return replayModule;
 }
 
 describe("mechanically replayed RED and GREEN evidence", () => {

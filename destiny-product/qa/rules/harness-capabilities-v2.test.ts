@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import * as capabilitiesModule from "../../scripts/harness/capabilities.mjs";
 
 async function capabilities() {
-  const modulePath = "../../scripts/harness/" + "capabilities.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return capabilitiesModule;
 }
 
 const available = (command: string, version = `${command} 1.0.0`) => ({

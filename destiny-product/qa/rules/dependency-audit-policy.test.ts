@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import * as auditPolicyModule from "../../scripts/harness/ratchet.mjs";
 
 const root = process.cwd();
 
 async function loadAuditPolicy() {
-  const modulePath = "../../scripts/harness/" + "ratchet.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return auditPolicyModule;
 }
 
 describe("production dependency audit policy", () => {
