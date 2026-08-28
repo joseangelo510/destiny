@@ -24,8 +24,13 @@ describe("changed-scope quality measurement", () => {
     expect(selectMutationTargets([
       "src/lib/seo/a.ts",
       "src/components/a.tsx",
+      "scripts/harness/rule.mjs",
       "README.md",
-    ], { maximumFiles: 2 })).toEqual(["src/components/a.tsx", "src/lib/seo/a.ts"]);
+    ], { maximumFiles: 3 })).toEqual([
+      "scripts/harness/rule.mjs",
+      "src/components/a.tsx",
+      "src/lib/seo/a.ts",
+    ]);
     expect(() => selectMutationTargets([
       "src/lib/a.ts",
       "src/lib/b.ts",
