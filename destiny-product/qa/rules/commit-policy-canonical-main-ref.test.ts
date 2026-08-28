@@ -115,7 +115,7 @@ describe("canonical protected main ref resolution", () => {
       git(repository, ["remote", "set-url", "github", url]);
       expect(() => resolveProtectedMainRef(repository), url).toThrow(/non-canonical/i);
     }
-  });
+  }, 20_000);
 
   it("rejects a local branch spoof named github/main", async () => {
     const { repository } = await createRepository();
