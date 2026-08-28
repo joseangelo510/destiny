@@ -74,4 +74,37 @@ describe("build provenance policy", () => {
       "Production build receipt must be written after warning evaluation.",
     ]));
   });
+
+  it("exhausts zero-index, missing-stage, and adjacent-stage ordering", async () => {
+    const { validateBuildProvenance } = await loadBuildPolicy();
+    const buildScript = "node scripts/qa-build.mjs";
+    const valid = [
+      "write-build-stamp.mjs",
+      '["next", "build", "--webpack"]',
+      "const evaluation = evaluateBuildWarnings(",
+      "writeFile(artifactPath",
+    ].join("|");
+    expect(validateBuildProvenance({ buildScript, runnerSource: valid })).toEqual([]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: '["next", "build", "--webpack"]' })).toEqual([
+      "Production build wrapper must create a build stamp.",
+      "Build warnings must be evaluated after the production build.",
+      "Production build must persist its evidence receipt.",
+    ]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: "const evaluation = evaluateBuildWarnings(" })).toEqual([
+      "Production build wrapper must create a build stamp.",
+      "Production build wrapper must invoke Next.js with webpack.",
+      "Production build must persist its evidence receipt.",
+    ]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: "writeFile(artifactPath" })).toEqual([
+      "Production build wrapper must create a build stamp.",
+      "Production build wrapper must invoke Next.js with webpack.",
+      "Build warnings must be evaluated after the production build.",
+    ]);
+    expect(validateBuildProvenance({ buildScript, runnerSource: [
+      "write-build-stamp.mjs",
+      "const evaluation = evaluateBuildWarnings(",
+      '["next", "build", "--webpack"]',
+      "writeFile(artifactPath",
+    ].join("|") })).toContain("Build warnings must be evaluated after the production build.");
+  });
 });
