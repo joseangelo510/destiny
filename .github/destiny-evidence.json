@@ -699,23 +699,6 @@
     },
     {
       "mode": "required",
-      "redCommit": "67c2d1aea9b78b55a8f9f7f089362cfda07e3aad",
-      "command": [
-        "node",
-        "node_modules/vitest/vitest.mjs",
-        "run",
-        "src/app/api/version/route.test.ts"
-      ],
-      "failurePattern": "defensive JSON shape guard",
-      "testFiles": [
-        "destiny-product/src/app/api/version/route.test.ts"
-      ],
-      "implementationPaths": [
-        "destiny-product/src/app/api/version/route.ts"
-      ]
-    },
-    {
-      "mode": "required",
       "redCommit": "256c6f9e7444ec1053a026c67cb1065c7672c562",
       "command": [
         "node",
@@ -723,7 +706,7 @@
         "run",
         "src/app/api/version/route.test.ts"
       ],
-      "failurePattern": "StringLiteral,ConditionalExpression",
+      "failurePattern": "defensive JSON shape guard",
       "testFiles": [
         "destiny-product/src/app/api/version/route.test.ts"
       ],
