@@ -12,7 +12,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "mode", "owner", "testFile", "routes", "assertions"],
+        "required": ["id", "mode", "owner", "testFile", "routes", "assertions", "routeEvidence", "assertionEvidence"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
           "mode": { "enum": ["public", "local-isolated", "staging-readonly"] },
@@ -29,6 +29,16 @@
             "minItems": 1,
             "uniqueItems": true,
             "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+          },
+          "routeEvidence": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          },
+          "assertionEvidence": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "type": "string", "minLength": 1 }
           }
         }
       }

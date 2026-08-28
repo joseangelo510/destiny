@@ -7,7 +7,14 @@
       "owner": "quality",
       "testFile": "qa/e2e/public.spec.ts",
       "routes": ["/"],
-      "assertions": ["document", "navigation", "accessibility", "accessible-names"]
+      "assertions": ["document", "navigation", "accessibility", "accessible-names"],
+      "routeEvidence": { "/": "page.goto(\"/\")" },
+      "assertionEvidence": {
+        "document": "toHaveTitle(/Destiny/i)",
+        "navigation": "a[href*=\"/onboarding\"]",
+        "accessibility": "new AxeBuilder",
+        "accessible-names": "Unnamed visible controls"
+      }
     },
     {
       "id": "public-links",
@@ -15,7 +22,12 @@
       "owner": "quality",
       "testFile": "qa/e2e/links.spec.ts",
       "routes": ["/"],
-      "assertions": ["internal-links", "zero-5xx"]
+      "assertions": ["internal-links", "zero-5xx"],
+      "routeEvidence": { "/": "page.goto(\"/\")" },
+      "assertionEvidence": {
+        "internal-links": "a[href^=\"/\"]",
+        "zero-5xx": "toBeLessThan(500)"
+      }
     },
     {
       "id": "local-tenant-isolation",
@@ -23,7 +35,17 @@
       "owner": "quality",
       "testFile": "qa/e2e/local-authenticated.spec.ts",
       "routes": ["/audits", "/content", "/api/audits/[id]"],
-      "assertions": ["tenant-switch", "tenant-isolation", "not-found-boundary"]
+      "assertions": ["tenant-switch", "tenant-isolation", "not-found-boundary"],
+      "routeEvidence": {
+        "/audits": "/audits?site=${alpha.websiteId}",
+        "/content": "page.goto(\"/content\")",
+        "/api/audits/[id]": "/api/audits/${fixture!.outsiderAuditId}"
+      },
+      "assertionEvidence": {
+        "tenant-switch": "data-site-switch",
+        "tenant-isolation": "data-workspace-website",
+        "not-found-boundary": "toBe(404)"
+      }
     },
     {
       "id": "local-mvp-certification",
@@ -31,7 +53,18 @@
       "owner": "quality",
       "testFile": "qa/e2e/mvp-certification.spec.ts",
       "routes": ["/this-week", "/content", "/rank-tracker", "/api/integrations/cms/wordpress/reconcile"],
-      "assertions": ["launch-actions", "publication-evidence", "rank-integrity"]
+      "assertions": ["launch-actions", "publication-evidence", "rank-integrity"],
+      "routeEvidence": {
+        "/this-week": "/this-week?site=${fixture!.mvp.websiteId}",
+        "/content": "/content?site=${fixture!.mvp.websiteId}",
+        "/rank-tracker": "/rank-tracker?site=${fixture!.mvp.websiteId}",
+        "/api/integrations/cms/wordpress/reconcile": "**/api/integrations/cms/wordpress/reconcile"
+      },
+      "assertionEvidence": {
+        "launch-actions": "toHaveCount(4)",
+        "publication-evidence": "verified_live",
+        "rank-integrity": "#0"
+      }
     },
     {
       "id": "production-readonly-workspace",
@@ -56,7 +89,32 @@
         "/roadmap",
         "/this-week"
       ],
-      "assertions": ["document", "workspace-identity", "site-context", "accessibility", "no-write"]
+      "assertions": ["document", "workspace-identity", "site-context", "accessibility", "no-write"],
+      "routeEvidence": {
+        "/account": "\"/account\"",
+        "/analytics": "\"/analytics\"",
+        "/audits": "\"/audits\"",
+        "/audits/[id]": "/audits/${auditId}",
+        "/backlinks": "\"/backlinks\"",
+        "/content": "\"/content\"",
+        "/distribution": "\"/distribution\"",
+        "/integrations": "\"/integrations\"",
+        "/keyword-research": "\"/keyword-research\"",
+        "/keywords": "\"/keywords\"",
+        "/llm-visibility": "\"/llm-visibility\"",
+        "/rank-tracker": "\"/rank-tracker\"",
+        "/results": "\"/results\"",
+        "/reviews": "\"/reviews\"",
+        "/roadmap": "\"/roadmap\"",
+        "/this-week": "\"/this-week\""
+      },
+      "assertionEvidence": {
+        "document": "response?.status()",
+        "workspace-identity": "Smart & Fast Background Checks",
+        "site-context": "Links lost Smart & Fast context",
+        "accessibility": "new AxeBuilder",
+        "no-write": "guard.assertNoMutationAttempt()"
+      }
     }
   ]
 }

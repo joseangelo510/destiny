@@ -110,19 +110,62 @@ export function calculateRouteJourneyCoverage(routes, coveredRoutes) {
   };
 }
 
-function validateJourney(journey, { knownRoutes, testFiles }) {
+function evidenceValues(journey, field) {
+  return journey?.[field === "routeEvidence" ? "routes" : "assertions"] ?? [];
+}
+
+function validateJourneyEvidenceValue({ evidence, id, journey, label, source, value }) {
+  const errors = [];
+  const snippet = evidence[value];
+  if (!snippet) errors.push(`Journey ${id} requires ${label} evidence: ${value}.`);
+  else if (!source.includes(snippet)) errors.push(`Journey ${id} ${label} evidence is not present in ${journey.testFile}: ${value}.`);
+  return errors;
+}
+
+function validateJourneyEvidence(journey, { field, label, source }) {
+  const id = journey?.id || "<missing>";
+  const declared = new Set(evidenceValues(journey, field));
+  const evidence = journey?.[field];
+  if (!evidence || typeof evidence !== "object" || Array.isArray(evidence)) {
+    return [...declared].map((value) => `Journey ${id} requires ${label} evidence: ${value}.`);
+  }
+  const errors = [];
+  for (const value of declared) errors.push(...validateJourneyEvidenceValue({ evidence, id, journey, label, source, value }));
+  for (const value of Object.keys(evidence)) if (!declared.has(value)) errors.push(`Journey ${id} has undeclared ${label} evidence: ${value}.`);
+  return errors;
+}
+
+function validateJourneyIdentity(journey, { testFiles }) {
   const errors = [];
   const id = journey?.id || "<missing>";
   if (!JOURNEY_MODES.has(journey?.mode)) errors.push(`Journey ${id} has an invalid mode.`);
   if (!journey?.owner) errors.push(`Journey ${id} requires an owner.`);
   if (!journey?.testFile || !testFiles.has(journey.testFile)) errors.push(`Journey ${id} test file does not exist: ${journey?.testFile || "<missing>"}.`);
-  if (!Array.isArray(journey?.routes) || journey.routes.length === 0) errors.push(`Journey ${id} requires routes.`);
-  else for (const route of journey.routes) if (!knownRoutes.has(route)) errors.push(`Journey ${id} references unknown route ${route}.`);
-  if (!Array.isArray(journey?.assertions) || journey.assertions.length === 0) errors.push(`Journey ${id} requires assertions.`);
   return errors;
 }
 
-export function validateJourneyRegistry(registry, { knownRoutes = new Set(), testFiles = new Set() } = {}) {
+function validateJourneyRoutes(journey, knownRoutes) {
+  const errors = [];
+  const id = journey?.id || "<missing>";
+  if (!Array.isArray(journey?.routes) || journey.routes.length === 0) errors.push(`Journey ${id} requires routes.`);
+  else for (const route of journey.routes) if (!knownRoutes.has(route)) errors.push(`Journey ${id} references unknown route ${route}.`);
+  return errors;
+}
+
+function validateJourney(journey, { knownRoutes, testFiles, testSources }) {
+  const errors = [
+    ...validateJourneyIdentity(journey, { testFiles }),
+    ...validateJourneyRoutes(journey, knownRoutes),
+  ];
+  const id = journey?.id || "<missing>";
+  if (!Array.isArray(journey?.assertions) || journey.assertions.length === 0) errors.push(`Journey ${id} requires assertions.`);
+  const source = testSources.get(journey?.testFile) ?? "";
+  errors.push(...validateJourneyEvidence(journey, { field: "routeEvidence", label: "route", source }));
+  errors.push(...validateJourneyEvidence(journey, { field: "assertionEvidence", label: "assertion", source }));
+  return errors;
+}
+
+export function validateJourneyRegistry(registry, { knownRoutes = new Set(), testFiles = new Set(), testSources = new Map() } = {}) {
   if (!registry || typeof registry !== "object" || Array.isArray(registry)) return ["Journey registry must be an object."];
   const errors = registry.schemaVersion === "2.0.0" ? [] : ["Journey registry schemaVersion must be 2.0.0."];
   if (!Array.isArray(registry.journeys) || registry.journeys.length === 0) return [...errors, "Journey registry requires at least one journey."];
@@ -131,7 +174,7 @@ export function validateJourneyRegistry(registry, { knownRoutes = new Set(), tes
     const id = journey?.id || "<missing>";
     if (ids.has(id)) errors.push(`Journey ID is duplicated: ${id}.`);
     ids.add(id);
-    errors.push(...validateJourney(journey, { knownRoutes, testFiles }));
+    errors.push(...validateJourney(journey, { knownRoutes, testFiles, testSources }));
   }
   return [...new Set(errors)];
 }
