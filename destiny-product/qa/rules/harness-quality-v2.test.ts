@@ -155,4 +155,13 @@ describe("changed-scope quality measurement", () => {
       ]),
     })).toEqual(["src/lib/logic.ts"]);
   });
+
+  it("counts executable skip calls without counting test fixture strings", async () => {
+    const { countSkippedTests } = await loadQualityModule();
+    expect(countSkippedTests(`
+      test.skip("real debt", () => {});
+      const fixture = "+test.skip('text only', () => {})";
+      // test.skip("comment only", () => {});
+    `)).toBe(1);
+  });
 });
