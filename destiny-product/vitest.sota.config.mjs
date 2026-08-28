@@ -7,6 +7,7 @@ export default mergeConfig(base, defineConfig({
       "qa/rules/harness-*-v2.test.ts",
       "qa/rules/dependency-audit-policy.test.ts",
       "qa/rules/build-provenance-policy.test.ts",
+      "qa/mutation/**/*.test.ts",
       "src/app/api/version/route.test.ts",
       "src/lib/observability/logging.test.ts",
     ],
