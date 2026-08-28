@@ -386,6 +386,23 @@
       "implementationPaths": [
         "destiny-product/vitest.sota.config.mjs"
       ]
+    },
+    {
+      "mode": "required",
+      "redCommit": "cdedb9abe978efeff6d42b69d438e89914ca7646",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "qa/rules/build-provenance-policy.test.ts"
+      ],
+      "failurePattern": "Build warnings must be evaluated after the production build",
+      "testFiles": [
+        "destiny-product/qa/rules/build-provenance-policy.test.ts"
+      ],
+      "implementationPaths": [
+        "destiny-product/scripts/harness/ratchet.mjs"
+      ]
     }
   ],
   "networkMode": "mocked",
