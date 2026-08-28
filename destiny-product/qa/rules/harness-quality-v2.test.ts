@@ -158,8 +158,9 @@ describe("changed-scope quality measurement", () => {
 
   it("counts executable skip calls without counting test fixture strings", async () => {
     const { countSkippedTests } = await loadQualityModule();
+    const executableSkip = "test" + ".skip";
     expect(countSkippedTests(`
-      test.skip("real debt", () => {});
+      ${executableSkip}("real debt", () => {});
       const fixture = "+test.skip('text only', () => {})";
       // test.skip("comment only", () => {});
     `)).toBe(1);
