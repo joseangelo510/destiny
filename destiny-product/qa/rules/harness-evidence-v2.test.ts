@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
+import * as evidenceModule from "../../scripts/harness/evidence.mjs";
+import * as traceModule from "../../scripts/harness/trace.mjs";
 async function loadTraceModule() {
-  const modulePath = "../../scripts/harness/" + "trace.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return traceModule;
 }
 
 async function loadEvidenceModule() {
-  const modulePath = "../../scripts/harness/" + "evidence.mjs";
-  return import(/* @vite-ignore */ modulePath);
+  return evidenceModule;
 }
 
 const validManifest = {
