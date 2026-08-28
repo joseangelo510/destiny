@@ -234,4 +234,78 @@ describe("SOTA harness evidence contract", () => {
       "Additional RED replays must use required mode.",
     ]));
   });
+
+  it("exhausts evidence scalar, argv, path, and exemption boundaries", async () => {
+    const { evaluateEvidenceManifest, validateEvidenceManifest } = await loadEvidenceModule();
+    for (const networkMode of ["mocked", "local-isolated", "staging-readonly", "authorized-live"]) {
+      expect(validateEvidenceManifest({ ...validManifest, networkMode })).toEqual([]);
+    }
+    for (const changeId of [`x${validManifest.changeId}`, `${validManifest.changeId}x!`, "Stryker was here!"]) {
+      expect(validateEvidenceManifest({ ...validManifest, changeId })).toContain("Evidence changeId is invalid.");
+    }
+    expect(validateEvidenceManifest({
+      ...validManifest,
+      classification: "MEDIUM",
+      decision: undefined,
+    })).toEqual([]);
+    for (const path of ["destiny-product/DEPLOY_LOG.md", "destiny-product/DEPLOY_LOG.md#decision-1"]) {
+      expect(validateEvidenceManifest({ ...validManifest, decision: { ...validManifest.decision, path } })).toEqual([]);
+    }
+    for (const path of [
+      "prefix/destiny-product/DEPLOY_LOG.md",
+      "destiny-product/DEPLOY_LOG.md/extra",
+      "destiny-product/DEPLOY_LOG.md#",
+    ]) expect(validateEvidenceManifest({ ...validManifest, decision: { ...validManifest.decision, path } }))
+      .toContain("HIGH evidence decision.path must point to destiny-product/DEPLOY_LOG.md.");
+
+    for (const requiredValue of [undefined, null, "", []]) {
+      expect(validateEvidenceManifest({
+        ...validManifest,
+        redReplay: { ...validManifest.redReplay, failurePattern: requiredValue },
+      })).toContain("Evidence requires redReplay.failurePattern.");
+    }
+    expect(validateEvidenceManifest({ ...validManifest, redReplay: null })).toEqual(["Evidence requires redReplay."]);
+    expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `x${"a".repeat(40)}` } }))
+      .toContain("Evidence requires a full redReplay.redCommit SHA.");
+    expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, redCommit: `${"a".repeat(40)}x` } }))
+      .toContain("Evidence requires a full redReplay.redCommit SHA.");
+    for (const command of [[], ["pnpm", ""], ["pnpm", 7]]) {
+      expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, command } }))
+        .toContain("redReplay.command must be a non-empty argv array.");
+    }
+    for (const testFiles of [
+      ["qa/rules/a.test.ts.extra"],
+      ["qa/rules/a.test.xts"],
+      ["qa/rules/a.ts"],
+    ]) expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, testFiles } }))
+      .toContain("redReplay.testFiles must contain test files only.");
+    for (const testFile of ["qa/a.test.ts", "qa/a.spec.tsx", "qa/a.test.cts", "qa/a.spec.mjs"]) {
+      expect(validateEvidenceManifest({ ...validManifest, redReplay: { ...validManifest.redReplay, testFiles: [testFile] } }))
+        .toEqual([]);
+    }
+
+    expect(validateEvidenceManifest([])).toEqual(["Evidence manifest must be an object."]);
+    expect(evaluateEvidenceManifest({ ...validManifest, redReplay: undefined })).toEqual(expect.arrayContaining([
+      "Evidence requires redReplay.",
+    ]));
+    for (const [exemption, changedFiles] of [
+      ["decision-record-only", ["prefix/destiny-product/DEPLOY_LOG.md"]],
+      ["decision-record-only", ["destiny-product/DEPLOY_LOG.md.extra"]],
+      ["docs-only", ["prefix/docs/readme.txt"]],
+      ["docs-only", ["README.md.extra"]],
+      ["docs-only", ["file.md.extra"]],
+      ["generated-inventory-only", ["prefix/destiny-product/qa/inventory/routes.json"]],
+    ] as const) expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption },
+    }, { changedFiles: [...changedFiles] })).toContain(`RED exemption ${exemption} does not match the changed files.`);
+    expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption: "docs-only" },
+    }, { changedFiles: ["README.md", "src/app.ts"] })).toContain("RED exemption docs-only does not match the changed files.");
+    expect(evaluateEvidenceManifest({
+      ...validManifest,
+      redReplay: { mode: "not-applicable", exemption: "docs-only" },
+    })).toContain("RED exemption docs-only does not match the changed files.");
+  });
 });
