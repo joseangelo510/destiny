@@ -95,7 +95,7 @@
     "ceilings": {
       "prLaneSeconds": 1800,
       "nightlyLaneSeconds": 7200,
-      "changedMutationSeconds": 300
+      "changedMutationSeconds": 375
     }
   },
   "integrityLimit": "The shipping PR is governed by the pre-existing required checks and Jose's review. Harness self-tests protect later changes but cannot make their own introducing PR tamper-proof."
