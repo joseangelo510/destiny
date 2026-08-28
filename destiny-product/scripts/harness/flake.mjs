@@ -1,6 +1,6 @@
 export function classifyTestAttempts(attempts) {
   const statuses = attempts.map((attempt) => attempt.status);
-  const failedBeforePass = statuses.at(-1) === "pass" && statuses.slice(0, -1).includes("fail");
+  const failedBeforePass = statuses.at(-1) === "pass" && statuses.includes("fail");
   return {
     flaky: failedBeforePass,
     gateStatus: statuses.every((status) => status === "pass") ? "pass" : "fail",
