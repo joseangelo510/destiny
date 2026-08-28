@@ -360,6 +360,44 @@ Deploy receipt: at `2026-08-28T09:12:33Z`, Supabase project `etkksjebqgtkkdqznnx
 Dry-run receipt: not executed. No safe existing user JWT was available to the executor, and extracting, manufacturing, or working around a user credential is not authorized. The exact candidate remained singular, and the post-smoke readback proved zero mutation: item `10e64100-6b99-4dc5-8e64-9318e75f9955` stayed `needs_review` with null CMS linkage and unchanged `updated_at` `2026-08-16 20:25:31.058693+00`; transfer `558f3d60-1f46-41c6-b745-d7675d72fb7e` retained unchanged `updated_at` `2026-08-18 23:15:04.755+00`. Resume only with a safely available authenticated Destiny user session; do not use a service-role token or credential workaround. No confirmation token was issued or consumed.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
 
+## CTO production decision: D-REPLIT-DIVERGENCE-AUDIT-1
+
+[2026-08-28] D-REPLIT-DIVERGENCE-AUDIT-1
+Title: Record D-REPLIT-REPUBLISH-2 as STOPPED-VOID at mandatory precheck 4; classify the observed Replit divergence as unproven-cause true divergence; authorize a strictly read-only divergence audit; keep every frozen action frozen.
+Issued by: Fable 5 High, acting CTO of record for Destiny, under `HARNESS_POLICY.md` GOV-1.
+Classification: HIGH — supersession of a recorded HIGH decision plus investigation of frozen surface 2 (Replit production), read-only only.
+
+### 1. Status of D-REPLIT-REPUBLISH-2: STOPPED-VOID
+
+Mandatory precheck 4 (Replit state parity) failed before any publish: on Replit app Destiny SEO (`ee690524-db57-4050-86d0-03bad18452f7`), read-only inspection reported workspace HEAD `3fca8286853c12715530f9e9fb91abd5a5a9b4c4` with the ancestor check against `082c70f1aecc8d3c395ea12f3542bd146fc57a01` failing, and a file comparison (DEPLOY_LOG excluded) that was not empty: many `destiny-product` paths absent and application files modified, including keyword-research UI, rank-tracker code, `seo-research` function logic, and global CSS. By its own section 4 terms, D-REPLIT-REPUBLISH-2 is void. No production mutation, config, env, secret, domain, Auth, function, database, RLS, tag, or Fly change occurred; the executor stopped correctly and did not force-sync. Its section 2 immutable artifact definition (application content of `082c70f1aecc8d3c395ea12f3542bd146fc57a01`, tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, excluding `destiny-product/DEPLOY_LOG.md`) and section 3 governance-equivalence predicate remain adopted as definitions for future decisions; the publish authorization is extinguished.
+
+### 2. Evidence treatment
+
+The divergence is treated as true divergence until a completed audit proves otherwise. Three hypotheses must be distinguished with evidence: (a) repository-layout/mapping artifact — can explain the absent `destiny-product` paths, cannot explain content modifications in correctly-mapped application files; (b) stale-but-clean — Replit workspace equals an older GitHub ancestor state and "modified" files are old versions; (c) foreign content matching no GitHub commit — a potential unauthorized-modification security event. The git ancestry failure alone is weak evidence because Replit generates its own checkpoint history; the content diffs are strong evidence.
+
+### 3. Authorized: read-only divergence audit only
+
+After this record's protected PR merges, the executor may, read-only: (1) prove the workspace-to-repo root mapping via marker files before classifying any path as deleted, then re-run the comparison under the proven mapping; (2) enumerate the full Replit workspace inventory with per-file sizes and content hashes against `git ls-tree -r` of tree `324cd92ca0d06ddb20beb9a16384010a8b2cd541`, excluding `destiny-product/DEPLOY_LOG.md` and expected Replit-local files (`.replit`, `replit.nix`, caches, `node_modules`, env files by name only — secret values never read); (3) capture verbatim byte-level diffs of each reported-modified file against `git show 082c70f1aecc8d3c395ea12f3542bd146fc57a01:<path>`; (4) determine whether `3fca8286853c12715530f9e9fb91abd5a5a9b4c4` exists in GitHub history and whether any GitHub commit's application tree equals the Replit content under the proven mapping; (5) read Replit git metadata (log, parents, authors, timestamps, remotes) for the workspace HEAD lineage; (6) capture the published-deployment identity via read-only publish status, distinct from workspace state, as the rollback baseline for any future decision; (7) capture a live behavior baseline via read-only GETs on public routes; (8) append a full audit report to this entry classifying every divergent path as artifact, stale, or foreign, with a single hard-to-vary (a)/(b)/(c) determination.
+
+### 4. Prohibited
+
+Everything else. Specifically: any Replit write, sync, force-sync, git pull/push/checkout/reset, file edit, publish, republish, or rollback publish; any config, environment, secret, domain, or Auth Site URL change; any function deploy or change including `seo-research`; database migration or schema change; auth, RLS, or security-model change; `container-staging` push; release tag creation or mutation; parallel-launch (`app.caminoseo.com`) change; Replit-to-Fly traffic redirect; Replit decommissioning; reading any secret value; repairing Replit state even if the fix appears trivial.
+
+### 5. Stop rules
+
+Stop immediately and record if: any tool would or did modify Replit state; the read-only guarantee of any tool is uncertain (do not use it); the root mapping cannot be proven (do not guess); or evidence of hypothesis (c) foreign content appears — in that case escalate to Jose Gallegos as a potential security event and perform no further Replit interaction without a new recorded Fable 5 High decision.
+
+### 6. Success criteria and forward gate
+
+The audit is complete when every divergent path is classified with evidence, the root mapping is proven, the (a)/(b)/(c) determination is stated, the workspace-versus-published-deployment distinction and live baseline are documented, and the report is appended here. Audit completion authorizes no reconciliation, sync, or publish. Any such action requires a new protected, merged Fable 5 High decision (D-REPLIT-REPUBLISH-3) that binds to the same immutable artifact definition, re-runs all prechecks, and may authorize a publish only on proof of exact application parity. No launch, deploy, or readiness claim may be made from this decision; D-LAUNCH-READINESS-1 keyword-research status remains NOT GO pending a successful republish and `keyword_serp` postcheck under a future decision.
+
+### 7. Decision-record PR
+
+This entry must merge via a protected, governance-only decision-record PR (touching only `destiny-product/DEPLOY_LOG.md`) with `cto-approved` applied by `joseangelo510` and `policy-guard`, `checklist-guard`, and `harness-gates` green at the PR SHA, before any audit step executes. The merge is a governance-only descendant and preserves the D-REPLIT-REPUBLISH-2 section 3 equivalence predicate for future reuse.
+
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. Audit not started.
+Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
 ## CTO production decision: D-REPLIT-REPUBLISH-2
 
 [2026-08-28] D-REPLIT-REPUBLISH-2
