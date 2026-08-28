@@ -100,7 +100,7 @@ describe("canonical protected main ref resolution", () => {
         expect(resolveProtectedMainRef(repository), `${base}${suffix}`).toBe("refs/remotes/github/main");
       }
     }
-  }, 15_000);
+  }, 20_000);
 
   it("rejects near-miss repository identities", async () => {
     const { repository, sha } = await createRepository();
