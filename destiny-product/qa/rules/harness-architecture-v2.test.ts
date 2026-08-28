@@ -17,6 +17,20 @@ describe("architecture fitness functions", () => {
     `)).toEqual(["@/lib/value", "../thing", "./lazy", "./legacy"]);
   });
 
+  it("parses compact valid modules without treating comments or strings as imports", async () => {
+    const { parseModuleSpecifiers } = await loadArchitectureModule();
+    expect(parseModuleSpecifiers(`
+      export*from "./star";
+      import{compact}from"./compact";
+      export{named}from"./named";
+      import type{Contract}from"./contract";
+      const lazy=import("./lazy");
+      const legacy=require("./legacy");
+      const decoy='import fake from "./string-decoy"';
+      // export { fake } from "./comment-decoy";
+    `)).toEqual(["./star", "./compact", "./named", "./contract", "./lazy", "./legacy"]);
+  });
+
   it("forbids lower layers from importing delivery implementations", async () => {
     const { evaluateArchitectureImports } = await loadArchitectureModule();
     expect(evaluateArchitectureImports([
