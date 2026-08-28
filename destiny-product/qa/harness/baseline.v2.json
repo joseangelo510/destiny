@@ -5,14 +5,14 @@
   "measurement": {
     "static": "scripts/qa-quality-gate.mjs --measure against an exact detached origin/main worktree",
     "coverage": "Vitest 4.1.10 with V8 over src/**/*.{ts,tsx}",
-    "mutation": "No changed production module exists when origin/main is compared to itself; the measured changed-scope score is zero."
+    "mutation": "origin/main had no changed module and therefore measured zero. D-HARNESS-SOTA-2 then measured 66.30 percent over 1,258 mutants in 11 changed modules and locked that successful floor."
   },
   "metrics": {
     "architectureViolations": 0,
     "auditExceptions": 2,
     "changedBranchCoverage": 45.59,
     "changedLineCoverage": 56.45,
-    "changedMutationScore": 0,
+    "changedMutationScore": 66.3,
     "dependencyCycles": 1,
     "duplicateBlocks": 95,
     "duplicationPercentage": 3.23,
@@ -38,5 +38,15 @@
       "GHSA-w3rx-r6r6-pgpr expires for review on 2026-09-05",
       "GHSA-5p2g-fcmc-qvqq expires for review on 2026-09-05"
     ]
-  }
+  },
+  "ratchetHistory": [
+    {
+      "decisionId": "D-HARNESS-SOTA-2",
+      "metric": "changedMutationScore",
+      "from": 0,
+      "to": 66.3,
+      "evidence": "qa/artifacts/harness/mutation/changed-mutation.json",
+      "mutants": 1258
+    }
+  ]
 }
