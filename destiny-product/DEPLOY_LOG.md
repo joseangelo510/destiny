@@ -340,10 +340,10 @@ Authenticated dry run: one invocation is authorized. Evidence required: timestam
 Confirm/write: NOT AUTHORIZED. Review of the complete dry-run packet plus a new protected and merged Fable 5 High decision `D-CALENDAR-ORPHAN-REPAIR-3` is required before any production write.
 Rollback: the new function has no callers; delete `calendar-orphan-repair` to restore the prior production state. Record rollback trigger and timestamps in this entry. No data rollback is expected because no write is authorized.
 Interaction: the `seo-research` v13 Decision C remains unchanged; passive health observation only. Replit remains production of record and fully frozen.
-Status: AUTHORIZED PENDING. Deployment remains frozen until this exact record is merged through a protected PR with required checks green and the PR URL, merge SHA, and check-run URLs are appended below.
-PR: pending.
-Merge SHA: pending.
-Required check runs: pending.
-Deploy receipt: pending.
-Dry-run receipt: pending.
+Status: DEPLOYED, AUTHENTICATED DRY_RUN PENDING. The authorized function deployment and read-only smoke completed; confirm/write remains frozen.
+PR: https://github.com/joseangelo510/destiny/pull/39
+Merge SHA: `beef8d75e0b9a4619813cadcac83f06365a2d44f`
+Required check runs: PR harness https://github.com/joseangelo510/destiny/actions/runs/33157611091; latest policy guard https://github.com/joseangelo510/destiny/actions/runs/33157948630; latest checklist guard https://github.com/joseangelo510/destiny/actions/runs/33157948616; latest staging evidence https://github.com/joseangelo510/destiny/actions/runs/33157948624; exact-main post-merge harness https://github.com/joseangelo510/destiny/actions/runs/33158079951
+Deploy receipt: at `2026-08-28T09:12:33Z`, Supabase project `etkksjebqgtkkdqznnxa` deployed only `calendar-orphan-repair` version `1`, status `ACTIVE`, with `verify_jwt=true`; deployment source digest `f8b48e9de2e043e4c22e4a8632ce0f800b7900faaf72567a518ab2a6da6119c6`. The exact-main harness artifact digest is `c69cd14ed38592eb885f356f49bfcb0b5a7a8e6eba9f075a5aea139dae481f32`. An unauthenticated POST was rejected with HTTP `401` and `UNAUTHORIZED_NO_AUTH_HEADER`. `seo-research` remained active at version `13` with `verify_jwt=true` and recorded HTTP `200` responses. The ClearCheck public permalink returned HTTP `200`.
+Dry-run receipt: not executed. No safe existing user JWT was available to the executor, and extracting, manufacturing, or working around a user credential is not authorized. The exact candidate remained singular, and the post-smoke readback proved zero mutation: item `10e64100-6b99-4dc5-8e64-9318e75f9955` stayed `needs_review` with null CMS linkage and unchanged `updated_at` `2026-08-16 20:25:31.058693+00`; transfer `558f3d60-1f46-41c6-b745-d7675d72fb7e` retained unchanged `updated_at` `2026-08-18 23:15:04.755+00`. Resume only with a safely available authenticated Destiny user session; do not use a service-role token or credential workaround. No confirmation token was issued or consumed.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
