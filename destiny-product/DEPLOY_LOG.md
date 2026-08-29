@@ -1194,3 +1194,35 @@ Receipts for Resend verification, DNS additions, delivered-message
 authentication, magic-link and OAuth journeys, the action-time confirmation,
 the four-item retirement, and all post-removal checks are recorded through the
 D9.2 docs-only HIGH PR or a successor.
+
+## D9.2 and D9.3 execution receipt
+
+Date: 2026-08-29
+
+Status: EXECUTED — AWAITING PROTECTED EVIDENCE PR CHECKS AND MERGE.
+
+Full redacted receipt:
+`docs/releases/D9.2-REBOUND-CUTOVER/README.md`
+
+Summary:
+
+- Protected Rebound policy, product, wrapper, immutable tag, exact-main
+  harness, and successful production-dispatch receipts are recorded.
+- Rebound app and root returned HTTP 200; Fly machine `860714be531938` was
+  Started with checks `1/1`; `app.reboundseo.com` remained Issued.
+- Resend verified `reboundseo.com`; Supabase authentication sender and
+  magic-link template use Rebound; fresh delivery, magic-link authentication,
+  and the read-only Google Search Console OAuth callback passed.
+- Jose supplied the required action-time confirmation. Exactly the four Camino
+  application-only entries named by D9.2 were removed.
+- Authoritative and public DNS checks plus TLS failure showed the Camino app
+  endpoint no longer serves. Camino mail and Resend records, Rebound root and
+  mail records, and the Replit allowlist entry were preserved.
+- No migration, schema, RLS, database, Replit, release-tag, application-code,
+  workflow, dependency, or new deployment change is included in the evidence
+  PR.
+
+Completion remains governed by GOV-1: this HIGH docs-only PR requires
+`cto-approved` applied by `joseangelo510`, green required checks at the final
+PR SHA, protected merge, and a green exact-merge harness. Current user
+instruction forbids Codex from labeling or merging this PR.
