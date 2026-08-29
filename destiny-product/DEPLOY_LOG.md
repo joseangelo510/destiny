@@ -939,3 +939,102 @@ Stop on any red gate; any frozen surface touched outside authorized scope; canon
 Redeploy the prior immutable tag to Fly. If the failure is DNS- or certificate-scoped, remove only the new `app.reboundseo.com` records. Leave Camino and GoDaddy mail records untouched and never hand-edit production. Roll back on authentication, magic-link, or OAuth failure; TLS failure; any touched-route 5xx; email-deliverability failure; build-stamp mismatch; or disruption to the root marketing site.
 
 **Status:** DECIDED — implementation authorized in phase order A -> B -> C. Completion requires protected merged PRs with merge SHAs and green `policy-guard`, `checklist-guard`, and `harness-gates` run URLs for each SHA, plus the enumerated acceptance evidence. D8.5 Replit remediation remains OPEN and is not advanced or closed by this decision.
+
+**Supersession note:** D9.1 below supersedes D9.0 clauses on parallel operation, 30-day Camino coexistence, Camino retention, and Site URL deferral. The D9.0 topology, copy-scope boundaries, and root-domain preservation carry forward.
+
+## D9.1-REBRAND-REBOUND-CUTOVER — Fable 5 High Decision
+
+Decision ID: D9.1-REBRAND-REBOUND-CUTOVER
+Date: 2026-08-29
+Authority: Fable 5 High (Claude), executing the product decision of Jose
+Gallegos, who has explicitly approved full replacement and live cutover.
+Classification: HIGH (explicitly authorizes frozen actions: Supabase Auth
+Site URL change; release tag creation; production/parallel-launch change;
+container-staging pushes for this workstream; HARNESS_POLICY amendment)
+Supersedes: D9.0-REBRAND-REBOUND clauses on parallel operation, 30-day
+Camino coexistence, Camino retention, and Site-URL deferral. D9.0 topology
+(root = marketing, app subdomain = product), copy-scope boundaries, and
+root-domain preservation carry forward.
+Context: pre-launch; no traffic to preserve; no company-email migration.
+Policy verified at: 24c0ee825df6ca9359a4dfadf25779b15cef7ece (reachable).
+Phase-A branch: codex/rebound-seo-policy @ 38c39eacfbeb90d9dfa428c62dea1ca14968ae9e
+(PR #57), to be amended under this decision.
+
+### Authorized scope and order
+
+1. Amend and merge PR #57 (HIGH; labels `cto-approved` and `policy-change`
+   applied by `joseangelo510`): record D9.1; amend `HARNESS_POLICY.md` to name
+   `https://app.reboundseo.com` as the product/launch domain and remove the
+   `app.caminoseo.com` parallel-launch clause.
+2. Rebrand PR (MEDIUM) from post-merge `main`: customer-facing strings to
+   “Rebound SEO” (metadata, navigation and copy, login, onboarding, audit
+   status text, sidebar and ARIA labels, visible errors, email subjects,
+   bodies, and display name, and exported-document metadata), plus a
+   display-layer mapping for persisted “Destiny Interviews”. No environment
+   key, schema, RLS, data, user-agent, or authentication-logic changes.
+3. Supabase Auth: add `app.reboundseo.com` redirect allowlist entries
+   additively, then set Site URL to `https://app.reboundseo.com`.
+4. Add the Fly certificate and GoDaddy DNS for `app.reboundseo.com` (ACME
+   CNAME plus application CNAME or A record; additive only).
+5. Set Fly runtime configuration keys `NEXT_PUBLIC_SITE_URL` and
+   `DESTINY_SITE_URL` to `https://app.reboundseo.com`. Log key names, never
+   secret values.
+6. Create one immutable release tag from the merged rebrand SHA; run the full
+   suite, 79-route sweep, and build-identity proof; deploy the tag to Fly.
+7. After all verification receipts pass, snapshot and then remove
+   `app.caminoseo.com` from Fly certificates, Camino DNS (application A record
+   and ACME CNAME only), and the Supabase redirect allowlist.
+
+### Explicitly out of scope and preserved
+
+- Replit. No Replit change is necessary for this cutover; Replit remains
+  untouched and any Replit action requires a new decision.
+- The root `reboundseo.com` Website Builder site and all existing
+  `reboundseo.com` DNS, MX, SPF, DKIM, and DMARC records.
+- All `caminoseo.com` mail and Resend verification records. Authentication
+  email continues through the verified Camino Resend sender; only its display
+  name becomes “Rebound SEO”.
+- Database schema, RLS, product data, persisted `generatedBy` values, crawler
+  user agents, and `DESTINY_*` key names.
+- Email migration.
+
+### Forbidden
+
+- Direct-to-main work, unprotected or bypass merges, or deploys from unmerged
+  branches.
+- Secret disclosure.
+- Deletion or modification of the preserved records above.
+- Root-domain takeover.
+- Weakening any GOV-1 guard.
+- Any required label applied by an actor other than `joseangelo510`.
+
+### Required evidence
+
+Record all of the following against this decision ID: green `policy-guard`,
+`checklist-guard`, and `harness-gates` run URLs for each merge SHA; both
+protected-merge SHAs; release tag and tag SHA; Fly certificate Ready; DNS and
+TLS receipts for `app.reboundseo.com`; DNS receipts showing pre-existing
+`reboundseo.com` records unchanged; build stamp equal to the tag SHA; public
+HTTP 200 and zero 5xx on touched routes; an end-to-end magic-link journey
+landing authenticated on `app.reboundseo.com`; the root marketing page intact
+with HTTP 200 and screenshot; and a pre-deletion Camino snapshot plus
+post-removal confirmation.
+
+### Stop conditions
+
+Stop on any guard red after labels are applied; canonical policy unreachable
+at the working SHA; any technically required change outside authorized scope;
+certificate or TLS failure; magic-link failure; build-stamp mismatch; or any
+ambiguity. Re-escalate HIGH.
+
+### Rollback
+
+Before Camino removal, revert the Supabase Site URL to its prior value,
+redeploy the prior immutable tag, and optionally delete the two new DNS
+records. After Camino removal, restore its certificate, DNS, and allowlist from
+the pre-deletion snapshot, revert the Site URL, and redeploy the prior tag.
+Never hand-edit production.
+
+**Status:** DECIDED — implementation authorized in the order above. Completion
+is claimed only with all required evidence recorded. D8.5 Replit remediation
+remains OPEN and unaffected.
