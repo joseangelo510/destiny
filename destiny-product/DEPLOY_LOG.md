@@ -1487,3 +1487,91 @@ the final outcome through a protected HIGH receipt PR.
 
 This decision authorizes no code, Site URL, allowlist, `DESTINY_SITE_URL`, DNS,
 mail, Fly, migration, tag, or broader launch-readiness change.
+
+## D9.10-REPLIT-PUBLISHING-COMMIT — Fable 5 High Decision
+
+Decision ID: D9.10-REPLIT-PUBLISHING-COMMIT
+Date: 2026-08-29
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH (frozen: Replit production configuration and publish)
+Status: PROCEED — commit the single approved Publishing-pane draft through
+the page-level Publish action.
+
+### Trigger and root-cause assessment
+
+D9.9 was merged through protected PR #66 at
+`1c0f7a504b6bb64b242e05716976c597bd159c5a`. In Replit Publishing > Adjust
+settings, the persisted `NEXT_PUBLIC_SITE_URL` row showed the expected stale
+value `https://destiny-seo.replit.app`. Only that row was edited to
+`https://reboundseo.com`; the row-level Add action completed and the pane
+displayed the new value. The page-level Publish action was not used. A
+connector republish then completed successfully as deployment
+`a5e94a27-6ca6-4f32-a8a7-08e671bf965d`.
+
+The connector publish retained the exact approved source tree
+`34d213d31a3e9992dcce4daed3232b6b0b898fb3`; tracked and untracked drift were
+both zero, `/api/version` reported build SHA
+`05cafcc4ada1a09b378c224eb7300ae686bc8eb5`, and all eight apex, `www`,
+Replit-origin, and `app.reboundseo.com` root/login probes returned HTTP 200.
+However, a fresh `2026-08-29T23:41:19Z` email from
+`Rebound SEO <auth@reboundseo.com>` with subject
+`Your Rebound SEO sign-in link` still contained
+`redirect_to=https://destiny-seo.replit.app/auth/confirm?next=%2Fapp`. The
+link was not clicked.
+
+The evidence supports a settings-persistence failure: row-level Add updated
+the Adjust settings draft, while the omitted page-level Publish action left
+the deployment's persisted configuration stale. The connector therefore
+republished correct code with the prior production value. This is not a code,
+Supabase, DNS, mail, Fly, or second-secret defect.
+
+### Authorized order
+
+1. Merge this governance-only decision through a protected HIGH PR and record
+   its merge SHA before another live change.
+2. Reopen Replit Publishing > Adjust settings and capture the currently
+   persisted `NEXT_PUBLIC_SITE_URL` value before editing anything.
+3. If it already reads `https://reboundseo.com`, make no row edit and proceed
+   to the page-level Publish action. If it remains stale, edit only this row
+   to exactly `https://reboundseo.com`, use the row-level Add action, then use
+   the page-level Publish action. No other row, secret, or setting may change.
+4. After publishing succeeds, require `/api/version` tree
+   `34d213d31a3e9992dcce4daed3232b6b0b898fb3` and HTTP 200 from all eight
+   apex, `www`, Replit-origin, and `app.reboundseo.com` root/login probes.
+5. Request a fresh same-profile magic link. Inspect its `redirect_to` before
+   clicking. Only a link beginning
+   `https://reboundseo.com/auth/confirm` may be opened. Complete the journey
+   through an authenticated `https://reboundseo.com/app` session.
+
+### Stop conditions
+
+Stop and obtain a new decision if any other row is modified, absent, or
+unexpected; the page-level Publish action surfaces a code diff or any change
+beyond the single environment row; the source tree changes; any of the eight
+probes is non-200; the magic link still names `destiny-seo.replit.app`; the
+Supabase exchange fails; or any DNS, Fly, `DESTINY_SITE_URL`, mail, Supabase,
+or second-secret change appears necessary.
+
+### Rollback
+
+If the page-level publish degrades service or post-publish verification fails,
+restore `NEXT_PUBLIC_SITE_URL` to `https://destiny-seo.replit.app`, use the
+page-level Publish action, and reverify the same tree and eight probes. The
+connector deployment `a5e94a27-6ca6-4f32-a8a7-08e671bf965d` is the known-good
+functional baseline. A new decision is required before another remediation
+attempt.
+
+### Required receipts
+
+Record this protected PR URL, green check-run URLs, and merge SHA; the
+persisted production value before and after; the successful Replit deployment
+ID; the post-publish `/api/version` output; timestamped eight-route probes;
+the fresh email timestamp, sender, subject, and full callback host/path; and
+the authenticated final `https://reboundseo.com/app` session. Append the
+execution outcome through the final protected HIGH receipt PR.
+
+This decision authorizes only committing the single Replit production value
+through the page-level Publish action and the scoped verification above. It
+does not authorize code, Supabase, DNS, mail, Fly, `DESTINY_SITE_URL`, a
+second secret, migration, tag, traffic redirect, or broader launch claim.
