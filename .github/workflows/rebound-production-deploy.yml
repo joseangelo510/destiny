@@ -1,0 +1,345 @@
+name: rebound-production-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Exact protected production action
+        required: true
+        type: choice
+        options:
+          - deploy
+          - rollback
+      release_tag:
+        description: Immutable release tag; any other value is refused
+        required: true
+        default: rebound-seo-v1.0.0
+        type: string
+
+concurrency:
+  group: rebound-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+  packages: write
+
+env:
+  RELEASE_SHA: fbd738c6508c9cde75231dea60acebe842eb0b6f
+  RELEASE_TAG: rebound-seo-v1.0.0
+  PRODUCTION_IMAGE_TAG: rebound-seo-v1.0.0-prod
+  PRODUCTION_SITE_URL: https://app.reboundseo.com
+  PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
+  STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
+  FLY_APP: destiny-production
+  FLY_REGION: sjc
+  PRIOR_MACHINE_ID: 860714be531938
+  PRIOR_IMAGE_DIGEST: sha256:e30c56dd27c8e3e7c28217cacb6eb82c3f08a2c81eedaa7d0e8da17b374af5bd
+  PRIOR_RELEASE_SHA: fc7f050e1201ff5ee6ebece98560592257de127f
+  PRIOR_RELEASE_TAG: step-zero-v1.1
+  PRIOR_SITE_URL: https://app.caminoseo.com
+
+jobs:
+  deploy:
+    if: ${{ inputs.action == 'deploy' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      DATAFORSEO_LOGIN: ${{ secrets.DATAFORSEO_LOGIN }}
+      DATAFORSEO_PASSWORD: ${{ secrets.DATAFORSEO_PASSWORD }}
+      NEXT_PUBLIC_SITE_URL: https://app.reboundseo.com
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+    steps:
+      - name: Checkout protected wrapper
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout immutable Rebound release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          path: src
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Assert immutable release and production inputs
+        run: |
+          test "${{ inputs.release_tag }}" = "${RELEASE_TAG}"
+          test -n "${FLY_API_TOKEN}"
+          test -n "${ANTHROPIC_API_KEY}"
+          test -n "${DATAFORSEO_LOGIN}"
+          test -n "${DATAFORSEO_PASSWORD}"
+          test -n "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}"
+          test -n "${NEXT_PUBLIC_SUPABASE_URL}"
+          test -n "${OPENAI_API_KEY}"
+          test -n "${SESSION_SECRET}"
+          test "${NEXT_PUBLIC_SITE_URL}" = "${PRODUCTION_SITE_URL}"
+          test "$(git -C src rev-parse HEAD)" = "${RELEASE_SHA}"
+          test "$(git -C src cat-file -t ${RELEASE_TAG})" = "tag"
+          test "$(git -C src rev-parse ${RELEASE_TAG}^{})" = "${RELEASE_SHA}"
+          test -z "$(git -C src status --porcelain)"
+          case "${NEXT_PUBLIC_SUPABASE_URL}" in
+            *"${PRODUCTION_SUPABASE_REF}"*) ;;
+            *) echo "production Supabase ref mismatch" >&2; exit 1 ;;
+          esac
+          case "${NEXT_PUBLIC_SUPABASE_URL}" in
+            *"${STAGING_SUPABASE_REF}"*) echo "staging Supabase ref forbidden" >&2; exit 1 ;;
+            *) ;;
+          esac
+
+      - name: Assert complete route inventory
+        run: |
+          inventory=src/destiny-product/qa/inventory/routes.json
+          jq -e 'type == "array" and length > 0 and all(.[]; (.route | type) == "string" and (.route | length) > 0)' "${inventory}" > /dev/null
+          inventory_count="$(jq 'length' "${inventory}")"
+          jq -r '.[].route' "${inventory}" \
+            | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' \
+            | sort -u > route-paths.txt
+          unique_count="$(wc -l < route-paths.txt | tr -d ' ')"
+          test "${unique_count}" = "${inventory_count}"
+          printf 'inventory_count=%s\nunique_count=%s\n' "${inventory_count}" "${unique_count}" | tee route-inventory-counts.txt
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push exact Rebound image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: true
+          sbom: true
+          build-args: |
+            GIT_SHA=${{ env.RELEASE_SHA }}
+            RELEASE_TAG=${{ env.RELEASE_TAG }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ env.PRODUCTION_SITE_URL }}
+            PRODUCTION_SUPABASE_REF=${{ env.PRODUCTION_SUPABASE_REF }}
+          tags: |
+            ghcr.io/joseangelo510/destiny-production:${{ env.PRODUCTION_IMAGE_TAG }}
+            ghcr.io/joseangelo510/destiny-production:${{ env.RELEASE_SHA }}
+
+      - name: Inspect candidate provenance
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          printf '%s\n' "${IMAGE_DIGEST}" | tee candidate-digest.txt
+          printf '%s' "${IMAGE_DIGEST}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          docker buildx imagetools inspect "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}" --raw > candidate-manifest.json
+          jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64" and ((.annotations["vnd.docker.reference.type"] // "") != "attestation-manifest"))] | .[].digest' candidate-manifest.json | tee candidate-child-digest.txt
+          test "$(wc -l < candidate-child-digest.txt | tr -d ' ')" = "1"
+          printf '%s' "$(cat candidate-child-digest.txt)" | grep -Eq '^sha256:[0-9a-f]{64}$'
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Capture and assert the recorded rollback point
+        run: |
+          flyctl machines list --app "${FLY_APP}" --json > machines-before.json
+          flyctl status --app "${FLY_APP}" --json > status-before.json
+          flyctl releases --app "${FLY_APP}" --json > releases-before.json
+          test "$(jq 'length' machines-before.json)" = "1"
+          test "$(jq -r '.[0].id' machines-before.json)" = "${PRIOR_MACHINE_ID}"
+          test "$(jq -r '.[0].state' machines-before.json)" = "started"
+          jq -e --arg digest "${PRIOR_IMAGE_DIGEST}" '.[0].image_ref.digest == $digest' machines-before.json > /dev/null
+
+      - name: Require the Rebound certificate to be ready
+        run: |
+          production_host="${PRODUCTION_SITE_URL#https://}"
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${FLY_API_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://api.machines.dev/v1/apps/${FLY_APP}/certificates/${production_host}" \
+            | tee certificate-before.json
+          jq -e --arg hostname "${production_host}" \
+            '.hostname == $hostname
+             and .configured == true
+             and .validation.dns_configured == true
+             and (.validation_errors | length) == 0
+             and (.status == "Ready" or .status == "active")
+             and any(.certificates[]; .source == "fly" and .status == "active")' \
+            certificate-before.json > /dev/null
+
+      - name: Copy exact candidate digest to Fly registry
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          flyctl auth docker
+          docker buildx imagetools create \
+            --tag "registry.fly.io/${FLY_APP}:${PRODUCTION_IMAGE_TAG}" \
+            "ghcr.io/joseangelo510/destiny-production@${IMAGE_DIGEST}"
+          docker buildx imagetools inspect "registry.fly.io/${FLY_APP}:${PRODUCTION_IMAGE_TAG}" > fly-image-inspect.txt
+          grep -q "${IMAGE_DIGEST}" fly-image-inspect.txt
+
+      - name: Stage authorized production runtime keys
+        run: |
+          flyctl secrets set --stage --app "${FLY_APP}" \
+            ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" \
+            DATAFORSEO_LOGIN="${DATAFORSEO_LOGIN}" \
+            DATAFORSEO_PASSWORD="${DATAFORSEO_PASSWORD}" \
+            NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL}" \
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" \
+            NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
+            OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            SESSION_SECRET="${SESSION_SECRET}"
+
+      - name: Deploy exact image to the single production machine
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          flyctl deploy \
+            --app "${FLY_APP}" \
+            --image "registry.fly.io/${FLY_APP}@${IMAGE_DIGEST}" \
+            --ha=false \
+            --strategy immediate \
+            --wait-timeout 5m
+
+      - name: Verify one-machine provenance and build identity
+        run: |
+          ready=0
+          for attempt in $(seq 1 60); do
+            flyctl machines list --app "${FLY_APP}" --json > machines-after.json
+            if [ "$(jq '[.[] | select(.state == "started")] | length' machines-after.json)" = "1" ]; then
+              sha="$(curl -sS --max-time 5 "${PRODUCTION_SITE_URL}/_next/static/build-sha.txt" || true)"
+              tag="$(curl -sS --max-time 5 "${PRODUCTION_SITE_URL}/_next/static/build-tag.txt" || true)"
+              site="$(curl -sS --max-time 5 "${PRODUCTION_SITE_URL}/_next/static/build-site-url.txt" || true)"
+              if [ "${sha}" = "${RELEASE_SHA}" ] && [ "${tag}" = "${RELEASE_TAG}" ] && [ "${site}" = "${PRODUCTION_SITE_URL}" ]; then
+                ready=1
+                break
+              fi
+            fi
+            sleep 5
+          done
+          test "${ready}" = "1"
+          test "$(jq 'length' machines-after.json)" = "1"
+          test "$(jq -r '.[0].id' machines-after.json)" = "${PRIOR_MACHINE_ID}"
+          test "$(jq -r '.[0].region' machines-after.json)" = "${FLY_REGION}"
+          child_digest="$(cat candidate-child-digest.txt)"
+          jq -e --arg digest "${child_digest}" '.[0].image_ref.digest == $digest' machines-after.json > /dev/null
+          jq -e --arg sha "${RELEASE_SHA}" --arg tag "${RELEASE_TAG}" '.[0].image_ref.labels["org.opencontainers.image.revision"] == $sha and .[0].image_ref.labels["org.opencontainers.image.version"] == $tag' machines-after.json > /dev/null
+          flyctl checks list --app "${FLY_APP}" --json | tee checks-after.json
+          jq -e '[to_entries[].value[]] | length > 0 and all(.[]; .status == "passing")' checks-after.json > /dev/null
+          curl --fail --silent --show-error "${PRODUCTION_SITE_URL}/_next/static/build-sha.txt" | tee build-sha.txt
+          curl --fail --silent --show-error "${PRODUCTION_SITE_URL}/_next/static/build-tag.txt" | tee build-tag.txt
+          curl --fail --silent --show-error "${PRODUCTION_SITE_URL}/_next/static/build-env.txt" | tee build-env.txt
+          curl --fail --silent --show-error "${PRODUCTION_SITE_URL}/_next/static/build-site-url.txt" | tee build-site-url.txt
+          test "$(cat build-sha.txt)" = "${RELEASE_SHA}"
+          test "$(cat build-tag.txt)" = "${RELEASE_TAG}"
+          test "$(cat build-env.txt)" = "production"
+          test "$(cat build-site-url.txt)" = "${PRODUCTION_SITE_URL}"
+
+      - name: Require public 200 and zero 5xx across the full inventory
+        run: |
+          root_code="$(curl --silent --show-error --location --max-redirs 5 --output root.html --write-out '%{http_code}' "${PRODUCTION_SITE_URL}/")"
+          printf '%s\n' "${root_code}" | tee root-status.txt
+          test "${root_code}" = "200"
+          inventory_count="$(jq 'length' src/destiny-product/qa/inventory/routes.json)"
+          unique_count="$(wc -l < route-paths.txt | tr -d ' ')"
+          test "${unique_count}" = "${inventory_count}"
+          : > route-sweep.tsv
+          while IFS= read -r route; do
+            safe_name="$(printf '%s' "${route}" | tr '/?&=[]' '_______')"
+            code="$(curl --silent --show-error --location --max-redirs 5 \
+              --output "route-${safe_name}.body" --write-out '%{http_code}' "${PRODUCTION_SITE_URL}${route}")"
+            printf '%s\t%s\n' "${code}" "${route}" | tee -a route-sweep.tsv
+            test "${code}" != "000"
+            test "${code}" -lt 500
+          done < route-paths.txt
+          test "$(wc -l < route-sweep.tsv | tr -d ' ')" = "${inventory_count}"
+          test "$(awk '$1 >= 500 {count++} END {print count+0}' route-sweep.tsv)" = "0"
+
+      - name: Upload immutable production evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebound-production-evidence-${{ github.run_id }}
+          path: |
+            route-inventory-counts.txt
+            route-paths.txt
+            candidate-digest.txt
+            candidate-manifest.json
+            candidate-child-digest.txt
+            machines-before.json
+            status-before.json
+            releases-before.json
+            certificate-before.json
+            fly-image-inspect.txt
+            machines-after.json
+            checks-after.json
+            build-sha.txt
+            build-tag.txt
+            build-env.txt
+            build-site-url.txt
+            root-status.txt
+            root.html
+            route-sweep.tsv
+            route-*.body
+          if-no-files-found: warn
+
+  rollback:
+    if: ${{ inputs.action == 'rollback' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Assert immutable rollback request
+        run: |
+          test "${{ inputs.release_tag }}" = "${RELEASE_TAG}"
+          test -n "${FLY_API_TOKEN}"
+          printf '%s' "${PRIOR_IMAGE_DIGEST}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Capture current production before rollback
+        run: |
+          flyctl machines list --app "${FLY_APP}" --json > machines-pre-rollback.json
+          test "$(jq 'length' machines-pre-rollback.json)" = "1"
+          test "$(jq -r '.[0].id' machines-pre-rollback.json)" = "${PRIOR_MACHINE_ID}"
+
+      - name: Restore prior runtime URL and immutable image
+        run: |
+          flyctl secrets set --stage --app "${FLY_APP}" NEXT_PUBLIC_SITE_URL="${PRIOR_SITE_URL}"
+          flyctl deploy \
+            --app "${FLY_APP}" \
+            --image "registry.fly.io/${FLY_APP}@${PRIOR_IMAGE_DIGEST}" \
+            --ha=false \
+            --strategy immediate \
+            --wait-timeout 5m
+
+      - name: Verify prior build identity
+        run: |
+          flyctl machines list --app "${FLY_APP}" --json > machines-post-rollback.json
+          test "$(jq 'length' machines-post-rollback.json)" = "1"
+          test "$(jq -r '.[0].id' machines-post-rollback.json)" = "${PRIOR_MACHINE_ID}"
+          jq -e --arg digest "${PRIOR_IMAGE_DIGEST}" '.[0].image_ref.digest == $digest' machines-post-rollback.json > /dev/null
+          test "$(curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-sha.txt")" = "${PRIOR_RELEASE_SHA}"
+          test "$(curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-tag.txt")" = "${PRIOR_RELEASE_TAG}"
+
+      - name: Upload rollback evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebound-production-rollback-${{ github.run_id }}
+          path: |
+            machines-pre-rollback.json
+            machines-post-rollback.json
+          if-no-files-found: warn
