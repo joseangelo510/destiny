@@ -1038,3 +1038,57 @@ Never hand-edit production.
 **Status:** DECIDED — implementation authorized in the order above. Completion
 is claimed only with all required evidence recorded. D8.5 Replit remediation
 remains OPEN and unaffected.
+
+## D9.1a-DEPLOY-MECHANISM — Fable 5 High Addendum to D9.1
+
+Decision ID: D9.1a-DEPLOY-MECHANISM
+Date: 2026-08-29
+Scope: execution mechanism for D9.1 step 6 only; D9.1 otherwise unchanged.
+Classification: HIGH (frozen surfaces: release-wrapper merge to main; CI/
+deploy workflow; production deploy — all executed once under this addendum).
+
+DECIDED: Option A. A new protected HIGH wrapper PR from current main replaces
+any use of the spent container-staging workflow, which is invalidated on every
+pin (SHA fc7f050, tag step-zero-v1.1, Camino URL, 77 routes, zero-machine
+candidate, exhausted run ceiling) and is left byte-identical, unrun, and out
+of scope.
+
+ORDER: (1) PR #58 (head e6e80a1) merges protected with green guards (MEDIUM
+unless policy-guard flags HIGH, then cto-approved first); (2) immutable release
+tag from the #58 merge SHA with full suite + 79-route sweep + build identity;
+(3) branch codex/rebound-deploy-wrapper from post-#58 main:
+workflow_dispatch wrapper hard-pinned to exact tag/SHA, existing GitHub
+production secrets by name only, one-machine in-place Fly deploy to
+destiny-production's single v2 machine, in-workflow inventory/build-stamp/
+public-200/zero-5xx 79-route checks, and a rollback job redeploying the
+recorded prior release; (4) wrapper PR is HIGH, cto-approved by
+joseangelo510, guards green, protected merge; (5) prior Fly release/image
+digest + machine ID captured before dispatch; (6) dispatch with tag; record
+run URL, image digest, machine before/after, build-stamp, sweep, and 200
+receipts.
+
+ROLLBACK: dispatch the wrapper rollback job to redeploy the captured prior
+image/tag; verify build stamp reverts. Triggers: stamp mismatch, any 5xx,
+TLS/cert failure, magic-link failure. Never hand-edit production.
+
+FORBIDDEN: secret reads; Replit, schema, RLS, mail changes; any
+container-staging push; running/modifying the orphan workflow; force push or
+admin bypass.
+
+STATUS: DECIDED — Option A authorized; execution proceeds in the order above
+under D9.1's evidence requirements.
+
+D9.1b-ADDENDUM: The controlling invariant is the full committed route inventory at the deployed SHA — currently 80 routes per protected main and PR #58 QA — and the wrapper must dynamically derive, assert, and zero-5xx sweep every route in that inventory with none omitted, superseding the stale numeric "79" wherever it appears in D9.1/D9.1a.
+
+D9.1c-ADDENDUM: D9.1 step 5's runtime-URL authorization is clarified to mean setting NEXT_PUBLIC_SITE_URL=https://app.reboundseo.com in the GitHub production build/Fly deployment and setting DESTINY_SITE_URL=https://app.reboundseo.com as a production Supabase Edge Function secret (key names logged, values of any secret never disclosed), since the Edge Functions — audit email links, rank-digest links, and the Google OAuth callback — read DESTINY_SITE_URL and the Fly Next app does not, so a Fly-only setting would leave emails/OAuth pointing at the old domain.
+
+D9.1d-ADDENDUM: Option R1 is authorized — since the harness audits every commit and force push remains forbidden, branch `codex/rebound-deploy-wrapper` is unrecoverable in place; closing draft PR #59 without merge and leaving its remote branch untouched is authorized, as is creating `codex/rebound-deploy-wrapper-r2` from current protected main with the corrected commit sequence (DEPLOY_LOG alone first, then the new RED test alone under subject `red:`, then GREEN implementation alone), opening a new HIGH draft PR with `cto-approved` applied by `joseangelo510`, and proceeding only on green protected `policy-guard`/`checklist-guard`/`harness-gates`; no deploy, rollback, or provider change occurs under this addendum, and all D9.1a invariants (pinned tag/SHA, secrets by name only, one-machine in-place deploy, dynamic full-inventory zero-5xx sweep per D9.1b) carry forward unchanged to the r2 wrapper.
+
+Execution baseline captured before dispatch:
+
+- release tag: `rebound-seo-v1.0.0`
+- shipped commit SHA: `fbd738c6508c9cde75231dea60acebe842eb0b6f`
+- prior Fly machine ID: `860714be531938`
+- prior Fly image digest: `sha256:e30c56dd27c8e3e7c28217cacb6eb82c3f08a2c81eedaa7d0e8da17b374af5bd`
+- runtime key names authorized for replacement: `NEXT_PUBLIC_SITE_URL`, `DESTINY_SITE_URL`
+- secret values: not read or recorded
