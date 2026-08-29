@@ -889,3 +889,53 @@ Nothing in D8.4c-CONT authorizes dependency installation, build, run, or publish
 
 Status: DECIDED — AWAITING EXACT-SIX-PATH PROTECTED PR, EXACT-MERGE HARNESS, NEW PIN, AND D8.5.
 Decided by: Fable 5 High, Destiny CTO under `HARNESS_POLICY.md` GOV-1.
+
+## 2026-08-29 — DECISION RECORD: D9.0-REBRAND-REBOUND
+
+**Decision ID:** `D9.0-REBRAND-REBOUND`
+**Authority:** Fable 5 High (Claude), on request of Jose Gallegos
+**Classification:** HIGH — covers frozen actions: release tag creation; auth-surface configuration; parallel-launch production change; `container-staging` pushes for this workstream; and this `HARNESS_POLICY.md` amendment
+**Canonical base:** `0f43eed77360921cbca43c081f39ff2f343593cc`
+**Policy verified at:** `24c0ee825df6ca9359a4dfadf25779b15cef7ece` — reachable and active
+**Decision source:** https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+
+### Authorized scope
+
+1. **Docs/policy PR (HIGH; `cto-approved` plus `policy-change`):** append this decision and amend `HARNESS_POLICY.md` to add `https://app.reboundseo.com` as a second parallel-launch domain alongside `https://app.caminoseo.com`.
+2. **Rebrand PR (MEDIUM):** replace customer-facing strings with “Rebound SEO” across metadata, navigation and copy, login, onboarding, audit status text, sidebar and ARIA labels, visible errors, email subjects/bodies/display name, and exported-document metadata. Add display-layer mapping that renders persisted `Destiny Interviews` as `Rebound SEO Interviews`. Do not change environment-key names, authentication logic, crawler user agents, schema, or persisted data.
+3. **Cutover PRs/actions (HIGH; this decision linked):**
+   - Add Supabase allowed redirect URLs for `https://app.reboundseo.com` additively.
+   - Set `NEXT_PUBLIC_SITE_URL` and `DESTINY_SITE_URL` to `https://app.reboundseo.com` in Fly runtime configuration only. Log key names, never secret values.
+   - Add the Fly certificate and GoDaddy DNS records for `app.reboundseo.com` additively, including the required ACME CNAME and application CNAME or A record.
+   - Create one immutable release tag for the certified rebrand build and deploy that tag to the Fly parallel-launch app.
+   - Confirm Resend capacity for a second domain; verify `reboundseo.com` (prefer a send subdomain); change the from address only after verified test sends pass SPF, DKIM, and DMARC. Retain the Camino Resend domain for at least 30 days.
+
+### Forbidden under this decision
+
+- Supabase Auth Site URL changes.
+- Any Replit modification, decommission, or traffic redirect.
+- Database migrations or release-wrapper merges.
+- Root `reboundseo.com` takeover or any change to its existing DNS or mail records.
+- Deletion or replacement of Camino DNS, mail, or Resend records, or redirecting `app.caminoseo.com`.
+- Crawler user-agent changes or persisted-data migration of `generatedBy` values.
+- Direct-to-main work, unprotected or bypass merges, or deploys from unmerged branches.
+- Secret-value disclosure or logging, or weakening any GOV-1 guard.
+
+### Ordered gates
+
+1. Merge the docs/policy PR through branch protection with `policy-guard`, `checklist-guard`, and `harness-gates` green.
+2. Merge the rebrand PR after the full `pnpm gate`, a staging build stamp equal to the PR SHA, and zero 5xx responses on touched routes.
+3. Add the Supabase allowed redirect URLs and log the evidence.
+4. Require the Fly certificate to be Ready and DNS to be live while verifying that the root marketing page remains intact.
+5. Create the release tag only after a full 79-route sweep and build-identity proof.
+6. Deploy the tag to the parallel launch and record the consultation’s acceptance evidence items 1–11.
+
+### Stop conditions
+
+Stop on any red gate; any frozen surface touched outside authorized scope; canonical policy unreachable at the working SHA; any certificate or DNS anomaly affecting the root domain or mail records; any authentication journey failure; or any ambiguity. Re-escalate ambiguity to Fable 5 High.
+
+### Rollback
+
+Redeploy the prior immutable tag to Fly. If the failure is DNS- or certificate-scoped, remove only the new `app.reboundseo.com` records. Leave Camino and GoDaddy mail records untouched and never hand-edit production. Roll back on authentication, magic-link, or OAuth failure; TLS failure; any touched-route 5xx; email-deliverability failure; build-stamp mismatch; or disruption to the root marketing site.
+
+**Status:** DECIDED — implementation authorized in phase order A -> B -> C. Completion requires protected merged PRs with merge SHAs and green `policy-guard`, `checklist-guard`, and `harness-gates` run URLs for each SHA, plus the enumerated acceptance evidence. D8.5 Replit remediation remains OPEN and is not advanced or closed by this decision.
