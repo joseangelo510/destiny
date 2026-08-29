@@ -68,7 +68,7 @@ describe("WeeklyTaskList", () => {
 
     expect(html).not.toContain("Skip for now");
     expect(html).toContain("Review keywords");
-    expect(html).toContain("Approve Destiny’s 5");
+    expect(html).toContain("Approve Rebound SEO’s 5");
     expect(html).not.toContain("Approve &amp; complete");
     expect(html).not.toContain("finish this right now");
     expect(html).toContain("At least five recommended searches are approved");

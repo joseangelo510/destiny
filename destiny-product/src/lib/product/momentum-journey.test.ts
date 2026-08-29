@@ -6,7 +6,7 @@ import {
   onboardingMomentumJourney,
 } from "./momentum-journey";
 
-describe("Destiny momentum journey", () => {
+describe("Rebound SEO momentum journey", () => {
   it("keeps the three required onboarding sections while making progress explicit", async () => {
     expect(ONBOARDING_MOMENTUM_STAGES.map((stage) => stage.title)).toEqual([
       "Business & website",

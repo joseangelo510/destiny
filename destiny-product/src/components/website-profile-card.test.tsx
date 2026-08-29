@@ -33,7 +33,7 @@ describe("WebsiteProfileCard", () => {
   it("renders the section framing as editable profile info, not a claimed connection", () => {
     const html = render();
     expect(html).toContain("Your website");
-    expect(html).toContain("Tell Destiny where your site is built so advice fits your tools.");
+    expect(html).toContain("Tell Rebound SEO where your site is built so advice fits your tools.");
     expect(html).toContain("Where is your site built?");
     expect(html).toContain("Did AI tools help you build it?");
     expect(html).toContain("not account connections");

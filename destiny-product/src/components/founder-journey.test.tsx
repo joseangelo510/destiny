@@ -12,13 +12,13 @@ describe("Founder journey surfaces", () => {
     expect(html).toContain("Verified connected data");
   });
 
-  it("shows the founder what Destiny witnessed and labels proof honestly", () => {
+  it("shows the founder what Rebound SEO witnessed and labels proof honestly", () => {
     const html = renderToStaticMarkup(<WitnessLog entries={[
-      { id: "one", title: "Fix published", detail: "Your change is live.", proof: "Verified by Destiny", source: "Website evidence", tone: "verified" },
+      { id: "one", title: "Fix published", detail: "Your change is live.", proof: "Verified by Rebound SEO", source: "Website evidence", tone: "verified" },
       { id: "two", title: "Guide drafted", detail: "You marked this work complete.", proof: "Marked done by you", source: "Your task history", tone: "reported" },
     ]} />);
-    expect(html).toContain("Destiny noticed");
-    expect(html).toContain("Verified by Destiny");
+    expect(html).toContain("Rebound SEO noticed");
+    expect(html).toContain("Verified by Rebound SEO");
     expect(html).toContain("Marked done by you");
   });
 

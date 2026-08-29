@@ -6,7 +6,7 @@ import {
   WEEKS_PER_PLAN_MONTH,
 } from "./plan-horizon";
 
-describe("Destiny starter plan horizon", () => {
+describe("Rebound SEO starter plan horizon", () => {
   it("includes one three-month planning cycle", () => {
     expect(INITIAL_PLAN_MONTHS).toBe(3);
     expect(WEEKS_PER_PLAN_MONTH).toBe(4);

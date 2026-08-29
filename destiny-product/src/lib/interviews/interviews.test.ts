@@ -7,7 +7,7 @@ import {
   validateInterviewAnswer,
 } from "./interviews";
 
-describe("Destiny Interviews", () => {
+describe("Rebound SEO Interviews", () => {
   it("turns approved keywords and onboarding context into distinct expert-led topics", () => {
     const topics = buildInterviewTopicSuggestions({
       businessName: "Maple Street Roofing",

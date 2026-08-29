@@ -32,7 +32,7 @@ describe("POST /api/content/infographic/render", () => {
   });
   afterEach(() => { vi.unstubAllGlobals(); delete process.env.OPENAI_API_KEY; });
 
-  it("generates only a visual foundation and composites Destiny's exact overlay", async () => {
+  it("generates only a visual foundation and composites Rebound SEO's exact overlay", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [{ b64_json: Buffer.from("foundation").toString("base64") }] }), { status: 200, headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetchMock);
     const { POST } = await import("./route");
@@ -51,6 +51,6 @@ describe("POST /api/content/infographic/render", () => {
     const { POST } = await import("./route");
     const response = await POST(new Request("http://localhost/api/content/infographic/render", { method: "POST", body: JSON.stringify({ websiteId, plan, style: "editorial" }) }));
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: "OpenAI credits need to be added before Destiny can create infographics." });
+    expect(await response.json()).toEqual({ error: "OpenAI credits need to be added before Rebound SEO can create infographics." });
   });
 });

@@ -58,7 +58,7 @@ const validPlan: InfographicPlan = {
   })),
 };
 
-describe("Destiny infographic generation", () => {
+describe("Rebound SEO infographic generation", () => {
   it("asks for current, primary evidence and exactly four reusable stories", () => {
     const prompt = buildInfographicResearchPrompt({
       keyword: "employee background check trends",
@@ -125,7 +125,7 @@ describe("Destiny infographic generation", () => {
     expect(svg).toContain("Sources");
     expect(svg).toContain("Research Example");
     expect(svg).toContain("research.example");
-    expect(svg).toContain("Data and labels rendered by Destiny");
+    expect(svg).toContain("Data and labels rendered by Rebound SEO");
   });
 
   it("shrinks long primary statistics so they stay inside their evidence card", () => {

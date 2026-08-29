@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildAnalyticsPeriods, buildRankMovers } from "./dashboard";
 
-describe("Destiny analytics dashboard", () => {
+describe("Rebound SEO analytics dashboard", () => {
   it("keeps Search Console and Analytics metrics in a truthful search journey", () => {
     const periods = buildAnalyticsPeriods({
       searchConsole: { periods: { 90: {

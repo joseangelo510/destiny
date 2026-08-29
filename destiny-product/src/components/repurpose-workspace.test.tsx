@@ -260,7 +260,7 @@ describe("RepurposeWorkspace", () => {
   it("shows truthful non-publish disclaimer for non-SEO output", () => {
     const nonSEODraft = { ...INITIAL_DRAFT, output: "linkedin_post" as const };
     const html = renderRepurpose({ initialDraft: nonSEODraft });
-    expect(html).toContain("This format stays an editable draft; Destiny does not publish it automatically.");
+    expect(html).toContain("This format stays an editable draft; Rebound SEO does not publish it automatically.");
   });
 
   it("does not show Open in Content Studio for non-SEO output", () => {

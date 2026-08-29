@@ -44,7 +44,7 @@ describe("PublicOnboarding momentum experience", () => {
     expect(source).toContain('aria-label={`${active ? "Stop" : "Start"} dictation for ${label}`}');
     expect(source).toContain('aria-pressed={active}');
     expect(source).toContain('active ? "Listening · tap to stop" : "Dictate"');
-    expect(source).toContain("Destiny will finish after 5 seconds of silence");
+    expect(source).toContain("Rebound SEO will finish after 5 seconds of silence");
     expect(source).toContain('className="voice-microphone-icon"');
     expect(html).toContain('aria-current="step"');
     expect(html).toContain("Sound off");

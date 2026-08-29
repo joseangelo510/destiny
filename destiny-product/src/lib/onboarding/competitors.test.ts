@@ -6,7 +6,7 @@ describe("competitor onboarding", () => {
     expect(validateCompetitorEntries("Only One")).toEqual({
       ready: false,
       count: 1,
-      error: "Add at least two competitors so Destiny can find meaningful gaps.",
+      error: "Add at least two competitors so Rebound SEO can find meaningful gaps.",
     });
     expect(validateCompetitorEntries("IvyWise\nCollegewise").ready).toBe(true);
   });

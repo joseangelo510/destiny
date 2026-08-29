@@ -2,13 +2,19 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { notificationRecipient } from "./notification-recipient";
 import { sendAuditReadyEmail } from "./process-audit/email";
 import { sendWelcomeEmail } from "./send-welcome/email";
+import { reboundSeoSender } from "./_shared/email-sender";
 
 function stubSecrets(values: Record<string, string | undefined>) {
   vi.stubGlobal("Deno", { env: { get: (name: string) => values[name] } });
 }
 
-describe("Destiny transactional email", () => {
+describe("Rebound SEO transactional email", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("uses the new display name with the configured sender address", () => {
+    expect(reboundSeoSender("Destiny <auth@caminoseo.com>")).toBe("Rebound SEO <auth@caminoseo.com>");
+    expect(reboundSeoSender("auth@caminoseo.com")).toBe("Rebound SEO <auth@caminoseo.com>");
+  });
 
   it("uses the website recipient before the account-level fallback", () => {
     expect(notificationRecipient(" Reports@Client.Example ", "owner@example.com")).toBe("reports@client.example");
@@ -30,7 +36,7 @@ describe("Destiny transactional email", () => {
   it("sends an audit-ready email with an idempotency key and weekly-plan link", async () => {
     stubSecrets({
       RESEND_API_KEY: "test-key",
-      DESTINY_FROM_EMAIL: "Destiny <hello@destiny.example>",
+      DESTINY_FROM_EMAIL: "Rebound SEO <hello@destiny.example>",
       DESTINY_SITE_URL: "https://app.destiny.example/",
     });
     const fetchMock = vi.fn(async () => Response.json({ id: "email-id" }));
@@ -50,5 +56,6 @@ describe("Destiny transactional email", () => {
     expect(request?.headers).toMatchObject({ "Idempotency-Key": "destiny-audit-ready-audit-id" });
     expect(String(request?.body)).toContain("https://app.destiny.example/this-week");
     expect(String(request?.body)).toContain("Open my week 1 plan");
+    expect(String(request?.body)).toContain('"from":"Rebound SEO <hello@destiny.example>"');
   });
 });

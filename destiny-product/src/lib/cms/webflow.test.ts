@@ -39,7 +39,7 @@ describe("evaluateWebflowCollection", () => {
     if (!evaluation.compatible) expect(evaluation.reason).toContain("name field");
   });
 
-  it("refuses a collection whose other required fields Destiny cannot fill", () => {
+  it("refuses a collection whose other required fields Rebound SEO cannot fill", () => {
     const evaluation = evaluateWebflowCollection([name, slug, richBody, { slug: "hero-image", displayName: "Hero Image", type: "Image", isRequired: true, isEditable: true }]);
     expect(evaluation.compatible).toBe(false);
     if (!evaluation.compatible) expect(evaluation.reason).toContain("Hero Image");

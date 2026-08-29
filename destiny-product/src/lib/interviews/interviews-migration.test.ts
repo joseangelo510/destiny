@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 const migrationUrl = new URL("../../../supabase/migrations/20260822030000_destiny_interviews.sql", import.meta.url);
 const indexMigrationUrl = new URL("../../../supabase/migrations/20260822030500_index_interview_foreign_keys.sql", import.meta.url);
 
-describe("Destiny Interviews migration", () => {
+describe("Rebound SEO Interviews migration", () => {
   it("enforces website-scoped RLS across every interview table", async () => {
     const sql = await readFile(migrationUrl, "utf8");
     for (const table of ["interviews", "interview_questions", "interview_answers", "voice_library_items"]) {

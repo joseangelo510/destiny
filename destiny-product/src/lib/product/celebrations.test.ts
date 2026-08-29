@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CELEBRATION_KINDS, celebrationMessage, celebrationSoundPattern, parseCelebrationPreferences } from "./celebrations";
 
-describe("Destiny celebration preferences and original sounds", () => {
+describe("Rebound SEO celebration preferences and original sounds", () => {
   it("defaults to sound off with full but respectful celebrations", () => {
     expect(parseCelebrationPreferences(null)).toEqual({ muted: true, reduced: false });
     expect(parseCelebrationPreferences("not-json")).toEqual({ muted: true, reduced: false });
