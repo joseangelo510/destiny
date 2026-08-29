@@ -1197,3 +1197,57 @@ Record the protected PR URL, merge SHA, required guard run URLs, approved
 republished revision/SHA, branding and auth evidence from step 4, DNS
 before/after, valid TLS on apex and `www`, authoritative/public MX and TXT
 preservation proof, application health, and the zero-5xx sweep.
+
+## D9.5-REPLIT-RUN-COMMAND — Fable 5 High Decision
+
+Decision ID: D9.5-REPLIT-RUN-COMMAND
+Date: 2026-08-29
+Authority: Fable 5 High (Claude), executing the product decision of Jose
+Gallegos
+Decision source: https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+Classification: HIGH (frozen: Replit production modification)
+Status: DECIDED — Authorized.
+
+The protected D9.4 change merged as
+`b73c09167b66564af1d8ad571f840e132a0beede` and was republished to the
+existing Replit deployment as revision `2adb7dbe`. Provision, security,
+build, bundle, and promote passed, including the former 8 GiB image-layer
+gate. Runtime verification then stopped the cutover because both `/` and
+`/login` returned HTTP 500. No custom domain or DNS record changed.
+
+The runtime log proved that the configured command
+`pnpm run start -- -H 0.0.0.0 -p 3000` executed as
+`next start -- -H 0.0.0.0 -p 3000`. Next interpreted `-H` as a project
+directory and exited with `Invalid project directory provided, no such
+directory: /home/runner/workspace/destiny-product/-H`.
+
+### Authorized change and order
+
+1. Change only the root `.replit` run line to
+   `run = "cd destiny-product && pnpm exec next start -H 0.0.0.0 -p 3000"`.
+2. Carry the decision, RED config regression test, and one-line GREEN repair
+   through a new protected HIGH PR with full CI green, `cto-approved` applied
+   by `joseangelo510`, and protected merge.
+3. Sync and republish only that exact merge SHA to the existing Replit
+   deployment. Preserve project identity, secrets, database, Supabase, Fly,
+   mail, custom-domain state, and all DNS. Do not use Replit Agent edits.
+4. Verify the Replit root and `/login` return HTTP 200, render Rebound SEO
+   without visible Destiny branding, and complete the existing auth journey.
+5. Only after step 4 passes, resume the D9.4 custom-domain and DNS gates.
+
+### Stop and rollback
+
+Stop and re-escalate on any change beyond the single runtime line, recurrence
+of HTTP 500, a new publish/runtime failure class, a touched preserved surface,
+a red or missing required check, or ambiguity. If a working `replit.app`
+origin is needed after a failed retry, republish the last known-good
+pre-D9.4 SHA from the `1095526d` lineage; otherwise holding the failed Replit
+origin is acceptable while no public domain depends on it. Never hand-edit
+the running deployment.
+
+### Required receipts
+
+Record the protected PR and merge SHA, green guard URLs, republished revision
+ID, HTTP 200 and branding/auth evidence for `/` and `/login`, and confirmation
+that custom domains, DNS, mail, Supabase, Fly, and `app.reboundseo.com` stayed
+unchanged before the D9.4 cutover resumes.
