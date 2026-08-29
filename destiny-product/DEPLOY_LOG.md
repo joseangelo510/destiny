@@ -1251,3 +1251,133 @@ Record the protected PR and merge SHA, green guard URLs, republished revision
 ID, HTTP 200 and branding/auth evidence for `/` and `/login`, and confirmation
 that custom domains, DNS, mail, Supabase, Fly, and `app.reboundseo.com` stayed
 unchanged before the D9.4 cutover resumes.
+
+## D9.6-REBOUND-AUTH-CANONICAL-HOST — Fable 5 High Decision
+
+Decision ID: D9.6-REBOUND-AUTH-CANONICAL-HOST
+Date: 2026-08-29
+Authority: Fable 5 High (Claude), executing the product decision of Jose
+Gallegos
+Decision source: https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+Classification: HIGH (authentication-surface configuration; Replit
+republish)
+Status: DECIDED.
+
+The isolated-client magic-link result of Supabase `/auth/v1/verify` HTTP 303
+to `destiny-seo.replit.app/auth/confirm`, then `/auth/error`, is presumptively
+a PKCE verifier-storage artifact because the verification request did not
+share the initiating Chrome profile. A cookie-preserving same-profile retest
+is authorized before any configuration change.
+
+The canonical authentication redirect for flows initiated on
+`reboundseo.com` must be `https://reboundseo.com`. Returning a customer to
+`destiny-seo.replit.app` exposes the retired name in the address bar and is
+the same defect class D9.4 rejected for URL forwarding.
+
+### Authorized changes and order
+
+1. Run and record the same-Chrome-profile diagnostic retest.
+2. Add only the Supabase Auth redirect-allowlist entries
+   `https://reboundseo.com/**` and `https://www.reboundseo.com/**`. Remove
+   nothing. The Supabase Site URL remains `https://app.reboundseo.com`.
+3. Set only the existing Replit deployment configuration key
+   `NEXT_PUBLIC_SITE_URL=https://reboundseo.com`. Do not change
+   `DESTINY_SITE_URL` or any other key.
+4. Republish the existing Replit deployment from the exact already-approved
+   D9.5 merge SHA `f285e1402dee06587cf6befeb933f69febc8ecc7`, because the
+   `NEXT_PUBLIC_*` value is build-baked. Preserve the project, secrets,
+   database, DNS, mail, Fly, and every other runtime setting; do not use
+   Replit Agent edits.
+5. Initiate a fresh magic-link flow on `reboundseo.com`, open the delivered
+   Rebound SEO email in the same Chrome profile, and prove the authenticated
+   session remains on `reboundseo.com`.
+
+### Stop and rollback
+
+Stop and re-escalate before configuration changes if the same-profile retest
+fails under the current configuration; on any third change; on any prompt to
+alter Supabase Site URL, `DESTINY_SITE_URL`, DNS, or mail; on any new publish
+failure class; or on ambiguity. Hold `www` verification while TLS propagates,
+without treating it as an apex blocker.
+
+Rollback is to restore `NEXT_PUBLIC_SITE_URL` to its prior value and
+republish the same SHA; the additive allowlist entries may be removed. Never
+hand-edit the deployment.
+
+### Required receipts
+
+Record the diagnostic redirect chain; redirect allowlist before and after;
+republished revision ID and exact SHA; the successful same-profile auth chain
+ending in an authenticated session on `reboundseo.com`; the delivered sender
+and subject; and proof that DNS, mail, Fly, Supabase Site URL,
+`DESTINY_SITE_URL`, and `app.reboundseo.com` remained unchanged. Append the
+outcome through the next protected docs-only HIGH PR.
+
+## D9.7-PKCE-HOST-ALIGNMENT — Fable 5 High Decision
+
+Decision ID: D9.7-PKCE-HOST-ALIGNMENT
+Date: 2026-08-29
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH
+Status: APPROVED — proceed with the two D9.6-named changes only.
+
+### Basis
+
+The D9.6 in-profile current-configuration test failed as its stop clause
+anticipated. The link was initiated on `https://reboundseo.com/login`,
+delivered from `Rebound SEO <auth@reboundseo.com>`, and clicked from Gmail in
+the same Chrome profile. Supabase redirected to
+`destiny-seo.replit.app/auth/confirm`, terminating at
+`destiny-seo.replit.app/auth/error`. This confirms that the PKCE verifier is
+cookie-scoped to `reboundseo.com` and absent on the configured callback host,
+so the exchange cannot succeed under the current configuration. Nothing
+changed after the failed diagnostic.
+
+The two changes named in D9.6 align the callback host with the verifier host
+and are the minimal sufficient fix. Supabase Site URL is not modified; the
+republish remains the exact D9.5 merge SHA; no code, DNS, schema, RLS, mail,
+Fly, or other frozen item changes.
+
+### Authorized order
+
+1. Add exactly `https://reboundseo.com/**` and
+   `https://www.reboundseo.com/**` to the Supabase Auth redirect allowlist.
+   Do not modify Site URL, and do not remove or edit an existing entry. Record
+   before and after evidence.
+2. Record the existing Replit deployment value for `NEXT_PUBLIC_SITE_URL`,
+   then set only that key to `https://reboundseo.com`.
+3. Republish the exact D9.5 merge SHA
+   `f285e1402dee06587cf6befeb933f69febc8ecc7`. Stop before publishing if the
+   platform cannot guarantee that exact SHA.
+4. Request a fresh auth email from `https://reboundseo.com/login` and open it
+   from Gmail in the same Chrome profile. Success requires an authenticated
+   session on `reboundseo.com` with no `/auth/error`. Pre-change emails do not
+   count.
+
+### Stop conditions
+
+Stop immediately and re-escalate as D9.8 if saving the allowlist would require
+or trigger a Site URL change; the republish would build any SHA other than the
+exact D9.5 merge or demands any change beyond the single environment key; the
+post-change in-profile test fails; apex, `www`, `app.reboundseo.com`, or any
+preserved record degrades; or any third change appears necessary.
+
+### Rollback
+
+Remove the two additive allowlist entries, restore `NEXT_PUBLIC_SITE_URL` to
+its recorded prior value, and republish
+`f285e1402dee06587cf6befeb933f69febc8ecc7`. No data, schema, or DNS rollback
+is involved.
+
+### Required receipts
+
+Record the Supabase redirect list before and after with Site URL unchanged;
+the Replit environment key before and after; the republish revision and exact
+SHA; the post-change same-profile sender, initiating URL, final host/path, and
+authenticated session state; and a statement that nothing else changed.
+
+This decision authorizes only these two changes. It does not authorize an
+existing-traffic redirect, Fly cutover, Site URL change, migration, tag, or
+any other frozen action, and it makes no launch claim beyond
+D-LAUNCH-READINESS-1.
