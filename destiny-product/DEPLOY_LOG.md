@@ -1103,3 +1103,97 @@ Failed dispatch receipt preserved before recovery:
 - failing step: `Assert complete route inventory`
 - failure fact: inventory entries `80`; unique URL paths `79`; duplicate inventory route `/login` represents both the page and its server-actions entry
 - safety boundary: checkout and immutable-input assertions passed; all build, registry, secret-staging, Fly deploy, and post-deploy steps were skipped; production remained on `fc7f050e1201ff5ee6ebece98560592257de127f` / `step-zero-v1.1`
+
+## D9.4-ROOT-TO-REPLIT-LANDING — Fable 5 High Decision
+
+Decision ID: D9.4-ROOT-TO-REPLIT-LANDING
+Date: 2026-08-29
+Authority: Fable 5 High (Claude), executing the product decision of Jose
+Gallegos
+Decision source: https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+Classification: HIGH (frozen: Replit production modification; root DNS
+change)
+Status: DECIDED — Authorized with correction.
+
+Owner decision fixed: `reboundseo.com` must serve the existing Replit landing
+page and that customer-facing Replit landing page must be named Rebound SEO.
+
+Correction: GoDaddy URL forwarding to `destiny-seo.replit.app` is rejected
+because it exposes the retired Destiny name in the visible URL and weakens
+canonical URLs, shareability, and indexing. Implementation must use a Replit
+custom-domain mapping that keeps the browser on `reboundseo.com`. Falling back
+to URL forwarding is forbidden.
+
+### Verified baseline
+
+- `https://reboundseo.com` returns HTTP 200 but exposes only the GoDaddy
+  Website Builder Contact Us page. The apex A records are
+  `76.223.105.230` and `13.248.243.5`; `www` is a CNAME to the apex and its
+  current certificate does not cover `www.reboundseo.com`.
+- `https://destiny-seo.replit.app` returns HTTP 200 with the approved full
+  landing-page narrative but still renders Destiny branding.
+- Canonical `origin/main` at decision time is
+  `54564d3ec339d2f3c78e594e1551709ee15602a9`; it contains the same full
+  landing page rebranded throughout as Rebound SEO.
+- The latest Replit publish failed with
+  `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`: Replit ran `npm install`, then
+  the root `.replit` build invoked `pnpm install` without CI mode. An earlier
+  attempt exceeded Replit's 8 GiB image-layer limit, so fixing the current
+  blocker does not prove the publish will complete.
+- `https://app.reboundseo.com` remains healthy on Fly. Supabase Site URL and
+  sender are Rebound, and the Replit redirect allowlist entry remains.
+
+### Authorized order
+
+1. Merge this decision through a protected HIGH PR before any Replit or DNS
+   change.
+2. In the same PR, apply only the smallest deployment-config repair, starting
+   with `CI=true pnpm install --frozen-lockfile`. If the 8 GiB image limit
+   recurs, stop for a narrower packaging decision; do not improvise
+   exclusions.
+3. After green `policy-guard`, `checklist-guard`, `harness-gates`, staging
+   build-stamp evidence, `cto-approved` by `joseangelo510`, and protected
+   merge, republish only the approved merge SHA from canonical `54564d3`
+   lineage to the existing Replit deployment. Preserve secrets, database,
+   runtime settings, Supabase configuration, and project identity. Do not use
+   Replit Agent edits.
+4. Before DNS moves, verify the Replit root and `/login` return HTTP 200,
+   render Rebound SEO with no visible Destiny branding on those
+   customer-facing surfaces, and complete the existing auth journey.
+5. Add `reboundseo.com` and `www.reboundseo.com` as custom domains on the
+   existing Replit deployment. DNS changes are limited to Replit's specified
+   apex A pair, `www` CNAME, and any required Replit TXT verification record.
+6. Verify apex and `www` serve the Rebound landing page over valid TLS while
+   the URL bar remains on `reboundseo.com`; `/login` works;
+   `app.reboundseo.com` remains healthy; authoritative and public DNS prove
+   mail records unchanged; and all touched surfaces have zero 5xx responses.
+
+### Preservation boundary
+
+Preserve byte-identical every MX, SPF, DKIM (including
+`resend._domainkey.reboundseo.com` and all `send.reboundseo.com` records),
+DMARC, and every `app.reboundseo.com` record. Do not change Supabase or Fly.
+Do not change Replit secrets, database, runtime settings, or project identity.
+D8.5 remains open; this decision authorizes only the republish and custom-domain
+mapping above, not general Replit remediation.
+
+### Stop conditions
+
+Stop on 8 GiB recurrence; any other publish failure; unsupported custom
+domains or verification failure; any required change to a preserved mail,
+Resend, or application record; visible Destiny branding after republish; auth
+failure; a red or missing required check; build-stamp mismatch; or ambiguity.
+
+### Rollback
+
+Restore apex A records `76.223.105.230` and `13.248.243.5` and the `www`
+CNAME to the apex; remove the Replit custom-domain mapping; and restore the
+prior Replit deployment revision if the republish itself must be reverted.
+Never touch mail records, Supabase, or Fly.
+
+### Required receipts
+
+Record the protected PR URL, merge SHA, required guard run URLs, approved
+republished revision/SHA, branding and auth evidence from step 4, DNS
+before/after, valid TLS on apex and `www`, authoritative/public MX and TXT
+preservation proof, application health, and the zero-5xx sweep.
