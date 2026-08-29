@@ -20,14 +20,14 @@ export function DiscoveryMomentCard({ moment }: { moment: DiscoveryMoment | null
 export function WitnessLog({ entries }: { entries: WitnessEntry[] }) {
   return <section aria-labelledby="witness-log-title" className="witness-log">
     <header>
-      <div><span className="eyebrow">Your effort is visible here</span><h2 id="witness-log-title">Destiny noticed.</h2></div>
+      <div><span className="eyebrow">Your effort is visible here</span><h2 id="witness-log-title">Rebound SEO noticed.</h2></div>
       <p>A quiet record of the work you completed and the results connected data confirmed.</p>
     </header>
     {entries.length ? <div className="witness-log-list">{entries.map((entry) => <article className={`witness-entry ${entry.tone}`} key={entry.id}>
       <span className="witness-entry-mark" aria-hidden="true">{entry.tone === "verified" ? "✓" : "•"}</span>
       <div><strong>{entry.title}</strong><p>{entry.detail}</p><small>{entry.source}</small></div>
       <span className="witness-entry-proof">{entry.proof}</span>
-    </article>)}</div> : <div className="witness-log-empty"><strong>Your first entry is ahead.</strong><p>Complete one useful step and Destiny will remember the momentum with you.</p></div>}
+    </article>)}</div> : <div className="witness-log-empty"><strong>Your first entry is ahead.</strong><p>Complete one useful step and Rebound SEO will remember the momentum with you.</p></div>}
   </section>;
 }
 
@@ -50,13 +50,13 @@ export function FounderWhyVault({ initialWhy }: { initialWhy: string }) {
         body: JSON.stringify({ founderWhy: why }),
       });
       const payload = await response.json() as { error?: string; founderWhy?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not save your why.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not save your why.");
       const saved = payload.founderWhy ?? why.trim();
       setWhy(saved);
       setBaseline(saved);
       setMessage("Your why is safe here.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save your why.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save your why.");
     } finally {
       setSaving(false);
     }

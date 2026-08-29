@@ -24,7 +24,7 @@ export function prepareWebflowToken(value: unknown) {
 }
 
 /**
- * Decides whether Destiny can deliver draft articles into a Webflow CMS
+ * Decides whether Rebound SEO can deliver draft articles into a Webflow CMS
  * collection without breaking the collection's own validation rules.
  *
  * Compatible means: the built-in "name" field exists for the title, at least
@@ -55,7 +55,7 @@ export function evaluateWebflowCollection(fields: WebflowCollectionField[]): Web
   if (blockers.length) {
     return {
       compatible: false,
-      reason: `This collection requires ${blockers.map((field) => `“${field.label}”`).join(", ")}, which Destiny cannot fill safely.`,
+      reason: `This collection requires ${blockers.map((field) => `“${field.label}”`).join(", ")}, which Rebound SEO cannot fill safely.`,
     };
   }
 

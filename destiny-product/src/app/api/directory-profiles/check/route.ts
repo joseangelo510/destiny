@@ -28,6 +28,6 @@ export async function POST(request: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ profile: data });
   } catch (cause) {
-    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Destiny could not verify this public profile." }, { status: 502 });
+    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not verify this public profile." }, { status: 502 });
   }
 }

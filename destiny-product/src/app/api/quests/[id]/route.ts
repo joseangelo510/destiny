@@ -90,7 +90,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     });
   } catch (error) {
     console.error(JSON.stringify({ event: "logos_coaching_policy", questId: id, fallbacks: 0, wasm_errors: 1, outcome: "fail_closed", error: error instanceof Error ? error.message : "unknown" }));
-    return NextResponse.json({ error: "Destiny could not safely update this task. Please try again." }, { status: 503 });
+    return NextResponse.json({ error: "Rebound SEO could not safely update this task. Please try again." }, { status: 503 });
   }
   if (!policy.questTransitionAllowed) {
     return NextResponse.json({ error: "That task transition is not allowed.", ruleId: policy.questTransitionRuleId }, { status: 400 });

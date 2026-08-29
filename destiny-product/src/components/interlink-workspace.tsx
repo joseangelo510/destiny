@@ -76,9 +76,9 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
     try {
       const response = await fetch("/api/interlinks/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId }) });
       const payload = await response.json() as { error?: string; run?: InterlinkRunView; opportunities?: InterlinkOpportunityView[] };
-      if (!response.ok || !payload.run || !payload.opportunities) throw new Error(payload.error || "Destiny could not check internal links.");
+      if (!response.ok || !payload.run || !payload.opportunities) throw new Error(payload.error || "Rebound SEO could not check internal links.");
       setRun(payload.run); setOpportunities(payload.opportunities); setExpanded("");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Destiny could not check internal links."); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not check internal links."); }
     finally { setRunning(false); }
   };
 
@@ -87,10 +87,10 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
     try {
       const response = await fetch(`/api/interlinks/opportunities/${item.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) });
       const payload = await response.json() as { error?: string; status?: InterlinkOpportunityView["status"] };
-      if (!response.ok || !payload.status) throw new Error(payload.error || "Destiny could not save this decision.");
+      if (!response.ok || !payload.status) throw new Error(payload.error || "Rebound SEO could not save this decision.");
       setOpportunities((current) => current.map((candidate) => candidate.id === item.id ? { ...candidate, status: payload.status! } : candidate));
       if (action === "skip") setExpanded("");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Destiny could not save this decision."); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not save this decision."); }
     finally { setWorking(""); }
   };
 
@@ -99,9 +99,9 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
     try {
       const response = await fetch(`/api/interlinks/opportunities/${item.id}/verify`, { method: "POST" });
       const payload = await response.json() as { error?: string; status?: InterlinkOpportunityView["status"]; verifiedAt?: string; verifiedAnchor?: string };
-      if (!response.ok || payload.status !== "verified") throw new Error(payload.error || "Destiny did not find the link yet.");
+      if (!response.ok || payload.status !== "verified") throw new Error(payload.error || "Rebound SEO did not find the link yet.");
       setOpportunities((current) => current.map((candidate) => candidate.id === item.id ? { ...candidate, status: "verified", verifiedAt: payload.verifiedAt ?? null, verifiedAnchor: payload.verifiedAnchor ?? null } : candidate));
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Destiny could not verify the link."); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not verify the link."); }
     finally { setWorking(""); }
   };
 
@@ -116,12 +116,12 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
 
   return <div className="interlink-workspace">
     <section className="interlink-intro">
-      <div><span className="eyebrow">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Destiny checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div>
+      <div><span className="eyebrow">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Rebound SEO checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div>
       <button className="primary-button" disabled={running} onClick={() => void runAudit()} type="button">{running ? "Checking pages…" : run ? "Check again" : "Find internal links"}</button>
     </section>
 
     {running && <section aria-live="polite" className="interlink-progress"><div className="interlink-progress-map">{PHASES.map((label, index) => <div className={index < phase ? "done" : index === phase ? "active" : ""} key={label}><span>{index < phase ? "✓" : index + 1}</span><strong>{label}</strong></div>)}</div><div aria-label={`Internal-link audit step ${phase + 1} of ${PHASES.length}`} className="interlink-progress-bar" role="progressbar" aria-valuemin={1} aria-valuemax={PHASES.length} aria-valuenow={phase + 1}><span style={{ width: `${((phase + 1) / PHASES.length) * 100}%` }} /></div></section>}
-    {error && <div className="integration-banner warning" role="alert"><strong>Destiny needs your attention</strong><p>{error}</p></div>}
+    {error && <div className="integration-banner warning" role="alert"><strong>Rebound SEO needs your attention</strong><p>{error}</p></div>}
 
     {run && !running && <>
       <section className="interlink-summary" aria-label="Internal-link audit summary">
@@ -129,10 +129,10 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
         <article><strong>{summary.found}</strong><span>safe opportunities</span></article>
         <article><strong>{summary.ready}</strong><span>ready or waiting</span></article>
         <article><strong>{summary.verified}</strong><span>verified live</span></article>
-        <p>Last checked {new Date(run.completedAt).toLocaleString()}. This bounded scan covered Destiny’s verified priority pages—not every URL on the website.</p>
+        <p>Last checked {new Date(run.completedAt).toLocaleString()}. This bounded scan covered Rebound SEO’s verified priority pages—not every URL on the website.</p>
       </section>
 
-      {!visible.length ? <section className="workspace-card interlink-empty"><span>✓</span><div><h2>No safe opportunities found in the pages checked</h2><p>Destiny will not pad the list. Publish more content or run a fresh website audit, then check again.</p><Link className="secondary-button" href="/audits">Review website audit</Link></div></section> : <section className="interlink-results">
+      {!visible.length ? <section className="workspace-card interlink-empty"><span>✓</span><div><h2>No safe opportunities found in the pages checked</h2><p>Rebound SEO will not pad the list. Publish more content or run a fresh website audit, then check again.</p><Link className="secondary-button" href="/audits">Review website audit</Link></div></section> : <section className="interlink-results">
         <div className="interlink-results-heading"><div><span className="eyebrow">Recommended edits</span><h2>Start with the clearest opportunity.</h2></div><span>{visible.length} total</span></div>
         {visible.map((item, index) => {
           const isOpen = expanded === item.id;
@@ -152,7 +152,7 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
                 <div className="interlink-edit-destination"><span>Turn <strong>“{item.anchorText}”</strong> into a link.</span><span>This link points to:</span><strong>{item.targetTitle}</strong><code>{item.targetUrl}</code></div>
                 <div className="interlink-edit-actions"><button className="secondary-button" onClick={() => void copyEdit(item)} type="button">{copyStatus?.id === item.id && copyStatus.tone === "success" ? "Copied" : "Copy the edit"}</button>{item.status === "suggested" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "approve")} type="button">Approve this edit</button>}{item.status === "approved" && <button className="primary-button" disabled={working === item.id} onClick={() => void changeStatus(item, "mark_done")} type="button">I added the link</button>}{item.status === "done_claimed" && <button className="primary-button" disabled={working === item.id} onClick={() => void verify(item)} type="button">Verify live page</button>}</div>
                 {copyStatus?.id === item.id && <p aria-live="polite" className={`interlink-copy-feedback ${copyStatus.tone}`}>{copyStatus.message}</p>}
-                <p className="interlink-truth-note">Nothing is changed automatically. “Verified” appears only after Destiny finds the link on the live source page.</p>
+                <p className="interlink-truth-note">Nothing is changed automatically. “Verified” appears only after Rebound SEO finds the link on the live source page.</p>
               </div>}
             </div>
             <div className="interlink-card-actions">{item.status !== "verified" && <button className="primary-button" onClick={() => { setExpanded(isOpen ? "" : item.id); setCopyStatus(null); }} type="button">{isOpen ? "Close edit" : item.status === "done_claimed" ? "Verify link" : "See the edit"}</button>}{item.status === "suggested" && <button className="link-button" disabled={working === item.id} onClick={() => void changeStatus(item, "skip")} type="button">Skip</button>}{item.status === "verified" && <span className="interlink-verified">Live link confirmed</span>}</div>
@@ -161,6 +161,6 @@ export function InterlinkWorkspace({ websiteId, websiteName, initialRun, initial
       </section>}
     </>}
 
-    {!run && !running && <section className="workspace-card interlink-empty"><span>↗</span><div><h2>Find safe links in the pages Destiny already knows</h2><p>Run the check to compare your latest audit pages, ranking URLs, and published Destiny articles for this website.</p><small>{websiteName} · A complete website audit is required.</small></div></section>}
+    {!run && !running && <section className="workspace-card interlink-empty"><span>↗</span><div><h2>Find safe links in the pages Rebound SEO already knows</h2><p>Run the check to compare your latest audit pages, ranking URLs, and published Rebound SEO articles for this website.</p><small>{websiteName} · A complete website audit is required.</small></div></section>}
   </div>;
 }

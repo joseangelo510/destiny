@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (!claimsData?.claims?.sub) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   const { data, error } = await supabase.functions.invoke<{ error?: string; provider?: string; syncedAt?: string; selectionRequired?: boolean; summary?: Record<string, unknown> }>("google-sync", { body });
   if (error || !data?.syncedAt) {
-    return NextResponse.json({ error: data?.error || error?.message || "Destiny could not sync this Google connection." }, { status: 502 });
+    return NextResponse.json({ error: data?.error || error?.message || "Rebound SEO could not sync this Google connection." }, { status: 502 });
   }
   return NextResponse.json(data);
 }

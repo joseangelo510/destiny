@@ -9,7 +9,7 @@ export default async function BacklinksPage() {
   const { website } = await getWorkspaceContext();
   return <WorkspaceShell
     active="/backlinks"
-    eyebrow={website?.normalized_domain ?? "Destiny workspace"}
+    eyebrow={website?.normalized_domain ?? "Rebound SEO workspace"}
     title="Backlink analytics"
     description="Investigate referring domains, individual backlinks, link quality, anchors, attributes, and broken-link opportunities with live provider data."
   >

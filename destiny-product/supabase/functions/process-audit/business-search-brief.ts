@@ -301,7 +301,7 @@ export function deterministicBusinessSearchBrief(context: BusinessSearchContext,
   return {
     source: "deterministic",
     model: null,
-    businessSummary: summaryParts.join(" · ") || "Destiny built a conservative search brief from the complete onboarding record.",
+    businessSummary: summaryParts.join(" · ") || "Rebound SEO built a conservative search brief from the complete onboarding record.",
     offerVsEnablement: {
       whatCompanySells: products,
       whatProductEnables: problems,
@@ -379,7 +379,7 @@ function parseClaudeBrief(value: unknown, context: BusinessSearchContext, model:
     const supplementedFields = new Set(themes.flatMap((theme) => theme.evidence.map((evidence) => evidence.field)));
     const stillMissing = requiredCoverage.filter((field) => !supplementedFields.has(field));
     if (stillMissing.length) throw new Error(`Claude omitted onboarding evidence: ${stillMissing.join(", ")}.`);
-    coverageWarning = `Claude Opus 4.8 omitted evidence for ${missingCoverage.join(", ")}; Destiny supplemented those fields from its conservative onboarding parser.`;
+    coverageWarning = `Claude Opus 4.8 omitted evidence for ${missingCoverage.join(", ")}; Rebound SEO supplemented those fields from its conservative onboarding parser.`;
   }
   const enablement = uniqueStrings(offer.whatProductEnables, 8);
   const leakedOutcome = themes.flatMap((theme) => theme.seedKeywords).find((seed) => enablement.some((outcome) => {
@@ -405,7 +405,7 @@ function parseClaudeBrief(value: unknown, context: BusinessSearchContext, model:
 }
 
 function systemPrompt() {
-  return `You are Destiny's semantic SEO strategist. Your job is to listen to the complete onboarding record before proposing search themes.
+  return `You are Rebound SEO's semantic SEO strategist. Your job is to listen to the complete onboarding record before proposing search themes.
 
 Non-negotiable rules:
 1. Treat every onboarding field as evidence. Never let the first short phrase dominate longer answers.
@@ -436,7 +436,7 @@ export async function createBusinessSearchBrief(
   const synthesisContext = synthesisBusinessSearchContext(context);
   const apiKey = config.apiKey?.trim();
   const model = config.model?.trim() || "claude-opus-4-8";
-  if (!apiKey) return deterministicBusinessSearchBrief(synthesisContext, "Claude Opus 4.8 keyword synthesis is not configured; Destiny used its conservative full-context fallback.");
+  if (!apiKey) return deterministicBusinessSearchBrief(synthesisContext, "Claude Opus 4.8 keyword synthesis is not configured; Rebound SEO used its conservative full-context fallback.");
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.max(5_000, config.timeoutMs ?? 45_000));
@@ -477,7 +477,7 @@ export async function createBusinessSearchBrief(
     const reason = cause instanceof Error && cause.name === "AbortError"
       ? "timed out"
       : cause instanceof Error ? cause.message : "was unavailable";
-    return deterministicBusinessSearchBrief(synthesisContext, `Claude Opus 4.8 keyword synthesis failed (${reason}); Destiny used its conservative full-context fallback.`);
+    return deterministicBusinessSearchBrief(synthesisContext, `Claude Opus 4.8 keyword synthesis failed (${reason}); Rebound SEO used its conservative full-context fallback.`);
   } finally {
     clearTimeout(timeout);
   }

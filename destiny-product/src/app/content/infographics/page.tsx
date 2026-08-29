@@ -13,7 +13,7 @@ export default async function InfographicGeneratorPage() {
     .limit(50) : { data: [] };
   const approvedKeywords = (approvedRows ?? []).flatMap((row) => typeof row.keyword === "string" && row.keyword.trim() ? [{ keyword: row.keyword.trim(), searchVolume: Number(row.search_volume ?? 0) }] : []);
 
-  return <WorkspaceShell active="/content/infographics" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Infographic generator" description="Research one useful topic, review the evidence, and turn it into a long visual, four reusable posts, and an editable companion article.">
-    {!context.website ? <WorkspaceEmpty title="Add a website first" description="Destiny needs a business workspace before it can research an infographic." /> : <InfographicGenerator approvedKeywords={approvedKeywords} generationAvailable={Boolean(process.env.OPENAI_API_KEY?.trim())} websiteId={context.website.id} websiteName={context.website.business_name ?? context.website.normalized_domain} />}
+  return <WorkspaceShell active="/content/infographics" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Infographic generator" description="Research one useful topic, review the evidence, and turn it into a long visual, four reusable posts, and an editable companion article.">
+    {!context.website ? <WorkspaceEmpty title="Add a website first" description="Rebound SEO needs a business workspace before it can research an infographic." /> : <InfographicGenerator approvedKeywords={approvedKeywords} generationAvailable={Boolean(process.env.OPENAI_API_KEY?.trim())} websiteId={context.website.id} websiteName={context.website.business_name ?? context.website.normalized_domain} />}
   </WorkspaceShell>;
 }

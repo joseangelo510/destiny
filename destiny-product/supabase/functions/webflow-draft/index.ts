@@ -88,7 +88,7 @@ export default {
       const collectionResponse = await fetch(webflowCollectionEndpoint(collectionId), { headers: webflowHeaders(apiToken), signal: AbortSignal.timeout(WEBFLOW_TIMEOUT_MS) });
       if (!collectionResponse.ok) {
         const errorClass = classifyWebflowFailure(collectionResponse.status);
-        return json({ error: errorClass === "authorization_failed" ? "Webflow access needs attention. Reconnect it and try again." : "Destiny could not read the Webflow collection. Test the connection and try again." }, 502);
+        return json({ error: errorClass === "authorization_failed" ? "Webflow access needs attention. Reconnect it and try again." : "Rebound SEO could not read the Webflow collection. Test the connection and try again." }, 502);
       }
       const collection = await collectionResponse.json().catch(() => ({})) as { fields?: unknown };
       collectionFields = Array.isArray(collection.fields) ? collection.fields as WebflowFieldSchema[] : [];
@@ -103,7 +103,7 @@ export default {
         if (page.length < 100) break;
       }
     } catch {
-      return json({ error: "Destiny could not reach Webflow. Test the connection and try again." }, 502);
+      return json({ error: "Rebound SEO could not reach Webflow. Test the connection and try again." }, 502);
     }
     if (!collectionFields.some((field) => field.slug === bodyField)) {
       return json({ error: "The connected Webflow collection no longer has the configured article body field. Reconnect Webflow to re-select it." }, 409);
@@ -111,7 +111,7 @@ export default {
 
     const slug = webflowItemSlug(draft.title, draft.articleKey);
 
-    // Original Destiny graphics: host them so Webflow can ingest them with alt text.
+    // Original Rebound SEO graphics: host them so Webflow can ingest them with alt text.
     const graphicReport: FieldReportEntry[] = [];
     // Positional: a null keeps the ordinal of a graphic that failed to host,
     // so the first *original* graphic alone may claim main/thumbnail fields.
@@ -121,7 +121,7 @@ export default {
       const { error: uploadError } = await context.supabaseAdmin.storage.from(GRAPHICS_BUCKET)
         .upload(path, new Blob([graphic.svg], { type: "image/svg+xml" }), { contentType: "image/svg+xml", upsert: true });
       if (uploadError) {
-        graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Destiny could not host this graphic — download it from the article workspace and add it in Webflow." });
+        graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Rebound SEO could not host this graphic — download it from the article workspace and add it in Webflow." });
         hostedGraphics.push(null);
         continue;
       }
@@ -129,7 +129,7 @@ export default {
       if (publicUrl?.publicUrl) {
         hostedGraphics.push({ url: publicUrl.publicUrl, alt: graphic.alt });
       } else {
-        graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Destiny could not host this graphic — download it from the article workspace and add it in Webflow." });
+        graphicReport.push({ field: "", label: `Graphic “${graphic.name}”`, status: "needs_review", note: "Rebound SEO could not host this graphic — download it from the article workspace and add it in Webflow." });
         hostedGraphics.push(null);
       }
     }
@@ -170,7 +170,7 @@ export default {
     // must not wedge the article. Expired leases are reclaimed below via the
     // same conditional update as any other claim.
     if (existing?.status === "pending" && !canReclaimPendingTransfer(existing.updated_at, Date.now())) {
-      return json({ error: "Destiny is already sending this article to Webflow." }, 409);
+      return json({ error: "Rebound SEO is already sending this article to Webflow." }, 409);
     }
     if (existing?.status === "succeeded" && existing.content_hash === hash && existing.remote_edit_url) {
       // Return the report that was actually delivered (e.g. after an image
@@ -206,7 +206,7 @@ export default {
         claimQuery = claimQuery.eq("updated_at", existing.updated_at);
       }
       const { data: claimed, error: claimError } = await claimQuery.select("id");
-      if (claimError || !claimed?.length) return json({ error: "Destiny is already sending this article to Webflow." }, 409);
+      if (claimError || !claimed?.length) return json({ error: "Rebound SEO is already sending this article to Webflow." }, 409);
     } else {
       const { error: insertError } = await context.supabaseAdmin.from("cms_transfers").insert({
         website_id: draft.websiteId,
@@ -217,7 +217,7 @@ export default {
         attempt_count: 1,
         updated_at: claimStamp,
       });
-      if (insertError) return json({ error: "Destiny is already sending this article to Webflow." }, 409);
+      if (insertError) return json({ error: "Rebound SEO is already sending this article to Webflow." }, 409);
     }
 
     const markFailed = async (errorClass: string, detail: string, clearRemoteId = false) => {
@@ -292,7 +292,7 @@ export default {
         return json({ error: "Another delivery of this article took over. Refresh to see its status." }, 409);
       }
       await markFailed("unreachable", "Webflow did not respond.");
-      return json({ error: "Destiny could not reach Webflow. Test the connection and try again." }, 502);
+      return json({ error: "Rebound SEO could not reach Webflow. Test the connection and try again." }, 502);
     }
 
     if (targetItemId && response.status === 404) {
@@ -329,11 +329,11 @@ export default {
       // The remote item exists; keep its ID on the failed row so the retry
       // updates it instead of creating a duplicate. Both writes stay guarded
       // by our claim token.
-      await markFailed("save_link_failed", "Draft delivered but Destiny could not save its link.");
+      await markFailed("save_link_failed", "Draft delivered but Rebound SEO could not save its link.");
       await context.supabaseAdmin.from("cms_transfers").update({ remote_id: remoteId, updated_at: new Date().toISOString() })
         .eq("integration_id", integrationId).eq("article_key", draft.articleKey)
         .eq("status", "failed").eq("error_class", "save_link_failed");
-      return json({ error: "The Webflow draft item was saved, but Destiny could not record its link. Try again — Destiny will update the same draft." }, 502);
+      return json({ error: "The Webflow draft item was saved, but Rebound SEO could not record its link. Try again — Rebound SEO will update the same draft." }, 502);
     }
 
     return json({ delivered: true, remoteEditUrl, updated: Boolean(targetItemId), fieldReport });

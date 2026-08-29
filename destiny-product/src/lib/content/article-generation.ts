@@ -161,7 +161,7 @@ export function buildArticleGenerationPrompt(input: ArticleGenerationInput, rese
     ? "Plan 1–3 original infographic specifications. Prefer content-derived steps/checklists; every number in a data-derived graphic must trace to a cited source. Never reuse a third-party infographic."
     : "Do not create infographic specifications for this draft.";
 
-  return `You are Destiny's evidence-first SEO writing engine. Produce an editable draft for human review, not an automatically publishable claim of truth.
+  return `You are Rebound SEO's evidence-first SEO writing engine. Produce an editable draft for human review, not an automatically publishable claim of truth.
 
 BUSINESS CONTEXT
 - Business: ${clip(input.businessName, 200)}
@@ -232,7 +232,7 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
             titleCandidates: {
               type: "array",
               // Anthropic structured outputs do not accept array-size schema
-              // keywords here. Exact-six enforcement remains in Destiny's
+              // keywords here. Exact-six enforcement remains in Rebound SEO's
               // application quality gate after the response is parsed.
               items: {
                 type: "object",
@@ -243,7 +243,7 @@ export function buildAnthropicArticleRequest(prompt: string, model = DEFAULT_COP
                   headline: { type: "string" },
                   metaTitle: { type: "string" },
                   // Keep the provider schema structural only. parseArticleResponse
-                  // clamps the score to Destiny's required 0–100 range.
+                  // clamps the score to Rebound SEO's required 0–100 range.
                   score: { type: "integer" },
                   rationale: { type: "string" },
                 },
@@ -489,7 +489,7 @@ export function articleInternalLinkIssues(payload: Pick<GeneratedArticlePayload,
   const issues: ArticleQualityIssue[] = [];
   const unknown = [...new Set(internalLinks.filter((url) => !verified.has(url)))];
   if (unknown.length) {
-    issues.push({ code: "internal_link_unverified", message: `Replace ${unknown.length} same-site link${unknown.length === 1 ? "" : "s"} that Destiny could not verify in this website's page inventory.` });
+    issues.push({ code: "internal_link_unverified", message: `Replace ${unknown.length} same-site link${unknown.length === 1 ? "" : "s"} that Rebound SEO could not verify in this website's page inventory.` });
   }
   const verifiedLinks = new Set(internalLinks.filter((url) => verified.has(url)));
   const required = Math.min(3, verified.size);

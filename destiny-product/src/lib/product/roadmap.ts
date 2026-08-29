@@ -142,7 +142,7 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
       description: "Complete the highest-impact technical or website task selected from your audit.",
       typicalRange: "Start here · usually one focused work session",
       evidence: foundations
-        ? foundations.verification_status === "verified" ? "Destiny verified the foundation task." : "The foundation task was marked complete by you."
+        ? foundations.verification_status === "verified" ? "Rebound SEO verified the foundation task." : "The foundation task was marked complete by you."
         : input.auditComplete ? "Your audit is ready; the first foundation task is waiting." : "Your audit must finish before this step begins.",
       actionHref: "/this-week",
       actionLabel: "Open this week",
@@ -155,7 +155,7 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
       description: "Prepare, approve, and publish the first useful page or article from your strategy.",
       typicalRange: "Often 1–3 weeks after the foundation task",
       evidence: content
-        ? content.verification_status === "verified" ? "Destiny verified a published content task." : "The content workflow was marked complete by you; publication remains self-reported until Destiny verifies a live page."
+        ? content.verification_status === "verified" ? "Rebound SEO verified a published content task." : "The content workflow was marked complete by you; publication remains self-reported until Rebound SEO verifies a live page."
         : "Complete the content workflow and confirm publication when it is live.",
       actionHref: "/content",
       actionLabel: "Open content studio",

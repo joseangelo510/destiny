@@ -57,7 +57,7 @@ export default {
 
     let sitesResult: Awaited<ReturnType<typeof webflowGet>>;
     try { sitesResult = await webflowGet(webflowSitesEndpoint(), token); }
-    catch { return json({ error: "Destiny could not reach the Webflow API." }, 502); }
+    catch { return json({ error: "Rebound SEO could not reach the Webflow API." }, 502); }
     if (sitesResult.response.status === 401 || sitesResult.response.status === 403) {
       return json({ error: "Webflow rejected that API token. Create a site token with CMS read and write access." }, 400);
     }
@@ -102,7 +102,7 @@ export default {
               ? { id: collection.id, displayName: collection.displayName, compatible: true, bodyFields: evaluation.bodyFields }
               : { id: collection.id, displayName: collection.displayName, compatible: false, reason: evaluation.reason });
           } catch {
-            evaluated.push({ id: collection.id, displayName: collection.displayName, compatible: false, reason: "Destiny could not read this collection's fields." });
+            evaluated.push({ id: collection.id, displayName: collection.displayName, compatible: false, reason: "Rebound SEO could not read this collection's fields." });
           }
         }
         described.push({ ...site, collections: evaluated });
@@ -118,7 +118,7 @@ export default {
 
     let detail: Awaited<ReturnType<typeof webflowGet>>;
     try { detail = await webflowGet(webflowCollectionEndpoint(collectionId), token); }
-    catch { return json({ error: "Destiny could not reach the Webflow API." }, 502); }
+    catch { return json({ error: "Rebound SEO could not reach the Webflow API." }, 502); }
     if (!detail.response.ok) return json({ error: "Webflow could not read that collection. Try again." }, 502);
     const collectionName = typeof detail.payload.displayName === "string" ? detail.payload.displayName : "Collection";
     const fields = Array.isArray(detail.payload.fields) ? detail.payload.fields as Parameters<typeof evaluateCollectionFields>[0] : [];
@@ -152,7 +152,7 @@ export default {
         body_field_label: bodyFieldLabel,
       },
     });
-    if (error) return json({ error: "Destiny verified Webflow but could not save the secure connection." }, 502);
+    if (error) return json({ error: "Rebound SEO verified Webflow but could not save the secure connection." }, 502);
     return json({ connected: true, siteName: site.displayName, collectionName, bodyFieldLabel });
   }),
 };

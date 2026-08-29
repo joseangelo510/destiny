@@ -181,7 +181,7 @@ export function AnalyticsDashboard({
         <p>Only the latest movers—the full list stays in Rank tracker.</p>
         {rankMovers.length ? <div className="analytics-movers">{rankMovers.map((mover) => <div key={mover.keyword}>
           <span>{mover.keyword}</span><small>{rankPosition(mover.currentPosition)} <i>←</i> {rankPosition(mover.previousPosition)}</small><strong className={mover.tone}>{movementLabel(mover)}</strong>
-        </div>)}</div> : <div className="analytics-breakdown-empty"><strong>No two-reading movement yet.</strong><span>Destiny needs two rank checks before it can show a trustworthy change.</span></div>}
+        </div>)}</div> : <div className="analytics-breakdown-empty"><strong>No two-reading movement yet.</strong><span>Rebound SEO needs two rank checks before it can show a trustworthy change.</span></div>}
         <small className="analytics-panel-source"><i aria-hidden="true" />Rank tracker · {trackedKeywordCount.toLocaleString("en-US")} keyword{trackedKeywordCount === 1 ? "" : "s"} tracked · <Link href="/rank-tracker">See all keywords</Link></small>
       </section>
     </div>

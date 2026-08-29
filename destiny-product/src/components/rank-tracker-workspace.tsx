@@ -48,8 +48,8 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
       if (!cancelled) setKeywords((current) => current.map((row) => updates.find((update) => update.id === row.id) ? { ...row, policyView: updates.find((update) => update.id === row.id)?.policyView } : row));
     }).catch((cause: unknown) => {
       if (cancelled) return;
-      setKeywords((current) => current.map((row) => !row.policyView ? { ...row, policyView: { reading: { label: "Rules unavailable — reload", tone: "error" }, movement: { label: "—", tone: "flat" }, freshness: { message: "Destiny could not verify freshness." }, bucket: 0 } } : row));
-      setError("Destiny could not load the rank-tracker rules. Reload to try again.");
+      setKeywords((current) => current.map((row) => !row.policyView ? { ...row, policyView: { reading: { label: "Rules unavailable — reload", tone: "error" }, movement: { label: "—", tone: "flat" }, freshness: { message: "Rebound SEO could not verify freshness." }, bucket: 0 } } : row));
+      setError("Rebound SEO could not load the rank-tracker rules. Reload to try again.");
       console.error("logos_rank_tracker", { fallbacks: 0, wasm_errors: 1, cause });
     });
     return () => { cancelled = true; };
@@ -81,7 +81,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     setError("");
     const response = await fetch("/api/rank-tracker/keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword, listId: activeList !== "all" && activeList !== "general" ? activeList : null, source: "manual" }) });
     const payload = await response.json() as { keyword?: RankTrackerKeyword; error?: string };
-    if (!response.ok || !payload.keyword) setError(payload.error || "Destiny could not add this keyword.");
+    if (!response.ok || !payload.keyword) setError(payload.error || "Rebound SEO could not add this keyword.");
     else {
       setKeywords((current) => [...current.filter((item) => item.id !== payload.keyword?.id), payload.keyword as RankTrackerKeyword]);
       setKeyword("");
@@ -95,7 +95,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     setError("");
     const response = await fetch("/api/rank-tracker/lists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, name: listName }) });
     const payload = await response.json() as { list?: RankTrackerList; error?: string };
-    if (!response.ok || !payload.list) setError(payload.error || "Destiny could not create this list.");
+    if (!response.ok || !payload.list) setError(payload.error || "Rebound SEO could not create this list.");
     else { setLists((current) => [...current, payload.list as RankTrackerList]); setActiveList(payload.list.id); setListName(""); }
   }
 
@@ -103,13 +103,13 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     setError("");
     const response = await fetch("/api/rank-tracker/keywords", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, listId }) });
     const payload = await response.json() as { error?: string };
-    if (!response.ok) setError(payload.error || "Destiny could not move this keyword.");
+    if (!response.ok) setError(payload.error || "Rebound SEO could not move this keyword.");
     else setKeywords((current) => current.map((item) => item.id === id ? { ...item, listId } : item));
   }
 
   return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
     <section className="rank-tracker-intro">
-      <div><span className="research-kicker">{rankingDigestFrequency === "three_day" ? "Google rank tracking every 3 days" : "Weekly Google rank tracking"}</span><h2>See whether your approved strategy is gaining ground.</h2><p>Destiny checks the same search context on your chosen schedule so movement is comparable—not guessed.</p></div>
+      <div><span className="research-kicker">{rankingDigestFrequency === "three_day" ? "Google rank tracking every 3 days" : "Weekly Google rank tracking"}</span><h2>See whether your approved strategy is gaining ground.</h2><p>Rebound SEO checks the same search context on your chosen schedule so movement is comparable—not guessed.</p></div>
       <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>A new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>
     </section>
 
@@ -121,7 +121,7 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     </section>
 
     <section className="rank-weekly-report" aria-labelledby="rank-weekly-report-title">
-      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Destiny will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {formatUtcDateTime(weeklyReport.evidenceAt)}</small> : <small>No fresh observation yet</small>}</header>
+      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Rebound SEO will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {formatUtcDateTime(weeklyReport.evidenceAt)}</small> : <small>No fresh observation yet</small>}</header>
       {weeklyReport.state === "ready" ? <>
         <div className="rank-weekly-report-metrics">
           <article><strong>{weeklyReport.summary.movedUp}</strong><span>Moved up</span></article>

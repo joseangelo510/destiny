@@ -13,15 +13,15 @@ export type CmsPublicationState =
 
 export function publicationCopy(state: CmsPublicationState) {
   const copy: Record<CmsPublicationState, { label: string; detail: string }> = {
-    delivering: { label: "Sending to WordPress", detail: "Destiny is creating the draft and uploading its graphics." },
+    delivering: { label: "Sending to WordPress", detail: "Rebound SEO is creating the draft and uploading its graphics." },
     delivered_draft: { label: "Draft delivered", detail: "The article is saved in WordPress and is not live." },
     scheduled: { label: "Scheduled", detail: "WordPress has scheduled this article for publication." },
-    published_unverified: { label: "Published — checking", detail: "WordPress reports this article as published. Destiny is checking the public page." },
-    verified_live: { label: "Verified live", detail: "Destiny verified the public URL, canonical, article content, and indexability." },
-    changed_in_cms: { label: "Changed in WordPress", detail: "The WordPress version changed after Destiny delivered it. Review the current editor version." },
-    stale: { label: "Status needs refresh", detail: "Destiny has not checked WordPress recently." },
+    published_unverified: { label: "Published — checking", detail: "WordPress reports this article as published. Rebound SEO is checking the public page." },
+    verified_live: { label: "Verified live", detail: "Rebound SEO verified the public URL, canonical, article content, and indexability." },
+    changed_in_cms: { label: "Changed in WordPress", detail: "The WordPress version changed after Rebound SEO delivered it. Review the current editor version." },
+    stale: { label: "Status needs refresh", detail: "Rebound SEO has not checked WordPress recently." },
     unpublished: { label: "No longer published", detail: "The article was previously live but WordPress no longer reports it as published." },
-    delivery_failed: { label: "Delivery failed", detail: "Destiny could not finish sending the article to WordPress." },
+    delivery_failed: { label: "Delivery failed", detail: "Rebound SEO could not finish sending the article to WordPress." },
     verification_failed: { label: "Published — needs review", detail: "WordPress reports the article as published, but the public verification did not pass." },
     delivered_incomplete: { label: "Draft needs attention", detail: "The article reached WordPress, but one or more planned fields or graphics did not." },
   };

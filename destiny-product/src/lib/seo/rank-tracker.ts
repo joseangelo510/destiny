@@ -50,7 +50,7 @@ export function rankMovementFromPolicy(policy: Pick<DestinyLogicResult, "rankMov
 export function rankFreshnessFromPolicy(policy: Pick<DestinyLogicResult, "rankFreshnessCode">, ageDays: number) {
   const states = [
     { state: "pending" as const, message: "Your first Google reading usually arrives within minutes. Please allow up to 24 hours." },
-    { state: "delayed" as const, message: "The first check is taking longer than expected. Destiny will retry automatically." },
+    { state: "delayed" as const, message: "The first check is taking longer than expected. Rebound SEO will retry automatically." },
     { state: "due" as const, message: "A new weekly reading is due." },
     { state: "fresh" as const, message: `Checked ${ageDays === 0 ? "today" : `${ageDays} day${ageDays === 1 ? "" : "s"} ago`}.` },
   ];

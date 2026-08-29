@@ -42,7 +42,7 @@ export default {
         signal: AbortSignal.timeout(15_000),
       });
     } catch {
-      return json({ error: "Destiny could not reach that WordPress REST API over HTTPS." }, 400);
+      return json({ error: "Rebound SEO could not reach that WordPress REST API over HTTPS." }, 400);
     }
     const user = await verification.json().catch(() => ({})) as { id?: unknown; name?: unknown; link?: unknown };
     if (!verification.ok || (typeof user.id !== "number" && typeof user.id !== "string")) {
@@ -60,7 +60,7 @@ export default {
       p_credentials: { site_url: connection.siteUrl, username: connection.username, application_password: connection.applicationPassword },
       p_metadata: { site_url: connection.siteUrl, display_name: typeof user.name === "string" ? user.name : connection.username, user_id: String(user.id), profile_url: typeof user.link === "string" ? user.link : null, site_name: siteName || null, estimated_title_suffix: siteName ? ` - ${siteName}` : null },
     });
-    if (error) return json({ error: "Destiny verified WordPress but could not save the secure connection." }, 502);
+    if (error) return json({ error: "Rebound SEO verified WordPress but could not save the secure connection." }, 502);
     return json({ connected: true, siteUrl: connection.siteUrl, displayName: typeof user.name === "string" ? user.name : connection.username });
   }),
 };

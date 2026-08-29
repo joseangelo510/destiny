@@ -256,14 +256,14 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           && browserLogic.questCategory === payload.verification.savedQuest.category;
         if (!sameDecision || !savedQuestMatches) {
           setAuditStatus("failed");
-          setError("Destiny’s browser and server rules did not agree. No inconsistent recommendation was shown.");
+          setError("Rebound SEO’s browser and server rules did not agree. No inconsistent recommendation was shown.");
           return;
         }
         window.location.assign("/this-week");
       }
       if (payload.audit?.status === "failed") {
         setAuditStatus("failed");
-        setError(payload.audit.failure_message || "Destiny could not complete this audit.");
+        setError(payload.audit.failure_message || "Rebound SEO could not complete this audit.");
       }
     }, 4000);
     return () => window.clearInterval(poll);
@@ -314,7 +314,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       updateField(field, `${form[field]} ${transcript}`.trim());
     };
     recognition.onerror = () => {
-      setError("Destiny could not hear you. Check Chrome's microphone permission and try again.");
+      setError("Rebound SEO could not hear you. Check Chrome's microphone permission and try again.");
     };
     recognition.onend = () => setListening(null);
     recognition.start();
@@ -332,7 +332,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       });
       const onboardingPayload = await onboardingResponse.json() as { error?: string; websiteId?: string };
       if (!onboardingResponse.ok || !onboardingPayload.websiteId) {
-        throw new Error(onboardingPayload.error || "Destiny could not save your business profile.");
+        throw new Error(onboardingPayload.error || "Rebound SEO could not save your business profile.");
       }
 
       setAuditStatus("running");
@@ -349,12 +349,12 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; status?: string };
       if (!auditResponse.ok || !auditPayload.auditId) {
         if (typeof auditPayload.auditId === "string") setAuditId(auditPayload.auditId);
-        throw new Error(auditPayload.error || "Destiny could not run your audit.");
+        throw new Error(auditPayload.error || "Rebound SEO could not run your audit.");
       }
       setAuditId(auditPayload.auditId);
       setAuditStatus("running");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not create your plan.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not create your plan.");
       setAuditStatus("failed");
       setView("processing");
     } finally {
@@ -367,13 +367,13 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
     return (
       <main className="processing-shell">
         <section className="processing-card">
-          <div className="brand"><span className="brand-mark">D</span><span>Destiny</span></div>
+          <div className="brand"><span className="brand-mark">R</span><span>Rebound SEO</span></div>
           <div className={failed ? "processing-orb failed" : "processing-orb"}>{failed ? "!" : "D"}</div>
           <div className="eyebrow">{failed ? "Audit needs attention" : "Audit in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : `We’re building your strategy for ${form.website}.`}</h1>
-          <p>{failed ? error : "Destiny is analyzing your website, competitors, keyword opportunities, and the first 12 weeks of your growth plan."}</p>
+          <p>{failed ? error : "Rebound SEO is analyzing your website, competitors, keyword opportunities, and the first 12 weeks of your growth plan."}</p>
           {!failed && <div className="processing-steps"><span className="complete">Business profile saved</span><span className="active">Website and competitor analysis</span><span>Keyword strategy</span><span>LOGOS weekly quest</span></div>}
-          {!failed && <div className="configuration-note"><strong>You can safely leave this page</strong><p>Your audit is saved. Destiny will add a notification and, once email is activated, send a link when the results are ready.</p></div>}
+          {!failed && <div className="configuration-note"><strong>You can safely leave this page</strong><p>Your audit is saved. Rebound SEO will add a notification and, once email is activated, send a link when the results are ready.</p></div>}
           {failed && <div className="processing-actions"><button className="primary-button" onClick={() => { setError(""); setView("onboarding"); }} type="button">Review and try again</button><Link className="secondary-button" href="/audits">View audit history</Link></div>}
         </section>
       </main>
@@ -385,14 +385,14 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
       <main className="onboarding-shell">
         <header className="onboarding-header">
           <button className="brand" onClick={() => { if (hasWorkspace && initialAudit) setView("audit"); else window.location.assign("/"); }} type="button">
-            <span className="brand-mark">D</span><span>Destiny</span>
+            <span className="brand-mark">R</span><span>Rebound SEO</span>
           </button>
           <span className="step-label">Business profile · Step 1 of 3</span>
         </header>
 
         <form className="onboarding-card" onSubmit={completeOnboarding}>
           <div className="eyebrow">Start a new growth journey</div>
-          <h1>Tell Destiny about your business.</h1>
+          <h1>Tell Rebound SEO about your business.</h1>
           <p className="lede">
             We’ll use this context to prepare your website audit, competitor research,
             keyword strategy, and three-month growth plan.
@@ -444,13 +444,13 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
   return (
     <main className="app-shell">
       <aside className="sidebar">
-        <div className="brand sidebar-brand"><span className="brand-mark">D</span><span>Destiny</span></div>
+        <div className="brand sidebar-brand"><span className="brand-mark">R</span><span>Rebound SEO</span></div>
         <nav>
           {navigation.map((item) => (
             <Link className={item.label === "Overview" ? "active" : ""} href={item.href} key={item.label}><span className="nav-dot" />{item.label}</Link>
           ))}
         </nav>
-        <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div>
+        <div className="sidebar-card"><span className="logic-pulse" /><strong>LOGOS rules active</strong><p>Rebound SEO’s next-action rules are compiled by LOGICAFFEINE.</p></div>
         <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
       </aside>
 
@@ -487,7 +487,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
             <div className="quest-icon">↗</div>
             <h2>{logic.weeklyQuest}</h2>
             <p>{logic.explanation}</p>
-            <div className="quest-meta"><span>About 20 minutes</span><span>Destiny will guide you</span></div>
+            <div className="quest-meta"><span>About 20 minutes</span><span>Rebound SEO will guide you</span></div>
             <Link className="quest-link" href="/this-week">Start this week’s guided plan →</Link>
           </article>
 

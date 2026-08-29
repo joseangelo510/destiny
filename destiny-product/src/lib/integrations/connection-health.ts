@@ -10,10 +10,10 @@ const RECONNECT_STATUSES = new Set(["expired", "error", "failed", "revoked", "re
 export function connectionHealth(status: string | null | undefined, lastSyncedAt: string | null | undefined, now = new Date()): ConnectionHealth {
   const normalized = status?.trim().toLowerCase() ?? "";
   if (RECONNECT_STATUSES.has(normalized)) {
-    return { connected: false, needsAttention: true, label: "Reconnect needed", detail: "Google access expired or was revoked. Reconnect before Destiny can refresh this website." };
+    return { connected: false, needsAttention: true, label: "Reconnect needed", detail: "Google access expired or was revoked. Reconnect before Rebound SEO can refresh this website." };
   }
   if (normalized === "syncing") {
-    return { connected: true, needsAttention: false, label: "Syncing", detail: "Destiny is refreshing this website now." };
+    return { connected: true, needsAttention: false, label: "Syncing", detail: "Rebound SEO is refreshing this website now." };
   }
   if (normalized !== "connected") {
     return { connected: false, needsAttention: false, label: "Not connected", detail: "Connect this source for this website." };

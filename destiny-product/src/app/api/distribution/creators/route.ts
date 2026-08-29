@@ -30,6 +30,6 @@ export async function POST(request: Request) {
     locationName: "United States",
     excludeDomains: [website.normalized_domain, ...competitorDomains],
   } });
-  if (error || !data) return NextResponse.json({ error: error?.message || "Destiny could not complete creator discovery." }, { status: 502 });
+  if (error || !data) return NextResponse.json({ error: error?.message || "Rebound SEO could not complete creator discovery." }, { status: 502 });
   return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
 }

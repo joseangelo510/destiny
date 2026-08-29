@@ -1,3 +1,5 @@
+import { reboundSeoSender } from "../_shared/email-sender.ts";
+
 export type EmailDelivery = {
   status: "sent" | "skipped" | "failed";
   messageId?: string;
@@ -70,7 +72,7 @@ export async function sendAuditReadyEmail(input: AuditReadyEmailInput): Promise<
     return { status: "skipped", reason: "Non-deliverable QA address." };
   }
   const apiKey = Deno.env.get("RESEND_API_KEY")?.trim();
-  const from = Deno.env.get("DESTINY_FROM_EMAIL")?.trim();
+  const from = reboundSeoSender(Deno.env.get("DESTINY_FROM_EMAIL"));
   const siteUrl = Deno.env.get("DESTINY_SITE_URL")?.trim().replace(/\/$/, "");
   if (!apiKey || !from || !siteUrl) {
     return { status: "skipped", reason: "Transactional email secrets are not configured." };
@@ -88,10 +90,10 @@ export async function sendAuditReadyEmail(input: AuditReadyEmailInput): Promise<
     apiKey,
     from,
     to: input.recipient,
-    subject: `Your Destiny audit for ${input.domain} is ready`,
+    subject: `Your Rebound SEO audit for ${input.domain} is ready`,
     idempotencyKey: `destiny-audit-ready-${input.auditId}`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Your Destiny audit is ready.</h1><p>We analyzed <strong>${domain}</strong> and selected one clear action to begin improving your search visibility.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><small style="color:#275f4e;font-weight:700;text-transform:uppercase">Your first weekly quest</small><h2 style="margin:8px 0 0">${quest}</h2></div><p><a href="${escapeHtml(planUrl)}" style="background:#275f4e;color:white;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">Open my week 1 plan</a></p><p style="color:#71807a;margin-top:32px">Destiny turns SEO into one focused habit at a time.</p></div>`,
-    text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nYour Destiny audit for ${input.domain} is ready.\n\nYour first weekly quest: ${input.weeklyQuest}\n\nOpen your week 1 plan: ${planUrl}\n\nDestiny turns SEO into one focused habit at a time.`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Your Rebound SEO audit is ready.</h1><p>We analyzed <strong>${domain}</strong> and selected one clear action to begin improving your search visibility.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><small style="color:#275f4e;font-weight:700;text-transform:uppercase">Your first weekly quest</small><h2 style="margin:8px 0 0">${quest}</h2></div><p><a href="${escapeHtml(planUrl)}" style="background:#275f4e;color:white;border-radius:10px;display:inline-block;padding:13px 18px;text-decoration:none;font-weight:700">Open my week 1 plan</a></p><p style="color:#71807a;margin-top:32px">Rebound SEO turns SEO into one focused habit at a time.</p></div>`,
+    text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nYour Rebound SEO audit for ${input.domain} is ready.\n\nYour first weekly quest: ${input.weeklyQuest}\n\nOpen your week 1 plan: ${planUrl}\n\nRebound SEO turns SEO into one focused habit at a time.`,
   });
 }
 

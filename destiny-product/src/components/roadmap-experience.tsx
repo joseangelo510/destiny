@@ -29,7 +29,7 @@ export function RoadmapExperience({ roadmap, season, weekly }: RoadmapExperience
       actionHref: "/this-week",
       actionLabel: "Open this week",
       label: "Keep building what works",
-      description: "Your current tasks are complete. Destiny will keep watching connected results while you continue the weekly loop.",
+      description: "Your current tasks are complete. Rebound SEO will keep watching connected results while you continue the weekly loop.",
     };
 
   return <>
@@ -95,7 +95,7 @@ export function RoadmapExperience({ roadmap, season, weekly }: RoadmapExperience
       <header>
         <span className="eyebrow">The work behind the path</span>
         <h2 id="roadmap-journey-title">Your journey</h2>
-        <p>See every task that moves you forward and every real-world signal Destiny is waiting to verify.</p>
+        <p>See every task that moves you forward and every real-world signal Rebound SEO is waiting to verify.</p>
       </header>
 
       <div className="apple-roadmap-phase-list">

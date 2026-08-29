@@ -9,7 +9,7 @@ import { getWorkspaceContext } from "@/lib/workspace-context";
 export default async function InterviewsPage() {
   const context = await getWorkspaceContext();
   const capability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
-  if (!context.website) return <WorkspaceShell active="/interviews" eyebrow="Destiny workspace" title="Interviews" description="Talk through what you know and turn it into content in your own voice."><WorkspaceEmpty title="Complete onboarding first" description="Add a business and website before starting an interview." /></WorkspaceShell>;
+  if (!context.website) return <WorkspaceShell active="/interviews" eyebrow="Rebound SEO workspace" title="Interviews" description="Talk through what you know and turn it into content in your own voice."><WorkspaceEmpty title="Complete onboarding first" description="Add a business and website before starting an interview." /></WorkspaceShell>;
 
   const db = context.supabase as unknown as SupabaseClient;
   const [{ data: keywordRows }, { data: interviewRows }, { data: answerRows }, { data: libraryRows }] = await Promise.all([
@@ -53,7 +53,7 @@ export default async function InterviewsPage() {
     previousTopics: previousInterviews.map((interview) => interview.topicTitle),
   });
 
-  return <WorkspaceShell active="/interviews" eyebrow={context.website.normalized_domain} title="Interviews" description="Share your expertise once. Destiny remembers your exact words and uses them to make future content sound more like you.">
+  return <WorkspaceShell active="/interviews" eyebrow={context.website.normalized_domain} title="Interviews" description="Share your expertise once. Rebound SEO remembers your exact words and uses them to make future content sound more like you.">
     <InterviewsWorkspace
       websiteId={context.website.id}
       auditId={context.audit?.id ?? null}

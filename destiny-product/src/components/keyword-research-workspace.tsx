@@ -228,10 +228,10 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
     try {
       const response = await fetch("/api/research/keyword-serp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword: value, locationName: "United States" }) });
       const payload = await response.json() as KeywordSerpSnapshot & { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not load live first-page results.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not load live first-page results.");
       setSerpSnapshots((current) => ({ ...current, [cacheKey]: payload }));
     } catch (cause) {
-      setSerpError(cause instanceof Error ? cause.message : "Destiny could not load live first-page results.");
+      setSerpError(cause instanceof Error ? cause.message : "Rebound SEO could not load live first-page results.");
     } finally {
       setSerpLoading(false);
     }
@@ -242,7 +242,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
     setError("");
     const response = await fetch("/api/rank-tracker/lists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, name }) });
     const payload = await response.json() as { list?: KeywordListOption; error?: string };
-    if (!response.ok || !payload.list) { setError(payload.error || "Destiny could not create this list."); return null; }
+    if (!response.ok || !payload.list) { setError(payload.error || "Rebound SEO could not create this list."); return null; }
     setLists((current) => [...current, payload.list as KeywordListOption]);
     return payload.list;
   }
@@ -255,7 +255,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       await Promise.all(saveSelection.map(async (keyword) => {
         const response = await fetch("/api/rank-tracker/keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword, listId, source: "research", track }) });
         const payload = await response.json() as { error?: string };
-        if (!response.ok) throw new Error(payload.error || `Destiny could not save ${keyword}.`);
+        if (!response.ok) throw new Error(payload.error || `Rebound SEO could not save ${keyword}.`);
       }));
       setSaved((current) => {
         const next = new Map(current);
@@ -265,7 +265,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       if (track) setTracked((current) => new Set([...current, ...saveSelection]));
       setSaveSelection([]);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save these keywords.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save these keywords.");
     } finally {
       setSavingKeywords(false);
     }
@@ -282,10 +282,10 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         body: JSON.stringify({ websiteId, keyword: value, source: "research" }),
       });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not start tracking this keyword.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not start tracking this keyword.");
       setTracked((current) => new Set([...current, value]));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not start tracking this keyword.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not start tracking this keyword.");
     } finally {
       setTracking("");
     }
@@ -307,11 +307,11 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         }),
       });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not add this keyword to the strategy.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not add this keyword to the strategy.");
       setStrategized((current) => new Set([...current, row.keyword]));
       setTracked((current) => new Set([...current, row.keyword]));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not add this keyword to the strategy.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not add this keyword to the strategy.");
     } finally {
       setSavingStrategy("");
     }
@@ -320,7 +320,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   return <div className="research-workspace" id="keyword-research-workspace">
     <section className="research-search-panel">
       <div>
-        <span className="research-kicker">Destiny Research Lab</span>
+        <span className="research-kicker">Rebound SEO Research Lab</span>
         <h2>Explore search demand before you choose the route.</h2>
         <p>Start with a domain to inspect current rankings, or a phrase to uncover related searches and buying intent.</p>
       </div>
@@ -336,7 +336,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       {error ? <p className="research-error" role="alert">{error}</p> : null}
     </section>
 
-    {!result ? <section className="research-empty-state"><span>⌕</span><h3>Run your first research report</h3><p>Destiny will organize live provider data into demand, intent, difficulty, ranking, and traffic signals.</p></section> : <>
+    {!result ? <section className="research-empty-state"><span>⌕</span><h3>Run your first research report</h3><p>Rebound SEO will organize live provider data into demand, intent, difficulty, ranking, and traffic signals.</p></section> : <>
       <section className="research-report-heading">
         <div><span className="research-kicker">{result.mode === "domain" ? "Organic keyword overview" : "Keyword overview"}</span><h2>{result.query}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div>
         <button className="secondary-button" onClick={() => exportKeywords(rows)} type="button">Export CSV</button>
@@ -360,7 +360,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       /> : null}
       <section className="research-overview-grid">
         <article className="research-card"><div className="research-card-heading"><strong>Search intent</strong><span>Why people search</span></div><div className="intent-distribution">{(["transactional", "commercial", "informational", "navigational", "unknown"] as SearchIntent[]).map((item) => <button key={item} onClick={() => updateIntent(item)} type="button"><span className={`intent-chip ${item}`}>{item}</span><strong>{intentCounts[item] ?? 0}</strong></button>)}</div></article>
-        <article className="research-card research-guidance"><div className="research-card-heading"><strong>How to use this report</strong><span>Destiny guidance</span></div><ol><li>Start with transactional and commercial searches tied to a service or sale.</li><li>Confirm there is credible volume and a difficulty you can compete for.</li><li>Move approved opportunities into Keyword strategy for the three-month plan.</li></ol></article>
+        <article className="research-card research-guidance"><div className="research-card-heading"><strong>How to use this report</strong><span>Rebound SEO guidance</span></div><ol><li>Start with transactional and commercial searches tied to a service or sale.</li><li>Confirm there is credible volume and a difficulty you can compete for.</li><li>Move approved opportunities into Keyword strategy for the three-month plan.</li></ol></article>
       </section>
       {saveSelection.length ? <KeywordSavePanel keywords={saveSelection} lists={lists} onCancel={() => setSaveSelection([])} onCreateList={createList} onSave={saveKeywords} saving={savingKeywords} /> : null}
       <section className="research-card research-table-card">

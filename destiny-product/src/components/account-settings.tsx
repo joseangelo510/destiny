@@ -65,10 +65,10 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         body: JSON.stringify({ confirmation: websiteConfirmation }),
       });
       const result = await response.json().catch(() => ({})) as { error?: string; nextWebsiteId?: string | null };
-      if (!response.ok) throw new Error(result.error || "Destiny could not delete this website.");
+      if (!response.ok) throw new Error(result.error || "Rebound SEO could not delete this website.");
       window.location.assign(result.nextWebsiteId ? "/account" : "/onboarding");
     } catch (cause) {
-      setWebsiteError(cause instanceof Error ? cause.message : "Destiny could not delete this website.");
+      setWebsiteError(cause instanceof Error ? cause.message : "Rebound SEO could not delete this website.");
       setDeletingWebsite(false);
     }
   }
@@ -87,12 +87,12 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         body: JSON.stringify({ notificationEmail: normalizedNotificationDraft, websiteId: activeWebsiteId }),
       });
       const result = await response.json().catch(() => ({})) as { error?: string; notificationEmail?: string };
-      if (!response.ok || !result.notificationEmail) throw new Error(result.error || "Destiny could not save this email.");
+      if (!response.ok || !result.notificationEmail) throw new Error(result.error || "Rebound SEO could not save this email.");
       setSavedNotificationEmail(result.notificationEmail);
       setNotificationDraft(result.notificationEmail);
       setNotificationMessage("Audit and contact email saved.");
     } catch (cause) {
-      setNotificationMessage(cause instanceof Error ? cause.message : "Destiny could not save this email.");
+      setNotificationMessage(cause instanceof Error ? cause.message : "Rebound SEO could not save this email.");
     } finally {
       setSavingNotificationEmail(false);
     }
@@ -111,12 +111,12 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         body: JSON.stringify({ rankingDigestFrequency: frequency, websiteId }),
       });
       const result = await response.json().catch(() => ({})) as { error?: string; rankingDigestFrequency?: AccountWebsite["rankingDigestFrequency"] };
-      if (!response.ok || !result.rankingDigestFrequency) throw new Error(result.error || "Destiny could not save this notification setting.");
+      if (!response.ok || !result.rankingDigestFrequency) throw new Error(result.error || "Rebound SEO could not save this notification setting.");
       setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: result.rankingDigestFrequency as AccountWebsite["rankingDigestFrequency"] }));
       setDigestMessage((current) => ({ ...current, [websiteId]: frequency === "off" ? "Ranking emails turned off." : "Ranking email schedule saved." }));
     } catch (cause) {
       setRankingDigestFrequencies((current) => ({ ...current, [websiteId]: previous }));
-      setDigestMessage((current) => ({ ...current, [websiteId]: cause instanceof Error ? cause.message : "Destiny could not save this notification setting." }));
+      setDigestMessage((current) => ({ ...current, [websiteId]: cause instanceof Error ? cause.message : "Rebound SEO could not save this notification setting." }));
     } finally {
       setSavingDigestWebsiteId(null);
     }
@@ -133,25 +133,25 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
         body: JSON.stringify({ confirmation }),
       });
       const result = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) throw new Error(result.error || "Destiny could not delete this account.");
+      if (!response.ok) throw new Error(result.error || "Rebound SEO could not delete this account.");
       window.location.assign("/");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not delete this account.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not delete this account.");
       setDeleting(false);
     }
   }
 
   return <div className={styles.stack}>
     <section className={styles.card}>
-      <div className={styles.heading}><span>Identity</span><h2>Your Destiny account</h2><p>These addresses can be different. One controls sign-in; the other receives website reports and updates.</p></div>
+      <div className={styles.heading}><span>Identity</span><h2>Your Rebound SEO account</h2><p>These addresses can be different. One controls sign-in; the other receives website reports and updates.</p></div>
       <dl className={styles.identityList}>
-        <div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div>
+        <div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div>
         <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || "Not set"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label="Audit and contact email" autoComplete="email" onChange={(event) => { setNotificationDraft(event.target.value); setNotificationMessage(""); }} type="email" value={notificationDraft} /></label><button className={styles.saveButton} disabled={!activeWebsiteId || !notificationEmailValid || !notificationEmailChanged || savingNotificationEmail} onClick={() => void saveNotificationEmail()} type="button">{savingNotificationEmail ? "Saving…" : "Save notification email"}</button>{notificationMessage && <p aria-live="polite" className={notificationMessage.endsWith("saved.") ? styles.success : styles.error}>{notificationMessage}</p>}</div>
       </dl>
     </section>
 
     <section className={styles.card}>
-      <div className={styles.heading}><span>Email notifications</span><h2>Keyword ranking emails</h2><p>Choose how often Destiny emails a short summary of which keywords moved up, moved down, and entered or left the top 10.</p></div>
+      <div className={styles.heading}><span>Email notifications</span><h2>Keyword ranking emails</h2><p>Choose how often Rebound SEO emails a short summary of which keywords moved up, moved down, and entered or left the top 10.</p></div>
       {websites.length ? <div className={styles.digestList}>
         {websites.map((website) => {
           const frequency = rankingDigestFrequencies[website.id] ?? website.rankingDigestFrequency;
@@ -171,7 +171,7 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
     </section>
 
     <section className={styles.card}>
-      <div className={styles.heading}><span>Website management</span><h2>Your websites</h2><p>Review the websites connected to this login or remove one you no longer want Destiny to manage.</p></div>
+      <div className={styles.heading}><span>Website management</span><h2>Your websites</h2><p>Review the websites connected to this login or remove one you no longer want Rebound SEO to manage.</p></div>
       {websites.length ? <div className={styles.websiteList}>
         {websites.map((website) => <div className={styles.websiteRow} key={website.id}>
           <div className={styles.websiteIdentity}>
@@ -181,7 +181,7 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
           <button className={styles.websiteDeleteButton} disabled={deletingWebsite} onClick={() => beginWebsiteDeletion(website)} type="button">Delete website</button>
         </div>)}
       </div> : <p className={styles.emptyWebsites}>No websites are connected to this account yet.</p>}
-      <p className={styles.websiteSafety}>Deleting a website does not delete your Destiny account or any of your other websites.</p>
+      <p className={styles.websiteSafety}>Deleting a website does not delete your Rebound SEO account or any of your other websites.</p>
       {pendingWebsite ? <div aria-label={`Confirm deletion of ${pendingWebsite.normalizedDomain}`} className={styles.websiteDeletePanel} role="group">
         <div><strong>Delete {pendingWebsite.normalizedDomain}?</strong><p>This permanently removes this website’s audits, keywords, three-month plans, tasks, rank tracking, drafts, reviews, and connections. This cannot be undone.</p></div>
         <label className={styles.confirmation}>Type <strong>{pendingWebsite.normalizedDomain}</strong> to confirm<input autoComplete="off" autoFocus onChange={(event) => setWebsiteConfirmation(event.target.value)} placeholder={pendingWebsite.normalizedDomain} spellCheck={false} value={websiteConfirmation} /></label>
@@ -191,7 +191,7 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
     </section>
 
     <section className={`${styles.card} ${styles.danger}`}>
-      <div className={styles.heading}><span>Danger zone</span><h2>Delete account</h2><p>This permanently deletes your Destiny profile, websites, audits, plans, tracked keywords, and connections. This cannot be undone.</p></div>
+      <div className={styles.heading}><span>Danger zone</span><h2>Delete account</h2><p>This permanently deletes your Rebound SEO profile, websites, audits, plans, tracked keywords, and connections. This cannot be undone.</p></div>
       <label className={styles.confirmation}>Type <strong>{loginEmail}</strong> to confirm
         <input autoComplete="off" onChange={(event) => setConfirmation(event.target.value)} placeholder={loginEmail} spellCheck={false} value={confirmation} />
       </label>

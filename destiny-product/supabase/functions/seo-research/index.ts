@@ -128,8 +128,8 @@ export default {
           rows: parseCreatorSearchResults(payload, excludeDomains),
           notices: [
             "Results come from current public search evidence across Medium, YouTube, LinkedIn, Instagram, and independent blogs.",
-            "Audience size must be verified before applying Destiny's 3,000–100,000 follower target.",
-            "Destiny does not invent contact details. Any email must include the public source where it was found.",
+            "Audience size must be verified before applying Rebound SEO's 3,000–100,000 follower target.",
+            "Rebound SEO does not invent contact details. Any email must include the public source where it was found.",
           ],
         });
       }
@@ -146,7 +146,7 @@ export default {
 
       return json({ error: "Select keyword, keyword SERP, backlink, creator, or article evidence research." }, 400);
     } catch (cause) {
-      return json({ error: cause instanceof Error ? cause.message : "Destiny could not complete live SEO research." }, 502);
+      return json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete live SEO research." }, 502);
     }
   }),
 };

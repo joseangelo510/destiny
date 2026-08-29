@@ -43,7 +43,7 @@ export function useWordPressCalendarReconciliation({
         body: JSON.stringify({ websiteId, itemId: item.id }),
       });
       const payload = await response.json() as { error?: string; verified?: boolean; state?: PublishingScheduleItemRecord["state"]; remotePermalink?: string | null };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not verify this WordPress post.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not verify this WordPress post.");
       if (payload.verified && payload.state === "published" && payload.remotePermalink) {
         setItems((current) => current.map((entry) => entry.id === item.id
           ? { ...entry, state: "published", remote_permalink: payload.remotePermalink ?? null, last_error: null }
@@ -54,7 +54,7 @@ export function useWordPressCalendarReconciliation({
       }
       onRefresh();
     } catch (cause) {
-      onError(cause instanceof Error ? cause.message : "Destiny could not verify this WordPress post.");
+      onError(cause instanceof Error ? cause.message : "Rebound SEO could not verify this WordPress post.");
     } finally {
       setVerifyingItemId(null);
     }

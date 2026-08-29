@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ saved: true, platform, builderTools });
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "Destiny could not save your website profile.";
+    const message = cause instanceof Error ? cause.message : "Rebound SEO could not save your website profile.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

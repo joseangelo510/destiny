@@ -36,7 +36,7 @@ export async function PATCH(request: Request) {
       .select("notification_email")
       .maybeSingle();
     if (error) return Response.json({ error: error.message }, { status: 500 });
-    if (!website) return Response.json({ error: "Destiny could not find that website in this account." }, { status: 404 });
+    if (!website) return Response.json({ error: "Rebound SEO could not find that website in this account." }, { status: 404 });
     response.notificationEmail = website.notification_email ?? notificationEmail;
   }
 
@@ -54,7 +54,7 @@ export async function PATCH(request: Request) {
       .select("ranking_digest_frequency,next_digest_at")
       .maybeSingle();
     if (error) return Response.json({ error: error.message }, { status: 500 });
-    if (!preference) return Response.json({ error: "Destiny could not find notification settings for that website." }, { status: 404 });
+    if (!preference) return Response.json({ error: "Rebound SEO could not find notification settings for that website." }, { status: 404 });
     response.rankingDigestFrequency = String(preference.ranking_digest_frequency);
     response.nextDigestAt = typeof preference.next_digest_at === "string" ? preference.next_digest_at : null;
   }
@@ -76,7 +76,7 @@ export async function DELETE(request: Request) {
     body: { confirmation: email },
   });
   if (error || !deletion?.deleted) {
-    return Response.json({ error: deletion?.error || error?.message || "Destiny could not delete this account." }, { status: 409 });
+    return Response.json({ error: deletion?.error || error?.message || "Rebound SEO could not delete this account." }, { status: 409 });
   }
 
   await supabase.auth.signOut();

@@ -23,14 +23,14 @@ async function sha256(value: unknown) {
 
 function buildWeeklyTasks(result: Awaited<ReturnType<typeof runSeoAudit>>, auditId: string, logic: Awaited<ReturnType<typeof runDestinyLogic>>) {
   const tasks = {
-    keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Destiny completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, xp: 25 },
+    keyword_review: { title: "Approve or decline your initial keyword strategy", why: "Rebound SEO completed the research; your decision keeps the content plan focused on searches that match your real business.", category: "content", taskType: "keyword_review", actionPath: "/keywords", estimatedMinutes: 12, xp: 25 },
     primary_quest: { title: logic.weeklyQuest, why: logic.explanation, category: logic.questCategory, taskType: "primary_quest", actionPath: logic.questCategory === "reviews" ? "/reviews" : `/audits/${auditId}#recommended-fix`, estimatedMinutes: 15, xp: 25 },
     content_review: { title: "Review and approve three articles for this week", why: "Each article is editable, connected to an approved keyword, and stays behind a human accuracy gate before CMS or document delivery.", category: "content", taskType: "content_review", actionPath: "/content", estimatedMinutes: 35, xp: 45 },
     community_distribution: { title: "Reply to three relevant Reddit or Quora discussions", why: "Helpful answers in live conversations can earn qualified referral visibility without automated posting.", category: "distribution", taskType: "community_distribution", actionPath: "/distribution#community", estimatedMinutes: 35, xp: 35 },
     social_distribution: { title: "Share this week's approved article on LinkedIn and X", why: "Founder context and distribution help approved content reach people who already trust your perspective.", category: "distribution", taskType: "social_distribution", actionPath: "/distribution#social", estimatedMinutes: 15, xp: 25 },
     publisher_outreach: { title: "Review three niche creators covering your priority topics", why: "A relevant creator, author, or specialist publication can earn qualified referral traffic and future authority.", category: "distribution", taskType: "publisher_outreach", actionPath: "/distribution#outreach", estimatedMinutes: 30, xp: 35 },
     directory_growth: { title: "Complete one directory profile or request three reviews", why: "Product Hunt, G2, Capterra, and Google Business Profile help buyers compare options; established profiles should build fresh proof.", category: "distribution", taskType: "directory_growth", actionPath: "/distribution#directories", estimatedMinutes: 25, xp: 30 },
-    technical_review: { title: "Run a PageSpeed and deeper technical check", why: "Destiny keeps onboarding fast by checking the homepage first. This follow-up reviews performance and the wider technical foundation after your initial strategy is ready.", category: "technical", taskType: "technical_review", actionPath: `/audits/${auditId}#technical-evidence`, externalUrl: `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`https://${result.domain}`)}`, estimatedMinutes: 20, xp: 25 },
+    technical_review: { title: "Run a PageSpeed and deeper technical check", why: "Rebound SEO keeps onboarding fast by checking the homepage first. This follow-up reviews performance and the wider technical foundation after your initial strategy is ready.", category: "technical", taskType: "technical_review", actionPath: `/audits/${auditId}#technical-evidence`, externalUrl: `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`https://${result.domain}`)}`, estimatedMinutes: 20, xp: 25 },
   };
   assertRecommendationManifest(logic);
   return logic.weeklyTaskManifest.map((code, index) => ({
@@ -106,14 +106,14 @@ export default {
         ? startedAudit as { auditId?: unknown; created?: unknown }
         : {};
       if (beginError || typeof started.auditId !== "string") {
-        throw new Error(beginError?.message || "Destiny could not create the audit record.");
+        throw new Error(beginError?.message || "Rebound SEO could not create the audit record.");
       }
       auditId = started.auditId;
       if (started.created !== true) {
         return json({ auditId, status: "running", progress: 10, resultsPath: `/audits/${auditId}`, resumed: true }, 202);
       }
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Destiny could not complete the audit.";
+      const message = cause instanceof Error ? cause.message : "Rebound SEO could not complete the audit.";
       return json({ error: message }, 502);
     }
 
@@ -233,13 +233,13 @@ export default {
           .eq("audit_id", auditId);
         if (emailStatusError) console.error("Audit email delivery status could not be saved", { auditId, reason: emailStatusError.message });
       } catch (cause) {
-        const message = cause instanceof Error ? cause.message : "Destiny could not complete the audit.";
+        const message = cause instanceof Error ? cause.message : "Rebound SEO could not complete the audit.";
         await context.supabaseAdmin.rpc("fail_destiny_audit", {
           p_audit_id: auditId,
           p_user_id: userId,
           p_failure_message: message,
         });
-        console.error("Background Destiny audit failed", message);
+        console.error("Background Rebound SEO audit failed", message);
       }
     };
 

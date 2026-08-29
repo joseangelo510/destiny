@@ -24,7 +24,7 @@ export async function PATCH(request: Request) {
     .select("website_id,ranking_digest_frequency,next_digest_at,last_digest_sent_at,last_digest_status,unsubscribed_at")
     .maybeSingle();
   if (error) return Response.json({ error: error.message }, { status: 500 });
-  if (!preference) return Response.json({ error: "Destiny could not find ranking email settings for that website." }, { status: 404 });
+  if (!preference) return Response.json({ error: "Rebound SEO could not find ranking email settings for that website." }, { status: 404 });
   return Response.json({
     websiteId: preference.website_id,
     frequency: preference.ranking_digest_frequency,

@@ -19,7 +19,7 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
     if (!websiteId) return;
     const response = await fetch(`/api/notifications?site=${encodeURIComponent(websiteId)}`, { cache: "no-store" });
     const payload = await response.json().catch(() => ({})) as { error?: string; notifications?: WorkspaceNotification[] };
-    if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
+    if (!response.ok) setError(payload.error || "Rebound SEO could not load notifications.");
     else {
       setNotifications(payload.notifications ?? []);
       setError("");
@@ -39,13 +39,13 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
       }))
       .then(({ response, payload }) => {
         if (!active) return;
-        if (!response.ok) setError(payload.error || "Destiny could not load notifications.");
+        if (!response.ok) setError(payload.error || "Rebound SEO could not load notifications.");
         else setNotifications(payload.notifications ?? []);
         setLoading(false);
       })
       .catch(() => {
         if (!active) return;
-        setError("Destiny could not load notifications.");
+        setError("Rebound SEO could not load notifications.");
         setLoading(false);
       });
     return () => { active = false; };
@@ -59,7 +59,7 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
         body: JSON.stringify({ id: notification.id }),
       });
       if (!response.ok) {
-        setError("Destiny could not mark this notification as read.");
+        setError("Rebound SEO could not mark this notification as read.");
         return;
       }
     }
@@ -73,7 +73,7 @@ export function WorkspaceNotifications({ websiteId }: { websiteId: string | null
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ all: true }),
     });
-    if (!response.ok) setError("Destiny could not mark the notifications as read.");
+    if (!response.ok) setError("Rebound SEO could not mark the notifications as read.");
     else await load();
   };
 

@@ -16,7 +16,7 @@ export default async function KeywordResearchPage({ searchParams }: { searchPara
   const fromStrategy = params.from === "strategy";
   return <WorkspaceShell
     active="/keyword-research"
-    eyebrow={website?.normalized_domain ?? "Destiny workspace"}
+    eyebrow={website?.normalized_domain ?? "Rebound SEO workspace"}
     title={fromStrategy ? "Find more keyword ideas" : "Keyword research"}
     description={fromStrategy ? "Not happy with the first recommendation pool? Research another phrase or domain, compare live demand, and track better alternatives." : "Explore a domain or keyword phrase with live demand, intent, difficulty, CPC, ranking, and traffic estimates—then bring the best opportunities into your coached strategy."}
   >

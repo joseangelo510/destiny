@@ -42,7 +42,7 @@ export async function loadWebsiteVoiceContext(client: SupabaseClient, websiteId:
     answers: (answerRows ?? []).map((row) => ({
       id: String(row.id),
       verbatimText: String(row.verbatim_text),
-      interviewTopic: topics.get(String(row.interview_id)) ?? "Destiny interview",
+      interviewTopic: topics.get(String(row.interview_id)) ?? "Rebound SEO interview",
     })),
     libraryItems: (libraryRows ?? []).map((row) => ({
       id: String(row.id),

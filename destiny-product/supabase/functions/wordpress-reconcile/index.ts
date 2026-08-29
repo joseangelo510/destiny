@@ -46,7 +46,7 @@ export default {
         signal: AbortSignal.timeout(20_000),
       });
     } catch {
-      return json({ error: "Destiny could not reach WordPress to refresh this article." }, 502);
+      return json({ error: "Rebound SEO could not reach WordPress to refresh this article." }, 502);
     }
     const remote = await remoteResponse.json().catch(() => ({})) as {
       status?: unknown; link?: unknown; modified_gmt?: unknown; date_gmt?: unknown;
@@ -101,7 +101,7 @@ export default {
       seo_title_rendered: renderedTitle || null,
       updated_at: now,
     }).eq("id", transfer.id);
-    if (updateError) return json({ error: "Destiny checked WordPress but could not save the result." }, 502);
+    if (updateError) return json({ error: "Rebound SEO checked WordPress but could not save the result." }, 502);
 
     return json({ reconciled: true, publicationStatus: state, remotePermalink: permalink || null, lastReconciledAt: now, verifiedLiveAt, verificationEvidence: evidence, seoTitleRendered: renderedTitle || null });
   }),

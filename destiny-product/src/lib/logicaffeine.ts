@@ -208,7 +208,7 @@ export async function runDestinyLogic(
 ): Promise<DestinyLogicResult> {
   const response = await fetch("/logic/destiny-logic-engine.wasm");
   if (!response.ok) {
-    throw new Error("Destiny's LOGOS rules could not be loaded.");
+    throw new Error("Rebound SEO's LOGOS rules could not be loaded.");
   }
 
   const bytes = await response.arrayBuffer();
@@ -381,7 +381,7 @@ export async function runDestinyLogicFromBytes(
   runtimeRef.current.main();
 
   if (output.length < 102) {
-    throw new Error("LOGOS returned an incomplete Destiny recommendation.");
+    throw new Error("LOGOS returned an incomplete Rebound SEO recommendation.");
   }
 
   return {

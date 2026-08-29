@@ -121,7 +121,7 @@ export function applyVerifiedInternalLinkPlan(strategy: ReoptimizationStrategy, 
     ...internalLinkItem,
     status: "verify",
     priority: "medium",
-    finding: "Destiny did not find a relevant verified destination in the current page inventory.",
+    finding: "Rebound SEO did not find a relevant verified destination in the current page inventory.",
     action: "Run Internal links or a fresh website audit before adding links to this page.",
     recommended: "No internal URL proposed; inventing a destination is blocked.",
     where: "No CMS edit until a relevant destination is verified.",
@@ -160,7 +160,7 @@ export function buildReoptimizationEvidencePack(evidence: ReoptimizationEvidence
 export function buildReoptimizationPrompt(evidencePack: string) {
   const required = REOPTIMIZATION_CHECKLIST.map((item) => `${item.id}: ${item.label}`).join("\n");
   const methods = REOPTIMIZATION_METHOD_SOURCES.map((source) => `- ${source.name}: ${source.principles} Source: ${source.url}`).join("\n");
-  return `You are Destiny's senior SEO re-optimization analyst. Do not imitate or claim to be any living marketer. Apply an original, evidence-first synthesis of the following public methods as decision gates, not as decorative name-dropping:
+  return `You are Rebound SEO's senior SEO re-optimization analyst. Do not imitate or claim to be any living marketer. Apply an original, evidence-first synthesis of the following public methods as decision gates, not as decorative name-dropping:
 
 ${methods}
 

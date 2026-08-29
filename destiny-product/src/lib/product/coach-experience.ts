@@ -56,7 +56,7 @@ export const COACH_CATEGORIES = [
   {
     id: "research-strategy",
     label: "Research & strategy",
-    description: "Review the research Destiny completed, approve your keyword direction, and handle the highest-impact recommendation.",
+    description: "Review the research Rebound SEO completed, approve your keyword direction, and handle the highest-impact recommendation.",
     taskTypes: ["keyword_review"],
   },
   {
@@ -182,16 +182,16 @@ export function taskRoadmapTarget(taskType: string) {
 export function completionPresentation(task: Pick<CoachTask, "status" | "verification_status">) {
   if (task.status === "complete" && task.verification_status === "verified") {
     return {
-      label: "Verified by Destiny",
+      label: "Verified by Rebound SEO",
       tone: "verified" as const,
-      detail: "Destiny checked the available site or connected data and confirmed this change.",
+      detail: "Rebound SEO checked the available site or connected data and confirmed this change.",
     };
   }
   if (task.status === "complete") {
     return {
       label: "Marked done by you",
       tone: "reported" as const,
-      detail: "You marked this done. Destiny will check it when automatic verification is available.",
+      detail: "You marked this done. Rebound SEO will check it when automatic verification is available.",
     };
   }
   if (task.status === "skipped") {
@@ -210,7 +210,7 @@ const PLAIN_LANGUAGE_FIXES: Record<string, { title: string; narrative: string; e
     steps: [
       "Open your homepage in Google PageSpeed Insights and find the section about files delaying the first view of the page.",
       "Ask your website developer or site builder to load the visible page first and delay any files that are not needed right away.",
-      "Run a fresh Destiny audit after the change so Destiny can verify the improvement.",
+      "Run a fresh Rebound SEO audit after the change so Rebound SEO can verify the improvement.",
     ],
   },
   no_title: {
@@ -220,7 +220,7 @@ const PLAIN_LANGUAGE_FIXES: Record<string, { title: string; narrative: string; e
     steps: [
       "Open the SEO settings for your homepage in your website platform.",
       "Write a concise title that includes your primary service and market.",
-      "Publish the change and run a fresh Destiny audit.",
+      "Publish the change and run a fresh Rebound SEO audit.",
     ],
   },
   no_description: {
@@ -230,7 +230,7 @@ const PLAIN_LANGUAGE_FIXES: Record<string, { title: string; narrative: string; e
     steps: [
       "Open the SEO settings for your homepage.",
       "Add a one- or two-sentence description of who you help and the outcome you provide.",
-      "Publish the change and run a fresh Destiny audit.",
+      "Publish the change and run a fresh Rebound SEO audit.",
     ],
   },
   high_loading_time: {
@@ -240,7 +240,7 @@ const PLAIN_LANGUAGE_FIXES: Record<string, { title: string; narrative: string; e
     steps: [
       "Test the homepage in Google PageSpeed Insights.",
       "Compress oversized images and remove or delay unused scripts.",
-      "Run a fresh Destiny audit after publishing the changes.",
+      "Run a fresh Rebound SEO audit after publishing the changes.",
     ],
   },
 };
@@ -252,11 +252,11 @@ export function buildGuidedFix(issue?: AuditIssue | null) {
   const label = typeof issue?.label === "string" && issue.label.trim() ? sentence(issue.label) : "Review the highest-impact website recommendation.";
   return {
     title: label.replace(/[.!?]+$/, ""),
-    explanation: "Destiny found a website issue that can affect search visibility or the visitor experience.",
+    explanation: "Rebound SEO found a website issue that can affect search visibility or the visitor experience.",
     steps: [
       "Share this finding with the person who manages your website.",
       "Make the recommended change in your website platform.",
-      "Run a fresh Destiny audit so Destiny can check the result.",
+      "Run a fresh Rebound SEO audit so Rebound SEO can check the result.",
     ],
   };
 }

@@ -29,7 +29,7 @@ export default {
         .eq("id", body.websiteId)
         .maybeSingle(),
     ]);
-    if (!profile || !website) return json({ error: "The Destiny profile could not be found." }, 403);
+    if (!profile || !website) return json({ error: "The Rebound SEO profile could not be found." }, 403);
 
     const delivery = await sendWelcomeEmail({
       userId,

@@ -121,7 +121,7 @@ export function WeeklyLoop({
       </header>
 
       {focusMode && focusTask ? <section aria-labelledby="focus-mode-title" className="weekly-focus-mode">
-        <header><span className="weekly-focus-orbit" aria-hidden="true">✦</span><div><span className="eyebrow">One small step is enough</span><h3 id="focus-mode-title">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className="text-button" onClick={() => setFocusMode(false)} type="button">Show my full week</button></header>
+        <header><span className="weekly-focus-orbit" aria-hidden="true">✦</span><div><span className="eyebrow">One small step is enough</span><h3 id="focus-mode-title">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Rebound SEO already selected from your plan.</p></div><button className="text-button" onClick={() => setFocusMode(false)} type="button">Show my full week</button></header>
         <div className="weekly-focus-time"><span>One step</span><strong>about {focusTask.estimated_minutes} minutes</strong></div>
         <WeeklyTaskList auditId={auditId} openTaskId={focusTask.id} remainingTasks={remainingTasks} tasks={[focusTask]} />
       </section> : <>
@@ -160,7 +160,7 @@ export function WeeklyLoop({
               <div className="weekly-map-checklist-heading"><strong>Complete checklist</strong><span>{activeGroup.tasks.filter((task) => task.status === "complete").length} of {activeGroup.tasks.length} complete</span></div>
               <WeeklyTaskList auditId={auditId} openTaskId={openTaskId} remainingTasks={remainingTasks} tasks={activeGroup.tasks} />
             </>
-            : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Destiny will add work when your strategy or connected data shows a useful next step.</p></div>}
+            : <div className="weekly-loop-empty"><strong>No task needed here this week.</strong><p>Rebound SEO will add work when your strategy or connected data shows a useful next step.</p></div>}
         </section>}
       </div>
       </>}
@@ -176,7 +176,7 @@ export function WeeklyLoop({
         <div className="weekly-plan-reveal-compass" aria-hidden="true">✦</div>
         <span className="eyebrow">Your audit is complete</span>
         <h2 id="weekly-plan-reveal-title">Your audit is done. Here’s your plan.</h2>
-        <p>Destiny turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
+        <p>Rebound SEO turned your saved research into a focused weekly plan. You do not need to do everything at once.</p>
         <div className="weekly-plan-reveal-list">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className="weekly-plan-reveal-start-here">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div>
         <button className="primary-button" onClick={startFromReveal} type="button">{focusTask ? `Start: ${coachingTaskCopy(focusTask).title}` : "See your first task"}</button>
       </section>

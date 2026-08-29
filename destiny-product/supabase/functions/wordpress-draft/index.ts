@@ -26,13 +26,13 @@ function wordpressFieldReport(metaTitle: string, titleSuffix: string, mediaCount
   const width = estimateTitleWidth(rendered);
   return [
     { field: "title", label: "Article headline", status: "transferred", note: "Used as the WordPress post title." },
-    { field: "", label: "SEO/meta title", status: "needs_review", note: `Copy “${metaTitle}” into the connected WordPress SEO plugin. Estimated rendered title: “${rendered}” (${width}px${width > 580 ? "; shorten before publishing" : ""}). Destiny verifies the actual title after publication.` },
+    { field: "", label: "SEO/meta title", status: "needs_review", note: `Copy “${metaTitle}” into the connected WordPress SEO plugin. Estimated rendered title: “${rendered}” (${width}px${width > 580 ? "; shorten before publishing" : ""}). Rebound SEO verifies the actual title after publication.` },
     { field: "excerpt", label: "Meta description", status: "transferred", note: "Transferred as the WordPress excerpt; confirm your SEO plugin also uses it." },
     ...(mediaCount ? [{
       field: "featured_media",
       label: mediaCount === 1 ? "Dedicated featured image" : `Featured image + ${mediaCount - 1} inline graphic${mediaCount === 2 ? "" : "s"}`,
       status: "transferred",
-      note: "Destiny uploaded a separate social-ready featured image and placed each captioned inline graphic in its intended article section.",
+      note: "Rebound SEO uploaded a separate social-ready featured image and placed each captioned inline graphic in its intended article section.",
     }] : []),
   ];
 }
@@ -130,7 +130,7 @@ export default {
         return json({ delivered: true, remoteEditUrl: existing.remote_edit_url, reused: true, publicationStatus: existing.publication_status, remotePermalink: existing.remote_permalink, verifiedLiveAt: existing.verified_live_at, fieldReport: existing.field_report ?? wordpressFieldReport(draft.metaTitle, titleSuffix, draft.media.length) });
       }
     }
-    if (existing?.status === "pending") return json({ error: "Destiny is already sending this article to WordPress." }, 409);
+    if (existing?.status === "pending") return json({ error: "Rebound SEO is already sending this article to WordPress." }, 409);
 
     const authorization = `Basic ${btoa(`${username}:${applicationPassword}`)}`;
     const updateRemoteId = existing?.status === "succeeded" && existing.remote_id ? String(existing.remote_id) : "";
@@ -142,12 +142,12 @@ export default {
           signal: AbortSignal.timeout(20_000),
         });
       } catch {
-        return json({ error: "Destiny could not verify the existing WordPress draft before updating it." }, 502);
+        return json({ error: "Rebound SEO could not verify the existing WordPress draft before updating it." }, 502);
       }
       const current = await currentResponse.json().catch(() => ({})) as { status?: unknown };
       if (!currentResponse.ok || typeof current.status !== "string") return json({ error: "WordPress could not return the existing draft before an update." }, 502);
       if (!canUpdateWordPressDraft(current.status)) {
-        return json({ error: "Destiny will not overwrite a published article. Create a new draft or edit the live article directly in WordPress.", remoteEditUrl: existing.remote_edit_url }, 409);
+        return json({ error: "Rebound SEO will not overwrite a published article. Create a new draft or edit the live article directly in WordPress.", remoteEditUrl: existing.remote_edit_url }, 409);
       }
     }
 
@@ -163,14 +163,14 @@ export default {
         attempt_count: 1,
       });
     const { error: pendingError } = await pendingWrite;
-    if (pendingError) return json({ error: "Destiny is already sending this article to WordPress." }, 409);
+    if (pendingError) return json({ error: "Rebound SEO is already sending this article to WordPress." }, 409);
 
     let uploadedMedia: UploadedWordPressMedia[] = [];
     try {
       uploadedMedia = await uploadWordPressMedia(siteUrl, authorization, draft.media);
     } catch (cause) {
       await context.supabaseAdmin.from("cms_transfers").update({ status: "failed", publication_status: "delivery_failed", error_class: "media_upload_failed", error_detail: cause instanceof Error ? cause.message : "WordPress rejected a planned graphic.", updated_at: new Date().toISOString() }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
-      return json({ error: "WordPress could not receive every planned graphic, so Destiny did not create an incomplete draft." }, 502);
+      return json({ error: "WordPress could not receive every planned graphic, so Rebound SEO did not create an incomplete draft." }, 502);
     }
 
     let response: Response;
@@ -188,7 +188,7 @@ export default {
     } catch {
       await deleteUploadedMedia(siteUrl, authorization, uploadedMedia.map((item) => item.id));
       await context.supabaseAdmin.from("cms_transfers").update({ status: "failed", publication_status: "delivery_failed", error_class: "unreachable", error_detail: "WordPress did not respond.", updated_at: new Date().toISOString() }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
-      return json({ error: "Destiny could not reach WordPress. Test the connection and try again." }, 502);
+      return json({ error: "Rebound SEO could not reach WordPress. Test the connection and try again." }, 502);
     }
 
     const remote = await response.json().catch(() => ({})) as { id?: unknown; link?: unknown; status?: unknown; modified_gmt?: unknown; featured_media?: unknown; content?: { rendered?: unknown } };
@@ -221,7 +221,7 @@ export default {
         verification_evidence: { draftMediaVerified: false, reason: draftMediaVerification.reason },
         updated_at: new Date().toISOString(),
       }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
-      return json({ error: "WordPress created a draft but did not preserve every required image. Destiny blocked it from being marked ready.", remoteEditUrl }, 502);
+      return json({ error: "WordPress created a draft but did not preserve every required image. Rebound SEO blocked it from being marked ready.", remoteEditUrl }, 502);
     }
     const { error: completionError } = await context.supabaseAdmin.from("cms_transfers").update({
       status: "succeeded",
@@ -240,7 +240,7 @@ export default {
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("integration_id", integrationId).eq("article_key", draft.articleKey);
-    if (completionError) return json({ error: "The WordPress draft was created, but Destiny could not save its editor link. Check WordPress before trying again." }, 502);
+    if (completionError) return json({ error: "The WordPress draft was created, but Rebound SEO could not save its editor link. Check WordPress before trying again." }, 502);
 
     return json({ delivered: true, remoteEditUrl, updated: Boolean(updateRemoteId), publicationStatus, scheduledFor: draft.scheduledFor || null, fieldReport });
   }),

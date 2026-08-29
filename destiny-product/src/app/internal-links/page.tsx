@@ -6,8 +6,8 @@ import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 export default async function InternalLinksPage() {
   const context = await getWorkspaceContext();
-  if (!context.website) return <WorkspaceShell active="/internal-links" eyebrow="Destiny workspace" title="Internal links" description="Find clear opportunities to connect related pages and verify the work live."><WorkspaceEmpty title="Complete onboarding first" description="Add a business and website before Destiny can check internal links." /></WorkspaceShell>;
-  if (!context.audit) return <WorkspaceShell active="/internal-links" eyebrow={context.website.normalized_domain} title="Internal links" description="Find clear opportunities to connect related pages and verify the work live."><WorkspaceEmpty title="Complete a website audit first" description="Destiny needs verified website pages before it can recommend safe internal links." /></WorkspaceShell>;
+  if (!context.website) return <WorkspaceShell active="/internal-links" eyebrow="Rebound SEO workspace" title="Internal links" description="Find clear opportunities to connect related pages and verify the work live."><WorkspaceEmpty title="Complete onboarding first" description="Add a business and website before Rebound SEO can check internal links." /></WorkspaceShell>;
+  if (!context.audit) return <WorkspaceShell active="/internal-links" eyebrow={context.website.normalized_domain} title="Internal links" description="Find clear opportunities to connect related pages and verify the work live."><WorkspaceEmpty title="Complete a website audit first" description="Rebound SEO needs verified website pages before it can recommend safe internal links." /></WorkspaceShell>;
   const db = context.supabase as unknown as SupabaseClient;
   const { data: runRow } = await db.from("interlink_runs").select("id,pages_checked,manifest,completed_at,created_at").eq("website_id", context.website.id).eq("status", "complete").order("created_at", { ascending: false }).limit(1).maybeSingle();
   const { data: opportunityRows } = runRow
@@ -36,7 +36,7 @@ export default async function InternalLinksPage() {
     verifiedAt: row.verified_at,
     verifiedAnchor: row.verified_anchor,
   })) as InterlinkOpportunityView[];
-  return <WorkspaceShell active="/internal-links" eyebrow={context.website.normalized_domain} title="Internal links" description="Find safe opportunities, make one clear edit, and let Destiny verify the live result.">
+  return <WorkspaceShell active="/internal-links" eyebrow={context.website.normalized_domain} title="Internal links" description="Find safe opportunities, make one clear edit, and let Rebound SEO verify the live result.">
     <InterlinkWorkspace websiteId={context.website.id} websiteName={context.website.business_name} initialRun={initialRun} initialOpportunities={initialOpportunities} />
   </WorkspaceShell>;
 }

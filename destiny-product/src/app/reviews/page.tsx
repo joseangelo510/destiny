@@ -19,7 +19,7 @@ export default async function ReviewsPage() {
     : { data: [] };
 
   return (
-    <WorkspaceShell active="/reviews" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Reviews & public profiles" description="Keep one reliable registry of the places customers use to verify, compare, and review your business.">
+    <WorkspaceShell active="/reviews" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Reviews & public profiles" description="Keep one reliable registry of the places customers use to verify, compare, and review your business.">
       <FeatureJourneyCallout actionHref="#directory-registry" actionLabel="Save one public profile" milestone="Grow what works" description="Keep the places customers compare your business in one trustworthy registry." doneLooksLike="A profile URL is saved, or connected Google review data is synced." evidence="A monitored public URL or a connected Business Profile snapshot." />
       {!context.website ? <WorkspaceEmpty title="Add your business first" description="Complete onboarding before connecting and measuring your public profiles." /> : <>
         <section className="review-grid">

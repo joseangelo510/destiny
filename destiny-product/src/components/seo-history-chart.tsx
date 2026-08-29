@@ -36,6 +36,6 @@ export function SeoHistoryChart({
       </svg>
       <div className="history-chart-labels">{history.map((point) => <span key={`${point.year}-${point.month}`}><b>{historyMonthLabel(point)}</b><small>{formatHistoricalCount(Number(point[metric]))}</small></span>)}</div>
     </div>
-    <small className="history-source">Source: DataForSEO Historical Rank Overview. Destiny renders the returned monthly metrics directly; no AI-generated chart image is used.</small>
+    <small className="history-source">Source: DataForSEO Historical Rank Overview. Rebound SEO renders the returned monthly metrics directly; no AI-generated chart image is used.</small>
   </article>;
 }

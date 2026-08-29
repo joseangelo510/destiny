@@ -81,7 +81,7 @@ function effortStage({
     description,
     actionPath,
     state: "not_started" as ProgressState,
-    evidenceLabel: matches.find((quest) => quest.status === "complete")?.verification_status === "verified" ? "Detected by Destiny" : matches.find((quest) => quest.status === "complete") ? "Marked done by you" : matches.length ? "Ready in your coaching plan" : "Not started",
+    evidenceLabel: matches.find((quest) => quest.status === "complete")?.verification_status === "verified" ? "Detected by Rebound SEO" : matches.find((quest) => quest.status === "complete") ? "Marked done by you" : matches.length ? "Ready in your coaching plan" : "Not started",
   };
 }
 
@@ -141,7 +141,7 @@ export async function buildAiVisibilityProgress({
     id: "verified-ai-visibility",
     kind: "outcome",
     title: "Verify AI mentions and citations",
-    description: "Destiny checks available provider data separately from the readiness work above.",
+    description: "Rebound SEO checks available provider data separately from the readiness work above.",
     actionPath: "/llm-visibility#verified-evidence",
     state: policy.llmOutcomeState,
     evidenceLabel: detected

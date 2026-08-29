@@ -22,7 +22,7 @@ export function CompassCompanion({
     "--compass-opacity": String(0.18 + progress / 160),
   } as CSSProperties;
   return <figure className={`destiny-compass ${compact ? "compact" : ""}`} style={style}>
-    <svg aria-label={ariaLabel ?? `Destiny compass illuminated to ${progress} percent`} role="img" viewBox="0 0 220 220">
+    <svg aria-label={ariaLabel ?? `Rebound SEO compass illuminated to ${progress} percent`} role="img" viewBox="0 0 220 220">
       <defs>
         <radialGradient id="compass-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#d9ff75" stopOpacity=".95" />

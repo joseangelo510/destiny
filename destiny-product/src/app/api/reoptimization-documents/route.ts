@@ -45,10 +45,10 @@ export async function POST(request: Request) {
   const topQueries = Array.isArray(record(searchConsole?.metadata).topQueries) ? record(searchConsole?.metadata).topQueries as unknown[] : [];
   const gsc = topQueries.map(record).find((query) => normalizeTrackedKeyword(String(query.query || "")) === normalizedKeyword) ?? {};
   const pageUrl = String(evidence.url || "").trim();
-  if (!pageUrl) return NextResponse.json({ error: "Destiny did not verify an existing page for this keyword." }, { status: 422 });
+  if (!pageUrl) return NextResponse.json({ error: "Rebound SEO did not verify an existing page for this keyword." }, { status: 422 });
   try {
-    if (normalizedHost(pageUrl) !== normalizedHost(website.url)) return NextResponse.json({ error: "The ranked page does not belong to this website, so Destiny will not analyze it." }, { status: 422 });
-  } catch { return NextResponse.json({ error: "Destiny did not receive a valid ranked page URL." }, { status: 422 }); }
+    if (normalizedHost(pageUrl) !== normalizedHost(website.url)) return NextResponse.json({ error: "The ranked page does not belong to this website, so Rebound SEO will not analyze it." }, { status: 422 });
+  } catch { return NextResponse.json({ error: "Rebound SEO did not receive a valid ranked page URL." }, { status: 422 }); }
 
   const evidenceInput = {
     auditId,
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     ]);
   } catch (cause) {
     console.error("reoptimization_research_failed", cause);
-    return NextResponse.json({ error: "Destiny could not verify the live page and search landscape. Your keyword approval is saved; retry the change document without approving again." }, { status: 502 });
+    return NextResponse.json({ error: "Rebound SEO could not verify the live page and search landscape. Your keyword approval is saved; retry the change document without approving again." }, { status: 502 });
   }
   let strategy;
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     strategy = applyVerifiedInternalLinkPlan(parseReoptimizationStrategy(anthropicText(payload)), verifiedInternalPages, pageUrl, research.currentPage.text);
   } catch (cause) {
     console.error("reoptimization_strategy_failed", { model, cause });
-    return NextResponse.json({ error: "Destiny could not produce a trustworthy evidence-backed plan. Your keyword approval is saved; retry the change document without approving again." }, { status: 502 });
+    return NextResponse.json({ error: "Rebound SEO could not produce a trustworthy evidence-backed plan. Your keyword approval is saved; retry the change document without approving again." }, { status: 502 });
   }
   const id = existing?.id ?? randomUUID();
   const manifest = buildReoptimizationManifest(evidenceInput, snapshot, research, strategy, id);

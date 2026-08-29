@@ -10,8 +10,8 @@ export function sanitizeDocxHtml(html: string) {
 export async function createDocxFromHtml(html: string, title: string) {
   const result = await htmlToDocx(sanitizeDocxHtml(html), null, {
     title,
-    creator: "Destiny",
-    description: "Editable document created by Destiny",
+    creator: "Rebound SEO",
+    description: "Editable document created by Rebound SEO",
     font: "Arial",
     fontSize: 22,
     lang: "en-US",

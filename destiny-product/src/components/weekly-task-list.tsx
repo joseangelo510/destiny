@@ -43,7 +43,7 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
     setError("");
     const response = await fetch(`/api/quests/${encodeURIComponent(task.id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     const payload = await response.json() as { error?: string; celebration?: CelebrationKind | "none"; quest?: { verification_status?: string } };
-    if (!response.ok) setError(payload.error || "Destiny could not update the task.");
+    if (!response.ok) setError(payload.error || "Rebound SEO could not update the task.");
     else {
       if (status === "complete") {
         const kind: CelebrationKind = payload.celebration && payload.celebration !== "none" ? payload.celebration : "task_complete";
@@ -65,10 +65,10 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
         body: JSON.stringify({ auditId, approveRecommended: true }),
       });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not approve the recommended keywords.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not approve the recommended keywords.");
       await update(task, "complete");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not approve the recommended keywords.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not approve the recommended keywords.");
       setSaving(null);
     }
   };
@@ -96,12 +96,12 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
         ? "You choose the review source that fits your business and complete one review-building action."
         : task.requires_approval
         ? "You review the prepared work, approve it, and mark the task complete."
-        : "You make the recommended change and mark it complete; Destiny will verify it when evidence is available.";
+        : "You make the recommended change and mark it complete; Rebound SEO will verify it when evidence is available.";
       return <details className={`weekly-task ${task.status} ${justCompleted === task.id ? "just-completed" : ""}`} data-task-id={task.id} key={task.id} open={task.id === openTaskId}>
       <summary><span className="task-number">{task.status === "complete" ? "✓" : task.status === "skipped" ? "–" : index + 1}</span><span><strong>{copy.title}</strong><small>{task.estimated_minutes} min · {task.requires_approval ? "Your confirmation required" : "Guided action"}</small><em>This moves you toward → {taskRoadmapTarget(task.task_type)}</em></span><b className={`completion-state ${completion.tone}`}>{completion.label}</b></summary>
-      <div className="weekly-task-body"><p><strong>Why this matters:</strong> {copy.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === "complete" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === "user_confirmation" ? "Verified by your confirmation" : "Evidence verified by Destiny"} · {new Date(task.verified_at).toLocaleDateString()}</small>}</div>}<div className="weekly-task-actions">
+      <div className="weekly-task-body"><p><strong>Why this matters:</strong> {copy.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === "complete" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === "user_confirmation" ? "Verified by your confirmation" : "Evidence verified by Rebound SEO"} · {new Date(task.verified_at).toLocaleDateString()}</small>}</div>}<div className="weekly-task-actions">
         <Link className="primary-button" href={guidedTaskPath(task)}>{task.task_type === "keyword_review" ? task.status === "complete" ? "Review saved strategy" : "Review keywords" : isReviewTask(task) ? "Open reviews" : "Open guided step"}</Link>
-        {task.status !== "complete" && task.task_type === "keyword_review" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type="button">{saving === task.id ? "Approving…" : "Approve Destiny’s 5"}</button>}
+        {task.status !== "complete" && task.task_type === "keyword_review" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type="button">{saving === task.id ? "Approving…" : "Approve Rebound SEO’s 5"}</button>}
         {task.external_url && <a className="secondary-button" href={task.external_url} rel="noreferrer" target="_blank">{task.task_type === "technical_review" ? "Open PageSpeed Insights ↗" : "Open live thread ↗"}</a>}
         {task.status !== "complete" && task.task_type !== "keyword_review" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "complete")} type="button">{saving === task.id ? "Saving…" : task.requires_approval ? "Approve & complete" : "Mark done"}</button>}
         {task.status === "complete" && <button className="secondary-button" disabled={saving === task.id} onClick={() => void update(task, "todo")} type="button">Reopen</button>}

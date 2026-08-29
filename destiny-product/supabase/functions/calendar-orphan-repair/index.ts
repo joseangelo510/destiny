@@ -187,7 +187,7 @@ export default {
       .eq("id", itemId)
       .eq("website_id", websiteId)
       .maybeSingle();
-    if (requestedError) return json({ error: "Destiny could not inspect that calendar item." }, 502);
+    if (requestedError) return json({ error: "Rebound SEO could not inspect that calendar item." }, 502);
     if (!requestedRow) return json({ eligible: false, status: "no_match", reason: "item_not_found" });
 
     const requested = scheduleItem(requestedRow as StoredScheduleItem);
@@ -221,7 +221,7 @@ export default {
         .limit(10),
     ]);
     if (itemsResult.error || preferencesResult.error || draftsResult.error || transfersResult.error) {
-      return json({ error: "Destiny could not complete the exact calendar comparison." }, 502);
+      return json({ error: "Rebound SEO could not complete the exact calendar comparison." }, 502);
     }
 
     const input: CalendarRepairInput = {
@@ -278,7 +278,7 @@ export default {
       .eq("publication_status", "verified_live")
       .select("id")
       .maybeSingle();
-    if (prepareError || !preparedTransfer) return json({ error: "Destiny could not record the confirmed repair evidence." }, 502);
+    if (prepareError || !preparedTransfer) return json({ error: "Rebound SEO could not record the confirmed repair evidence." }, 502);
 
     if (result.status === "ready") {
       const { data: repairedItem, error: repairError } = await context.supabaseAdmin.from("publishing_schedule_items")

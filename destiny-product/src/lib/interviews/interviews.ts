@@ -81,8 +81,8 @@ export function buildInterviewTopicSuggestions(input: InterviewTopicInput): Inte
       title,
       angle: `Share the firsthand lessons, customer stories, and practical judgment only ${clean(input.businessName, "your business")} can provide.`,
       whyNow: approved
-        ? `This comes from your approved keyword “${keyword}” and gives Destiny real expertise to use in future content.`
-        : `This fills a gap in your Voice Library using what Destiny already understands about your business.`,
+        ? `This comes from your approved keyword “${keyword}” and gives Rebound SEO real expertise to use in future content.`
+        : `This fills a gap in your Voice Library using what Rebound SEO already understands about your business.`,
       focusKeyword: keyword,
       searchVolume: Math.max(0, Number(candidate.searchVolume ?? 0)),
       estimatedMinutes: 10 + (topics.length % 2) * 2,
@@ -185,7 +185,7 @@ export function buildInterviewArticleDraft(input: {
     "",
     `Use these answers as the primary source for a thought-leadership article about ${keyword}. Keep direct quotes exact, distinguish the owner's experience from externally verified facts, and add current research only through Content Studio's normal evidence checks.`,
   ].join("\n");
-  const meta = fitMetaDescription(`Firsthand advice about ${keyword}, based on a Destiny interview with ${clean(input.businessName, "an experienced business owner")}.`);
+  const meta = fitMetaDescription(`Firsthand advice about ${keyword}, based on a Rebound SEO interview with ${clean(input.businessName, "an experienced business owner")}.`);
   return {
     keyword,
     title,
@@ -203,7 +203,7 @@ export function buildInterviewArticleDraft(input: {
     qualityIssues: [{ code: "generation_required", message: "Open this interview draft in Content Studio to add current evidence, SEO structure, and final editorial checks before approval." }],
     optimization: [
       { label: "Interview source", detail: `${transcript.length} exact answers from interview ${input.interviewId}.` },
-      { label: "Voice boundary", detail: "Quoted language stays verbatim. Destiny-added framing is never presented as the owner's exact words." },
+      { label: "Voice boundary", detail: "Quoted language stays verbatim. Rebound SEO-added framing is never presented as the owner's exact words." },
       { label: "Approval boundary", detail: "This remains a draft until a person reviews and explicitly approves it in Content Studio." },
     ],
   };

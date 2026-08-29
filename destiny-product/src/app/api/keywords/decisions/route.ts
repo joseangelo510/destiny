@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       INITIAL_KEYWORD_APPROVAL_TARGET,
     );
     if (!selection.ready) return NextResponse.json({
-      error: "Destiny needs you to review these recommendations before approving them.",
+      error: "Rebound SEO needs you to review these recommendations before approving them.",
       approvedCount: selection.approvedCount,
       requiredApprovals: INITIAL_KEYWORD_APPROVAL_TARGET,
     }, { status: 409 });
