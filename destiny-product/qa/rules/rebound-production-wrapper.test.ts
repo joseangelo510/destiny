@@ -45,8 +45,11 @@ describe("D9.1 Rebound SEO production wrapper", () => {
 
     expect(workflow).toContain("routes.json");
     expect(workflow).toContain("inventory_count=");
-    expect(workflow).toContain("unique_count=");
-    expect(workflow).toContain('test "${unique_count}" = "${inventory_count}"');
+    expect(workflow).toContain("route_count=");
+    expect(workflow).toContain('test "${route_count}" = "${inventory_count}"');
+    expect(workflow).toContain("sweep_count=");
+    expect(workflow).toContain('test "${sweep_count}" = "${inventory_count}"');
+    expect(workflow).not.toContain("sort -u");
     expect(workflow).toContain('test "${code}" -lt 500');
     expect(workflow).not.toContain('= "79"');
   });

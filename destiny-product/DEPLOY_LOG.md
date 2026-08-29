@@ -1092,3 +1092,14 @@ Execution baseline captured before dispatch:
 - prior Fly image digest: `sha256:e30c56dd27c8e3e7c28217cacb6eb82c3f08a2c81eedaa7d0e8da17b374af5bd`
 - runtime key names authorized for replacement: `NEXT_PUBLIC_SITE_URL`, `DESTINY_SITE_URL`
 - secret values: not read or recorded
+
+D9.1e-ADDENDUM: Authorized — the failed run 33267220681 remains immutable; the wrapper's `sort -u` dedupe contradicted D9.1b's controlling invariant (sweep every committed inventory entry, none omitted, so 80 requests including both `/login` entries); recovery proceeds on `codex/rebound-deploy-wrapper-r3` from current protected main with the exact commit sequence (DEPLOY_LOG alone, then RED modification of the existing wrapper test alone requiring inventory-cardinality preservation and `sweep_count == inventory_count` with no dedupe, then GREEN workflow-only commit removing `sort -u` and asserting `route_count == inventory_count` both before and after sweep), a new HIGH draft PR with `cto-approved` applied by `joseangelo510`, green `policy-guard`/`checklist-guard`/`harness-gates`/staging on protected checks, protected merge, exact-main harness green, then redispatch of the same immutable `rebound-seo-v1.0.0` tag; no provider or live service changed, so no rollback is required, and all D9.1a–D9.1d invariants carry forward unchanged.
+
+Failed dispatch receipt preserved before recovery:
+
+- workflow run: `https://github.com/joseangelo510/destiny/actions/runs/33267220681`
+- job: `https://github.com/joseangelo510/destiny/actions/runs/33267220681/job/99139317700`
+- exact wrapper SHA: `01af4562c36f0b86a134400a04fdeb0bac2c4613`
+- failing step: `Assert complete route inventory`
+- failure fact: inventory entries `80`; unique URL paths `79`; duplicate inventory route `/login` represents both the page and its server-actions entry
+- safety boundary: checkout and immutable-input assertions passed; all build, registry, secret-staging, Fly deploy, and post-deploy steps were skipped; production remained on `fc7f050e1201ff5ee6ebece98560592257de127f` / `step-zero-v1.1`
