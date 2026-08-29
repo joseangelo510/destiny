@@ -100,11 +100,10 @@ jobs:
           jq -e 'type == "array" and length > 0 and all(.[]; (.route | type) == "string" and (.route | length) > 0)' "${inventory}" > /dev/null
           inventory_count="$(jq 'length' "${inventory}")"
           jq -r '.[].route' "${inventory}" \
-            | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' \
-            | sort -u > route-paths.txt
-          unique_count="$(wc -l < route-paths.txt | tr -d ' ')"
-          test "${unique_count}" = "${inventory_count}"
-          printf 'inventory_count=%s\nunique_count=%s\n' "${inventory_count}" "${unique_count}" | tee route-inventory-counts.txt
+            | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' > route-paths.txt
+          route_count="$(wc -l < route-paths.txt | tr -d ' ')"
+          test "${route_count}" = "${inventory_count}"
+          printf 'inventory_count=%s\nroute_count=%s\n' "${inventory_count}" "${route_count}" | tee route-inventory-counts.txt
 
       - uses: docker/setup-buildx-action@v3
 
@@ -251,8 +250,8 @@ jobs:
           printf '%s\n' "${root_code}" | tee root-status.txt
           test "${root_code}" = "200"
           inventory_count="$(jq 'length' src/destiny-product/qa/inventory/routes.json)"
-          unique_count="$(wc -l < route-paths.txt | tr -d ' ')"
-          test "${unique_count}" = "${inventory_count}"
+          route_count="$(wc -l < route-paths.txt | tr -d ' ')"
+          test "${route_count}" = "${inventory_count}"
           : > route-sweep.tsv
           while IFS= read -r route; do
             safe_name="$(printf '%s' "${route}" | tr '/?&=[]' '_______')"
@@ -262,7 +261,8 @@ jobs:
             test "${code}" != "000"
             test "${code}" -lt 500
           done < route-paths.txt
-          test "$(wc -l < route-sweep.tsv | tr -d ' ')" = "${inventory_count}"
+          sweep_count="$(wc -l < route-sweep.tsv | tr -d ' ')"
+          test "${sweep_count}" = "${inventory_count}"
           test "$(awk '$1 >= 500 {count++} END {print count+0}' route-sweep.tsv)" = "0"
 
       - name: Upload immutable production evidence
