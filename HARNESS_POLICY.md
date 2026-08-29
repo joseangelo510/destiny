@@ -71,7 +71,7 @@ The following are forbidden without a new explicit Fable 5 High decision recorde
 7. Change the authentication, RLS, or security model.
 8. Create a release tag or mutate an existing release tag.
 
-The parallel launch at `https://app.caminoseo.com` receives production changes only from an explicitly approved immutable release tag. Replit remains production of record for existing traffic until a new recorded decision says otherwise.
+The parallel launches at `https://app.caminoseo.com` and `https://app.reboundseo.com` receive production changes only from explicitly approved immutable release tags. Replit remains production of record for existing traffic until a new recorded decision says otherwise.
 
 ## Required workflow for every change
 
