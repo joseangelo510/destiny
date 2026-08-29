@@ -1381,3 +1381,109 @@ This decision authorizes only these two changes. It does not authorize an
 existing-traffic redirect, Fly cutover, Site URL change, migration, tag, or
 any other frozen action, and it makes no launch claim beyond
 D-LAUNCH-READINESS-1.
+
+## D9.8-REPLIT-CHECKPOINT-IDENTITY — Fable 5 High Decision
+
+Decision ID: D9.8-REPLIT-CHECKPOINT-IDENTITY
+Date: 2026-08-29
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH
+Status: PROCEED — content identity proved; authentication test still required.
+
+### Basis
+
+The D9.7 configuration changes stayed inside their authorized scope. The
+Supabase Site URL remained `https://app.reboundseo.com`; the redirect list
+changed additively from two to four entries by adding only
+`https://reboundseo.com/**` and `https://www.reboundseo.com/**`. The Replit
+editor secret named `NEXT_PUBLIC_SITE_URL` changed from
+`https://destiny-seo.replit.app` to `https://reboundseo.com`, and no other
+editor secret changed.
+
+Before republishing, the Replit workspace contained the approved GitHub
+commit `f285e1402dee06587cf6befeb933f69febc8ecc7`. Both deploy-input checks
+returned zero:
+
+1. tracked differences from `f285e140` under root `.replit` and
+   `destiny-product`;
+2. untracked files under those same paths.
+
+Replit republished successfully. Its internal checkpoint commit became
+`17dcff063a63f0e4adf51d7a41261fcbdeb32eaa`, while `/api/version` retained the
+exact prior D9.5 application tree
+`34d213d31a3e9992dcce4daed3232b6b0b898fb3`. The SHA difference is therefore
+checkpoint metadata, not source divergence: a Git tree hash is
+content-addressed over the deployed file tree, whereas a commit hash also
+includes parent and author metadata. All apex, `www`, Replit-origin, and
+`app.reboundseo.com` root and login probes returned HTTP 200.
+
+### Authorized next step and stop conditions
+
+Proceed only with the already-authorized fresh same-Chrome-profile magic-link
+test. Success requires an authenticated Rebound session and no `/auth/error`.
+Stop if the email redirects to `destiny-seo.replit.app`, the deployed tree
+changes from `34d213d3`, any HTTP probe regresses, or the four-entry Supabase
+state changes. Any additional remediation requires a new Fable 5 High
+decision.
+
+## D9.9-REPLIT-PUBLISHING-SITE-URL — Fable 5 High Decision
+
+Decision ID: D9.9-REPLIT-PUBLISHING-SITE-URL
+Date: 2026-08-29
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH (frozen: Replit production configuration and republish)
+Status: PROCEED — one Publishing-pane variable correction authorized.
+
+### Trigger and root cause
+
+The D9.8 fresh request was initiated from
+`https://reboundseo.com/login` at `2026-08-29T23:12:51Z`. Gmail delivered the
+expected subject `Your Rebound SEO sign-in link` from
+`Rebound SEO <auth@reboundseo.com>`, but the new link still contained
+`redirect_to=https://destiny-seo.replit.app/auth/confirm?next=%2Fapp`. It was
+not clicked.
+
+Read-only diagnosis proved a Replit configuration-surface mismatch rather
+than a code defect. `src/app/login/actions.ts` reads
+`process.env.NEXT_PUBLIC_SITE_URL` when constructing `emailRedirectTo`, and
+the production documentation states that editor secrets do not automatically
+carry into the published app. D9.7 changed the editor secret, while the
+Publishing-pane variable remained stale. No code, Supabase, DNS, mail, or Fly
+change is needed.
+
+### Authorized order
+
+1. Record the current Publishing-pane `NEXT_PUBLIC_SITE_URL` value verbatim.
+   Stop if it is absent, already `https://reboundseo.com`, or is not the stale
+   site URL expected by the diagnosis.
+2. Set only the Publishing-pane `NEXT_PUBLIC_SITE_URL` value to
+   `https://reboundseo.com`. Leave the editor secret, `DESTINY_SITE_URL`,
+   Supabase Site URL and allowlist, code, DNS, mail, Fly, and every other key
+   unchanged.
+3. Verify the publish tree still hashes to
+   `34d213d31a3e9992dcce4daed3232b6b0b898fb3`, then republish that exact tree.
+4. Request a fresh magic link in the same Chrome profile. Success requires the
+   expected sender and subject, a `redirect_to` on `reboundseo.com`, an
+   authenticated `reboundseo.com` session, no `/auth/error`, and no
+   `destiny-seo.replit.app` hop.
+
+### Stop and rollback
+
+Stop on any source-tree drift; any prompt to change a second variable; a
+publish failure; a non-200 customer route; or another fresh link with the old
+host. Do not iterate on a second override source without a new decision.
+
+Rollback is limited to restoring the exact Publishing-pane value recorded in
+step 1 and republishing the same tree. No other rollback is authorized.
+
+### Required receipts
+
+Record the Publishing-pane value before and after, the unchanged tree hash,
+the successful Replit revision, the fresh email sender and subject, the
+callback and final authenticated host/path, and preservation checks. Append
+the final outcome through a protected HIGH receipt PR.
+
+This decision authorizes no code, Site URL, allowlist, `DESTINY_SITE_URL`, DNS,
+mail, Fly, migration, tag, or broader launch-readiness change.
