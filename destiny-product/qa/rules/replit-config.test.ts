@@ -14,5 +14,9 @@ describe("Replit configuration", () => {
     expect(replit).toMatch(
       /build\s*=\s*"cd destiny-product && CI=true pnpm install --frozen-lockfile && pnpm run build"/,
     );
+    expect(replit).not.toMatch(/pnpm run start --/);
+    expect(replit).toMatch(
+      /run\s*=\s*"cd destiny-product && pnpm exec next start -H 0\.0\.0\.0 -p 3000"/,
+    );
   });
 });
