@@ -2,7 +2,7 @@ run = "cd destiny-product && pnpm run dev -- -H 0.0.0.0 -p 3000"
 modules = ["nodejs-22", "python-base-3.13"]
 
 [deployment]
-build = "cd destiny-product && pnpm install --frozen-lockfile && pnpm run build"
+build = "cd destiny-product && CI=true pnpm install --frozen-lockfile && pnpm run build"
 run = "cd destiny-product && pnpm run start -- -H 0.0.0.0 -p 3000"
 
 [[ports]]
