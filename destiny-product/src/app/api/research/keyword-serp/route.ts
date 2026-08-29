@@ -24,12 +24,12 @@ export async function POST(request: Request) {
     if (error || !data) {
       const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
         ? data.error
-        : error?.message || "Destiny could not load live first-page results.";
+        : error?.message || "Rebound SEO could not load live first-page results.";
       return NextResponse.json({ error: message }, { status: 502 });
     }
     return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "Destiny could not load live first-page results.";
+    const message = cause instanceof Error ? cause.message : "Rebound SEO could not load live first-page results.";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

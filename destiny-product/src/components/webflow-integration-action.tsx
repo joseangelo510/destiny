@@ -114,7 +114,7 @@ export function WebflowIntegrationAction({ connected, websiteId, savedSummary }:
           <span><strong>{collection.displayName}</strong><small>{site.displayName}{collection.compatible ? "" : ` — ${collection.reason ?? "Not compatible."}`}</small></span>
         </label>)}
       </fieldset>
-      {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Destiny places the article HTML in this rich-text field.</small></label>}
+      {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Rebound SEO places the article HTML in this rich-text field.</small></label>}
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="primary-button" disabled={saving || !selectedCollection} type="submit">{saving ? "Connecting…" : "Connect collection"}</button>
       <button className="secondary-button" onClick={reset} type="button">Use a different token</button>

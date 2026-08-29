@@ -17,7 +17,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     db.from("interview_questions").select("id,text,position").eq("interview_id", id).order("position"),
     db.from("interview_answers").select("question_id,verbatim_text").eq("interview_id", id).is("retracted_at", null),
   ]);
-  if (!website || !answerRows?.length) return NextResponse.json({ error: "Destiny could not find the saved interview answers." }, { status: 404 });
+  if (!website || !answerRows?.length) return NextResponse.json({ error: "Rebound SEO could not find the saved interview answers." }, { status: 404 });
   const answerByQuestion = new Map(answerRows.map((answer) => [String(answer.question_id), String(answer.verbatim_text)]));
   const draft = buildInterviewArticleDraft({
     interviewId: id,
@@ -43,7 +43,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       draft,
       interview_id: id,
     }, { onConflict: "website_id,audit_id,keyword" });
-    if (error) return NextResponse.json({ error: "Destiny could not prepare the Content Studio draft." }, { status: 500 });
+    if (error) return NextResponse.json({ error: "Rebound SEO could not prepare the Content Studio draft." }, { status: 500 });
   }
   return NextResponse.json({ contentUrl: `/content?interview=${encodeURIComponent(id)}#article-review-workspace` });
 }

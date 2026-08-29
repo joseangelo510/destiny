@@ -36,7 +36,7 @@ function CompactAuditHistory({ audits }: { audits: AuditRow[] }) {
 function CurrentAuditState({ audit }: { audit: AuditRow }) {
   const failed = audit.status === "failed";
   return <section className={`audit-current-state ${failed ? "failed" : "running"}`}>
-    <div><span className="eyebrow">{failed ? "Latest scan needs attention" : "New audit in progress"}</span><h2>{failed ? "Destiny could not finish this audit" : `Destiny is checking your website — ${audit.progress}%`}</h2><p>{failed ? audit.failure_message || "The provider did not return enough verified evidence. Your previous completed results remain below." : "You can leave this page. Destiny will save the findings and notify you when the audit is ready."}</p></div>
+    <div><span className="eyebrow">{failed ? "Latest scan needs attention" : "New audit in progress"}</span><h2>{failed ? "Rebound SEO could not finish this audit" : `Rebound SEO is checking your website — ${audit.progress}%`}</h2><p>{failed ? audit.failure_message || "The provider did not return enough verified evidence. Your previous completed results remain below." : "You can leave this page. Rebound SEO will save the findings and notify you when the audit is ready."}</p></div>
     {!failed && <div aria-label={`Audit ${audit.progress}% complete`} className="audit-state-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={audit.progress}><span style={{ width: `${audit.progress}%` }} /></div>}
   </section>;
 }
@@ -53,7 +53,7 @@ export default async function AuditsPage() {
     ? await supabase.from("audit_metrics").select("critical_issues,warnings,raw_provider_payload").eq("audit_id", completedAudit.id).maybeSingle()
     : { data: null };
 
-  if (!website) return <WorkspaceShell active="/audits" eyebrow="Destiny workspace" title="Website audits" description="See what is helping or blocking your website from being found."><WorkspaceEmpty title="Complete onboarding first" description="Add your business and website before Destiny can create an audit." /></WorkspaceShell>;
+  if (!website) return <WorkspaceShell active="/audits" eyebrow="Rebound SEO workspace" title="Website audits" description="See what is helping or blocking your website from being found."><WorkspaceEmpty title="Complete onboarding first" description="Add your business and website before Rebound SEO can create an audit." /></WorkspaceShell>;
   if (!latestAudit) return <WorkspaceShell active="/audits" eyebrow={website.normalized_domain} title="Website audits" description="See what is helping or blocking your website from being found."><WorkspaceEmpty title="No audits yet" description="Return to the dashboard and start your first website audit." /></WorkspaceShell>;
 
   if (!completedAudit || !metrics) return <WorkspaceShell active="/audits" eyebrow={website.normalized_domain} title="Website audits" description="See what is helping or blocking your website from being found.">
@@ -87,7 +87,7 @@ export default async function AuditsPage() {
     <section className="audit-health-dashboard">
       <div className="audit-score-panel">
         <div aria-label={scoreLabel} aria-valuemax={100} aria-valuemin={0} aria-valuenow={dashboard.healthScore ?? undefined} className={`audit-score-ring ${dashboard.healthScore === null ? "unavailable" : ""}`} role="meter" style={scoreStyle}><div><strong>{dashboard.healthScore ?? "—"}</strong>{dashboard.healthScore !== null && <span>%</span>}</div></div>
-        <div className="audit-score-copy"><span className="eyebrow">Latest completed audit</span><h2>{dashboard.healthLabel}</h2><p>{completedAudit.provider === "dataforseo" ? "This is the provider’s on-page score for the homepage checked in this audit. Destiny does not recalculate or inflate it." : "This demonstration score previews how live site health will appear once provider data is connected."}</p><small>{dashboard.coverageLabel} This is not a full-site crawl.</small></div>
+        <div className="audit-score-copy"><span className="eyebrow">Latest completed audit</span><h2>{dashboard.healthLabel}</h2><p>{completedAudit.provider === "dataforseo" ? "This is the provider’s on-page score for the homepage checked in this audit. Rebound SEO does not recalculate or inflate it." : "This demonstration score previews how live site health will appear once provider data is connected."}</p><small>{dashboard.coverageLabel} This is not a full-site crawl.</small></div>
       </div>
       <div className="audit-health-summary">
         <article className="critical"><span>Critical</span><strong>{Number(metrics.critical_issues ?? 0)}</strong><p>Can block crawling, understanding, or a reliable visit.</p></article>
@@ -98,7 +98,7 @@ export default async function AuditsPage() {
     </section>
 
     {dashboard.priorityIssue ? <section className="audit-priority-card" id="technical-priority">
-      <div className="audit-priority-heading"><span className="eyebrow">Fix these first</span><h2>The changes that will do the most for your technical foundation</h2><p>Destiny ordered these by severity so you know where to begin.</p></div>
+      <div className="audit-priority-heading"><span className="eyebrow">Fix these first</span><h2>The changes that will do the most for your technical foundation</h2><p>Rebound SEO ordered these by severity so you know where to begin.</p></div>
       <div className="audit-priority-list">{dashboard.priorityIssues.map((issue, index) => <article key={`${issue.code}-${index}`}><div className="audit-priority-icon">{index + 1}</div><div><h3>{issue.label}</h3><p>{issue.whyItMatters}</p><div className="audit-priority-next"><strong>Next action</strong><span>{issue.nextAction}</span></div></div></article>)}</div>
       <a className="secondary-button" href="#all-technical-issues">View every technical issue</a>
     </section> : <section className="audit-priority-card clear" id="technical-priority"><div className="audit-priority-icon">✓</div><div><span className="eyebrow">No saved technical issues</span><h2>This initial scan did not return a problem to fix</h2><p>Keep monitoring. A deeper crawl can still uncover issues beyond the homepage evidence used here.</p></div></section>}

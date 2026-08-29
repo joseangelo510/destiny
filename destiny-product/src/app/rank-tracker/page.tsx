@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function RankTrackerPage() {
   const context = await getWorkspaceContext();
-  if (!context.website) return <WorkspaceShell active="/rank-tracker" eyebrow="Destiny workspace" title="Rank tracker" description="Track the Google positions connected to your approved strategy."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Destiny knows which domain to measure." /></WorkspaceShell>;
+  if (!context.website) return <WorkspaceShell active="/rank-tracker" eyebrow="Rebound SEO workspace" title="Rank tracker" description="Track the Google positions connected to your approved strategy."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Rebound SEO knows which domain to measure." /></WorkspaceShell>;
 
   const [{ data: lists }, { data: tracked }, { data: observations }, { count: approvedCount }, { count: draftCount }, { data: preference }] = await Promise.all([
     context.supabase.from("rank_tracker_lists").select("id,name").eq("website_id", context.website.id).order("name"),

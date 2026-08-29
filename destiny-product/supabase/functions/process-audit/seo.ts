@@ -844,7 +844,7 @@ export async function runDataForSeoAudit(
     .filter((domain) => domain && domain !== website.domain)
     .slice(0, 5);
   if (competitorDomains.length < 2) {
-    throw new Error("Destiny needs at least two resolvable competitor domains. Add competitor website URLs and retry.");
+    throw new Error("Rebound SEO needs at least two resolvable competitor domains. Add competitor website URLs and retry.");
   }
 
   const gapResults = await Promise.allSettled(competitorDomains.map((domain) => dataForSeoPost(
@@ -867,7 +867,7 @@ export async function runDataForSeoAudit(
     ? [{ domain: competitorDomains[index], payload: result.value }]
     : []);
   if (gapEvidence.length < 2) {
-    throw new Error("Destiny could not retrieve enough live competitor evidence. Retry the audit in a moment.");
+    throw new Error("Rebound SEO could not retrieve enough live competitor evidence. Retry the audit in a moment.");
   }
   await onProgress(65);
   const gapGroups = gapEvidence.map((evidence) => ({
@@ -1109,21 +1109,21 @@ export async function runDataForSeoAudit(
     notices: [
       "Keyword and competitor indexes are DataForSEO estimates updated on their provider schedule.",
       `Search demand was measured in ${location}${location !== locationName.trim() && locationName.trim() ? ` instead of the default ${locationName.trim()} because the website uses a country-code domain` : ""}.`,
-      `Destiny inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
+      `Rebound SEO inspected ${pages.length} verified strategic page${pages.length === 1 ? "" : "s"}; blog posts and fabricated fallback URLs do not shape business relevance.`,
       `The approval pool is prioritized by core business relevance, revenue intent, monthly demand, ranking difficulty, commercial value, and opportunity evidence across ${competitorDomains.length} competitor domains.`,
       directCompetitorDomains.size
         ? `${directCompetitorDomains.size} business competitor${directCompetitorDomains.size === 1 ? " is" : "s are"} weighted more strongly than discovered publishers and other search-landscape domains.`
         : "Discovered domains are treated as search-landscape evidence until the user identifies direct business competitors.",
-      `${businessSearchBrief.source === "claude-opus-4-8" ? "Claude Opus 4.8" : "Destiny's deterministic fallback"} synthesized every onboarding answer into ${businessSearchBrief.themes.length} evidence-backed search themes before keyword expansion.`,
+      `${businessSearchBrief.source === "claude-opus-4-8" ? "Claude Opus 4.8" : "Rebound SEO's deterministic fallback"} synthesized every onboarding answer into ${businessSearchBrief.themes.length} evidence-backed search themes before keyword expansion.`,
       businessSearchBrief.warning ?? "The semantic brief separates what the company sells from what its product enables customers to build.",
       buyerSeeds.length ? `Long-tail buyer opportunities were expanded from ${buyerSeeds.length} offer-led seed${buyerSeeds.length === 1 ? "" : "s"}, including service-plus-audience combinations, and reclassified with DataForSEO Search Intent.` : "No evidence-backed buyer seed could be derived from onboarding.",
-      categorySeeds.length ? "Onboarding themes are used only to query DataForSEO. Every recommendation must return positive measured demand and pass Destiny's service-relevance gate." : "No usable product or customer-problem seed could be derived from the complete onboarding record.",
+      categorySeeds.length ? "Onboarding themes are used only to query DataForSEO. Every recommendation must return positive measured demand and pass Rebound SEO's service-relevance gate." : "No usable product or customer-problem seed could be derived from the complete onboarding record.",
       needsKeywordExpansion(keywords.length)
-        ? `DataForSEO found only ${keywords.length} positively measured, business-relevant keyword${keywords.length === 1 ? "" : "s"} after Destiny ran a second offer-anchored expansion toward the 25-keyword approval target. This is a thin measured market, not a padded report.`
+        ? `DataForSEO found only ${keywords.length} positively measured, business-relevant keyword${keywords.length === 1 ? "" : "s"} after Rebound SEO ran a second offer-anchored expansion toward the 25-keyword approval target. This is a thin measured market, not a padded report.`
         : expansionSeeds.length
-      ? "Destiny ran one offer-anchored suggestion expansion because the first measured keyword pool was below 25; the same positive-demand and business-relevance gates remained in force."
+      ? "Rebound SEO ran one offer-anchored suggestion expansion because the first measured keyword pool was below 25; the same positive-demand and business-relevance gates remained in force."
           : "The first measured keyword pass produced a sufficiently broad approval pool without fallback expansion.",
-      distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Destiny's live-link check in this audit.",
+      distributionOpportunities.length ? "Distribution links point to individual live Reddit or Quora threads." : "No individual Reddit or Quora thread passed Rebound SEO's live-link check in this audit.",
       "Google review count stays at zero until Google Business Profile is connected.",
     ],
   };

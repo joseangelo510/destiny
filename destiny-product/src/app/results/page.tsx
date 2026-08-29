@@ -12,8 +12,8 @@ export default async function ResultsPage() {
 
   if (!context.audit) {
     return (
-      <WorkspaceShell active="/results" eyebrow={context.website.normalized_domain} title="90-Day SEO Game Plan" description="Your executive strategy will appear here after Destiny completes the first audit.">
-        <WorkspaceEmpty title="Your Game Plan is being prepared" description="Run the initial website analysis so Destiny can build a focused quarter from verified evidence." />
+      <WorkspaceShell active="/results" eyebrow={context.website.normalized_domain} title="90-Day SEO Game Plan" description="Your executive strategy will appear here after Rebound SEO completes the first audit.">
+        <WorkspaceEmpty title="Your Game Plan is being prepared" description="Run the initial website analysis so Rebound SEO can build a focused quarter from verified evidence." />
       </WorkspaceShell>
     );
   }
@@ -49,7 +49,7 @@ export default async function ResultsPage() {
       active="/results"
       eyebrow={context.website.normalized_domain}
       title="90-Day SEO Game Plan"
-      description="What Destiny will prioritize, why it matters, and what progress could realistically look like this quarter."
+      description="What Rebound SEO will prioritize, why it matters, and what progress could realistically look like this quarter."
     >
       <GamePlanView auditHref={`/audits/${context.audit.id}`} lastUpdated={lastUpdated} plan={plan} />
     </WorkspaceShell>

@@ -31,7 +31,7 @@ export const ONBOARDING_MOMENTUM_STAGES: OnboardingStageDefinition[] = [
   {
     id: "competitors",
     title: "Competitors & edge",
-    description: "Show Destiny where you deserve to stand out",
+    description: "Show Rebound SEO where you deserve to stand out",
     celebration: "Your competitive edge is mapped. Let’s find the opportunity.",
   },
 ];
@@ -49,7 +49,7 @@ export const AUDIT_MOMENTUM_STAGES: AuditMomentumStageDefinition[] = [
   {
     id: "website-baseline",
     title: "Website search health",
-    description: "Destiny checks the homepage, rankings, and technical signals.",
+    description: "Rebound SEO checks the homepage, rankings, and technical signals.",
     activeMessage: "Inspecting the live website and measuring its current search footprint.",
     completeAt: 30,
   },
@@ -77,7 +77,7 @@ export const AUDIT_MOMENTUM_STAGES: AuditMomentumStageDefinition[] = [
   {
     id: "coaching-route",
     title: "Your coaching route",
-    description: "Destiny turns the evidence into weekly actions and a three-month plan.",
+    description: "Rebound SEO turns the evidence into weekly actions and a three-month plan.",
     activeMessage: "Building a manageable first week and the route that follows it.",
     completeAt: 100,
   },

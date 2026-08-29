@@ -40,7 +40,7 @@ export function CelebrationControls() {
   };
 
   return <details className="celebration-controls workspace-card">
-    <summary><span><strong>Sound & celebrations</strong><small>Original Destiny feedback sounds with accessibility controls</small></span><b>Settings</b></summary>
+    <summary><span><strong>Sound & celebrations</strong><small>Original Rebound SEO feedback sounds with accessibility controls</small></span><b>Settings</b></summary>
     <div className="celebration-controls-body">
       <label><input checked={!preferences.muted} disabled={!ready} onChange={(event) => update({ muted: !event.target.checked })} type="checkbox" /><span><strong>Completion sounds</strong><small>Play a short sound after actions you trigger.</small></span></label>
       <label><input checked={preferences.reduced} disabled={!ready} onChange={(event) => update({ reduced: event.target.checked })} type="checkbox" /><span><strong>Reduced celebrations</strong><small>Keep feedback quieter and remove larger motion.</small></span></label>

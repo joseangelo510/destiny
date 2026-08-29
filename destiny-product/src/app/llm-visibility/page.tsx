@@ -14,8 +14,8 @@ export default async function LlmVisibilityPage() {
   const domains = list(llm.topCitedDomains).map(record);
 
   if (!context.website) {
-    return <WorkspaceShell active="/llm-visibility" eyebrow="Destiny workspace" title="LLM visibility" description="Build source readiness, then verify company mentions and citations with provider evidence.">
-      <WorkspaceEmpty title="Complete onboarding to build your AI visibility map" description="Destiny needs a business website before it can save source-specific actions and monitor available visibility evidence." />
+    return <WorkspaceShell active="/llm-visibility" eyebrow="Rebound SEO workspace" title="LLM visibility" description="Build source readiness, then verify company mentions and citations with provider evidence.">
+      <WorkspaceEmpty title="Complete onboarding to build your AI visibility map" description="Rebound SEO needs a business website before it can save source-specific actions and monitor available visibility evidence." />
     </WorkspaceShell>;
   }
 

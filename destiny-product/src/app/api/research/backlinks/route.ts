@@ -16,12 +16,12 @@ export async function POST(request: Request) {
     if (error || !data) {
       const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
         ? data.error
-        : error?.message || "Destiny could not complete backlink research.";
+        : error?.message || "Rebound SEO could not complete backlink research.";
       return NextResponse.json({ error: message }, { status: 502 });
     }
     return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "Destiny could not complete backlink research.";
+    const message = cause instanceof Error ? cause.message : "Rebound SEO could not complete backlink research.";
     const status = /configured/i.test(message) ? 503 : /valid public/i.test(message) ? 400 : 502;
     return NextResponse.json({ error: message }, { status });
   }

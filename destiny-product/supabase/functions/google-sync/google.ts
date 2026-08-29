@@ -62,7 +62,7 @@ function searchDaily(payload: unknown) {
 
 export async function syncSearchConsole(accessToken: string, domain: string, requestedSiteUrl?: string | null): Promise<GoogleSyncResult> {
   const requestedDomain = normalizedDomain(domain);
-  if (!requestedDomain) throw new Error("Destiny could not verify the website domain for Search Console.");
+  if (!requestedDomain) throw new Error("Rebound SEO could not verify the website domain for Search Console.");
   const sitesPayload = record(await googleJson("https://www.googleapis.com/webmasters/v3/sites", accessToken));
   const sites = list(sitesPayload.siteEntry).map(record);
   const availableSites = sites.slice(0, 25).map((site) => {
@@ -166,7 +166,7 @@ function analyticsTrafficSources(payload: unknown) {
 
 export async function syncGoogleAnalytics(accessToken: string, domain?: string, requestedProperty?: string | null): Promise<GoogleSyncResult> {
   const requestedDomain = normalizedDomain(domain ?? "");
-  if (!requestedDomain) throw new Error("Destiny could not verify the website domain for Google Analytics.");
+  if (!requestedDomain) throw new Error("Rebound SEO could not verify the website domain for Google Analytics.");
   const accountsPayload = record(await googleJson("https://analyticsadmin.googleapis.com/v1beta/accountSummaries?pageSize=200", accessToken));
   const properties = list(accountsPayload.accountSummaries).flatMap((accountValue) => {
     const account = record(accountValue);

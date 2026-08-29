@@ -33,7 +33,7 @@ describe("PublishingDestinations", () => {
 
   it("routes AI-created websites to their real publishing system", () => {
     const html = render();
-    expect(html).toContain("The AI created the site; Destiny connects to where its files or content are managed.");
+    expect(html).toContain("The AI created the site; Rebound SEO connects to where its files or content are managed.");
     expect(html).toContain("WordPress, Wix, Webflow, Shopify, or another CMS");
     expect(html).toContain("GitHub, Vercel, Netlify, or a developer-managed repository");
     expect(html).not.toContain("Connect ChatGPT");

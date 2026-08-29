@@ -1,13 +1,13 @@
 // Typed registry for the "Your website" section of Connections.
 // Platform and AI-builder selections are editable profile information —
-// truthful metadata Destiny uses to tailor advice — never claimed API
+// truthful metadata Rebound SEO uses to tailor advice — never claimed API
 // connections. Only providers with a genuinely implemented connection flow
 // may ever render a "Connect" action.
 
 export type WebsitePlatform = {
   id: string;
   label: string;
-  // True only when Destiny ships a real, working connection flow for the
+  // True only when Rebound SEO ships a real, working connection flow for the
   // platform. Guarded by tests: no platform without one can render "Connect".
   liveConnection: boolean;
 };
@@ -72,9 +72,9 @@ export function platformSavedMessage(platformId: string): string {
   const platform = platformById(platformId);
   if (!platform) return "Saved.";
   if (platform.liveConnection) {
-    return `Saved. Destiny will tailor your SEO advice for ${platform.label}. You can also connect ${platform.label} directly under Connected accounts.`;
+    return `Saved. Rebound SEO will tailor your SEO advice for ${platform.label}. You can also connect ${platform.label} directly under Connected accounts.`;
   }
-  return `Saved. Destiny will tailor your SEO advice for ${platform.label}. A direct connection isn’t available yet, so we’ll show you where to make changes.`;
+  return `Saved. Rebound SEO will tailor your SEO advice for ${platform.label}. A direct connection isn’t available yet, so we’ll show you where to make changes.`;
 }
 
 // Invariant helper: only platforms with a live connection implementation may

@@ -52,18 +52,18 @@ export function WebsiteProfileCard({
         body: JSON.stringify({ websiteId, platform, builderTools }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Destiny could not save your website profile.");
+      if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Rebound SEO could not save your website profile.");
       setBaseline({ platform, builderTools });
       setSavedMessage(platform ? platformSavedMessage(platform) : "Saved. You can update this any time.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save your website profile. Please try again.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save your website profile. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return <section className="workspace-card website-profile-card">
-    <div className="workspace-card-heading"><div><strong>Your website</strong><small>Tell Destiny where your site is built so advice fits your tools.</small></div></div>
+    <div className="workspace-card-heading"><div><strong>Your website</strong><small>Tell Rebound SEO where your site is built so advice fits your tools.</small></div></div>
 
     <fieldset className="website-platform-group">
       <legend>Where is your site built?</legend>
@@ -99,7 +99,7 @@ export function WebsiteProfileCard({
 
     <fieldset className="website-tools-group">
       <legend>Did AI tools help you build it?</legend>
-      <p className="website-tools-hint">Optional. Destiny uses this to tailor coaching — these are preferences, not account connections.</p>
+      <p className="website-tools-hint">Optional. Rebound SEO uses this to tailor coaching — these are preferences, not account connections.</p>
       <div className="website-tools-options">
         {AI_BUILDER_TOOLS.map((tool) => {
           const checked = builderTools.includes(tool.id);

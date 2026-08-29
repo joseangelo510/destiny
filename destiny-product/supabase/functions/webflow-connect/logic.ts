@@ -43,7 +43,7 @@ export function evaluateCollectionFields(fields: WebflowField[]): CollectionEval
   if (blockers.length) {
     return {
       compatible: false,
-      reason: `This collection requires ${blockers.map((field) => `“${field.label}”`).join(", ")}, which Destiny cannot fill safely.`,
+      reason: `This collection requires ${blockers.map((field) => `“${field.label}”`).join(", ")}, which Rebound SEO cannot fill safely.`,
     };
   }
   return { compatible: true, titleField: "name", bodyFields: bodyFields.map((field) => ({ slug: field.slug, label: field.label })) };

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Destiny — Your SEO growth companion",
+  title: "Rebound SEO — Your SEO growth companion",
   description: "Turn SEO into one clear, compounding weekly habit.",
 };
 

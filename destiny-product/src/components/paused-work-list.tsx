@@ -17,10 +17,10 @@ export function PausedWorkList({ tasks }: { tasks: PausedTask[] }) {
     try {
       const response = await fetch(`/api/quests/${encodeURIComponent(id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guidanceState: "active" }) });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not resume this task.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not resume this task.");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not resume this task.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not resume this task.");
     } finally {
       setSaving(null);
     }

@@ -73,7 +73,7 @@ function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, saving 
     : " Connect or refresh Search Console to add first-party impressions and clicks.";
 
   if (keyword.verdict === "create") return <div className="claude-ks-drawer">
-    <h3>Choose the page type first</h3><p>Destiny pre-selects from search intent. You can override it before any content is created.</p>
+    <h3>Choose the page type first</h3><p>Rebound SEO pre-selects from search intent. You can override it before any content is created.</p>
     <div className="claude-ks-page-types">{[
       ["Service landing page", "Agency, service, expert, hire, and pricing searches."],
       ["Comparison page", "“X vs Y,” alternatives, and best-solution searches."],
@@ -83,13 +83,13 @@ function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, saving 
   </div>;
 
   if (keyword.verdict === "defend") return <div className="claude-ks-drawer">
-    <h3>Protect {displayPath(keyword.rankingUrl)}</h3><p>{rankEvidence}{gscEvidence} This page is already winning, so Destiny will preserve its structure and watch for a sustained drop.</p>
+    <h3>Protect {displayPath(keyword.rankingUrl)}</h3><p>{rankEvidence}{gscEvidence} This page is already winning, so Rebound SEO will preserve its structure and watch for a sustained drop.</p>
     <div className="claude-ks-defend-grid"><div><b>🔒</b><span><strong>Protect the winner</strong><small>Avoid unnecessary rewrites while it holds the top three.</small></span></div><div><b>📅</b><span><strong>Quarterly refresh</strong><small>Review dates, proof, testimonials, and offer details every 90 days.</small></span></div><div><b>🔔</b><span><strong>Slip alert</strong><small>Move it to Improve if verified rankings fall below the top three.</small></span></div></div>
     <div className="claude-ks-drawer-action"><button disabled={saving} onClick={onApprove} type="button">Include protection plan</button><span>Counts toward your five and starts weekly tracking.</span></div>
   </div>;
 
   if (keyword.verdict === "overlap") return <div className="claude-ks-drawer">
-    <h3>Choose one primary page</h3><p>Multiple current URLs were verified for this search. Destiny will keep one page primary and turn the others into supporting pages—without deleting or redirecting anything automatically.</p>
+    <h3>Choose one primary page</h3><p>Multiple current URLs were verified for this search. Rebound SEO will keep one page primary and turn the others into supporting pages—without deleting or redirecting anything automatically.</p>
     <div className="claude-ks-overlap-pages">{keyword.rankingUrls.map((url, index) => <div className={index === 0 ? "primary" : ""} key={url}><small>{index === 0 ? "Primary · recommended" : "Supporting page"}</small><strong>{displayPath(url)}</strong></div>)}</div>
     <div className="claude-ks-drawer-action"><button disabled={saving} onClick={onApprove} type="button">Approve overlap plan</button><span>Nothing changes on your site without review.</span></div>
   </div>;
@@ -97,7 +97,7 @@ function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, saving 
   return <div className="claude-ks-drawer">
     <h3>Page diagnostic: {displayPath(keyword.rankingUrl)}</h3><p>{rankEvidence}{gscEvidence} Approving this keyword prioritizes improving the existing page instead of creating a duplicate article.</p>
     <div className="claude-ks-diagnostics">
-      <div><b>✓</b><span><strong>Existing page verified</strong><small>Destiny found a current URL for this search.</small></span><em>Good</em></div>
+      <div><b>✓</b><span><strong>Existing page verified</strong><small>Rebound SEO found a current URL for this search.</small></span><em>Good</em></div>
       <div className="fix"><b>!</b><span><strong>Title, H1, and intent alignment</strong><small>Compare the page with the current leading results before editing.</small></span><em>Review</em></div>
       <div className="fix"><b>!</b><span><strong>Content and proof gaps</strong><small>Add missing evidence, answers, and conversion paths identified during optimization.</small></span><em>Review</em></div>
       <div className="fix"><b>!</b><span><strong>Internal links</strong><small>Find relevant pages that can strengthen this destination.</small></span><em>Review</em></div>
@@ -174,16 +174,16 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword, decision, reason }) });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not save the keyword decision.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not save the keyword decision.");
       setDecisions((current) => ({ ...current, [keyword]: decision }));
       setReasons((current) => ({ ...current, [keyword]: reason }));
       setPendingDecline("");
       setStatus(decision === "approved"
         ? `Approved “${keyword}.” It now supports your three-month plan and weekly rank tracking.`
-        : `Moved “${keyword}” to Declined. Destiny will use this feedback when shaping future recommendations.`);
+        : `Moved “${keyword}” to Declined. Rebound SEO will use this feedback when shaping future recommendations.`);
       return true;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save the keyword decision.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save the keyword decision.");
       return false;
     } finally {
       setSaving("");
@@ -197,7 +197,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     try {
       const response = await fetch("/api/reoptimization-documents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword: keyword.keyword, regenerate }) });
       const payload = await response.json() as { error?: string; document?: { url?: string } };
-      if (!response.ok || !payload.document?.url) throw new Error(payload.error || "Destiny could not create the change document.");
+      if (!response.ok || !payload.document?.url) throw new Error(payload.error || "Rebound SEO could not create the change document.");
       const href = payload.document.url;
       setDocumentLinks((current) => ({ ...current, [keyword.keyword]: href }));
       setStatus(`Approved “${keyword.keyword}.” Your change doc for ${displayPath(keyword.rankingUrl)} is ready.`);
@@ -206,7 +206,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       return true;
     } catch (cause) {
       setStatus(`“${keyword.keyword}” is approved, but the change doc could not be created. Your approval and rank tracking were saved.`);
-      setError(cause instanceof Error ? cause.message : "Destiny could not create the change document. Try again from Approved.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not create the change document. Try again from Approved.");
       return false;
     } finally {
       setSaving("");
@@ -226,7 +226,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword, action: "restore" }) });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not restore this keyword.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not restore this keyword.");
       setDecisions((current) => {
         const next = { ...current };
         delete next[keyword];
@@ -240,7 +240,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       setActiveTab("review");
       setStatus(`“${keyword}” is back in To Review. Existing drafts and rank history were kept.`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not restore this keyword.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not restore this keyword.");
     } finally {
       setSaving("");
     }
@@ -260,17 +260,17 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       return;
     }
     if (!questId) {
-      setError("Destiny could not find the keyword review task. Refresh the page and try again.");
+      setError("Rebound SEO could not find the keyword review task. Refresh the page and try again.");
       return;
     }
     setSaving("quest");
     try {
       const response = await fetch(`/api/quests/${encodeURIComponent(questId)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "complete" }) });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not finish the keyword review.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not finish the keyword review.");
       router.push(nextHref);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not finish the keyword review.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not finish the keyword review.");
     } finally {
       setSaving("");
     }
@@ -284,11 +284,11 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, decisions: candidates.map((candidate) => ({ keyword: candidate.keyword, decision: "approved" })) }) });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not save the keyword decisions.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not save the keyword decisions.");
       setDecisions((current) => ({ ...current, ...Object.fromEntries(candidates.map((candidate) => [candidate.keyword, "approved"])) }));
       setStatus(`${candidates.length} recommended keyword${candidates.length === 1 ? "" : "s"} approved. You can review or change every choice from Approved.`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save the keyword decisions.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save the keyword decisions.");
     } finally {
       setSaving("");
     }
@@ -324,7 +324,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
 
     {status && <div aria-live="polite" className="integration-banner success keyword-decision-status" role="status"><strong>Decision saved</strong><p>{status}{statusLink ? <> <Link href={statusLink.href}>{statusLink.label} →</Link></> : null}</p></div>}
 
-    {!visibleKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button onClick={() => selectTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link href={auditHref}>Run a new audit</Link> : null}{!auditHref && activeTab === "review" ? <Link href={moreKeywordsHref}>Find more keywords</Link> : null}</div></div></section> : !filteredKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>No {verdictFilter} keywords in this list</h3><p>Choose another verdict to see the recommendations Destiny checked against your site.</p><div><button onClick={() => setVerdictFilter("all")} type="button">Show all keywords</button></div></div></section> : <section className="claude-ks-panel" role="tabpanel">
+    {!visibleKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button onClick={() => selectTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link href={auditHref}>Run a new audit</Link> : null}{!auditHref && activeTab === "review" ? <Link href={moreKeywordsHref}>Find more keywords</Link> : null}</div></div></section> : !filteredKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>No {verdictFilter} keywords in this list</h3><p>Choose another verdict to see the recommendations Rebound SEO checked against your site.</p><div><button onClick={() => setVerdictFilter("all")} type="button">Show all keywords</button></div></div></section> : <section className="claude-ks-panel" role="tabpanel">
       <div className="claude-ks-table-scroll"><table><thead><tr><th>Keyword</th><th>Intent</th><th>Monthly searches</th><th>Opportunity</th><th>Plan status</th><th>Action</th></tr></thead><tbody>{displayedKeywords.map((keyword) => {
         const decision = decisions[keyword.keyword];
         const reason = reasons[keyword.keyword];

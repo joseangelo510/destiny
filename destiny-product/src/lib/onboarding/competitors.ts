@@ -42,7 +42,7 @@ export function validateCompetitorEntries(value: string) {
   const count = parseCompetitorEntries(value).length;
   return count >= 2
     ? { ready: true, count, error: "" }
-    : { ready: false, count, error: "Add at least two competitors so Destiny can find meaningful gaps." };
+    : { ready: false, count, error: "Add at least two competitors so Rebound SEO can find meaningful gaps." };
 }
 
 export function appendCompetitorSuggestion(value: string, domain: string) {

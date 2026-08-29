@@ -159,7 +159,7 @@ export function repurposeOutputPromise(output: RepurposeOutput): string {
 function formatConstraints(output: RepurposeOutput): string {
   switch (output) {
     case "seo_blog_article":
-      // Aligns with Destiny Content Studio policy (matches article-generation):
+      // Aligns with Rebound SEO Content Studio policy (matches article-generation):
       // target 2,300–2,800 words so the finished draft clears the 2,000-word
       // floor; exactly 6–8 H2 sections with useful H3 children.
       return [
@@ -253,7 +253,7 @@ export function buildRepurposePrompt(options: RepurposePromptOptions): string {
     ? `APPROVED TARGET KEYWORD\n${boundedKeyword}\nInclude this keyword naturally where it fits; do not force it.\n`
     : "APPROVED TARGET KEYWORD\nNone supplied. Do not invent or assume a keyword.\n";
 
-  return `You are Destiny's evidence-safe content repurposing engine.
+  return `You are Rebound SEO's evidence-safe content repurposing engine.
 Your job is to transform supplied source text into one carefully bounded draft for human review.
 
 CRITICAL RULES — NEVER VIOLATE THESE
@@ -424,7 +424,7 @@ export function parseRepurposeResponse(
 
 /**
  * Returns true only for the SEO blog article output, which can be opened in
- * Destiny Content Studio for full editorial review and publishing.
+ * Rebound SEO Content Studio for full editorial review and publishing.
  *
  * All other formats remain editable drafts only and never enter the Content
  * Studio publishing pipeline.

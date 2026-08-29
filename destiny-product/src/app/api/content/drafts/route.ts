@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     .select("draft")
     .eq("website_id", websiteId)
     .eq("audit_id", auditId);
-  if (error) return NextResponse.json({ error: "Destiny could not load the saved article drafts." }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Rebound SEO could not load the saved article drafts." }, { status: 500 });
 
   return NextResponse.json({ drafts: (data ?? []).map((row) => row.draft) });
 }
@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
   const auditId = id(body.auditId);
   const drafts = Array.isArray(body.drafts) ? body.drafts.slice(0, MAX_DRAFTS).map(draft) : [];
   if (!websiteId || !auditId || drafts.length === 0 || drafts.some((item) => !item)) {
-    return NextResponse.json({ error: "Destiny received an invalid article draft." }, { status: 400 });
+    return NextResponse.json({ error: "Rebound SEO received an invalid article draft." }, { status: 400 });
   }
 
   const [{ data: website, error: websiteError }, { data: audit, error: auditError }] = await Promise.all([
@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
     .eq("website_id", websiteId)
     .eq("audit_id", auditId);
   if (existingError) {
-    return NextResponse.json({ error: "Destiny could not safely compare the saved article drafts." }, { status: 500 });
+    return NextResponse.json({ error: "Rebound SEO could not safely compare the saved article drafts." }, { status: 500 });
   }
   const generatedKeywords = new Set((existingRows ?? []).flatMap((row) => {
     const saved = row.draft && typeof row.draft === "object" && !Array.isArray(row.draft)
@@ -105,7 +105,7 @@ export async function PUT(request: Request) {
   if (rows.length === 0) return NextResponse.json({ saved: 0, protected: protectedCount });
 
   const { error } = await articleDrafts.upsert(rows, { onConflict: "website_id,audit_id,keyword" });
-  if (error) return NextResponse.json({ error: "Destiny generated the article but could not save it yet." }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Rebound SEO generated the article but could not save it yet." }, { status: 500 });
 
   return NextResponse.json(protectedCount ? { saved: rows.length, protected: protectedCount } : { saved: rows.length });
 }

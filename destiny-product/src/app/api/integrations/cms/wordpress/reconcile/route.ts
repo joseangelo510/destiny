@@ -24,6 +24,6 @@ export async function POST(request: Request) {
     error?: string;
   }>("wordpress-reconcile", { body: { websiteId, articleKey } });
 
-  if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Destiny could not refresh the WordPress status." }, { status: 502 });
+  if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Rebound SEO could not refresh the WordPress status." }, { status: 502 });
   return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
 }

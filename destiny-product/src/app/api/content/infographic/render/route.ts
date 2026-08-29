@@ -62,8 +62,8 @@ export async function POST(request: Request) {
     if (!imageResponse.ok || !result.data?.[0]?.b64_json) {
       const code = result.error?.code ?? "missing_image";
       console.error("infographic_image_provider", { status: imageResponse.status, code });
-      if (code === "credit_balance_exhausted") return Response.json({ error: "OpenAI credits need to be added before Destiny can create infographics." }, { status: 503 });
-      return Response.json({ error: "Destiny could not create the visual yet. Try again in a moment." }, { status: 502 });
+      if (code === "credit_balance_exhausted") return Response.json({ error: "OpenAI credits need to be added before Rebound SEO can create infographics." }, { status: 503 });
+      return Response.json({ error: "Rebound SEO could not create the visual yet. Try again in a moment." }, { status: 502 });
     }
     const visualFoundation = await sharp(Buffer.from(result.data[0].b64_json, "base64"))
       .resize(INFOGRAPHIC_WIDTH, INFOGRAPHIC_HEIGHT, { fit: "cover" })
@@ -82,6 +82,6 @@ export async function POST(request: Request) {
     });
   } catch (cause) {
     console.error("infographic_image_failed", { error: cause instanceof Error ? cause.message : "unknown" });
-    return Response.json({ error: "Destiny could not finish the visual. Try again in a moment." }, { status: 502 });
+    return Response.json({ error: "Rebound SEO could not finish the visual. Try again in a moment." }, { status: 502 });
   }
 }

@@ -19,7 +19,7 @@ export default async function ThisWeekPage() {
   const context = await getWorkspaceContext();
   if (!context.website) redirect("/onboarding");
   if (!context.audit || context.audit.status !== "complete") {
-    return <WorkspaceShell active="/this-week" eyebrow={context.website.normalized_domain} title="This week" description="Destiny turns your audit into one clear, guided checklist."><WorkspaceEmpty title="Your audit is still being prepared" description="Destiny will notify you when the evidence and weekly plan are ready." /></WorkspaceShell>;
+    return <WorkspaceShell active="/this-week" eyebrow={context.website.normalized_domain} title="This week" description="Rebound SEO turns your audit into one clear, guided checklist."><WorkspaceEmpty title="Your audit is still being prepared" description="Rebound SEO will notify you when the evidence and weekly plan are ready." /></WorkspaceShell>;
   }
   const auditTasks = context.quests.filter((task) => task.audit_id === context.audit?.id);
   const allTasks = certifiedMvpWeeklyTasks(auditTasks);

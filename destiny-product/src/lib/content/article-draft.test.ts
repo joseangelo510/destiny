@@ -21,7 +21,7 @@ describe("article review workspace", () => {
     expect(draft.preferences.format).toBe("seo_article");
     expect(await articleCanBeApproved(draft)).toBe(false);
     const document = buildWordDocument(draft);
-    expect(document).toContain("application-ready Destiny article");
+    expect(document).toContain("application-ready Rebound SEO article");
     expect(document).toContain("Meta description 1");
     expect(document).toContain("SEO/meta title");
     expect(document).not.toContain("Meta description 2");

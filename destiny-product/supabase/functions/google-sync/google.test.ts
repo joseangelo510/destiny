@@ -100,7 +100,7 @@ describe("Google read-only synchronization", () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
       const url = String(input);
       if (url.includes("youtube/v3/channels")) {
-        return response({ items: [{ id: "channel-123", snippet: { title: "Destiny SEO" }, statistics: { subscriberCount: "1250", viewCount: "84000", videoCount: "41" } }] });
+        return response({ items: [{ id: "channel-123", snippet: { title: "Rebound SEO SEO" }, statistics: { subscriberCount: "1250", viewCount: "84000", videoCount: "41" } }] });
       }
       return response({ rows: [[3150, 12200, 88]] });
     });
@@ -108,7 +108,7 @@ describe("Google read-only synchronization", () => {
     const result = await syncYouTube("another-secret-token");
 
     expect(result.externalAccountId).toBe("channel-123");
-    expect(result.metadata).toMatchObject({ channelTitle: "Destiny SEO", subscribers: 1250, periodViews: 3150, estimatedMinutesWatched: 12200, subscribersGained: 88 });
+    expect(result.metadata).toMatchObject({ channelTitle: "Rebound SEO SEO", subscribers: 1250, periodViews: 3150, estimatedMinutesWatched: 12200, subscribersGained: 88 });
     expect(JSON.stringify(result)).not.toContain("another-secret-token");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });

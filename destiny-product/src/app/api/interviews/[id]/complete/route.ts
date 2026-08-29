@@ -27,9 +27,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const { data: storedItems, error: libraryError } = libraryRows.length
     ? await db.from("voice_library_items").upsert(libraryRows, { onConflict: "answer_id,type" }).select("id,interview_id,answer_id,type,title,body,status")
     : { data: [], error: null };
-  if (libraryError) return NextResponse.json({ error: "Your answers are safe, but Destiny could not update the Voice Library yet." }, { status: 500 });
+  if (libraryError) return NextResponse.json({ error: "Your answers are safe, but Rebound SEO could not update the Voice Library yet." }, { status: 500 });
   const { error: completionError } = await db.from("interviews").update({ status: "complete", completed_at: new Date().toISOString() }).eq("id", id);
-  if (completionError) return NextResponse.json({ error: "Your answers are safe, but Destiny could not finish the interview yet." }, { status: 500 });
+  if (completionError) return NextResponse.json({ error: "Your answers are safe, but Rebound SEO could not finish the interview yet." }, { status: 500 });
   const questionById = new Map((questionRows ?? []).map((row) => [String(row.id), String(row.text)]));
   const answerById = new Map(answers.map((answer) => [answer.id, answer.verbatim_text]));
   return NextResponse.json({ interview: {

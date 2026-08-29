@@ -112,7 +112,7 @@ export function LlmSourceDashboard({
     if (browserChannel) {
       browserChannel.onmessage = (event) => {
         const next = parseLlmTaskSyncMessage(event.data, websiteId);
-        if (next) applySyncedTask(next, "Progress updated in another Destiny tab.");
+        if (next) applySyncedTask(next, "Progress updated in another Rebound SEO tab.");
       };
     }
     const refreshOnFocus = () => { void reconcile(); };
@@ -167,7 +167,7 @@ export function LlmSourceDashboard({
         body: JSON.stringify({ websiteId, sourceKey, taskKey, status, proofUrl }),
       });
       const payload = await response.json() as { error?: string; task?: LlmVisibilityTaskRecord };
-      if (!response.ok || !payload.task) throw new Error(payload.error || "Destiny could not save this source task.");
+      if (!response.ok || !payload.task) throw new Error(payload.error || "Rebound SEO could not save this source task.");
       setRecords((current) => upsertRecord(current, payload.task!));
       if (typeof window !== "undefined" && "BroadcastChannel" in window) {
         const browserChannel = new window.BroadcastChannel(llmTaskChannelName(websiteId));
@@ -177,7 +177,7 @@ export function LlmSourceDashboard({
       setStatusMessage(status === "complete" ? proofUrl ? "Action and public proof saved. Your progress map is up to date." : "Action saved. Your readiness map is up to date." : "Action reopened. Your readiness map is up to date.");
     } catch (cause) {
       setRecords(previous);
-      setError(cause instanceof Error ? cause.message : "Destiny could not save this source task.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save this source task.");
     } finally {
       setSavingTask("");
     }
@@ -199,7 +199,7 @@ export function LlmSourceDashboard({
       <article className="llm-next-action">
         <span>Next useful step</span>
         <strong>{progress.nextTask ? progress.nextTask.title : "Keep monitoring evidence"}</strong>
-        <p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : "Your source-readiness work is complete. Destiny will keep verified provider evidence separate."}</p>
+        <p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : "Your source-readiness work is complete. Rebound SEO will keep verified provider evidence separate."}</p>
         {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type="button">Open this source →</button>}
       </article>
       <article className={`llm-verified-summary ${progress.verifiedVisibility.detected ? "detected" : ""}`}>
@@ -211,7 +211,7 @@ export function LlmSourceDashboard({
     </section>
 
     <section aria-labelledby="llm-truth-ledger-title" className="llm-truth-ledger workspace-card">
-      <div className="workspace-card-heading"><div><strong id="llm-truth-ledger-title">Three truthful progress states</strong><small>Destiny never turns a checkbox or attached link into a detected AI citation</small></div></div>
+      <div className="workspace-card-heading"><div><strong id="llm-truth-ledger-title">Three truthful progress states</strong><small>Rebound SEO never turns a checkbox or attached link into a detected AI citation</small></div></div>
       <div className="llm-truth-ledger-grid">
         <article><span>1</span><div><strong>Work completed</strong><b>{progress.readiness.completed}/{progress.readiness.total}</b><p>Self-reported source-readiness actions.</p></div></article>
         <article><span>2</span><div><strong>Public proof attached</strong><b>{progress.publicProof.attached}/{progress.publicProof.possible}</b><p>{progress.publicProof.attached} of {progress.publicProof.possible} proof-bearing actions. User-attached, not automatically verified.</p></div></article>
@@ -263,7 +263,7 @@ export function LlmSourceDashboard({
     </section>
 
     <section className="workspace-card llm-benchmark-card">
-      <div className="workspace-card-heading"><div><strong>Benchmark lens</strong><small>See why Destiny uses multiple source paths instead of one universal ranking</small></div><span>Market benchmark, not your evidence</span></div>
+      <div className="workspace-card-heading"><div><strong>Benchmark lens</strong><small>See why Rebound SEO uses multiple source paths instead of one universal ranking</small></div><span>Market benchmark, not your evidence</span></div>
       <div className="llm-benchmark-tabs" role="tablist" aria-label="AI engine citation benchmark">
         {AI_ENGINE_CITATION_SNAPSHOTS.map((snapshot) => <button aria-selected={snapshot.id === activeBenchmark.id} key={snapshot.id} onClick={() => setSelectedBenchmark(snapshot.id)} role="tab" type="button">{snapshot.label}</button>)}
       </div>
@@ -279,7 +279,7 @@ export function LlmSourceDashboard({
           })}
         </div>
       </div>
-      <p className="llm-benchmark-footnote">Benchmarks change by model, query set, industry, country, and month. Destiny uses them to prioritize possible ecosystems; your provider evidence below remains the source of truth for detected visibility.</p>
+      <p className="llm-benchmark-footnote">Benchmarks change by model, query set, industry, country, and month. Rebound SEO uses them to prioritize possible ecosystems; your provider evidence below remains the source of truth for detected visibility.</p>
     </section>
   </div>;
 }

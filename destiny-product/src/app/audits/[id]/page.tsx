@@ -98,8 +98,8 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
     differentiation: String(website.differentiation || "Not provided"),
   };
 
-  return <WorkspaceShell active="/results" eyebrow={String(website.normalized_domain || "Destiny workspace")} title="Your SEO strategy is ready" description="Destiny translated your audit results into one clear opportunity and a short strategy checklist. Start at the top; the detailed evidence remains available below.">
-      {(emailDelivery.status === "skipped" || emailDelivery.status === "failed") && <div className="integration-banner warning" role="status"><strong>Your results are saved here</strong><p>Destiny could not send the email update for this audit. Use this saved results page and the notification center while email delivery is being connected.</p></div>}
+  return <WorkspaceShell active="/results" eyebrow={String(website.normalized_domain || "Rebound SEO workspace")} title="Your SEO strategy is ready" description="Rebound SEO translated your audit results into one clear opportunity and a short strategy checklist. Start at the top; the detailed evidence remains available below.">
+      {(emailDelivery.status === "skipped" || emailDelivery.status === "failed") && <div className="integration-banner warning" role="status"><strong>Your results are saved here</strong><p>Rebound SEO could not send the email update for this audit. Use this saved results page and the notification center while email delivery is being connected.</p></div>}
       <section className="audit-narrative">
         <div>
           <span className="eyebrow">{narrative.eyebrow}</span>
@@ -117,14 +117,14 @@ export default async function AuditResultsPage({ params }: { params: Promise<{ i
       </section>
 
       <section className="results-checklist">
-        <div className="results-checklist-heading"><div><span className="eyebrow">Your coaching plan</span><h2>See what to do next</h2><p>Destiny completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
+        <div className="results-checklist-heading"><div><span className="eyebrow">Your coaching plan</span><h2>See what to do next</h2><p>Rebound SEO completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className="secondary-button" href="/this-week">Open weekly coach</Link></div>
         <div className="coach-category-stack">{taskGroups.map((group, index) => <section className="coach-task-category" id={`results-${group.id}`} key={group.id}><div className="coach-category-heading"><span>{index + 1}</span><div><h3>{group.label}</h3><p>{group.description}</p></div><strong>{group.tasks.filter((task) => task.status === "complete").length} / {group.tasks.length}</strong></div><WeeklyTaskList auditId={id} openTaskId={currentCoachTask?.id ?? null} remainingTasks={remainingTasks} tasks={group.tasks} /></section>)}</div>
       </section>
 
       <details className="business-context-review">
-        <summary><span><strong>Review the business context Destiny used</strong><small>This is optional. Your strategy is already ready.</small></span><b>Review details</b></summary>
+        <summary><span><strong>Review the business context Rebound SEO used</strong><small>This is optional. Your strategy is already ready.</small></span><b>Review details</b></summary>
         <div className="business-context-body">
-          <p>Destiny used your onboarding answers to interpret the search data and tailor this plan. Start a new analysis only if these details need to change.</p>
+          <p>Rebound SEO used your onboarding answers to interpret the search data and tailor this plan. Start a new analysis only if these details need to change.</p>
           <div className="business-understanding-grid">
             <div><span>Business</span><strong>{businessUnderstanding.businessName}</strong></div>
             <div><span>Products and services</span><p>{businessUnderstanding.productsServices}</p></div>

@@ -165,7 +165,7 @@ export async function POST(request: Request) {
         supabase.functions.invoke("seo-research", { body: { kind: "article_evidence", keyword: input.keyword, locationName: "United States" } }),
         new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
       ]);
-      if (result.error || !result.data) throw new Error(result.error?.message || "Destiny could not retrieve article evidence.");
+      if (result.error || !result.data) throw new Error(result.error?.message || "Rebound SEO could not retrieve article evidence.");
       researchData = result.data;
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
@@ -181,7 +181,7 @@ export async function POST(request: Request) {
 
     let researchEvidence = "";
     try { researchEvidence = buildArticleEvidencePack(record(researchData).rows); }
-    catch (cause) { return { error: cause instanceof Error ? cause.message : "Destiny could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
+    catch (cause) { return { error: cause instanceof Error ? cause.message : "Rebound SEO could not verify enough article sources yet.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }; }
 
     const basePrompt = buildArticleGenerationPrompt(input, researchEvidence);
     const prompt = voiceContext ? `${basePrompt}\n\n${voiceContext}` : basePrompt;
@@ -281,7 +281,7 @@ export async function POST(request: Request) {
           if (completedDecision.needed) {
             recoveryIssue = {
               code: "incomplete_output",
-              message: "Destiny completed one bounded finishing pass, but the combined article still ended before it met the completion requirements. Generate again before approval.",
+              message: "Rebound SEO completed one bounded finishing pass, but the combined article still ended before it met the completion requirements. Generate again before approval.",
             };
           }
         } catch (cause) {
@@ -294,7 +294,7 @@ export async function POST(request: Request) {
           });
           recoveryIssue = {
             code: "incomplete_output",
-            message: "The first article response ended early and Destiny's single finishing pass could not complete it. The partial draft is preserved, but it cannot be approved.",
+            message: "The first article response ended early and Rebound SEO's single finishing pass could not complete it. The partial draft is preserved, but it cannot be approved.",
           };
         }
       }
@@ -324,7 +324,7 @@ export async function POST(request: Request) {
           optimization: qualityIssues.length
             ? qualityIssues.map((issue) => ({ label: issue.code.replaceAll("_", " "), detail: issue.message }))
             : [
-              { label: "Long-form SEO", detail: "The draft passed Destiny's word-count and heading-structure checks." },
+              { label: "Long-form SEO", detail: "The draft passed Rebound SEO's word-count and heading-structure checks." },
               { label: "Writing rhythm", detail: "Contextual transitions and stock-phrase checks passed." },
               { label: "Human review", detail: "Review the article, sources, graphics, and business claims before publishing." },
             ],
@@ -355,7 +355,7 @@ export async function POST(request: Request) {
       void generatePayload((phase) => send(encodeArticleGenerationEvent({ type: "phase", phase }))).then((payload) => {
         send(encodeArticleGenerationEvent({ type: "result", payload }));
       }).catch((cause) => {
-        send(encodeArticleGenerationEvent({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Destiny could not generate this article." } }));
+        send(encodeArticleGenerationEvent({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Rebound SEO could not generate this article." } }));
       }).finally(() => {
         if (keepalive) clearInterval(keepalive);
         if (!cancelled) controller.close();

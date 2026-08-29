@@ -66,9 +66,9 @@ export async function POST(request: Request) {
     status: "in_progress",
     question_count: questions.length,
     current_position: 1,
-    consent_snapshot: { typed_source_notice: true, audio_retention_days: 30, voice_library_applies_automatically: true, primary_voice_count: 1, interviewer: "Destiny" },
+    consent_snapshot: { typed_source_notice: true, audio_retention_days: 30, voice_library_applies_automatically: true, primary_voice_count: 1, interviewer: "Rebound SEO" },
   }).select("id,topic_title,focus_keyword").single();
-  if (interviewError || !interview) return NextResponse.json({ error: "Destiny could not create this interview." }, { status: 500 });
+  if (interviewError || !interview) return NextResponse.json({ error: "Rebound SEO could not create this interview." }, { status: 500 });
   const { data: questionRows, error: questionError } = await db.from("interview_questions").insert(questions.map((question) => ({
     organization_id: website.organization_id,
     website_id: websiteId,
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   }))).select("id,position,kind,text").order("position");
   if (questionError || !questionRows?.length) {
     await db.from("interviews").delete().eq("id", interview.id);
-    return NextResponse.json({ error: "Destiny could not prepare the interview questions." }, { status: 500 });
+    return NextResponse.json({ error: "Rebound SEO could not prepare the interview questions." }, { status: 500 });
   }
   return NextResponse.json({ interview: {
     id: interview.id,

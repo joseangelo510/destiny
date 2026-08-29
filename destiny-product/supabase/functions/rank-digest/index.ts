@@ -1,5 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
+import { reboundSeoSender } from "../_shared/email-sender.ts";
 import { renderRankDigestEmail } from "./email.ts";
 import { buildRankDigest, nextDigestAt, selectDigestOpportunities, shouldSendDigest, type RankDigestLedgerState, type RankDigestOpportunity, type RankDigestReading, type RankingDigestFrequency } from "./logic.ts";
 import { reconcileRankDigestProviderReceipt } from "./reconciliation.ts";
@@ -164,9 +165,9 @@ export default {
       if (!websiteId) return json({ error: "This unsubscribe link is invalid." }, 400);
       const now = new Date().toISOString();
       const { error } = await context.supabaseAdmin.from("notification_preferences").update({ ranking_digest_frequency: "off", next_digest_at: null, unsubscribed_at: now, updated_at: now }).eq("website_id", websiteId);
-      if (error) return json({ error: "Destiny could not update this preference." }, 500);
+      if (error) return json({ error: "Rebound SEO could not update this preference." }, 500);
       return request.method === "GET"
-        ? new Response("<!doctype html><html><body style=\"font-family:Arial,sans-serif;padding:40px;color:#20302c\"><h1>Ranking emails are off.</h1><p>You can turn them back on anytime in Destiny Account settings.</p></body></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } })
+        ? new Response("<!doctype html><html><body style=\"font-family:Arial,sans-serif;padding:40px;color:#20302c\"><h1>Ranking emails are off.</h1><p>You can turn them back on anytime in Rebound SEO Account settings.</p></body></html>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } })
         : json({ unsubscribed: true });
     }
 
@@ -174,7 +175,7 @@ export default {
     const expectedSecret = Deno.env.get("RANK_TRACKER_CRON_SECRET")?.trim();
     if (!expectedSecret || request.headers.get("x-rank-tracker-secret") !== expectedSecret) return json({ error: "Unauthorized." }, 401);
     const apiKey = Deno.env.get("RESEND_API_KEY")?.trim();
-    const from = Deno.env.get("DESTINY_FROM_EMAIL")?.trim();
+    const from = reboundSeoSender(Deno.env.get("DESTINY_FROM_EMAIL"));
     const siteUrl = Deno.env.get("DESTINY_SITE_URL")?.trim().replace(/\/$/, "");
     if (!apiKey || !from || !siteUrl || !tokenSecret) return json({ error: "Ranking email delivery is not configured." }, 503);
     const body = await request.json().catch(() => ({})) as DigestRequest;

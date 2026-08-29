@@ -92,7 +92,7 @@ export default {
           p_scopes: integration.scopes,
           p_token: refreshedToken,
         });
-        if (refreshStoreError) throw new Error("Destiny could not rotate the Google credential.");
+        if (refreshStoreError) throw new Error("Rebound SEO could not rotate the Google credential.");
       }
       const syncedAt = new Date().toISOString();
       const { error: updateError } = await context.supabaseAdmin.from("integrations").update({
@@ -101,10 +101,10 @@ export default {
         last_synced_at: syncedAt,
         status: "connected",
       }).eq("id", integration.id);
-      if (updateError) throw new Error("Destiny could not save the Google data snapshot.");
+      if (updateError) throw new Error("Rebound SEO could not save the Google data snapshot.");
       return json({ provider: integration.provider, syncedAt, selectionRequired: result.metadata.selectionRequired === true, summary: result.metadata });
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Destiny could not sync this Google connection.";
+      const message = cause instanceof Error ? cause.message : "Rebound SEO could not sync this Google connection.";
       console.error("Google sync failed", integration.provider, message);
       const reconnectRequired = /authorization|credentials|expired|reconnect|revoked/i.test(message);
       await context.supabaseAdmin.from("integrations").update({ status: reconnectRequired ? "reconnect_required" : "connected" }).eq("id", integration.id);

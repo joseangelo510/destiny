@@ -5,7 +5,7 @@ import { KeywordResearchWorkspace, PerformanceChart } from "./keyword-research-w
 describe("KeywordResearchWorkspace", () => {
   it("starts with a domain-or-keyword research choice and live-data explanation", () => {
     const html = renderToStaticMarkup(<KeywordResearchWorkspace initialQuery="empowerly.com" />);
-    expect(html).toContain("Destiny Research Lab");
+    expect(html).toContain("Rebound SEO Research Lab");
     expect(html).toContain("Domain");
     expect(html).toContain("Keyword");
     expect(html).toContain("empowerly.com");

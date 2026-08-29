@@ -123,7 +123,7 @@ export async function POST(request: Request) {
       ? cause.message
       : cause && typeof cause === "object" && "message" in cause && typeof cause.message === "string"
       ? cause.message
-      : "Destiny could not save onboarding.";
+      : "Rebound SEO could not save onboarding.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

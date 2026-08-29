@@ -384,7 +384,7 @@ export async function runDestinyLogic(input: DestinyLogicInput): Promise<Destiny
   runtimeRef.current.main();
 
   if (output.length < 102) {
-    throw new Error("LOGOS returned an incomplete Destiny recommendation.");
+    throw new Error("LOGOS returned an incomplete Rebound SEO recommendation.");
   }
   return {
     growthStage: output[0],

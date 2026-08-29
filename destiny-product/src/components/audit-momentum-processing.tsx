@@ -18,7 +18,7 @@ type AuditStatus = "running" | "complete" | "failed";
 
 export function AuditMomentumProcessing({
   auditId,
-  failureMessage = "Destiny could not complete this audit.",
+  failureMessage = "Rebound SEO could not complete this audit.",
   initialProgress,
   initialPolicy,
   initialStatus,
@@ -37,7 +37,7 @@ export function AuditMomentumProcessing({
 }) {
   const [status, setStatus] = useState<AuditStatus>(initialStatus);
   const [progress, setProgress] = useState(initialProgress);
-  const [error, setError] = useState(failureMessage ?? "Destiny could not complete this audit.");
+  const [error, setError] = useState(failureMessage ?? "Rebound SEO could not complete this audit.");
   const [celebrationPreferences, setCelebrationPreferences] = useState<CelebrationPreferences>(DEFAULT_CELEBRATION_PREFERENCES);
   const [celebrationsReady, setCelebrationsReady] = useState(false);
   const [nowMs, setNowMs] = useState(0);
@@ -80,7 +80,7 @@ export function AuditMomentumProcessing({
         window.setTimeout(() => window.location.assign("/this-week"), 1100);
       } else if (payload.audit?.status === "failed") {
         setStatus("failed");
-        setError(payload.audit.failure_message || "Destiny could not complete this audit.");
+        setError(payload.audit.failure_message || "Rebound SEO could not complete this audit.");
       }
     };
     void poll();
@@ -126,15 +126,15 @@ export function AuditMomentumProcessing({
   return <main className={`processing-shell momentum-processing ${failed ? "failed" : complete ? "complete" : "running"}`}>
     <section className="processing-card momentum-processing-card">
       <header className="processing-header">
-        <Link className="brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
-        <button aria-label={celebrationPreferences.muted ? "Turn Destiny sounds on" : "Mute Destiny sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button>
+        <Link className="brand" href="/"><span className="brand-mark">D</span><span>Rebound SEO</span></Link>
+        <button aria-label={celebrationPreferences.muted ? "Turn Rebound SEO sounds on" : "Mute Rebound SEO sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button>
       </header>
       <div className="momentum-processing-grid">
         <section className="momentum-processing-hero">
           <div className="eyebrow">{failed ? "Research paused" : complete ? "Route ready" : "Live research in progress"}</div>
           <h1>{failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
-          <p>{failed ? error : complete ? "Destiny saved the evidence and built your first coaching plan. Taking you to your weekly plan now." : "You finished the onboarding. Destiny is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
-          <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachMessage}</strong></p></div>
+          <p>{failed ? error : complete ? "Rebound SEO saved the evidence and built your first coaching plan. Taking you to your weekly plan now." : "You finished the onboarding. Rebound SEO is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
+          <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Rebound SEO, your SEO coach</small><strong>{coachMessage}</strong></p></div>
           <CompassCompanion
             ariaLabel={`Research compass showing ${journey.completedCount} of ${AUDIT_MOMENTUM_STAGES.length} saved stages`}
             completed={journey.completedCount}
@@ -156,14 +156,14 @@ export function AuditMomentumProcessing({
         </section>
 
         <section className="audit-momentum-route" aria-label="Live audit journey">
-          <div className="audit-route-heading"><span>Your first SEO expedition</span><h2>See what Destiny is doing</h2><p>Every completed stop below comes from saved research—not simulated progress.</p></div>
+          <div className="audit-route-heading"><span>Your first SEO expedition</span><h2>See what Rebound SEO is doing</h2><p>Every completed stop below comes from saved research—not simulated progress.</p></div>
           <ol>
             {journey.stages.map((stage, index) => <li aria-current={stage.state === "active" || stage.state === "failed" ? "step" : undefined} className={stage.state} key={stage.id}>
               <span className="audit-stage-marker">{stage.state === "complete" ? "✓" : stage.state === "failed" ? "!" : index + 1}</span>
               <div><strong>{stage.title}</strong><p>{stage.state === "active" ? stage.activeMessage : stage.description}</p><small>{stage.state === "complete" ? "Research saved" : stage.state === "active" ? "Working now" : stage.state === "failed" ? "Needs attention" : "Up next"}</small></div>
             </li>)}
           </ol>
-          <div className="configuration-note"><strong>{complete ? "Opening your weekly plan" : "It is safe to step away"}</strong><p>{complete ? "Your evidence and weekly plan are saved." : "Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
+          <div className="configuration-note"><strong>{complete ? "Opening your weekly plan" : "It is safe to step away"}</strong><p>{complete ? "Your evidence and weekly plan are saved." : "Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
           {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding?new=1">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>

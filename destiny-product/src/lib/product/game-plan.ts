@@ -137,7 +137,7 @@ export async function buildGamePlan(input: GamePlanInput) {
     },
     authority: {
       theme: "Trust signals",
-      summary: "Distribution, reviews, links, and mentions accumulate while Destiny uses early evidence to shape the next quarter.",
+      summary: "Distribution, reviews, links, and mentions accumulate while Rebound SEO uses early evidence to shape the next quarter.",
       milestones: ["Distribute the strongest content", "Earn credible citations and mentions", "Refresh pages showing early traction", "Use verified results to choose the next quarter"],
     },
   } as const;
@@ -226,7 +226,7 @@ export async function buildGamePlan(input: GamePlanInput) {
         label: "Authority signals",
         baseline: `${trustProgress.complete} authority milestones complete`,
         expectedRange: "8–20 credible distribution, review, citation, or outreach actions",
-        assumption: "Destiny’s weekly distribution and trust-building actions are completed.",
+        assumption: "Rebound SEO’s weekly distribution and trust-building actions are completed.",
         confidence: "Medium confidence; publication and third-party responses are not fully controllable.",
       },
       {
@@ -240,7 +240,7 @@ export async function buildGamePlan(input: GamePlanInput) {
           : "Directional only—not a traffic or ranking guarantee.",
       },
     ],
-    forecastDisclaimer: "Search rankings and traffic cannot be guaranteed. Destiny forecasts likely progress from the current baseline, planned work, competition, domain authority, and consistent execution. Verified outcomes appear only in Analytics.",
+    forecastDisclaimer: "Search rankings and traffic cannot be guaranteed. Rebound SEO forecasts likely progress from the current baseline, planned work, competition, domain authority, and consistent execution. Verified outcomes appear only in Analytics.",
   };
 }
 

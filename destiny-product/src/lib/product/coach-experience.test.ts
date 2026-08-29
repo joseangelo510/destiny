@@ -23,7 +23,7 @@ const tasks = [
   { id: "fix", task_type: "primary_quest", status: "todo", verification_status: "unverified", priority: 1 },
 ];
 
-describe("Destiny SEO coach experience", () => {
+describe("Rebound SEO SEO coach experience", () => {
   it("visually separates the four coaching destinations from visible feature pages", () => {
     expect(PRIMARY_NAVIGATION.map((item) => item.label)).toEqual([
       "This week",
@@ -110,7 +110,7 @@ describe("Destiny SEO coach experience", () => {
       steps: [
         "Open your homepage in Google PageSpeed Insights and find the section about files delaying the first view of the page.",
         "Ask your website developer or site builder to load the visible page first and delay any files that are not needed right away.",
-        "Run a fresh Destiny audit after the change so Destiny can verify the improvement.",
+        "Run a fresh Rebound SEO audit after the change so Rebound SEO can verify the improvement.",
       ],
     });
     expect(guidedTaskPath({ task_type: "primary_quest", action_path: "/audits/abc" })).toBe("/audits/abc#recommended-fix");
@@ -145,16 +145,16 @@ describe("Destiny SEO coach experience", () => {
     expect(audit).toContain('id="technical-evidence"');
   });
 
-  it("distinguishes self-reported completion from Destiny verification", () => {
+  it("distinguishes self-reported completion from Rebound SEO verification", () => {
     expect(completionPresentation({ status: "complete", verification_status: "unverified" })).toEqual({
       label: "Marked done by you",
       tone: "reported",
-      detail: "You marked this done. Destiny will check it when automatic verification is available.",
+      detail: "You marked this done. Rebound SEO will check it when automatic verification is available.",
     });
     expect(completionPresentation({ status: "complete", verification_status: "verified" })).toEqual({
-      label: "Verified by Destiny",
+      label: "Verified by Rebound SEO",
       tone: "verified",
-      detail: "Destiny checked the available site or connected data and confirmed this change.",
+      detail: "Rebound SEO checked the available site or connected data and confirmed this change.",
     });
   });
 

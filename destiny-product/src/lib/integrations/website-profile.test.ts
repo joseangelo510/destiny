@@ -32,7 +32,7 @@ describe("website platform registry", () => {
 
   it("uses truthful saved wording — never Connected — for platforms without a live connection", () => {
     const message = platformSavedMessage("wix");
-    expect(message).toBe("Saved. Destiny will tailor your SEO advice for Wix. A direct connection isn’t available yet, so we’ll show you where to make changes.");
+    expect(message).toBe("Saved. Rebound SEO will tailor your SEO advice for Wix. A direct connection isn’t available yet, so we’ll show you where to make changes.");
     expect(message).not.toContain("Connected");
     expect(platformSavedMessage("wordpress")).toContain("connect WordPress directly under Connected accounts");
   });

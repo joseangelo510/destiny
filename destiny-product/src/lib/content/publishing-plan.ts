@@ -111,12 +111,12 @@ export function reconcilePublishingItems(
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export function validatePublishingPlan(input: PublishingPlanInput) {
-  if (!PUBLISHING_MODES.includes(input.mode)) throw new Error("Choose how Destiny should handle publishing.");
+  if (!PUBLISHING_MODES.includes(input.mode)) throw new Error("Choose how Rebound SEO should handle publishing.");
   if (!DATE_PATTERN.test(input.startDate) || Number.isNaN(Date.parse(`${input.startDate}T12:00:00Z`))) throw new Error("Choose a valid start date.");
   if (!input.timezone.trim()) throw new Error("Choose a publishing timezone.");
   if (!Number.isInteger(input.postCount) || input.postCount < 1 || input.postCount > 12) throw new Error("Choose between 1 and 12 posts.");
   if (input.mode === "automatic" && input.automaticConfirmed !== true) {
-    throw new Error("Confirm the automatic date range and post count before Destiny can schedule it.");
+    throw new Error("Confirm the automatic date range and post count before Rebound SEO can schedule it.");
   }
   return input;
 }

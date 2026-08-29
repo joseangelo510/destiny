@@ -22,11 +22,11 @@ import {
 import { readArticleGenerationStream, type ArticleGenerationPhase } from "@/lib/content/generation-stream";
 import { buildPublicationReceipt } from "@/lib/cms/publication-receipt";
 import type { CmsPublicationState } from "@/lib/cms/publication-state";
+import { displayGeneratedBy } from "@/lib/branding";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 
 type EditableDraft = ArticleDraft & { approved: boolean; failureReason?: string };
 const ARTICLE_GENERATION_CLIENT_TIMEOUT_MS = 285_000;
-
 export type ArticleGenerationContext = {
   businessName: string;
   problemSolved: string;
@@ -271,8 +271,8 @@ export function ArticleReviewWorkspace({
           return;
         }
         const payload = await response.json().catch(() => ({})) as { error?: string };
-        setError(payload.error || "Destiny could not save the article draft yet.");
-      }).catch(() => setError("Destiny could not save the article draft yet."));
+        setError(payload.error || "Rebound SEO could not save the article draft yet.");
+      }).catch(() => setError("Rebound SEO could not save the article draft yet."));
     }, 500);
     return () => window.clearTimeout(save);
   }, [auditId, drafts, storageKey, storageReady, websiteId]);
@@ -307,10 +307,10 @@ export function ArticleReviewWorkspace({
         verificationEvidence?: Record<string, unknown>;
         seoTitleRendered?: string | null;
       };
-      if (!response.ok || !payload.publicationStatus) throw new Error(payload.error || "Destiny could not refresh the WordPress status.");
+      if (!response.ok || !payload.publicationStatus) throw new Error(payload.error || "Rebound SEO could not refresh the WordPress status.");
       setCmsDrafts((current) => ({ ...current, [key]: { ...current[key], ...payload } }));
     } catch (cause) {
-      if (!quiet) setError(cause instanceof Error ? cause.message : "Destiny could not refresh the WordPress status.");
+      if (!quiet) setError(cause instanceof Error ? cause.message : "Rebound SEO could not refresh the WordPress status.");
     } finally {
       setCheckingCms("");
     }
@@ -331,7 +331,7 @@ export function ArticleReviewWorkspace({
       if (!cancelled) setQualityCheck({ signature: qualitySignature, issues });
     }).catch((cause: unknown) => {
       if (!cancelled) {
-        setQualityCheck({ signature: qualitySignature, issues: [{ code: "generation_required", message: "Destiny could not verify the article rules. Try again before approval." }] });
+        setQualityCheck({ signature: qualitySignature, issues: [{ code: "generation_required", message: "Rebound SEO could not verify the article rules. Try again before approval." }] });
         console.error("logos_article_quality", { fallbacks: 0, wasm_errors: 1, cause });
       }
     });
@@ -419,11 +419,11 @@ export function ArticleReviewWorkspace({
       });
       if (!response.ok || !response.body) {
         const failure = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(failure.error || "Destiny could not generate this article.");
+        throw new Error(failure.error || "Rebound SEO could not generate this article.");
       }
       const settled = await readArticleGenerationStream<{ draft?: ArticleDraft; error?: string }>(response.body, setGenerationPhase)
-        .catch((cause: unknown) => { throw new Error(cause instanceof Error ? cause.message : "Destiny did not receive a complete article. Your brief and settings are saved—try again."); });
-      if (!settled.draft) throw new Error(settled.error || "Destiny did not receive a complete article. Your brief and settings are saved—try again.");
+        .catch((cause: unknown) => { throw new Error(cause instanceof Error ? cause.message : "Rebound SEO did not receive a complete article. Your brief and settings are saved—try again."); });
+      if (!settled.draft) throw new Error(settled.error || "Rebound SEO did not receive a complete article. Your brief and settings are saved—try again.");
       const generated = settled.draft;
       updateDraft(() => ({ ...generated, approved: false }));
     } catch (cause) {
@@ -431,7 +431,7 @@ export function ArticleReviewWorkspace({
         ? "Generation cancelled. Your brief and settings are saved."
         : generationAbortReasonRef.current === "timeout"
         ? "Generation took longer than expected. Your brief and settings are saved—try again when you are ready."
-        : cause instanceof Error ? cause.message : "Destiny could not generate this article.");
+        : cause instanceof Error ? cause.message : "Rebound SEO could not generate this article.");
     } finally {
       window.clearTimeout(timeout);
       generationControllerRef.current = null;
@@ -463,7 +463,7 @@ export function ArticleReviewWorkspace({
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(payload.error || "Destiny could not create the Word document.");
+        throw new Error(payload.error || "Rebound SEO could not create the Word document.");
       }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -473,7 +473,7 @@ export function ArticleReviewWorkspace({
       anchor.click();
       URL.revokeObjectURL(url);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not create the Word document.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not create the Word document.");
     } finally {
       setExporting(false);
     }
@@ -516,10 +516,10 @@ export function ArticleReviewWorkspace({
         }),
       });
       const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[]; publicationStatus?: CmsPublicationState; remotePermalink?: string | null; verifiedLiveAt?: string | null };
-      if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Destiny could not create the ${provider.label} draft.`);
+      if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Rebound SEO could not create the ${provider.label} draft.`);
       setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport, publicationStatus: payload.publicationStatus, remotePermalink: payload.remotePermalink, verifiedLiveAt: payload.verifiedLiveAt } }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : `Destiny could not create the ${provider.label} draft.`);
+      setError(cause instanceof Error ? cause.message : `Rebound SEO could not create the ${provider.label} draft.`);
     } finally {
       setDelivering("");
     }
@@ -535,7 +535,7 @@ export function ArticleReviewWorkspace({
       body: JSON.stringify({ status: "complete" }),
     });
     const payload = await response.json() as { error?: string };
-    if (!response.ok) setError(payload.error || "Destiny could not save the content review.");
+    if (!response.ok) setError(payload.error || "Rebound SEO could not save the content review.");
     else router.refresh();
     setSaving(false);
   };
@@ -549,7 +549,7 @@ export function ArticleReviewWorkspace({
 
     <div className="article-editor workspace-card">
       <section className="article-generation-controls" aria-labelledby="article-generation-heading">
-        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Destiny uses your business context, live web research, and these preferences. SEO articles target 2,000–3,000 useful words.</p></div><span className="model-chip">{generationAvailable ? generationModelLabel : "Article model unavailable"}</span></div>
+        <div className="article-generation-heading"><div><span className="eyebrow">Writing direction</span><h2 id="article-generation-heading">Create the full article</h2><p>Rebound SEO uses your business context, live web research, and these preferences. SEO articles target 2,000–3,000 useful words.</p></div><span className="model-chip">{generationAvailable ? generationModelLabel : "Article model unavailable"}</span></div>
         <p className="article-brief-keyword"><strong>Focus keyword:</strong> {draft.keyword}</p>
         <div className="article-preference-grid">
           <label>Voice<select disabled={generating} value={draft.preferences.voice} onChange={(event) => updatePreference("voice", event.target.value as ArticleGenerationPreferences["voice"])}>{ARTICLE_VOICE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{ARTICLE_VOICE_OPTIONS.find((option) => option.value === draft.preferences.voice)?.description}</small></label>
@@ -557,9 +557,9 @@ export function ArticleReviewWorkspace({
           <label>Reading ease<select disabled={generating} value={draft.preferences.readingEase} onChange={(event) => updatePreference("readingEase", event.target.value as ArticleGenerationPreferences["readingEase"])}>{READING_EASE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select><small>{READING_EASE_OPTIONS.find((option) => option.value === draft.preferences.readingEase)?.description}</small></label>
         </div>
         <label>Special instructions<textarea disabled={generating} rows={3} placeholder="Add required examples, points to include, or brand guidance." value={draft.preferences.specialInstructions} onChange={(event) => updatePreference("specialInstructions", event.target.value)} /></label>
-        <label className="article-infographic-toggle"><input disabled={generating} type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
+        <label className="article-infographic-toggle"><input disabled={generating} type="checkbox" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference("addInfographics", event.target.checked)} /><span><strong>Create original infographics</strong><small>Rebound SEO will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label>
         <div className="article-generation-actions"><button className="primary-button article-generate-button" disabled={generating || !generationAvailable} onClick={() => void generate()} type="button">{!generationAvailable ? "Article generation is not configured" : generating ? generationPhase === "finishing" ? "Finishing the article…" : "Researching and writing…" : draft.generationStatus === "generated" ? "Generate a new article" : `Generate with ${generationModelLabel}`}</button>{generating && <button className="secondary-button" onClick={cancelGeneration} type="button">Cancel generation</button>}</div>
-        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Destiny verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Destiny performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
+        {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Rebound SEO verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Rebound SEO performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
         {!generating && draft.generationStatus !== "generated" && <div className="configuration-note" role="status"><strong>{draft.failureReason ? "Generation did not complete" : "Brief saved"}</strong><p>{draft.failureReason || "Set the direction above, then generate the complete article. There is no outline to review first."}</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not configured</strong><p>Your brief is still saved and ready to run once the writing model is connected.</p></div>}
         {error && <div className="error-banner" role="alert">{error}</div>}
@@ -618,7 +618,7 @@ export function ArticleReviewWorkspace({
           {result.lastReconciledAt && <small className="cms-checked-at">Last checked {new Date(result.lastReconciledAt).toLocaleString()}</small>}
           {result.seoTitleRendered && <p><strong>Live search title:</strong> {result.seoTitleRendered} · about {estimateMetaTitleWidth(result.seoTitleRendered)}px</p>}
           {result.fieldReport?.length ? <div className="cms-field-report">
-            {transferred.length > 0 && <><strong>Transferred by Destiny</strong><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
+            {transferred.length > 0 && <><strong>Transferred by Rebound SEO</strong><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
             {needsReview.length > 0 && <><strong>Still needs your review in {provider.label}</strong><ul>{needsReview.map((entry) => <li key={`r-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
             {unavailable.length > 0 && <><strong>No matching field in your collection</strong><ul>{unavailable.map((entry) => <li key={`u-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
           </div> : null}
@@ -630,9 +630,9 @@ export function ArticleReviewWorkspace({
     {reviewReady && <aside className="article-optimization workspace-card">
       <span className="eyebrow">Editorial status</span>
       <div className={`article-quality-state ${canApprove ? "ready" : "needs-work"}`}><strong>{canApprove ? "Ready for human review" : draft.generationStatus === "generated" ? "Needs another pass" : "Full article not generated"}</strong><span>{wordCount.toLocaleString()} words</span></div>
-      <p>Destiny checks the draft privately for depth, structure, research, and writing quality. This is not a promise of rankings.</p>
-      {canApprove ? <div className="article-quality-summary"><strong>Internal checks passed</strong><p>Confirm the business claims, links, sources, graphics, and offer before approval.</p></div> : <div className="article-quality-summary"><strong>Areas Destiny will improve</strong><ul>{issueCategories.map((category) => <li key={category}>{category}</li>)}</ul></div>}
-      {draft.generatedBy && <small className="article-generated-by">Generated by {draft.generatedBy}</small>}
+      <p>Rebound SEO checks the draft privately for depth, structure, research, and writing quality. This is not a promise of rankings.</p>
+      {canApprove ? <div className="article-quality-summary"><strong>Internal checks passed</strong><p>Confirm the business claims, links, sources, graphics, and offer before approval.</p></div> : <div className="article-quality-summary"><strong>Areas Rebound SEO will improve</strong><ul>{issueCategories.map((category) => <li key={category}>{category}</li>)}</ul></div>}
+      {draft.generatedBy && <small className="article-generated-by">Generated by {displayGeneratedBy(draft.generatedBy)}</small>}
       <Link className="secondary-button" href="/integrations">Connect CMS</Link>
       <button className="primary-button" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
     </aside>}

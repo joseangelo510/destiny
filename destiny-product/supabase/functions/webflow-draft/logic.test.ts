@@ -113,7 +113,7 @@ describe("Webflow draft Edge Function logic", () => {
     for (const slug of ["name", "slug", "post-body", "post-summary", "main-image", "thumbnail-image", "author-name", "author-avatar", "publish-date", "min-to-read-put-the-number-only", "category"]) {
       expect(transferred).toContain(slug);
     }
-    // Fields Destiny has no content for stay untouched but are reported.
+    // Fields Rebound SEO has no content for stay untouched but are reported.
     expect(fieldData).not.toHaveProperty("featured");
     expect(fieldData).not.toHaveProperty("color");
     expect(report.find((entry) => entry.field === "featured")?.status).toBe("needs_review");
@@ -130,7 +130,7 @@ describe("Webflow draft Edge Function logic", () => {
     expect(JSON.stringify(fieldData)).not.toMatch(/destiny|admin|default/i);
   });
 
-  it("reports Destiny values with no matching collection field as unavailable", () => {
+  it("reports Rebound SEO values with no matching collection field as unavailable", () => {
     const minimalFields = blogPostFields.filter((field) => ["name", "slug", "post-body"].includes(field.slug as string));
     const { report } = plan({ fields: minimalFields });
     expect(report.find((entry) => entry.label === "Meta description")?.status).toBe("unavailable");

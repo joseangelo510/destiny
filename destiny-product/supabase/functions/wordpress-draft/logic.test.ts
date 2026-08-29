@@ -46,12 +46,12 @@ describe("WordPress draft Edge Function logic", () => {
     });
     const media = [
       { id: 20, sourceUrl: "https://example.com/uploads/featured.webp", alt: "Featured graphic", role: "featured" as const, caption: "", placementAfterHeading: "" },
-      { id: 21, sourceUrl: "https://example.com/uploads/second.webp", alt: "Second graphic", role: "inline" as const, caption: "Source: Destiny research", placementAfterHeading: "Second section" },
+      { id: 21, sourceUrl: "https://example.com/uploads/second.webp", alt: "Second graphic", role: "inline" as const, caption: "Source: Rebound SEO research", placementAfterHeading: "Second section" },
     ];
     const content = insertWordPressFigures(draft.contentHtml, media);
     expect(content).not.toContain("featured.webp");
     expect(content).toContain('<!-- wp:image {"id":21,"sizeSlug":"large"} -->');
-    expect(content).toContain('<figcaption class="wp-element-caption">Source: Destiny research</figcaption>');
+    expect(content).toContain('<figcaption class="wp-element-caption">Source: Rebound SEO research</figcaption>');
     expect(content.indexOf("second.webp")).toBeGreaterThan(content.indexOf("Second section"));
     expect(content).toContain('</h2><!-- /wp:heading --><!-- wp:image');
     expect(content).not.toMatch(/<!-- wp:heading[\s\S]*?<!-- wp:image[\s\S]*?<!-- \/wp:heading -->/);
@@ -70,7 +70,7 @@ describe("WordPress draft Edge Function logic", () => {
       sourceUrl: "https://example.com/uploads/inline.webp",
       alt: "Inline graphic",
       role: "inline",
-      caption: "Destiny original",
+      caption: "Rebound SEO original",
       placementAfterHeading: "Missing section",
     }]);
     expect(content.indexOf("inline.webp")).toBeGreaterThan(content.indexOf("First section"));

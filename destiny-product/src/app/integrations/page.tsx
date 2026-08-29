@@ -34,13 +34,13 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
   const context = await getWorkspaceContext();
   const connectedProvider = params.provider ? providerNames[params.provider] : undefined;
   return (
-    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Destiny workspace"} title="Connections" description="Connect the SEO data Destiny measures and the destination where approved content should be drafted. Credentials remain server-side.">
-      <FeatureJourneyCallout actionHref="#google-setup" actionLabel="Connect one source" milestone="Signs it’s working" description="Connect the data source Destiny needs to confirm business outcomes." doneLooksLike="A selected resource has completed a successful sync." evidence="A timestamped, source-labeled sync snapshot." />
-      {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Destiny needs a saved website before an external account can be connected to it." /> : (
+    <WorkspaceShell active="/integrations" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Connections" description="Connect the SEO data Rebound SEO measures and the destination where approved content should be drafted. Credentials remain server-side.">
+      <FeatureJourneyCallout actionHref="#google-setup" actionLabel="Connect one source" milestone="Signs it’s working" description="Connect the data source Rebound SEO needs to confirm business outcomes." doneLooksLike="A selected resource has completed a successful sync." evidence="A timestamped, source-labeled sync snapshot." />
+      {!context.website ? <WorkspaceEmpty title="Complete onboarding first" description="Rebound SEO needs a saved website before an external account can be connected to it." /> : (
         <>
         <section className="integration-list" id="google-setup">
-          <div className="workspace-card-heading integration-section-heading"><div><strong>SEO data connections</strong><small>Accounts Destiny reads to measure visibility, traffic, local discovery, and content performance.</small></div></div>
-          {params.google === "connected" && <div className="integration-banner success"><strong>{connectedProvider ?? "Google"} connected</strong><p>Destiny securely saved the connection. The account will be used only for the website you selected.</p></div>}
+          <div className="workspace-card-heading integration-section-heading"><div><strong>SEO data connections</strong><small>Accounts Rebound SEO reads to measure visibility, traffic, local discovery, and content performance.</small></div></div>
+          {params.google === "connected" && <div className="integration-banner success"><strong>{connectedProvider ?? "Google"} connected</strong><p>Rebound SEO securely saved the connection. The account will be used only for the website you selected.</p></div>}
           {params.google === "cancelled" && <div className="integration-banner"><strong>Connection cancelled</strong><p>No Google account was connected and no credentials were saved.</p></div>}
           {params.google === "configuration_required" && <div className="integration-banner warning"><strong>Google setup is not active yet</strong><p>The server still needs the approved Google OAuth client credentials. Nothing was connected or exposed.</p></div>}
           {params.google === "failed" && <div className="integration-banner error"><strong>Google connection was not completed</strong><p>Please try again. If this repeats, review the Google consent-screen and redirect-URL configuration.</p></div>}
@@ -51,7 +51,7 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
             const href = `/api/integrations/google/start?provider=${provider.id}&websiteId=${context.website.id}`;
             return <article className={`integration-row ${health.needsAttention ? "needs-attention" : ""}`} key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata)}</p><small>{health.detail}</small>{saved?.last_synced_at && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${health.needsAttention || !connected ? "amber" : ""}`}>{health.label}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
           })}
-          <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Destiny never reports a connection as live until Google completes authorization.</p></div>
+          <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Rebound SEO never reports a connection as live until Google completes authorization.</p></div>
         </section>
         {(() => {
           const wordpress = context.integrations.find((item) => item.provider === "wordpress");

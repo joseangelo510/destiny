@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 test("public homepage has working primary journeys and no serious accessibility violations", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle(/Destiny/i);
+  await expect(page).toHaveTitle(/Rebound SEO/i);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   const onboardingLinks = page.locator('a[href*="/onboarding"]');

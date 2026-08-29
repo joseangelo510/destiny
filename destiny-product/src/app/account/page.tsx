@@ -7,8 +7,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Account — Destiny",
-  description: "Review your Destiny login identity and account settings.",
+  title: "Account — Rebound SEO",
+  description: "Review your Rebound SEO login identity and account settings.",
 };
 
 export default async function AccountPage() {
@@ -26,7 +26,7 @@ export default async function AccountPage() {
   const byWebsite = new Map((preferences ?? []).map((preference) => [String(preference.website_id), preference]));
   const latestSendByWebsite = new Map<string, Record<string, unknown>>();
   for (const send of digestSends ?? []) if (!latestSendByWebsite.has(String(send.website_id))) latestSendByWebsite.set(String(send.website_id), send);
-  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and control where and how often Destiny sends updates."><AccountSettings activeWebsiteId={context.website?.id ?? null} loginEmail={loginEmail} notificationEmail={context.website?.notification_email ?? context.profile?.contact_email ?? null} websites={context.websites.map((website) => {
+  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and control where and how often Rebound SEO sends updates."><AccountSettings activeWebsiteId={context.website?.id ?? null} loginEmail={loginEmail} notificationEmail={context.website?.notification_email ?? context.profile?.contact_email ?? null} websites={context.websites.map((website) => {
     const preference = byWebsite.get(website.id);
     const latestSend = latestSendByWebsite.get(website.id);
     const frequency = preference?.ranking_digest_frequency;

@@ -79,6 +79,6 @@ export async function POST(request: Request) {
   const { data: refreshedItems, error: refreshedItemsError } = await db
     .select("publishing_schedule_items", "id,plan_id,position,keyword,title,content_type,related_article_title,scheduled_for,state,review_recommended,remote_id,remote_edit_url,remote_permalink,last_error")
     .order("position");
-  if (refreshedItemsError) return NextResponse.json({ error: "The scheduling check finished, but Destiny could not refresh the queue." }, { status: 500 });
+  if (refreshedItemsError) return NextResponse.json({ error: "The scheduling check finished, but Rebound SEO could not refresh the queue." }, { status: 500 });
   return NextResponse.json({ checked: results.length, scheduled: results.filter((item) => item.state === "scheduled").length, results, items: (refreshedItems ?? []).filter((item) => item.plan_id === plan.id) }, { headers: { "Cache-Control": "no-store" } });
 }

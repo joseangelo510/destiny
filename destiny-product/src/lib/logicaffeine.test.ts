@@ -14,7 +14,7 @@ async function runBoth(input: Parameters<typeof runBrowserLogic>[0]) {
   return { browser, worker };
 }
 
-describe("Destiny LOGOS parity", () => {
+describe("Rebound SEO LOGOS parity", () => {
   it.each([
     [{ auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0 }, { growthStage: "audit_in_progress", decisionCode: "audit_waiting", questCategory: "measurement", urgency: "waiting" }],
     [{ auditComplete: 1, criticalIssues: 3, warnings: 7, rankingKeywords: 40, newKeywords: 4, lostKeywords: 0, contentGaps: 0, reviewCount: 30 }, { growthStage: "fix_foundations", decisionCode: "fix_technical", questCategory: "technical", urgency: "urgent" }],

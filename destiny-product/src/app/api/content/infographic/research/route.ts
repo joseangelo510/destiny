@@ -65,13 +65,13 @@ export async function POST(request: Request) {
     if (!openAiResponse.ok) {
       const code = (responseBody as { error?: { code?: string } }).error?.code ?? "unknown";
       console.error("infographic_research_provider", { status: openAiResponse.status, code });
-      if (code === "credit_balance_exhausted") return NextResponse.json({ error: "OpenAI credits need to be added before Destiny can research and generate infographics." }, { status: 503 });
-      return NextResponse.json({ error: "Destiny could not research this infographic yet. Try again in a moment." }, { status: 502 });
+      if (code === "credit_balance_exhausted") return NextResponse.json({ error: "OpenAI credits need to be added before Rebound SEO can research and generate infographics." }, { status: 503 });
+      return NextResponse.json({ error: "Rebound SEO could not research this infographic yet. Try again in a moment." }, { status: 502 });
     }
     const result = parseOpenAiInfographicResearch(responseBody);
     return NextResponse.json({ plan: result.plan, model, retrievedSourceCount: result.retrievedUrls.length }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (cause) {
     console.error("infographic_research_failed", { error: cause instanceof Error ? cause.message : "unknown" });
-    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Destiny could not complete the infographic research." }, { status: 502 });
+    return NextResponse.json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete the infographic research." }, { status: 502 });
   }
 }

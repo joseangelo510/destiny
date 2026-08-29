@@ -37,7 +37,7 @@ growth over 12–24 months compared with those relying solely on paid advertisin
 `.trim();
 
 const SAMPLE_BUSINESS_CONTEXT =
-  "Destiny — an SEO content platform helping founder-led businesses grow organic traffic.";
+  "Rebound SEO — an SEO content platform helping founder-led businesses grow organic traffic.";
 
 function makePrompt(output: RepurposeOutput, keyword?: string) {
   return buildRepurposePrompt({

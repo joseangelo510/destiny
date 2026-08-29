@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }>("webflow-draft", draft);
 
   if (error || !data?.delivered || !data.remoteEditUrl) {
-    return NextResponse.json({ error: data?.error || "Destiny could not create the Webflow draft item." }, { status: 502 });
+    return NextResponse.json({ error: data?.error || "Rebound SEO could not create the Webflow draft item." }, { status: 502 });
   }
   return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
 }

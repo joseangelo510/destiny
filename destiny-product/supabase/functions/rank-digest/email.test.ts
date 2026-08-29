@@ -33,7 +33,7 @@ describe("rank digest email", () => {
     expect(email.subject).toBe("Jose Angelo Studios: a keyword reached #1");
     expect(email.html).toContain("Your tracked keywords");
     expect(email.html).toContain("Keywords you chose · measured from Google results");
-    expect(email.html).toContain("Opportunities Destiny found");
+    expect(email.html).toContain("Opportunities Rebound SEO found");
     expect(email.html).toContain("Suggestions · not tracked yet");
     expect(email.html).toContain("Not yet visible");
     expect(email.html).not.toContain("Not in top 100");
@@ -45,7 +45,7 @@ describe("rank digest email", () => {
     const email = render([]);
     expect(email.subject).toBe("Jose Angelo Studios: your search visibility starting point");
     expect(email.html).toContain("Your visibility starting point is ready.");
-    expect(email.html).toContain("2 opportunities Destiny found");
+    expect(email.html).toContain("2 opportunities Rebound SEO found");
     expect(email.html).toContain("Choose keywords to track");
     expect(email.html).not.toContain("<table>");
     expect(email.text).toContain("These are suggestions, not current rankings.");

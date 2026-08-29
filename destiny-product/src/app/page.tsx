@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./home.css";
 
 export const metadata: Metadata = {
-  title: "Destiny — SEO momentum for founders",
+  title: "Rebound SEO — SEO momentum for founders",
   description: "Turn an expert SEO playbook into a focused three-month plan and one clear weekly action.",
 };
 
@@ -13,10 +13,10 @@ export default function HomePage() {
       <header className="site">
         <div className="wrap nav">
           <a className="logo" href="#">
-            <span className="logo-mark">D</span>Destiny
+            <span className="logo-mark">R</span>Rebound SEO
           </a>
           <nav className="nav-links" aria-label="Primary">
-            <a href="#different">Why Destiny</a>
+            <a href="#different">Why Rebound SEO</a>
             <a href="#how">How it works</a>
             <a href="#tools">Tools</a>
             <a href="#who">Who it&apos;s for</a>
@@ -38,7 +38,7 @@ export default function HomePage() {
               You built something worth finding. Now <em>get found.</em>
             </h1>
             <p className="lede">
-              Most tools stop at publish. Destiny takes you the extra mile, sharing your content where it matters:
+              Most tools stop at publish. Rebound SEO takes you the extra mile, sharing your content where it matters:
               Reddit, LinkedIn, creators, Product Hunt, and that&apos;s just the start.
             </p>
             <div className="hero-ctas">
@@ -55,7 +55,7 @@ export default function HomePage() {
           <div
             className="app-shot"
             role="img"
-            aria-label="The Destiny workspace showing this week's distribution tasks: Reddit and Quora replies, LinkedIn and X shares, niche creators, and directory reviews"
+            aria-label="The Rebound SEO workspace showing this week's distribution tasks: Reddit and Quora replies, LinkedIn and X shares, niche creators, and directory reviews"
           >
             <div className="app-topbar">
               <span className="dot"></span>
@@ -79,7 +79,7 @@ export default function HomePage() {
                 <h3>Reply where your buyers are already asking.</h3>
                 <p>
                   Three Reddit and Quora discussions match your priority topics this week. Join them as yourself, with
-                  Destiny&apos;s guidance on what to say.
+                  Rebound SEO&apos;s guidance on what to say.
                 </p>
                 <span className="btn btn-lime btn-sm">Open guided step</span>
               </div>
@@ -114,7 +114,7 @@ export default function HomePage() {
                 <div>
                   <b>Last week&apos;s article was shared.</b> <span>LinkedIn and X, saved to your record.</span>
                 </div>
-                <span className="verify">Verified by Destiny</span>
+                <span className="verify">Verified by Rebound SEO</span>
               </div>
             </div>
           </div>
@@ -131,13 +131,13 @@ export default function HomePage() {
                 99 founder problems and SEO <em>ain&apos;t one.</em>
               </h2>
               <p>
-                You&apos;ve got a product to build, customers to serve, and a business to run. Destiny handles the
+                You&apos;ve got a product to build, customers to serve, and a business to run. Rebound SEO handles the
                 fundamentals of <b>technical SEO, keywords strategy, and content creation</b>, then becomes your{" "}
                 <b>distribution superpower</b>: a moat your competitors can&apos;t copy and the next Google update
                 can&apos;t break.
               </p>
             </div>
-            <div className="plate" role="img" aria-label="A founder's plate of responsibilities with SEO crossed off, handled by Destiny">
+            <div className="plate" role="img" aria-label="A founder's plate of responsibilities with SEO crossed off, handled by Rebound SEO">
               <div className="plate-card">
                 <div className="plate-label">Your plate this week</div>
                 <div className="chips">
@@ -173,17 +173,17 @@ export default function HomePage() {
       <section id="different">
         <div className="wrap">
           <div className="sec-head">
-            <span className="eyebrow">Why Destiny</span>
+            <span className="eyebrow">Why Rebound SEO</span>
             <h2 className="display">
-              Every SEO tool gives you data. Destiny gives you <em>execution.</em>
+              Every SEO tool gives you data. Rebound SEO gives you <em>execution.</em>
             </h2>
             <p>
               The thousand tools out there were built for SEO managers with dashboards to read and teams to delegate to.
-              Destiny was built for the founder doing it alone.
+              Rebound SEO was built for the founder doing it alone.
             </p>
           </div>
           <div className="compare">
-            <div className="compare-head"><div className="them">Every other tool</div><div className="us">Destiny</div></div>
+            <div className="compare-head"><div className="them">Every other tool</div><div className="us">Rebound SEO</div></div>
             <div className="compare-row"><div className="them">Hands you 500 keywords.</div><div className="us">Hands you this week&apos;s move.</div></div>
             <div className="compare-row"><div className="them">Stops at publish.</div><div className="us">Distributes: Reddit, LinkedIn, creators, and beyond.</div></div>
             <div className="compare-row"><div className="them">Sells shortcuts that die in the next update.</div><div className="us">Only builds what lasts.</div></div>
@@ -198,7 +198,7 @@ export default function HomePage() {
           <div className="sec-head">
             <span className="eyebrow">How it works</span>
             <h2 className="display">
-              Tell Destiny your story. Get your <em>game plan.</em>
+              Tell Rebound SEO your story. Get your <em>game plan.</em>
             </h2>
             <p>A short interview plus a live audit of your site becomes your three month plan. Then, one week at a time, you execute.</p>
           </div>
@@ -208,7 +208,7 @@ export default function HomePage() {
               <h3>Tell your story</h3>
               <p>
                 A guided interview captures your business, your customers, your competitors, and what makes you
-                different. Then Destiny audits your website live and finds the gaps.
+                different. Then Rebound SEO audits your website live and finds the gaps.
               </p>
               <span className="chip cream">About 20 minutes, once</span>
             </div>
@@ -244,7 +244,7 @@ export default function HomePage() {
           <div className="sec-head">
             <span className="eyebrow">The important difference</span>
             <h2 className="display">
-              Most tools produce more content. Destiny produces more of <em>you.</em>
+              Most tools produce more content. Rebound SEO produces more of <em>you.</em>
             </h2>
             <p>
               Your opinions, lessons, and real language become the raw material. A weekly rhythm keeps it coming, twenty
@@ -266,7 +266,7 @@ export default function HomePage() {
                   right home.
                 </div>
                 <div className="vq yours">
-                  <b>Destiny · Maya&apos;s voice</b>
+                  <b>Rebound SEO · Maya&apos;s voice</b>
                   &quot;A San Francisco home is more than square footage. The block, the light, the inspection, and the
                   life your family will build there can change the entire decision.&quot;
                   <span className="vtag">Agent interview · client informed</span>
@@ -277,7 +277,7 @@ export default function HomePage() {
               <span className="eyebrow">The habit</span>
               <h3>Twenty minutes a week. Compounding for years.</h3>
               <p>
-                SEO rewards showing up, so Destiny is built like a streak: finish this week&apos;s tasks, earn your
+                SEO rewards showing up, so Rebound SEO is built like a streak: finish this week&apos;s tasks, earn your
                 Perfect Week, and watch the record of everything you&apos;ve shipped grow.
               </p>
               <div className="habit-board" aria-label="A twelve week streak, five weeks complete">
@@ -344,7 +344,7 @@ export default function HomePage() {
           </div>
           <div className="honest-note">
             <b>Not for you</b> if you want overnight rankings or someone to do it all without you. SEO compounds through
-            your consistency, and Destiny is how you keep it.
+            your consistency, and Rebound SEO is how you keep it.
           </div>
 
           <div className="prob-list">
@@ -384,9 +384,9 @@ export default function HomePage() {
             </div>
           </div>
           <div className="verify-line">
-            <span className="verify">Verified by Destiny</span>
+            <span className="verify">Verified by Rebound SEO</span>
             Every result verified against your own Search Console and Analytics, not our word for it. SEO takes months.
-            Destiny makes sure the months add up.
+            Rebound SEO makes sure the months add up.
           </div>
         </div>
       </section>
@@ -400,7 +400,7 @@ export default function HomePage() {
               15 years of SEO. Zero <em>shortcuts.</em>
             </h2>
             <p>
-              Destiny was built by SEOs who&apos;ve done this through every Google update since 2010. No bought
+              Rebound SEO was built by SEOs who&apos;ve done this through every Google update since 2010. No bought
               backlinks, no tricks that get you penalized, no advice you&apos;ll have to undo. And it doesn&apos;t just
               claim progress: your work gets verified against real data from your own Search Console and Analytics.
             </p>
@@ -442,7 +442,7 @@ export default function HomePage() {
       <footer>
         <div className="wrap foot">
           <span className="logo">
-            <span className="logo-mark" style={{ width: "22px", height: "22px", fontSize: "12px" }}>D</span>Destiny
+            <span className="logo-mark" style={{ width: "22px", height: "22px", fontSize: "12px" }}>R</span>Rebound SEO
           </span>
           <span>Expert SEO, made accessible to founders.</span>
           <span className="right">Live SEO analysis connected · Google account and sending integrations require owner authorization.</span>

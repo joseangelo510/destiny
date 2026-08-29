@@ -221,7 +221,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
       });
       const onboardingPayload = await onboardingResponse.json() as { error?: string; websiteId?: string };
       if (!onboardingResponse.ok || !onboardingPayload.websiteId) {
-        throw new Error(onboardingPayload.error || "Destiny could not save your business profile.");
+        throw new Error(onboardingPayload.error || "Rebound SEO could not save your business profile.");
       }
 
       setAuditStatus("running");
@@ -237,13 +237,13 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
       });
       const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; progress?: number };
       if (!auditResponse.ok || !auditPayload.auditId) {
-        throw new Error(auditPayload.error || "Destiny could not run your audit.");
+        throw new Error(auditPayload.error || "Rebound SEO could not run your audit.");
       }
       setAuditProgress(typeof auditPayload.progress === "number" ? auditPayload.progress : 10);
       window.location.assign(`/audits/${encodeURIComponent(auditPayload.auditId)}`);
     } catch (cause) {
       setAuditStatus("failed");
-      setError(cause instanceof Error ? cause.message : "Destiny could not create your plan.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not create your plan.");
     } finally {
       setLoading(false);
     }
@@ -262,16 +262,16 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
   return (
     <main className="guided-onboarding-shell">
       <header className="guided-onboarding-header">
-        <Link className="brand" href="/" aria-label="Return to Destiny home"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link className="brand" href="/" aria-label="Return to Rebound SEO home"><span className="brand-mark">D</span><span>Rebound SEO</span></Link>
         <span className="live-connection"><i />Live SEO data connected</span>
-        <div className="guided-header-actions"><button aria-label={celebrationPreferences.muted ? "Turn Destiny sounds on" : "Mute Destiny sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button><button aria-label="Open notifications" className="guided-notification" title="Notifications become available after your audit starts" type="button">◇</button></div>
+        <div className="guided-header-actions"><button aria-label={celebrationPreferences.muted ? "Turn Rebound SEO sounds on" : "Mute Rebound SEO sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button><button aria-label="Open notifications" className="guided-notification" title="Notifications become available after your audit starts" type="button">◇</button></div>
       </header>
 
       <div className="guided-onboarding-layout">
         <aside className="guided-onboarding-intro">
           <p className="eyebrow">Your guided SEO starting line</p>
           <h1>Build the momentum to be found.</h1>
-          <p>You bring the business knowledge. Destiny turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
+          <p>You bring the business knowledge. Rebound SEO turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
           <div className="onboarding-momentum-summary"><CompassCompanion ariaLabel={`${onboardingJourney.completedCount} of ${ONBOARDING_MOMENTUM_STAGES.length} onboarding building blocks complete`} compact completed={onboardingJourney.completedCount} total={ONBOARDING_MOMENTUM_STAGES.length} /><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
           <ol aria-label="Onboarding journey" className="guided-stage-list">
             {onboardingJourney.stages.map((stage, index) => {
@@ -279,21 +279,21 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
               return <li aria-current={stage.state === "active" ? "step" : undefined} className={stage.state} key={stage.id}><span>{stage.state === "complete" ? "✓" : number}</span><div><strong>{stage.title}</strong><small>{stage.description}</small>{stage.state === "active" && <em>Building now</em>}</div></li>;
             })}
           </ol>
-          <div className="guided-evidence"><strong>Small steps. Real evidence. No SEO team required.</strong><p>Each answer makes the strategy more useful. After this path, Destiny handles the live research and shows you exactly what it is doing.</p></div>
+          <div className="guided-evidence"><strong>Small steps. Real evidence. No SEO team required.</strong><p>Each answer makes the strategy more useful. After this path, Rebound SEO handles the live research and shows you exactly what it is doing.</p></div>
         </aside>
 
         <form className="guided-onboarding-card" onSubmit={submit}>
           <span className="guided-step">Step {step} of 3</span>
-          <div aria-live="polite" className="onboarding-coach-reaction"><span aria-hidden="true">⌁</span><p><small>Destiny, your SEO coach</small><strong>{coachReaction}</strong></p></div>
+          <div aria-live="polite" className="onboarding-coach-reaction"><span aria-hidden="true">⌁</span><p><small>Rebound SEO, your SEO coach</small><strong>{coachReaction}</strong></p></div>
 
           {step === 1 && <>
             <h2>Tell us about your business</h2>
-            <p className="lede">Start with your contact details and the public website Destiny should analyze. Every response is required.</p>
+            <p className="lede">Start with your contact details and the public website Rebound SEO should analyze. Every response is required.</p>
             <div className="form-grid two-column">
               <label>First name<input autoComplete="given-name" onChange={(event) => updateField("firstName", event.target.value)} placeholder="Maya" required value={form.firstName} /></label>
               <label>Last name<input autoComplete="family-name" onChange={(event) => updateField("lastName", event.target.value)} placeholder="Torres" required value={form.lastName} /></label>
             </div>
-            <label>Audit and contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label>
+            <label>Audit and contact email<input autoComplete="email" onChange={(event) => updateField("email", event.target.value)} placeholder="maya@yourbusiness.com" required type="email" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Rebound SEO should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label>
             <label>Business name<input autoComplete="organization" onChange={(event) => updateField("businessName", event.target.value)} placeholder="Nike" required value={form.businessName} /></label>
             <label>Business website URL<input aria-describedby="website-help" autoComplete="url" inputMode="url" onChange={(event) => updateField("website", event.target.value)} placeholder="https://www.yourbusiness.com" required type="text" value={form.website} /><small id="website-help">Enter your business’s website address, such as https://www.yourbusiness.com; do not enter only your business name.</small></label>
           </>}
@@ -307,7 +307,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
 
           {step === 3 && <>
             <h2>Who are your competitors?</h2>
-            <p className="lede">Add at least two real competitors and explain what makes your business stand out. Every response is required. Destiny also discovers sites that compete for the same searches.</p>
+            <p className="lede">Add at least two real competitors and explain what makes your business stand out. Every response is required. Rebound SEO also discovers sites that compete for the same searches.</p>
             <section aria-live="polite" className="competitor-suggestions">
               <div><strong>Discovered in your search landscape</strong><small>These can include businesses, publishers, or marketplaces. Add only the companies you consider direct competitors.</small></div>
               {competitorSuggestionsLoading && <p>Finding organic search neighbors for {form.website}…</p>}
@@ -379,6 +379,6 @@ function VoiceTextarea({ field, label, listening, onChange, onDictate, optional 
     </div>
     {supportText && <small className="voice-field-support">{supportText}</small>}
     <textarea id={inputId} onChange={(event) => onChange(event.target.value)} onInput={(event) => autosizeVoiceTextarea(event.currentTarget)} placeholder={placeholder} ref={textareaRef} required={!optional} rows={2} style={{ fieldSizing: "content" } as CSSProperties} value={value} />
-    <small aria-live="polite" className="voice-dictation-help">{active ? "Listening now. Tap stop when you are done." : "Click to dictate. Tap again when done,"} Destiny will finish after 5 seconds of silence.</small>
+    <small aria-live="polite" className="voice-dictation-help">{active ? "Listening now. Tap stop when you are done." : "Click to dictate. Tap again when done,"} Rebound SEO will finish after 5 seconds of silence.</small>
   </div>;
 }

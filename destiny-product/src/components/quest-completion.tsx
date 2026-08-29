@@ -19,10 +19,10 @@ export function QuestCompletion({ questId, status, completeLabel, completedLabel
         body: JSON.stringify({ status: complete ? "todo" : "complete" }),
       });
       const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not update this quest.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not update this quest.");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not update this quest.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not update this quest.");
     } finally {
       setSaving(false);
     }

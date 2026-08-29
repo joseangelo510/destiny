@@ -15,7 +15,7 @@ export default async function RepurposePage() {
     return (
       <WorkspaceShell
         active="/content/repurpose"
-        eyebrow="Destiny workspace"
+        eyebrow="Rebound SEO workspace"
         title="Repurpose content"
         description="Turn an existing article, video, or document into a fresh format ready for review."
       >
@@ -39,7 +39,7 @@ export default async function RepurposePage() {
   return (
     <WorkspaceShell
       active="/content/repurpose"
-      eyebrow={context.website.normalized_domain ?? "Destiny workspace"}
+      eyebrow={context.website.normalized_domain ?? "Rebound SEO workspace"}
       title="Repurpose content"
       description="Turn an existing article, video, or document into a fresh Content Studio format. Every output is a reviewable draft — nothing is published automatically."
     >

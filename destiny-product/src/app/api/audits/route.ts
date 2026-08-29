@@ -34,12 +34,12 @@ export async function POST(request: Request) {
     if (error || !data) {
       const message = data && "error" in data && typeof data.error === "string"
         ? data.error
-        : error?.message || "Destiny could not run the audit.";
+        : error?.message || "Rebound SEO could not run the audit.";
       return NextResponse.json({ error: message }, { status: 502 });
     }
     return NextResponse.json(data, { status: 202 });
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "Destiny could not run the audit.";
+    const message = cause instanceof Error ? cause.message : "Rebound SEO could not run the audit.";
     const status = message.includes("valid public website") || message.includes("too long") ? 400 : 502;
     return NextResponse.json({ error: message }, { status });
   }

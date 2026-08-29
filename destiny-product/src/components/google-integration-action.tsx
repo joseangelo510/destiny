@@ -44,7 +44,7 @@ export function GoogleIntegrationAction({ connected, connectHref, provider, webs
         body: JSON.stringify({ provider, websiteId, selectedResourceId: resourceId || undefined }),
       });
       const payload = await response.json() as { error?: string; selectionRequired?: boolean; summary?: Record<string, unknown> };
-      if (!response.ok) throw new Error(payload.error || "Destiny could not sync this connection.");
+      if (!response.ok) throw new Error(payload.error || "Rebound SEO could not sync this connection.");
       if (payload.selectionRequired) {
         const nextChoices = resourceChoices(provider, payload.summary);
         setChoices(nextChoices);
@@ -57,7 +57,7 @@ export function GoogleIntegrationAction({ connected, connectHref, provider, webs
       setMessage("Synced now");
       router.refresh();
     } catch (cause) {
-      setMessage(cause instanceof Error ? cause.message : "Destiny could not sync this connection.");
+      setMessage(cause instanceof Error ? cause.message : "Rebound SEO could not sync this connection.");
     } finally {
       setSyncing(false);
     }

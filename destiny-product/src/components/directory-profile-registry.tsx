@@ -32,7 +32,7 @@ export function DirectoryProfileRegistry({ directories, googleConnected, initial
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
     const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, profileUrl: values[directoryKey] ?? "" }) });
     const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Destiny could not save this URL." }));
+    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not save this URL." }));
     else {
       setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
       setValues((current) => ({ ...current, [directoryKey]: payload.profile?.profile_url ?? "" }));
@@ -46,7 +46,7 @@ export function DirectoryProfileRegistry({ directories, googleConnected, initial
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
     const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, remove: true }) });
     const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Destiny could not remove this URL." }));
+    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not remove this URL." }));
     else {
       setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
       setValues((current) => ({ ...current, [directoryKey]: "" }));
@@ -60,7 +60,7 @@ export function DirectoryProfileRegistry({ directories, googleConnected, initial
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
     const response = await fetch("/api/directory-profiles/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey }) });
     const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Destiny could not verify this profile." }));
+    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not verify this profile." }));
     else {
       setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
       setMessage((current) => ({ ...current, [directoryKey]: payload.profile?.status === "verified" ? "Public profile is reachable." : `The directory returned HTTP ${payload.profile?.http_status ?? "unknown"}.` }));

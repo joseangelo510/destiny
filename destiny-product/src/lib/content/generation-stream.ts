@@ -13,7 +13,7 @@ export async function readArticleGenerationStream<T>(
   body: ReadableStream<Uint8Array> | null,
   onPhase: (phase: ArticleGenerationPhase) => void,
 ): Promise<T> {
-  if (!body) throw new Error("Destiny did not receive a generation response.");
+  if (!body) throw new Error("Rebound SEO did not receive a generation response.");
 
   const reader = body.getReader();
   const decoder = new TextDecoder();
@@ -37,6 +37,6 @@ export async function readArticleGenerationStream<T>(
   }
 
   if (buffer.trim()) readLine(buffer);
-  if (result === undefined) throw new Error("Destiny did not receive a completed generation result.");
+  if (result === undefined) throw new Error("Rebound SEO did not receive a completed generation result.");
   return result;
 }

@@ -14,14 +14,14 @@ export default {
     const confirmation = typeof body.confirmation === "string" ? body.confirmation.trim().toLowerCase() : "";
     const { data: authUser, error: authUserError } = await context.supabaseAdmin.auth.admin.getUserById(userId);
     const loginEmail = authUser.user?.email?.trim().toLowerCase();
-    if (authUserError || !loginEmail) return json({ error: "Destiny could not verify your login email." }, 401);
+    if (authUserError || !loginEmail) return json({ error: "Rebound SEO could not verify your login email." }, 401);
     if (confirmation !== loginEmail) return json({ error: "Enter your current login email exactly to confirm deletion." }, 400);
 
     const { data: ownedOrganizations, error: organizationError } = await context.supabaseAdmin
       .from("organizations")
       .select("id")
       .eq("owner_id", userId);
-    if (organizationError) return json({ error: "Destiny could not verify your workspaces." }, 500);
+    if (organizationError) return json({ error: "Rebound SEO could not verify your workspaces." }, 500);
 
     const organizationIds = (ownedOrganizations ?? []).map((organization) => organization.id);
     if (organizationIds.length > 0) {
@@ -31,7 +31,7 @@ export default {
         .in("organization_id", organizationIds)
         .neq("user_id", userId)
         .limit(1);
-      if (memberError) return json({ error: "Destiny could not verify workspace ownership." }, 500);
+      if (memberError) return json({ error: "Rebound SEO could not verify workspace ownership." }, 500);
       if ((otherMembers ?? []).length > 0) {
         return json({ error: "Transfer ownership of shared workspaces before deleting your account." }, 409);
       }
@@ -40,12 +40,12 @@ export default {
         .from("organizations")
         .delete()
         .in("id", organizationIds);
-      if (deleteOrganizationsError) return json({ error: "Destiny could not remove your private workspace data." }, 500);
+      if (deleteOrganizationsError) return json({ error: "Rebound SEO could not remove your private workspace data." }, 500);
     }
 
     await context.supabase.auth.signOut({ scope: "global" });
     const { error: deleteUserError } = await context.supabaseAdmin.auth.admin.deleteUser(userId);
-    if (deleteUserError) return json({ error: "Destiny could not delete the login account." }, 500);
+    if (deleteUserError) return json({ error: "Rebound SEO could not delete the login account." }, 500);
 
     return json({ deleted: true });
   }),

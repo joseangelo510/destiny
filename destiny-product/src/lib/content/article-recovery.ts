@@ -107,7 +107,7 @@ export function buildArticleContinuationPrompt({
   const wordBudgetRule = newWordAllowance < 60
     ? "The existing article has no remaining word capacity. Finish it with one complete closing sentence only — add no new sections, coverage, or scope."
     : expansionPass
-      ? `The article reads complete but is at least ${numberLabel(missingWords)} words below Destiny's minimum. It is NOT complete until it reaches the target. Add ${numberLabel(missingWords)}–${numberLabel(newWordAllowance)} new words of genuinely useful in-article coverage as H3 subsections under the most relevant existing H2 sections: worked examples, objection handling, comparisons, troubleshooting, or FAQ entries the article does not cover yet. Never state or imply that the article is already complete.`
+      ? `The article reads complete but is at least ${numberLabel(missingWords)} words below Rebound SEO's minimum. It is NOT complete until it reaches the target. Add ${numberLabel(missingWords)}–${numberLabel(newWordAllowance)} new words of genuinely useful in-article coverage as H3 subsections under the most relevant existing H2 sections: worked examples, objection handling, comparisons, troubleshooting, or FAQ entries the article does not cover yet. Never state or imply that the article is already complete.`
       : `Add at most ${numberLabel(newWordAllowance)} new words. If the existing article already meets the word target, only finish the ending cleanly — do not expand its scope.`;
   const existingH2Count = countH2Sections(bodyMarkdown);
   const remainingH2Count = Math.max(0, SEO_ARTICLE_H2_LIMIT - existingH2Count);
@@ -123,7 +123,7 @@ RECOVERY RULES
 - The existing article already contains ${numberLabel(existingWordCount)} words. ${wordBudgetRule}
 - Return only article Markdown. Never return commentary about the article, its completeness, or this task.
 - Do not repeat the H1, introduction, completed sections, or existing paragraphs.
-- The existing article already contains ${numberLabel(existingH2Count)} H2 sections. The combined SEO article must stay within Destiny's Logos policy of 6–9 H2 sections. ${h2BudgetRule}
+- The existing article already contains ${numberLabel(existingH2Count)} H2 sections. The combined SEO article must stay within Rebound SEO's Logos policy of 6–9 H2 sections. ${h2BudgetRule}
 - If the draft ends mid-sentence, begin with a complete replacement sentence or paragraph. Do not continue a broken fragment.
 - Complete the missing H2/H3 sections, practical examples, FAQ, answer-first summary, and final call to action where they are not already present.
 - Keep paragraphs to four sentences or fewer and preserve the established voice.

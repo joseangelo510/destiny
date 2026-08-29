@@ -259,7 +259,7 @@ describe("bounded article recovery", () => {
       expect(prompt).not.toContain("only finish the ending cleanly");
       // Computed deficit: 2,200 minimum minus the existing word count.
       const existingWords = decision.wordCount;
-      expect(prompt).toContain(`is at least ${(2_200 - existingWords).toLocaleString("en-US")} words below Destiny's minimum`);
+      expect(prompt).toContain(`is at least ${(2_200 - existingWords).toLocaleString("en-US")} words below Rebound SEO's minimum`);
     }
   });
 

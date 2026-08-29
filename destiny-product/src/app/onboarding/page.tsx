@@ -8,8 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Analyze your website — Destiny",
-  description: "Tell Destiny about your business and begin a live SEO analysis.",
+  title: "Analyze your website — Rebound SEO",
+  description: "Tell Rebound SEO about your business and begin a live SEO analysis.",
 };
 
 type OnboardingPageProps = {

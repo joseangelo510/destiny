@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const db = supabase as unknown as SupabaseClient;
   const { data: website } = await supabase.from("websites").select("id,organization_id,url,normalized_domain").eq("id", websiteId).maybeSingle();
   if (!website) return NextResponse.json({ error: "Website not found." }, { status: 404 });
-  if (!isSafePublicWebsiteUrl(website.url)) return NextResponse.json({ error: "Destiny can only check public website URLs." }, { status: 422 });
+  if (!isSafePublicWebsiteUrl(website.url)) return NextResponse.json({ error: "Rebound SEO can only check public website URLs." }, { status: 422 });
   const { data: audit } = await supabase.from("audits").select("id").eq("website_id", website.id).eq("status", "complete").order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (!audit) return NextResponse.json({ error: "Complete a website audit before checking internal links." }, { status: 422 });
 
@@ -59,12 +59,12 @@ export async function POST(request: Request) {
   const publishedPages = (publishedRows ?? []).flatMap((row) => typeof row.remote_permalink === "string" ? [{ url: row.remote_permalink, title: typeof row.title === "string" ? row.title : "" }] : []);
   const inventory = buildInterlinkInventory({ websiteUrl: website.url, auditPages, keywords, publishedPages });
   if (inventory.length < 2) return NextResponse.json({
-    error: "Destiny has fewer than two verified pages for this website. Run a fresh audit or publish content before checking for links.",
+    error: "Rebound SEO has fewer than two verified pages for this website. Run a fresh audit or publish content before checking for links.",
   }, { status: 422 });
 
   const snapshots = await fetchInBatches(inventory, 5, (page) => fetchInterlinkPage(page, website.url));
   const checked = snapshots.filter((page) => page.statusCode === 200).length;
-  if (checked < 2) return NextResponse.json({ error: "Destiny could not read enough live pages to find safe internal-link opportunities." }, { status: 502 });
+  if (checked < 2) return NextResponse.json({ error: "Rebound SEO could not read enough live pages to find safe internal-link opportunities." }, { status: 502 });
   const opportunities = findInterlinkOpportunities(snapshots, website.url);
   const runId = randomUUID();
   const completedAt = new Date().toISOString();

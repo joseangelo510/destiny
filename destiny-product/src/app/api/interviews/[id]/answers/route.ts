@@ -23,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!question) return NextResponse.json({ error: "That question does not belong to this interview." }, { status: 404 });
   if (skip) {
     const { error } = await db.from("interview_questions").update({ skipped: true }).eq("id", questionId).eq("interview_id", id);
-    if (error) return NextResponse.json({ error: "Destiny could not save that skip." }, { status: 500 });
+    if (error) return NextResponse.json({ error: "Rebound SEO could not save that skip." }, { status: 500 });
   } else {
     const { data: existing } = await db.from("interview_answers").select("id").eq("question_id", questionId).maybeSingle();
     if (!existing) {
@@ -35,7 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         user_id: userId,
         verbatim_text: answer,
       });
-      if (error) return NextResponse.json({ error: "Destiny could not save that answer." }, { status: 500 });
+      if (error) return NextResponse.json({ error: "Rebound SEO could not save that answer." }, { status: 500 });
     }
   }
   const nextPosition = Math.min(Number(interview.question_count), Number(question.position) + 1);

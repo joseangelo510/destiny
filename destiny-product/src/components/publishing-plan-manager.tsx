@@ -8,16 +8,16 @@ import { useWordPressCalendarReconciliation } from "./use-wordpress-calendar-rec
 type CalendarItem = { focusKeyword: string; title: string; contentType: string };
 
 const MODES: Array<{ id: PublishingMode; title: string; description: string; note: string }> = [
-  { id: "review_each", title: "Review each article", description: "Destiny creates WordPress drafts. You approve each article before choosing its date.", note: "Most control" },
+  { id: "review_each", title: "Review each article", description: "Rebound SEO creates WordPress drafts. You approve each article before choosing its date.", note: "Most control" },
   { id: "batch_schedule", title: "Approve and schedule in a batch", description: "Review several finished articles, approve them together, and schedule the selected posts.", note: "Balanced" },
-  { id: "automatic", title: "Publish automatically", description: "Destiny schedules articles that pass every quality check. Anything uncertain stops for review.", note: "Most hands-off" },
+  { id: "automatic", title: "Publish automatically", description: "Rebound SEO schedules articles that pass every quality check. Anything uncertain stops for review.", note: "Most hands-off" },
 ];
 
 const STATE_META: Record<PublishingCalendarState, { label: string; short: string; icon: string; description: string }> = {
   planned: { label: "Planned", short: "Plan", icon: "", description: "This topic has a place in the plan, but it is not scheduled in a CMS yet." },
   needs_review: { label: "Needs review", short: "Review", icon: "!", description: "Your review is required before this article can move forward." },
   scheduled: { label: "CMS-confirmed scheduled", short: "Sched", icon: "◷", description: "The CMS confirmed this post and its future publication time." },
-  published: { label: "Live and verified", short: "Live", icon: "✓", description: "Destiny verified that this post is live." },
+  published: { label: "Live and verified", short: "Live", icon: "✓", description: "Rebound SEO verified that this post is live." },
   failed: { label: "Failed", short: "Failed", icon: "×", description: "The CMS did not complete this publishing attempt." },
   missed: { label: "Missed", short: "Missed", icon: "◷", description: "The planned time passed without a verified publication." },
   manual: { label: "Manual", short: "Manual", icon: "↗", description: "This post must be scheduled directly in Wix for now." },
@@ -214,7 +214,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
         }),
       });
       const payload = await response.json() as { error?: string; plan?: PublishingPlanRecord; items?: PublishingScheduleItemRecord[] };
-      if (!response.ok || !payload.plan) throw new Error(payload.error || "Destiny could not save the publishing plan.");
+      if (!response.ok || !payload.plan) throw new Error(payload.error || "Rebound SEO could not save the publishing plan.");
       setPlan(payload.plan);
       setItems(payload.items ?? []);
       setEditing(false);
@@ -222,7 +222,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       if (mode === "automatic") await runChecks();
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not save the publishing plan.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not save the publishing plan.");
     } finally {
       setSaving(false);
     }
@@ -233,18 +233,18 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
     setNotice("");
     const response = await fetch("/api/content/publishing-plan/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId }) });
     const payload = await response.json() as { error?: string; checked?: number; scheduled?: number; items?: PublishingScheduleItemRecord[] };
-    if (!response.ok) throw new Error(payload.error || "Destiny could not run the scheduling checks.");
+    if (!response.ok) throw new Error(payload.error || "Rebound SEO could not run the scheduling checks.");
     setItems((current) => reconcilePublishingItems(current, payload.items));
     setNotice(payload.scheduled
       ? `${payload.scheduled} article${payload.scheduled === 1 ? "" : "s"} scheduled in WordPress. Other slots remain safely queued.`
-      : `Destiny checked ${payload.checked ?? 0} ready slot${payload.checked === 1 ? "" : "s"}. Nothing was scheduled because the remaining articles still need generation or review.`);
+      : `Rebound SEO checked ${payload.checked ?? 0} ready slot${payload.checked === 1 ? "" : "s"}. Nothing was scheduled because the remaining articles still need generation or review.`);
   };
 
   const checkNow = async () => {
     if (saving) return;
     setSaving(true);
     try { await runChecks(); router.refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Destiny could not run the scheduling checks."); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not run the scheduling checks."); }
     finally { setSaving(false); }
   };
 
@@ -255,11 +255,11 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
     try {
       const response = await fetch("/api/content/publishing-plan", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, status }) });
       const payload = await response.json() as { error?: string; plan?: PublishingPlanRecord };
-      if (!response.ok || !payload.plan) throw new Error(payload.error || "Destiny could not update the plan.");
+      if (!response.ok || !payload.plan) throw new Error(payload.error || "Rebound SEO could not update the plan.");
       setPlan(payload.plan);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not update the plan.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not update the plan.");
     } finally { setSaving(false); }
   };
 
@@ -281,7 +281,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
         }),
       });
       const payload = await response.json() as { error?: string; item?: PublishingScheduleItemRecord };
-      if (!response.ok || !payload.item) throw new Error(payload.error || "Destiny could not add this content.");
+      if (!response.ok || !payload.item) throw new Error(payload.error || "Rebound SEO could not add this content.");
       setItems((current) => [...current, payload.item!].sort((left, right) => Date.parse(left.scheduled_for) - Date.parse(right.scheduled_for)));
       setAddOpen(false);
       setAddTitle("");
@@ -290,7 +290,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       setNotice(`${CONTENT_META[addType].label} added to the calendar as planned.`);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Destiny could not add this content.");
+      setError(cause instanceof Error ? cause.message : "Rebound SEO could not add this content.");
     } finally { setSaving(false); }
   };
 
@@ -312,18 +312,18 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       {plan && !editing && <div className="publishing-heading-actions"><span className={`status-chip ${plan.status === "active" ? "" : "amber"}`}>{plan.status === "active" ? "Active" : plan.status === "paused" ? "Paused" : "Needs attention"}</span><button className="primary-button" onClick={() => setAddOpen(true)} type="button">+ Add content</button></div>}
     </div>
     {missingApprovals ? <div className="configuration-note"><strong>Approve topics before scheduling</strong><p>Only explicitly approved keyword topics can enter a publishing plan. Review the Keyword strategy first.</p></div>
-      : manualCmsPlan ? <div className="configuration-note"><strong>{websitePlatform === "wix" ? "Wix" : "Webflow"} uses a guided publishing plan</strong><p>Destiny will save every date and article task here. You will finish each publication in {websitePlatform === "wix" ? "Wix" : "Webflow"}; nothing is labeled scheduled or live until the CMS confirms it.</p></div>
-      : cmsUnavailable ? <div className="configuration-note"><strong>Connect a CMS before scheduling</strong><p>Destiny can save reviewed content after WordPress or Webflow is connected. Wix websites can use the guided manual plan.</p></div> : null}
+      : manualCmsPlan ? <div className="configuration-note"><strong>{websitePlatform === "wix" ? "Wix" : "Webflow"} uses a guided publishing plan</strong><p>Rebound SEO will save every date and article task here. You will finish each publication in {websitePlatform === "wix" ? "Wix" : "Webflow"}; nothing is labeled scheduled or live until the CMS confirms it.</p></div>
+      : cmsUnavailable ? <div className="configuration-note"><strong>Connect a CMS before scheduling</strong><p>Rebound SEO can save reviewed content after WordPress or Webflow is connected. Wix websites can use the guided manual plan.</p></div> : null}
     {editing ? <>
       <div className="publishing-mode-grid" role="radiogroup" aria-label="Publishing mode">
         {availableModes.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? "active" : ""} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role="radio" type="button"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)}
       </div>
       <div className="publishing-date-row"><label>First publication date<input min={futureStartDate()} type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : "Choose a start date"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div>
-      {mode === "automatic" && !manualCmsPlan && <label className="automatic-confirmation"><input checked={automaticConfirmed} onChange={(event) => setAutomaticConfirmed(event.target.checked)} type="checkbox" /><span><strong>Confirm automatic scheduling for {calendar.length} posts</strong><small>Destiny may schedule these dates only after every article passes its quality checks. The first two posts will be marked “review recommended.” Failures stop instead of publishing.</small></span></label>}
+      {mode === "automatic" && !manualCmsPlan && <label className="automatic-confirmation"><input checked={automaticConfirmed} onChange={(event) => setAutomaticConfirmed(event.target.checked)} type="checkbox" /><span><strong>Confirm automatic scheduling for {calendar.length} posts</strong><small>Rebound SEO may schedule these dates only after every article passes its quality checks. The first two posts will be marked “review recommended.” Failures stop instead of publishing.</small></span></label>}
       {error && <div className="error-banner" role="alert">{error}</div>}
       <div className="publishing-plan-actions"><button className="primary-button" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === "automatic" && !automaticConfirmed)} onClick={() => void save()} type="button">{saving ? "Saving plan…" : plan ? "Save changes" : "Start this publishing plan"}</button>{plan && <button className="secondary-button" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type="button">Cancel</button>}</div>
     </> : plan ? <>
-      {overdueWordPressItems.length > 0 && <div className="configuration-note amber"><strong>{overdueWordPressItems.length === 1 ? "One WordPress post needs a status check" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Destiny has not verified the public page yet.</p><div className="publishing-plan-actions">{overdueWordPressItems.map((item) => <button className="secondary-button" disabled={Boolean(verifyingItemId)} key={item.id} onClick={() => void refreshWordPressStatus(item)} type="button">{verifyingItemId === item.id ? "Checking…" : "Refresh WordPress status"}</button>)}</div></div>}
+      {overdueWordPressItems.length > 0 && <div className="configuration-note amber"><strong>{overdueWordPressItems.length === 1 ? "One WordPress post needs a status check" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className="publishing-plan-actions">{overdueWordPressItems.map((item) => <button className="secondary-button" disabled={Boolean(verifyingItemId)} key={item.id} onClick={() => void refreshWordPressStatus(item)} type="button">{verifyingItemId === item.id ? "Checking…" : "Refresh WordPress status"}</button>)}</div></div>}
       <div className="publishing-calendar-toolbar">
         <div className="publishing-toolbar-left">
           <div aria-label="Editorial calendar view" className="publishing-view-toggle" role="group">
@@ -403,7 +403,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       {addOpen && <div className="publishing-add-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby="publishing-add-title" aria-modal="true" className="publishing-add-dialog" role="dialog"><div className="publishing-add-heading"><div><h3 id="publishing-add-title">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label="Close add content" onClick={() => setAddOpen(false)} type="button">×</button></div><div aria-label="Content type" className="publishing-add-types" role="group">{(["article", "linkedin", "x", "approved_draft"] as EditorialContentChannel[]).map((type) => <button aria-pressed={addType === type} key={type} onClick={() => setAddType(type)} type="button">{CONTENT_META[type].label}</button>)}</div><div className="publishing-add-form"><label className="wide">Content title<input onChange={(event) => setAddTitle(event.target.value)} placeholder={addType === "linkedin" ? "What should this LinkedIn post say?" : addType === "x" ? "What should this X post say?" : "Enter the article title"} value={addTitle} /></label>{addType === "article" || addType === "approved_draft" ? <label>Focus keyword<input onChange={(event) => setAddKeyword(event.target.value)} placeholder="e.g. YouTube SEO services" value={addKeyword} /></label> : <label>Article this post promotes<select onChange={(event) => setAddRelatedArticle(event.target.value)} value={addRelatedArticle}><option value="">Choose an article</option>{articleTitles.map((title) => <option key={title} value={title}>{title}</option>)}</select></label>}<label>Publish or schedule date<input min={calendarDateTime(new Date().toISOString(), timezone)} onChange={(event) => setAddDate(event.target.value)} type="datetime-local" value={addDate} /></label></div>{error && <div className="error-banner" role="alert">{error}</div>}<div className="publishing-add-actions"><button className="secondary-button" onClick={() => setAddOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={saving || !addTitle.trim() || !addDate || ((addType === "article" || addType === "approved_draft") ? !addKeyword.trim() : !addRelatedArticle)} onClick={() => void addContent()} type="button">{saving ? "Adding…" : "Add as planned"}</button></div></div></div>}
 
       <div className="publishing-plan-actions"><button className="secondary-button" onClick={() => setEditing(true)} type="button">Change mode or dates</button>{wordpressConnected && plan.status === "active" && plan.mode !== "review_each" && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Run scheduling checks now"}</button>}<button className={plan.status === "paused" ? "primary-button" : "secondary-button"} disabled={saving} onClick={() => void setStatus(plan.status === "paused" ? "active" : "paused")} type="button">{saving ? "Saving…" : plan.status === "paused" ? "Resume scheduling" : "Pause new scheduling"}</button></div>
-      <p className="publishing-plan-footnote">Destiny never publishes a missed date late. A missed or failed slot returns to review with a suggested new date.</p>
+      <p className="publishing-plan-footnote">Rebound SEO never publishes a missed date late. A missed or failed slot returns to review with a suggested new date.</p>
       {notice && <div className="integration-banner success" role="status"><strong>Scheduling check complete</strong><p>{notice}</p></div>}
       {error && <div className="error-banner" role="alert">{error}</div>}
     </> : null}

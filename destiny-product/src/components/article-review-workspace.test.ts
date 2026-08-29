@@ -4,7 +4,7 @@ import { normalizeSavedArticleDraft } from "../lib/content/saved-draft-hydration
 
 const fallback = buildArticleDraft({
   keyword: "content strategy",
-  businessName: "Destiny",
+  businessName: "Rebound SEO",
   problemSolved: "Content work lacks a reliable operating system.",
   idealCustomer: "Founder-led businesses",
   differentiation: "A guided SEO operating system",

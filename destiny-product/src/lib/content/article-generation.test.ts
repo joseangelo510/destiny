@@ -51,7 +51,7 @@ function validLongFormPayload(): GeneratedArticlePayload {
   };
 }
 
-describe("Destiny article generation policy", () => {
+describe("Rebound SEO article generation policy", () => {
   it("requires three unique verified internal links when the inventory supports them", () => {
     const payload = {
       bodyMarkdown: [
@@ -111,11 +111,11 @@ describe("Destiny article generation policy", () => {
   it("builds a hidden prompt with the locked long-form, heading, brigade, source, and graphics rules", () => {
     const prompt = buildArticleGenerationPrompt({
       keyword: "seo content strategy",
-      businessName: "Destiny",
+      businessName: "Rebound SEO",
       problemSolved: "Founders need a repeatable organic growth system.",
       idealCustomer: "Founder-led businesses",
       differentiation: "Fifteen years of practical SEO experience",
-      internalPages: [{ title: "Destiny home", url: "https://example.com/", text: "SEO coaching for founders" }],
+      internalPages: [{ title: "Rebound SEO home", url: "https://example.com/", text: "SEO coaching for founders" }],
       preferences: { ...DEFAULT_ARTICLE_PREFERENCES, specialInstructions: "Mention the free strategy call once." },
     });
 
@@ -296,12 +296,12 @@ describe("Destiny article generation policy", () => {
       title: "A Better Content Workflow",
       insight: "Research before writing",
       items: ["Find intent", "Verify sources", "Draft", "Review"],
-      sourceLabel: "Source: Destiny article research",
+      sourceLabel: "Source: Rebound SEO article research",
       altText: "Four-step content workflow from search intent through review",
     });
     expect(svg).toContain("<svg");
     expect(svg).toContain("A Better Content Workflow");
-    expect(svg).toContain("Source: Destiny article research");
+    expect(svg).toContain("Source: Rebound SEO article research");
     expect(svg).not.toContain("<image");
   });
 });

@@ -21,7 +21,7 @@ describe("AccountSettings", () => {
     expect(html).toContain("second.example");
     expect(html).toContain("Current website");
     expect(html.match(/Delete website/g)).toHaveLength(2);
-    expect(html).toContain("Deleting a website does not delete your Destiny account");
+    expect(html).toContain("Deleting a website does not delete your Rebound SEO account");
     expect(html).toContain("Save notification email");
     expect(html).toContain("Keyword ranking emails");
     expect(html).toContain("Every 3 days");

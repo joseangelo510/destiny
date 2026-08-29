@@ -271,7 +271,7 @@ export function RepurposeWorkspace({
       }
       const accepted = parseRepurposeSourceResponse(json);
       if (!accepted) {
-        setSourceError("Destiny accepted the request but returned incomplete source details. Please try again.");
+        setSourceError("Rebound SEO accepted the request but returned incomplete source details. Please try again.");
         setStage(null);
         return;
       }
@@ -317,7 +317,7 @@ export function RepurposeWorkspace({
       }
       const newDraft = parseRepurposeGenerateResponse(json, sourceId, output, source);
       if (!newDraft) {
-        setGenerateError("Destiny generated a response in an unexpected format. Your source is saved; retry generation.");
+        setGenerateError("Rebound SEO generated a response in an unexpected format. Your source is saved; retry generation.");
         setStage("reading");
         return;
       }
@@ -394,7 +394,7 @@ export function RepurposeWorkspace({
           <h2 id="repurpose-step1-label">Add a source</h2>
         </div>
         <p className="repurpose-step-desc">
-          Choose how to supply the content you want to transform. Destiny reads the source and drafts a new format for your review.
+          Choose how to supply the content you want to transform. Rebound SEO reads the source and drafts a new format for your review.
         </p>
 
         {/* Source mode tabs */}
@@ -519,7 +519,7 @@ export function RepurposeWorkspace({
           <h2 id="repurpose-step2-label">Choose one output</h2>
         </div>
         <p className="repurpose-step-desc">
-          Select the format Destiny should produce. Only one output is generated per run — choose the one most useful for your audience right now.
+          Select the format Rebound SEO should produce. Only one output is generated per run — choose the one most useful for your audience right now.
         </p>
 
         <OutputCards value={output} onChange={setOutput} disabled={Boolean(draft)} />
@@ -697,7 +697,7 @@ export function RepurposeWorkspace({
                 Copy draft
               </button>
               <p className="repurpose-non-seo-note">
-                This format stays an editable draft; Destiny does not publish it automatically.
+                This format stays an editable draft; Rebound SEO does not publish it automatically.
               </p>
             </div>
           )}

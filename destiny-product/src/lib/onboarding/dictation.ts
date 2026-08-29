@@ -79,7 +79,7 @@ export function startDictationSession({
   };
   recognition.onerror = (event) => {
     if (event.error === "no-speech") return;
-    onError("Destiny could not hear you. Allow microphone access in Chrome and try again.");
+    onError("Rebound SEO could not hear you. Allow microphone access in Chrome and try again.");
     stop();
   };
   recognition.onend = () => {
@@ -89,7 +89,7 @@ export function startDictationSession({
       try {
         recognition.start();
       } catch {
-        onError("Destiny could not restart voice input. Check the microphone permission and try again.");
+        onError("Rebound SEO could not restart voice input. Check the microphone permission and try again.");
         stop();
       }
     }, DICTATION_RESTART_MS);
@@ -99,7 +99,7 @@ export function startDictationSession({
   try {
     recognition.start();
   } catch {
-    onError("Destiny could not start voice input. Check the microphone permission and try again.");
+    onError("Rebound SEO could not start voice input. Check the microphone permission and try again.");
     stop();
   }
 

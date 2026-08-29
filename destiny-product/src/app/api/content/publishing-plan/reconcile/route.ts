@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     .select("publishing_schedule_items", "id,article_key,content_type,state,scheduled_for,remote_id,remote_edit_url,remote_permalink,last_error")
     .eq("id", itemId)
     .maybeSingle();
-  if (itemError || !item) return NextResponse.json({ error: "Destiny could not find that calendar item for this website." }, { status: 404 });
+  if (itemError || !item) return NextResponse.json({ error: "Rebound SEO could not find that calendar item for this website." }, { status: 404 });
   const verificationItem = {
     content_type: item.content_type,
     state: item.state as PublishingScheduleItemRecord["state"],
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   const { data, error } = await db.invokeFunction<ReconcileResult>("wordpress-reconcile", { websiteId, articleKey: item.article_key });
-  if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Destiny could not verify this WordPress post." }, { status: 502 });
+  if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Rebound SEO could not verify this WordPress post." }, { status: 502 });
 
   const verified = data.publicationStatus === "verified_live" && typeof data.remotePermalink === "string" && Boolean(data.remotePermalink.trim());
   if (!verified) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     last_error: null,
   };
   const { error: updateError } = await db.update("publishing_schedule_items", update, { id: itemId });
-  if (updateError) return NextResponse.json({ error: "WordPress verified the post, but Destiny could not refresh the calendar." }, { status: 502 });
+  if (updateError) return NextResponse.json({ error: "WordPress verified the post, but Rebound SEO could not refresh the calendar." }, { status: 502 });
 
   return NextResponse.json({ verified: true, state: "published", remotePermalink: data.remotePermalink, verifiedLiveAt: data.verifiedLiveAt ?? null }, { headers: { "Cache-Control": "no-store" } });
 }

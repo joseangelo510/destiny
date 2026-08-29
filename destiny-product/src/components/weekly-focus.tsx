@@ -33,7 +33,7 @@ export function WeeklyFocus({
       <div className="weekly-focus-copy">
         <span className="eyebrow">{complete ? "This week is complete" : "Your plan is paused"}</span>
         <h2>{complete ? "A complete week, built one useful step at a time." : "There is no open step competing for your attention."}</h2>
-        <p>{complete ? "You completed every assigned step. Destiny will keep reported work separate from outcomes verified by connected data." : "Skipped work stays available in the checklist below whenever you are ready to return to it."}</p>
+        <p>{complete ? "You completed every assigned step. Rebound SEO will keep reported work separate from outcomes verified by connected data." : "Skipped work stays available in the checklist below whenever you are ready to return to it."}</p>
         <div className="weekly-focus-actions">
           <Link className="primary-button" href={complete ? "/roadmap" : "#weekly-checklist"}>{complete ? "Review the ground you covered" : "Review the checklist"}</Link>
           <Link className="text-button" href="/analytics">See verified results</Link>

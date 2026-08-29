@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { data } = await (supabase as unknown as SupabaseClient).from("reoptimization_documents").select("manifest,user_id").eq("id", id).maybeSingle();
   if (!data || data.user_id !== userId) return NextResponse.json({ error: "Change document not found." }, { status: 404 });
   const stored = data.manifest as Partial<ReoptimizationManifest>;
-  if (stored.version !== 4 || !stored.strategy || !stored.research) return NextResponse.json({ error: "This older draft was retired. Regenerate it from Keyword Strategy to use Destiny's simplified heading and keyword framework." }, { status: 409 });
+  if (stored.version !== 4 || !stored.strategy || !stored.research) return NextResponse.json({ error: "This older draft was retired. Regenerate it from Keyword Strategy to use Rebound SEO's simplified heading and keyword framework." }, { status: 409 });
   const manifest = stored as ReoptimizationManifest;
   const document = await createDocxFromHtml(renderReoptimizationWordDocument(manifest), `${manifest.keyword} re-optimization plan`);
   return new NextResponse(new Uint8Array(document), {

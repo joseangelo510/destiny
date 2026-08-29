@@ -13,7 +13,7 @@ export function GamePlanView({
 }) {
   return (
     <article className="game-plan-document">
-      <nav aria-label="How Destiny coaching sections work" className="game-plan-purpose-nav">
+      <nav aria-label="How Rebound SEO coaching sections work" className="game-plan-purpose-nav">
         <span aria-current="page"><strong>Game Plan</strong><small>the why</small></span>
         <Link href="/roadmap"><strong>Roadmap</strong><small>the when</small></Link>
         <Link href="/this-week"><strong>This Week</strong><small>the doing</small></Link>

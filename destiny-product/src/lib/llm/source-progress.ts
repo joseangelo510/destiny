@@ -136,7 +136,7 @@ export const LLM_SOURCE_PLAYBOOKS: readonly LlmSourcePlaybook[] = [
     domain: "youtube.com",
     category: "participatory",
     summary: "Turn customer questions into useful, searchable video explanations.",
-    expectation: "Publishing creates a discoverable source. Destiny only calls it AI visibility when separate provider evidence detects a mention or citation.",
+    expectation: "Publishing creates a discoverable source. Rebound SEO only calls it AI visibility when separate provider evidence detects a mention or citation.",
     tasks: [
       { key: "choose-question", title: "Choose one buyer question", description: "Select a decision-stage question customers repeatedly ask and outline a direct, experience-based answer.", actionHref: "/content", actionLabel: "Choose topic" },
       { key: "publish-video", title: "Publish an answer-first video", description: "Use a descriptive title and opening, add chapters, accurate captions or a transcript, a useful description, and links to cited sources.", actionHref: "/integrations", actionLabel: "Connect YouTube", requiresProof: true, proofLabel: "YouTube public URL", proofPlaceholder: "https://www.youtube.com/watch?v=...", proofHostnames: ["youtube.com", "youtu.be"] },

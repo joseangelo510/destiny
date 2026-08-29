@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="login-shell">
       <section className="login-card">
-        <Link className="brand login-brand" href="/"><span className="brand-mark">D</span><span>Destiny</span></Link>
+        <Link className="brand login-brand" href="/"><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
         {params.sent === "1" ? (
           <>
             <div className="eyebrow">Check your inbox</div>
@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </>
         ) : (
           <>
-            <div className="eyebrow">Welcome to Destiny</div>
+            <div className="eyebrow">Welcome to Rebound SEO</div>
             <h1>Make SEO a habit that compounds.</h1>
             <p>Enter your email. No password required—we’ll send you a secure sign-in link.</p>
             <form action={sendMagicLink}>

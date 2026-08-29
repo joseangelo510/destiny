@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   }>("wordpress-draft", { ...draft, featuredGraphic: undefined, graphics: undefined, media });
 
   if (error || !data?.delivered || !data.remoteEditUrl) {
-    return NextResponse.json({ error: data?.error || "Destiny could not create the WordPress draft." }, { status: 502 });
+    return NextResponse.json({ error: data?.error || "Rebound SEO could not create the WordPress draft." }, { status: 502 });
   }
   if (draft.scheduledFor) {
     await db.update("publishing_schedule_items", {

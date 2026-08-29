@@ -39,6 +39,6 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!task) return NextResponse.json({ error: "Destiny could not save this source task." }, { status: 500 });
+  if (!task) return NextResponse.json({ error: "Rebound SEO could not save this source task." }, { status: 500 });
   return NextResponse.json({ task });
 }

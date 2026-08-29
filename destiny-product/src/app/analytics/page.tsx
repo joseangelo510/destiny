@@ -35,7 +35,7 @@ export default async function AnalyticsPage() {
     lostKeywords: Number(point.lostKeywords ?? 0),
   })) satisfies HistoricalSeoPoint[];
   const metrics = context.metrics;
-  if (!context.website) return <WorkspaceShell active="/analytics" design="claude-analytics" eyebrow="Destiny workspace" title="How your site is doing" description="See how people find you and what to improve next."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Destiny knows which search and Analytics data belongs here." /></WorkspaceShell>;
+  if (!context.website) return <WorkspaceShell active="/analytics" design="claude-analytics" eyebrow="Rebound SEO workspace" title="How your site is doing" description="See how people find you and what to improve next."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Rebound SEO knows which search and Analytics data belongs here." /></WorkspaceShell>;
   const searchConsole = syncedMetadata(context.integrations, "google_search_console");
   const analytics = syncedMetadata(context.integrations, "google_analytics");
   const [{ data: tracked }, { data: observations }] = await Promise.all([

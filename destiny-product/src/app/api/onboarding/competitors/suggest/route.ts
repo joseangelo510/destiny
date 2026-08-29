@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { data: claimsData } = await supabase.auth.getClaims();
     if (!claimsData?.claims?.sub) {
-      return NextResponse.json({ error: "Destiny could not start competitor discovery." }, { status: 401 });
+      return NextResponse.json({ error: "Rebound SEO could not start competitor discovery." }, { status: 401 });
     }
     const { data, error } = await supabase.functions.invoke<{
       suggestions?: Array<{ domain: string; sharedKeywords: number; relation: "search_landscape" }>;

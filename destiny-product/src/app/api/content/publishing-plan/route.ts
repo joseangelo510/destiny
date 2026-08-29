@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   const userId = await db.getClaims();
   if (!userId) return NextResponse.json({ error: "Sign in again to load the publishing plan." }, { status: 401 });
   const { data: plan, error } = await db.select("publishing_plans", "id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").order("updated_at", { ascending: false }).limit(1).maybeSingle();
-  if (error) return NextResponse.json({ error: "Destiny could not load the publishing plan." }, { status: 500 });
+  if (error) return NextResponse.json({ error: "Rebound SEO could not load the publishing plan." }, { status: 500 });
   const { data: items } = plan ? await db.select("publishing_schedule_items", ITEM_SELECT).eq("plan_id", plan.id).order("position") : { data: [] };
   return NextResponse.json({ plan, items: items ?? [] }, { headers: { "Cache-Control": "no-store" } });
 }
@@ -102,7 +102,7 @@ export async function PUT(request: Request) {
     confirmed_post_count: calendar.length,
     automatic_confirmed_at: input.mode === "automatic" ? new Date().toISOString() : null,
   }, { onConflict: "website_id,audit_id" }).select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").single();
-  if (planError || !plan) return NextResponse.json({ error: "Destiny could not save the publishing plan." }, { status: 500 });
+  if (planError || !plan) return NextResponse.json({ error: "Rebound SEO could not save the publishing plan." }, { status: 500 });
 
   const { data: existing } = await db.select("publishing_schedule_items", "position,state").eq("plan_id", plan.id);
   const protectedPositions = new Set((existing ?? []).filter((item) => ["scheduled", "published", "managed_externally"].includes(item.state)).map((item) => item.position));
@@ -121,7 +121,7 @@ export async function PUT(request: Request) {
     review_recommended: input.mode === "automatic" && item.position <= 2,
   }));
   const { error: itemError } = rows.length ? await db.upsert("publishing_schedule_items", rows, { onConflict: "plan_id,position" }) : { error: null };
-  if (itemError) return NextResponse.json({ error: "The plan was saved, but Destiny could not save every calendar slot." }, { status: 500 });
+  if (itemError) return NextResponse.json({ error: "The plan was saved, but Rebound SEO could not save every calendar slot." }, { status: 500 });
   const { data: items } = await db.select("publishing_schedule_items", ITEM_SELECT).eq("plan_id", plan.id).order("position");
   return NextResponse.json({ plan, items: items ?? [] });
 }
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (planError || !plan) return NextResponse.json({ error: "Create a publishing plan before adding calendar content." }, { status: 409 });
   const { data: existing, error: existingError } = await db.select("publishing_schedule_items", "position").eq("plan_id", plan.id).order("position", { ascending: false }).limit(1);
-  if (existingError) return NextResponse.json({ error: "Destiny could not check the calendar." }, { status: 500 });
+  if (existingError) return NextResponse.json({ error: "Rebound SEO could not check the calendar." }, { status: 500 });
   const position = Number(existing?.[0]?.position ?? 0) + 1;
   if (position > 72) return NextResponse.json({ error: "This calendar already has 72 items. Move or remove an item before adding another." }, { status: 409 });
   const keyword = focusKeyword || relatedArticleTitle;
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
     state: "planned",
     review_recommended: false,
   }).select(ITEM_SELECT).single();
-  if (error || !item) return NextResponse.json({ error: "Destiny could not add this content to the calendar." }, { status: 500 });
+  if (error || !item) return NextResponse.json({ error: "Rebound SEO could not add this content to the calendar." }, { status: 500 });
   return NextResponse.json({ item }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }
 
@@ -179,6 +179,6 @@ export async function PATCH(request: Request) {
   const userId = await db.getClaims();
   if (!userId) return NextResponse.json({ error: "Sign in again to update the publishing plan." }, { status: 401 });
   const { data: plan, error } = await db.update("publishing_plans", { status }).select("id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at").single();
-  if (error || !plan) return NextResponse.json({ error: "Destiny could not update the publishing plan." }, { status: 500 });
+  if (error || !plan) return NextResponse.json({ error: "Rebound SEO could not update the publishing plan." }, { status: 500 });
   return NextResponse.json({ plan });
 }

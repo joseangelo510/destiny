@@ -105,9 +105,9 @@ export function buildWitnessLog({
       id: quest.id ?? `quest-${entries.length}`,
       title: quest.title?.trim() || "A useful step was completed",
       detail: verified
-        ? "Destiny found supporting website or connected evidence for this step."
-        : "You marked this work complete. Destiny will verify it when supporting evidence is available.",
-      proof: verified ? "Verified by Destiny" : "Marked done by you",
+        ? "Rebound SEO found supporting website or connected evidence for this step."
+        : "You marked this work complete. Rebound SEO will verify it when supporting evidence is available.",
+      proof: verified ? "Verified by Rebound SEO" : "Marked done by you",
       source: verified ? "Website or connected evidence" : "Your task history",
       tone: verified ? "verified" : "reported",
       occurredAt: quest.completed_at,
@@ -117,9 +117,9 @@ export function buildWitnessLog({
   if (auditComplete) entries.push({
     id: "audit-complete",
     title: "Your audit became a plan",
-    detail: "Destiny completed the saved audit and turned its findings into your current coaching plan.",
-    proof: "Verified by Destiny",
-    source: "Destiny audit",
+    detail: "Rebound SEO completed the saved audit and turned its findings into your current coaching plan.",
+    proof: "Verified by Rebound SEO",
+    source: "Rebound SEO audit",
     tone: "verified",
   });
   return entries.slice(0, 8);

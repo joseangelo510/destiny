@@ -33,7 +33,7 @@ describe("founder journey truth layer", () => {
       "Publish your first guide",
       "Your audit became a plan",
     ]);
-    expect(entries[1]).toMatchObject({ proof: "Verified by Destiny", tone: "verified" });
+    expect(entries[1]).toMatchObject({ proof: "Verified by Rebound SEO", tone: "verified" });
     expect(entries[2]).toMatchObject({ proof: "Marked done by you", tone: "reported" });
   });
 

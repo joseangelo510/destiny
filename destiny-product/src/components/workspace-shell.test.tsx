@@ -24,7 +24,7 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Example Co");
     expect(html).toContain(`/roadmap?site=${site.id}`);
     expect(html).toContain(`/app?site=${site.id}`);
-    expect(html).not.toContain('aria-label="Destiny homepage"');
+    expect(html).not.toContain('aria-label="Rebound SEO homepage"');
     expect(html).toContain(`href="/account?site=${site.id}"`);
     expect(html).toMatch(/>Account<[\s\S]*>Sign out</);
   });
