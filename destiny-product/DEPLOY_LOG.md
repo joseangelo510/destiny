@@ -1103,3 +1103,126 @@ Failed dispatch receipt preserved before recovery:
 - failing step: `Assert complete route inventory`
 - failure fact: inventory entries `80`; unique URL paths `79`; duplicate inventory route `/login` represents both the page and its server-actions entry
 - safety boundary: checkout and immutable-input assertions passed; all build, registry, secret-staging, Fly deploy, and post-deploy steps were skipped; production remained on `fc7f050e1201ff5ee6ebece98560592257de127f` / `step-zero-v1.1`
+
+## D9.2-CUTOVER-VERIFY-AND-CAMINO-RETIRE — Fable 5 High Decision
+
+Decision ID: `D9.2-CUTOVER-VERIFY-AND-CAMINO-RETIRE`
+
+Date: 2026-08-29
+
+Authority: Fable 5 High (Claude), executing the product decision of Jose
+Gallegos.
+
+Decision source: https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+
+Classification: HIGH. Status: DECIDED — Authorized with correction.
+
+Deploy evidence accepted: run `33268238022`, tag `rebound-seo-v1.0.0` at
+`fbd738c6508c9cde75231dea60acebe842eb0b6f`; 80/80 inventory sweep
+(31x200, 48x401, 1x405, zero 5xx, both `/login` entries 200); build stamp,
+TLS, root marketing site, and root A/MX/TXT unchanged; machine
+`860714be531938` healthy; both certificates Issued; Supabase Site URL set to
+Rebound.
+
+ORDER:
+
+1. Verify both auth journeys on `https://app.reboundseo.com`: magic-link end
+   to end and Google OAuth callback on the D9.1c surface.
+2. Remove only the Fly certificate for `app.caminoseo.com`, the Camino `app`
+   A record, the `_acme-challenge.app` CNAME, and the Supabase redirect
+   `https://app.caminoseo.com/**`.
+3. Preserve all Camino DMARC, Resend DKIM, SPF, and MX records. Leave Replit
+   and its allowlist entry untouched.
+4. Verify Camino no longer resolves or serves and Rebound app, root, mail,
+   Supabase, machine, and immutable release remain healthy.
+5. Record receipts through a protected docs-only HIGH PR with `cto-approved`
+   applied by `joseangelo510` and all required guards green.
+
+STOP on any auth-journey failure, deletion beyond the four named items, any
+preserved record touched, Rebound health degradation, or ambiguity.
+
+ROLLBACK by restoring the removed certificate, A record, ACME CNAME, and
+allowlist entry from the pre-deletion snapshot. No redeploy is needed. Never
+hand-edit production. D8.5 Replit remediation remains OPEN and unaffected.
+
+## D9.3-SENDER-MIGRATION-REBOUND — Fable 5 High Decision
+
+Decision ID: `D9.3-SENDER-MIGRATION-REBOUND`
+
+Date: 2026-08-29
+
+Authority: Fable 5 High (Claude), executing the fixed sender decision of Jose
+Gallegos.
+
+Decision source: https://claude.ai/chat/7a177580-0665-4136-be13-08e0943fa12b
+
+Classification: HIGH (auth-email configuration, Supabase SMTP sender, and DNS
+additions). Status: DECIDED — Authorized with correction.
+
+Owner decision fixed: migrate the authentication sender to the Rebound
+identity now.
+
+ORDER:
+
+1. Add and verify `reboundseo.com` in the existing Resend account. If a
+   one-domain limit blocks the addition, upgrade first; deleting or replacing
+   `caminoseo.com` before Rebound delivery proof is forbidden.
+2. Limit DNS additions to DKIM TXT at
+   `resend._domainkey.reboundseo.com` and SPF/MX at
+   `send.reboundseo.com`; preserve root A/MX/SPF/DKIM/DMARC and all unrelated
+   records byte-identically.
+3. After verification, set the Supabase sender to `Rebound SEO
+   <auth@reboundseo.com>` and rebrand the magic-link subject and body.
+4. Prove fresh Resend delivery from the Rebound sender with SPF, DKIM, and
+   DMARC pass, then complete the authenticated landing on
+   `https://app.reboundseo.com`.
+5. Pass the Google OAuth callback on Rebound.
+6. Only then, with action-time owner confirmation, execute the D9.2 four-item
+   Camino app retirement. Camino mail and Resend records remain out of
+   deletion scope without separate authorization.
+
+STOP on Resend second-domain refusal without an upgrade path, incomplete
+verification, any required preserved-record change, SPF/DKIM/DMARC or delivery
+failure, auth-journey failure, deletion beyond the four named items, or
+ambiguity.
+
+ROLLBACK by reverting the Supabase SMTP sender and templates to the preserved
+Camino values and optionally removing the added Rebound Resend DNS records. No
+redeploy is required. Never hand-edit production.
+
+Receipts for Resend verification, DNS additions, delivered-message
+authentication, magic-link and OAuth journeys, the action-time confirmation,
+the four-item retirement, and all post-removal checks are recorded through the
+D9.2 docs-only HIGH PR or a successor.
+
+## D9.2 and D9.3 execution receipt
+
+Date: 2026-08-29
+
+Status: EXECUTED — AWAITING PROTECTED EVIDENCE PR CHECKS AND MERGE.
+
+Full redacted receipt:
+`docs/releases/D9.2-REBOUND-CUTOVER/README.md`
+
+Summary:
+
+- Protected Rebound policy, product, wrapper, immutable tag, exact-main
+  harness, and successful production-dispatch receipts are recorded.
+- Rebound app and root returned HTTP 200; Fly machine `860714be531938` was
+  Started with checks `1/1`; `app.reboundseo.com` remained Issued.
+- Resend verified `reboundseo.com`; Supabase authentication sender and
+  magic-link template use Rebound; fresh delivery, magic-link authentication,
+  and the read-only Google Search Console OAuth callback passed.
+- Jose supplied the required action-time confirmation. Exactly the four Camino
+  application-only entries named by D9.2 were removed.
+- Authoritative and public DNS checks plus TLS failure showed the Camino app
+  endpoint no longer serves. Camino mail and Resend records, Rebound root and
+  mail records, and the Replit allowlist entry were preserved.
+- No migration, schema, RLS, database, Replit, release-tag, application-code,
+  workflow, dependency, or new deployment change is included in the evidence
+  PR.
+
+Completion remains governed by GOV-1: this HIGH docs-only PR requires
+`cto-approved` applied by `joseangelo510`, green required checks at the final
+PR SHA, protected merge, and a green exact-merge harness. Current user
+instruction forbids Codex from labeling or merging this PR.
