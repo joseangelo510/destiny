@@ -42,7 +42,7 @@
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/reconcile",
     "side_effect_class": 3,
-    "context": "}; const { error: updateError } = await db.update(\"publishing_schedule_items\", update, { id: itemId }); if (updateError) return NextResponse.json({ error: \"WordPress verified the post, but Destiny could not refresh the calendar.\" }, { status: 502 });"
+    "context": "}; const { error: updateError } = await db.update(\"publishing_schedule_items\", update, { id: itemId }); if (updateError) return NextResponse.json({ error: \"WordPress verified the post, but Rebound SEO could not refresh the calendar.\" }, { status: 502 });"
   },
   {
     "control_id": "src/app/api/content/publishing-plan/route.ts:154:data-mutation:1",
@@ -60,7 +60,7 @@
     "type": "data-mutation",
     "route": "/api/content/publishing-plan",
     "side_effect_class": 3,
-    "context": "if (!userId) return NextResponse.json({ error: \"Sign in again to update the publishing plan.\" }, { status: 401 }); const { data: plan, error } = await db.update(\"publishing_plans\", { status }).select(\"id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at\").single(); if (error || !plan) return NextResponse.json({ error: \"Destiny could not update the publishing plan.\" }, { status: 500 });"
+    "context": "if (!userId) return NextResponse.json({ error: \"Sign in again to update the publishing plan.\" }, { status: 401 }); const { data: plan, error } = await db.update(\"publishing_plans\", { status }).select(\"id,mode,status,timezone,holdback_hours,start_date,end_date,confirmed_post_count,automatic_confirmed_at\").single(); if (error || !plan) return NextResponse.json({ error: \"Rebound SEO could not update the publishing plan.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/content/publishing-plan/run/route.ts:44:data-mutation:1",
@@ -213,7 +213,7 @@
     "type": "data-mutation",
     "route": "/api/founder-why",
     "side_effect_class": 1,
-    "context": "const { data, error } = await supabase.from(\"profiles\").update({ founder_why: founderWhy }).eq(\"id\", userId).select(\"founder_why\").maybeSingle(); if (error) return NextResponse.json({ error: \"Destiny could not save your why.\" }, { status: 500 });"
+    "context": "const { data, error } = await supabase.from(\"profiles\").update({ founder_why: founderWhy }).eq(\"id\", userId).select(\"founder_why\").maybeSingle(); if (error) return NextResponse.json({ error: \"Rebound SEO could not save your why.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/integrations/cms/wordpress/draft/route.ts:48:data-mutation:1",
@@ -258,7 +258,7 @@
     "type": "data-mutation",
     "route": "/api/interviews/[id]/answers",
     "side_effect_class": 1,
-    "context": "if (skip) { const { error } = await db.from(\"interview_questions\").update({ skipped: true }).eq(\"id\", questionId).eq(\"interview_id\", id); if (error) return NextResponse.json({ error: \"Destiny could not save that skip.\" }, { status: 500 });"
+    "context": "if (skip) { const { error } = await db.from(\"interview_questions\").update({ skipped: true }).eq(\"id\", questionId).eq(\"interview_id\", id); if (error) return NextResponse.json({ error: \"Rebound SEO could not save that skip.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/interviews/[id]/answers/route.ts:30:data-mutation:1",
@@ -294,7 +294,7 @@
     "type": "data-mutation",
     "route": "/api/interviews/[id]/complete",
     "side_effect_class": 1,
-    "context": "if (libraryError) return NextResponse.json({ error: \"Your answers are safe, but Destiny could not update the Voice Library yet.\" }, { status: 500 }); const { error: completionError } = await db.from(\"interviews\").update({ status: \"complete\", completed_at: new Date().toISOString() }).eq(\"id\", id); if (completionError) return NextResponse.json({ error: \"Your answers are safe, but Destiny could not finish the interview yet.\" }, { status: 500 });"
+    "context": "if (libraryError) return NextResponse.json({ error: \"Your answers are safe, but Rebound SEO could not update the Voice Library yet.\" }, { status: 500 }); const { error: completionError } = await db.from(\"interviews\").update({ status: \"complete\", completed_at: new Date().toISOString() }).eq(\"id\", id); if (completionError) return NextResponse.json({ error: \"Your answers are safe, but Rebound SEO could not finish the interview yet.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/interviews/[id]/insights/route.ts:18:data-mutation:1",
@@ -321,7 +321,7 @@
     "type": "data-mutation",
     "route": "/api/interviews",
     "side_effect_class": 1,
-    "context": "if (interviewError || !interview) return NextResponse.json({ error: \"Destiny could not create this interview.\" }, { status: 500 }); const { data: questionRows, error: questionError } = await db.from(\"interview_questions\").insert(questions.map((question) => ({ organization_id: website.organization_id,"
+    "context": "if (interviewError || !interview) return NextResponse.json({ error: \"Rebound SEO could not create this interview.\" }, { status: 500 }); const { data: questionRows, error: questionError } = await db.from(\"interview_questions\").insert(questions.map((question) => ({ organization_id: website.organization_id,"
   },
   {
     "control_id": "src/app/api/interviews/route.ts:81:data-mutation:1",
@@ -330,7 +330,7 @@
     "type": "data-mutation",
     "route": "/api/interviews",
     "side_effect_class": 0,
-    "context": "if (questionError || !questionRows?.length) { await db.from(\"interviews\").delete().eq(\"id\", interview.id); return NextResponse.json({ error: \"Destiny could not prepare the interview questions.\" }, { status: 500 });"
+    "context": "if (questionError || !questionRows?.length) { await db.from(\"interviews\").delete().eq(\"id\", interview.id); return NextResponse.json({ error: \"Rebound SEO could not prepare the interview questions.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/keywords/decisions/route.ts:54:data-mutation:1",
@@ -546,7 +546,7 @@
     "type": "Link",
     "route": "/audits/[id]",
     "side_effect_class": 1,
-    "context": "<section className=\"results-checklist\"> <div className=\"results-checklist-heading\"><div><span className=\"eyebrow\">Your coaching plan</span><h2>See what to do next</h2><p>Destiny completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className=\"secondary-button\" href=\"/this-week\">Open weekly coach</Link></div> <div className=\"coach-category-stack\">{taskGroups.map((group, index) => <sec"
+    "context": "<section className=\"results-checklist\"> <div className=\"results-checklist-heading\"><div><span className=\"eyebrow\">Your coaching plan</span><h2>See what to do next</h2><p>Rebound SEO completed the research. Work through the checklist in order, one category at a time. Advanced tools appear when they help with the task in front of you.</p></div><Link className=\"secondary-button\" href=\"/this-week\">Open weekly coach</Link></div> <div className=\"coach-category-stack\">{taskGroups.map((group, index) => "
   },
   {
     "control_id": "src/app/audits/[id]/page.tsx:125:summary:1",
@@ -555,7 +555,7 @@
     "type": "summary",
     "route": "/audits/[id]",
     "side_effect_class": 0,
-    "context": "<details className=\"business-context-review\"> <summary><span><strong>Review the business context Destiny used</strong><small>This is optional. Your strategy is already ready.</small></span><b>Review details</b></summary> <div className=\"business-context-body\">"
+    "context": "<details className=\"business-context-review\"> <summary><span><strong>Review the business context Rebound SEO used</strong><small>This is optional. Your strategy is already ready.</small></span><b>Review details</b></summary> <div className=\"business-context-body\">"
   },
   {
     "control_id": "src/app/audits/[id]/page.tsx:136:Link:1",
@@ -645,7 +645,7 @@
     "type": "a",
     "route": "/auth/error",
     "side_effect_class": 0,
-    "context": "<p>For your security, Destiny’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
+    "context": "<p>For your security, Rebound SEO’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
     "control_id": "src/app/content/page.tsx:129:data-mutation:1",
@@ -699,7 +699,7 @@
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
-    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Destiny will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\"_bla"
+    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
     "control_id": "src/app/distribution/page.tsx:61:a:2",
@@ -708,7 +708,7 @@
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
-    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Destiny will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\"_bla"
+    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
     "control_id": "src/app/distribution/page.tsx:61:a:3",
@@ -717,7 +717,7 @@
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
-    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Destiny will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\"_bla"
+    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
     "control_id": "src/app/distribution/page.tsx:61:Link:4",
@@ -726,7 +726,7 @@
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 3,
-    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Destiny will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\"_bla"
+    "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
     "control_id": "src/app/distribution/page.tsx:74:a:1",
@@ -735,7 +735,7 @@
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 1,
-    "context": "<div className=\"distribution-section-heading\"><div><span className=\"eyebrow\">4 · Directories & reviews</span><h2>Build trust where customers compare options</h2><p>Create missing profiles. If a profile already exists, save its URL in Reviews so Destiny can track public activity separately from direct connections.</p></div><strong>Goal: 1 profile or 3 reviews</strong></div> <div className=\"directory-grid\">{baseDirectories.map((directory) => <article key={directory.key}><strong>{directory.name}</s"
+    "context": "<div className=\"distribution-section-heading\"><div><span className=\"eyebrow\">4 · Directories & reviews</span><h2>Build trust where customers compare options</h2><p>Create missing profiles. If a profile already exists, save its URL in Reviews so Rebound SEO can track public activity separately from direct connections.</p></div><strong>Goal: 1 profile or 3 reviews</strong></div> <div className=\"directory-grid\">{baseDirectories.map((directory) => <article key={directory.key}><strong>{directory.name"
   },
   {
     "control_id": "src/app/distribution/page.tsx:76:a:1",
@@ -816,7 +816,7 @@
     "type": "Link",
     "route": "/login",
     "side_effect_class": 0,
-    "context": "<section className=\"login-card\"> <Link className=\"brand login-brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Destiny</span></Link> {params.sent === \"1\" ? ("
+    "context": "<section className=\"login-card\"> <Link className=\"brand login-brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> {params.sent === \"1\" ? ("
   },
   {
     "control_id": "src/app/login/page.tsx:19:a:1",
@@ -870,7 +870,7 @@
     "type": "a",
     "route": "/",
     "side_effect_class": 0,
-    "context": "<div className=\"wrap nav\"> <a className=\"logo\" href=\"#\"> <span className=\"logo-mark\">D</span>Destiny"
+    "context": "<div className=\"wrap nav\"> <a className=\"logo\" href=\"#\"> <span className=\"logo-mark\">R</span>Rebound SEO"
   },
   {
     "control_id": "src/app/page.tsx:19:a:1",
@@ -879,7 +879,7 @@
     "type": "a",
     "route": "/",
     "side_effect_class": 0,
-    "context": "<nav className=\"nav-links\" aria-label=\"Primary\"> <a href=\"#different\">Why Destiny</a> <a href=\"#how\">How it works</a>"
+    "context": "<nav className=\"nav-links\" aria-label=\"Primary\"> <a href=\"#different\">Why Rebound SEO</a> <a href=\"#how\">How it works</a>"
   },
   {
     "control_id": "src/app/page.tsx:20:a:1",
@@ -888,7 +888,7 @@
     "type": "a",
     "route": "/",
     "side_effect_class": 0,
-    "context": "<a href=\"#different\">Why Destiny</a> <a href=\"#how\">How it works</a> <a href=\"#tools\">Tools</a>"
+    "context": "<a href=\"#different\">Why Rebound SEO</a> <a href=\"#how\">How it works</a> <a href=\"#tools\">Tools</a>"
   },
   {
     "control_id": "src/app/page.tsx:21:a:1",
@@ -969,7 +969,7 @@
     "type": "Link",
     "route": "/reoptimization/[id]",
     "side_effect_class": 2,
-    "context": "const stored = data.manifest as Partial<ReoptimizationManifest>; if (stored.version !== 4 || !stored.strategy || !stored.research) return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title=\"This plan needs fresh research\" description=\"Return to Keyword Strategy and regenerate this document to use Destiny's simplified heading and keyword framework.\"><div className={styles.warning}><strong>Outdated draft blocked</strong><p>No recommendation from the older document should b"
+    "context": "const stored = data.manifest as Partial<ReoptimizationManifest>; if (stored.version !== 4 || !stored.strategy || !stored.research) return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title=\"This plan needs fresh research\" description=\"Return to Keyword Strategy and regenerate this document to use Rebound SEO's simplified heading and keyword framework.\"><div className={styles.warning}><strong>Outdated draft blocked</strong><p>No recommendation from the older document shou"
   },
   {
     "control_id": "src/app/reoptimization/[id]/page.tsx:27:Link:1",
@@ -978,7 +978,7 @@
     "type": "Link",
     "route": "/reoptimization/[id]",
     "side_effect_class": 3,
-    "context": "return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title={`Improve “${manifest.keyword}”`} description=\"Copy-ready changes in page order. Destiny never publishes these edits without your review.\"> <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download editable Word document</a></div> {manifest.warning ? <div className={"
+    "context": "return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title={`Improve “${manifest.keyword}”`} description=\"Copy-ready changes in page order. Rebound SEO never publishes these edits without your review.\"> <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download editable Word document</a></div> {manifest.warning ? <div classNa"
   },
   {
     "control_id": "src/app/reoptimization/[id]/page.tsx:27:a:2",
@@ -987,7 +987,7 @@
     "type": "a",
     "route": "/reoptimization/[id]",
     "side_effect_class": 3,
-    "context": "return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title={`Improve “${manifest.keyword}”`} description=\"Copy-ready changes in page order. Destiny never publishes these edits without your review.\"> <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download editable Word document</a></div> {manifest.warning ? <div className={"
+    "context": "return <WorkspaceShell active=\"/keywords\" eyebrow=\"Re-optimization document\" title={`Improve “${manifest.keyword}”`} description=\"Copy-ready changes in page order. Rebound SEO never publishes these edits without your review.\"> <div className={styles.actions}><Link href={`/keywords?site=${data.website_id}`}>← Back to keyword strategy</Link><a className={styles.download} href={`/api/reoptimization-documents/${id}/download`}>Download editable Word document</a></div> {manifest.warning ? <div classNa"
   },
   {
     "control_id": "src/app/reoptimization/[id]/page.tsx:29:a:1",
@@ -1023,7 +1023,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
     "control_id": "src/components/account-settings.tsx:149:onChange:2",
@@ -1032,7 +1032,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
     "control_id": "src/components/account-settings.tsx:149:button:3",
@@ -1041,7 +1041,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
     "control_id": "src/components/account-settings.tsx:149:onClick:4",
@@ -1050,7 +1050,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Destiny account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotificatio"
+    "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
     "control_id": "src/components/account-settings.tsx:163:button:1",
@@ -1284,7 +1284,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div>)}</div> : <div className=\"analytics-breakdown-empty\"><strong>No two-reading movement yet.</strong><span>Destiny needs two rank checks before it can show a trustworthy change.</span></div>} <small className=\"analytics-panel-source\"><i aria-hidden=\"true\" />Rank tracker · {trackedKeywordCount.toLocaleString(\"en-US\")} keyword{trackedKeywordCount === 1 ? \"\" : \"s\"} tracked · <Link href=\"/rank-tracker\">See all keywords</Link></small> </section>"
+    "context": "</div>)}</div> : <div className=\"analytics-breakdown-empty\"><strong>No two-reading movement yet.</strong><span>Rebound SEO needs two rank checks before it can show a trustworthy change.</span></div>} <small className=\"analytics-panel-source\"><i aria-hidden=\"true\" />Rank tracker · {trackedKeywordCount.toLocaleString(\"en-US\")} keyword{trackedKeywordCount === 1 ? \"\" : \"s\"} tracked · <Link href=\"/rank-tracker\">See all keywords</Link></small> </section>"
   },
   {
     "control_id": "src/components/analytics-dashboard.tsx:189:Link:1",
@@ -1419,7 +1419,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
-    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
+    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Rebound SEO will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disa"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:561:onClick:2",
@@ -1428,7 +1428,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
-    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
+    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Rebound SEO will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disa"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:561:button:3",
@@ -1437,7 +1437,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
-    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
+    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Rebound SEO will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disa"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:561:onClick:4",
@@ -1446,7 +1446,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
-    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Destiny will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disabled"
+    "context": "<label className=\"article-infographic-toggle\"><input disabled={generating} type=\"checkbox\" checked={draft.preferences.addInfographics} onChange={(event) => updatePreference(\"addInfographics\", event.target.checked)} /><span><strong>Create original infographics</strong><small>Rebound SEO will design downloadable SVG graphics from verified data or article-derived steps.</small></span></label> <div className=\"article-generation-actions\"><button className=\"primary-button article-generate-button\" disa"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:571:input:1",
@@ -1707,7 +1707,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 2,
-    "context": "{draft.generatedBy && <small className=\"article-generated-by\">Generated by {draft.generatedBy}</small>} <Link className=\"secondary-button\" href=\"/integrations\">Connect CMS</Link> <button className=\"primary-button\" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === \"complete\"} onClick={() => void finish()} type=\"button\">{questStatus === \"complete\" ? \"Weekly content approved\" : saving ? \"Saving…\" : \"Finish weekly content review\"}</button>"
+    "context": "{draft.generatedBy && <small className=\"article-generated-by\">Generated by {displayGeneratedBy(draft.generatedBy)}</small>} <Link className=\"secondary-button\" href=\"/integrations\">Connect CMS</Link> <button className=\"primary-button\" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === \"complete\"} onClick={() => void finish()} type=\"button\">{questStatus === \"complete\" ? \"Weekly content approved\" : saving ? \"Saving…\" : \"Finish weekly content review\"}</button>"
   },
   {
     "control_id": "src/components/article-review-workspace.tsx:637:button:1",
@@ -1788,7 +1788,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<header className=\"processing-header\"> <Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button>"
+    "context": "<header className=\"processing-header\"> <Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:130:button:1",
@@ -1797,7 +1797,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
+    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:130:onClick:2",
@@ -1806,7 +1806,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
+    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:167:button:1",
@@ -1815,7 +1815,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and try a"
+    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and t"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:167:onClick:2",
@@ -1824,7 +1824,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and try a"
+    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and t"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:167:Link:3",
@@ -1833,7 +1833,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and try a"
+    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and t"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:167:Link:4",
@@ -1842,7 +1842,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Destiny saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and try a"
+    "context": "<div className=\"configuration-note\"><strong>{complete ? \"Opening your weekly plan\" : \"It is safe to step away\"}</strong><p>{complete ? \"Your evidence and weekly plan are saved.\" : \"Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available.\"}</p></div> {failed && <div className=\"processing-actions\">{onRetry ? <button className=\"primary-button\" onClick={onRetry} type=\"button\">Review and t"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:50:form:1",
@@ -1851,7 +1851,7 @@
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Destiny Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setTarge"
+    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setT"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:50:onSubmit:2",
@@ -1860,7 +1860,7 @@
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Destiny Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setTarge"
+    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setT"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:50:input:3",
@@ -1869,7 +1869,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Destiny Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setTarge"
+    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setT"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:50:onChange:4",
@@ -1878,7 +1878,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Destiny Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setTarge"
+    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setT"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:50:button:5",
@@ -1887,7 +1887,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Destiny Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setTarge"
+    "context": "return <div className=\"research-workspace\" id=\"backlink-analytics-workspace\"> <section className=\"research-search-panel backlink-search-panel\"><div><span className=\"research-kicker\">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label=\"Domain\" onChange={(event) => setT"
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:52:button:1",
@@ -1896,7 +1896,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!result ? <section className=\"research-empty-state\"><span>↗</span><h3>Run a backlink report</h3><p>Destiny will separate individual links from unique referring domains and show the strongest sources first.</p></section> : <> <section className=\"research-report-heading\"><div><span className=\"research-kicker\">Backlink overview</span><h2>{result.target}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div><button className=\"secondary-button\" onClick={() => e"
+    "context": "{!result ? <section className=\"research-empty-state\"><span>↗</span><h3>Run a backlink report</h3><p>Rebound SEO will separate individual links from unique referring domains and show the strongest sources first.</p></section> : <> <section className=\"research-report-heading\"><div><span className=\"research-kicker\">Backlink overview</span><h2>{result.target}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div><button className=\"secondary-button\" onClick={() "
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:52:onClick:2",
@@ -1905,7 +1905,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!result ? <section className=\"research-empty-state\"><span>↗</span><h3>Run a backlink report</h3><p>Destiny will separate individual links from unique referring domains and show the strongest sources first.</p></section> : <> <section className=\"research-report-heading\"><div><span className=\"research-kicker\">Backlink overview</span><h2>{result.target}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div><button className=\"secondary-button\" onClick={() => e"
+    "context": "{!result ? <section className=\"research-empty-state\"><span>↗</span><h3>Run a backlink report</h3><p>Rebound SEO will separate individual links from unique referring domains and show the strongest sources first.</p></section> : <> <section className=\"research-report-heading\"><div><span className=\"research-kicker\">Backlink overview</span><h2>{result.target}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div><button className=\"secondary-button\" onClick={() "
   },
   {
     "control_id": "src/components/backlink-analytics-workspace.tsx:68:input:1",
@@ -1977,7 +1977,7 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
-    "context": "return <details className=\"celebration-controls workspace-card\"> <summary><span><strong>Sound & celebrations</strong><small>Original Destiny feedback sounds with accessibility controls</small></span><b>Settings</b></summary> <div className=\"celebration-controls-body\">"
+    "context": "return <details className=\"celebration-controls workspace-card\"> <summary><span><strong>Sound & celebrations</strong><small>Original Rebound SEO feedback sounds with accessibility controls</small></span><b>Settings</b></summary> <div className=\"celebration-controls-body\">"
   },
   {
     "control_id": "src/components/celebration-controls.tsx:45:input:1",
@@ -2058,7 +2058,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Destiny verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations\"}</button><small>{updatedAt ? `Public search check"
+    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations\"}</button><small>{updatedAt ? `Public search c"
   },
   {
     "control_id": "src/components/creator-discovery.tsx:48:onClick:2",
@@ -2067,7 +2067,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Destiny verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations\"}</button><small>{updatedAt ? `Public search check"
+    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations\"}</button><small>{updatedAt ? `Public search c"
   },
   {
     "control_id": "src/components/creator-discovery.tsx:51:a:1",
@@ -2085,7 +2085,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!visible.length ? <p className=\"empty-state\">No niche creator source passed the current public-result check. Destiny will not substitute major media or fabricate a contact.</p> : null} {!paid ? <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div><Link className=\"primary"
+    "context": "{!visible.length ? <p className=\"empty-state\">No niche creator source passed the current public-result check. Rebound SEO will not substitute major media or fabricate a contact.</p> : null} {!paid ? <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div><Link className=\"pri"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:377:button:1",
@@ -2094,7 +2094,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Destiny will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>} </s"
+    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Rebound SEO will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>}"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:377:onClick:2",
@@ -2103,7 +2103,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Destiny will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>} </s"
+    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Rebound SEO will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>}"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:377:Link:3",
@@ -2112,7 +2112,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Destiny will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>} </s"
+    "context": "{!failed && <div className=\"configuration-note\"><strong>You can safely leave this page</strong><p>Your audit is saved. Rebound SEO will add a notification and, once email is activated, send a link when the results are ready.</p></div>} {failed && <div className=\"processing-actions\"><button className=\"primary-button\" onClick={() => { setError(\"\"); setView(\"onboarding\"); }} type=\"button\">Review and try again</button><Link className=\"secondary-button\" href=\"/audits\">View audit history</Link></div>}"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:387:button:1",
@@ -2121,7 +2121,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<header className=\"onboarding-header\"> <button className=\"brand\" onClick={() => { if (hasWorkspace && initialAudit) setView(\"audit\"); else window.location.assign(\"/\"); }} type=\"button\"> <span className=\"brand-mark\">D</span><span>Destiny</span>"
+    "context": "<header className=\"onboarding-header\"> <button className=\"brand\" onClick={() => { if (hasWorkspace && initialAudit) setView(\"audit\"); else window.location.assign(\"/\"); }} type=\"button\"> <span className=\"brand-mark\">R</span><span>Rebound SEO</span>"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:387:onClick:2",
@@ -2130,7 +2130,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<header className=\"onboarding-header\"> <button className=\"brand\" onClick={() => { if (hasWorkspace && initialAudit) setView(\"audit\"); else window.location.assign(\"/\"); }} type=\"button\"> <span className=\"brand-mark\">D</span><span>Destiny</span>"
+    "context": "<header className=\"onboarding-header\"> <button className=\"brand\" onClick={() => { if (hasWorkspace && initialAudit) setView(\"audit\"); else window.location.assign(\"/\"); }} type=\"button\"> <span className=\"brand-mark\">R</span><span>Rebound SEO</span>"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:393:form:1",
@@ -2319,7 +2319,7 @@
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"sidebar-card\"><span className=\"logic-pulse\" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </aside>"
+    "context": "<div className=\"sidebar-card\"><span className=\"logic-pulse\" /><strong>LOGOS rules active</strong><p>Rebound SEO’s next-action rules are compiled by LOGICAFFEINE.</p></div> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </aside>"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:454:button:2",
@@ -2328,7 +2328,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"sidebar-card\"><span className=\"logic-pulse\" /><strong>LOGOS rules active</strong><p>Destiny’s next-action rules are compiled by LOGICAFFEINE.</p></div> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </aside>"
+    "context": "<div className=\"sidebar-card\"><span className=\"logic-pulse\" /><strong>LOGOS rules active</strong><p>Rebound SEO’s next-action rules are compiled by LOGICAFFEINE.</p></div> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </aside>"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:468:button:1",
@@ -2382,7 +2382,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"quest-meta\"><span>About 20 minutes</span><span>Destiny will guide you</span></div> <Link className=\"quest-link\" href=\"/this-week\">Start this week’s guided plan →</Link> </article>"
+    "context": "<div className=\"quest-meta\"><span>About 20 minutes</span><span>Rebound SEO will guide you</span></div> <Link className=\"quest-link\" href=\"/this-week\">Start this week’s guided plan →</Link> </article>"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:516:Link:1",
@@ -2742,7 +2742,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Destiny needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
+    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Rebound SEO needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
   },
   {
     "control_id": "src/components/infographic-generator.tsx:100:onClick:2",
@@ -2751,7 +2751,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Destiny needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
+    "context": "{error && <div className=\"integration-banner warning\" role=\"alert\"><strong>Rebound SEO needs your attention</strong><p>{error}</p></div>} <button className=\"primary-button\" disabled={!generationAvailable || busy !== \"\" || !topic} onClick={research} type=\"button\">{busy === \"research\" ? \"Researching current sources…\" : \"Research current sources\"}</button> </section>"
   },
   {
     "control_id": "src/components/infographic-generator.tsx:105:a:1",
@@ -2805,7 +2805,7 @@
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{plan && <section className=\"infographic-output-grid\"> <div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-emp"
+    "context": "{plan && <section className=\"infographic-output-grid\"> <div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Rebound SEO.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview"
   },
   {
     "control_id": "src/components/infographic-generator.tsx:110:summary:1",
@@ -2814,7 +2814,7 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Rebound SEO.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create "
   },
   {
     "control_id": "src/components/infographic-generator.tsx:110:button:2",
@@ -2823,7 +2823,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Rebound SEO.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create "
   },
   {
     "control_id": "src/components/infographic-generator.tsx:110:onClick:3",
@@ -2832,7 +2832,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Destiny.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create it a"
+    "context": "<div className=\"workspace-card infographic-preview\"><div className=\"workspace-card-heading\"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Rebound SEO.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className=\"primary-button\" download=\"destiny-infographic.png\" href={imageUrl}>Download PNG</a></> : <div className=\"infographic-preview-empty\"><b>Visual preview appears here</b><span>Create "
   },
   {
     "control_id": "src/components/infographic-generator.tsx:112:button:1",
@@ -2859,7 +2859,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Destiny checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </section"
+    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Rebound SEO checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </sec"
   },
   {
     "control_id": "src/components/interlink-workspace.tsx:120:onClick:2",
@@ -2868,7 +2868,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Destiny checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </section"
+    "context": "<div><span className=\"eyebrow\">Internal-link audit</span><h2>Connect the pages that already belong together.</h2><p>Rebound SEO checks verified pages for a phrase that already exists, then shows the exact safe link to add. It never invents a page or marks work verified without seeing the live link.</p></div> <button className=\"primary-button\" disabled={running} onClick={() => void runAudit()} type=\"button\">{running ? \"Checking pages…\" : run ? \"Check again\" : \"Find internal links\"}</button> </sec"
   },
   {
     "control_id": "src/components/interlink-workspace.tsx:135:Link:1",
@@ -2877,7 +2877,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 3,
-    "context": "{!visible.length ? <section className=\"workspace-card interlink-empty\"><span>✓</span><div><h2>No safe opportunities found in the pages checked</h2><p>Destiny will not pad the list. Publish more content or run a fresh website audit, then check again.</p><Link className=\"secondary-button\" href=\"/audits\">Review website audit</Link></div></section> : <section className=\"interlink-results\"> <div className=\"interlink-results-heading\"><div><span className=\"eyebrow\">Recommended edits</span><h2>Start wit"
+    "context": "{!visible.length ? <section className=\"workspace-card interlink-empty\"><span>✓</span><div><h2>No safe opportunities found in the pages checked</h2><p>Rebound SEO will not pad the list. Publish more content or run a fresh website audit, then check again.</p><Link className=\"secondary-button\" href=\"/audits\">Review website audit</Link></div></section> : <section className=\"interlink-results\"> <div className=\"interlink-results-heading\"><div><span className=\"eyebrow\">Recommended edits</span><h2>Start"
   },
   {
     "control_id": "src/components/interlink-workspace.tsx:153:button:1",
@@ -3030,7 +3030,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Rebound SEO the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:241:onChange:2",
@@ -3039,7 +3039,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Rebound SEO the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:241:button:3",
@@ -3048,7 +3048,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Rebound SEO the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:241:onClick:4",
@@ -3057,7 +3057,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Destiny the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div clas"
+    "context": "</article>)}</div> <div className={styles.customTopic}><div><strong>Have your own idea?</strong><p>Tell Rebound SEO the subject and it will build the same expert interview around it.</p></div><input aria-label=\"Custom interview topic\" onChange={(event) => setCustomTopic(event.target.value)} placeholder=\"Example: Why I stopped recommending one common roofing material\" value={customTopic} /><button disabled={busy} onClick={startCustomInterview} type=\"button\">Build my interview</button></div> <div "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:247:textarea:1",
@@ -3084,7 +3084,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Destiny will handle the polish later.\" rows={9} value"
+    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Rebound SEO will handle the polish later.\" rows={9} v"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:248:onClick:2",
@@ -3093,7 +3093,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Destiny will handle the polish later.\" rows={9} value"
+    "context": "<div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll(\"_\", \" \")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label=\"Your interview answer\" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(\"\"); }} placeholder=\"Talk it out in writing—Rebound SEO will handle the polish later.\" rows={9} v"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:249:button:1",
@@ -3138,7 +3138,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:256:onClick:2",
@@ -3147,7 +3147,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:256:button:3",
@@ -3156,7 +3156,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:256:onClick:4",
@@ -3165,7 +3165,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:256:button:5",
@@ -3174,7 +3174,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:256:onClick:6",
@@ -3183,7 +3183,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Destiny captured.</h2><p>Your exact words stay separate from Destiny’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}>"
+    "context": "<div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div> <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={en"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:257:button:1",
@@ -3192,7 +3192,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{co"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:257:onClick:2",
@@ -3201,7 +3201,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{co"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:257:button:3",
@@ -3210,7 +3210,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{co"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:257:onClick:4",
@@ -3219,7 +3219,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Destiny’s read</h3><span>AI interpretation · check it</span></div>{comple"
+    "context": "<div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{co"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:264:button:1",
@@ -3228,7 +3228,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Destiny has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voic"
+    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Rebound SEO has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:264:onClick:2",
@@ -3237,7 +3237,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Destiny has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voic"
+    "context": "<div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Rebound SEO has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div> {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your "
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:265:button:1",
@@ -3264,7 +3264,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Destiny will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Destiny-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCount} confi"
+    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Rebound SEO will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Rebound SEO-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCoun"
   },
   {
     "control_id": "src/components/interviews-workspace.tsx:268:onClick:2",
@@ -3273,7 +3273,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Destiny will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Destiny-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCount} confi"
+    "context": "{stage === \"article\" && completed && <section className={styles.view}><div className={styles.articleHandoff}><span>YOUR ARTICLE</span><h2>Turn this expertise into a sourced Content Studio draft.</h2><p>Rebound SEO will use this interview, your confirmed Voice Library, approved keyword, current research, and verified internal pages. Direct quotes stay exact; Rebound SEO-added claims must earn their own evidence.</p><div><span>{completed.answers.length} firsthand answers</span><span>{confirmedCoun"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:50:button:1",
@@ -4326,7 +4326,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : \"Your source-readiness work is complete. Destiny will keep verified provider evidence separate.\"}</p> {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type=\"button\">Open this source →</button>} </article>"
+    "context": "<p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : \"Your source-readiness work is complete. Rebound SEO will keep verified provider evidence separate.\"}</p> {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type=\"button\">Open this source →</button>} </article>"
   },
   {
     "control_id": "src/components/llm-source-dashboard.tsx:203:onClick:2",
@@ -4335,7 +4335,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : \"Your source-readiness work is complete. Destiny will keep verified provider evidence separate.\"}</p> {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type=\"button\">Open this source →</button>} </article>"
+    "context": "<p>{progress.nextTask ? `${progress.nextTask.sourceName} · ${progress.nextTask.description}` : \"Your source-readiness work is complete. Rebound SEO will keep verified provider evidence separate.\"}</p> {progress.nextTask && <button onClick={() => setSelectedSource(progress.nextTask!.sourceKey)} type=\"button\">Open this source →</button>} </article>"
   },
   {
     "control_id": "src/components/llm-source-dashboard.tsx:209:a:1",
@@ -4560,7 +4560,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<header className=\"guided-onboarding-header\"> <Link className=\"brand\" href=\"/\" aria-label=\"Return to Destiny home\"><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <span className=\"live-connection\"><i />Live SEO data connected</span>"
+    "context": "<header className=\"guided-onboarding-header\"> <Link className=\"brand\" href=\"/\" aria-label=\"Return to Rebound SEO home\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <span className=\"live-connection\"><i />Live SEO data connected</span>"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:267:button:1",
@@ -4569,7 +4569,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available after your"
+    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available af"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:267:onClick:2",
@@ -4578,7 +4578,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available after your"
+    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available af"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:267:button:3",
@@ -4587,7 +4587,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Destiny sounds on\" : \"Mute Destiny sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available after your"
+    "context": "<span className=\"live-connection\"><i />Live SEO data connected</span> <div className=\"guided-header-actions\"><button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button><button aria-label=\"Open notifications\" className=\"guided-notification\" title=\"Notifications become available af"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:285:form:1",
@@ -4650,7 +4650,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) "
+    "context": "</div> <label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Rebound SEO should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(eve"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:296:onChange:2",
@@ -4659,7 +4659,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "</div> <label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) "
+    "context": "</div> <label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Rebound SEO should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(eve"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:297:input:1",
@@ -4668,7 +4668,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) => upda"
+    "context": "<label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Rebound SEO should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) => "
   },
   {
     "control_id": "src/components/public-onboarding.tsx:297:onChange:2",
@@ -4677,7 +4677,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Destiny should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) => upda"
+    "context": "<label>Audit and contact email<input autoComplete=\"email\" onChange={(event) => updateField(\"email\", event.target.value)} placeholder=\"maya@yourbusiness.com\" required type=\"email\" value={form.email} /><small>Pre-filled from the email you use to sign in. Change it only if Rebound SEO should send welcome and audit-ready updates somewhere else. You can always find the same results in the notification center.</small></label> <label>Business name<input autoComplete=\"organization\" onChange={(event) => "
   },
   {
     "control_id": "src/components/public-onboarding.tsx:298:input:1",
@@ -4875,7 +4875,7 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<details className=\"ai-publishing-path workspace-card\"> <summary>How will an AI-built website connect?</summary> <div><strong>Where do you make changes to this website?</strong><ul><li>WordPress, Wix, Webflow, Shopify, or another CMS</li><li>Lovable, Replit, v0, Bolt, or Base44</li><li>GitHub, Vercel, Netlify, or a developer-managed repository</li><li>I’m not sure—let Destiny inspect the website</li></ul><p>Destiny will use that answer to choose the real publishing connection. It will never clai"
+    "context": "<details className=\"ai-publishing-path workspace-card\"> <summary>How will an AI-built website connect?</summary> <div><strong>Where do you make changes to this website?</strong><ul><li>WordPress, Wix, Webflow, Shopify, or another CMS</li><li>Lovable, Replit, v0, Bolt, or Base44</li><li>GitHub, Vercel, Netlify, or a developer-managed repository</li><li>I’m not sure—let Rebound SEO inspect the website</li></ul><p>Rebound SEO will use that answer to choose the real publishing connection. It will ne"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:312:button:1",
@@ -4992,7 +4992,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Destiny has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} ke"
+    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:326:onClick:2",
@@ -5001,7 +5001,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Destiny has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} ke"
+    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:330:button:1",
@@ -6198,7 +6198,7 @@
     "type": "select",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</fieldset> {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Destiny places the article HTML in this rich-text field.</small></label>} {error && <p className=\"form-error\" role=\"alert\">{error}</p>}"
+    "context": "</fieldset> {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Rebound SEO places the article HTML in this rich-text field.</small></label>} {error && <p className=\"form-error\" role=\"alert\">{error}</p>}"
   },
   {
     "control_id": "src/components/webflow-integration-action.tsx:117:onChange:2",
@@ -6207,7 +6207,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</fieldset> {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Destiny places the article HTML in this rich-text field.</small></label>} {error && <p className=\"form-error\" role=\"alert\">{error}</p>}"
+    "context": "</fieldset> {bodyFieldOptions.length > 1 && <label>Article body field<select onChange={(event) => setSelectedBodyField(event.target.value)} value={selectedBodyField || bodyFieldOptions[0].slug}>{bodyFieldOptions.map((field) => <option key={field.slug} value={field.slug}>{field.label}</option>)}</select><small>Rebound SEO places the article HTML in this rich-text field.</small></label>} {error && <p className=\"form-error\" role=\"alert\">{error}</p>}"
   },
   {
     "control_id": "src/components/webflow-integration-action.tsx:119:button:1",
@@ -6369,7 +6369,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">Show"
+    "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Rebound SEO already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">"
   },
   {
     "control_id": "src/components/weekly-loop.tsx:124:onClick:2",
@@ -6378,7 +6378,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Destiny already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">Show"
+    "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Rebound SEO already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">"
   },
   {
     "control_id": "src/components/weekly-loop.tsx:138:button:1",
@@ -6477,7 +6477,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<div className=\"weekly-task-body\"><p><strong>Why this matters:</strong> {copy.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === \"complete\" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === \"user_confirmation\" ? \"Verified by your confirmation\" : \"Evidence verified by Destiny\"} · {new Date(task.verified_at).toLocaleDateStri"
+    "context": "<div className=\"weekly-task-body\"><p><strong>Why this matters:</strong> {copy.description}</p><p><strong>What done looks like:</strong> {doneLooksLike}</p>{task.status === \"complete\" && <div className={`completion-proof ${completion.tone}`}><strong>{completion.label}</strong><span>{completion.detail}</span>{task.verified_at && <small>{task.verification_method === \"user_confirmation\" ? \"Verified by your confirmation\" : \"Evidence verified by Rebound SEO\"} · {new Date(task.verified_at).toLocaleDate"
   },
   {
     "control_id": "src/components/weekly-task-list.tsx:104:button:1",
@@ -6486,7 +6486,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<Link className=\"primary-button\" href={guidedTaskPath(task)}>{task.task_type === \"keyword_review\" ? task.status === \"complete\" ? \"Review saved strategy\" : \"Review keywords\" : isReviewTask(task) ? \"Open reviews\" : \"Open guided step\"}</Link> {task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Destiny’s"
+    "context": "<Link className=\"primary-button\" href={guidedTaskPath(task)}>{task.task_type === \"keyword_review\" ? task.status === \"complete\" ? \"Review saved strategy\" : \"Review keywords\" : isReviewTask(task) ? \"Open reviews\" : \"Open guided step\"}</Link> {task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Rebound S"
   },
   {
     "control_id": "src/components/weekly-task-list.tsx:104:onClick:2",
@@ -6495,7 +6495,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<Link className=\"primary-button\" href={guidedTaskPath(task)}>{task.task_type === \"keyword_review\" ? task.status === \"complete\" ? \"Review saved strategy\" : \"Review keywords\" : isReviewTask(task) ? \"Open reviews\" : \"Open guided step\"}</Link> {task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Destiny’s"
+    "context": "<Link className=\"primary-button\" href={guidedTaskPath(task)}>{task.task_type === \"keyword_review\" ? task.status === \"complete\" ? \"Review saved strategy\" : \"Review keywords\" : isReviewTask(task) ? \"Open reviews\" : \"Open guided step\"}</Link> {task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Rebound S"
   },
   {
     "control_id": "src/components/weekly-task-list.tsx:105:a:1",
@@ -6504,7 +6504,7 @@
     "type": "a",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Destiny’s 5\"}</button>} {task.external_url && <a className=\"secondary-button\" href={task.external_url} rel=\"noreferrer\" target=\"_blank\">{task.task_type === \"technical_review\" ? \"Open PageSpeed Insights ↗\" : \"Open live thread ↗\"}</a>} {task.status !="
+    "context": "{task.status !== \"complete\" && task.task_type === \"keyword_review\" && <button className=\"secondary-button\" disabled={saving === task.id} onClick={() => void approveRecommendedKeywords(task)} type=\"button\">{saving === task.id ? \"Approving…\" : \"Approve Rebound SEO’s 5\"}</button>} {task.external_url && <a className=\"secondary-button\" href={task.external_url} rel=\"noreferrer\" target=\"_blank\">{task.task_type === \"technical_review\" ? \"Open PageSpeed Insights ↗\" : \"Open live thread ↗\"}</a>} {task.statu"
   },
   {
     "control_id": "src/components/weekly-task-list.tsx:106:button:1",
@@ -6783,7 +6783,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<aside className=\"sidebar\"> <Link aria-label=\"Destiny workspace home\" className=\"brand sidebar-brand\" href={href(\"/app\")}><span className=\"brand-mark\">D</span><span>Destiny</span></Link> <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />"
+    "context": "<aside className=\"sidebar\"> <Link aria-label=\"Rebound SEO workspace home\" className=\"brand sidebar-brand\" href={href(\"/app\")}><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />"
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:43:Link:1",
@@ -6792,7 +6792,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \""
+    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label "
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:44:summary:1",
@@ -6801,7 +6801,7 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<nav aria-label=\"Destiny workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.lengt"
+    "context": "<nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.l"
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:45:summary:1",
