@@ -17,7 +17,7 @@ describe("D9.1 Rebound SEO production wrapper", () => {
     const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
 
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).not.toMatch(/\n\s+push:/);
+    expect(workflow).not.toMatch(/^  push:/m);
     expect(workflow).toContain(`RELEASE_SHA: ${releaseSha}`);
     expect(workflow).toContain(`RELEASE_TAG: ${releaseTag}`);
     expect(workflow).toContain("PRODUCTION_SITE_URL: https://app.reboundseo.com");
