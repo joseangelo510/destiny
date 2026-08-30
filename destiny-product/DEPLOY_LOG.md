@@ -1575,3 +1575,104 @@ This decision authorizes only committing the single Replit production value
 through the page-level Publish action and the scoped verification above. It
 does not authorize code, Supabase, DNS, mail, Fly, `DESTINY_SITE_URL`, a
 second secret, migration, tag, traffic redirect, or broader launch claim.
+
+## D9.11-REBOUND-ROOT-CUTOVER-FINAL — Execution Receipt
+
+Decision ID: D9.11-REBOUND-ROOT-CUTOVER-FINAL
+Date: 2026-08-29
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH (frozen: production configuration, domain, and auth)
+Status: COMPLETE — scoped root-domain cutover and authenticated-root-host
+verification succeeded; no further live change is authorized.
+
+### Protected decision receipt
+
+D9.10 was merged through protected PR #67,
+<https://github.com/joseangelo510/destiny/pull/67>, at squash merge
+`bff124805647fe483603f2094f0c8e955b2d27b2`. The required protected checks
+were green:
+
+1. harness:
+   <https://github.com/joseangelo510/destiny/actions/runs/33281799032/job/99178087211>;
+2. HIGH checklist:
+   <https://github.com/joseangelo510/destiny/actions/runs/33282022807/job/99178664954>;
+3. HIGH policy:
+   <https://github.com/joseangelo510/destiny/actions/runs/33282022781/job/99178664859>;
+4. staging:
+   <https://github.com/joseangelo510/destiny/actions/runs/33282022881/job/99178665326>.
+
+### Replit production execution
+
+Replit Publishing > Adjust settings showed the persisted production value
+`NEXT_PUBLIC_SITE_URL=https://destiny-seo.replit.app` before execution. Only
+that row was edited. After the row-level Add action it read
+`NEXT_PUBLIC_SITE_URL=https://reboundseo.com`, and the page-level Publish
+action committed the draft. No second variable, secret, code file, DNS
+record, Supabase setting, mail setting, or Fly setting changed.
+
+The page-level publish completed successfully as Replit revision `448050df`.
+The reserved-VM deployment ID remained
+`a5e94a27-6ca6-4f32-a8a7-08e671bf965d`. A post-publish read confirmed the
+persisted production value remained `https://reboundseo.com`. The live
+version endpoint returned:
+
+```json
+{"sha":"8229546c2f5cd9e172a9461288cc460cf1989466","tree":"34d213d31a3e9992dcce4daed3232b6b0b898fb3","builtAt":"2026-08-29T23:59:23.049Z","env":"unknown"}
+```
+
+The content-addressed application tree therefore remained exactly the
+approved `34d213d31a3e9992dcce4daed3232b6b0b898fb3`.
+
+### Route, brand, DNS, and service preservation
+
+Immediately after the publish, all eight scoped customer routes returned
+HTTP 200:
+
+1. `https://reboundseo.com/`;
+2. `https://reboundseo.com/login`;
+3. `https://www.reboundseo.com/`;
+4. `https://www.reboundseo.com/login`;
+5. `https://destiny-seo.replit.app/`;
+6. `https://destiny-seo.replit.app/login`;
+7. `https://app.reboundseo.com/`;
+8. `https://app.reboundseo.com/login`.
+
+The public apex and `www` root/login HTML contained zero customer-facing
+`Destiny` matches and retained Rebound SEO branding. DNS remained scoped as
+intended: apex and `www` resolved to `34.111.179.208`,
+`app.reboundseo.com` remained at `66.241.125.157`, MX remained GoDaddy
+`smtp.secureserver.net` plus `mailstore1.secureserver.net`, SPF remained
+`v=spf1 include:spf.em.secureserver.net ?all`, DMARC remained
+`v=DMARC1; p=quarantine; adkim=r; aspf=r; rua=mailto:dmarc_rua@onsecureserver.net;`,
+and the Replit verification TXT remained present.
+
+### Authenticated-root-host verification
+
+> **Rebound SEO root-domain cutover — final verification receipt (Fable 5 High, frozen decision authority).**
+> Verified at tree `34d213d31a3e9992dcce4daed3232b6b0b898fb3`: publish succeeded with `NEXT_PUBLIC_SITE_URL=https://reboundseo.com`; all eight apex/www/Replit-origin/app root and login probes returned HTTP 200. Fresh magic link (2026-08-30T00:04:35Z) from Rebound SEO <auth@reboundseo.com> carried `redirect_to=https://reboundseo.com/auth/confirm?next=%2Fapp`; the Supabase exchange completed with no `/auth/error` and no old-host hop; the session authenticated on `https://reboundseo.com`.
+> **Recorded deviation:** the final landing path was `https://reboundseo.com/onboarding`, not `/app`, because this test account has not completed required onboarding; a direct visit to `/app` redirected to `/onboarding` by expected authenticated product logic. The `/app` render itself was not observed and is not claimed.
+> **Scope:** this receipt attests authenticated root-host magic-link verification only. It authorizes no further change; all frozen items in `HARNESS_POLICY.md` remain frozen pending a new recorded Fable 5 High decision.
+
+The fresh message sender, subject, callback host, and application UI all used
+Rebound SEO. The test email remained in Gmail Spam because it was similar to
+earlier messages classified as spam; inbox-placement remediation is outside
+this cutover receipt and is not claimed.
+
+### Final claim boundary
+
+This receipt verifies the Rebound SEO landing page, production custom-domain
+mapping, sender identity, and authenticated magic-link flow on the root host.
+It does not verify a fully onboarded `/app` render, onboarding completion,
+other accounts or mail providers, old-host decommissioning, deliverability
+remediation, broader launch readiness, or any change outside the frozen
+D9.10 execution scope.
+
+### Local verification
+
+The local gate passed repository policy, commit policy, deploy-log policy,
+inventory generation (`80` routes and `764` interactive or mutation
+surfaces), migration history, the governed audit, ESLint, and all `1,196`
+Vitest tests across `188` files. It then stopped only because this host has no
+Docker or Podman executable, so the local Supabase stack could not start.
+Protected CI remains the authoritative replay for the container-backed gate.
