@@ -6,7 +6,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
-import { buildArticleDraft, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
+import { buildArticleDraft, buildPersistedArticleDraftSeeds, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, mergeApprovedSavedKeywords, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { parseBuilderProfile } from "@/lib/integrations/website-profile";
@@ -16,6 +16,7 @@ import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
 import { parseInterviewArticleDraft } from "@/lib/interviews/interviews";
 import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { contentWorkspaceEmptyState } from "@/lib/content/content-workspace";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -123,7 +124,14 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
     : { data: [] };
-  const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDrafts, (savedArticleDraftRows ?? []).map((row) => row.draft));
+  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => row.draft);
+  const articleDraftSeeds = buildPersistedArticleDraftSeeds(articleDrafts, savedArticleDrafts, {
+    businessName: context.website?.business_name ?? "Your business",
+    problemSolved: context.website?.problem_solved ?? "",
+    idealCustomer: context.website?.ideal_customer ?? "",
+    differentiation: context.website?.differentiation ?? "",
+  });
+  const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows } = context.website
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
@@ -157,13 +165,20 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const approvedKeywordCount = (savedKeywordPreferences ?? []).filter((item) => item.decision === "approved").length;
   const watchlistCount = (pipelineTrackedKeywords ?? []).filter((item) => item.source !== "strategy").length;
   const strategyContentReady = rankedKeywords.length > 0 && approvedKeywordCount > 0 && keywords.length > 0;
+  const emptyState = contentWorkspaceEmptyState({
+    approvedKeywordCount,
+    directDraft: Boolean(repurposeArticleDraft || interviewArticleDraft),
+    rankedKeywordCount: rankedKeywords.length,
+    savedDraftCount: hydratedArticleDrafts.length,
+    selectedKeywordCount: keywords.length,
+  });
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
       <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
-      {!repurposeArticleDraft && !interviewArticleDraft && !rankedKeywords.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run an audit to populate the live search-intent opportunity pool." /> : !repurposeArticleDraft && !interviewArticleDraft && approvedKeywordCount < 1 ? <WorkspaceEmpty title="Approve topics before creating content" description="Rebound SEO will not turn unapproved suggestions into drafts or a publishing schedule. Review Keyword strategy and approve the searches you want to use." /> : !repurposeArticleDraft && !interviewArticleDraft && !keywords.length ? <WorkspaceEmpty title="Approve keywords to build the calendar" description="Every reviewed keyword is currently declined. Return to Keyword strategy and approve the searches Rebound SEO should use." /> : (
+      {emptyState ? <WorkspaceEmpty title={emptyState.title} description={emptyState.description} /> : (
         <>
         <section className="workspace-card content-workflow"><div><span>1</span><strong>{interviewArticleDraft ? "Interview draft ready" : repurposeArticleDraft ? "Repurposed draft ready" : "Three outlines ready"}</strong><small>{interviewArticleDraft ? "Built from your exact interview answers" : repurposeArticleDraft ? "Loaded from your saved source" : "Built from your keyword strategy"}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         {strategyContentReady && <PublishingPlanManager

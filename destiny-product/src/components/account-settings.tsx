@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatUtcDate } from "@/lib/format-date";
 import styles from "./account-settings.module.css";
 
 type AccountWebsite = {
@@ -158,7 +159,7 @@ export function AccountSettings({ activeWebsiteId = null, loginEmail, notificati
           const message = digestMessage[website.id];
           const saving = savingDigestWebsiteId === website.id;
           return <div className={styles.digestRow} key={website.id}>
-            <div className={styles.digestIdentity}><strong>{website.businessName?.trim() || website.normalizedDomain}</strong><span>{website.normalizedDomain}</span><small>Reports go to {website.reportEmail}</small>{website.lastDigestSentAt ? <small>Last provider attempt {new Date(website.lastDigestSentAt).toLocaleDateString()} · {website.deliveryStatus === "delivered" ? "Delivered" : website.deliveryStatus === "failed" ? "Delivery failed" : "Accepted; delivery confirmation pending"}</small> : <small>Your first update will follow the next fresh ranking check.</small>}{website.deliveryError ? <small className={styles.error}>{website.deliveryError}</small> : null}</div>
+            <div className={styles.digestIdentity}><strong>{website.businessName?.trim() || website.normalizedDomain}</strong><span>{website.normalizedDomain}</span><small>Reports go to {website.reportEmail}</small>{website.lastDigestSentAt ? <small>Last provider attempt {formatUtcDate(website.lastDigestSentAt)} · {website.deliveryStatus === "delivered" ? "Delivered" : website.deliveryStatus === "failed" ? "Delivery failed" : "Accepted; delivery confirmation pending"}</small> : <small>Your first update will follow the next fresh ranking check.</small>}{website.deliveryError ? <small className={styles.error}>{website.deliveryError}</small> : null}</div>
             <div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role="group">
               <button aria-pressed={frequency === "three_day"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "three_day")} type="button"><span>Every 3 days</span></button>
               <button aria-pressed={frequency === "weekly"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, "weekly")} type="button"><span>Weekly</span><small>Recommended</small></button>

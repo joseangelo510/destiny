@@ -84,6 +84,7 @@ export type CalendarEvent = {
 
 export type CalendarSummary = {
   month: string;
+  anchorDate?: string;
   events: CalendarEvent[];
 };
 

@@ -13,6 +13,10 @@ export function normalizeTrackedKeyword(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
 }
 
+export function effectiveRankSource(keyword: string, storedSource: string, approvedStrategyKeywords: Set<string>) {
+  return approvedStrategyKeywords.has(normalizeTrackedKeyword(keyword)) ? "strategy" : storedSource;
+}
+
 const baseInput = { auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0 };
 
 export function rankPolicyInput(reading: RankReading, previous: { position: number | null; found: boolean | null } | null = null, timing?: { createdAt: string; lastCheckedAt: string | null; now: Date }): DestinyLogicInput {
