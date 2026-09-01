@@ -1751,3 +1751,127 @@ new audit facts affect deployability of the re-pinned artifact.
    `rebound-seo-v1.1.0`, deploy `progress-report` from the exact tagged
    artifact with `verify_jwt=true`, update the protected workflow pin, deploy
    Fly, and complete the original non-sending verification.
+
+## D10.2-REBOUND-REDESIGN-V1.1-RELEASE — Fable 5 High Decision
+
+Decision ID: D10.2-REBOUND-REDESIGN-V1.1-RELEASE
+Date: 2026-09-01
+Authority: Fable 5 High (Claude Code 2.1.186, model `fable`, effort `high`,
+tools disabled), executing the product decision of Jose Gallegos
+Classification: HIGH (release tag, production Edge Function, deployment
+workflow, and Fly production)
+Status: DECIDED — AWAITING PROTECTED DECISION-RECORD PR. No release action is
+authorized before this entry merges with every required check green.
+
+### Decision and immutable release scope
+
+PROCEED, bounded to the strict sequence below. Release the protected redesign
+artifact at commit `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`, tree
+`cef9cda96ecb69869b2778ab931392448267fdf6`, to the existing Fly application
+at `https://app.reboundseo.com` as annotated immutable tag
+`rebound-seo-v1.1.0`. The release includes the first production deployment of
+the exact `supabase/functions/progress-report` function from that artifact,
+because the new Next route `/api/progress/report` invokes that function and
+the production function inventory did not contain the slug at decision time.
+
+The evidence basis is:
+
+1. protected PRs #70 through #75 and the Amendment 2 import-map fix PR #77
+   are merged;
+2. the exact-main push harness is green at
+   <https://github.com/joseangelo510/destiny/actions/runs/33502450039/job/99838680017>;
+3. the redesign changed zero files under the existing tool routes
+   `src/app/content`, `src/app/distribution`, `src/app/internal-links`,
+   `src/app/keywords`, and `src/app/rank-tracker` relative to redesign base
+   `14cbda0e36fe217892cdfd1e4946c036edfb1e55`;
+4. the committed inventory contains 87 routes and 808 interactive or mutation
+   surfaces; and
+5. the current Fly release is `rebound-seo-v1.0.0` at
+   `fbd738c6508c9cde75231dea60acebe842eb0b6f`, on machine
+   `860714be531938`, with machine image digest
+   `sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b`.
+   Its successful deployment receipt is
+   <https://github.com/joseangelo510/destiny/actions/runs/33268238022/job/99142007848>
+   and immutable evidence artifact is `9719348795`; the live build stamps
+   agree with that release.
+
+### Strict authorized order
+
+1. Merge the governance-only PR containing this decision through branch
+   protection, with `cto-approved` applied only by `joseangelo510` and every
+   required check green at the PR SHA. No tag, function deploy, workflow edit,
+   or production action may occur before this merge.
+2. Re-fetch and prove `origin/main` is either
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213` with tree
+   `cef9cda96ecb69869b2778ab931392448267fdf6`, or a governance-only descendant
+   permitted by Amendment 1. Create annotated immutable tag
+   `rebound-seo-v1.1.0` at exactly `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`.
+   Any other drift or pre-existing tag with another target is a hard stop.
+3. Before the function deploy, resolve the production Supabase project to
+   exactly `etkksjebqgtkkdqznnxa` and prove it is healthy. Through a name-only
+   secret inventory that does not read values, prove `RESEND_API_KEY`,
+   `DESTINY_FROM_EMAIL`, and `DESTINY_SITE_URL` already exist. If any name is
+   absent or values would need to be read or written, stop. Deploy only
+   `supabase/functions/progress-report` from the tagged artifact to that
+   project with `verify_jwt=true`, including its exact relative dependencies.
+   Confirm the production inventory reports slug `progress-report`, active,
+   and `verify_jwt=true`. The currently shipped Fly UI does not invoke this
+   slug; any direct call remains JWT- and RLS-gated.
+4. From post-decision protected `main`, create a branch and protected HIGH PR
+   that changes only the manual production workflow pin and its mechanical
+   policy tests as required: release SHA/tag/image tag become
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`,
+   `rebound-seo-v1.1.0`, and `rebound-seo-v1.1.0-prod`; the rollback point
+   becomes machine `860714be531938`, image digest
+   `sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b`,
+   SHA `fbd738c6508c9cde75231dea60acebe842eb0b6f`, tag
+   `rebound-seo-v1.0.0`, and site URL `https://app.reboundseo.com`. No other
+   workflow behavior is authorized. Merge only with `cto-approved` applied by
+   `joseangelo510` and all required checks green.
+5. Manually dispatch the merged workflow with action `deploy` and release tag
+   `rebound-seo-v1.1.0`. Success requires one healthy Fly machine, a ready
+   existing certificate, full committed-route inventory cardinality, zero
+   5xx responses, and live build stamps equal to the release SHA, tag,
+   production environment, and `https://app.reboundseo.com`.
+6. Verify without sending email: an unauthenticated request to
+   `/api/progress/report` must be rejected. Do not perform an authenticated
+   report invocation or claim provider acceptance, delivery, or inbox arrival;
+   a real send requires separate explicit authorization.
+
+### Rollback and stop conditions
+
+On any Fly post-deploy failure, run the protected rollback action exactly once
+to restore `rebound-seo-v1.0.0` at
+`fbd738c6508c9cde75231dea60acebe842eb0b6f` using digest
+`sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b`
+on machine `860714be531938`, then verify the prior build stamps and stop. Because
+`progress-report` has no prior production version and the v1.0.0 UI does not
+invoke it, leave the JWT- and RLS-gated function deployed on Fly rollback. Do
+not delete it; production function deletion is a separate destructive change
+requiring a new recorded Fable 5 High decision.
+
+Stop immediately and report, with no improvisation or retry, if any of the
+following occurs: `origin/main` drift before tagging; tag target mismatch; any
+required check red, skipped, absent, or attached to another SHA; missing
+required secret name; production project mismatch; function deployment
+failure or `verify_jwt` not true; any required change to a secret value,
+schema, migration, Auth, RLS, Site URL, DNS, certificate, Replit, or existing
+tool; Fly health failure; build-stamp mismatch; any touched-route 5xx; or an
+unauthenticated `/api/progress/report` request that is not rejected.
+
+### Required completion evidence and exclusions
+
+Completion requires this governance PR URL, merge SHA, and required check-run
+URLs; the tag ref and target SHA; name-only secret presence proof; production
+function inventory showing `progress-report` active with `verify_jwt=true` on
+`etkksjebqgtkkdqznnxa`; workflow-pin PR URL, merge SHA, and required check-run
+URLs; Fly deploy run URL and immutable artifact; live build-stamp receipts;
+full-route zero-5xx evidence; and the unauthenticated rejection receipt.
+Missing evidence means the release is not complete.
+
+Explicitly excluded: every Replit or root-production change; traffic redirect
+or cutover; schema or migration; Auth, RLS, or security-model change; Supabase
+Site URL change; secret value read or write; real email send; DNS or
+certificate change; existing-tool change; any staging-project mutation; and
+function deletion on rollback. Anything outside this sequence requires a new
+recorded Fable 5 High decision.
