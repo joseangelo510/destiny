@@ -34,7 +34,7 @@ describe("Rebound read-only core pages", () => {
     const calendar = renderToStaticMarkup(<CalendarDashboard view={{
       ...base,
       approvedDrafts: ready([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]),
-      calendarView: ready(buildCalendarView({ month: "September 2026", items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
+      calendarView: ready(buildCalendarView({ now: new Date("2026-09-01T19:00:00Z"), items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
       planTimezone: "America/Los_Angeles",
     }} />);
     const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
@@ -78,5 +78,25 @@ describe("Rebound read-only core pages", () => {
     expect(html).toContain("Edit in Content Studio");
     expect(html).toContain("Preview — draft approval enabled.");
     expect(html).not.toContain("Request edits");
+  });
+
+  it("gives an approved article a direct next move into Calendar", () => {
+    const html = renderToStaticMarkup(<DraftDashboard view={{
+      ...base,
+      auditId: "22222222-2222-4222-8222-222222222222",
+      draft: {
+        id: "draft-1",
+        title: "Approved article",
+        keyword: "approved keyword",
+        body: "Saved article body",
+        generationStatus: "generated",
+        approved: true,
+        updatedAt: "2026-08-31T12:00:00Z",
+        data: { keyword: "approved keyword", body: "Saved article body", generationStatus: "generated", approved: true },
+      },
+    }} />);
+
+    expect(html).toContain(`/app/calendar?site=${websiteId}`);
+    expect(html).toContain("Schedule in Calendar");
   });
 });

@@ -5,7 +5,9 @@ import {
   buildContentPipeline,
   buildDistributionView,
   buildProgressView,
+  calendarMonthCells,
   derivedCalendarCadence,
+  openCalendarDates,
 } from "./core-pages";
 
 describe("Rebound redesign Slice 2", () => {
@@ -48,7 +50,8 @@ describe("Rebound redesign Slice 2", () => {
 
   it("derives the calendar status and needs-you move from saved schedule items", () => {
     const view = buildCalendarView({
-      month: "September 2026",
+      now: new Date("2026-09-01T19:00:00Z"),
+      timeZone: "America/Los_Angeles",
       items: [
         { id: "one", title: "Needs review", keyword: "review", scheduled_for: "2026-09-03T16:00:00Z", state: "needs_review", last_error: null },
         { id: "two", title: "Scheduled", keyword: "scheduled", scheduled_for: "2026-09-10T16:00:00Z", state: "scheduled", last_error: null },
@@ -59,6 +62,21 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.needsYou).toMatchObject({ title: "Needs review", moveLabel: "Review" });
     expect(view.stats).toMatchObject({ needsUser: 1, scheduled: 1, stuck: 1 });
     expect(view.calendar.events).toHaveLength(3);
+  });
+
+  it("anchors Calendar to the current month and never offers a past day", () => {
+    const view = buildCalendarView({
+      now: new Date("2026-09-01T19:00:00Z"),
+      timeZone: "America/Los_Angeles",
+      items: [{ id: "old", title: "Old schedule", keyword: "old", scheduled_for: "2026-08-15T16:00:00Z", state: "needs_review" }],
+    });
+
+    expect(view.calendar).toMatchObject({ month: "September 2026", anchorDate: "2026-09-01" });
+    expect(calendarMonthCells(view.calendar.events, view.calendar.anchorDate).filter((cell) => cell.inMonth).map((cell) => cell.key)).toContain("2026-09-01");
+    expect(openCalendarDates(view.calendar)[0]).toBe("2026-09-01");
+    expect(openCalendarDates(view.calendar)).not.toContain("2026-08-31");
+    expect(view.stats.stuck).toBe(1);
+    expect(view.needsYou?.detail).toContain("overdue");
   });
 
   it("keeps only approved drafts from the current website available to Calendar", () => {
@@ -135,5 +153,19 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.owners.you[0]).toMatchObject({ title: "Review the draft", moveLabel: "Open" });
     expect(view.owners.rebound[0]).toMatchObject({ title: "Publish Thursday" });
     expect(view.owners.google[0]).toMatchObject({ title: "Waiting page", evidenceKind: "reported" });
+  });
+
+  it("surfaces overdue schedule items as blockers and removes old product naming", () => {
+    const view = buildProgressView({
+      now: new Date("2026-09-01T19:00:00Z"),
+      quests: [{ id: "open", title: "Open Destiny", description: "Finish the Destiny setup", action_path: "/this-week", status: "todo", guidance_state: "blocked", blocker_reason: "Destiny needs review" }],
+      scheduleItems: [{ id: "overdue", title: "Past publish", keyword: "past", state: "needs_review", scheduled_for: "2026-08-15T16:00:00Z" }],
+      receipts: [],
+    });
+
+    expect(view.stats.stuck).toBe(2);
+    expect(view.blockers.find((item) => item.id === "overdue")?.detail).toContain("overdue");
+    expect(JSON.stringify(view)).not.toContain("Destiny");
+    expect(JSON.stringify(view)).toContain("Rebound SEO");
   });
 });

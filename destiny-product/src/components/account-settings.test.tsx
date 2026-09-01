@@ -5,7 +5,7 @@ import { AccountSettings } from "./account-settings";
 describe("AccountSettings", () => {
   it("makes the login and notification identities explicit", () => {
     const html = renderToStaticMarkup(<AccountSettings activeWebsiteId="11111111-1111-4111-8111-111111111111" loginEmail="login@example.com" notificationEmail="reports@example.com" websites={[
-      { id: "11111111-1111-4111-8111-111111111111", businessName: "Example Co", normalizedDomain: "example.com", rankingDigestFrequency: "three_day", lastDigestSentAt: "2026-08-16T16:00:00.000Z", reportEmail: "reports@example.com", deliveryStatus: "accepted", deliveryError: null },
+      { id: "11111111-1111-4111-8111-111111111111", businessName: "Example Co", normalizedDomain: "example.com", rankingDigestFrequency: "three_day", lastDigestSentAt: "2026-08-16T00:30:00.000Z", reportEmail: "reports@example.com", deliveryStatus: "accepted", deliveryError: null },
       { id: "22222222-2222-4222-8222-222222222222", businessName: "Second Co", normalizedDomain: "second.example", rankingDigestFrequency: "weekly", lastDigestSentAt: null, reportEmail: "login@example.com", deliveryStatus: null, deliveryError: null },
     ]} />);
 
@@ -29,6 +29,7 @@ describe("AccountSettings", () => {
     expect(html).toContain("Weekly");
     expect(html).toContain("Off");
     expect(html).toContain("Last provider attempt");
+    expect(html).toContain("Last provider attempt Aug 16, 2026");
     expect(html).toContain("Reports go to reports@example.com");
     expect(html).toContain("Accepted; delivery confirmation pending");
     expect(html).toContain('type="email"');

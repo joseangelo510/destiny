@@ -13,6 +13,11 @@ const input = (id: string, priority: number, overrides: Partial<QueueInput> = {}
 });
 
 describe("buildCoreQueue", () => {
+  it("uses the Rebound SEO name in customer-facing saved quest copy", () => {
+    const queue = buildCoreQueue([input("old-brand", 1, { title: "Open Destiny", description: "Finish Destiny setup" })]);
+    expect(queue.items[0]).toMatchObject({ title: "Open Rebound SEO", description: "Finish Rebound SEO setup" });
+  });
+
   it("uses the same object for queue item one and session move one", () => {
     const queue = buildCoreQueue([input("third", 3), input("first", 1), input("second", 2)]);
     expect(queue.items[0]).toBe(queue.sessionMoves[0]);
