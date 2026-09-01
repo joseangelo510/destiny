@@ -45,7 +45,8 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       expect(response?.status()).toBe(200);
       await expect(page).not.toHaveURL(/\/login/);
       await expect(page.getByRole("heading", { level: 1, name: expected.heading })).toBeVisible();
-      await expect(page.getByText(expected.landmark, { exact: true }).first()).toBeVisible();
+      if (expected.route === "content") await expect(page.getByRole("region", { name: expected.landmark })).toBeVisible();
+      else await expect(page.getByText(expected.landmark, { exact: true }).first()).toBeVisible();
       await expect(page.locator("body")).not.toContainText(/Approve all|Publish now|Send as report|Request edits/i);
       await verifyPageHealth(page, mobile, consoleErrors, pageErrors);
 
