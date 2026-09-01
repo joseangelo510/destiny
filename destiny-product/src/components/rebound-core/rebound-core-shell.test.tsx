@@ -10,13 +10,14 @@ const websiteId = "11111111-1111-4111-8111-111111111111";
 const move = { id: "move-1", title: "Review the current draft", description: "Read the draft in Content studio.", href: "/content", why: "Keeps content moving", estimateMinutes: null, state: "draft" as const };
 
 describe("Rebound redesign Slice 1", () => {
-  it("renders five core destinations and every existing tool without linking unfinished core routes", () => {
+  it("renders all five linked core destinations and every existing tool", () => {
     const html = renderToStaticMarkup(<ReboundCoreShell active="/app/home" queue={ready({ items: [move], sessionMoves: [move] })} searchConnected websiteId={websiteId} websiteLabel="Example Co"><p>Home content</p></ReboundCoreShell>);
     for (const label of ["Home", "Content", "Calendar", "Distribution", "Progress"]) expect(html).toContain(label);
     for (const tool of FEATURE_NAVIGATION) expect(html).toContain(tool.label);
     expect(html).toContain(`/app/home?site=${websiteId}`);
-    expect(html).not.toContain(`/app/content?site=${websiteId}`);
+    for (const route of ["content", "calendar", "distribution", "progress"]) expect(html).toContain(`/app/${route}?site=${websiteId}`);
     expect(html).toContain("Preview — read-only");
+    expect(html).toContain("These new core pages use current workspace data");
     expect(html).toContain(`href="/content?site=${websiteId}"`);
   });
 
