@@ -1933,3 +1933,48 @@ occurs.
 The strict authorized order and every exclusion in the original decision are
 unchanged. All other provisions of
 `D10.2-REBOUND-REDESIGN-V1.1-RELEASE` remain in full effect.
+
+## D10.3 — Production redeploy recovery: wrapper materialization + rollback polling; redeploy rebound-seo-v1.1.0 once
+
+Date: 2026-09-01
+
+Authority: Fable 5 High (deciding). Executor: Codex. Owner action: joseangelo510 applies cto-approved to both PRs.
+
+Classification: HIGH — governance (this record) + CI/deployment workflow change + production redeploy.
+
+Policy: HARNESS_POLICY.md @ 04617fbaf010ef4cfc176a7d0ba8b710b7a413bb (protected main).
+
+Evidence accepted: deploy run 33505098654 — build, provenance, rollback-point, certificate, Fly deploy, one-machine health, live v1.1 stamps passed; route sweep failed on URL materialization (curl 3 at /app/content/[draftId]; [draftId] not substituted); no 5xx observed. Rollback run 33505532466 — restore succeeded; verifier asserted while machine was still replacing; live proof confirms v1.0.0 restored (build-sha fbd738c6508c9cde75231dea60acebe842eb0b6f, root 200, POST /api/progress/report → 401, no email).
+
+Release identity (immutable, untouched): tag rebound-seo-v1.1.0, commit d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213, tree cef9cda96ecb69869b2778ab931392448267fdf6.
+
+Scope:
+
+PR-1 (governance): append this block to destiny-product/DEPLOY_LOG.md. No other change.
+
+PR-2 (implementation), only after PR-1 merges: change only
+
+- .github/workflows/rebound-production-deploy.yml
+- destiny-product/qa/rules/rebound-production-wrapper.test.ts
+
+Changes limited to: (a) generic materialization of every bracketed path segment to the existing UUID placeholder, failing before any request if a bracket remains, preserving inventory cardinality; (b) rollback verifier polls within the existing five-minute budget until exactly one started machine with the recorded machine ID and prior digest and prior live SHA/tag stamps, then final assertions and evidence upload. Zero-5xx and curl-error-is-failure checks unchanged.
+
+Redeploy: one workflow dispatch from the PR-2 merge SHA on main targeting tag rebound-seo-v1.1.0.
+
+Forbidden: Dockerfile; release tags; product code; route inventory; Supabase; secrets; auth/RLS/session; schema/migrations; DNS/certificates; Replit; existing tools; user data; weakening 87-route or zero-5xx; bypassing protection; tag mutation; unrelated changes.
+
+Gates:
+
+1. PR-1 guards green on exact head SHA; cto-approved by joseangelo510; merged; merge SHA recorded.
+2. PR-2 commit A (tests) shown failing in CI; commit B (wrapper) green; git diff --stat shows only the two files.
+3. PR-2 harness-gates, staging-evidence, policy-guard, checklist-guard green on exact head SHA; cto-approved by joseangelo510; merged; merge SHA recorded.
+4. Single dispatch from the PR-2 merge SHA; main unchanged between merge and dispatch.
+5. Success criteria met and evidence uploaded; check-in with run URL.
+
+Success criteria: live build-sha d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213; build-tag rebound-seo-v1.1.0; build-env production; build-site-url https://app.reboundseo.com; exactly one healthy Fly machine; certificate ready; all 87 inventory routes attempted with zero brackets, zero 5xx, zero curl errors; unauthenticated POST /api/progress/report → 401; no email sent; provenance, rollback point, and image digest recorded.
+
+Rollback: on any post-deployment failure, one restore to the recorded v1.0 identity (recorded machine ID and digest; fbd738c6508c9cde75231dea60acebe842eb0b6f; rebound-seo-v1.0.0; https://app.reboundseo.com), verified by bounded polling within the existing budget. No retry loops. Budget exhaustion → stop and report with live proof; no second restore or redeploy without a new decision.
+
+Stop conditions: any path outside the two allowed files; inventory would need to change; TDD order not evidenced; any guard failure on exact head SHA; cto-approved missing or not applied by joseangelo510; main moves before dispatch; any remaining bracket; any 5xx or curl error; machine count ≠ 1; certificate not ready; stamp mismatch; rollback verifier budget exhausted; any second redeploy failure; ambiguity.
+
+Claim boundary: rebound-seo-v1.1.0 live on production with the evidence above and both merge SHAs + guard URLs reported. Not a new release; no tag, product, inventory, or D10-series change.
