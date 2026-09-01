@@ -1,4 +1,5 @@
 import type { CoreMove, CoreQueue } from "./contracts";
+import { reboundCustomerText } from "./brand";
 
 export type QueueInput = {
   id: string;
@@ -31,8 +32,8 @@ export function buildCoreQueue(inputs: QueueInput[], sessionLimit = 3): CoreQueu
     .filter((input) => input.status !== "complete" && input.status !== "skipped")
     .map((input) => ({
       id: input.id,
-      title: input.title?.trim() || "Open the next recommended move",
-      description: input.description?.trim() || "Rebound SEO has the details ready in the current tool.",
+      title: reboundCustomerText(input.title?.trim() || "Open the next recommended move"),
+      description: reboundCustomerText(input.description?.trim() || "Rebound SEO has the details ready in the current tool."),
       href: input.actionPath.startsWith("/") ? input.actionPath : "/this-week",
       why: whyFor(input),
       estimateMinutes: null,

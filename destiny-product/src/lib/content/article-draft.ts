@@ -118,6 +118,28 @@ export function mergePersistedArticleDrafts(fallbacks: ArticleDraft[], saved: un
   });
 }
 
+export function buildPersistedArticleDraftSeeds(
+  fallbacks: ArticleDraft[],
+  saved: unknown,
+  context: Omit<ArticleDraftInput, "keyword">,
+  limit = 3,
+) {
+  const fallbackByKeyword = new Map(fallbacks.map((draft) => [draft.keyword.trim().toLocaleLowerCase("en-US"), draft]));
+  const savedKeywords = Array.isArray(saved) ? saved.flatMap((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const keyword = (value as Partial<ArticleDraft>).keyword;
+    return typeof keyword === "string" && keyword.trim() ? [keyword.trim()] : [];
+  }) : [];
+  const orderedKeywords = [...savedKeywords, ...fallbacks.map((draft) => draft.keyword)];
+  const seen = new Set<string>();
+  return orderedKeywords.flatMap((keyword) => {
+    const normalizedKeyword = keyword.trim().toLocaleLowerCase("en-US");
+    if (!normalizedKeyword || seen.has(normalizedKeyword)) return [];
+    seen.add(normalizedKeyword);
+    return [fallbackByKeyword.get(normalizedKeyword) ?? buildArticleDraft({ ...context, keyword })];
+  }).slice(0, Math.max(0, limit));
+}
+
 export function buildArticleDraft(input: ArticleDraftInput): ArticleDraft {
   const keyword = input.keyword.trim() || "your customer’s search question";
   const titleKeyword = titleCase(keyword);

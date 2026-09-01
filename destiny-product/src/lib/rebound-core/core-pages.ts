@@ -1,6 +1,7 @@
 import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
 import type { CalendarEvent, CalendarSummary, EvidenceKind } from "./contracts";
 import type { ApprovedCalendarDraft } from "./calendar-scheduling";
+import { reboundCustomerText } from "./brand";
 import { buildDistributionOpportunityAction, distributionOpportunityFreshness, type DistributionOpportunityAction, type DistributionPlatform } from "./distribution-actions";
 
 type JsonRecord = Record<string, unknown>;
@@ -149,6 +150,7 @@ export type CalendarRow = {
   state: string;
   href: string;
   moveLabel: string;
+  overdue: boolean;
 };
 
 export function approvedCalendarDrafts(rows: unknown[], websiteId: string): ApprovedCalendarDraft[] {
@@ -193,8 +195,26 @@ function calendarDateKey(value: string) {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
-export function calendarMonthCells(events: CalendarEvent[]) {
-  const firstEvent = events.map((event) => new Date(event.date)).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
+export function calendarLocalDateKey(date: Date, timeZone: string) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+    const key = `${part("year")}-${part("month")}-${part("day")}`;
+    return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : date.toISOString().slice(0, 10);
+  } catch {
+    return date.toISOString().slice(0, 10);
+  }
+}
+
+function monthLabelFromDateKey(value: string) {
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
+}
+
+export function calendarMonthCells(events: CalendarEvent[], anchorDate?: string) {
+  const requestedAnchor = anchorDate ? new Date(`${anchorDate}T12:00:00Z`) : null;
+  const firstEvent = requestedAnchor && !Number.isNaN(requestedAnchor.getTime())
+    ? requestedAnchor
+    : events.map((event) => new Date(event.date)).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
   const year = firstEvent.getUTCFullYear();
   const month = firstEvent.getUTCMonth();
   const first = new Date(Date.UTC(year, month, 1));
@@ -209,7 +229,22 @@ export function calendarMonthCells(events: CalendarEvent[]) {
   });
 }
 
-export function buildCalendarView(input: { month: string; items: unknown[]; timeZone?: string }) {
+export function openCalendarDates(calendar: CalendarSummary) {
+  return calendarMonthCells(calendar.events, calendar.anchorDate)
+    .filter((cell) => cell.inMonth && !cell.events.length && (!calendar.anchorDate || cell.key >= calendar.anchorDate))
+    .map((cell) => cell.key);
+}
+
+function scheduleItemIsOverdue(row: JsonRecord, now: Date) {
+  const state = text(row.state);
+  if (!["planned", "scheduled", "needs_review"].includes(state)) return false;
+  const scheduledAt = Date.parse(text(row.scheduled_for));
+  return Number.isFinite(scheduledAt) && scheduledAt < now.getTime();
+}
+
+export function buildCalendarView(input: { items: unknown[]; timeZone?: string; now?: Date }) {
+  const now = input.now ?? new Date();
+  const anchorDate = calendarLocalDateKey(now, input.timeZone ?? "UTC");
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
     const row = record(raw);
     const scheduledFor = text(row.scheduled_for);
@@ -218,13 +253,15 @@ export function buildCalendarView(input: { month: string; items: unknown[]; time
     const title = text(row.title) || sentence(text(row.keyword));
     const failed = state === "failed";
     const needsReview = state === "needs_review";
+    const overdue = scheduleItemIsOverdue(row, now);
     return [{
       id: text(row.id) || `calendar-${index}`,
       title,
       detail: text(row.last_error) || scheduledFor,
       state,
       href: "/content#publishing-plan",
-      moveLabel: needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
+      moveLabel: overdue ? "Resolve overdue item" : needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
+      overdue,
     }];
   });
   const events = rows.map((row) => ({
@@ -234,17 +271,17 @@ export function buildCalendarView(input: { month: string; items: unknown[]; time
     state: row.state,
     tone: row.state === "verified_live" ? "verified" as const : row.state === "needs_review" || row.state === "failed" ? "move" as const : "automatic" as const,
   }));
-  const needs = rows.find((row) => row.state === "needs_review");
+  const needs = rows.find((row) => row.state === "needs_review") ?? rows.find((row) => row.overdue);
   return {
-    calendar: { month: input.month, events } satisfies CalendarSummary,
+    calendar: { month: monthLabelFromDateKey(anchorDate), anchorDate, events } satisfies CalendarSummary,
     cadence: derivedCalendarCadence(input.items, input.timeZone ?? "UTC"),
     rows,
-    needsYou: needs ? { title: needs.title, detail: "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
+    needsYou: needs ? { title: needs.title, detail: needs.overdue ? "This saved publishing item is overdue and needs a resolution." : "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
     stats: {
       done: rows.filter((row) => row.state === "published" || row.state === "verified_live" || row.state === "managed_externally").length,
       needsUser: rows.filter((row) => row.state === "needs_review").length,
-      scheduled: rows.filter((row) => row.state === "scheduled" || row.state === "planned").length,
-      stuck: rows.filter((row) => row.state === "failed").length,
+      scheduled: rows.filter((row) => (row.state === "scheduled" || row.state === "planned") && !row.overdue).length,
+      stuck: rows.filter((row) => row.state === "failed" || row.overdue).length,
     },
   };
 }
@@ -321,12 +358,14 @@ export type ProgressItem = {
   at: string | null;
 };
 
-export function buildProgressView(input: { quests: unknown[]; scheduleItems: unknown[]; receipts: PublicationReceiptInput[] }) {
+export function buildProgressView(input: { quests: unknown[]; scheduleItems: unknown[]; receipts: PublicationReceiptInput[]; now?: Date }) {
+  const now = input.now ?? new Date();
   const quests = input.quests.map(record);
+  const scheduleRows = input.scheduleItems.map(record);
   const done = quests.filter((quest) => text(quest.status) === "complete").map((quest, index): ProgressItem => ({
     id: text(quest.id) || `done-${index}`,
-    title: text(quest.title) || "Completed move",
-    detail: text(quest.description) || "Completed in the saved plan.",
+    title: reboundCustomerText(text(quest.title) || "Completed move"),
+    detail: reboundCustomerText(text(quest.description) || "Completed in the saved plan."),
     href: text(quest.action_path) || "/this-week",
     moveLabel: "View",
     evidenceKind: text(quest.verification_status) === "verified" ? "verified" : "reported",
@@ -334,14 +373,14 @@ export function buildProgressView(input: { quests: unknown[]; scheduleItems: unk
   })).sort((a, b) => (b.at || "").localeCompare(a.at || ""));
   const you = quests.filter((quest) => !new Set(["complete", "skipped"]).has(text(quest.status))).map((quest, index): ProgressItem => ({
     id: text(quest.id) || `open-${index}`,
-    title: text(quest.title) || "Open move",
-    detail: text(quest.description) || "Ready in your plan.",
+    title: reboundCustomerText(text(quest.title) || "Open move"),
+    detail: reboundCustomerText(text(quest.description) || "Ready in your plan."),
     href: text(quest.action_path) || "/this-week",
     moveLabel: "Open",
     evidenceKind: "reported",
     at: null,
   }));
-  const rebound = input.scheduleItems.map(record).filter((row) => ["planned", "scheduled", "managed_externally"].includes(text(row.state))).map((row, index): ProgressItem => ({
+  const rebound = scheduleRows.filter((row) => ["planned", "scheduled", "managed_externally"].includes(text(row.state)) && !scheduleItemIsOverdue(row, now)).map((row, index): ProgressItem => ({
     id: text(row.id) || `rebound-${index}`,
     title: text(row.title) || sentence(text(row.keyword)),
     detail: text(row.scheduled_for) || "Saved publishing plan",
@@ -357,14 +396,15 @@ export function buildProgressView(input: { quests: unknown[]; scheduleItems: unk
     return [{ id: `google-${index}`, title: sentence(keyword), detail: "Published and waiting on complete public verification.", href: "/content#publishing-plan", moveLabel: "View proof", evidenceKind: "reported", at: null }];
   });
   const blockers = [
-    ...quests.filter((quest) => text(quest.guidance_state) === "blocked").map((quest, index): ProgressItem => ({ id: text(quest.id) || `blocker-${index}`, title: text(quest.title) || "Blocked move", detail: text(quest.blocker_reason) || "This move is blocked in the saved plan.", href: text(quest.action_path) || "/this-week", moveLabel: "Open", evidenceKind: "reported", at: null })),
-    ...input.scheduleItems.map(record).filter((row) => text(row.state) === "failed").map((row, index): ProgressItem => ({ id: text(row.id) || `schedule-blocker-${index}`, title: text(row.title) || sentence(text(row.keyword)), detail: text(row.last_error) || "The saved publishing item failed.", href: "/content#publishing-plan", moveLabel: "Fix schedule", evidenceKind: "reported", at: null })),
+    ...quests.filter((quest) => text(quest.guidance_state) === "blocked").map((quest, index): ProgressItem => ({ id: text(quest.id) || `blocker-${index}`, title: reboundCustomerText(text(quest.title) || "Blocked move"), detail: reboundCustomerText(text(quest.blocker_reason) || "This move is blocked in the saved plan."), href: text(quest.action_path) || "/this-week", moveLabel: "Open", evidenceKind: "reported", at: null })),
+    ...scheduleRows.filter((row) => text(row.state) === "failed").map((row, index): ProgressItem => ({ id: text(row.id) || `schedule-blocker-${index}`, title: text(row.title) || sentence(text(row.keyword)), detail: text(row.last_error) || "The saved publishing item failed.", href: "/content#publishing-plan", moveLabel: "Fix schedule", evidenceKind: "reported", at: null })),
+    ...scheduleRows.filter((row) => scheduleItemIsOverdue(row, now)).map((row, index): ProgressItem => ({ id: text(row.id) || `overdue-schedule-${index}`, title: text(row.title) || sentence(text(row.keyword)), detail: `This saved publishing item is overdue from ${text(row.scheduled_for)} without a completed publishing state.`, href: "/content#publishing-plan", moveLabel: "Resolve schedule", evidenceKind: "reported", at: text(row.scheduled_for) || null })),
   ];
   return {
     done,
     owners: { you, rebound, google },
     blockers,
-    needsYou: you[0] ?? null,
+    needsYou: you[0] ?? blockers[0] ?? null,
     milestones: [
       { label: "Completed moves", value: done.length, total: quests.length },
       { label: "Verified moves", value: done.filter((item) => item.evidenceKind === "verified").length, total: done.length },

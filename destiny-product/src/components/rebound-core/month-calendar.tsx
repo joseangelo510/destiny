@@ -3,7 +3,7 @@ import { calendarMonthCells } from "@/lib/rebound-core/core-pages";
 import styles from "./home-dashboard.module.css";
 
 export function MonthCalendar({ data, emptyDayHref }: { data: CalendarSummary; emptyDayHref?: string }) {
-  const cells = calendarMonthCells(data.events);
+  const cells = calendarMonthCells(data.events, data.anchorDate);
   return <>
     <div className={styles.calendarHead}><strong>{data.month}</strong><div><span><i className={styles.legendMove} />Your move</span><span><i className={styles.legendAutomatic} />Automatic</span><span><i className={styles.legendVerified} />Verified</span></div></div>
     <div className={styles.calendarGrid}><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>{cells.map((cell) => <section className={cell.inMonth ? styles.calendarDay : `${styles.calendarDay} ${styles.outsideMonth}`} key={cell.key}><span>{cell.date.getUTCDate()}</span>{cell.events.slice(0, 2).map((event) => <p className={styles[`event_${event.tone}`]} key={event.id}>{event.title}</p>)}{cell.inMonth && !cell.events.length && emptyDayHref ? <a aria-label={`Add content on ${cell.key}`} className={styles.calendarAdd} href={emptyDayHref}>+ add content</a> : null}</section>)}</div>

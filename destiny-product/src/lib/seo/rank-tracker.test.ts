@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  effectiveRankSource,
   rankMovement,
   rankMovementFromReadings,
   rankReadingState,
@@ -8,6 +9,11 @@ import {
 } from "./rank-tracker";
 
 describe("rank tracker evidence rules", () => {
+  it("shows an approved strategy keyword as strategy even when an older tracked row says manual", () => {
+    expect(effectiveRankSource("  AI   SEO Services ", "manual", new Set(["ai seo services"]))).toBe("strategy");
+    expect(effectiveRankSource("extra watch phrase", "manual", new Set(["ai seo services"]))).toBe("manual");
+  });
+
   it("never presents a pending keyword as rank zero", async () => {
     await expect(rankReadingState({ status: "pending", position: null, found: null })).resolves.toEqual({
       label: "First check pending",

@@ -137,7 +137,6 @@ export async function POST(request: Request) {
       source: "strategy",
     })), {
       onConflict: "website_id,normalized_keyword,location_code,language_code,device",
-      ignoreDuplicates: true,
     });
     if (trackerError) return NextResponse.json({ error: `Keyword decisions were saved, but rank tracking could not start: ${trackerError.message}` }, { status: 500 });
     const { error: resumeError } = await supabase.from("tracked_keywords").update({ status: "pending", next_check_at: new Date().toISOString(), last_error: null })

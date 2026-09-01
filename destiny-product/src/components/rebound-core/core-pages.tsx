@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ReboundCalendarView, ReboundContentView, ReboundDistributionView, ReboundDraftView, ReboundProgressView } from "@/lib/rebound-core/load-core-pages";
 import type { ReboundCoreWorkspace } from "@/lib/rebound-core/contracts";
-import { calendarMonthCells } from "@/lib/rebound-core/core-pages";
+import { openCalendarDates } from "@/lib/rebound-core/core-pages";
 import { siteScopedHref } from "@/lib/workspace-selection";
 import { MonthCalendar } from "./month-calendar";
 import { CalendarActions } from "./calendar-actions";
@@ -67,14 +67,14 @@ export function CalendarDashboard({ view }: { view: ReboundCalendarView }) {
   if (view.calendarView.state !== "ready" || !view.calendarView.data) return <EmptyPage active="/app/calendar" actionHref="/content#publishing-plan" actionLabel="Open publishing plan" message={view.calendarView.message} view={view} />;
   const data = view.calendarView.data;
   const studioHref = siteScopedHref("/content#publishing-plan", view.websiteId);
-  const openDates = calendarMonthCells(data.calendar.events).filter((cell) => cell.inMonth && !cell.events.length).map((cell) => cell.key);
+  const openDates = openCalendarDates(data.calendar);
   return <Shell active="/app/calendar" calendarActions view={view}><div className={styles.page}>
     <NeedsYouBar detail={data.needsYou?.detail ?? "The saved publishing plan has no review item."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? "The calendar can run without you"} />
     <StatusStrip items={[
       { label: "DONE", value: String(data.stats.done), detail: "saved completed items" },
       { label: "NEEDS YOU", value: String(data.stats.needsUser), detail: "items needing review" },
       { label: "IN MOTION", value: String(data.stats.scheduled), detail: "planned or scheduled" },
-      { label: "STUCK", value: String(data.stats.stuck), detail: "failed items" },
+      { label: "STUCK", value: String(data.stats.stuck), detail: "failed or overdue" },
     ]} />
     <Panel><PanelHeader action="Open publishing plan" href={studioHref} subtitle="saved items only · mobile becomes an agenda" title="The month" /><MonthCalendar data={data.calendar} emptyDayHref="#calendar-actions" /></Panel>
     <CalendarActions approvedDrafts={view.approvedDrafts} openDates={openDates} studioHref={studioHref} timeZone={view.planTimezone} websiteId={view.websiteId} />

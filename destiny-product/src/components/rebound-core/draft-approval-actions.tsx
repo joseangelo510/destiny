@@ -59,6 +59,7 @@ export function DraftApprovalActions({ auditId, draft, websiteId }: { auditId: s
           : "Fix issues before approval";
 
   return <div className={styles.approvalActions} id="draft-actions">
+    {approved ? <Link className={styles.approvalPrimary} href={siteScopedHref("/app/calendar", websiteId)}>Schedule in Calendar</Link> : null}
     <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type="button">{label}</button>
     <EditInContentStudioLink websiteId={websiteId} />
     {!approved && !gate.checking && gate.message ? <small className={styles.approvalStatus}>{gate.message}</small> : null}

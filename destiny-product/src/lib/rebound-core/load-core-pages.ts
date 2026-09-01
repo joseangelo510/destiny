@@ -82,11 +82,6 @@ async function latestPlanAndItems(context: WorkspaceContext) {
   return { plan, items: items ?? [], error: Boolean(error) };
 }
 
-function monthLabel(items: unknown[]) {
-  const first = items.map(record).map((item) => new Date(String(item.scheduled_for ?? ""))).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
-  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(first);
-}
-
 function reportRecipient(value: unknown) {
   if (typeof value !== "string") return null;
   const email = value.trim().toLocaleLowerCase("en-US");
@@ -164,7 +159,7 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
       ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
       : !schedule.plan
         ? empty<CalendarView>("No publishing plan exists yet. Create one in the existing Content Studio.")
-        : ready(buildCalendarView({ month: monthLabel(schedule.items), items: schedule.items, timeZone: planTimezone }));
+        : ready(buildCalendarView({ items: schedule.items, timeZone: planTimezone }));
     return { ...base, approvedDrafts, calendarView, planTimezone };
   } catch {
     return {

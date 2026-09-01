@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { decisionRows, existingDecisions, preferenceRows, deletedPreferences, providerKeywords, trackedRows } = vi.hoisted(() => ({
+const { decisionRows, existingDecisions, preferenceRows, deletedPreferences, providerKeywords, trackedRows, trackedUpsertOptions } = vi.hoisted(() => ({
   decisionRows: [] as Array<{ keyword: string; normalized_keyword?: string; decision: string; reason?: string | null }>,
   existingDecisions: [] as Array<{ keyword: string; decision: "approved" | "declined" }>,
   preferenceRows: [] as Array<{ keyword: string; normalized_keyword: string; decision: string; reason?: string | null; search_volume?: number | null; difficulty?: number | null; provider_intent?: string | null; search_intent?: string | null }>,
   deletedPreferences: [] as string[],
   providerKeywords: [] as Array<Record<string, unknown>>,
   trackedRows: [] as Array<{ keyword: string }>,
+  trackedUpsertOptions: [] as Array<Record<string, unknown> | undefined>,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -37,8 +38,9 @@ vi.mock("@/lib/supabase/server", () => ({
         delete: () => ({ eq: () => ({ eq: () => ({ eq: async (_column: string, keyword: string) => { deletedPreferences.push(keyword); return { error: null }; } }) }) }),
       };
       if (table === "tracked_keywords") return {
-        upsert: async (rows: Array<{ keyword: string }>) => {
+        upsert: async (rows: Array<{ keyword: string }>, options?: Record<string, unknown>) => {
           trackedRows.push(...rows);
+          trackedUpsertOptions.push(options);
           return { error: null };
         },
         update: () => {
@@ -70,6 +72,7 @@ describe("POST /api/keywords/decisions quick approval", () => {
     deletedPreferences.length = 0;
     providerKeywords.length = 0;
     trackedRows.length = 0;
+    trackedUpsertOptions.length = 0;
   });
 
   it("approves and starts tracking the saved audit's first five qualified recommendations", async () => {
@@ -98,6 +101,7 @@ describe("POST /api/keywords/decisions quick approval", () => {
     ]);
     expect(decisionRows.every((item) => item.decision === "approved")).toBe(true);
     expect(trackedRows.map((item) => item.keyword)).toEqual(decisionRows.map((item) => item.keyword));
+    expect(trackedUpsertOptions[0]).toEqual({ onConflict: "website_id,normalized_keyword,location_code,language_code,device" });
     expect(preferenceRows.map((item) => item.normalized_keyword)).toEqual(decisionRows.map((item) => item.keyword));
   });
 

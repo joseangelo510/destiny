@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articleCanBeApproved, buildArticleDraft, buildWordDocument, fitMetaDescription, mergePersistedArticleDrafts, normalizeArticleBody, renderArticleMarkdownToHtml } from "./article-draft";
+import { articleCanBeApproved, buildArticleDraft, buildPersistedArticleDraftSeeds, buildWordDocument, fitMetaDescription, mergePersistedArticleDrafts, normalizeArticleBody, renderArticleMarkdownToHtml } from "./article-draft";
 
 describe("article review workspace", () => {
   it("creates an editable, business-specific article and Word-compatible document", async () => {
@@ -47,6 +47,25 @@ describe("article review workspace", () => {
     };
 
     expect(mergePersistedArticleDrafts([starter], [generated])).toEqual([generated]);
+  });
+
+  it("restores saved drafts even when the current keyword strategy has no approved seed", () => {
+    const saved = { ...buildArticleDraft({
+      keyword: "saved webflow draft",
+      businessName: "Smart & Fast",
+      problemSolved: "Employers need reliable screening.",
+      idealCustomer: "Hiring teams",
+      differentiation: "Fast review",
+    }), title: "Saved Webflow article" };
+
+    const seeds = buildPersistedArticleDraftSeeds([], [saved], {
+      businessName: "Smart & Fast",
+      problemSolved: "Employers need reliable screening.",
+      idealCustomer: "Hiring teams",
+      differentiation: "Fast review",
+    });
+
+    expect(mergePersistedArticleDrafts(seeds, [saved])[0]).toMatchObject({ keyword: "saved webflow draft", title: "Saved Webflow article" });
   });
 
   it("renders generated Markdown as clean Word formatting instead of visible syntax", () => {
