@@ -9,6 +9,7 @@ import { CalendarActions } from "./calendar-actions";
 import { EvidenceChip, MoveChip, NeedsYouBar, Panel, PanelHeader, StateChip, StatusStrip } from "./primitives";
 import { ReboundCoreShell } from "./rebound-core-shell";
 import { DraftApprovalActions } from "./draft-approval-actions";
+import { DistributionOpportunityActions } from "./distribution-opportunity-actions";
 import styles from "./core-pages.module.css";
 
 function scopedHref(href: string, websiteId: string) {
@@ -21,8 +22,8 @@ function Action({ href, label, websiteId, hot = false }: { href: string; label: 
   return <MoveChip href={resolved} label={label} tone={hot ? "hot" : "default"} />;
 }
 
-function Shell({ active, calendarActions = false, children, draftActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
-  return <ReboundCoreShell active={active} calendarActions={calendarActions} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
+function Shell({ active, calendarActions = false, children, distributionActions = false, draftActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
+  return <ReboundCoreShell active={active} calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
 }
 
 function EmptyPage({ active, actionHref, actionLabel, message, view }: { active: string; actionHref: string; actionLabel: string; message: string | null; view: ReboundCoreWorkspace }) {
@@ -84,7 +85,7 @@ export function CalendarDashboard({ view }: { view: ReboundCalendarView }) {
 export function DistributionDashboard({ view }: { view: ReboundDistributionView }) {
   if (view.distribution.state !== "ready" || !view.distribution.data) return <EmptyPage active="/app/distribution" actionHref="/distribution" actionLabel="Open Distribution tool" message={view.distribution.message} view={view} />;
   const data = view.distribution.data;
-  return <Shell active="/app/distribution" view={view}><div className={styles.page}>
+  return <Shell active="/app/distribution" distributionActions view={view}><div className={styles.page}>
     <NeedsYouBar detail={data.needsYou?.detail ?? "There are no saved distribution moves waiting on you."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? "Distribution is calm"} />
     <StatusStrip items={[
       { label: "READY", value: String(data.stats.ready), detail: "saved community matches" },
@@ -92,8 +93,9 @@ export function DistributionDashboard({ view }: { view: ReboundDistributionView 
       { label: "VERIFIED", value: String(data.stats.verified), detail: "crawler-confirmed interlinks" },
       { label: "STUCK", value: String(data.stats.stuck), detail: "interlinks awaiting proof" },
     ]} />
-    <Panel><PanelHeader href={siteScopedHref("/distribution", view.websiteId)} subtitle="existing opportunities and interlink evidence only" title="Reach what you published" /><div className={styles.timeline}>{data.rows.map((row, index) => <article key={row.id}><span className={styles.when}>{index + 1}</span><i className={row.evidenceKind === "verified" ? styles.dotVerified : ""} /><div><strong>{row.title}</strong><small>{row.detail}</small><em>{row.owner === "you" ? "you move" : row.owner === "rebound" ? "Rebound" : "evidence"}</em></div><EvidenceChip evidence={{ kind: row.evidenceKind, source: row.evidenceKind === "verified" ? "crawl" : "quest", observedAt: null, detail: row.evidenceKind === "verified" ? "Verified" : "Saved evidence" }} /><Action href={row.href} hot={row.owner === "you"} label={row.moveLabel} websiteId={view.websiteId} /></article>)}</div></Panel>
-    <p className={styles.read}><b>Read:</b> this slice does not invent or approve a touchpoint ledger. It shows only saved opportunity and interlink evidence.</p>
+    <div className={styles.filters}><span className={styles.filterOn}>Quora · {data.platformCounts.Quora}</span><span>Reddit · {data.platformCounts.Reddit}</span><span>valid saved destinations only</span></div>
+    <Panel><PanelHeader href={siteScopedHref("/distribution", view.websiteId)} subtitle="existing opportunities and interlink evidence only" title="Reach what you published" /><div className={styles.timeline}>{data.rows.map((row, index) => <article data-distribution-kind={row.kind} id={`distribution-${row.id}`} key={row.id}><span className={styles.when}>{index + 1}</span><i className={row.evidenceKind === "verified" ? styles.dotVerified : ""} /><div><strong>{row.title}</strong><small>{row.detail}</small><em>{row.owner === "you" ? "you move" : row.owner === "rebound" ? "Rebound" : "evidence"}</em></div><EvidenceChip evidence={{ kind: row.evidenceKind, source: row.evidenceKind === "verified" ? "crawl" : "quest", observedAt: row.action?.checkedAt ?? null, detail: row.freshness?.label ?? (row.evidenceKind === "verified" ? "Verified" : "Saved evidence") }} />{row.kind === "opportunity" ? <DistributionOpportunityActions action={row.action} reverifyHref={siteScopedHref("/distribution#community", view.websiteId)} stale={row.freshness?.stale ?? true} /> : <Action href={row.href} hot={row.owner === "you"} label={row.moveLabel} websiteId={view.websiteId} />}</article>)}</div></Panel>
+    <p className={styles.read}><b>Read:</b> no touchpoint ledger is invented or approved. Community posting stays yours in the live thread; existing Rebound SEO tools remain unchanged.</p>
   </div></Shell>;
 }
 

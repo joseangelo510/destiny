@@ -95,8 +95,29 @@ describe("Rebound redesign Slice 2", () => {
     });
 
     expect(view.rows).toHaveLength(3);
+    expect(view.platformCounts).toEqual({ Quora: 1, Reddit: 0 });
+    expect(view.rows[0]).toMatchObject({
+      owner: "you",
+      action: {
+        platform: "Quora",
+        url: "https://www.quora.com/example",
+        hostname: "www.quora.com",
+        copyText: "How do I fix a kiln?\nA matched question\nhttps://www.quora.com/example\nChecked 2026-09-01T00:00:00Z",
+      },
+    });
     expect(view.rows.find((row) => row.id === "link-1")).toMatchObject({ evidenceKind: "verified", moveLabel: "View evidence" });
-    expect(view.needsYou).toMatchObject({ title: "How do I fix a kiln?", moveLabel: "Open Quora" });
+    expect(view.needsYou).toMatchObject({ title: "How do I fix a kiln?", moveLabel: "Copy context & open Quora" });
+  });
+
+  it("keeps an unsafe saved opportunity visible but non-actionable", () => {
+    const view = buildDistributionView({
+      opportunities: [{ platform: "Quora", topic: "kiln repair", title: "Unsafe saved question", url: "https://quora.com.evil.com/example", snippet: "A matched question", checkedAt: "2026-09-01T00:00:00Z" }],
+      interlinks: [],
+    });
+
+    expect(view.rows[0]).toMatchObject({ title: "Unsafe saved question", action: null, moveLabel: "Unavailable" });
+    expect(view.needsYou).toBeNull();
+    expect(view.platformCounts).toEqual({ Quora: 0, Reddit: 0 });
   });
 
   it("keeps completed work split between verified and user-reported evidence", () => {
