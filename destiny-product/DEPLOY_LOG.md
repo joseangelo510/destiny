@@ -1676,3 +1676,78 @@ surfaces), migration history, the governed audit, ESLint, and all `1,196`
 Vitest tests across `188` files. It then stopped only because this host has no
 Docker or Podman executable, so the local Supabase stack could not start.
 Protected CI remains the authoritative replay for the container-backed gate.
+
+## D10.2-REBOUND-REDESIGN-V1.1-RELEASE — Amendment 2
+
+Issued by: Fable 5 High
+Date: 2026-09-01
+Status: Binding upon being recorded; supersedes the artifact pin in the
+original D10.2 text and Amendment 1. This is an amendment to the same decision
+ID, not a new decision.
+
+### Finding
+
+Artifact SHA `8730e82c53a5595b13109e5db085970f8e669aa1` is not safely
+deployable: `supabase/functions/progress-report/index.ts` imports the bare
+specifier `@supabase/server`, and the function has no colocated `deno.json`
+providing the repository-standard mapping
+`"@supabase/server": "npm:@supabase/server@1.4.1"`. Deploying the exact
+artifact would fail or resolve nondeterministically; synthesizing an untracked
+`deno.json` at deploy time would violate the exact-tagged-artifact
+requirement. SHA `8730e82c53a5595b13109e5db085970f8e669aa1` is therefore
+permanently unreleasable and marked superseded. No tag, production deployment,
+workflow edit, or Fly mutation has occurred; nothing needs rollback.
+
+### Disposition
+
+1. PR #76 remains unmerged until a protected fix PR merges that adds only
+   `supabase/functions/progress-report/deno.json` with the established mapping
+   plus this Amendment 2 log entry, with the full harness and required checks
+   green at the fix PR SHA. Merging PR #76 pinned to an undeployable artifact
+   is prohibited.
+2. The fix PR is classified HIGH. Although the diff is repository-only with
+   no production mutation, it changes dependency resolution for a production
+   Edge Function on the active release path and alters the artifact tree of an
+   open HIGH release decision. This amendment is the required Fable 5 High
+   recorded decision for it. With this amendment recorded, implementation is
+   authorized as the exact one-file mapping above and nothing else.
+3. There is no recursive governance. PR #76 may not self-authorize the fix;
+   this Amendment 2 is recorded in the earlier fix PR and shares decision ID
+   D10.2 because scope and intent are unchanged. Amendment 2 and the import map
+   merge first; PR #76 is then updated to reference them.
+4. After the fix merges, the new immutable release artifact is the fix PR
+   merge commit on `main`. Record its full SHA and tree hash in PR #76, refresh
+   exact-main evidence with every required check green at that new SHA, and
+   replace the superseded SHA/tree throughout PR #76. Preserve tag name
+   `rebound-seo-v1.1.0`; it will point at the new artifact. No tag currently
+   exists.
+5. All release-execution authorizations previously granted under D10.2 for
+   SHA `8730e82c53a5595b13109e5db085970f8e669aa1` are revoked. Until the fix
+   PR and then amended PR #76 are merged green, create no tag, deploy no
+   production function, edit no production workflow, mutate no Fly production
+   state, push no `container-staging` release, and redirect no traffic.
+
+### Stop conditions
+
+Stop and escalate to a fresh Fable 5 High decision if the fix PR diff contains
+anything beyond `supabase/functions/progress-report/deno.json` and this log
+entry; the mapping deviates from `npm:@supabase/server@1.4.1`; a required
+check at the fix SHA is red, skipped, absent, or belongs to another SHA;
+`verify_jwt`, relative dependencies, or another function file is touched; or
+new audit facts affect deployability of the re-pinned artifact.
+
+### Authorized recovery sequence
+
+1. Record Amendment 2 in a protected fix PR that also adds the exact colocated
+   import map. Never write directly to `main`.
+2. Run the complete harness; merge only with `cto-approved` applied by
+   `joseangelo510` and every required check green at the PR SHA; capture the
+   run URLs.
+3. Record the new artifact SHA and tree hash; refresh exact-main evidence at
+   that SHA.
+4. Update still-open PR #76 to the new SHA/tree and evidence; merge under the
+   normal HIGH gates.
+5. Only then proceed with the original D10.2 release sequence: tag
+   `rebound-seo-v1.1.0`, deploy `progress-report` from the exact tagged
+   artifact with `verify_jwt=true`, update the protected workflow pin, deploy
+   Fly, and complete the original non-sending verification.
