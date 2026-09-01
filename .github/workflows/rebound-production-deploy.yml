@@ -99,8 +99,13 @@ jobs:
           inventory=src/destiny-product/qa/inventory/routes.json
           jq -e 'type == "array" and length > 0 and all(.[]; (.route | type) == "string" and (.route | length) > 0)' "${inventory}" > /dev/null
           inventory_count="$(jq 'length' "${inventory}")"
-          jq -r '.[].route' "${inventory}" \
-            | sed 's/\[id\]/00000000-0000-0000-0000-000000000000/g' > route-paths.txt
+          route_placeholder=00000000-0000-0000-0000-000000000000
+          jq -r --arg route_placeholder "${route_placeholder}" \
+            '.[].route | gsub("\\[[^/\\[\\]]+\\]"; $route_placeholder)' "${inventory}" > route-paths.txt
+          if offending_route="$(grep -m1 -E '\[|\]' route-paths.txt)"; then
+            echo "unmaterialized route placeholder: ${offending_route}" >&2
+            exit 1
+          fi
           route_count="$(wc -l < route-paths.txt | tr -d ' ')"
           test "${route_count}" = "${inventory_count}"
           printf 'inventory_count=%s\nroute_count=%s\n' "${inventory_count}" "${route_count}" | tee route-inventory-counts.txt
@@ -325,14 +330,64 @@ jobs:
             --strategy immediate \
             --wait-timeout 5m
 
-      - name: Verify prior build identity
+      - name: Verify prior machine and live build identity within five minutes
         run: |
-          flyctl machines list --app "${FLY_APP}" --json > machines-post-rollback.json
+          rollback_ready=0
+          rollback_last_observation="no observation captured"
+          for attempt in $(seq 1 60); do
+            if flyctl machines list --app "${FLY_APP}" --json > machines-post-rollback.json; then
+              rollback_machine_count="$(jq 'length' machines-post-rollback.json)"
+              rollback_started_count="$(jq '[.[] | select(.state == "started")] | length' machines-post-rollback.json)"
+              rollback_machine_id="$(jq -r '.[0].id // ""' machines-post-rollback.json)"
+              rollback_machine_digest="$(jq -r '.[0].image_ref.digest // ""' machines-post-rollback.json)"
+            else
+              rollback_machine_count="flyctl-error"
+              rollback_started_count="flyctl-error"
+              rollback_machine_id=""
+              rollback_machine_digest=""
+            fi
+            rollback_sha="$(curl -sS --max-time 5 "${PRIOR_SITE_URL}/_next/static/build-sha.txt" || true)"
+            rollback_tag="$(curl -sS --max-time 5 "${PRIOR_SITE_URL}/_next/static/build-tag.txt" || true)"
+            rollback_last_observation="attempt=${attempt} machines=${rollback_machine_count} started=${rollback_started_count} id=${rollback_machine_id} digest=${rollback_machine_digest} sha=${rollback_sha} tag=${rollback_tag}"
+            printf '%s\n' "${rollback_last_observation}" | tee rollback-last-observation.txt
+            if [ "${rollback_machine_count}" = "1" ] \
+              && [ "${rollback_started_count}" = "1" ] \
+              && [ "${rollback_machine_id}" = "${PRIOR_MACHINE_ID}" ] \
+              && [ "${rollback_machine_digest}" = "${PRIOR_IMAGE_DIGEST}" ] \
+              && [ "${rollback_sha}" = "${PRIOR_RELEASE_SHA}" ] \
+              && [ "${rollback_tag}" = "${PRIOR_RELEASE_TAG}" ]; then
+              rollback_ready=1
+              break
+            fi
+            if [ "${attempt}" -lt 60 ]; then sleep 5; fi
+          done
+          if [ "${rollback_ready}" != "1" ]; then
+            echo "Rollback verification exhausted after five minutes: ${rollback_last_observation}" >&2
+            exit 1
+          fi
           test "$(jq 'length' machines-post-rollback.json)" = "1"
           test "$(jq -r '.[0].id' machines-post-rollback.json)" = "${PRIOR_MACHINE_ID}"
+          test "$(jq -r '.[0].state' machines-post-rollback.json)" = "started"
           jq -e --arg digest "${PRIOR_IMAGE_DIGEST}" '.[0].image_ref.digest == $digest' machines-post-rollback.json > /dev/null
-          test "$(curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-sha.txt")" = "${PRIOR_RELEASE_SHA}"
-          test "$(curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-tag.txt")" = "${PRIOR_RELEASE_TAG}"
+
+      - name: Record final rollback assertions without sending email
+        run: |
+          rollback_root_code="$(curl --silent --show-error --location --max-redirs 5 --output rollback-root.html --write-out '%{http_code}' "${PRIOR_SITE_URL}/")"
+          printf '%s\n' "${rollback_root_code}" | tee rollback-root-status.txt
+          test "${rollback_root_code}" = "200"
+          curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-sha.txt" | tee rollback-build-sha.txt
+          curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-tag.txt" | tee rollback-build-tag.txt
+          curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-env.txt" | tee rollback-build-env.txt
+          curl --fail --silent --show-error "${PRIOR_SITE_URL}/_next/static/build-site-url.txt" | tee rollback-build-site-url.txt
+          test "$(cat rollback-build-sha.txt)" = "${PRIOR_RELEASE_SHA}"
+          test "$(cat rollback-build-tag.txt)" = "${PRIOR_RELEASE_TAG}"
+          test "$(cat rollback-build-env.txt)" = "production"
+          test "$(cat rollback-build-site-url.txt)" = "${PRIOR_SITE_URL}"
+          rollback_report_code="$(curl --silent --show-error --output rollback-progress-report.json --write-out '%{http_code}' \
+            --request POST --header 'content-type: application/json' --data '{}' "${PRIOR_SITE_URL}/api/progress/report")"
+          printf '%s\n' "${rollback_report_code}" | tee rollback-progress-report-status.txt
+          test "${rollback_report_code}" = "401"
+          printf '%s\n' 'no email sent: the unauthenticated report request was rejected with 401' | tee rollback-no-email.txt
 
       - name: Upload rollback evidence
         if: ${{ always() }}
@@ -342,4 +397,14 @@ jobs:
           path: |
             machines-pre-rollback.json
             machines-post-rollback.json
+            rollback-last-observation.txt
+            rollback-root-status.txt
+            rollback-root.html
+            rollback-build-sha.txt
+            rollback-build-tag.txt
+            rollback-build-env.txt
+            rollback-build-site-url.txt
+            rollback-progress-report-status.txt
+            rollback-progress-report.json
+            rollback-no-email.txt
           if-no-files-found: warn
