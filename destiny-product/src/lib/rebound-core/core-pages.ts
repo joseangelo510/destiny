@@ -1,5 +1,6 @@
 import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
-import type { CalendarSummary, EvidenceKind } from "./contracts";
+import type { CalendarEvent, CalendarSummary, EvidenceKind } from "./contracts";
+import type { ApprovedCalendarDraft } from "./calendar-scheduling";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -149,7 +150,65 @@ export type CalendarRow = {
   moveLabel: string;
 };
 
-export function buildCalendarView(input: { month: string; items: unknown[] }) {
+export function approvedCalendarDrafts(rows: unknown[], websiteId: string): ApprovedCalendarDraft[] {
+  return rows.flatMap((raw): ApprovedCalendarDraft[] => {
+    const row = record(raw);
+    if (text(row.website_id) !== websiteId) return [];
+    const draft = record(row.draft);
+    const id = text(row.id);
+    const keyword = text(row.keyword) || text(draft.keyword);
+    const title = text(draft.title);
+    if (!id || !keyword || !title || draft.approved !== true) return [];
+    return [{ id, keyword, title }];
+  });
+}
+
+export function derivedCalendarCadence(items: unknown[], timeZone: string) {
+  const dates = items.map(record).map((item) => Date.parse(text(item.scheduled_for))).filter(Number.isFinite).sort((left, right) => left - right);
+  if (dates.length < 2) return {
+    label: "Not enough saved dates",
+    detail: "Cadence will appear after at least two publishing dates are saved.",
+    derived: true as const,
+  };
+  const day = 24 * 60 * 60 * 1000;
+  const intervals = dates.slice(1).map((value, index) => Math.round((value - dates[index]) / day));
+  const weekly = intervals.every((value) => value >= 6 && value <= 8);
+  let formatter: Intl.DateTimeFormat;
+  try {
+    formatter = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "long", hour: "numeric", minute: "2-digit" });
+  } catch {
+    formatter = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", hour: "numeric", minute: "2-digit" });
+  }
+  const first = formatter.format(new Date(dates[0]));
+  return {
+    label: weekly ? "Weekly" : "Saved schedule",
+    detail: weekly ? `${first} · derived from saved publishing dates.` : `${dates.length} saved dates · no editable workspace cadence is stored.`,
+    derived: true as const,
+  };
+}
+
+function calendarDateKey(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+export function calendarMonthCells(events: CalendarEvent[]) {
+  const firstEvent = events.map((event) => new Date(event.date)).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
+  const year = firstEvent.getUTCFullYear();
+  const month = firstEvent.getUTCMonth();
+  const first = new Date(Date.UTC(year, month, 1));
+  const mondayOffset = (first.getUTCDay() + 6) % 7;
+  const start = new Date(first);
+  start.setUTCDate(first.getUTCDate() - mondayOffset);
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    return { date, key, inMonth: date.getUTCMonth() === month, events: events.filter((event) => calendarDateKey(event.date) === key) };
+  });
+}
+
+export function buildCalendarView(input: { month: string; items: unknown[]; timeZone?: string }) {
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
     const row = record(raw);
     const scheduledFor = text(row.scheduled_for);
@@ -177,6 +236,7 @@ export function buildCalendarView(input: { month: string; items: unknown[] }) {
   const needs = rows.find((row) => row.state === "needs_review");
   return {
     calendar: { month: input.month, events } satisfies CalendarSummary,
+    cadence: derivedCalendarCadence(input.items, input.timeZone ?? "UTC"),
     rows,
     needsYou: needs ? { title: needs.title, detail: "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
     stats: {

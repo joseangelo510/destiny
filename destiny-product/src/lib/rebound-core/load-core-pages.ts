@@ -4,7 +4,8 @@ import { scopedClient } from "@/lib/db";
 import { buildCoachTaskSet } from "@/lib/product/coach-experience";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 import type { PanelResult, ReboundCoreWorkspace } from "./contracts";
-import { buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "./core-pages";
+import type { ApprovedCalendarDraft } from "./calendar-scheduling";
+import { approvedCalendarDrafts, buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "./core-pages";
 import { empty, failed, ready } from "./panel-result";
 import { buildCoreQueue } from "./queue";
 
@@ -15,7 +16,11 @@ type DistributionView = ReturnType<typeof buildDistributionView>;
 type ProgressView = ReturnType<typeof buildProgressView>;
 
 export type ReboundContentView = ReboundCoreWorkspace & { pipeline: PanelResult<ContentPipeline> };
-export type ReboundCalendarView = ReboundCoreWorkspace & { calendarView: PanelResult<CalendarView> };
+export type ReboundCalendarView = ReboundCoreWorkspace & {
+  approvedDrafts: PanelResult<ApprovedCalendarDraft[]>;
+  calendarView: PanelResult<CalendarView>;
+  planTimezone: string;
+};
 export type ReboundDistributionView = ReboundCoreWorkspace & { distribution: PanelResult<DistributionView> };
 export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView> };
 export type ReboundDraftView = ReboundCoreWorkspace & {
@@ -135,17 +140,33 @@ export async function loadReboundDraft(draftId: string): Promise<ReboundDraftVie
 export async function loadReboundCalendar(): Promise<ReboundCalendarView | null> {
   const context = await getWorkspaceContext();
   const base = await coreWorkspace(context);
-  if (!base) return null;
+  if (!base || !context.website) return null;
   try {
-    const schedule = await latestPlanAndItems(context);
+    const scoped = await scopedClient(context.website.id);
+    const [schedule, { data: drafts, error: draftError }] = await Promise.all([
+      latestPlanAndItems(context),
+      scoped.select("article_drafts", "id,website_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+    ]);
+    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id);
+    const approvedDrafts = draftError
+      ? failed<ApprovedCalendarDraft[]>("Approved drafts could not be loaded for Calendar.")
+      : draftOptions.length
+        ? ready(draftOptions)
+        : empty<ApprovedCalendarDraft[]>("No approved draft is ready to schedule yet.");
+    const planTimezone = typeof schedule.plan?.timezone === "string" && schedule.plan.timezone.trim() ? schedule.plan.timezone : "UTC";
     const calendarView = schedule.error
       ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
       : !schedule.plan
         ? empty<CalendarView>("No publishing plan exists yet. Create one in the existing Content Studio.")
-        : ready(buildCalendarView({ month: monthLabel(schedule.items), items: schedule.items }));
-    return { ...base, calendarView };
+        : ready(buildCalendarView({ month: monthLabel(schedule.items), items: schedule.items, timeZone: planTimezone }));
+    return { ...base, approvedDrafts, calendarView, planTimezone };
   } catch {
-    return { ...base, calendarView: failed("The saved publishing calendar could not be loaded.") };
+    return {
+      ...base,
+      approvedDrafts: failed("Approved drafts could not be loaded for Calendar."),
+      calendarView: failed("The saved publishing calendar could not be loaded."),
+      planTimezone: "UTC",
+    };
   }
 }
 

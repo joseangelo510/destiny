@@ -5769,18 +5769,81 @@
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:18:a:1",
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:55:select:1",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 55,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{drafts.length && openDates.length ? <div className={styles.calendarActionForm}> <label>Approved draft<select aria-label=\"Approved draft\" onChange={(event) => setDraftId(event.target.value)} value={draftId}>{drafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select></label> <label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date}"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:55:onChange:2",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 55,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{drafts.length && openDates.length ? <div className={styles.calendarActionForm}> <label>Approved draft<select aria-label=\"Approved draft\" onChange={(event) => setDraftId(event.target.value)} value={draftId}>{drafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select></label> <label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date}"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:56:select:1",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 56,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>Approved draft<select aria-label=\"Approved draft\" onChange={(event) => setDraftId(event.target.value)} value={draftId}>{drafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select></label> <label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label> <button className={st"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:56:onChange:2",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 56,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>Approved draft<select aria-label=\"Approved draft\" onChange={(event) => setDraftId(event.target.value)} value={draftId}>{drafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select></label> <label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label> <button className={st"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:57:button:1",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 57,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label> <button className={styles.calendarActionPrimary} disabled={!selectedDraft || !localDate || saving} onClick={() => void schedule()} type=\"button\">{saving ? \"Scheduling…\" : \"Schedule approved draft\"}</button> </div> : <div className={styles.calendarActionEmpty}><strong>{o"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:57:onClick:2",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 57,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<label>Open day<select aria-label=\"Open calendar day\" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label> <button className={styles.calendarActionPrimary} disabled={!selectedDraft || !localDate || saving} onClick={() => void schedule()} type=\"button\">{saving ? \"Scheduling…\" : \"Schedule approved draft\"}</button> </div> : <div className={styles.calendarActionEmpty}><strong>{o"
+  },
+  {
+    "control_id": "src/components/rebound-core/calendar-actions.tsx:59:Link:1",
+    "file": "src/components/rebound-core/calendar-actions.tsx",
+    "line": 59,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "</div> : <div className={styles.calendarActionEmpty}><strong>{openDates.length ? \"No approved draft is ready\" : \"No open day remains in this month\"}</strong><p>{approvedDrafts.message ?? \"Use Content Studio to review the next draft or publishing date.\"}</p></div>} <Link className={styles.calendarActionSecondary} href={studioHref}>Open Content Studio</Link> {notice ? <small className={styles.calendarActionNotice} role=\"status\">{notice}</small> : null}"
+  },
+  {
+    "control_id": "src/components/rebound-core/core-pages.tsx:20:a:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 18,
+    "line": 20,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const resolved = scopedHref(href, websiteId); if (/^https?:\\/\\//.test(resolved)) return <a className={`${styles.action} ${hot ? styles.actionHot : \"\"}`} href={resolved} rel=\"noreferrer\" target=\"_blank\">{label} ↗</a>; return <MoveChip href={resolved} label={label} tone={hot ? \"hot\" : \"default\"} />;"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:31:Link:1",
+    "control_id": "src/components/rebound-core/core-pages.tsx:33:Link:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 31,
+    "line": 33,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
@@ -5875,6 +5938,24 @@
     "route": "component",
     "side_effect_class": 1,
     "context": "if (result.state === \"ready\" && result.data) return <div className={styles.sourceBox}><header><b>Analytics</b><EvidenceChip evidence={result.evidence[0]} /></header><div className={styles.analyticsReady}><strong>{value(result.data.engagedVisits)}</strong><span>Organic engaged visits</span><small>{delta(result.data.engagedVisitsChange)} · {syncedLabel(result.data.syncedAt)}</small></div></div>; return <div className={`${styles.sourceBox} ${styles.sourceBoxOff}`}><header><b>Analytics</b><EvidenceC"
+  },
+  {
+    "control_id": "src/components/rebound-core/month-calendar.tsx:9:a:1",
+    "file": "src/components/rebound-core/month-calendar.tsx",
+    "line": 9,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.calendarHead}><strong>{data.month}</strong><div><span><i className={styles.legendMove} />Your move</span><span><i className={styles.legendAutomatic} />Automatic</span><span><i className={styles.legendVerified} />Verified</span></div></div> <div className={styles.calendarGrid}><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>{cells.map((cell) => <section className={cell.inMonth ? styles.calendarDay : `${styles.calendarDay} ${"
+  },
+  {
+    "control_id": "src/components/rebound-core/month-calendar.tsx:10:a:1",
+    "file": "src/components/rebound-core/month-calendar.tsx",
+    "line": 10,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.calendarGrid}><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>{cells.map((cell) => <section className={cell.inMonth ? styles.calendarDay : `${styles.calendarDay} ${styles.outsideMonth}`} key={cell.key}><span>{cell.date.getUTCDate()}</span>{cell.events.slice(0, 2).map((event) => <p className={styles[`event_${event.tone}`]} key={event.id}>{event.title}</p>)}{cell.inMonth && !cell.events.length && emptyDayHref ? <a aria-label="
   },
   {
     "control_id": "src/components/rebound-core/preview-strip.tsx:7:button:1",

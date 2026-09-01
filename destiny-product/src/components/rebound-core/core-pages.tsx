@@ -2,8 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ReboundCalendarView, ReboundContentView, ReboundDistributionView, ReboundDraftView, ReboundProgressView } from "@/lib/rebound-core/load-core-pages";
 import type { ReboundCoreWorkspace } from "@/lib/rebound-core/contracts";
+import { calendarMonthCells } from "@/lib/rebound-core/core-pages";
 import { siteScopedHref } from "@/lib/workspace-selection";
 import { MonthCalendar } from "./month-calendar";
+import { CalendarActions } from "./calendar-actions";
 import { EvidenceChip, MoveChip, NeedsYouBar, Panel, PanelHeader, StateChip, StatusStrip } from "./primitives";
 import { ReboundCoreShell } from "./rebound-core-shell";
 import { DraftApprovalActions } from "./draft-approval-actions";
@@ -19,8 +21,8 @@ function Action({ href, label, websiteId, hot = false }: { href: string; label: 
   return <MoveChip href={resolved} label={label} tone={hot ? "hot" : "default"} />;
 }
 
-function Shell({ active, children, draftActions = false, view, title, subtitle }: { active: string; children: ReactNode; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
-  return <ReboundCoreShell active={active} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
+function Shell({ active, calendarActions = false, children, draftActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
+  return <ReboundCoreShell active={active} calendarActions={calendarActions} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
 }
 
 function EmptyPage({ active, actionHref, actionLabel, message, view }: { active: string; actionHref: string; actionLabel: string; message: string | null; view: ReboundCoreWorkspace }) {
@@ -62,7 +64,9 @@ export function DraftDashboard({ view }: { view: ReboundDraftView }) {
 export function CalendarDashboard({ view }: { view: ReboundCalendarView }) {
   if (view.calendarView.state !== "ready" || !view.calendarView.data) return <EmptyPage active="/app/calendar" actionHref="/content#publishing-plan" actionLabel="Open publishing plan" message={view.calendarView.message} view={view} />;
   const data = view.calendarView.data;
-  return <Shell active="/app/calendar" view={view}><div className={styles.page}>
+  const studioHref = siteScopedHref("/content#publishing-plan", view.websiteId);
+  const openDates = calendarMonthCells(data.calendar.events).filter((cell) => cell.inMonth && !cell.events.length).map((cell) => cell.key);
+  return <Shell active="/app/calendar" calendarActions view={view}><div className={styles.page}>
     <NeedsYouBar detail={data.needsYou?.detail ?? "The saved publishing plan has no review item."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? "The calendar can run without you"} />
     <StatusStrip items={[
       { label: "DONE", value: String(data.stats.done), detail: "saved completed items" },
@@ -70,7 +74,9 @@ export function CalendarDashboard({ view }: { view: ReboundCalendarView }) {
       { label: "IN MOTION", value: String(data.stats.scheduled), detail: "planned or scheduled" },
       { label: "STUCK", value: String(data.stats.stuck), detail: "failed items" },
     ]} />
-    <Panel><PanelHeader action="Open publishing plan" href={siteScopedHref("/content#publishing-plan", view.websiteId)} subtitle="saved items only · mobile becomes an agenda" title="The month" /><MonthCalendar data={data.calendar} /></Panel>
+    <Panel><PanelHeader action="Open publishing plan" href={studioHref} subtitle="saved items only · mobile becomes an agenda" title="The month" /><MonthCalendar data={data.calendar} emptyDayHref="#calendar-actions" /></Panel>
+    <CalendarActions approvedDrafts={view.approvedDrafts} openDates={openDates} studioHref={studioHref} timeZone={view.planTimezone} websiteId={view.websiteId} />
+    <div className={styles.calendarMetaGrid}><Panel><div className={styles.calendarMeta}><span>Cadence</span><h3>{data.cadence.label}</h3><p>{data.cadence.detail}</p><Action href="/content#publishing-plan" label="Edit in Content Studio" websiteId={view.websiteId} /></div></Panel><Panel><div className={styles.calendarMeta}><span>Milestone</span><h3>Milestone not configured</h3><p>No workspace milestone is stored, so Rebound SEO will not invent a target or progress claim.</p></div></Panel></div>
     <Panel><PanelHeader subtitle="one honest state and one move per row" title="Schedule" /><div className={styles.list}>{data.rows.map((row) => <article key={row.id}><div><strong>{row.title}</strong><small>{row.detail}</small></div><StateChip label={row.state.replaceAll("_", " ")} state={row.state === "published" || row.state === "verified_live" ? row.state : row.state === "scheduled" || row.state === "managed_externally" ? "scheduled" : row.state === "needs_review" ? "approved" : "idea"} /><Action href={row.href} hot={row.state === "needs_review" || row.state === "failed"} label={row.moveLabel} websiteId={view.websiteId} /></article>)}</div></Panel>
   </div></Shell>;
 }
