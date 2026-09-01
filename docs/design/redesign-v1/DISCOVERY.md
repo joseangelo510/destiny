@@ -1,23 +1,22 @@
 # Rebound SEO redesign v1 — Gate 0 discovery
 
-Status: `SLICE_1_GO_D10_0`
+Status: `SLICE_1_GO_D10_1`
 
 Date: 2026-08-31
 
 ## Answer first
 
-Fable 5 High decision D10.0 authorizes Foundation plus the read-only Home page on a new, unlinked, authenticated `/app/home` route. The slice is MEDIUM after the recorded HIGH governance re-pin. No feature flag, allowlist, schema, secret, runtime configuration, authentication, session, RLS, CI/deploy, cutover, release tag, write action, existing route, or existing tool change is permitted.
+Fable 5 High decision D10.1 authorizes Foundation plus the read-only Home page on a new, unlinked, authenticated `/app/home` route as a pure MEDIUM slice. The separate governance re-pin is deferred and does not gate this work. No feature flag, allowlist, schema, secret, runtime configuration, authentication, session, RLS, CI/deploy, cutover, release tag, write action, existing route, or existing tool change is permitted.
 
 The current repository already contains the authenticated workspace resolution and most of the read-only data needed for Home. Missing data must render an honest empty, error, or not-connected state. The product must not render the pottery examples from the design files.
 
 ## Canonical source and decision
 
 - Repository: `joseangelo510/destiny`.
-- Slice base and governing policy SHA: `14cbda0e36fe217892cdfd1e4946c036edfb1e55`.
+- Slice base inspected: `14cbda0e36fe217892cdfd1e4946c036edfb1e55`.
 - `HARNESS_POLICY.md` SHA-256: `fd2fde61e20d2946c8cd793e82daeeaf5e9be93235b31b41bf79c384da03b34c`.
-- Prior pin `24c0ee825df6ca9359a4dfadf25779b15cef7ece`: unreachable from canonical refs and void under D10.0.
 - Branch: `codex/rebound-redesign-v1-slice-1`.
-- Decision: D10.0 in `destiny-product/DEPLOY_LOG.md`.
+- Decision: D10.1 in the Fable conversation record; it is intentionally not written into this MEDIUM PR.
 
 ## Verbatim policy classification
 
@@ -48,7 +47,7 @@ The HIGH clauses in `HARNESS_POLICY.md` at the governing SHA are:
 > - any frozen action below;
 > - any ambiguous change. Ambiguity defaults to HIGH.
 
-These clauses match the Gate 0 summary. D10.0 is therefore active.
+These clauses match the Gate 0 summary and classify this additive product slice as MEDIUM.
 
 ## Stack, routing, authentication, and workspace scope
 
@@ -74,7 +73,7 @@ These clauses match the Gate 0 summary. D10.0 is therefore active.
 
 ## Missing or partial data
 
-- No product feature flag or allowlist exists. D10.0 permits no new flag for Slice 1 and requires `/app/*` to remain unlinked from all existing pages.
+- No product feature flag or allowlist exists. D10.1 permits no new flag for Slice 1 and requires `/app/*` to remain unlinked from all existing pages.
 - Cloudflare Analytics is absent and must not be offered as a working provider.
 - No unified distribution touchpoint/event ledger exists.
 - No durable per-user `last_seen_at` exists, so Home makes no “since your last visit” claim.
@@ -99,4 +98,4 @@ Stop if `/app/home` requires an auth, matcher, session, route-group, schema, sec
 
 ## Claim boundary
 
-This slice can be called complete only after its protected PR is merged with the required green check URLs and merge SHA. It is not a cutover, release, production availability claim, write workflow, or user-facing announcement. Slice 2 does not start until Fable 5 High returns GO after the Slice 1 check-in.
+This slice can be called complete only after its protected PR is merged with the required green check URLs and merge SHA. It is not a cutover, release, production availability claim, write workflow, or user-facing announcement. D10.1 pre-grants Slice 2 only after the Slice 1 close-out evidence is posted.
