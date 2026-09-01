@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { notificationRecipient } from "./notification-recipient";
 import { sendAuditReadyEmail } from "./process-audit/email";
 import { renderProgressReportEmail } from "./progress-report/email";
+import { buildProgressReportSummary } from "./progress-report/logic";
 import { sendWelcomeEmail } from "./send-welcome/email";
 import { reboundSeoSender } from "./_shared/email-sender";
 
@@ -34,6 +35,15 @@ describe("Rebound SEO transactional email", () => {
     });
     expect(email.text).toContain("Verified evidence");
     expect(email.text).not.toMatch(/delivered/i);
+  });
+
+  it("keeps an incomplete verified-live receipt in the waiting-on-Google lane", () => {
+    const summary = buildProgressReportSummary({
+      quests: [],
+      scheduleItems: [],
+      receipts: [{ articleKey: "audit-1:kiln repair", publicationStatus: "verified_live", remotePermalink: "https://example.com/kiln-repair" }],
+    });
+    expect(summary.owners.google).toEqual([{ title: "Kiln repair", detail: "Published and waiting on complete public verification." }]);
   });
 
   it("stays safely disabled when provider secrets are absent", async () => {
