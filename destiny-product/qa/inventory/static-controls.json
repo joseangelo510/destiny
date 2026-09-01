@@ -5832,22 +5832,58 @@
     "context": "</div> : <div className={styles.calendarActionEmpty}><strong>{openDates.length ? \"No approved draft is ready\" : \"No open day remains in this month\"}</strong><p>{approvedDrafts.message ?? \"Use Content Studio to review the next draft or publishing date.\"}</p></div>} <Link className={styles.calendarActionSecondary} href={studioHref}>Open Content Studio</Link> {notice ? <small className={styles.calendarActionNotice} role=\"status\">{notice}</small> : null}"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:20:a:1",
+    "control_id": "src/components/rebound-core/core-pages.tsx:21:a:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 20,
+    "line": 21,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const resolved = scopedHref(href, websiteId); if (/^https?:\\/\\//.test(resolved)) return <a className={`${styles.action} ${hot ? styles.actionHot : \"\"}`} href={resolved} rel=\"noreferrer\" target=\"_blank\">{label} ↗</a>; return <MoveChip href={resolved} label={label} tone={hot ? \"hot\" : \"default\"} />;"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:33:Link:1",
+    "control_id": "src/components/rebound-core/core-pages.tsx:34:Link:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 33,
+    "line": 34,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "function BackToContentPipeline({ websiteId }: { websiteId: string }) { return <Link className={styles.back} href={siteScopedHref(\"/app/content\", websiteId)}>← Back to pipeline</Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/distribution-opportunity-actions.tsx:20:button:1",
+    "file": "src/components/rebound-core/distribution-opportunity-actions.tsx",
+    "line": 20,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "if (!action) return <div className={styles.distributionAction}><button aria-label=\"Saved destination unavailable\" disabled type=\"button\">Unavailable</button><small>Saved destination failed the safety check.</small></div>; if (stale) return <div className={styles.distributionAction}><Link href={reverifyHref}>Reverify in Distribution</Link><small>opens the existing Distribution tool</small></div>;"
+  },
+  {
+    "control_id": "src/components/rebound-core/distribution-opportunity-actions.tsx:21:Link:1",
+    "file": "src/components/rebound-core/distribution-opportunity-actions.tsx",
+    "line": 21,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "if (!action) return <div className={styles.distributionAction}><button aria-label=\"Saved destination unavailable\" disabled type=\"button\">Unavailable</button><small>Saved destination failed the safety check.</small></div>; if (stale) return <div className={styles.distributionAction}><Link href={reverifyHref}>Reverify in Distribution</Link><small>opens the existing Distribution tool</small></div>;"
+  },
+  {
+    "control_id": "src/components/rebound-core/distribution-opportunity-actions.tsx:38:button:1",
+    "file": "src/components/rebound-core/distribution-opportunity-actions.tsx",
+    "line": 38,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <div className={styles.distributionAction}> <button aria-label={`Copy saved context and open ${action.platform}`} onClick={copyAndOpen} type=\"button\">Copy context &amp; open {action.platform}</button> <small>opens {action.hostname}</small>"
+  },
+  {
+    "control_id": "src/components/rebound-core/distribution-opportunity-actions.tsx:38:onClick:2",
+    "file": "src/components/rebound-core/distribution-opportunity-actions.tsx",
+    "line": 38,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <div className={styles.distributionAction}> <button aria-label={`Copy saved context and open ${action.platform}`} onClick={copyAndOpen} type=\"button\">Copy context &amp; open {action.platform}</button> <small>opens {action.hostname}</small>"
   },
   {
     "control_id": "src/components/rebound-core/draft-approval-actions.tsx:13:Link:1",
