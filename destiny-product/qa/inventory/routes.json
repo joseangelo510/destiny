@@ -271,8 +271,33 @@
   },
   {
     "kind": "page",
+    "route": "/app/calendar",
+    "file": "src/app/app/calendar/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/app/content",
+    "file": "src/app/app/content/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/app/content/[draftId]",
+    "file": "src/app/app/content/[draftId]/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/app/distribution",
+    "file": "src/app/app/distribution/page.tsx"
+  },
+  {
+    "kind": "page",
     "route": "/app/home",
     "file": "src/app/app/home/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/app/progress",
+    "file": "src/app/app/progress/page.tsx"
   },
   {
     "kind": "page",

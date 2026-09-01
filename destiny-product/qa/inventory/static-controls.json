@@ -5769,6 +5769,24 @@
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
+    "control_id": "src/components/rebound-core/core-pages.tsx:17:a:1",
+    "file": "src/components/rebound-core/core-pages.tsx",
+    "line": 17,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const resolved = scopedHref(href, websiteId); if (/^https?:\\/\\//.test(resolved)) return <a className={`${styles.action} ${hot ? styles.actionHot : \"\"}`} href={resolved} rel=\"noreferrer\" target=\"_blank\">{label} ↗</a>; return <MoveChip href={resolved} label={label} tone={hot ? \"hot\" : \"default\"} />;"
+  },
+  {
+    "control_id": "src/components/rebound-core/core-pages.tsx:51:Link:1",
+    "file": "src/components/rebound-core/core-pages.tsx",
+    "line": 51,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <Shell active=\"/app/content\" subtitle=\"read-only draft detail\" title=\"Content\" view={view}><div className={styles.page}> <Link className={styles.back} href={siteScopedHref(\"/app/content\", view.websiteId)}>← Back to pipeline</Link> <NeedsYouBar detail=\"Editing and approval stay in the existing Content Studio during this read-only slice.\" move={view.draft.approved ? undefined : { href: siteScopedHref(\"/content\", view.websiteId), label: \"Open Content Studio\" }} title={view.draft.approved ? \""
+  },
+  {
     "control_id": "src/components/rebound-core/home-calendar.tsx:8:Link:1",
     "file": "src/components/rebound-core/home-calendar.tsx",
     "line": 8,
@@ -5838,7 +5856,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> This new Home uses current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> These new core pages use current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
   },
   {
     "control_id": "src/components/rebound-core/preview-strip.tsx:9:onClick:2",
@@ -5847,7 +5865,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> This new Home uses current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> These new core pages use current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
   },
   {
     "control_id": "src/components/rebound-core/primitives.tsx:17:Link:1",
@@ -5877,49 +5895,49 @@
     "context": "if (!move) return <div className={`${styles.sessionPill} ${styles.sessionPillCalm}`}><small>Today&apos;s session</small><strong>Nothing needs you right now</strong><span>Rebound SEO is watching for the next move.</span></div>; return <Link className={styles.sessionPill} href={move.href}><small>Today&apos;s session</small><strong>{move.title}</strong><span>Move 1 of {Math.min(3, count)} · open</span></Link>; }"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:13:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:12:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 13,
+    "line": 12,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "if (item.href !== \"/app/home\") return <span aria-disabled=\"true\" className={styles.futureLink}>{item.label}<small>Next</small></span>; return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>; }"
+    "context": "function CoreLink({ item, active, websiteId }: { item: (typeof CORE_NAVIGATION)[number]; active: string; websiteId: string }) { return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>; }"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:24:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:32:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 24,
+    "line": 32,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:28:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:36:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 28,
+    "line": 36,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className={styles.tier}>EVERY WEEK</span><nav aria-label=\"Every week\">{weekly.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav> <span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpp"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:29:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:37:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 29,
+    "line": 37,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref(\"/account\", websiteId)}>Account</Link></div></div> </aside>"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:35:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:43:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 35,
+    "line": 43,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => item.href === \"/app/home\" ? <Link aria-current=\"page\" href={siteScopedHref(item.href, websiteId)} key={item.href}><b>◉</b>{item.label}</Link> : <span aria-disabled=\"true\" key={item.href}><b>▪</b>{item.label}</span>)}</nav> </section>"
+    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? \"◉\" : \"▪\"}</b>{item.label}</Link>)}</nav> </section>"
   },
   {
     "control_id": "src/components/rebound-core/session-queue.tsx:22:button:1",
