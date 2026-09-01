@@ -83,6 +83,22 @@ describe("Rebound draft approval", () => {
     });
   });
 
+  it("reopens through the same one-draft PUT without changing any other field", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ saved: 1 }), { status: 200 }));
+
+    const next = await saveDraftApproval({
+      auditId: "11111111-1111-4111-8111-111111111111",
+      approved: false,
+      draft: { ...draft, approved: true },
+      fetcher,
+      websiteId: "831740e7-b8f7-4612-8fe4-794219031191",
+    });
+
+    expect(next).toEqual({ ...draft, approved: false });
+    const [, init] = fetcher.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body)).drafts).toEqual([{ ...draft, approved: false }]);
+  });
+
   it("surfaces persistence failures instead of claiming an optimistic state", async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "Save failed." }), { status: 500 }));
 
