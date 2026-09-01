@@ -203,7 +203,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   const integration = requireValue(integrationResult.data, integrationResult.error, "Create MVP browser WordPress integration");
 
   const body = "# SEO Consulting Services: A Practical Guide\n\nThis saved certification draft proves that CMS state is rendered from persisted website-scoped data.\n\n## What to review\n\nConfirm the business claims, links, and next step before publishing.";
-  const drafts = await service.from("article_drafts").insert(keywords.map((item) => ({
+  const drafts = await service.from("article_drafts").insert(keywords.map((item, index) => ({
     organization_id: organizationId,
     website_id: websiteId,
     audit_id: auditId,
@@ -220,7 +220,8 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
       sources: [],
       infographics: [],
       bucketBrigades: [],
-      generationStatus: "needs_generation",
+      generationStatus: index === 1 ? "generated" : "needs_generation",
+      approved: index === 1,
       qualityIssues: [],
       optimization: [],
     },
