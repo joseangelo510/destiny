@@ -1818,16 +1818,20 @@ The evidence basis is:
    and `verify_jwt=true`. The currently shipped Fly UI does not invoke this
    slug; any direct call remains JWT- and RLS-gated.
 4. From post-decision protected `main`, create a branch and protected HIGH PR
-   that changes only the manual production workflow pin and its mechanical
-   policy tests as required: release SHA/tag/image tag become
+   that changes only `.github/workflows/rebound-production-deploy.yml`,
+   `Dockerfile`, and
+   `destiny-product/qa/rules/rebound-production-wrapper.test.ts`. These are
+   the manual production wrapper, its hard-coded build/runtime identity
+   assertions, and its mechanical policy test. Release SHA/tag/image tag become
    `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`,
    `rebound-seo-v1.1.0`, and `rebound-seo-v1.1.0-prod`; the rollback point
    becomes machine `860714be531938`, image digest
    `sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b`,
    SHA `fbd738c6508c9cde75231dea60acebe842eb0b6f`, tag
    `rebound-seo-v1.0.0`, and site URL `https://app.reboundseo.com`. No other
-   workflow behavior is authorized. Merge only with `cto-approved` applied by
-   `joseangelo510` and all required checks green.
+   workflow behavior is authorized. The Dockerfile may change only the two
+   exact SHA/tag identity assertions to those release values. Merge only with
+   `cto-approved` applied by `joseangelo510` and all required checks green.
 5. Manually dispatch the merged workflow with action `deploy` and release tag
    `rebound-seo-v1.1.0`. Success requires one healthy Fly machine, a ready
    existing certificate, full committed-route inventory cardinality, zero
