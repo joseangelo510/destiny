@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  approvedCalendarDrafts,
   buildCalendarView,
   buildContentPipeline,
   buildDistributionView,
   buildProgressView,
+  derivedCalendarCadence,
 } from "./core-pages";
 
 describe("Rebound redesign Slice 2", () => {
@@ -57,6 +59,30 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.needsYou).toMatchObject({ title: "Needs review", moveLabel: "Review" });
     expect(view.stats).toMatchObject({ needsUser: 1, scheduled: 1, stuck: 1 });
     expect(view.calendar.events).toHaveLength(3);
+  });
+
+  it("keeps only approved drafts from the current website available to Calendar", () => {
+    const websiteId = "11111111-1111-4111-8111-111111111111";
+    const drafts = approvedCalendarDrafts([
+      { id: "approved", website_id: websiteId, keyword: "kiln repair", draft: { title: "Kiln repair guide", approved: true } },
+      { id: "unapproved", website_id: websiteId, keyword: "glaze guide", draft: { title: "Glaze guide", approved: false } },
+      { id: "other-website", website_id: "22222222-2222-4222-8222-222222222222", keyword: "other", draft: { title: "Other website draft", approved: true } },
+    ], websiteId);
+
+    expect(drafts).toEqual([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]);
+  });
+
+  it("derives a read-only weekly cadence and stays honest when dates are insufficient", () => {
+    expect(derivedCalendarCadence([
+      { scheduled_for: "2026-08-27T16:00:00Z" },
+      { scheduled_for: "2026-09-03T16:00:00Z" },
+      { scheduled_for: "2026-09-10T16:00:00Z" },
+    ], "America/Los_Angeles")).toMatchObject({ label: "Weekly", derived: true });
+    expect(derivedCalendarCadence([], "America/Los_Angeles")).toEqual({
+      label: "Not enough saved dates",
+      detail: "Cadence will appear after at least two publishing dates are saved.",
+      derived: true,
+    });
   });
 
   it("uses existing opportunities and interlink evidence without inventing a touchpoint ledger", () => {
