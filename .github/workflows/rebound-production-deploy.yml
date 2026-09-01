@@ -13,7 +13,7 @@ on:
       release_tag:
         description: Immutable release tag; any other value is refused
         required: true
-        default: rebound-seo-v1.0.0
+        default: rebound-seo-v1.1.0
         type: string
 
 concurrency:
@@ -26,19 +26,19 @@ permissions:
   packages: write
 
 env:
-  RELEASE_SHA: fbd738c6508c9cde75231dea60acebe842eb0b6f
-  RELEASE_TAG: rebound-seo-v1.0.0
-  PRODUCTION_IMAGE_TAG: rebound-seo-v1.0.0-prod
+  RELEASE_SHA: d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213
+  RELEASE_TAG: rebound-seo-v1.1.0
+  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.0-prod
   PRODUCTION_SITE_URL: https://app.reboundseo.com
   PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
   STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
   FLY_APP: destiny-production
   FLY_REGION: sjc
   PRIOR_MACHINE_ID: 860714be531938
-  PRIOR_IMAGE_DIGEST: sha256:e30c56dd27c8e3e7c28217cacb6eb82c3f08a2c81eedaa7d0e8da17b374af5bd
-  PRIOR_RELEASE_SHA: fc7f050e1201ff5ee6ebece98560592257de127f
-  PRIOR_RELEASE_TAG: step-zero-v1.1
-  PRIOR_SITE_URL: https://app.caminoseo.com
+  PRIOR_IMAGE_DIGEST: sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b
+  PRIOR_RELEASE_SHA: fbd738c6508c9cde75231dea60acebe842eb0b6f
+  PRIOR_RELEASE_TAG: rebound-seo-v1.0.0
+  PRIOR_SITE_URL: https://app.reboundseo.com
 
 jobs:
   deploy:
