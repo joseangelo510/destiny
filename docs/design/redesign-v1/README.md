@@ -10,7 +10,7 @@ Content is the final six-column truthful-state pipeline: Ideas, Drafts, Approved
 
 The pottery values inside the HTML files are documentation examples, not product fixtures. These files must remain under `docs/`, must never be served or imported by application code, and must never provide production data.
 
-Gate 0 discovery and the active claim boundary are recorded in `DISCOVERY.md`. Fable 5 High decision D10.0 is recorded in `destiny-product/DEPLOY_LOG.md`.
+Gate 0 discovery and the active claim boundary are recorded in `DISCOVERY.md`. The MEDIUM Slice 1 keeps governance re-pin material out of this product PR.
 
 ## Slice 1 visual acceptance evidence
 
