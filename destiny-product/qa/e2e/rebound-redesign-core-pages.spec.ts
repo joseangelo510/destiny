@@ -36,7 +36,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
     { route: "content", heading: "Content", landmark: "Content pipeline" },
     { route: "calendar", heading: "Calendar", landmark: "The month", preview: "Preview — calendar scheduling enabled." },
     { route: "distribution", heading: "Distribution", landmark: "Reach what you published", preview: "Preview — distribution actions enabled." },
-    { route: "progress", heading: "Progress", landmark: "What needs to be done" },
+    { route: "progress", heading: "Progress", landmark: "What needs to be done", preview: "Preview — progress reports enabled." },
   ]) {
     test(`${expected.route} renders real scoped evidence at the approved viewport`, async ({ page }, testInfo) => {
       const activeFixture = requireFixture();
@@ -139,6 +139,27 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
     ].join("\n"));
     expect(browserState.opened).toEqual([{ features: "noopener,noreferrer", target: "_blank", url: activeFixture.mvp.distributionOpportunity.url }]);
     expect(mutatingRequests).toEqual([]);
+  });
+
+  test("Progress sends one scoped report request and claims provider acceptance only", async ({ page }, testInfo) => {
+    const activeFixture = requireFixture();
+    const mobile = testInfo.project.name === "mobile";
+    await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
+    const requests: Array<Record<string, unknown>> = [];
+    await page.route("**/api/progress/report", async (route) => {
+      requests.push(route.request().postDataJSON() as Record<string, unknown>);
+      await route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ status: "accepted", messageId: "mock-resend-123" }) });
+    });
+
+    await page.goto(`/app/progress?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
+    const button = page.getByRole("button", { name: /^Send progress report to / });
+    await expect(button).toBeVisible();
+    await button.click();
+    await expect(page.getByRole("status", { name: "" }).filter({ hasText: "Accepted for delivery." })).toBeVisible();
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toEqual({ websiteId: activeFixture.mvp.websiteId, requestId: expect.stringMatching(/^[0-9a-f-]{36}$/i) });
+    expect(requests[0]).not.toHaveProperty("recipient");
+    await expect(page.locator('[data-progress-report="manual"]')).not.toContainText(/delivered|sent/i);
   });
 
   test("draft detail enables only the governed approval path", async ({ page }, testInfo) => {
