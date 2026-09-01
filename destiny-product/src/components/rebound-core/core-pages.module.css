@@ -71,6 +71,28 @@
 .railAction > span { color: #b7cdb9; font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 .railAction h3 { margin: 0; font-family: var(--serif); font-size: 20px; font-weight: 500; }
 .railAction p { color: #cfe0cc; font-size: 12px; }
+.approvalActions { display: grid; gap: 8px; }
+.approvalActions button, .approvalActions a {
+  display: inline-flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid #a9c0ac;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-align: center;
+}
+.approvalActions button { cursor: pointer; }
+.approvalActions button:disabled { cursor: not-allowed; opacity: .64; }
+.approvalPrimary { border-color: #b5cc30 !important; background: var(--lime); color: var(--lime-ink) !important; }
+.approvalSecondary { background: #285740; color: #fff !important; }
+.approvalStatus, .approvalError { display: block; padding: 8px 10px; border-radius: 9px; font-size: 10.5px; line-height: 1.45; }
+.approvalStatus { background: rgba(223, 235, 221, .14); color: #e0ecde; }
+.approvalError { background: #f7ded5; color: #6b2f23; }
 .railRows { padding: 0 16px 16px; }
 .railRows p { display: grid; gap: 5px; padding: 10px 0; border-top: 1px solid var(--sage-soft); }
 .railRows span { color: var(--ink-soft); font-size: 10.5px; }
