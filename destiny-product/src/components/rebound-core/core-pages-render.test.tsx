@@ -38,7 +38,7 @@ describe("Rebound read-only core pages", () => {
       planTimezone: "America/Los_Angeles",
     }} />);
     const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
-    const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })) }} />);
+    const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })), reportRecipient: "reports@example.com" }} />);
 
     expect(calendar).toContain("The month");
     expect(calendar).toContain("+ add content");
@@ -53,6 +53,9 @@ describe("Rebound read-only core pages", () => {
     expect(distribution).not.toContain("answer drafted");
     expect(progress).toContain("What’s been done");
     expect(progress).toContain("split by who owns it");
+    expect(progress).toContain("Send progress report");
+    expect(progress).toContain("reports@example.com");
+    expect(progress).not.toContain("Delivered");
   });
 
   it("renders the governed draft approval surface without inventing request tracking", () => {

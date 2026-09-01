@@ -211,6 +211,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/progress/report",
+    "file": "src/app/api/progress/report/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/quests/[id]",
     "file": "src/app/api/quests/[id]/route.ts"
   },

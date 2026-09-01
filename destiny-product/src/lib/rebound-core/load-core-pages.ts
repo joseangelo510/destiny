@@ -22,7 +22,7 @@ export type ReboundCalendarView = ReboundCoreWorkspace & {
   planTimezone: string;
 };
 export type ReboundDistributionView = ReboundCoreWorkspace & { distribution: PanelResult<DistributionView> };
-export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView> };
+export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView>; reportRecipient: string | null };
 export type ReboundDraftView = ReboundCoreWorkspace & {
   auditId: string;
   draft: {
@@ -85,6 +85,12 @@ async function latestPlanAndItems(context: WorkspaceContext) {
 function monthLabel(items: unknown[]) {
   const first = items.map(record).map((item) => new Date(String(item.scheduled_for ?? ""))).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(first);
+}
+
+function reportRecipient(value: unknown) {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLocaleLowerCase("en-US");
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254 ? email : null;
 }
 
 export async function loadReboundContent(): Promise<ReboundContentView | null> {
@@ -192,7 +198,8 @@ export async function loadReboundDistribution(): Promise<ReboundDistributionView
 export async function loadReboundProgress(): Promise<ReboundProgressView | null> {
   const context = await getWorkspaceContext();
   const base = await coreWorkspace(context);
-  if (!base) return null;
+  if (!base || !context.website) return null;
+  const recipient = reportRecipient(context.website.notification_email) ?? reportRecipient(context.profile?.contact_email);
   try {
     const [schedule, receipts] = await Promise.all([latestPlanAndItems(context), publicationReceipts(context)]);
     const built = buildProgressView({ quests: context.quests, scheduleItems: schedule.items, receipts });
@@ -201,8 +208,8 @@ export async function loadReboundProgress(): Promise<ReboundProgressView | null>
       : (built.done.length || built.owners.you.length || built.owners.rebound.length || built.owners.google.length)
         ? ready(built)
         : empty<ProgressView>("No saved progress exists yet. Rebound SEO will build this history from completed work and verified evidence.");
-    return { ...base, progress };
+    return { ...base, progress, reportRecipient: recipient };
   } catch {
-    return { ...base, progress: failed("The cross-workspace progress view could not be loaded.") };
+    return { ...base, progress: failed("The cross-workspace progress view could not be loaded."), reportRecipient: recipient };
   }
 }
