@@ -19,6 +19,7 @@ export type ReboundCalendarView = ReboundCoreWorkspace & { calendarView: PanelRe
 export type ReboundDistributionView = ReboundCoreWorkspace & { distribution: PanelResult<DistributionView> };
 export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView> };
 export type ReboundDraftView = ReboundCoreWorkspace & {
+  auditId: string;
   draft: {
     id: string;
     title: string;
@@ -27,6 +28,7 @@ export type ReboundDraftView = ReboundCoreWorkspace & {
     generationStatus: string;
     approved: boolean;
     updatedAt: string | null;
+    data: Record<string, unknown>;
   };
 };
 
@@ -108,12 +110,15 @@ export async function loadReboundDraft(draftId: string): Promise<ReboundDraftVie
   const base = await coreWorkspace(context);
   if (!base || !context.website) return null;
   const scoped = await scopedClient(context.website.id);
-  const { data: row, error } = await scoped.select("article_drafts", "id,keyword,draft,updated_at").eq("id", draftId).maybeSingle();
+  const { data: row, error } = await scoped.select("article_drafts", "id,audit_id,keyword,draft,updated_at").eq("id", draftId).maybeSingle();
   if (error || !row) return null;
   const saved = record(row.draft);
+  const auditId = typeof row.audit_id === "string" ? row.audit_id : "";
+  if (!auditId) return null;
   const keyword = typeof row.keyword === "string" ? row.keyword : String(saved.keyword ?? "");
   return {
     ...base,
+    auditId,
     draft: {
       id: String(row.id),
       title: typeof saved.title === "string" && saved.title.trim() ? saved.title : keyword || "Saved draft",
@@ -122,6 +127,7 @@ export async function loadReboundDraft(draftId: string): Promise<ReboundDraftVie
       generationStatus: typeof saved.generationStatus === "string" ? saved.generationStatus : "starter",
       approved: saved.approved === true,
       updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+      data: saved,
     },
   };
 }

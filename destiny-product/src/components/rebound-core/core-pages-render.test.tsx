@@ -1,8 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 import { buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "@/lib/rebound-core/core-pages";
 import { ready } from "@/lib/rebound-core/panel-result";
-import { CalendarDashboard, ContentDashboard, DistributionDashboard, ProgressDashboard } from "./core-pages";
+import { CalendarDashboard, ContentDashboard, DistributionDashboard, DraftDashboard, ProgressDashboard } from "./core-pages";
 
 const websiteId = "11111111-1111-4111-8111-111111111111";
 const base = {
@@ -37,5 +39,27 @@ describe("Rebound read-only core pages", () => {
     expect(distribution).toContain("Saved question");
     expect(progress).toContain("What’s been done");
     expect(progress).toContain("split by who owns it");
+  });
+
+  it("renders the governed draft approval surface without inventing request tracking", () => {
+    const html = renderToStaticMarkup(<DraftDashboard view={{
+      ...base,
+      auditId: "22222222-2222-4222-8222-222222222222",
+      draft: {
+        id: "draft-1",
+        title: "Saved draft",
+        keyword: "draft keyword",
+        body: "Saved article body",
+        generationStatus: "generated",
+        approved: false,
+        updatedAt: "2026-08-31T12:00:00Z",
+        data: { keyword: "draft keyword", body: "Saved article body", generationStatus: "generated", approved: false },
+      },
+    }} />);
+
+    expect(html).toContain("Checking approval requirements");
+    expect(html).toContain("Edit in Content Studio");
+    expect(html).toContain("Preview — draft approval enabled.");
+    expect(html).not.toContain("Request edits");
   });
 });

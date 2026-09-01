@@ -6,6 +6,7 @@ import { siteScopedHref } from "@/lib/workspace-selection";
 import { MonthCalendar } from "./month-calendar";
 import { EvidenceChip, MoveChip, NeedsYouBar, Panel, PanelHeader, StateChip, StatusStrip } from "./primitives";
 import { ReboundCoreShell } from "./rebound-core-shell";
+import { DraftApprovalActions } from "./draft-approval-actions";
 import styles from "./core-pages.module.css";
 
 function scopedHref(href: string, websiteId: string) {
@@ -18,12 +19,16 @@ function Action({ href, label, websiteId, hot = false }: { href: string; label: 
   return <MoveChip href={resolved} label={label} tone={hot ? "hot" : "default"} />;
 }
 
-function Shell({ active, children, view, title, subtitle }: { active: string; children: ReactNode; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
-  return <ReboundCoreShell active={active} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
+function Shell({ active, children, draftActions = false, view, title, subtitle }: { active: string; children: ReactNode; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
+  return <ReboundCoreShell active={active} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
 }
 
 function EmptyPage({ active, actionHref, actionLabel, message, view }: { active: string; actionHref: string; actionLabel: string; message: string | null; view: ReboundCoreWorkspace }) {
   return <Shell active={active} view={view}><div className={styles.page}><NeedsYouBar detail="There is no hidden estimate behind this state." title="Nothing needs you on this page yet" /><Panel><div className={styles.empty}><h2>Waiting for saved data</h2><p>{message}</p><Action href={actionHref} label={actionLabel} websiteId={view.websiteId} /></div></Panel></div></Shell>;
+}
+
+function BackToContentPipeline({ websiteId }: { websiteId: string }) {
+  return <Link className={styles.back} href={siteScopedHref("/app/content", websiteId)}>← Back to pipeline</Link>;
 }
 
 export function ContentDashboard({ view }: { view: ReboundContentView }) {
@@ -47,10 +52,10 @@ export function ContentDashboard({ view }: { view: ReboundContentView }) {
 export function DraftDashboard({ view }: { view: ReboundDraftView }) {
   const status = view.draft.approved ? "approved" as const : "draft" as const;
   const updated = view.draft.updatedAt ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(view.draft.updatedAt)) : "saved date unavailable";
-  return <Shell active="/app/content" subtitle="read-only draft detail" title="Content" view={view}><div className={styles.page}>
-    <Link className={styles.back} href={siteScopedHref("/app/content", view.websiteId)}>← Back to pipeline</Link>
-    <NeedsYouBar detail="Editing and approval stay in the existing Content Studio during this read-only slice." move={view.draft.approved ? undefined : { href: siteScopedHref("/content", view.websiteId), label: "Open Content Studio" }} title={view.draft.approved ? "This saved draft is approved" : "Review this saved draft"} />
-    <div className={styles.articleLayout}><article className={styles.document}><div className={styles.kicker}><StateChip state={status} /><span>{view.draft.keyword}</span><span>{view.draft.generationStatus.replaceAll("_", " ")}</span><span>Updated {updated}</span></div><h2>{view.draft.title}</h2><p className={styles.meta}>Read-only preview of the exact saved article body.</p><div className={styles.articleBody}>{view.draft.body}</div></article><aside className={styles.articleRail}><div className={styles.railAction}><span>YOUR MOVE</span><h3>{view.draft.approved ? "No approval needed here." : "Judge the draft in Content Studio."}</h3><p>The new core tab does not mutate approval, CMS, or publishing state.</p><Action href="/content" hot={!view.draft.approved} label="Open Content Studio" websiteId={view.websiteId} /></div><Panel><PanelHeader title="Current saved state" /><div className={styles.railRows}><p><span>Keyword</span><b>{view.draft.keyword}</b></p><p><span>Draft</span><StateChip state={status} /></p><p><span>Generation</span><b>{view.draft.generationStatus.replaceAll("_", " ")}</b></p><p><span>Verification</span><EvidenceChip fallback="After publish" /></p></div></Panel></aside></div>
+  return <Shell active="/app/content" draftActions subtitle="review and approve the saved draft" title="Content" view={view}><div className={styles.page}>
+    <BackToContentPipeline websiteId={view.websiteId} />
+    <NeedsYouBar detail={view.draft.approved ? "Reopen only if this article needs another editing pass." : "Approval is available here only after the existing article-quality checks pass."} move={{ href: "#draft-actions", label: view.draft.approved ? "Review approval" : "Check approval" }} title={view.draft.approved ? "This saved draft is approved" : "Review this saved draft"} />
+    <div className={styles.articleLayout}><article className={styles.document}><div className={styles.kicker}><StateChip state={status} /><span>{view.draft.keyword}</span><span>{view.draft.generationStatus.replaceAll("_", " ")}</span><span>Updated {updated}</span></div><h2>{view.draft.title}</h2><p className={styles.meta}>Exact saved article body. Approval uses the same quality rules as Content Studio.</p><div className={styles.articleBody}>{view.draft.body}</div></article><aside className={styles.articleRail}><div className={styles.railAction}><span>YOUR MOVE</span><h3>{view.draft.approved ? "Approved and ready for its next delivery step." : "Approve when the article passes every saved quality check."}</h3><p>Edit the draft in Content Studio when revisions are needed. Rebound SEO does not record a separate edit request here.</p><DraftApprovalActions auditId={view.auditId} draft={view.draft.data} websiteId={view.websiteId} /></div><Panel><PanelHeader title="Current saved state" /><div className={styles.railRows}><p><span>Keyword</span><b>{view.draft.keyword}</b></p><p><span>Draft</span><StateChip state={status} /></p><p><span>Generation</span><b>{view.draft.generationStatus.replaceAll("_", " ")}</b></p><p><span>Verification</span><EvidenceChip fallback="After publish" /></p></div></Panel></aside></div>
   </div></Shell>;
 }
 

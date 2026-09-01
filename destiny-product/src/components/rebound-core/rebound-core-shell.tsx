@@ -20,7 +20,7 @@ const PAGE_SUBTITLES: Record<string, string> = {
   "/app/progress": "the full check-in, split by owner",
 };
 
-export function ReboundCoreShell({ active, children, queue, websiteId, websiteLabel, searchConnected, title, subtitle }: { active: string; children: ReactNode; queue: PanelResult<CoreQueue>; websiteId: string; websiteLabel: string; searchConnected: boolean; title?: string; subtitle?: string }) {
+export function ReboundCoreShell({ active, children, draftActions = false, queue, websiteId, websiteLabel, searchConnected, title, subtitle }: { active: string; children: ReactNode; draftActions?: boolean; queue: PanelResult<CoreQueue>; websiteId: string; websiteLabel: string; searchConnected: boolean; title?: string; subtitle?: string }) {
   const firstMove = queue.state === "ready" ? queue.data?.items[0] ?? null : null;
   const queueCount = queue.state === "ready" ? queue.data?.sessionMoves.length ?? 0 : 0;
   const daily = CORE_NAVIGATION.filter((item) => item.cadence === "every_day");
@@ -38,7 +38,7 @@ export function ReboundCoreShell({ active, children, queue, websiteId, websiteLa
       </aside>
       <section className={styles.main}>
         <header className={styles.topbar}><div><h1>{title ?? current?.label ?? "Rebound SEO"}</h1><span>{subtitle ?? PAGE_SUBTITLES[active] ?? "read-only workspace"}</span></div><EvidenceChip fallback={searchConnected ? "Search Console connected" : "Search Console not connected"} /></header>
-        <PreviewStrip />
+        <PreviewStrip draftActions={draftActions} />
         {children}
         <nav aria-label="Core mobile navigation" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? "page" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? "◉" : "▪"}</b>{item.label}</Link>)}</nav>
       </section>
