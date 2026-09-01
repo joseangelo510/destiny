@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { notificationRecipient } from "./notification-recipient";
 import { sendAuditReadyEmail } from "./process-audit/email";
+import { renderProgressReportEmail } from "./progress-report/email";
 import { sendWelcomeEmail } from "./send-welcome/email";
 import { reboundSeoSender } from "./_shared/email-sender";
 
@@ -19,6 +20,20 @@ describe("Rebound SEO transactional email", () => {
   it("uses the website recipient before the account-level fallback", () => {
     expect(notificationRecipient(" Reports@Client.Example ", "owner@example.com")).toBe("reports@client.example");
     expect(notificationRecipient("", " Owner@Example.com ")).toBe("owner@example.com");
+  });
+
+  it("keeps progress report acceptance distinct from delivery", () => {
+    const email = renderProgressReportEmail({
+      siteName: "Maya Studio",
+      domain: "maya.example",
+      progressUrl: "https://app.reboundseo.com/app/progress?site=site-1",
+      recipient: "maya@example.com",
+      requestId: "11111111-1111-4111-8111-111111111111",
+      websiteId: "22222222-2222-4222-8222-222222222222",
+      summary: { stats: { done: 1, needsUser: 0, inMotion: 0, stuck: 0 }, done: [{ title: "One move", detail: "Crawler confirmed it.", evidence: "verified" }], owners: { you: [], rebound: [], google: [] }, blockers: [] },
+    });
+    expect(email.text).toContain("Verified evidence");
+    expect(email.text).not.toMatch(/delivered/i);
   });
 
   it("stays safely disabled when provider secrets are absent", async () => {
