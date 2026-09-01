@@ -3,9 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "fbd738c6508c9cde75231dea60acebe842eb0b6f";
-const releaseTag = "rebound-seo-v1.0.0";
-const priorImageDigest = "sha256:e30c56dd27c8e3e7c28217cacb6eb82c3f08a2c81eedaa7d0e8da17b374af5bd";
+const releaseSha = "d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213";
+const releaseTag = "rebound-seo-v1.1.0";
+const priorImageDigest = "sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b";
 const priorMachineId = "860714be531938";
 
 async function repositoryFile(relativePath: string) {
