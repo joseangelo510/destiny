@@ -37,7 +37,7 @@ describe("Rebound read-only core pages", () => {
       calendarView: ready(buildCalendarView({ month: "September 2026", items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
       planTimezone: "America/Los_Angeles",
     }} />);
-    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic" }], interlinks: [] })) }} />);
+    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
     const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })) }} />);
 
     expect(calendar).toContain("The month");
@@ -46,6 +46,11 @@ describe("Rebound read-only core pages", () => {
     expect(calendar).toContain("Cadence");
     expect(calendar).toContain("Milestone not configured");
     expect(distribution).toContain("Saved question");
+    expect(distribution).toContain("Copy context &amp; open Quora");
+    expect(distribution).toContain("opens www.quora.com");
+    expect(distribution).toContain("Preview — distribution actions enabled.");
+    expect(distribution).not.toContain("Approve all we post");
+    expect(distribution).not.toContain("answer drafted");
     expect(progress).toContain("What’s been done");
     expect(progress).toContain("split by who owns it");
   });
