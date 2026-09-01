@@ -1,0 +1,181 @@
+import "server-only";
+
+import { scopedClient } from "@/lib/db";
+import { buildCoachTaskSet } from "@/lib/product/coach-experience";
+import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
+import type { PanelResult, ReboundCoreWorkspace } from "./contracts";
+import { buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "./core-pages";
+import { empty, failed, ready } from "./panel-result";
+import { buildCoreQueue } from "./queue";
+
+type WorkspaceContext = Awaited<ReturnType<typeof getWorkspaceContext>>;
+type ContentPipeline = ReturnType<typeof buildContentPipeline>;
+type CalendarView = ReturnType<typeof buildCalendarView>;
+type DistributionView = ReturnType<typeof buildDistributionView>;
+type ProgressView = ReturnType<typeof buildProgressView>;
+
+export type ReboundContentView = ReboundCoreWorkspace & { pipeline: PanelResult<ContentPipeline> };
+export type ReboundCalendarView = ReboundCoreWorkspace & { calendarView: PanelResult<CalendarView> };
+export type ReboundDistributionView = ReboundCoreWorkspace & { distribution: PanelResult<DistributionView> };
+export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView> };
+export type ReboundDraftView = ReboundCoreWorkspace & {
+  draft: {
+    id: string;
+    title: string;
+    keyword: string;
+    body: string;
+    generationStatus: string;
+    approved: boolean;
+    updatedAt: string | null;
+  };
+};
+
+async function coreWorkspace(context: WorkspaceContext): Promise<ReboundCoreWorkspace | null> {
+  if (!context.website) return null;
+  let queue: ReboundCoreWorkspace["queue"];
+  try {
+    const coach = await buildCoachTaskSet(context.quests);
+    const built = buildCoreQueue(coach.window.map((quest, index) => ({
+      id: quest.id,
+      title: quest.title,
+      description: quest.description,
+      actionPath: quest.action_path,
+      taskType: quest.task_type,
+      priority: index,
+      status: quest.status,
+      verificationStatus: quest.verification_status,
+    })));
+    queue = built.items.length ? ready(built) : empty("Nothing needs you right now. Rebound SEO is watching for the next move.");
+  } catch {
+    queue = failed("The ranked session could not be loaded. Your existing tools remain available.");
+  }
+  return {
+    firstName: context.profile?.first_name?.trim() || null,
+    websiteLabel: context.website.business_name?.trim() || context.website.normalized_domain,
+    websiteId: context.website.id,
+    queue,
+    searchConnected: context.integrations.some((item) => item.provider === "google_search_console" && item.status === "connected"),
+  };
+}
+
+async function publicationReceipts(context: WorkspaceContext) {
+  if (!context.website) return [];
+  const client = context.supabase as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown }> };
+  const { data } = await client.rpc("read_cms_transfer_states", { p_website_id: context.website.id });
+  return Array.isArray(data) ? data : [];
+}
+
+async function latestPlanAndItems(context: WorkspaceContext) {
+  if (!context.website) return { plan: null, items: [], error: true };
+  const scoped = await scopedClient(context.website.id);
+  const { data: plans, error: planError } = await scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1);
+  const plan = plans?.[0] ?? null;
+  if (planError || !plan) return { plan, items: [], error: Boolean(planError) };
+  const { data: items, error } = await scoped.select("publishing_schedule_items", "id,plan_id,keyword,title,scheduled_for,state,last_error,review_recommended,remote_permalink").eq("plan_id", plan.id).order("scheduled_for");
+  return { plan, items: items ?? [], error: Boolean(error) };
+}
+
+function monthLabel(items: unknown[]) {
+  const first = items.map(record).map((item) => new Date(String(item.scheduled_for ?? ""))).find((date) => !Number.isNaN(date.getTime())) ?? new Date();
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(first);
+}
+
+export async function loadReboundContent(): Promise<ReboundContentView | null> {
+  const context = await getWorkspaceContext();
+  const base = await coreWorkspace(context);
+  if (!base || !context.website) return null;
+  try {
+    const scoped = await scopedClient(context.website.id);
+    const [{ data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, schedule, receipts] = await Promise.all([
+      scoped.select("article_drafts", "id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+      scoped.select("keyword_preferences", "keyword,decision").eq("decision", "approved").order("keyword"),
+      latestPlanAndItems(context),
+      publicationReceipts(context),
+    ]);
+    const pipeline = draftError || keywordError || schedule.error
+      ? failed<ContentPipeline>("The content pipeline could not be loaded. The existing Content Studio is still available.")
+      : (drafts?.length || approvedKeywords?.length || schedule.items.length || receipts.length)
+        ? ready(buildContentPipeline({ approvedKeywords: approvedKeywords ?? [], drafts: drafts ?? [], scheduleItems: schedule.items, receipts }))
+        : empty<ContentPipeline>("No approved keywords, drafts, or publishing items exist yet. Start in the existing Keyword strategy tool.");
+    return { ...base, pipeline };
+  } catch {
+    return { ...base, pipeline: failed("The content pipeline could not be loaded. The existing Content Studio is still available.") };
+  }
+}
+
+export async function loadReboundDraft(draftId: string): Promise<ReboundDraftView | null> {
+  const context = await getWorkspaceContext();
+  const base = await coreWorkspace(context);
+  if (!base || !context.website) return null;
+  const scoped = await scopedClient(context.website.id);
+  const { data: row, error } = await scoped.select("article_drafts", "id,keyword,draft,updated_at").eq("id", draftId).maybeSingle();
+  if (error || !row) return null;
+  const saved = record(row.draft);
+  const keyword = typeof row.keyword === "string" ? row.keyword : String(saved.keyword ?? "");
+  return {
+    ...base,
+    draft: {
+      id: String(row.id),
+      title: typeof saved.title === "string" && saved.title.trim() ? saved.title : keyword || "Saved draft",
+      keyword,
+      body: typeof saved.body === "string" ? saved.body : "This draft does not contain a saved article body yet.",
+      generationStatus: typeof saved.generationStatus === "string" ? saved.generationStatus : "starter",
+      approved: saved.approved === true,
+      updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+    },
+  };
+}
+
+export async function loadReboundCalendar(): Promise<ReboundCalendarView | null> {
+  const context = await getWorkspaceContext();
+  const base = await coreWorkspace(context);
+  if (!base) return null;
+  try {
+    const schedule = await latestPlanAndItems(context);
+    const calendarView = schedule.error
+      ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
+      : !schedule.plan
+        ? empty<CalendarView>("No publishing plan exists yet. Create one in the existing Content Studio.")
+        : ready(buildCalendarView({ month: monthLabel(schedule.items), items: schedule.items }));
+    return { ...base, calendarView };
+  } catch {
+    return { ...base, calendarView: failed("The saved publishing calendar could not be loaded.") };
+  }
+}
+
+export async function loadReboundDistribution(): Promise<ReboundDistributionView | null> {
+  const context = await getWorkspaceContext();
+  const base = await coreWorkspace(context);
+  if (!base || !context.website) return null;
+  try {
+    const provider = providerResultFromMetrics(context.metrics);
+    const opportunities = list(provider.distributionOpportunities).map(record);
+    const scoped = await scopedClient(context.website.id);
+    const { data: interlinks, error } = await scoped.select("interlink_opportunities", "id,source_title,target_title,status,verified_at,source_url,target_url").order("created_at", { ascending: false }).limit(100);
+    const built = buildDistributionView({ opportunities, interlinks: interlinks ?? [] });
+    const distribution = error
+      ? failed<DistributionView>("Distribution evidence could not be loaded. The existing Distribution tool is still available.")
+      : built.rows.length ? ready(built) : empty<DistributionView>("No saved community opportunities or interlink evidence exists yet.");
+    return { ...base, distribution };
+  } catch {
+    return { ...base, distribution: failed("Distribution evidence could not be loaded. The existing Distribution tool is still available.") };
+  }
+}
+
+export async function loadReboundProgress(): Promise<ReboundProgressView | null> {
+  const context = await getWorkspaceContext();
+  const base = await coreWorkspace(context);
+  if (!base) return null;
+  try {
+    const [schedule, receipts] = await Promise.all([latestPlanAndItems(context), publicationReceipts(context)]);
+    const built = buildProgressView({ quests: context.quests, scheduleItems: schedule.items, receipts });
+    const progress = schedule.error
+      ? failed<ProgressView>("The cross-workspace progress view could not be loaded.")
+      : (built.done.length || built.owners.you.length || built.owners.rebound.length || built.owners.google.length)
+        ? ready(built)
+        : empty<ProgressView>("No saved progress exists yet. Rebound SEO will build this history from completed work and verified evidence.");
+    return { ...base, progress };
+  } catch {
+    return { ...base, progress: failed("The cross-workspace progress view could not be loaded.") };
+  }
+}

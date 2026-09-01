@@ -36,7 +36,9 @@ test.describe("@gate Rebound redesign read-only Home", () => {
     await expect(page.getByRole("heading", { name: "Competitors" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "The month" })).toBeVisible();
 
-    expect(await page.locator('a[href^="/app/content"],a[href^="/app/calendar"],a[href^="/app/distribution"],a[href^="/app/progress"]').count()).toBe(0);
+    for (const href of ["/app/content", "/app/calendar", "/app/distribution", "/app/progress"]) {
+      await expect(page.locator(`a[href^="${href}"]`).first()).toBeAttached();
+    }
     await expect(page.locator("body")).not.toContainText(/Maya.?s Pottery|ClayCraft|pottery glaze|kiln guide/i);
     expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(mobile ? 390 : 1360);
 

@@ -98,3 +98,11 @@ export type ReboundHomeView = {
   competitors: PanelResult<CompetitorSummary>;
   calendar: PanelResult<CalendarSummary>;
 };
+
+export type ReboundCoreWorkspace = {
+  firstName: string | null;
+  websiteLabel: string;
+  websiteId: string;
+  queue: PanelResult<CoreQueue>;
+  searchConnected: boolean;
+};
