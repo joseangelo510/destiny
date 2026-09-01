@@ -9,6 +9,10 @@ import styles from "./core-pages.module.css";
 
 type GateState = { checking: boolean; canApprove: boolean; message: string | null };
 
+function EditInContentStudioLink({ websiteId }: { websiteId: string }) {
+  return <Link className={styles.approvalSecondary} href={siteScopedHref("/content#article-review-workspace", websiteId)}>Edit in Content Studio</Link>;
+}
+
 export function DraftApprovalActions({ auditId, draft, websiteId }: { auditId: string; draft: StoredArticleDraft; websiteId: string }) {
   const approved = draft.approved === true;
   const router = useRouter();
@@ -56,7 +60,7 @@ export function DraftApprovalActions({ auditId, draft, websiteId }: { auditId: s
 
   return <div className={styles.approvalActions} id="draft-actions">
     <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type="button">{label}</button>
-    <Link className={styles.approvalSecondary} href={siteScopedHref("/content#article-review-workspace", websiteId)}>Edit in Content Studio</Link>
+    <EditInContentStudioLink websiteId={websiteId} />
     {!approved && !gate.checking && gate.message ? <small className={styles.approvalStatus}>{gate.message}</small> : null}
     {error ? <small className={styles.approvalError} role="alert">{error}</small> : null}
   </div>;

@@ -5769,22 +5769,49 @@
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:17:a:1",
+    "control_id": "src/components/rebound-core/core-pages.tsx:18:a:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 17,
+    "line": 18,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const resolved = scopedHref(href, websiteId); if (/^https?:\\/\\//.test(resolved)) return <a className={`${styles.action} ${hot ? styles.actionHot : \"\"}`} href={resolved} rel=\"noreferrer\" target=\"_blank\">{label} ↗</a>; return <MoveChip href={resolved} label={label} tone={hot ? \"hot\" : \"default\"} />;"
   },
   {
-    "control_id": "src/components/rebound-core/core-pages.tsx:51:Link:1",
+    "control_id": "src/components/rebound-core/core-pages.tsx:31:Link:1",
     "file": "src/components/rebound-core/core-pages.tsx",
-    "line": 51,
+    "line": 31,
     "type": "Link",
     "route": "component",
+    "side_effect_class": 0,
+    "context": "function BackToContentPipeline({ websiteId }: { websiteId: string }) { return <Link className={styles.back} href={siteScopedHref(\"/app/content\", websiteId)}>← Back to pipeline</Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:13:Link:1",
+    "file": "src/components/rebound-core/draft-approval-actions.tsx",
+    "line": 13,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "function EditInContentStudioLink({ websiteId }: { websiteId: string }) { return <Link className={styles.approvalSecondary} href={siteScopedHref(\"/content#article-review-workspace\", websiteId)}>Edit in Content Studio</Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:button:1",
+    "file": "src/components/rebound-core/draft-approval-actions.tsx",
+    "line": 62,
+    "type": "button",
+    "route": "component",
     "side_effect_class": 1,
-    "context": "return <Shell active=\"/app/content\" subtitle=\"read-only draft detail\" title=\"Content\" view={view}><div className={styles.page}> <Link className={styles.back} href={siteScopedHref(\"/app/content\", view.websiteId)}>← Back to pipeline</Link> <NeedsYouBar detail=\"Editing and approval stay in the existing Content Studio during this read-only slice.\" move={view.draft.approved ? undefined : { href: siteScopedHref(\"/content\", view.websiteId), label: \"Open Content Studio\" }} title={view.draft.approved ? \""
+    "context": "return <div className={styles.approvalActions} id=\"draft-actions\"> <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
+  },
+  {
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:onClick:2",
+    "file": "src/components/rebound-core/draft-approval-actions.tsx",
+    "line": 62,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <div className={styles.approvalActions} id=\"draft-actions\"> <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
   },
   {
     "control_id": "src/components/rebound-core/home-calendar.tsx:8:Link:1",
@@ -5850,22 +5877,22 @@
     "context": "if (result.state === \"ready\" && result.data) return <div className={styles.sourceBox}><header><b>Analytics</b><EvidenceChip evidence={result.evidence[0]} /></header><div className={styles.analyticsReady}><strong>{value(result.data.engagedVisits)}</strong><span>Organic engaged visits</span><small>{delta(result.data.engagedVisitsChange)} · {syncedLabel(result.data.syncedAt)}</small></div></div>; return <div className={`${styles.sourceBox} ${styles.sourceBoxOff}`}><header><b>Analytics</b><EvidenceC"
   },
   {
-    "control_id": "src/components/rebound-core/preview-strip.tsx:9:button:1",
+    "control_id": "src/components/rebound-core/preview-strip.tsx:7:button:1",
     "file": "src/components/rebound-core/preview-strip.tsx",
-    "line": 9,
+    "line": 7,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> These new core pages use current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+    "context": "function DismissPreview({ onDismiss }: { onDismiss: () => void }) { return <button aria-label=\"Dismiss preview notice\" onClick={onDismiss} type=\"button\">Dismiss</button>; }"
   },
   {
-    "control_id": "src/components/rebound-core/preview-strip.tsx:9:onClick:2",
+    "control_id": "src/components/rebound-core/preview-strip.tsx:7:onClick:2",
     "file": "src/components/rebound-core/preview-strip.tsx",
-    "line": 9,
+    "line": 7,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> These new core pages use current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+    "context": "function DismissPreview({ onDismiss }: { onDismiss: () => void }) { return <button aria-label=\"Dismiss preview notice\" onClick={onDismiss} type=\"button\">Dismiss</button>; }"
   },
   {
     "control_id": "src/components/rebound-core/primitives.tsx:17:Link:1",
