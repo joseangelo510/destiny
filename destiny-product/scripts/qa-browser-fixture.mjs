@@ -122,6 +122,14 @@ async function createBrowserCookies(email, password) {
 async function seedMvpCertification({ auditId, organizationId, ownerId, websiteId }) {
   const now = new Date();
   const completedAt = now.toISOString();
+  const distributionOpportunity = {
+    platform: "Quora",
+    topic: "small business seo consultant",
+    title: "How do small businesses choose an SEO consultant?",
+    url: "https://www.quora.com/How-do-small-businesses-choose-an-SEO-consultant",
+    snippet: "A saved live question about choosing an SEO consultant.",
+    checkedAt: completedAt,
+  };
   const keywords = [
     { keyword: "seo consulting services", intent: "commercial", searchVolume: 900, difficulty: 35, cpc: 8.4, opportunity: "site_idea", themeId: "seo-services", themeLabel: "SEO services", themeRole: "core" },
     { keyword: "small business seo consultant", intent: "commercial", searchVolume: 600, difficulty: 31, cpc: 7.2, opportunity: "site_idea", themeId: "seo-services", themeLabel: "SEO services", themeRole: "core" },
@@ -151,6 +159,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
       growthStage: "foundation",
       providerResult: {
         sourceLabel: "Disposable browser certification evidence",
+        distributionOpportunities: [distributionOpportunity],
         keywords,
         pages: [{
           role: "homepage",
@@ -298,7 +307,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   ]);
   if (observations.error) throw new Error(`Create MVP browser rank observations: ${observations.error.message}`);
 
-  return { auditId, draftId, keyword: keywords[0].keyword, trackedKeywordId: tracked.id, websiteId };
+  return { auditId, distributionOpportunity, draftId, keyword: keywords[0].keyword, trackedKeywordId: tracked.id, websiteId };
 }
 
 const ownerA = await createUser("Owner-A");
