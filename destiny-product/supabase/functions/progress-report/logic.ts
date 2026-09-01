@@ -34,6 +34,29 @@ function receiptValue(receipt: JsonRecord, camel: string, snake: string) {
   return receipt[camel] ?? receipt[snake];
 }
 
+function hasCompletePublicEvidence(receipt: JsonRecord) {
+  const permalink = text(receiptValue(receipt, "remotePermalink", "remote_permalink"));
+  const verifiedAt = text(receiptValue(receipt, "verifiedLiveAt", "verified_live_at"));
+  const evidence = record(receiptValue(receipt, "verificationEvidence", "verification_evidence"));
+  const status = Number(evidence.httpStatus);
+  let validPermalink = false;
+  try {
+    validPermalink = new URL(permalink).protocol === "https:";
+  } catch {
+    validPermalink = false;
+  }
+  return validPermalink
+    && Boolean(verifiedAt)
+    && !Number.isNaN(Date.parse(verifiedAt))
+    && evidence.verified === true
+    && Number.isFinite(status)
+    && status >= 200
+    && status < 300
+    && evidence.canonicalMatches === true
+    && evidence.contentMatches === true
+    && evidence.indexable === true;
+}
+
 function keywordFromReceipt(receipt: JsonRecord) {
   const articleKey = text(receiptValue(receipt, "articleKey", "article_key"));
   const separator = articleKey.indexOf(":");
@@ -66,7 +89,7 @@ export function buildProgressReportSummary(input: { quests: unknown[]; scheduleI
     }));
   const google = input.receipts.map(record).flatMap((receipt): ProgressReportItem[] => {
     const status = text(receiptValue(receipt, "publicationStatus", "publication_status"));
-    if (status !== "published_unverified") return [];
+    if (status !== "published_unverified" && !(status === "verified_live" && !hasCompletePublicEvidence(receipt))) return [];
     return [{ title: keywordFromReceipt(receipt), detail: "Published and waiting on complete public verification." }];
   });
   const blockers = [

@@ -33,16 +33,18 @@ export default {
       .maybeSingle();
     if (websiteError || !website) return json({ error: "You do not have access to that website." }, 403);
 
-    const [{ data: profile }, { data: quests }, { data: plans }, { data: receipts }] = await Promise.all([
+    const [{ data: profile, error: profileError }, { data: quests, error: questsError }, { data: plans, error: plansError }, { data: receipts, error: receiptsError }] = await Promise.all([
       context.supabase.from("profiles").select("contact_email").eq("id", userId).maybeSingle(),
       context.supabase.from("quests").select("title,description,status,verification_status,completed_at,guidance_state,blocker_reason").eq("website_id", website.id).order("priority").limit(500),
       context.supabase.from("publishing_plans").select("id").eq("website_id", website.id).order("updated_at", { ascending: false }).limit(1),
       context.supabase.rpc("read_cms_transfer_states", { p_website_id: website.id }),
     ]);
+    if (profileError || questsError || plansError || receiptsError) return json({ error: "Rebound SEO could not load a complete progress report." }, 502);
     const planId = plans?.[0]?.id;
-    const { data: scheduleItems } = planId
+    const { data: scheduleItems, error: scheduleError } = planId
       ? await context.supabase.from("publishing_schedule_items").select("title,keyword,scheduled_for,state,last_error").eq("website_id", website.id).eq("plan_id", planId).order("scheduled_for")
-      : { data: [] };
+      : { data: [], error: null };
+    if (scheduleError) return json({ error: "Rebound SEO could not load a complete progress report." }, 502);
     const recipient = notificationRecipient(website.notification_email, profile?.contact_email);
     if (!recipient) return json({ error: "Add a valid report email in Account before sending." }, 409);
     const summary = buildProgressReportSummary({ quests: quests ?? [], scheduleItems: scheduleItems ?? [], receipts: Array.isArray(receipts) ? receipts : [] });
