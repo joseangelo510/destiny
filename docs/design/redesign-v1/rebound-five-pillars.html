@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rebound SEO — Five concepts, full mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F2E8; --well:#EDE7D7; --card:#FBF8F1;
+  --ink:#182720; --ink-soft:#42544A;
+  --forest:#1E4634; --forest-deep:#143324;
+  --sage:#9FBCA4; --sage-line:#CFDACB; --sage-soft:#DCE4D8; --mint:#DFEBDD; --mint-deep:#CBDCC7;
+  --lime:#C9E23F; --lime-ink:#3A4A0B; --amber:#8A5A2B; --amber-soft:#F3E9DA;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#E8E2D2;font-family:var(--sans);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+button:focus-visible{outline:2px solid var(--forest);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.chrome{position:sticky;top:0;z-index:60;background:#182720;color:#EFEDE4;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.chrome .who{font-family:var(--serif);font-size:16px}
+.chrome .who em{font-style:italic;color:#C9E23F}
+.tabs{display:flex;gap:4px;background:#0F1B15;border-radius:99px;padding:4px;flex-wrap:wrap}
+.tabs button{padding:7px 12px;border-radius:99px;color:#B9C4B7;font-weight:500;font-size:12.5px;white-space:nowrap}
+.tabs button:hover{color:#fff}
+.tabs button.on{background:#F6F2E8;color:#182720}
+.vp{margin-left:auto;display:flex;gap:4px;background:#0F1B15;border-radius:99px;padding:4px}
+.vp button{padding:7px 13px;border-radius:99px;color:#B9C4B7;font-size:13px;font-weight:500}
+.vp button.on{background:#2C4436;color:#fff}
+.concept-note{background:#EDE7D7;border-bottom:1px solid #DDD4BE;padding:9px 24px;font-size:12.5px;color:var(--ink-soft)}
+.concept-note b{color:var(--ink)}
+.stage{display:flex;justify-content:center;padding:26px 14px 60px}
+.canvas{width:100%;max-width:1320px;background:var(--paper);border-radius:22px;box-shadow:0 20px 50px -30px rgba(24,39,32,.45);overflow:hidden;display:grid;grid-template-columns:236px 1fr;min-height:860px;transition:max-width .3s}
+.stage.mobile .canvas{max-width:396px;border-radius:38px;border:8px solid #182720;grid-template-columns:1fr;min-height:0}
+.stage.mobile .canvas::before{content:"";display:block;height:22px;background:linear-gradient(#fbf8f1,#F6F2E8)}
+
+/* ===== shared vocab ===== */
+.st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.st i{width:7px;height:7px;border-radius:50%;flex:none}
+.st.idea{border:1px dashed var(--sage-line);color:var(--ink-soft)}.st.idea i{border:1px solid var(--sage);background:transparent;width:6px;height:6px}
+.st.draft{border:1px dashed var(--sage);color:var(--ink-soft)}.st.draft i{background:var(--sage)}
+.st.approved{background:var(--mint);color:var(--forest)}.st.approved i{background:var(--forest)}
+.st.sched{background:var(--mint);color:var(--forest)}.st.sched i{background:transparent;border:1.5px solid var(--forest);width:6px;height:6px}
+.st.pub{border:1px solid var(--forest);color:var(--forest)}.st.pub i{background:var(--forest)}
+.st.live{background:var(--lime);color:var(--lime-ink)}.st.live i{background:var(--lime-ink)}
+.ev{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-soft)}
+.ev.verified{color:var(--lime-ink);font-weight:600}
+.ev.verified::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #C9E23F33}
+.ev.reported::before{content:"";width:6px;height:6px;border-radius:50%;border:1.5px solid var(--sage)}
+.cta{background:var(--forest);color:#fff;font-weight:600;padding:10px 18px;border-radius:11px;font-size:13.5px;box-shadow:0 3px 0 var(--forest-deep);transition:transform .12s}
+.cta:hover{transform:translateY(-1px)}
+.cta.lime{background:var(--lime);color:var(--lime-ink);box-shadow:0 3px 0 #8FA32A}
+.ghost{border:1px solid var(--sage);color:var(--forest);font-weight:600;padding:9px 16px;border-radius:11px;background:var(--card);font-size:13px}
+.ghost:hover{background:var(--mint)}
+.quiet-link{font-size:12.5px;color:var(--forest);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.microlabel{font-size:11.5px;font-weight:600;color:var(--ink-soft);letter-spacing:.02em}
+.panel{background:var(--card);border:1px solid var(--sage-line);border-radius:16px}
+.panel-h{display:flex;align-items:baseline;gap:10px;padding:15px 18px 0;flex-wrap:wrap}
+.panel-h h3{font-family:var(--serif);font-weight:600;font-size:16px}
+.panel-h .sub{font-size:11.5px;color:var(--ink-soft)}
+.panel-h .more{margin-left:auto;font-size:12px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.dl{font-weight:700;font-size:11.5px}.dl.up{color:var(--lime-ink)}.dl.dn{color:var(--amber)}.dl.neu{color:var(--ink-soft)}
+.read{font-size:12.5px;color:var(--ink-soft)}.read b{color:var(--ink)}
+.mv{display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--forest);background:var(--mint);border:1px solid var(--mint-deep);border-radius:99px;padding:3px 10px;white-space:nowrap}
+.mv:hover{background:var(--mint-deep)}
+.mv.hot{background:var(--lime);color:var(--lime-ink);border-color:#B5CC30}
+.mv.quiet{background:transparent;border-color:var(--sage-line);color:var(--ink-soft)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.stage.mobile .grid{grid-template-columns:1fr;gap:14px}
+.grid>*{min-width:0}
+.mday{min-width:0;overflow:hidden}
+.panel{min-width:0}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:1/-1}
+.stage.mobile .c4,.stage.mobile .c5,.stage.mobile .c6,.stage.mobile .c7,.stage.mobile .c8,.stage.mobile .c12{grid-column:1/-1}
+
+/* ===== sidebar ===== */
+.side{background:var(--card);border-right:1px solid var(--sage-line);padding:18px 14px 16px;display:flex;flex-direction:column;gap:4px;min-height:860px}
+.stage.mobile .side{display:none}
+.wordmark{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--forest);display:flex;align-items:center;gap:8px;padding:2px 8px 12px}
+.wordmark .ring{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--forest);border-bottom-color:var(--lime);transform:rotate(-40deg)}
+.sesspill{background:var(--forest);color:#EFF3EC;border-radius:12px;padding:11px 12px;text-align:left;margin-bottom:8px;width:100%}
+.sesspill .lbl{font-size:10.5px;color:#B7CDB9;font-weight:600;display:flex;justify-content:space-between}
+.sesspill .lbl .prog{display:flex;gap:3px}
+.sesspill .lbl .prog i{width:14px;height:4px;border-radius:99px;background:#ffffff26}
+.sesspill .lbl .prog i.now{background:#ffffff80}
+.sesspill .t{font-size:13px;font-weight:600;margin-top:4px;line-height:1.3}
+.sesspill .go{margin-top:8px;font-size:11.5px;color:var(--lime);font-weight:700}
+.tier{font-size:10.5px;font-weight:700;color:var(--sage);letter-spacing:.04em;padding:10px 8px 4px}
+.nav button{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;text-align:left;font-size:13px;color:var(--ink-soft)}
+.nav button:hover{background:var(--mint)}
+.nav button.here{background:var(--forest);color:#fff;font-weight:600}
+.nav button .ct{margin-left:auto;font-size:10.5px;background:var(--lime);color:var(--lime-ink);border-radius:99px;padding:1px 7px;font-weight:700}
+.nav button.here .ct{background:#ffffff26;color:#fff}
+.nav button.sub{font-size:12px;padding:5px 10px 5px 22px}
+.nav button.q{font-family:var(--serif);font-size:14px;color:var(--ink)}
+.nav.tools button{font-size:12.5px;padding:6px 10px}
+.side .bottom{margin-top:auto;padding-top:10px;border-top:1px solid var(--sage-soft);display:flex;align-items:center;gap:10px;padding-left:8px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--forest);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600}
+.side .bottom small{font-size:11px;color:var(--ink-soft);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+/* loop ring nav */
+.ringnav{margin:4px auto 2px;width:190px}
+.ringnav svg{width:100%;display:block}
+.ringnav .node{cursor:pointer}
+.ringnav .node circle.bg{fill:var(--mint)}
+.ringnav .node.here circle.bg{fill:var(--forest)}
+.ringnav .node text{font-family:var(--sans);font-size:10px;font-weight:700;fill:var(--forest);text-anchor:middle;pointer-events:none}
+.ringnav .node.here text{fill:#fff}
+.ringnav .node text.ct{font-size:8px;fill:var(--lime-ink)}
+/* horizon strip */
+.hz{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:2px 0 4px}
+.hz button{background:var(--well);border-radius:9px;padding:8px 4px;text-align:center;font-size:11.5px;font-weight:700;color:var(--ink-soft)}
+.hz button small{display:block;font-weight:500;font-size:9.5px;opacity:.8}
+.hz button.here{background:var(--forest);color:#fff}
+.hz button:hover{background:var(--mint)}
+.hz button.here:hover{background:var(--forest)}
+
+/* ===== main ===== */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid var(--sage-line);background:var(--card)}
+.topbar h1{font-family:var(--serif);font-weight:500;font-size:21px}
+.topbar .sub{font-size:12.5px;color:var(--ink-soft)}
+.topbar .end{margin-left:auto;display:flex;gap:10px;align-items:center}
+.stage.mobile .topbar{padding:12px 18px;flex-wrap:wrap}
+.page{padding:20px 26px 40px;display:grid;gap:16px;align-content:start}
+.stage.mobile .page{padding:14px 16px 90px}
+.needs{background:var(--forest);color:#EFF3EC;border-radius:14px;padding:13px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.needs .l{font-size:10.5px;color:#B7CDB9;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.needs .t{font-size:14.5px;font-weight:600;flex:1;min-width:200px}
+.needs .t small{display:block;font-weight:400;font-size:12px;color:#CFE0CC;margin-top:1px}
+.needs .cta{padding:8px 16px;font-size:13px}
+.needs.calm{background:var(--mint);color:var(--forest)}
+.needs.calm .l{color:var(--forest)}
+.needs.calm .t small{color:var(--ink-soft)}
+.ptabs{display:flex;gap:4px;border-bottom:1px solid var(--sage-line);padding:0 4px}
+.ptabs button{font-size:13px;font-weight:600;color:var(--ink-soft);padding:9px 12px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.ptabs button.on{color:var(--forest);border-bottom-color:var(--forest)}
+.ptabs button .ct{font-size:10px;background:var(--lime);color:var(--lime-ink);border-radius:99px;padding:1px 6px;margin-left:5px;font-weight:700}
+.tabpane{display:none;gap:16px}
+.tabpane.on{display:grid}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:99px;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.mnav{display:none}
+.stage.mobile .mnav{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--sage-line);background:var(--card);position:sticky;bottom:0}
+.mnav button{padding:10px 4px 12px;font-size:10px;color:var(--ink-soft);display:grid;gap:3px;justify-items:center;text-align:center}
+.mnav button b{font-size:15px;font-weight:400}
+.mnav button.here{color:var(--forest);font-weight:600}
+
+/* ===== modules ===== */
+/* session + queue (work panel) */
+.work{border-radius:16px;overflow:hidden;border:1px solid var(--forest);background:var(--card);display:flex;flex-direction:column}
+.work .coach{background:var(--forest);color:#EFF3EC}
+.coach-h{display:flex;align-items:center;gap:10px;padding:15px 18px 0}
+.coach-h .microlabel{color:#B7CDB9}
+.coach-h .prog{margin-left:auto;display:flex;gap:4px}
+.coach-h .prog i{width:22px;height:5px;border-radius:99px;background:#ffffff26}
+.coach-h .prog i.done{background:var(--lime)}
+.coach-h .prog i.now{background:#ffffff70}
+.coach-body{padding:10px 18px 16px}
+.coach-move{display:none}.coach-move.on{display:block}
+.coach-move h2{font-family:var(--serif);font-weight:500;font-size:20px;line-height:1.25}
+.coach-move .why{margin-top:7px;font-size:12.5px;color:#CFE0CC}
+.coach-move .why b{color:#fff}
+.coach-dn{margin-top:11px;background:#ffffff12;border-radius:11px;padding:10px 13px;font-size:12px;color:#DFEAD9}
+.coach-dn b{color:#C9E23F;font-weight:600}
+.coach-acts{margin-top:13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.coach-acts .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.coach-fin{text-align:center;padding:12px 0 4px}
+.coach-fin h2{font-family:var(--serif);font-size:21px;font-weight:500}
+.coach-fin p{font-size:12.5px;color:#CFE0CC;margin-top:5px}
+.coach-fin .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:8px}
+.queue{padding:12px 18px 14px}
+.queue .qh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.queue .qh .microlabel{color:var(--forest)}
+.queue .qh .streak{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:11px;color:var(--ink-soft)}
+.queue .qh .streak i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.queue .qh .streak i.off{background:var(--well);border:1px solid var(--sage-line)}
+.qrow{display:grid;grid-template-columns:auto 1fr auto;gap:11px;padding:9px 0;border-top:1px solid var(--sage-soft);align-items:start}
+.qrow:first-of-type{border-top:none}
+.qrow .pri{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;margin-top:1px;background:var(--well);color:var(--ink-soft)}
+.qrow.session .pri{background:var(--mint);color:var(--forest)}
+.qrow.now .pri{background:var(--lime);color:var(--lime-ink)}
+.qrow.done .pri{background:var(--forest);color:#fff}
+.qrow.done .t{text-decoration:line-through;color:var(--ink-soft)}
+.qrow .t{font-size:13px;font-weight:500;line-height:1.35}
+.qrow.now .t{font-weight:600}
+.qrow .m{font-size:11px;color:var(--ink-soft);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qrow .why-tag{background:var(--well);border-radius:99px;padding:1px 8px;font-weight:600}
+.qrow .sess{font-size:10px;font-weight:700;color:var(--forest);background:var(--mint);border-radius:99px;padding:1px 7px}
+.qfoot{margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+/* pipeline */
+.pipe-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:600;color:var(--ink-soft);background:var(--card);border:1px solid var(--sage-line);border-radius:99px;padding:6px 12px}
+.chip.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.pipe.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stage.mobile .pipe,.stage.mobile .pipe.three{grid-template-columns:1fr}
+.col{background:var(--well);border-radius:14px;padding:8px;min-height:360px;min-width:0}
+.stage.mobile .col{min-height:0}
+.col.live{background:#F1F6DB}
+.col-h{display:flex;align-items:center;gap:8px;padding:4px 6px 10px}
+.col-h b{font-size:12.5px;font-weight:700}
+.col-h .ct{margin-left:auto;font-size:11px;color:var(--ink-soft);font-weight:600}
+.card{background:var(--card);border:1px solid var(--sage-line);border-radius:11px;padding:9px 10px;margin-bottom:8px;font-size:12px}
+.card.next{border-color:var(--forest);box-shadow:0 0 0 2px #C9E23F}
+.card .t{font-weight:600;line-height:1.3}
+.card .kw{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.card .m{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:10.5px;color:var(--ink-soft)}
+.card .src{background:var(--well);border-radius:99px;padding:1px 7px;font-weight:600}
+.card .pin{font-size:10px;font-weight:700;color:var(--lime-ink);background:var(--lime);border-radius:99px;padding:1px 7px}
+.col .add{width:100%;text-align:left;font-size:11.5px;color:var(--forest);font-weight:600;padding:7px 8px;border-radius:8px;border:1px dashed var(--sage)}
+.col .add:hover{background:var(--card)}
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{text-align:left;font-size:10.5px;color:var(--ink-soft);font-weight:600;padding:8px 14px;border-bottom:1px solid var(--sage-soft)}
+.tbl td{padding:9px 14px;border-bottom:1px solid var(--sage-soft);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .kw{font-weight:500}.tbl .kw small{display:block;color:var(--ink-soft);font-size:10.5px;font-weight:400}
+.tbl .num{font-family:var(--serif);font-weight:600;color:var(--forest);font-size:14px;white-space:nowrap}
+.tbl .pg{color:var(--ink-soft);font-size:11.5px}
+.tbl td.act{text-align:right;white-space:nowrap}
+.tbl tr.you td{background:var(--mint)}
+.gap{background:var(--amber-soft);color:var(--amber);font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 8px}
+.thin{background:var(--well);color:var(--ink-soft);font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 8px}
+.stage.mobile .tbl th:nth-child(3),.stage.mobile .tbl td:nth-child(3){display:none}
+/* clusters */
+.cluster{background:var(--card);border:1px solid var(--sage-line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.cluster>button{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;text-align:left}
+.cluster>button:hover{background:var(--mint)}
+.cluster .nm{font-family:var(--serif);font-weight:600;font-size:15px}
+.cluster .cov{font-size:11.5px;color:var(--ink-soft)}
+.cluster .bar{flex:1;max-width:160px;height:6px;border-radius:99px;background:var(--well);position:relative;margin-left:auto}
+.cluster .bar i{position:absolute;inset:0;width:var(--w);background:var(--forest);border-radius:99px}
+.cluster .chev{color:var(--sage);font-size:11px;transition:transform .2s}
+.cluster.open .chev{transform:rotate(90deg)}
+.cluster .body{display:none;border-top:1px solid var(--sage-soft)}
+.cluster.open .body{display:block}
+/* lists */
+.lrow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;padding:10px 0;border-top:1px solid var(--sage-soft);align-items:center;font-size:13px}
+.lrow:first-child{border-top:none}
+.lrow .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700}
+.lrow .ic.new{background:var(--mint);color:var(--forest)}.lrow .ic.beat{background:var(--amber-soft);color:var(--amber)}.lrow .ic.edge{background:var(--lime);color:var(--lime-ink)}.lrow .ic.pace{background:var(--well);color:var(--ink-soft)}.lrow .ic.drop{background:var(--amber-soft);color:var(--amber)}.lrow .ic.opp{background:var(--lime);color:var(--lime-ink)}.lrow .ic.day{background:var(--well);color:var(--ink-soft);font-size:9.5px;width:auto;padding:0 7px;border-radius:8px;height:22px}
+.lrow .t{font-weight:500}.lrow .t small{display:block;color:var(--ink-soft);font-size:11px;font-weight:400;margin-top:1px}
+.lrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.lrow.auto .t{color:var(--ink-soft)}
+.lrow.done .t{text-decoration:line-through;color:var(--ink-soft)}
+.pad{padding:6px 18px 14px}
+/* reach */
+.piece{background:var(--card);border:1px solid var(--sage-line);border-radius:16px;overflow:hidden}
+.piece .ph{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--sage-soft);flex-wrap:wrap}
+.piece .ph b{font-family:var(--serif);font-weight:600;font-size:15px}
+.piece .ph .sub{font-size:11.5px;color:var(--ink-soft)}
+.piece .ph .st{margin-left:auto}
+.chan{display:grid;grid-template-columns:repeat(4,1fr)}
+.stage.mobile .chan{grid-template-columns:1fr 1fr}
+.ch{padding:12px 16px;border-right:1px solid var(--sage-soft)}
+.ch:last-child{border-right:none}
+.stage.mobile .ch{border-right:none;border-top:1px solid var(--sage-soft)}
+.ch .cn{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;display:flex;justify-content:space-between}
+.ch .it{font-size:12.5px;padding:5px 0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ch .it small{color:var(--ink-soft);font-size:10.5px;display:block}
+/* calendar */
+.mcal-head{display:flex;align-items:center;gap:12px;padding:14px 18px 0}
+.mcal-head .mo{font-family:var(--serif);font-weight:600;font-size:15px}
+.mcal-head .navb{color:var(--ink-soft);font-size:13px;padding:2px 7px;border-radius:6px}
+.mcal-head .vw{margin-left:auto;display:flex;gap:4px;background:var(--well);border-radius:99px;padding:3px}
+.mcal-head .vw button{font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:99px;color:var(--ink-soft)}
+.mcal-head .vw button.on{background:var(--forest);color:#fff}
+.mcal-legend{display:flex;gap:12px;font-size:10.5px;color:var(--ink-soft);padding:8px 18px 0;flex-wrap:wrap}
+.mcal-legend span{display:inline-flex;align-items:center;gap:5px}
+.mcal-legend i{width:8px;height:8px;border-radius:3px}
+.mcal-legend .you i{background:var(--forest)}.mcal-legend .auto i{border:1.5px dashed var(--sage)}.mcal-legend .veri i{background:var(--lime)}.mcal-legend .open i{border:1.5px dashed var(--lime-ink)}
+.mcal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 12px 14px;gap:3px}
+.mcal-dow{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-align:center;padding:4px 0}
+.mday{min-height:84px;border-radius:10px;padding:5px 6px;background:var(--paper);border:1px solid transparent;position:relative}
+.mday.out{opacity:.38}
+.mday .dn2{font-size:10.5px;font-weight:600;color:var(--ink-soft)}
+.mday.today{background:var(--mint);border-color:var(--mint-deep)}
+.mday.today .dn2{color:var(--forest)}
+.mday .plus{position:absolute;right:5px;top:3px;font-size:12px;color:var(--sage);font-weight:700;opacity:.7}
+.mday:hover .plus{color:var(--forest);opacity:1}
+.mev{margin-top:3px;font-size:9.5px;line-height:1.25;border-radius:5px;padding:2px 5px;background:var(--forest);color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mev.auto{background:transparent;border:1px dashed var(--sage);color:var(--ink-soft);font-weight:400}
+.mev.veri{background:var(--lime);color:var(--lime-ink)}
+.mev.milestone{background:var(--well);color:var(--ink);border:1px solid var(--sage-line)}
+.mev.open{background:transparent;border:1.5px dashed var(--lime-ink);color:var(--lime-ink);font-weight:700}
+.stage.mobile .mcal-grid{display:none}
+.mcal-agenda{display:none;padding:8px 18px 14px}
+.stage.mobile .mcal-agenda{display:block}
+.mcal-agenda .ar{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--sage-line);font-size:12.5px;align-items:center}
+.mcal-agenda .ar:first-child{border-top:none}
+.mcal-agenda .ad{width:58px;flex:none;font-weight:600;color:var(--ink-soft);font-size:11.5px}
+.mcal-agenda .ar .st,.mcal-agenda .ar .ev,.mcal-agenda .ar .mv{margin-left:auto}
+.cadence .r{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--sage-soft);font-size:12.5px;align-items:center}
+.cadence .r:first-child{border-top:none}
+.cadence .r small{display:block;color:var(--ink-soft);font-size:11px}
+/* plan 90 */
+.phases{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--sage-line);border-radius:12px;overflow:hidden;background:var(--paper)}
+.stage.mobile .phases{grid-template-columns:1fr}
+.ph2{padding:12px 14px;border-right:1px solid var(--sage-line)}
+.ph2:last-child{border-right:none}
+.ph2.now{background:var(--mint)}
+.ph2 .rng{font-size:11px;color:var(--ink-soft);font-weight:600}
+.ph2 .nm{font-family:var(--serif);font-size:15px;font-weight:600;margin-top:2px}
+.ph2 .pr{margin-top:8px;height:5px;border-radius:99px;background:var(--well);overflow:hidden}
+.ph2 .pr i{display:block;height:100%;background:var(--forest)}
+/* source boxes */
+.twobox{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stage.mobile .twobox{grid-template-columns:1fr}
+.cbox{border:1px solid var(--sage-line);border-radius:14px;background:var(--paper);display:flex;flex-direction:column;min-height:250px}
+.cbox.off{border-style:dashed;border-color:var(--sage)}
+.cb-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0}
+.cb-h b{font-family:var(--serif);font-weight:600;font-size:15px}
+.cb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px 4px}
+.cb-kpi .n{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--forest);line-height:1.1}
+.cb-kpi .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.cb-kpi .d{font-size:11px;font-weight:600;margin-top:2px;color:var(--lime-ink)}
+.cb-chart{flex:1;display:flex;flex-direction:column;padding:6px 14px 12px;min-height:0}
+.cb-chart svg{width:100%;flex:1;min-height:70px;display:block}
+.cb-cap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-soft);margin-top:4px}
+.cb-empty{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px;padding:16px 20px 20px}
+.cb-empty p{font-size:13.5px;color:var(--ink-soft);max-width:44ch;line-height:1.6}
+.cb-empty small{font-size:11px;color:var(--ink-soft)}
+/* rankings shape */
+.rk-row{display:grid;grid-template-columns:52px 1fr 48px;gap:10px;align-items:center;padding:4px 0;font-size:12px}
+.rk-row .b{height:14px;border-radius:5px;background:var(--well);position:relative}
+.rk-row .b i{position:absolute;inset:0;width:var(--w);background:var(--sage);border-radius:5px}
+.rk-row.hot .b i{background:var(--forest)}.rk-row.top .b i{background:var(--lime)}
+.rk-row .lab{color:var(--ink-soft);font-weight:600;font-size:11px}
+.rk-row .ct{text-align:right;font-weight:600}
+/* article */
+.art{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px;align-items:start}
+.stage.mobile .art{grid-template-columns:1fr}
+.doc{background:var(--card);border:1px solid var(--sage-line);border-radius:16px;padding:28px 32px 32px}
+.stage.mobile .doc{padding:20px 18px}
+.doc .kicker{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+.doc h2{font-family:var(--serif);font-weight:500;font-size:28px;line-height:1.2;margin-top:10px;letter-spacing:-.01em}
+.stage.mobile .doc h2{font-size:22px}
+.doc .meta{margin-top:8px;font-size:12px;color:var(--ink-soft)}
+.doc .body{margin-top:20px;font-family:var(--serif);font-size:16px;line-height:1.7}
+.doc .body h4{font-weight:600;font-size:18px;margin:22px 0 6px}
+.doc .body p{margin-bottom:12px;max-width:62ch}
+.doc .body .more{font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);border-top:1px dashed var(--sage-line);padding-top:12px;margin-top:8px}
+.doc .body .il{background:#F1F6DB;border-bottom:2px solid var(--lime);padding:0 2px}
+.rail{display:grid;gap:14px}
+.rail .act{background:var(--forest);color:#EFF3EC;border-radius:16px;padding:16px 18px}
+.rail .act .microlabel{color:#B7CDB9}
+.rail .act h3{font-family:var(--serif);font-weight:500;font-size:18px;margin:6px 0 8px;line-height:1.3}
+.rail .act p{font-size:12.5px;color:#CFE0CC}
+.rail .act .btns{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+.rail .act .after{margin-top:12px;background:#ffffff12;border-radius:10px;padding:9px 12px;font-size:12px;color:#DFEAD9}
+.rail .act .after b{color:#C9E23F}
+.rail .blk{background:var(--card);border:1px solid var(--sage-line);border-radius:14px;padding:13px 16px}
+.rail .blk h4{font-family:var(--serif);font-weight:600;font-size:14px;margin-bottom:8px}
+.rail .row{display:flex;gap:10px;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px solid var(--sage-soft);align-items:center}
+.rail .row:first-of-type{border-top:none}
+.rail .row small{color:var(--ink-soft);display:block;font-size:11px}
+.rail .chk{display:flex;gap:9px;align-items:baseline;font-size:12.5px;padding:5px 0}
+.rail .chk .box{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--sage);flex:none;transform:translateY(2px)}
+.rail .chk .box.ok{background:var(--forest);border-color:var(--forest);position:relative}
+.rail .chk .box.ok::after{content:"✓";color:#fff;font-size:9px;position:absolute;inset:0;display:grid;place-items:center}
+/* short answer */
+.short{background:var(--card);border:1px solid var(--sage-line);border-left:4px solid var(--lime);border-radius:14px;padding:14px 18px;font-family:var(--serif);font-size:17px;line-height:1.4}
+.short b{color:var(--forest);font-weight:600}
+.short small{display:block;font-family:var(--sans);font-size:12px;color:var(--ink-soft);margin-top:4px}
+/* home injected */
+.homewrap{padding:0}
+
+/* ===== HOME = approved dashboard (v5), scoped ===== */
+.homewrap .st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.homewrap .st i{width:7px;height:7px;border-radius:50%;flex:none}
+.homewrap .st.draft{border:1px dashed var(--sage);color:var(--ink-soft)}
+.homewrap .st.draft i{background:var(--sage)}
+.homewrap .st.approved{background:var(--mint);color:var(--forest)}
+.homewrap .st.approved i{background:var(--forest)}
+.homewrap .st.sched{background:var(--mint);color:var(--forest)}
+.homewrap .st.sched i{background:transparent;border:1.5px solid var(--forest);width:6px;height:6px}
+.homewrap .st.pub{border:1px solid var(--forest);color:var(--forest)}
+.homewrap .st.pub i{background:var(--forest)}
+.homewrap .st.live{background:var(--lime);color:var(--lime-ink)}
+.homewrap .st.live i{background:var(--lime-ink)}
+.homewrap .ev{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-soft)}
+.homewrap .ev.verified{color:var(--lime-ink);font-weight:600}
+.homewrap .ev.verified::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #C9E23F33}
+.homewrap .ev.reported::before{content:"";width:6px;height:6px;border-radius:50%;border:1.5px solid var(--sage)}
+.homewrap .cta{background:var(--forest);color:#fff;font-weight:600;padding:10px 18px;border-radius:11px;font-size:13.5px;box-shadow:0 3px 0 var(--forest-deep);transition:transform .12s}
+.homewrap .cta:hover{transform:translateY(-1px)}
+.homewrap .cta:active{transform:translateY(1px);box-shadow:0 1px 0 var(--forest-deep)}
+.homewrap .cta.lime{background:var(--lime);color:var(--lime-ink);box-shadow:0 3px 0 #8FA32A}
+.homewrap .quiet-link{font-size:12.5px;color:var(--forest);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.homewrap .microlabel{font-size:11.5px;font-weight:600;color:var(--ink-soft);letter-spacing:.02em}
+.homewrap .panel{background:var(--card);border:1px solid var(--sage-line);border-radius:16px}
+.homewrap .panel-h{display:flex;align-items:baseline;gap:10px;padding:15px 18px 0;flex-wrap:wrap}
+.homewrap .panel-h h3{font-family:var(--serif);font-weight:600;font-size:16px}
+.homewrap .panel-h .sub{font-size:11.5px;color:var(--ink-soft)}
+.homewrap .panel-h .more{margin-left:auto;font-size:12px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.homewrap .dl{font-weight:700;font-size:11.5px}
+.homewrap .dl.up{color:var(--lime-ink)}
+.homewrap .dl.dn{color:var(--amber)}
+.homewrap .dl.neu{color:var(--ink-soft)}
+.homewrap .read{font-size:12.5px;color:var(--ink-soft)}
+.homewrap .read b{color:var(--ink)}
+.homewrap .dash{padding:24px 28px 46px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.stage.mobile .homewrap .dash{padding:18px 16px 26px;grid-template-columns:1fr;gap:14px}
+.homewrap .greet{grid-column:1/-1;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.homewrap .greet h1{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:-.01em}
+.stage.mobile .homewrap .greet h1{font-size:20px}
+.homewrap .greet .since{font-size:13px;color:var(--ink-soft)}
+.homewrap .greet .since b{color:var(--ink);font-weight:600}
+.homewrap .greet .since .win{color:var(--lime-ink);font-weight:600}
+.homewrap .c5{grid-column:span 5}
+.homewrap .c7{grid-column:span 7}
+.homewrap .c12{grid-column:1/-1}
+.stage.mobile .homewrap .c5,.stage.mobile .homewrap .c7,.stage.mobile .homewrap .c12{grid-column:1/-1}
+.homewrap .work{border-radius:16px;overflow:hidden;border:1px solid var(--forest);background:var(--card);display:flex;flex-direction:column}
+.homewrap .work .coach{background:var(--forest);color:#EFF3EC}
+.homewrap .coach-h{display:flex;align-items:center;gap:10px;padding:15px 18px 0}
+.homewrap .coach-h .microlabel{color:#B7CDB9}
+.homewrap .coach-h .prog{margin-left:auto;display:flex;gap:4px}
+.homewrap .coach-h .prog i{width:22px;height:5px;border-radius:99px;background:#ffffff26}
+.homewrap .coach-h .prog i.done{background:var(--lime)}
+.homewrap .coach-h .prog i.now{background:#ffffff70}
+.homewrap .coach-body{padding:10px 18px 16px}
+.homewrap .coach-move{display:none}
+.homewrap .coach-move.on{display:block}
+.homewrap .coach-move h2{font-family:var(--serif);font-weight:500;font-size:20px;line-height:1.25}
+.homewrap .coach-move .why{margin-top:7px;font-size:12.5px;color:#CFE0CC}
+.homewrap .coach-move .why b{color:#fff}
+.homewrap .coach-dn{margin-top:11px;background:#ffffff12;border-radius:11px;padding:10px 13px;font-size:12px;color:#DFEAD9}
+.homewrap .coach-dn b{color:#C9E23F;font-weight:600}
+.homewrap .coach-acts{margin-top:13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.homewrap .coach-acts .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.homewrap .coach-fin{text-align:center;padding:12px 0 4px}
+.homewrap .coach-fin h2{font-family:var(--serif);font-size:21px;font-weight:500}
+.homewrap .coach-fin p{font-size:12.5px;color:#CFE0CC;margin-top:5px}
+.homewrap .coach-fin .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:8px}
+.homewrap .queue{padding:12px 18px 14px;flex:1}
+.homewrap .queue .qh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.homewrap .queue .qh .microlabel{color:var(--forest)}
+.homewrap .queue .qh .streak{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:11px;color:var(--ink-soft)}
+.homewrap .queue .qh .streak i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.homewrap .queue .qh .streak i.off{background:var(--well);border:1px solid var(--sage-line)}
+.homewrap .qrow{display:grid;grid-template-columns:auto 1fr auto;gap:11px;padding:9px 0;border-top:1px solid var(--sage-soft);align-items:start}
+.homewrap .qrow:first-of-type{border-top:none}
+.homewrap .qrow .pri{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;margin-top:1px;background:var(--well);color:var(--ink-soft)}
+.homewrap .qrow.session .pri{background:var(--mint);color:var(--forest)}
+.homewrap .qrow.now .pri{background:var(--lime);color:var(--lime-ink)}
+.homewrap .qrow.done .pri{background:var(--forest);color:#fff}
+.homewrap .qrow.done .t{text-decoration:line-through;color:var(--ink-soft)}
+.homewrap .qrow .t{font-size:13px;font-weight:500;line-height:1.35}
+.homewrap .qrow.now .t{font-weight:600}
+.homewrap .qrow .m{font-size:11px;color:var(--ink-soft);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.homewrap .qrow .why-tag{background:var(--well);border-radius:99px;padding:1px 8px;font-weight:600}
+.homewrap .qrow .sess{font-size:10px;font-weight:700;color:var(--forest);background:var(--mint);border-radius:99px;padding:1px 7px}
+.homewrap .qfoot{margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+.homewrap .kpis{display:grid;grid-template-columns:repeat(4,1fr);padding:14px 6px 4px}
+.stage.mobile .homewrap .kpis{grid-template-columns:repeat(2,1fr)}
+.homewrap .kpi{padding:4px 14px;border-right:1px solid var(--sage-line)}
+.homewrap .kpi:last-child{border-right:none}
+.stage.mobile .homewrap .kpi:nth-child(2){border-right:none}
+.homewrap .kpi .n{font-family:var(--serif);font-size:25px;font-weight:600;color:var(--forest);line-height:1.1}
+.homewrap .kpi .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.homewrap .kpi .d{font-size:11px;font-weight:600;margin-top:3px}
+.homewrap .kpi .d.up{color:var(--lime-ink)}
+.homewrap .kpi .d.flat{color:var(--ink-soft)}
+.homewrap .chartwrap{padding:8px 16px 0}
+.homewrap .chartwrap svg{width:100%;height:auto;display:block}
+.homewrap .chartfoot{display:flex;gap:14px;padding:8px 18px 12px;font-size:11px;color:var(--ink-soft);align-items:center;flex-wrap:wrap}
+.homewrap .chartfoot .key{display:inline-flex;align-items:center;gap:6px}
+.homewrap .chartfoot .key i{width:14px;height:3px;border-radius:2px;background:var(--forest)}
+.homewrap .chartfoot .ev{margin-left:auto}
+.homewrap .perf .readline{padding:0 18px 14px;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--sage-soft);padding-top:10px;margin:0 0}
+.homewrap .perf .readline b{color:var(--ink)}
+.homewrap .srctabs{display:flex;gap:4px;padding:8px 14px 0;flex-wrap:wrap;border-bottom:1px solid var(--sage-soft);margin:0 4px}
+.homewrap .srctabs button{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-soft);padding:8px 11px 9px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.homewrap .srctabs button:hover{color:var(--ink)}
+.homewrap .srctabs button.on{color:var(--forest);border-bottom-color:var(--forest)}
+.homewrap .srctabs button.off{color:var(--ink-soft);font-weight:500}
+.homewrap .srctabs .dot{width:7px;height:7px;border-radius:50%}
+.homewrap .srctabs .dot.ok{background:var(--lime);box-shadow:0 0 0 3px #C9E23F33}
+.homewrap .srctabs .dot.no{border:1.5px dashed var(--sage);background:transparent}
+.homewrap .srctabs .cx{font-size:10px;font-weight:700;color:var(--forest);background:var(--mint);border-radius:99px;padding:1px 7px}
+.homewrap .srcpane{display:none}
+.homewrap .srcpane.on{display:block}
+.homewrap .kpis-click .kpi{text-align:left;border-radius:10px;transition:background .15s}
+.homewrap .kpis-click .kpi:hover{background:var(--mint)}
+.homewrap .kpis-click .kpi.on{background:var(--mint)}
+.homewrap .kpis-click .kpi.on .l::after{content:" · charted";font-weight:700;color:var(--forest)}
+.homewrap .kpis.ghost .kpi .n{color:var(--sage)}
+.homewrap .kpis.ghost .kpi .l{color:var(--sage)}
+.homewrap .perfgrid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:0;padding:6px 0 4px}
+.stage.mobile .homewrap .perfgrid{grid-template-columns:1fr}
+.homewrap .perfgrid .chartwrap{padding:6px 16px 8px}
+.homewrap .perfgrid .side{border-left:1px solid var(--sage-soft);padding:8px 16px 10px}
+.stage.mobile .homewrap .perfgrid .side{border-left:none;border-top:1px solid var(--sage-soft)}
+.homewrap .sh{font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+.homewrap .bar{display:grid;grid-template-columns:52px 1fr 34px;gap:8px;align-items:center;font-size:11.5px;padding:3px 0}
+.homewrap .bar span{color:var(--ink-soft)}
+.homewrap .bar .b{height:9px;border-radius:5px;background:var(--well);position:relative}
+.homewrap .bar .b i{position:absolute;inset:0;width:var(--w);background:var(--forest);border-radius:5px}
+.homewrap .bar b{text-align:right;font-weight:600}
+.homewrap .tq{font-size:12px;background:var(--paper);border:1px solid var(--sage-soft);border-radius:10px;padding:8px 10px}
+.homewrap .tq b{font-weight:600;display:block}
+.homewrap .tq small{color:var(--ink-soft);font-size:10.5px}
+.homewrap .stack{display:flex;height:22px;border-radius:7px;overflow:hidden;gap:2px}
+.homewrap .stack i{display:grid;place-items:center;font-style:normal;font-size:10.5px;font-weight:700;width:var(--w)}
+.homewrap .stack i.live{background:var(--lime);color:var(--lime-ink)}
+.homewrap .stack i.pub{background:var(--mint);color:var(--forest);border:1px solid var(--mint-deep)}
+.homewrap .vq{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;padding:6px 0;border-top:1px solid var(--sage-soft)}
+.homewrap .vq:first-of-type{border-top:none}
+.homewrap .connect{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;padding:12px 18px 14px;align-items:center}
+.stage.mobile .homewrap .connect{grid-template-columns:1fr}
+.homewrap .connect .ch2{font-family:var(--serif);font-weight:500;font-size:17px;line-height:1.3}
+.homewrap .connect .ch2 em{font-style:italic;color:var(--forest)}
+.homewrap .connect p{margin-top:8px;font-size:12.5px;color:var(--ink-soft);max-width:52ch}
+.homewrap .connect .cacts{margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.homewrap .connect .cmeta{font-size:11px;color:var(--ink-soft)}
+.homewrap .cpreview{background:var(--paper);border:1px dashed var(--sage);border-radius:12px;padding:10px 12px}
+.homewrap .cpreview .pv-l{font-size:10px;font-weight:700;color:var(--sage);letter-spacing:.04em}
+.homewrap .cpreview svg{width:100%;height:auto;display:block;margin-top:4px}
+.homewrap .cpreview .pv-r{display:flex;justify-content:space-between;font-size:10.5px;color:var(--sage);font-weight:600;margin-top:4px}
+.stage.mobile .homewrap .cpreview{display:none}
+.homewrap .perf .readline .srcnote{display:block;margin-top:4px;font-size:12px}
+.homewrap .srcpill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--forest);background:var(--mint);border:1px solid var(--mint-deep);border-radius:99px;padding:4px 11px;margin-left:auto}
+.homewrap .srcpill i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.homewrap .srcpill:hover{background:var(--mint-deep)}
+.stage.mobile .homewrap .srcpill{margin-left:0}
+.homewrap .srcbox{margin:0 14px 12px;border-radius:14px;border:1px solid var(--sage-line);background:var(--paper);overflow:hidden}
+.homewrap .srcbox.off{border-style:dashed;border-color:var(--sage);background:#F9F6EE}
+.homewrap .sb-h{display:flex;align-items:center;gap:11px;padding:11px 14px 8px;border-bottom:1px solid var(--sage-soft)}
+.homewrap .sb-logo{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.homewrap .sb-logo.gsc{background:#fff;border:1px solid var(--sage-line);color:#1E4634;font-family:var(--serif)}
+.homewrap .sb-logo.an{background:var(--well);color:var(--sage);border:1px dashed var(--sage)}
+.homewrap .sb-t{flex:1;min-width:0}
+.homewrap .sb-t b{font-size:13px;font-weight:600;display:block}
+.homewrap .sb-t small{font-size:11px;color:var(--ink-soft);display:block}
+.homewrap .srcbox .kpis{padding:10px 2px 2px}
+.homewrap .srcbox .kpi{padding:4px 12px}
+.homewrap .srcbox .kpi .n{font-size:23px}
+.homewrap .sb-read{padding:8px 14px 12px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--sage-soft)}
+.homewrap .sb-read b{color:var(--ink)}
+.homewrap .sb-foot{display:flex;align-items:center;gap:12px;padding:2px 18px 14px;font-size:11.5px;flex-wrap:wrap}
+.homewrap .an-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;padding:12px 14px 14px;align-items:start}
+.stage.mobile .homewrap .an-body{grid-template-columns:1fr}
+.homewrap .an-txt .ch2{font-family:var(--serif);font-weight:500;font-size:16px;line-height:1.3}
+.homewrap .an-txt .ch2 em{font-style:italic;color:var(--forest)}
+.homewrap .an-txt p{margin-top:8px;font-size:12px;color:var(--ink-soft)}
+.homewrap .an-opts{display:grid;gap:8px}
+.homewrap .an-opt{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;text-align:left;background:var(--card);border:1px solid var(--sage-line);border-radius:12px;padding:10px 12px;transition:border-color .15s,transform .12s}
+.homewrap .an-opt:hover{border-color:var(--forest);transform:translateY(-1px)}
+.homewrap .an-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.homewrap .an-ic.ga{background:#FFF3E0;color:#B7541C}
+.homewrap .an-ic.cf{background:#FFF0E6;color:#C4591C}
+.homewrap .an-lbl b{font-size:13px;font-weight:600;display:block}
+.homewrap .an-lbl small{font-size:11px;color:var(--ink-soft);display:block}
+.homewrap .an-go{font-size:12px;font-weight:700;color:#fff;background:var(--forest);border-radius:9px;padding:7px 12px}
+.homewrap .an-alt{font-size:11.5px;color:var(--ink-soft);padding:2px 2px 0}
+.homewrap .perf{display:flex;flex-direction:column}
+.homewrap .twobox{flex:1;display:grid;grid-template-rows:1.15fr 1fr;gap:14px;padding:0 18px 18px}
+.stage.mobile .homewrap .twobox{grid-template-rows:auto auto}
+.homewrap .cbox{border:1px solid var(--sage-line);border-radius:14px;background:var(--paper);display:flex;flex-direction:column;min-height:0}
+.stage.mobile .homewrap .cbox{min-height:240px}
+.homewrap .cbox.off{border-style:dashed;border-color:var(--sage)}
+.homewrap .cb-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0}
+.homewrap .cb-h b{font-family:var(--serif);font-weight:600;font-size:15px}
+.homewrap .cb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px 4px}
+.homewrap .cb-kpi .n{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--forest);line-height:1.1}
+.homewrap .cb-kpi .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.homewrap .cb-kpi .d{font-size:11px;font-weight:600;margin-top:2px}
+.homewrap .cb-kpi .d.up{color:var(--lime-ink)}
+.homewrap .cb-chart{flex:1;display:flex;flex-direction:column;padding:6px 14px 12px;min-height:0}
+.homewrap .cb-chart svg{width:100%;flex:1;min-height:0;display:block}
+.homewrap .cb-cap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-soft);margin-top:4px}
+.homewrap .cb-empty{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px;padding:16px 20px 20px}
+.homewrap .cb-empty p{font-size:13.5px;color:var(--ink-soft);max-width:44ch;line-height:1.6}
+.homewrap .cb-empty small{font-size:11px;color:var(--ink-soft)}
+.homewrap .kw-stats{display:flex;gap:0;padding:12px 6px 0;flex-wrap:wrap}
+.homewrap .kw-stat{padding:4px 14px;border-right:1px solid var(--sage-line)}
+.homewrap .kw-stat:last-child{border-right:none}
+.homewrap .kw-stat .n{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--forest)}
+.homewrap .kw-stat .n.up{color:var(--lime-ink)}
+.homewrap .kw-stat .n.dn{color:var(--amber)}
+.homewrap .kw-stat .l{font-size:11px;color:var(--ink-soft)}
+.homewrap .kw-body{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:0;padding:12px 0 6px}
+.stage.mobile .homewrap .kw-body{grid-template-columns:1fr}
+.homewrap .kw-col{padding:6px 18px 10px;border-right:1px solid var(--sage-soft)}
+.homewrap .kw-col:last-child{border-right:none}
+.stage.mobile .homewrap .kw-col{border-right:none;border-top:1px solid var(--sage-soft);padding:12px 18px}
+.stage.mobile .homewrap .kw-col:first-child{border-top:none}
+.homewrap .kw-col .ch{font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:baseline;gap:8px}
+.homewrap .kw-col .ch small{font-weight:600;color:var(--ink-soft);font-size:10.5px}
+.homewrap .kw-col .ch.up{color:var(--lime-ink)}
+.homewrap .kw-col .ch.dn{color:var(--amber)}
+.homewrap .kw-col .ch.lost{color:var(--amber)}
+.homewrap .rk-row{display:grid;grid-template-columns:48px 1fr 46px;gap:10px;align-items:center;padding:4px 0;font-size:12px}
+.homewrap .rk-row .b{height:14px;border-radius:5px;background:var(--well);position:relative}
+.homewrap .rk-row .b i{position:absolute;inset:0;width:var(--w);background:var(--sage);border-radius:5px}
+.homewrap .rk-row.hot .b i{background:var(--forest)}
+.homewrap .rk-row.top .b i{background:var(--lime)}
+.homewrap .rk-row .lab{color:var(--ink-soft);font-weight:600;font-size:11px}
+.homewrap .rk-row .ct{text-align:right;font-weight:600;font-size:12px}
+.homewrap .rk-row .ct small{font-size:10px;margin-left:3px}
+.homewrap .kwr{display:grid;grid-template-columns:1fr auto auto;gap:9px;padding:8px 0;border-top:1px solid var(--sage-soft);align-items:baseline;font-size:12.5px}
+.homewrap .kwr:first-of-type{border-top:none}
+.homewrap .kwr .kw{font-weight:500;min-width:0}
+.homewrap .kwr .kw small{display:block;color:var(--ink-soft);font-size:10.5px;font-weight:400;margin-top:1px}
+.homewrap .kwr .pos{font-family:var(--serif);font-weight:600;color:var(--forest);font-size:15px;text-align:right;min-width:24px}
+.homewrap .kw-col .cl{margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+.homewrap .kw-col .cl .quiet-link{font-size:11.5px}
+.homewrap .kw-read{padding:10px 18px 14px;border-top:1px solid var(--sage-soft);display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.homewrap .kw-read .ev{margin-left:auto}
+.homewrap .cmp-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;padding:6px 0 0}
+.stage.mobile .homewrap .cmp-body{grid-template-columns:1fr}
+.homewrap .cmp-left{padding:6px 18px 14px;border-right:1px solid var(--sage-soft)}
+.stage.mobile .homewrap .cmp-left{border-right:none}
+.homewrap .cmp-right{padding:6px 18px 14px}
+.stage.mobile .homewrap .cmp-right{border-top:1px solid var(--sage-soft);padding-top:12px}
+.homewrap .cmpt{width:100%;border-collapse:collapse;font-size:12.5px}
+.homewrap .cmpt th{text-align:left;font-size:10.5px;color:var(--ink-soft);font-weight:600;padding:6px 6px;border-bottom:1px solid var(--sage-line)}
+.homewrap .cmpt th.num,.homewrap .cmpt td.num{text-align:right}
+.homewrap .cmpt td{padding:9px 6px;border-bottom:1px solid var(--sage-soft);vertical-align:middle}
+.homewrap .cmpt tr:last-child td{border-bottom:none}
+.homewrap .cmpt tr.you td{background:var(--mint)}
+.homewrap .cmpt tr.you td:first-child{border-radius:10px 0 0 10px}
+.homewrap .cmpt tr.you td:last-child{border-radius:0 10px 10px 0}
+.homewrap .cmpt .nm{font-weight:600}
+.homewrap .cmpt .nm small{display:block;font-weight:400;color:var(--ink-soft);font-size:10.5px}
+.homewrap .cmpt svg{width:58px;height:18px;display:block}
+.homewrap .cmpt td.num{font-family:var(--serif);font-weight:600;color:var(--forest);font-size:14px;white-space:nowrap}
+.homewrap .cmpt td.num small{font-family:var(--sans);font-size:10px;display:block;font-weight:600}
+.stage.mobile .homewrap .cmpt th:nth-child(3),.stage.mobile .homewrap .cmpt td:nth-child(3){display:none}
+.homewrap .intel .ih{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.homewrap .intel .ir{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--sage-soft);font-size:12.5px}
+.homewrap .intel .ir:first-of-type{border-top:none}
+.homewrap .intel .ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;margin-top:1px}
+.homewrap .intel .ir.new .ic{background:var(--mint);color:var(--forest)}
+.homewrap .intel .ir.beat .ic{background:var(--amber-soft);color:var(--amber)}
+.homewrap .intel .ir.pace .ic{background:var(--well);color:var(--ink-soft)}
+.homewrap .intel .ir.edge .ic{background:var(--lime);color:var(--lime-ink)}
+.homewrap .intel .ir b{font-weight:600}
+.homewrap .intel .ir .sub{margin-top:2px;font-size:11px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.homewrap .cmp-read{padding:10px 18px 14px;border-top:1px solid var(--sage-soft);display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.homewrap .cmp-read .ev{margin-left:auto}
+.homewrap .mcal-head{display:flex;align-items:center;gap:12px;padding:6px 18px 0}
+.homewrap .mcal-head .mo{font-family:var(--serif);font-weight:600;font-size:14px}
+.homewrap .mcal-head .navb{color:var(--ink-soft);font-size:13px;padding:2px 7px;border-radius:6px}
+.homewrap .mcal-head .navb:hover{background:var(--mint)}
+.homewrap .mcal-legend{margin-left:auto;display:flex;gap:12px;font-size:10.5px;color:var(--ink-soft);flex-wrap:wrap}
+.homewrap .mcal-legend span{display:inline-flex;align-items:center;gap:5px}
+.homewrap .mcal-legend i{width:8px;height:8px;border-radius:3px}
+.homewrap .mcal-legend .you i{background:var(--forest)}
+.homewrap .mcal-legend .auto i{border:1.5px dashed var(--sage);background:transparent}
+.homewrap .mcal-legend .veri i{background:var(--lime)}
+.homewrap .mcal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 12px 14px;gap:3px}
+.homewrap .mcal-dow{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-align:center;padding:4px 0}
+.homewrap .mday{min-height:72px;border-radius:10px;padding:5px 6px;background:var(--paper);border:1px solid transparent}
+.homewrap .mday.out{opacity:.38}
+.homewrap .mday .dn2{font-size:10.5px;font-weight:600;color:var(--ink-soft)}
+.homewrap .mday.today{background:var(--mint);border-color:var(--mint-deep)}
+.homewrap .mday.today .dn2{color:var(--forest)}
+.homewrap .mday.today .dn2::after{content:" · today";font-weight:700}
+.homewrap .mev{margin-top:3px;font-size:9.5px;line-height:1.25;border-radius:5px;padding:2px 5px;background:var(--forest);color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.homewrap .mev.auto{background:transparent;border:1px dashed var(--sage);color:var(--ink-soft);font-weight:400}
+.homewrap .mev.veri{background:var(--lime);color:var(--lime-ink)}
+.homewrap .mev.milestone{background:var(--well);color:var(--ink);border:1px solid var(--sage-line)}
+.stage.mobile .homewrap .mcal-grid{display:none}
+.homewrap .mcal-agenda{display:none;padding:8px 18px 14px}
+.stage.mobile .homewrap .mcal-agenda{display:block}
+.homewrap .mcal-agenda .ar{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--sage-line);font-size:12.5px;align-items:baseline}
+.homewrap .mcal-agenda .ar:first-child{border-top:none}
+.homewrap .mcal-agenda .ad{width:58px;flex:none;font-weight:600;color:var(--ink-soft);font-size:11.5px}
+.homewrap .mcal-agenda .ar .st,.homewrap .mcal-agenda .ar .ev{margin-left:auto}
+.homewrap .cal-read{padding:0 18px 14px;font-size:12.5px;color:var(--ink-soft)}
+.homewrap .cal-read b{color:var(--ink)}
+.homewrap .dash{padding:22px 26px 46px}
+.homewrap .twobox{grid-template-columns:1fr}
+.stage.mobile .homewrap .twobox{grid-template-columns:1fr}
+
+/* ===== objects-in-order sidebar ===== */
+.loopnav{position:relative;padding-left:14px}
+.loopnav::before{content:"";position:absolute;left:5px;top:10px;bottom:34px;width:2px;background:var(--sage-line);border-radius:2px}
+.loopnav button{position:relative}
+.loopnav button::before{content:"";position:absolute;left:-13px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--sage);transform:translateY(-50%);border:2px solid var(--card)}
+.loopnav button.here::before{background:var(--forest)}
+.loopnav button.hasct::before{background:var(--lime);box-shadow:0 0 0 3px #C9E23F44}
+.loopnav .back{font-size:10.5px;color:var(--ink-soft);padding:6px 10px 2px;display:flex;gap:6px;align-items:center}
+.loopnav .back i{font-style:normal;color:var(--sage)}
+.nav button .ct.none{background:var(--well);color:var(--ink-soft)}
+.nav button .ct.hot{animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.7)}to{transform:scale(1)}}
+/* ===== flow bar ===== */
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--card);border:1px solid var(--sage-line);border-radius:14px;padding:8px 10px}
+.flow .lbl{font-size:10.5px;font-weight:700;color:var(--sage);letter-spacing:.04em;padding:0 6px}
+.flow button{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-soft);padding:6px 11px;border-radius:99px;border:1px solid transparent}
+.flow button:hover{background:var(--mint);color:var(--forest)}
+.flow button.here{background:var(--forest);color:#fff}
+.flow button .n{font-size:10px;font-weight:700;background:var(--lime);color:var(--lime-ink);border-radius:99px;padding:1px 6px}
+.flow button.here .n{background:#ffffff26;color:#fff}
+.flow .arr{color:var(--sage);font-size:12px}
+.flow .from{margin-left:auto;font-size:11.5px;color:var(--ink-soft);padding-right:6px}
+.flow .from b{color:var(--ink)}
+.stage.mobile .flow .from{display:none}
+.rowdone td{opacity:.55}
+.rowdone .mv{pointer-events:none}
+
+/* ===== status strip: done / needs you / progress / blockers ===== */
+.status{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stage.mobile .status{grid-template-columns:1fr 1fr}
+.sc{background:var(--card);border:1px solid var(--sage-line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-height:96px}
+.sc .k{font-size:10.5px;font-weight:700;letter-spacing:.03em;color:var(--ink-soft)}
+.sc .v{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--forest);line-height:1.1}
+.sc .v small{font-family:var(--sans);font-size:11px;color:var(--ink-soft);font-weight:600;margin-left:4px}
+.sc .d{font-size:12px;color:var(--ink-soft);line-height:1.35}
+.sc .d b{color:var(--ink);font-weight:600}
+.sc.need{background:var(--forest);color:#EFF3EC;border-color:var(--forest)}
+.sc.need .k{color:#B7CDB9}.sc.need .v{color:#fff}.sc.need .v small{color:#CFE0CC}.sc.need .d{color:#CFE0CC}.sc.need .d b{color:#fff}
+.sc.need .mv{margin-top:auto;align-self:flex-start}
+.sc.block .v{color:var(--amber)}
+.sc .bar{height:6px;border-radius:99px;background:var(--well);position:relative;margin-top:4px}
+.sc .bar i{position:absolute;inset:0;width:var(--w);background:var(--forest);border-radius:99px}
+.sc .bar i.lime{background:var(--lime)}
+/* ===== progress page ===== */
+.sec-h{display:flex;align-items:baseline;gap:10px;margin-top:6px}
+.sec-h h2{font-family:var(--serif);font-weight:600;font-size:18px}
+.sec-h .q{font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14px}
+.sec-h .more{margin-left:auto;font-size:12px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
+.donerow{display:grid;grid-template-columns:78px 1fr auto;gap:12px;padding:9px 0;border-top:1px solid var(--sage-soft);font-size:13px;align-items:center}
+.donerow:first-child{border-top:none}
+.donerow .when{font-size:11.5px;color:var(--ink-soft);font-weight:600}
+.donerow .t small{display:block;color:var(--ink-soft);font-size:11px}
+.owner{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stage.mobile .owner{grid-template-columns:1fr}
+.owner .oc{background:var(--card);border:1px solid var(--sage-line);border-radius:14px;padding:12px 14px}
+.owner .oc h4{font-family:var(--serif);font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.owner .oc h4 .ct{font-size:10.5px;background:var(--lime);color:var(--lime-ink);border-radius:99px;padding:1px 7px;font-weight:700}
+.owner .oc h4 .ct.grey{background:var(--well);color:var(--ink-soft)}
+.owner .oc .sub{font-size:11px;color:var(--ink-soft);margin:2px 0 6px}
+.owner .it{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--sage-soft);font-size:12.5px}
+.owner .it:first-of-type{border-top:none}
+.owner .it small{display:block;color:var(--ink-soft);font-size:10.5px}
+.blk{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:11px 16px;border-top:1px solid var(--sage-soft);font-size:13px}
+.blk:first-child{border-top:none}
+.blk .who{font-size:10.5px;font-weight:700;border-radius:99px;padding:3px 9px;white-space:nowrap}
+.blk .who.you{background:var(--lime);color:var(--lime-ink)}
+.blk .who.us{background:var(--mint);color:var(--forest)}
+.blk .who.google{background:var(--well);color:var(--ink-soft)}
+.blk .t small{display:block;color:var(--ink-soft);font-size:11px}
+.blk .since{font-size:11px;color:var(--amber);font-weight:600;white-space:nowrap}
+.stage.mobile .blk{grid-template-columns:auto 1fr;gap:8px}
+.milest{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stage.mobile .milest{grid-template-columns:1fr}
+.mrow{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--sage-soft);font-size:12.5px}
+.mrow:first-child{border-top:none}
+.mrow .t{flex:1}.mrow .t small{display:block;color:var(--ink-soft);font-size:11px}
+.mrow .bar{width:110px;height:6px;border-radius:99px;background:var(--well);position:relative}
+.mrow .bar i{position:absolute;inset:0;width:var(--w);background:var(--forest);border-radius:99px}
+.mrow .n{font-family:var(--serif);font-weight:600;color:var(--forest);min-width:52px;text-align:right}
+/* ===== distribution timeline ===== */
+.tl{position:relative;padding:6px 18px 14px}
+.tl::before{content:"";position:absolute;left:96px;top:14px;bottom:20px;width:2px;background:var(--sage-line)}
+.stage.mobile .tl::before{display:none}
+.tp{display:grid;grid-template-columns:64px 28px 1fr auto;gap:12px;align-items:center;padding:9px 0}
+.stage.mobile .tp{grid-template-columns:1fr auto;gap:6px}
+.tp .when{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-align:right}
+.stage.mobile .tp .when{text-align:left}
+.tp .dot{width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--sage);justify-self:center;position:relative;z-index:1}
+.tp .dot.done{background:var(--forest);border-color:var(--forest)}
+.tp .dot.veri{background:var(--lime);border-color:var(--lime-ink)}
+.tp .dot.now{border-color:var(--forest);box-shadow:0 0 0 4px #1E463422}
+.stage.mobile .tp .dot{display:none}
+.tp .t{font-size:13px;font-weight:500}
+.tp .t small{display:block;color:var(--ink-soft);font-size:11px;font-weight:400}
+.tp .t .who{font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.tp .t .who.us{background:var(--mint);color:var(--forest)}
+.tp .t .who.you{background:var(--lime);color:var(--lime-ink)}
+.tp.auto .t{color:var(--ink-soft)}
+.tp .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.batch{display:flex;align-items:center;gap:12px;background:var(--mint);border:1px solid var(--mint-deep);border-radius:12px;padding:10px 14px;font-size:13px}
+.batch b{color:var(--forest)}
+.batch .cta{margin-left:auto;padding:8px 14px;font-size:12.5px}
+.report{display:flex;gap:10px;align-items:center;background:var(--card);border:1px dashed var(--sage);border-radius:14px;padding:12px 16px;font-size:12.5px;color:var(--ink-soft)}
+.report .cta{margin-left:auto}
+
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="who">Rebound SEO <em>· five pillars</em></div>
+  <span style="font-size:12.5px;color:#B9C4B7">Home · Content · Calendar · Distribution · Progress</span>
+  <div class="vp"><button class="on" data-v="desktop">Desktop</button><button data-v="mobile">Mobile</button></div>
+</header>
+<div class="concept-note" id="cnote"></div>
+
+<div class="stage" id="stage">
+<div class="canvas">
+  <aside class="side" id="side"></aside>
+  <div class="main">
+    <div id="topbar" class="topbar"></div>
+    <div id="pagehost"></div>
+    <nav class="mnav" id="mnav"></nav>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ======================= MODULE TEMPLATES ======================= -->
+<template id="m-home">
+  <div class="homewrap"><div class="dash">
+    <div class="greet">
+      <h1>Monday, August 31. Week 5 of the comeback.</h1>
+      <span class="since">Over the weekend: <span class="win">kiln guide verified live (Sat)</span> · <b>5 keywords gained</b> · 2 lost · ClayCraft published once · 3 interlinks unverified</span>
+      <button class="srcpill" data-jump="ga4"><i></i>Search Console connected · analytics not yet</button>
+    </div>
+
+    <!-- ========== YOUR WORK: session + queue ========== -->
+    <section class="work c5" data-coach>
+      <div class="coach">
+        <div class="coach-h"><span class="microlabel">Today’s session · 3 moves · ~35 min</span><div class="prog"><i class="now"></i><i></i><i></i></div></div>
+        <div class="coach-body">
+          <div class="coach-move on"><h2>Approve “Why your glaze cracks” for Thursday.</h2><p class="why">From your Thursday transcript, targeting <b>pottery glaze cracking · 1.9k/mo</b> — the keyword ClayCraft holds at #3 and is losing grip on. The one human input Thursday needs.</p><div class="coach-dn"><b>Done =</b> approved by you → scheduled Thu 9am → crawler-verified after publish. Streak becomes 4 weeks.</div><div class="coach-acts"><button class="cta lime" data-adv>Review the draft</button><button class="skip" data-adv>Skip</button></div></div>
+          <div class="coach-move"><h2>Post your two approved Quora answers.</h2><p class="why">Both link to the <b>verified-live kiln guide</b> — the page behind this week’s rising keywords. Copy is ready.</p><div class="coach-dn"><b>Done =</b> posted by you → referral clicks tracked automatically.</div><div class="coach-acts"><button class="cta lime" data-adv>Open Quora queue</button><button class="skip" data-adv>Skip</button></div></div>
+          <div class="coach-move"><h2>Fix the 3 interlinks the crawl can’t find.</h2><p class="why">Reported Friday, still missing. Until verified they count as <b>reported, not real</b> — and “first pottery wheel” is drifting partly for want of them.</p><div class="coach-dn"><b>Done =</b> re-added → Friday’s crawl marks them Verified.</div><div class="coach-acts"><button class="cta lime" data-adv>Show the 3 spots</button><button class="skip" data-adv>Finish</button></div></div>
+          <div class="coach-move coach-fin"><h2>Session complete. Streak safe.</h2><p>Skipped moves return tomorrow. Thursday runs itself.</p><button class="skip" data-reset>Replay (demo)</button></div>
+        </div>
+      </div>
+      <div class="queue">
+        <div class="qh"><span class="microlabel">What needs you, in order</span><span class="streak">Streak <i></i><i></i><i></i><i class="off"></i> 3 wks</span></div>
+        <div class="qrow session now" data-q="0"><span class="pri">1</span><div><div class="t">Approve the glaze-cracking draft</div><div class="m"><span class="sess">Session</span><span class="why-tag">Protects the streak</span><span class="st draft"><i></i>Draft</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow session" data-q="1"><span class="pri">2</span><div><div class="t">Post 2 Quora answers</div><div class="m"><span class="sess">Session</span><span class="why-tag">Compounds a fresh win</span><span class="st approved"><i></i>Ready</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow session" data-q="2"><span class="pri">3</span><div><div class="t">Fix 3 unverified interlinks</div><div class="m"><span class="sess">Session</span><span class="why-tag">“First pottery wheel” dropping</span><span class="ev reported">You reported</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">4</span><div><div class="t">Recover “clay drying time” (lost, was #18)</div><div class="m"><span class="why-tag">Refresh + 1 interlink</span><span>~25 min · this week</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">5</span><div><div class="t">Answer ClayCraft’s new crazing post with a better one</div><div class="m"><span class="why-tag">Competitor gap</span><span>week 6 slot</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">6</span><div><div class="t">Connect your analytics (GA4 or Cloudflare)</div><div class="m"><span class="why-tag">Unlocks conversions from search</span><span>~2 min · read-only</span></div></div><button class="quiet-link" data-jump="ga4">Go</button></div>
+        <div class="qfoot">Ranked by impact on the 90-day plan. The top three are today’s session; the rest can wait for the week.</div>
+      </div>
+    </section>
+
+    <!-- ========== PERFORMANCE: two clean boxes ========== -->
+    <section class="panel perf c7" id="perf">
+      <div class="panel-h" style="padding-bottom:12px"><h3>How your SEO is doing</h3><button class="more">Full analytics</button></div>
+
+      <div class="twobox">
+        <!-- Search Console -->
+        <div class="cbox">
+          <div class="cb-h"><b>Search Console</b><span class="ev verified">Connected</span></div>
+          <div class="cb-kpis">
+            <div class="cb-kpi"><div class="n">1,204</div><div class="l">Impressions</div><div class="d up">+12%</div></div>
+            <div class="cb-kpi"><div class="n">86</div><div class="l">Clicks</div><div class="d up">+9%</div></div>
+            <div class="cb-kpi"><div class="n">18.4</div><div class="l">Avg position</div><div class="d up">from 21.2</div></div>
+          </div>
+          <div class="cb-chart">
+            <svg viewBox="0 0 640 120" preserveAspectRatio="none">
+              <path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22 L640,110 L0,110 Z" fill="#C9E23F33"/>
+              <path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22" fill="none" stroke="#1E4634" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="600" cy="32" r="4" fill="#1E4634"/>
+            </svg>
+            <div class="cb-cap"><span>Impressions · last 28 days</span><span>synced 26 min ago</span></div>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="cbox off" id="anbox">
+          <div class="cb-h"><b>Analytics</b><span class="ev reported">Not connected</span></div>
+          <div class="cb-empty">
+            <p>Search Console shows who found you. Analytics shows what they did next — sessions, time on page, and which pages turn into inquiries.</p>
+            <button class="cta">Connect analytics</button>
+            <small>Google Analytics or Cloudflare · read-only · about 2 minutes</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== KEYWORDS: shape + buckets ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>Keywords</h3><span class="sub">23 tracked, from your keyword strategy</span><button class="more">All keywords</button></div>
+      <div class="kw-stats">
+        <div class="kw-stat"><div class="n">23</div><div class="l">Ranking</div></div>
+        <div class="kw-stat"><div class="n up">+5</div><div class="l">Gained this week</div></div>
+        <div class="kw-stat"><div class="n up">9</div><div class="l">Improved</div></div>
+        <div class="kw-stat"><div class="n dn">3</div><div class="l">Declined</div></div>
+        <div class="kw-stat"><div class="n dn">2</div><div class="l">Lost</div></div>
+      </div>
+      <div class="kw-body">
+        <div class="kw-col">
+          <div class="ch">Where they sit <small>weekly change</small></div>
+          <div class="rk-row top"><span class="lab">Top 3</span><div class="b"><i style="--w:5%"></i></div><span class="ct">1<small class="dl up">▲1</small></span></div>
+          <div class="rk-row hot"><span class="lab">4–10</span><div class="b"><i style="--w:14%"></i></div><span class="ct">3<small class="dl up">▲1</small></span></div>
+          <div class="rk-row hot"><span class="lab">11–20</span><div class="b"><i style="--w:28%"></i></div><span class="ct">6<small class="dl up">▲2</small></span></div>
+          <div class="rk-row"><span class="lab">21–50</span><div class="b"><i style="--w:42%"></i></div><span class="ct">9<small class="dl neu">–</small></span></div>
+          <div class="rk-row"><span class="lab">51–100</span><div class="b"><i style="--w:19%"></i></div><span class="ct">4<small class="dl dn">▼1</small></span></div>
+          <div class="cl">Mass is migrating up the buckets — the shape you want.</div>
+        </div>
+        <div class="kw-col">
+          <div class="ch up">Winning you back <small>top trending</small></div>
+          <div class="kwr"><span class="kw">kiln element replacement<small>Kiln guide · verified · 720/mo</small></span><span class="dl up">▲6</span><span class="pos">11</span></div>
+          <div class="kwr"><span class="kw">how to fix a pottery kiln<small>Kiln guide · verified</small></span><span class="dl up">▲3</span><span class="pos">14</span></div>
+          <div class="kwr"><span class="kw">bisque firing temperature<small>Glaze basics · verified</small></span><span class="dl up">▲4</span><span class="pos">19</span></div>
+          <div class="cl">All on verified-live pages. <button class="quiet-link">Push the kiln cluster in week 6</button></div>
+        </div>
+        <div class="kw-col">
+          <div class="ch dn">Drifting away <small>top dropping · causes attached</small></div>
+          <div class="kwr"><span class="kw">first pottery wheel<small>Page unverified · recheck tonight</small></span><span class="dl dn">▼2</span><span class="pos">28</span></div>
+          <div class="kwr"><span class="kw">ceramic glaze recipes<small>Thin section · Thursday’s article helps</small></span><span class="dl dn">▼4</span><span class="pos">35</span></div>
+          <div class="kwr"><span class="kw">pottery tool kit<small>No page yet · PotterySupplyCo holds #9</small></span><span class="dl dn">▼3</span><span class="pos">44</span></div>
+          <div class="cl">Two of today’s three moves attack these causes. <button class="quiet-link">Recovery moves</button></div>
+        </div>
+        <div class="kw-col">
+          <div class="ch lost">Lost this week <small>fell off pages 1–5</small></div>
+          <div class="kwr"><span class="kw">clay drying time<small>Was #18 · Glaze basics · recoverable</small></span><span class="dl dn">lost</span><span class="pos">—</span></div>
+          <div class="kwr"><span class="kw">pottery for beginners pdf<small>Was #47 · strategy deprioritized this</small></span><span class="dl dn">lost</span><span class="pos">—</span></div>
+          <div class="cl">One worth recovering — it’s queue item 4. The other isn’t worth chasing.</div>
+        </div>
+      </div>
+      <div class="kw-read"><span class="read"><b>Read:</b> everything rising sits on a verified page; everything drifting has a named, fixable cause. That’s the whole keyword story this week.</span><span class="ev verified">Verified · GSC positions, weekly pull</span></div>
+    </section>
+
+    <!-- ========== COMPETITORS: field + intel ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>Competitors</h3><span class="sub">shared-keyword visibility, content pace, and what they did this week</span><button class="more">Full analysis</button></div>
+      <div class="cmp-body">
+        <div class="cmp-left">
+          <table class="cmpt">
+            <thead><tr><th>Site</th><th>Visibility</th><th>Trend</th><th class="num">Published · 30d</th><th class="num">Keywords they beat you on</th></tr></thead>
+            <tbody>
+              <tr class="you"><td class="nm">You<small>23 tracked · only riser</small></td><td class="num">18%<small class="dl up">▲3 pts</small></td><td><svg viewBox="0 0 58 18"><path d="M0,15 L19,12 L38,8 L58,3" fill="none" stroke="#1E4634" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">4<small class="dl up">on pace</small></td><td class="num">—</td></tr>
+              <tr><td class="nm">ClayCraft Blog<small>overlaps 14 keywords</small></td><td class="num">31%<small class="dl dn">▼4 pts</small></td><td><svg viewBox="0 0 58 18"><path d="M0,5 L19,7 L38,9 L58,12" fill="none" stroke="#8A5A2B" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">2<small class="dl dn">slowing</small></td><td class="num">9<small class="dl neu">was 11</small></td></tr>
+              <tr><td class="nm">PotterySupplyCo<small>overlaps 9 keywords · commercial</small></td><td class="num">24%<small class="dl neu">flat</small></td><td><svg viewBox="0 0 58 18"><path d="M0,10 L19,9 L38,10 L58,9" fill="none" stroke="#9FBCA4" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">6<small class="dl neu">steady</small></td><td class="num">5<small class="dl neu">was 5</small></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cmp-right intel">
+          <div class="ih">What they did this week</div>
+          <div class="ir new"><span class="ic">+</span><div><b>ClayCraft published “Fixing glaze crazing: 7 causes”</b> (Thu). Already #6 for “glaze crazing” — a sibling of your Thursday keyword.<div class="sub"><span class="ev verified">Verified · crawl</span><button class="quiet-link" style="font-size:11px">Outline a better one · queue 5</button></div></div></div>
+          <div class="ir beat"><span class="ic">!</span><div><b>PotterySupplyCo beats you on “pottery tool kit”</b> — their #9 vs your #44, with a product roundup you don’t have.<div class="sub"><span class="ev verified">Verified · GSC + crawl</span><button class="quiet-link" style="font-size:11px">Add a tool-kit page to strategy</button></div></div></div>
+          <div class="ir edge"><span class="ic">✓</span><div><b>You took 2 keywords back from ClayCraft</b> — “kiln element replacement” and “how to fix a pottery kiln” both passed their pages this week.<div class="sub"><span class="ev verified">Verified · weekly comparison</span></div></div></div>
+          <div class="ir pace"><span class="ic">≈</span><div><b>Pace:</b> you’re out-publishing ClayCraft 2:1 this month; PotterySupplyCo publishes more but on commercial terms you don’t target.<div class="sub"><span>4 · 2 · 6 pieces, last 30 days</span></div></div></div>
+        </div>
+      </div>
+      <div class="cmp-read"><span class="read"><b>Read:</b> the gap you can close this month is ClayCraft’s — they’re slowing down and slipping exactly where Thursday’s article lands. Their crazing post is the one thing to answer.</span><span class="ev verified">Verified · crawl comparison, weekly</span></div>
+    </section>
+
+    <!-- ========== CALENDAR ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>The month</h3><span class="sub">solid = needs you · dashed = runs itself · lime = verified happened</span><button class="more">Week view</button></div>
+      <div class="mcal-head"><button class="navb">‹</button><span class="mo">September 2026</span><button class="navb">›</button>
+        <div class="mcal-legend"><span class="you"><i></i>Your move</span><span class="auto"><i></i>Automatic</span><span class="veri"><i></i>Verified</span></div></div>
+      <div class="mcal-grid">
+        <div class="mcal-dow">Mon</div><div class="mcal-dow">Tue</div><div class="mcal-dow">Wed</div><div class="mcal-dow">Thu</div><div class="mcal-dow">Fri</div><div class="mcal-dow">Sat</div><div class="mcal-dow">Sun</div>
+        <div class="mday today"><span class="dn2">Aug 31</span><div class="mev">Session · 3 moves</div></div>
+        <div class="mday"><span class="dn2">1</span><div class="mev">Quora ×2 if not today</div></div>
+        <div class="mday"><span class="dn2">2</span></div>
+        <div class="mday"><span class="dn2">3</span><div class="mev">Publish: glaze cracking</div><div class="mev auto">Auto-share · check-in 2pm</div></div>
+        <div class="mday"><span class="dn2">4</span><div class="mev auto">Crawl re-check · interlinks</div></div>
+        <div class="mday"><span class="dn2">5</span></div>
+        <div class="mday"><span class="dn2">6</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">7</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">8</span><div class="mev">Draft: kiln elements</div></div>
+        <div class="mday"><span class="dn2">9</span><div class="mev">Answer ClayCraft crazing</div></div>
+        <div class="mday"><span class="dn2">10</span><div class="mev">Publish: wk 6</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">11</span><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">12</span></div>
+        <div class="mday"><span class="dn2">13</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">14</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">15</span><div class="mev">Interlink sweep</div></div>
+        <div class="mday"><span class="dn2">16</span></div>
+        <div class="mday"><span class="dn2">17</span><div class="mev">Publish: wk 7</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">18</span><div class="mev">PR pitch</div><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">19</span></div>
+        <div class="mday"><span class="dn2">20</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">21</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">22</span></div>
+        <div class="mday"><span class="dn2">23</span><div class="mev">Draft: tool-kit page</div></div>
+        <div class="mday"><span class="dn2">24</span><div class="mev">Publish: wk 8</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">25</span><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">26</span></div>
+        <div class="mday"><span class="dn2">27</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">28</span><div class="mev">Session</div><div class="mev milestone">Milestone: 10 verified pages</div></div>
+        <div class="mday"><span class="dn2">29</span></div>
+        <div class="mday"><span class="dn2">30</span></div>
+        <div class="mday out"><span class="dn2">Oct 1</span><div class="mev">Publish: wk 9</div></div><div class="mday out"><span class="dn2">2</span></div><div class="mday out"><span class="dn2">3</span></div><div class="mday out"><span class="dn2">4</span></div>
+      </div>
+      <div class="mcal-agenda">
+        <div class="ar"><span class="ad">Mon 31</span><span>Session · 3 moves</span><span class="st draft"><i></i>Today</span></div>
+        <div class="ar"><span class="ad">Thu 3</span><span>Publish glaze article + auto-share</span><span class="st sched"><i></i>9am</span></div>
+        <div class="ar"><span class="ad">Fri 4</span><span>Crawl re-checks 3 interlinks</span><span class="ev reported">Auto</span></div>
+        <div class="ar"><span class="ad">Wed 9</span><span>Answer ClayCraft’s crazing post</span><span class="st draft"><i></i>Planned</span></div>
+        <div class="ar"><span class="ad">Thu 10</span><span>Week 6 publish</span><span class="st sched"><i></i>Set</span></div>
+        <div class="ar"><span class="ad">Mon 28</span><span>Milestone: 10 verified pages</span><span class="st pub"><i></i>7 of 10</span></div>
+      </div>
+      <div class="cal-read"><b>Read:</b> four publish Thursdays stand between you and the milestone — 10 verified pages, currently 7 with 2 pending proof. Your part of the month is ten solid marks; everything dashed happens whether you show up or not.</div>
+    </section>
+  </div>
+  </div>
+</template>
+
+<template id="m-session">
+  <section class="work" data-coach>
+    <div class="coach">
+      <div class="coach-h"><span class="microlabel">Today’s session · 3 moves · ~35 min</span><div class="prog"><i class="now"></i><i></i><i></i></div></div>
+      <div class="coach-body">
+        <div class="coach-move on"><h2>Approve “Why your glaze cracks” for Thursday.</h2><p class="why">From your Thursday transcript, targeting <b>pottery glaze cracking · 1.9k/mo</b> — the keyword ClayCraft holds at #3 and is losing grip on. The one human input Thursday needs.</p><div class="coach-dn"><b>Done =</b> approved by you → scheduled Thu 9am → crawler-verified after publish. Streak becomes 4 weeks.</div><div class="coach-acts"><button class="cta lime" data-go="article">Review the draft</button><button class="skip" data-adv>Skip</button></div></div>
+        <div class="coach-move"><h2>Post your two approved Quora answers.</h2><p class="why">Both link to the <b>verified-live kiln guide</b>. Copy is ready.</p><div class="coach-dn"><b>Done =</b> posted by you → referral clicks tracked automatically.</div><div class="coach-acts"><button class="cta lime" data-adv>Open Quora queue</button><button class="skip" data-adv>Skip</button></div></div>
+        <div class="coach-move"><h2>Fix the 3 interlinks the crawl can’t find.</h2><p class="why">Until verified they count as <b>reported, not real</b>.</p><div class="coach-dn"><b>Done =</b> re-added → Friday’s crawl marks them Verified.</div><div class="coach-acts"><button class="cta lime" data-adv>Show the 3 spots</button><button class="skip" data-adv>Finish</button></div></div>
+        <div class="coach-move coach-fin"><h2>Session complete. Streak safe.</h2><p>Skipped moves return tomorrow. Thursday runs itself.</p><button class="skip" data-reset>Replay (demo)</button></div>
+      </div>
+    </div>
+    <div class="queue">
+      <div class="qh"><span class="microlabel">What needs you, in order</span><span class="streak">Streak <i></i><i></i><i></i><i class="off"></i> 3 wks</span></div>
+      <div class="qrow session now" data-q="0"><span class="pri">1</span><div><div class="t">Approve the glaze-cracking draft</div><div class="m"><span class="sess">Session</span><span class="why-tag">Protects the streak</span><span class="st draft"><i></i>Draft</span></div></div><button class="mv hot" data-go="article">Review</button></div>
+      <div class="qrow session" data-q="1"><span class="pri">2</span><div><div class="t">Post 2 Quora answers</div><div class="m"><span class="sess">Session</span><span class="why-tag">Compounds a fresh win</span><span class="st approved"><i></i>Ready</span></div></div><button class="mv">Post</button></div>
+      <div class="qrow session" data-q="2"><span class="pri">3</span><div><div class="t">Fix 3 unverified interlinks</div><div class="m"><span class="sess">Session</span><span class="why-tag">“First pottery wheel” dropping</span><span class="ev reported">You reported</span></div></div><button class="mv">Show spots</button></div>
+      <div class="qrow"><span class="pri">4</span><div><div class="t">Recover “clay drying time” (lost, was #18)</div><div class="m"><span class="why-tag">Refresh + 1 interlink</span><span>~25 min · this week</span></div></div><button class="mv">Recover</button></div>
+      <div class="qrow"><span class="pri">5</span><div><div class="t">Answer ClayCraft’s new crazing post with a better one</div><div class="m"><span class="why-tag">Competitor gap</span><span>week 6 slot</span></div></div><button class="mv">Outline</button></div>
+      <div class="qrow"><span class="pri">6</span><div><div class="t">Connect your analytics (GA4 or Cloudflare)</div><div class="m"><span class="why-tag">Unlocks conversions from search</span><span>~2 min · read-only</span></div></div><button class="mv">Connect</button></div>
+      <div class="qfoot">Ranked by impact on the 90-day plan. The top three are today’s session.</div>
+    </div>
+  </section>
+</template>
+
+<template id="m-pipe">
+  <div class="pipe-tools"><span class="chip on">All</span><span class="chip">Needs me · 1</span><span class="chip">Kiln cluster</span><span class="chip">Glaze cluster</span><span class="chip" style="margin-left:auto">Sort: next action</span></div>
+  <div class="pipe">
+    <div class="col"><div class="col-h"><b>Ideas</b><span class="ct" data-ideact>3</span></div><div data-newideas></div>
+      <div class="card"><div class="t">Kiln element replacement guide</div><div class="kw">720/mo · #11 today</div><div class="m"><span class="src">from strategy</span><button class="mv">Draft · wk 6</button></div></div>
+      <div class="card"><div class="t">Pottery tool kit: what you actually need</div><div class="kw">gap · PotterySupplyCo #9</div><div class="m"><span class="src">competitor gap</span><button class="mv">Draft · Sep 23</button></div></div>
+      <div class="card"><div class="t">Answer to ClayCraft’s crazing post</div><div class="kw">glaze crazing · sibling keyword</div><div class="m"><span class="src">competitor gap</span><button class="mv">Draft · Sep 9</button></div></div>
+      <button class="add">+ Idea from keyword or transcript</button>
+    </div>
+    <div class="col"><div class="col-h"><b>Drafts</b><span class="ct">1</span></div>
+      <div class="card next" data-draftcard><div class="t">Why your glaze cracks (and how to stop blaming the clay)</div><div class="kw">pottery glaze cracking · 1.9k/mo</div><div class="m"><span class="pin">Session · move 1</span><button class="mv hot" data-go="article">Approve</button></div></div>
+      <button class="add">+ Draft from transcript</button>
+    </div>
+    <div class="col"><div class="col-h"><b>Approved</b><span class="ct" data-apct>0</span></div><div data-approvedcards></div><button class="add">Pull the next draft → it takes the next Thursday</button></div>
+    <div class="col"><div class="col-h"><b>Scheduled</b><span class="ct">1</span></div>
+      <div class="card"><div class="t">Bisque firing schedule, explained</div><div class="kw">390/mo</div><div class="m"><span>Thu Sep 10 · 9am</span><button class="mv quiet">Swap slot</button></div></div>
+    </div>
+    <div class="col"><div class="col-h"><b>Published</b><span class="ct">2</span><span class="ev reported">unverified</span></div>
+      <div class="card"><div class="t">Choosing your first pottery wheel</div><div class="kw">first pottery wheel · #28 ▼</div><div class="m"><span class="ev reported">recheck 11pm</span><button class="mv">Re-verify now</button></div></div>
+      <div class="card"><div class="t">Studio safety checklist</div><div class="kw">orphaned · 0 inbound</div><div class="m"><button class="mv">Add 2 interlinks</button></div></div>
+    </div>
+    <div class="col live"><div class="col-h"><b>Verified live</b><span class="ct">7</span></div>
+      <div class="card"><div class="t">Pottery kiln repair guide</div><div class="kw">412 impr · 34 clicks</div><div class="m"><span class="ev verified">Sat</span><button class="mv quiet">Refresh</button></div></div>
+      <div class="card"><div class="t">Glaze basics</div><div class="kw">298 impr · 21 clicks</div><div class="m"><span class="ev verified">Aug 14</span><button class="mv quiet">Interlink</button></div></div>
+      <button class="add">5 more verified pages</button>
+    </div>
+  </div>
+</template>
+
+<template id="m-pipe-make">
+  <div class="pipe three">
+    <div class="col"><div class="col-h"><b>Ideas</b><span class="ct">3</span></div>
+      <div class="card"><div class="t">Kiln element replacement guide</div><div class="kw">720/mo · #11 today · from strategy</div><div class="m"><button class="mv">Draft from transcript</button><button class="mv quiet">Draft blank</button></div></div>
+      <div class="card"><div class="t">Pottery tool kit: what you actually need</div><div class="kw">gap · PotterySupplyCo #9</div><div class="m"><button class="mv">Draft · Sep 23</button></div></div>
+      <div class="card"><div class="t">Answer to ClayCraft’s crazing post</div><div class="kw">glaze crazing · competitor gap</div><div class="m"><button class="mv">Draft · Sep 9</button></div></div>
+      <button class="add">+ Idea from keyword or transcript</button>
+    </div>
+    <div class="col"><div class="col-h"><b>Drafts</b><span class="ct">1</span></div>
+      <div class="card next"><div class="t">Why your glaze cracks (and how to stop blaming the clay)</div><div class="kw">pottery glaze cracking · 1.9k/mo · from transcript</div><div class="m"><span class="pin">Session · move 1</span><button class="mv hot" data-go="article">Approve</button><button class="mv quiet">Edit</button></div></div>
+      <button class="add">+ Draft from transcript</button>
+    </div>
+    <div class="col"><div class="col-h"><b>Approved</b><span class="ct">0</span></div><button class="add">Pull the next draft → it takes the next Thursday</button></div>
+  </div>
+</template>
+
+<template id="m-pipe-publish">
+  <div class="pipe three">
+    <div class="col"><div class="col-h"><b>Scheduled</b><span class="ct">1</span></div>
+      <div class="card"><div class="t">Bisque firing schedule, explained</div><div class="kw">Thu Sep 10 · 9am</div><div class="m"><button class="mv quiet">Swap slot</button><button class="mv quiet">Publish now</button></div></div>
+      <div class="card" style="border-style:dashed"><div class="t" style="color:var(--lime-ink)">Sep 17 · empty slot</div><div class="kw">cadence promises a piece here</div><div class="m"><button class="mv hot">Fill from Approved</button></div></div>
+    </div>
+    <div class="col"><div class="col-h"><b>Published</b><span class="ct">2</span><span class="ev reported">unverified</span></div>
+      <div class="card"><div class="t">Choosing your first pottery wheel</div><div class="kw">recheck tonight 11pm</div><div class="m"><button class="mv">Re-verify now</button></div></div>
+      <div class="card"><div class="t">Studio safety checklist</div><div class="kw">orphaned · 0 inbound links</div><div class="m"><button class="mv">Add 2 interlinks</button></div></div>
+    </div>
+    <div class="col live"><div class="col-h"><b>Verified live</b><span class="ct">7</span></div>
+      <div class="card"><div class="t">Pottery kiln repair guide</div><div class="kw">verified Sat · 412 impr</div><div class="m"><span class="ev verified">crawl + GSC</span></div></div>
+      <div class="card"><div class="t">Glaze basics</div><div class="kw">verified Aug 14</div><div class="m"><span class="ev verified">crawl + GSC</span></div></div>
+      <button class="add">5 more</button>
+    </div>
+  </div>
+</template>
+
+<template id="m-kwtable">
+  <section class="panel"><div class="panel-h"><h3>Keywords</h3><span class="sub">23 tracked · gaps first · every row ends in a move</span><button class="more">+ Add keyword</button></div>
+    <table class="tbl" style="margin-top:6px"><thead><tr><th>Keyword</th><th>Vol/mo</th><th>Position</th><th>Page</th><th>State</th><th></th></tr></thead><tbody>
+      <tr><td class="kw">kiln won’t reach temperature<small>Kiln cluster</small></td><td class="num">390</td><td class="num">—</td><td class="pg">none</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot" data-act="draft" data-kw="kiln won’t reach temperature">Draft a page</button></td></tr>
+      <tr><td class="kw">pottery tool kit<small>Wheels &amp; tools</small></td><td class="num">640</td><td class="num">44 <span class="dl dn">▼3</span></td><td class="pg">none · PotterySupplyCo #9</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot" data-act="draft" data-kw="pottery tool kit">Draft a page</button></td></tr>
+      <tr><td class="kw">glaze crazing<small>Glaze cluster</small></td><td class="num">880</td><td class="num">—</td><td class="pg">none · ClayCraft #6</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot" data-act="draft" data-kw="glaze crazing">Answer · Sep 9</button></td></tr>
+      <tr><td class="kw">ceramic glaze recipes<small>Glaze cluster</small></td><td class="num">260</td><td class="num">35 <span class="dl dn">▼4</span></td><td class="pg">Glaze basics</td><td><span class="thin">Thin</span></td><td class="act"><button class="mv">Refresh section</button></td></tr>
+      <tr><td class="kw">clay drying time<small>Glaze cluster</small></td><td class="num">310</td><td class="num">lost</td><td class="pg">was #18</td><td><span class="thin">Lost</span></td><td class="act"><button class="mv">Recover</button></td></tr>
+      <tr><td class="kw">kiln element replacement<small>Kiln cluster</small></td><td class="num">720</td><td class="num">11 <span class="dl up">▲6</span></td><td class="pg">Kiln repair guide</td><td><span class="st live"><i></i>Covered</span></td><td class="act"><button class="mv">Interlink + refresh</button></td></tr>
+      <tr><td class="kw">first pottery wheel<small>Wheels &amp; tools</small></td><td class="num">1,100</td><td class="num">28 <span class="dl dn">▼2</span></td><td class="pg">Wheel guide</td><td><span class="st pub"><i></i>Unverified</span></td><td class="act"><button class="mv">Re-verify</button></td></tr>
+      <tr><td class="kw">pottery for beginners pdf<small>Beginner</small></td><td class="num">90</td><td class="num">lost</td><td class="pg">was #47</td><td><span class="thin">Lost</span></td><td class="act"><button class="mv quiet">Leave it</button></td></tr>
+    </tbody></table>
+  </section>
+</template>
+
+<template id="m-clusters">
+  <div>
+    <div class="cluster open" data-acc><button><span class="nm">Glaze</span><span class="cov">7 keywords · 45% covered · 1 draft · 1 thin · 1 gap</span><span class="bar"><i style="--w:45%"></i></span><span class="chev">▶</span></button>
+      <div class="body"><table class="tbl"><tbody>
+        <tr><td class="kw">pottery glaze cracking</td><td class="num">1,900</td><td class="pg">Draft · Thu 3</td><td><span class="st draft"><i></i>Draft</span></td><td class="act"><button class="mv hot" data-go="article">Approve</button></td></tr>
+        <tr><td class="kw">glaze crazing</td><td class="num">880</td><td class="pg">none · ClayCraft #6</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot">Fill · Sep 9</button></td></tr>
+        <tr><td class="kw">ceramic glaze recipes</td><td class="num">260</td><td class="pg">Glaze basics · #35</td><td><span class="thin">Thin</span></td><td class="act"><button class="mv">Refresh</button></td></tr>
+        <tr><td class="kw">bisque firing temperature</td><td class="num">390</td><td class="pg">Glaze basics · #19</td><td><span class="st live"><i></i>Covered</span></td><td class="act"><button class="mv quiet">Leave it</button></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="cluster" data-acc><button><span class="nm">Kiln repair</span><span class="cov">6 keywords · 70% · 1 gap</span><span class="bar"><i style="--w:70%"></i></span><span class="chev">▶</span></button>
+      <div class="body"><table class="tbl"><tbody>
+        <tr><td class="kw">kiln won’t reach temperature</td><td class="num">390</td><td class="pg">none</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot">Draft</button></td></tr>
+        <tr><td class="kw">kiln element replacement</td><td class="num">720</td><td class="pg">Kiln guide · #11 ▲6</td><td><span class="st live"><i></i>Covered</span></td><td class="act"><button class="mv">Interlink</button></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="cluster" data-acc><button><span class="nm">Wheels &amp; tools</span><span class="cov">5 keywords · 30% · 1 gap · 1 unverified</span><span class="bar"><i style="--w:30%"></i></span><span class="chev">▶</span></button>
+      <div class="body"><table class="tbl"><tbody>
+        <tr><td class="kw">pottery tool kit</td><td class="num">640</td><td class="pg">none · PotterySupplyCo #9</td><td><span class="gap">Gap</span></td><td class="act"><button class="mv hot">Draft · Sep 23</button></td></tr>
+        <tr><td class="kw">first pottery wheel</td><td class="num">1,100</td><td class="pg">Wheel guide · #28 ▼2</td><td><span class="st pub"><i></i>Unverified</span></td><td class="act"><button class="mv">Re-verify</button></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="cluster" data-acc><button><span class="nm">Beginner</span><span class="cov">5 keywords · 85% · nothing needed</span><span class="bar"><i style="--w:85%"></i></span><span class="chev">▶</span></button>
+      <div class="body"><table class="tbl"><tbody><tr><td class="kw">clay bodies for beginners</td><td class="num">520</td><td class="pg">Clay bodies compared · #9</td><td><span class="st live"><i></i>Covered</span></td><td class="act"><button class="mv quiet">Leave it</button></td></tr></tbody></table></div>
+    </div>
+  </div>
+</template>
+
+<template id="m-opps">
+  <section class="panel"><div class="panel-h"><h3>Opportunities</h3><span class="sub">from GSC + crawl</span></div>
+    <div class="pad">
+      <div class="lrow"><span class="ic opp">↑</span><div class="t">“Kiln element replacement” is 1 push from page 1<small>Position 11 on a verified page.</small></div><div class="acts"><button class="mv hot">Interlink + refresh</button></div></div>
+      <div class="lrow"><span class="ic opp">+</span><div class="t">“Kiln won’t reach temperature” has no page<small>390/mo, low competition, fits the cluster.</small></div><div class="acts"><button class="mv">Draft</button></div></div>
+      <div class="lrow"><span class="ic beat">!</span><div class="t">“Pottery tool kit” — PotterySupplyCo holds #9<small>A roundup you don’t have.</small></div><div class="acts"><button class="mv">Draft · Sep 23</button></div></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-comp-table">
+  <section class="panel"><div class="panel-h"><h3>Competitors</h3><span class="sub">shared-keyword visibility · content pace</span><button class="more">+ Track another</button></div>
+    <table class="tbl" style="margin-top:6px"><thead><tr><th>Site</th><th>Visibility</th><th>Published · 30d</th><th>Beats you on</th><th></th></tr></thead><tbody>
+      <tr class="you"><td class="kw">You<small>23 tracked · only riser</small></td><td class="num">18% <span class="dl up">▲3</span></td><td class="num">4</td><td class="num">—</td><td class="act"><span class="ev verified">crawl weekly</span></td></tr>
+      <tr><td class="kw">ClayCraft Blog<small>overlaps 14 · slowing</small></td><td class="num">31% <span class="dl dn">▼4</span></td><td class="num">2</td><td class="num">9 <span class="dl neu">was 11</span></td><td class="act"><button class="mv">See the 9</button></td></tr>
+      <tr><td class="kw">PotterySupplyCo<small>overlaps 9 · commercial</small></td><td class="num">24% <span class="dl neu">flat</span></td><td class="num">6</td><td class="num">5</td><td class="act"><button class="mv">See the 5</button></td></tr>
+    </tbody></table>
+  </section>
+</template>
+
+<template id="m-comp-intel">
+  <section class="panel"><div class="panel-h"><h3>What they did this week</h3><span class="sub">every item is a decision — Answer · Counter · Ignore</span></div>
+    <div class="pad">
+      <div class="lrow"><span class="ic new">+</span><div class="t">ClayCraft published “Fixing glaze crazing: 7 causes” (Thu) — already #6<small>Verified · crawl</small></div><div class="acts"><button class="mv hot" data-act="answer" data-kw="glaze crazing">Answer · Sep 9</button><button class="mv quiet" data-act="ignore">Ignore</button></div></div>
+      <div class="lrow"><span class="ic beat">!</span><div class="t">PotterySupplyCo beats you on “pottery tool kit” — #9 vs your #44<small>Verified · GSC + crawl</small></div><div class="acts"><button class="mv hot" data-act="answer" data-kw="pottery tool kit">Counter · draft page</button><button class="mv quiet" data-act="ignore">Ignore</button></div></div>
+      <div class="lrow"><span class="ic edge">✓</span><div class="t">You took 2 keywords back from ClayCraft this week<small>kiln element replacement · how to fix a pottery kiln</small></div><div class="acts"><span class="ev verified">receipt</span></div></div>
+      <div class="lrow"><span class="ic pace">≈</span><div class="t">Pace: you 4 · ClayCraft 2 · PotterySupplyCo 6 pieces in 30 days<small>You’re out-publishing ClayCraft 2:1</small></div><div class="acts"><span class="ev">no move needed</span></div></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-reach">
+  <div style="display:grid;gap:14px">
+    <div class="piece">
+      <div class="ph"><b>Pottery kiln repair guide</b><span class="sub">verified live Sat · 3 keywords rising</span><span class="st live"><i></i>Verified live</span></div>
+      <div class="chan">
+        <div class="ch"><div class="cn">Social <span>2 posted</span></div><div class="it"><span>LinkedIn<small>Sat · 14 reactions</small></span><span class="st live"><i></i>Posted</span></div><div class="it"><span>Pinterest<small>Sat · 3 saves</small></span><span class="st live"><i></i>Posted</span></div></div>
+        <div class="ch"><div class="cn">Quora · Reddit <span>2 ready</span></div><div class="it"><span>“How do I replace a kiln element?”<small>2.1k views</small></span><button class="mv hot" data-act="post">Post</button></div><div class="it"><span>r/Pottery: kiln not heating<small>answer drafted</small></span><button class="mv hot" data-act="post">Post</button></div></div>
+        <div class="ch"><div class="cn">Interlinks <span>3 reported</span></div><div class="it"><span>From Glaze basics<small>not found by crawl</small></span><button class="mv">Add here</button></div><div class="it"><span>From Clay bodies<small>not found</small></span><button class="mv">Add here</button></div></div>
+        <div class="ch"><div class="cn">PR <span>—</span></div><div class="it"><span>No pitch yet<small>next: Sep 18</small></span><button class="mv quiet">Skip</button></div></div>
+      </div>
+    </div>
+    <div class="piece">
+      <div class="ph"><b>Why your glaze cracks</b><span class="sub">draft · publishes Thu 3 if approved</span><span class="st draft"><i></i>Draft</span></div>
+      <div class="chan">
+        <div class="ch"><div class="cn">Social <span>2 queued</span></div><div class="it"><span>LinkedIn<small>auto Thu 9:30</small></span><button class="mv quiet">Edit</button></div><div class="it"><span>Pinterest<small>auto Thu 9:30</small></span><button class="mv quiet">Edit</button></div></div>
+        <div class="ch"><div class="cn">Quora · Reddit <span>2 matched</span></div><div class="it"><span>“Why does my glaze craze?”<small>unlocks after publish</small></span><span class="st approved"><i></i>Ready</span></div></div>
+        <div class="ch"><div class="cn">Interlinks <span>3 in draft</span></div><div class="it"><span>To Glaze basics, Bisque, Kiln guide<small>suggested in the draft</small></span><span class="st approved"><i></i>In draft</span></div></div>
+        <div class="ch"><div class="cn">PR <span>1 angle</span></div><div class="it"><span>Ceramics Monthly<small>“the cooling mistake”</small></span><button class="mv">Schedule · Sep 18</button></div></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="m-channels">
+  <div class="grid">
+    <section class="panel c6"><div class="panel-h"><h3>Quora · Reddit</h3><span class="sub">2 ready</span></div><div class="pad">
+      <div class="lrow"><span class="ic new">Q</span><div class="t">“How do I replace a kiln element?”<small>for Kiln repair guide · 2.1k views</small></div><div class="acts"><button class="mv hot" data-act="post">Post</button><button class="mv quiet">Skip</button></div></div>
+      <div class="lrow"><span class="ic new">r/</span><div class="t">r/Pottery: kiln not heating<small>for Kiln repair guide · answer drafted</small></div><div class="acts"><button class="mv hot" data-act="post">Post</button><button class="mv quiet">Skip</button></div></div>
+      <div class="lrow"><span class="ic pace">Q</span><div class="t">“Why does my glaze craze?”<small>for glaze article · unlocks after publish</small></div><div class="acts"><span class="ev">waiting</span></div></div>
+    </div></section>
+    <section class="panel c6"><div class="panel-h"><h3>Social</h3><span class="sub">2 queued</span></div><div class="pad">
+      <div class="lrow"><span class="ic pace">in</span><div class="t">LinkedIn — glaze article<small>auto Thu 9:30</small></div><div class="acts"><button class="mv quiet">Edit</button><button class="mv quiet">Skip</button></div></div>
+      <div class="lrow"><span class="ic pace">P</span><div class="t">Pinterest — glaze article<small>auto Thu 9:30</small></div><div class="acts"><button class="mv quiet">Edit</button></div></div>
+      <div class="lrow done"><span class="ic edge">✓</span><div class="t">LinkedIn — kiln guide<small>Sat · 14 reactions</small></div><div class="acts"><span class="ev verified">posted</span></div></div>
+    </div></section>
+    <section class="panel c6"><div class="panel-h"><h3>Interlinks</h3><span class="sub">3 reported · 0 found</span></div><div class="pad">
+      <div class="lrow"><span class="ic beat">⇄</span><div class="t">Glaze basics → Kiln guide<small>reported Fri · crawl can’t find it</small></div><div class="acts"><button class="mv hot">Add here</button></div></div>
+      <div class="lrow"><span class="ic beat">⇄</span><div class="t">Clay bodies → Kiln guide<small>reported Fri</small></div><div class="acts"><button class="mv hot">Add here</button></div></div>
+      <div class="lrow"><span class="ic beat">⇄</span><div class="t">Studio safety checklist has 0 inbound<small>orphaned</small></div><div class="acts"><button class="mv">Add 2</button></div></div>
+    </div></section>
+    <section class="panel c6"><div class="panel-h"><h3>PR</h3><span class="sub">1 angle</span></div><div class="pad">
+      <div class="lrow"><span class="ic pace">✉</span><div class="t">Ceramics Monthly — “the cooling mistake”<small>for glaze article</small></div><div class="acts"><button class="mv">Schedule · Sep 18</button><button class="mv quiet">Skip</button></div></div>
+    </div></section>
+  </div>
+</template>
+
+<template id="m-calendar">
+  <section class="panel">
+    <div class="mcal-head"><button class="navb">‹</button><span class="mo">September 2026</span><button class="navb">›</button><div class="vw"><button>Week</button><button class="on">Month</button></div></div>
+    <div class="mcal-legend"><span class="you"><i></i>Your move</span><span class="auto"><i></i>Automatic</span><span class="veri"><i></i>Verified</span><span class="open"><i></i>Empty slot</span><span style="margin-left:auto">Every day: + add content</span></div>
+    <div class="mcal-grid">
+      <div class="mcal-dow">Mon</div><div class="mcal-dow">Tue</div><div class="mcal-dow">Wed</div><div class="mcal-dow">Thu</div><div class="mcal-dow">Fri</div><div class="mcal-dow">Sat</div><div class="mcal-dow">Sun</div>
+      <div class="mday today"><span class="dn2">Aug 31 · today</span><span class="plus">+</span><div class="mev">Session · 3 moves</div></div>
+      <div class="mday"><span class="dn2">1</span><span class="plus">+</span><div class="mev">Quora ×2</div></div>
+      <div class="mday"><span class="dn2">2</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">3</span><span class="plus">+</span><div class="mev" data-sep3>Publish: glaze · needs ✓</div><div class="mev auto">Auto-share · check-in</div></div>
+      <div class="mday"><span class="dn2">4</span><span class="plus">+</span><div class="mev auto">Crawl re-check</div></div>
+      <div class="mday"><span class="dn2">5</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">6</span><span class="plus">+</span><div class="mev auto">GSC sync</div></div>
+      <div class="mday"><span class="dn2">7</span><span class="plus">+</span><div class="mev">Session</div></div>
+      <div class="mday"><span class="dn2">8</span><span class="plus">+</span><div class="mev">Draft: kiln elements</div></div>
+      <div class="mday"><span class="dn2">9</span><span class="plus">+</span><div class="mev">Answer ClayCraft crazing</div></div>
+      <div class="mday"><span class="dn2">10</span><span class="plus">+</span><div class="mev">Publish: bisque</div><div class="mev auto">Auto-share · check-in</div></div>
+      <div class="mday"><span class="dn2">11</span><span class="plus">+</span><div class="mev auto">Crawl re-check</div></div>
+      <div class="mday"><span class="dn2">12</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">13</span><span class="plus">+</span><div class="mev auto">GSC sync</div></div>
+      <div class="mday"><span class="dn2">14</span><span class="plus">+</span><div class="mev">Session</div></div>
+      <div class="mday"><span class="dn2">15</span><span class="plus">+</span><div class="mev">Interlink sweep</div></div>
+      <div class="mday"><span class="dn2">16</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">17</span><span class="plus">+</span><div class="mev open" data-slot17>+ fill Thursday slot</div><div class="mev auto">Check-in</div></div>
+      <div class="mday"><span class="dn2">18</span><span class="plus">+</span><div class="mev">PR pitch</div><div class="mev auto">Crawl</div></div>
+      <div class="mday"><span class="dn2">19</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">20</span><span class="plus">+</span><div class="mev auto">GSC sync</div></div>
+      <div class="mday"><span class="dn2">21</span><span class="plus">+</span><div class="mev">Session</div></div>
+      <div class="mday"><span class="dn2">22</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">23</span><span class="plus">+</span><div class="mev">Draft: tool-kit page</div></div>
+      <div class="mday"><span class="dn2">24</span><span class="plus">+</span><div class="mev">Publish: wk 8</div><div class="mev auto">Auto-share · check-in</div></div>
+      <div class="mday"><span class="dn2">25</span><span class="plus">+</span><div class="mev auto">Crawl</div></div>
+      <div class="mday"><span class="dn2">26</span><span class="plus">+</span></div>
+      <div class="mday"><span class="dn2">27</span><span class="plus">+</span><div class="mev auto">GSC sync</div></div>
+      <div class="mday"><span class="dn2">28</span><span class="plus">+</span><div class="mev">Session</div><div class="mev milestone">Milestone: 10 verified</div></div>
+      <div class="mday"><span class="dn2">29</span><span class="plus">+</span></div><div class="mday"><span class="dn2">30</span><span class="plus">+</span></div>
+      <div class="mday out"><span class="dn2">Oct 1</span><div class="mev">Publish: wk 9</div></div><div class="mday out"><span class="dn2">2</span></div><div class="mday out"><span class="dn2">3</span></div><div class="mday out"><span class="dn2">4</span></div>
+    </div>
+    <div class="mcal-agenda">
+      <div class="ar"><span class="ad">Mon 31</span><span>Session · 3 moves</span><span class="st draft"><i></i>Today</span></div>
+      <div class="ar"><span class="ad">Thu 3</span><span>Publish glaze + auto-share</span><span class="st sched"><i></i>9am</span></div>
+      <div class="ar"><span class="ad">Thu 10</span><span>Publish bisque schedule</span><span class="st sched"><i></i>Set</span></div>
+      <div class="ar"><span class="ad">Thu 17</span><span>Empty publish slot</span><button class="mv hot">Fill</button></div>
+      <div class="ar"><span class="ad">Mon 28</span><span>Milestone: 10 verified pages</span><span class="st pub"><i></i>7 of 10</span></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-cadence">
+  <div style="display:grid;gap:14px">
+    <section class="panel"><div class="panel-h"><h3>Your cadence</h3><button class="more">Edit</button></div>
+      <div class="pad cadence">
+        <div class="r"><span>Publish<small>one piece, every Thursday</small></span><button class="mv quiet">Thu 9am ▾</button></div>
+        <div class="r"><span>Session<small>your ~35 min</small></span><button class="mv quiet">Mondays ▾</button></div>
+        <div class="r"><span>Done-for-you check-in<small>with your strategist</small></span><button class="mv quiet">Thu 2pm ▾</button></div>
+        <div class="r"><span>Crawl &amp; verify<small>automatic</small></span><b style="font-size:12px">Fri + nightly</b></div>
+      </div>
+    </section>
+    <section class="panel"><div class="panel-h"><h3>Milestone</h3></div>
+      <div class="pad cadence"><div class="r"><span>10 verified pages<small>due Sep 28</small></span><span class="st pub"><i></i>7 of 10</span></div><div class="r" data-msrow><span>4 Thursdays left · 1 unfilled<small>each counts only if verified</small></span><button class="mv hot" data-act="fill">Fill Sep 17</button></div></div>
+    </section>
+  </div>
+</template>
+
+<template id="m-week">
+  <section class="panel"><div class="panel-h"><h3>This week</h3><span class="sub">Aug 31 – Sep 6 · week 5 of 13 · solid = you · grey = runs itself</span><button class="more">+ Add a move</button></div>
+    <div class="pad">
+      <div class="lrow"><span class="ic day">Mon</span><div class="t">Session: approve glaze draft · post Quora · fix interlinks<small>~35 min · protects the streak</small></div><div class="acts"><button class="mv hot">Start · 35 min</button></div></div>
+      <div class="lrow"><span class="ic day">Tue</span><div class="t">Quora answers, if not done Monday<small>2 matched · copy ready</small></div><div class="acts"><button class="mv">Post</button><button class="mv quiet">Skip</button></div></div>
+      <div class="lrow auto"><span class="ic day">Thu 9am</span><div class="t">Glaze article publishes → auto-share → check-in 2pm<small>runs itself once approved</small></div><div class="acts"><span class="ev reported">needs Monday’s approval</span></div></div>
+      <div class="lrow auto"><span class="ic day">Fri</span><div class="t">Crawl re-checks 3 interlinks<small>runs itself</small></div><div class="acts"><button class="mv">Fix if still missing</button></div></div>
+      <div class="lrow"><span class="ic new">+</span><div class="t">Competitor: ClayCraft posted on glaze crazing<small>#6 already · verified crawl</small></div><div class="acts"><button class="mv">Answer · plan Sep 9</button><button class="mv quiet">Ignore</button></div></div>
+      <div class="lrow auto"><span class="ic day">Sun</span><div class="t">GSC sync · rankings refresh<small>runs itself</small></div><div class="acts"><span class="ev">—</span></div></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-plan90">
+  <section class="panel"><div class="panel-h"><h3>The 90-day comeback</h3><span class="sub">week 5 of 13</span><button class="more">Adjust plan</button></div>
+    <div class="pad">
+      <div class="phases">
+        <div class="ph2"><div class="rng">Weeks 1–3 · done</div><div class="nm">Rebuild trust</div><div class="pr"><i style="width:100%"></i></div></div>
+        <div class="ph2 now"><div class="rng">Weeks 4–8 · now</div><div class="nm">Ship &amp; distribute</div><div class="pr"><i style="width:34%"></i></div></div>
+        <div class="ph2"><div class="rng">Weeks 9–13</div><div class="nm">Compound</div><div class="pr"><i style="width:0"></i></div></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="lrow"><span class="ic edge">✓</span><div class="t">Foundation pages live<small>week 3 · verified</small></div><div class="acts"><span class="ev verified">done</span></div></div>
+        <div class="lrow"><span class="ic pace">◔</span><div class="t">10 verified pages<small>due Sep 28 · 7 of 10 · 4 Thursdays left</small></div><div class="acts"><button class="mv hot">Fill Sep 17</button></div></div>
+        <div class="lrow"><span class="ic pace">◔</span><div class="t">First page-1 ranking<small>week 9 · “kiln element replacement” at #11</small></div><div class="acts"><button class="mv">Interlink + refresh</button></div></div>
+        <div class="lrow"><span class="ic pace">◔</span><div class="t">2× organic clicks vs March<small>week 13 · tracking</small></div><div class="acts"><span class="ev">on pace</span></div></div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="m-sources">
+  <div class="twobox">
+    <div class="cbox"><div class="cb-h"><b>Search Console</b><span class="ev verified">Connected</span></div>
+      <div class="cb-kpis"><div class="cb-kpi"><div class="n">1,204</div><div class="l">Impressions</div><div class="d">+12%</div></div><div class="cb-kpi"><div class="n">86</div><div class="l">Clicks</div><div class="d">+9%</div></div><div class="cb-kpi"><div class="n">18.4</div><div class="l">Avg position</div><div class="d">from 21.2</div></div></div>
+      <div class="cb-chart"><svg viewBox="0 0 640 120" preserveAspectRatio="none"><path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22 L640,110 L0,110 Z" fill="#C9E23F33"/><path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22" fill="none" stroke="#1E4634" stroke-width="2.5" stroke-linecap="round"/></svg><div class="cb-cap"><span>Impressions · last 28 days</span><span>synced 26 min ago</span></div></div>
+    </div>
+    <div class="cbox off"><div class="cb-h"><b>Analytics</b><span class="ev reported">Not connected</span></div>
+      <div class="cb-empty"><p>Search Console shows who found you. Analytics shows what they did next — sessions, time on page, and which pages turn into inquiries.</p><button class="cta">Connect analytics</button><small>Google Analytics or Cloudflare · read-only · about 2 minutes</small></div>
+    </div>
+  </div>
+</template>
+
+<template id="m-toppages">
+  <section class="panel"><div class="panel-h"><h3>Top pages</h3><span class="sub">clicks · 28 days · every row has a move</span></div>
+    <table class="tbl" style="margin-top:6px"><thead><tr><th>Page</th><th>Clicks</th><th>Impr.</th><th>Best keyword</th><th>State</th><th></th></tr></thead><tbody>
+      <tr><td class="kw">Pottery kiln repair guide<small>/guides/kiln-repair</small></td><td class="num">34</td><td class="num">412</td><td class="pg">kiln element replacement · #11</td><td><span class="st live"><i></i>Verified</span></td><td class="act"><button class="mv">Interlink + refresh</button></td></tr>
+      <tr><td class="kw">Glaze basics<small>/guides/glaze-basics</small></td><td class="num">21</td><td class="num">298</td><td class="pg">bisque firing temperature · #19</td><td><span class="st live"><i></i>Verified</span></td><td class="act"><button class="mv">Refresh thin section</button></td></tr>
+      <tr><td class="kw">Choosing your first pottery wheel<small>/guides/first-wheel</small></td><td class="num">12</td><td class="num">186</td><td class="pg">first pottery wheel · #28 ▼</td><td><span class="st pub"><i></i>Unverified</span></td><td class="act"><button class="mv hot">Re-verify</button></td></tr>
+      <tr><td class="kw">Clay bodies compared<small>/guides/clay-bodies</small></td><td class="num">9</td><td class="num">140</td><td class="pg">clay bodies for beginners · #9</td><td><span class="st live"><i></i>Verified</span></td><td class="act"><button class="mv quiet">Leave it</button></td></tr>
+    </tbody></table>
+  </section>
+</template>
+
+<template id="m-crawl">
+  <section class="panel"><div class="panel-h"><h3>Crawl &amp; verification</h3><span class="sub">Rebound’s own crawler · ran Mon 6:10am</span></div>
+    <div class="pad">
+      <div class="lrow"><span class="ic edge">7</span><div class="t">Verified live<small>crawl + GSC receipts</small></div><div class="acts"><span class="ev verified">no move needed</span></div></div>
+      <div class="lrow"><span class="ic pace">2</span><div class="t">Published, unverified<small>Wheel guide · Studio safety · recheck 11pm</small></div><div class="acts"><button class="mv">Re-verify now</button></div></div>
+      <div class="lrow"><span class="ic beat">3</span><div class="t">Interlinks reported, not found<small>crawl Fri noon</small></div><div class="acts"><button class="mv hot">Fix the 3 spots</button></div></div>
+      <div class="lrow"><span class="ic beat">1</span><div class="t">Orphaned page<small>Studio safety checklist · 0 inbound links</small></div><div class="acts"><button class="mv">Add 2 interlinks</button></div></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-findings">
+  <section class="panel"><div class="panel-h"><h3>Findings since your last visit</h3><span class="sub">verified · each has one button</span></div>
+    <div class="pad">
+      <div class="lrow"><span class="ic drop">▼</span><div class="t">“First pottery wheel” dropped to #28 — its page is still unverified<small>Finding · GSC + crawl</small></div><div class="acts"><button class="mv hot" data-move>Turn into a move</button></div></div>
+      <div class="lrow"><span class="ic new">+</span><div class="t">ClayCraft published “Fixing glaze crazing: 7 causes” — #6 already<small>Finding · crawl</small></div><div class="acts"><button class="mv hot" data-move>Turn into a move</button></div></div>
+      <div class="lrow"><span class="ic opp">↑</span><div class="t">“Kiln element replacement” reached #11 on a verified page<small>Opportunity · one push from page 1</small></div><div class="acts"><button class="mv" data-move>Turn into a move</button></div></div>
+      <div class="lrow"><span class="ic edge">✓</span><div class="t">Kiln repair guide verified live Sat · +41 impressions<small>Receipt</small></div><div class="acts"><span class="ev verified">nothing to do — enjoy it</span></div></div>
+    </div>
+  </section>
+</template>
+
+<template id="m-rankshape">
+  <section class="panel"><div class="panel-h"><h3>Rankings shape</h3><span class="sub">23 keywords · weekly</span></div>
+    <div class="pad">
+      <div class="rk-row top"><span class="lab">Top 3</span><div class="b"><i style="--w:5%"></i></div><span class="ct">1 <small class="dl up">▲1</small></span></div>
+      <div class="rk-row hot"><span class="lab">4–10</span><div class="b"><i style="--w:14%"></i></div><span class="ct">3 <small class="dl up">▲1</small></span></div>
+      <div class="rk-row hot"><span class="lab">11–20</span><div class="b"><i style="--w:28%"></i></div><span class="ct">6 <small class="dl up">▲2</small></span></div>
+      <div class="rk-row"><span class="lab">21–50</span><div class="b"><i style="--w:42%"></i></div><span class="ct">9</span></div>
+      <div class="rk-row"><span class="lab">51+</span><div class="b"><i style="--w:19%"></i></div><span class="ct">4 <small class="dl dn">▼1</small></span></div>
+      <p class="read" style="margin-top:8px"><b>Read:</b> mass migrating up the buckets — the shape you want.</p>
+    </div>
+  </section>
+</template>
+
+
+<template id="m-dist">
+  <div class="batch"><span><b>Rebound drafted 5 touchpoints</b> for the two pieces below. Approve them together, or go one by one. Quora and Reddit don’t allow automation — those are yours, copy’s ready.</span><button class="cta" data-toast="Approved 3 · LinkedIn, Pinterest, and the PR pitch are scheduled">Approve all we post</button></div>
+  <div class="piece">
+    <div class="ph"><b>Pottery kiln repair guide</b><span class="sub">published Sat · verified live · 3 keywords rising</span><span class="st live"><i></i>Verified live</span></div>
+    <div class="tl">
+      <div class="tp"><span class="when">Sat · day 0</span><span class="dot veri"></span><div class="t">Shared on LinkedIn + Pinterest<span class="who us">we posted</span><small>14 reactions · 3 saves · verified</small></div><div class="acts"><span class="ev verified">done</span></div></div>
+      <div class="tp"><span class="when">Mon · day 2</span><span class="dot now"></span><div class="t">Answer “How do I replace a kiln element?” on Quora<span class="who you">you post</span><small>2.1k views · answer drafted, links to the guide</small></div><div class="acts"><button class="mv hot" data-act="post">Copy &amp; open Quora</button><button class="mv quiet">Skip</button></div></div>
+      <div class="tp"><span class="when">Wed · day 4</span><span class="dot"></span><div class="t">Reply in r/Pottery “kiln not heating”<span class="who you">you post</span><small>matched thread · reply drafted</small></div><div class="acts"><button class="mv" data-act="post">Copy &amp; open Reddit</button></div></div>
+      <div class="tp"><span class="when">Fri · day 6</span><span class="dot"></span><div class="t">Interlinks from Glaze basics and Clay bodies<span class="who you">you add</span><small>reported Fri · crawl can’t find them yet — blocker</small></div><div class="acts"><button class="mv hot">Show the 2 spots</button></div></div>
+      <div class="tp auto"><span class="when">Sep 18 · wk 3</span><span class="dot"></span><div class="t">Pitch to Ceramics Monthly<span class="who us">we send</span><small>angle: “the cooling mistake” · needs your approval above</small></div><div class="acts"><span class="ev reported">awaiting approval</span></div></div>
+    </div>
+  </div>
+  <div class="piece">
+    <div class="ph"><b>Why your glaze cracks</b><span class="sub">draft · publishes Thu 3 if approved · touchpoints unlock after publish</span><span class="st draft"><i></i>Draft</span></div>
+    <div class="tl">
+      <div class="tp auto"><span class="when">Thu · day 0</span><span class="dot"></span><div class="t">Share on LinkedIn + Pinterest<span class="who us">we post</span><small>auto at 9:30 · copy drafted · needs your approval above</small></div><div class="acts"><span class="ev reported">awaiting approval</span></div></div>
+      <div class="tp auto"><span class="when">Fri · day 1</span><span class="dot"></span><div class="t">Answer “Why does my glaze craze?” on Quora<span class="who you">you post</span><small>unlocks after publish</small></div><div class="acts"><span class="ev">unlocks Thu</span></div></div>
+      <div class="tp auto"><span class="when">Sep 15 · wk 2</span><span class="dot"></span><div class="t">Interlink sweep from 3 verified pages<span class="who us">we suggest, you add</span><small>on the calendar</small></div><div class="acts"><span class="ev">scheduled</span></div></div>
+    </div>
+  </div>
+</template>
+
+<template id="m-progress">
+  <div>
+    <div class="sec-h"><h2>What’s been done</h2><span class="q">— since your last check-in, Aug 27</span><button class="more">Full history</button></div>
+    <section class="panel" style="margin-top:10px"><div class="pad">
+      <div class="donerow"><span class="when">Sat Aug 29</span><div class="t">Kiln repair guide verified live<small>indexed · 41 impressions already · crawl + GSC</small></div><span class="ev verified">Verified</span></div>
+      <div class="donerow"><span class="when">Sat</span><div class="t">Shared to LinkedIn + Pinterest<small>14 reactions · 3 saves</small></div><span class="ev verified">Verified</span></div>
+      <div class="donerow"><span class="when">Fri Aug 28</span><div class="t">3 interlinks added from Glaze basics and Clay bodies<small>you reported · crawl can’t find them yet</small></div><span class="ev reported">Unverified</span></div>
+      <div class="donerow"><span class="when">Thu Aug 27</span><div class="t">“Why your glaze cracks” drafted from your call<small>1,480 words · waiting on your approval</small></div><span class="st draft"><i></i>Draft</span></div>
+      <div class="donerow"><span class="when">Thu</span><div class="t">2 Quora questions matched, answers drafted<small>copy ready</small></div><span class="st approved"><i></i>Ready</span></div>
+      <div class="donerow"><span class="when">Wed Aug 26</span><div class="t">“Choosing your first pottery wheel” published<small>awaiting crawl confirmation</small></div><span class="st pub"><i></i>Unverified</span></div>
+      <div class="donerow"><span class="when">Mon Aug 24</span><div class="t">Weekly crawl + GSC sync · 5 keywords gained, 2 lost<small>rankings refreshed</small></div><span class="ev verified">Verified</span></div>
+    </div><p class="read" style="padding:0 18px 14px"><b>Read:</b> 7 things done this week, 4 verified, 2 waiting on Google, 1 waiting on you.</p></section>
+
+    <div class="sec-h" style="margin-top:22px"><h2>What needs to be done</h2><span class="q">— split by who does it</span></div>
+    <div class="owner" style="margin-top:10px">
+      <div class="oc"><h4>You <span class="ct">3</span></h4><div class="sub">today’s session · ~35 min</div>
+        <div class="it"><span>Approve the glaze draft<small>blocks Thursday’s publish</small></span><button class="mv hot" data-go="article">Review</button></div>
+        <div class="it"><span>Post 2 Quora answers<small>copy ready</small></span><button class="mv" data-go="dist">Post</button></div>
+        <div class="it"><span>Fix 3 interlinks the crawl can’t find<small>2 spots</small></span><button class="mv" data-go="dist">Show</button></div>
+      </div>
+      <div class="oc"><h4>Rebound <span class="ct grey">4</span></h4><div class="sub">runs itself · no action needed</div>
+        <div class="it"><span>Publish glaze article Thu 9am<small>once approved</small></span><span class="st sched"><i></i>Thu</span></div>
+        <div class="it"><span>Auto-share to LinkedIn + Pinterest<small>Thu 9:30</small></span><span class="st sched"><i></i>Thu</span></div>
+        <div class="it"><span>Draft “kiln element replacement”<small>from next transcript</small></span><span class="st idea"><i></i>Sep 8</span></div>
+        <div class="it"><span>Check-in with your strategist<small>Thu 2pm</small></span><span class="st sched"><i></i>Thu</span></div>
+      </div>
+      <div class="oc"><h4>Waiting on Google <span class="ct grey">2</span></h4><div class="sub">nothing to do but wait</div>
+        <div class="it"><span>Index “first pottery wheel”<small>recheck tonight 11pm</small></span><span class="ev reported">tonight</span></div>
+        <div class="it"><span>Index “studio safety checklist”<small>recheck tonight</small></span><span class="ev reported">tonight</span></div>
+      </div>
+    </div>
+
+    <div class="sec-h" style="margin-top:22px"><h2>Where we are</h2><span class="q">— week 5 of the 90-day comeback</span></div>
+    <div class="milest" style="margin-top:10px">
+      <section class="panel"><div class="panel-h"><h3>Milestones</h3></div><div class="pad">
+        <div class="mrow"><div class="t">Foundation pages live<small>week 3</small></div><div class="bar"><i style="--w:100%"></i></div><span class="n">done ✓</span></div>
+        <div class="mrow"><div class="t">10 verified pages<small>due Sep 28 · 2 more awaiting proof</small></div><div class="bar"><i style="--w:70%"></i></div><span class="n">7 / 10</span></div>
+        <div class="mrow"><div class="t">First page-1 ranking<small>week 9 · “kiln element replacement” at #11</small></div><div class="bar"><i style="--w:80%"></i></div><span class="n">ahead</span></div>
+        <div class="mrow"><div class="t">2× organic clicks vs March<small>week 13</small></div><div class="bar"><i style="--w:38%"></i></div><span class="n">on pace</span></div>
+      </div></section>
+      <section class="panel"><div class="panel-h"><h3>The numbers</h3><span class="sub">28 days · verified</span></div><div class="pad">
+        <div class="mrow"><div class="t">Impressions<small>Google showed you 1,204 times this week</small></div><span class="n">+12%</span></div>
+        <div class="mrow"><div class="t">Clicks<small>86 this week</small></div><span class="n">+9%</span></div>
+        <div class="mrow"><div class="t">Average position<small>from 21.2</small></div><span class="n">18.4</span></div>
+        <div class="mrow"><div class="t">Publishing streak<small>Thursday keeps it</small></div><span class="n">3 wks</span></div>
+        <div class="mrow"><div class="t">vs ClayCraft<small>you’re rising, they’re fading</small></div><span class="n">18% · 31%</span></div>
+      </div></section>
+    </div>
+
+    <div class="sec-h" style="margin-top:22px"><h2>What’s stuck</h2><span class="q">— and who unsticks it</span></div>
+    <section class="panel" style="margin-top:10px">
+      <div class="blk"><span class="who you">You</span><div class="t">The glaze draft is waiting on your approval<small>Blocks Thursday’s publish, the social shares, and 2 Quora answers</small></div><span class="since">4 days</span><button class="mv hot" data-go="article">Approve it</button></div>
+      <div class="blk"><span class="who you">You</span><div class="t">3 interlinks you reported can’t be found by the crawl<small>Blocks the kiln cluster from connecting · “first pottery wheel” is slipping partly because of this</small></div><span class="since">3 days</span><button class="mv" data-go="dist">Show the spots</button></div>
+      <div class="blk"><span class="who you">You</span><div class="t">Analytics isn’t connected<small>We can see who arrives but not what they do — no conversion tracking until this is done</small></div><span class="since">since start</span><button class="mv" data-toast="Connect: Google Analytics or Cloudflare · ~2 min">Connect · 2 min</button></div>
+      <div class="blk"><span class="who us">Rebound</span><div class="t">Week 6 draft needs a transcript<small>“Kiln element replacement” is drafted from your next call · nothing uploaded yet</small></div><span class="since">due Sep 8</span><button class="mv" data-toast="Upload a call recording or transcript">Upload transcript</button></div>
+      <div class="blk"><span class="who google">Google</span><div class="t">2 published pages aren’t indexed yet<small>Nothing to do — recheck runs tonight 11pm; if still missing Friday we’ll request indexing</small></div><span class="since">5 days</span><span class="ev reported">waiting</span></div>
+    </section>
+
+    <div class="report" style="margin-top:18px"><span>This page is your check-in. <b style="color:var(--ink)">Send it</b> to yourself or a partner as a one-page report, or open it Thursday 2pm with your strategist.</span><button class="cta" data-toast="Report sent — PDF + link">Send as report</button></div>
+  </div>
+</template>
+
+
+
+
+<template id="m-article">
+  <div class="art">
+    <div class="doc">
+      <div class="kicker"><span class="st draft"><i></i>Draft</span><span>From your Thursday call transcript</span><span>·</span><span>1,480 words · 7 min read</span><span>·</span><span>Written for: pottery glaze cracking</span></div>
+      <h2>Why your glaze cracks (and how to stop blaming the clay)</h2>
+      <div class="meta">Rebound wrote this from your own words on the call. Edit anything that doesn’t sound like you.</div>
+      <div class="body">
+        <p>Every potter has held a piece up to the light and found it: a fine web of cracks across a glaze that looked perfect going into the kiln. The instinct is to blame the clay. The clay is almost never the problem.</p>
+        <h4>What crazing actually is</h4>
+        <p>Crazing happens when the glaze shrinks more than the clay body as the piece cools. The glaze is under tension, and tension finds a way out. Three things control that mismatch — and you control all three: your <span class="il">glaze recipe</span>, your <span class="il">firing schedule</span>, and how you cool.</p>
+        <h4>The cooling mistake almost everyone makes</h4>
+        <p>Opening the kiln early. Even a few degrees of thermal shock in that last window can crack a glaze that would otherwise have settled. If you fire on the <span class="il">bisque schedule from our guide</span>, the fix is one extra hour…</p>
+        <div class="more">Continues — 4 more sections · highlighted phrases are suggested interlinks to your verified pages (3)</div>
+      </div>
+    </div>
+    <div class="rail">
+      <div class="act"><span class="microlabel">Session · move 1 of 3</span><h3>If it sounds like you, approve it.</h3><p>This targets <b style="color:#fff">pottery glaze cracking · 1.9k/mo</b>. ClayCraft holds #3 with a thinner page and is slipping. The only human input Thursday needs is your judgment.</p><div class="btns"><button class="cta lime" data-act="approve">Approve</button><button class="ghost" style="background:transparent;color:#fff;border-color:#ffffff55">Request edits</button></div><div class="after"><b>After you approve:</b> takes Thu Sep 3 · 9am → auto-shares to LinkedIn + Pinterest → crawler verifies it live → 2 Quora answers unlock. You don’t report anything.</div></div>
+      <div class="blk"><h4>Before it ships</h4><div class="chk"><span class="box ok"></span><span>Target keyword in title and first 100 words</span></div><div class="chk"><span class="box ok"></span><span>3 interlinks to verified pages suggested</span></div><div class="chk"><span class="box ok"></span><span>Reads at grade 8 · your voice matched from transcript</span></div><div class="chk"><span class="box"></span><span>Your approval</span></div></div>
+      <div class="blk"><h4>Where it lands</h4><div class="row"><span>Publish slot<small>publishing schedule</small></span><span class="st sched"><i></i>Thu 3 · 9am</span></div><div class="row"><span>Social<small>LinkedIn, Pinterest</small></span><span class="st approved"><i></i>2 posts ready</span></div><div class="row"><span>Quora<small>2 matched questions</small></span><span class="st approved"><i></i>Waiting on publish</span></div><div class="row"><span>Verification<small>Rebound crawl</small></span><span class="ev reported">after publish</span></div></div>
+    </div>
+  </div>
+</template>
+
+<script>
+const S={toApprove:1,ready:2,posted:0,approved:false,blockers:5,slot17:null};
+const TOOLS=[['≡','Transcripts → articles'],['✐','Writer'],['⌕','Keyword plan'],['⇄','Interlinking'],['✓','Crawl & verification'],['⚲','Connections','1 of 2']];
+const el=s=>document.querySelector(s);
+function tpl(id){return document.getElementById(id).content.cloneNode(true);}
+function strip(cells){return '<div class="status">'+cells.map(c=>`<div class="sc ${c.kind||''}"><span class="k">${c.k}</span><span class="v">${c.v}${c.vs?`<small>${c.vs}</small>`:''}</span>${c.bar!==undefined?`<div class="bar"><i class="${c.lime?'lime':''}" style="--w:${c.bar}%"></i></div>`:''}<span class="d">${c.d}</span>${c.mv?`<button class="mv ${c.hot?'hot':''}" ${c.go?`data-go="${c.go}"`:`data-toast="${c.toast||'Opening'}"`}>${c.mv}</button>`:''}</div>`).join('')+'</div>';}
+const PAGES=[
+ {id:'home',title:'Home',sub:'the dashboard — fixed, as approved',raw:true},
+ {id:'content',title:'Content',sub:'every piece, by its true state',
+  status:()=>[{k:'DONE THIS WEEK',v:'2',vs:'pieces',d:'<b>Kiln repair guide</b> verified live Sat · wheel guide published, awaiting proof'},{kind:'need',k:'NEEDS YOU',v:S.toApprove?'1':'0',vs:S.toApprove?'to approve':'',d:S.toApprove?'<b>Why your glaze cracks</b> — session move 1, blocks Thursday':'Nothing to approve. Thursday is set.',mv:S.toApprove?'Review the draft':'See the pipeline',hot:true,go:S.toApprove?'article':null},{k:'PROGRESS',v:'7',vs:'of 10 verified',bar:70,d:'milestone due Sep 28 · 2 more awaiting crawl'},{kind:'block',k:'STUCK',v:'2',d:'<b>2 pages</b> not indexed yet · week 6 draft needs a transcript',mv:'See blockers',go:'progress'}],
+  modules:['m-pipe']},
+ {id:'calendar',title:'Calendar',sub:'your rhythm, and what runs itself',
+  status:()=>[{k:'DONE THIS WEEK',v:'3',vs:'of 5',d:'crawl ran · kiln guide verified · shares posted'},{kind:'need',k:'NEEDS YOU',v:S.slot17?'0':'1',vs:S.slot17?'':'empty slot',d:S.slot17?'Every Thursday this month has a piece.':'<b>Thu Sep 17</b> has no piece — your cadence promises one',mv:S.slot17?'Open month':'Fill Sep 17',hot:!S.slot17,toast:'Fill from an idea or from Approved'},{k:'PROGRESS',v:'4',vs:'Thursdays left',bar:34,d:'week 5 of 13 · streak 3 weeks'},{kind:'block',k:'STUCK',v:'1',d:'<b>Thursday’s publish</b> is waiting on your approval of the glaze draft',mv:'Approve it',go:'article'}],
+  modules:['m-calendar'],side:'m-cadence'},
+ {id:'dist',title:'Distribution',sub:'after publish — share, answer, pitch, link · multiple touchpoints per piece',
+  status:()=>[{k:'DONE THIS WEEK',v:'2',vs:'touchpoints',d:'LinkedIn + Pinterest shares for the kiln guide · 14 reactions'},{kind:'need',k:'NEEDS YOU',v:String(S.ready+1),vs:'to do',d:`<b>${S.ready} Quora/Reddit answers</b> to post (copy ready) · 3 touchpoints to approve`,mv:'Approve all we post',hot:true,toast:'Approved 3 · scheduled'},{k:'PROGRESS',v:'6',vs:'of 8',bar:75,d:'touchpoints completed on the last 2 published pieces'},{kind:'block',k:'STUCK',v:'1',d:'<b>3 interlinks</b> reported Fri can’t be found by the crawl',mv:'Show the spots',toast:'Opens the 2 pages at the exact spots'}],
+  modules:['m-dist']},
+ {id:'progress',title:'Progress',sub:'the check-in, on demand — done · to do · where we are · what’s stuck',
+  status:()=>[{k:'DONE THIS WEEK',v:'7',vs:'things',d:'4 verified · 2 waiting on Google · 1 waiting on you'},{kind:'need',k:'NEEDS YOU',v:'3',vs:'moves · ~35 min',d:'<b>Approve the draft</b>, post 2 answers, fix 3 interlinks',mv:'Start the session',hot:true,go:'article'},{k:'WHERE WE ARE',v:'wk 5',vs:'of 13',bar:38,lime:true,d:'phase 2 of 3 · 7 of 10 verified pages · on pace'},{kind:'block',k:'STUCK',v:String(S.blockers),d:'<b>3 on you</b> · 1 on Rebound · 1 waiting on Google',mv:'See all',toast:'Scroll down — “What’s stuck”'}],
+  modules:['m-progress']},
+ {id:'article',title:'Review draft',sub:'session · move 1 of 3',back:'content',modules:['m-article']}
+];
+const NAV=[['home','Home',()=>''],['content','Content',()=>S.toApprove?'1 to approve':''],['calendar','Calendar',()=>S.slot17?'':'1 slot'],['dist','Distribution',()=>S.ready?`${S.ready+1} to do`:''],['progress','Progress',()=>`${S.blockers} stuck`]];
+let CUR='home';
+function badges(){document.querySelectorAll('#side [data-go],#mnav [data-go]').forEach(b=>{const n=NAV.find(x=>x[0]===b.dataset.go);if(!n)return;const c=n[2]();let ct=b.querySelector('.ct');if(!ct){ct=document.createElement('span');ct.className='ct';b.appendChild(ct);}ct.textContent=c||'';ct.style.display=c?'':'none';});}
+function buildSide(){
+  const side=el('#side');side.innerHTML='';
+  side.insertAdjacentHTML('beforeend','<div class="wordmark"><span class="ring"></span>Rebound SEO</div><button class="sesspill" data-go="article"><div class="lbl"><span>Today’s session</span><span class="prog"><i class="now"></i><i></i><i></i></span></div><div class="t">Approve “Why your glaze cracks”</div><div class="go">Move 1 of 3 · ~20 min · open</div></button>');
+  side.insertAdjacentHTML('beforeend','<div class="tier">EVERY DAY</div><nav class="nav">'+NAV.slice(0,3).map(n=>`<button data-go="${n[0]}">${n[1]}</button>`).join('')+'</nav>');
+  side.insertAdjacentHTML('beforeend','<div class="tier">EVERY WEEK</div><nav class="nav">'+NAV.slice(3).map(n=>`<button data-go="${n[0]}">${n[1]}</button>`).join('')+'</nav>');
+  side.insertAdjacentHTML('beforeend','<div class="tier">TOOLS</div><nav class="nav tools">'+TOOLS.map(t=>`<button data-toast="Opens ${t[1]}"><span style="width:18px;text-align:center">${t[0]}</span>${t[1]}${t[2]?`<span class="ct none">${t[2]}</span>`:''}</button>`).join('')+'</nav>');
+  side.insertAdjacentHTML('beforeend','<div class="bottom"><span class="avatar">MP</span><div><b style="font-size:12.5px">Maya’s Pottery</b><small>Done-for-you · check-in Thu 2pm</small></div></div>');
+  el('#mnav').innerHTML=NAV.map(n=>`<button data-go="${n[0]}"><b>${n[0]==='home'?'◉':'▪'}</b>${n[1]}</button>`).join('');
+  badges();
+}
+function renderModules(host,ids,sideId){if(sideId){const g=document.createElement('div');g.className='grid';const a=document.createElement('div');a.className='c8';a.style.display='grid';a.style.gap='16px';const b=document.createElement('div');b.className='c4';ids.forEach(id=>a.appendChild(tpl(id)));b.appendChild(tpl(sideId));g.appendChild(a);g.appendChild(b);host.appendChild(g);}else ids.forEach(id=>host.appendChild(tpl(id)));}
+function applyState(root){
+  if(S.approved){const dc=root.querySelector('[data-draftcard]');if(dc)dc.remove();const ac=root.querySelector('[data-approvedcards]');if(ac){ac.insertAdjacentHTML('beforeend','<div class="card"><div class="t">Why your glaze cracks</div><div class="kw">approved · takes Thu Sep 3 · 9am</div><div class="m"><span class="st sched"><i></i>Scheduled</span></div></div>');root.querySelector('[data-apct]').textContent='1';}
+    const s3=root.querySelector('[data-sep3]');if(s3)s3.textContent='Publish: glaze · scheduled';
+    root.querySelectorAll('.rail .act').forEach(a=>{a.innerHTML='<span class="microlabel">Session · move 1 of 3 · done</span><h3>Approved. Thursday is set.</h3><p>Takes Thu Sep 3 · 9am → auto-shares → crawler verifies → 2 Quora answers unlock. Move 2 is waiting.</p><div class="btns"><button class="cta lime" data-go="progress">See progress</button></div>';});
+    root.querySelectorAll('.doc .kicker .st').forEach(s=>{s.className='st sched';s.innerHTML='<i></i>Scheduled';});}
+  const s17=root.querySelector('[data-slot17]');if(s17&&S.slot17){s17.className='mev';s17.textContent='Publish: '+S.slot17;s17.removeAttribute('data-slot17');}
+  root.querySelectorAll('[data-act="post"]').forEach((b,i)=>{if(i<S.posted){b.outerHTML='<span class="st live"><i></i>Posted</span>';}});
+}
+function buildPage(id){
+  const p=PAGES.find(x=>x.id===id)||PAGES[0];CUR=p.id;
+  el('#topbar').innerHTML=`${p.back?`<button class="quiet-link" data-go="${p.back}" style="font-size:12px">← Back</button>`:''}<h1>${p.title}</h1><span class="sub">${p.sub||''}</span><div class="end">${p.id==='article'?(S.approved?'<span class="st sched"><i></i>Scheduled</span>':'<span class="st draft"><i></i>Draft</span>'):'<span class="ev verified">Search Console connected</span>'}</div>`;
+  const host=el('#pagehost');host.innerHTML='';
+  if(p.raw){host.appendChild(tpl('m-home'));}
+  else{const pg=document.createElement('div');pg.className='page';if(p.status)pg.insertAdjacentHTML('beforeend',strip(p.status()));renderModules(pg,p.modules,p.side);host.appendChild(pg);applyState(host);}
+  document.querySelectorAll('#side [data-go],#mnav [data-go]').forEach(b=>b.classList.toggle('here',b.dataset.go===CUR));
+  wire(host);badges();window.scrollTo({top:0});
+}
+function wire(root){
+  root.querySelectorAll('[data-coach]').forEach(c=>{const moves=[...c.querySelectorAll('.coach-move')],prog=[...c.querySelectorAll('.prog i')],q=[...c.querySelectorAll('.qrow[data-q]')];let i=0;const r=()=>{moves.forEach((m,x)=>m.classList.toggle('on',x===i));prog.forEach((p,x)=>{p.className=x<i?'done':(x===i?'now':'')});q.forEach((row,x)=>{row.classList.toggle('done',x<i);row.classList.toggle('now',x===i);});};c.querySelectorAll('[data-adv]').forEach(b=>b.addEventListener('click',()=>{if(i<moves.length-1){i++;r();}}));c.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>{i=0;r();}));});
+  root.querySelectorAll('[data-acc]>button').forEach(b=>b.addEventListener('click',()=>b.parentElement.classList.toggle('open')));
+  root.querySelectorAll('[data-act="approve"]').forEach(b=>b.addEventListener('click',()=>{S.approved=true;S.toApprove=0;S.blockers--;toast('Approved · scheduled Thu Sep 3 · 9am · one blocker cleared');buildPage('article');}));
+  root.querySelectorAll('[data-act="post"]').forEach(b=>b.addEventListener('click',()=>{S.posted++;S.ready=Math.max(0,S.ready-1);toast('Copied · opening Quora in a new tab · we’ll verify the link');buildPage(CUR);}));
+  root.querySelectorAll('[data-slot17]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();S.slot17='kiln elements';toast('Sep 17 filled with “Kiln element replacement guide”');buildPage(CUR);}));
+  root.querySelectorAll('[data-toast]').forEach(b=>b.addEventListener('click',()=>toast(b.dataset.toast)));
+  root.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>{const a=root.querySelector('#anbox');if(a){a.scrollIntoView({behavior:'smooth',block:'center'});a.style.boxShadow='0 0 0 3px #C9E23F';setTimeout(()=>a.style.boxShadow='',1400);}}));
+  root.querySelectorAll('.mv:not([data-go]):not([data-act]):not([data-toast])').forEach(b=>{if(!b.dataset.wired){b.dataset.wired=1;b.addEventListener('click',()=>toast(`“${b.textContent.trim()}” — opens the tool with this item loaded`));}});
+  root.querySelectorAll('.mday .plus, .col .add').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();toast('Add content: from an idea, a transcript, or blank');}));
+}
+let tt;function toast(m){const t=el('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200);}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){e.preventDefault();buildPage(g.dataset.go);}});
+document.querySelectorAll('.vp button').forEach(v=>v.addEventListener('click',()=>{document.querySelectorAll('.vp button').forEach(x=>x.classList.remove('on'));v.classList.add('on');el('#stage').classList.toggle('mobile',v.dataset.v==='mobile');}));
+el('#cnote').innerHTML='<b>Five pillars.</b> Home (fixed) · Content · Calendar · Distribution · Progress. Every page opens on the four questions a client asks — what’s been done, what needs to be done, where are we, what’s stuck — for its own slice. Progress answers them for everything, split by who owns each item: you, Rebound, or Google.';
+buildSide();buildPage('home');
+</script>
+</body>
+</html>

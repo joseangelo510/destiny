@@ -23,4 +23,4 @@ Fable Medium is sufficient for MEDIUM. Fable High must decide HIGH before implem
 Mirror metadata:
 
 - Policy version: `GOV-1`
-- Canonical policy commit: `24c0ee825df6ca9359a4dfadf25779b15cef7ece`
+- Canonical policy commit: `14cbda0e36fe217892cdfd1e4946c036edfb1e55`

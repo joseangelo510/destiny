@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rebound SEO — Dashboard (your notes, consolidated)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F2E8; --well:#EDE7D7; --card:#FBF8F1;
+  --ink:#182720; --ink-soft:#42544A;
+  --forest:#1E4634; --forest-deep:#143324;
+  --sage:#9FBCA4; --sage-line:#CFDACB; --sage-soft:#DCE4D8; --mint:#DFEBDD; --mint-deep:#CBDCC7;
+  --lime:#C9E23F; --lime-ink:#3A4A0B; --amber:#8A5A2B; --amber-soft:#F3E9DA;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#E8E2D2;font-family:var(--sans);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;color:inherit;font-size:inherit}
+button:focus-visible{outline:2px solid var(--forest);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.chrome{position:sticky;top:0;z-index:60;background:#182720;color:#EFEDE4;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.chrome .who{font-family:var(--serif);font-size:16px}
+.chrome .who em{font-style:italic;color:#C9E23F}
+.vp{margin-left:auto;display:flex;gap:4px;background:#0F1B15;border-radius:99px;padding:4px}
+.vp button{padding:7px 13px;border-radius:99px;color:#B9C4B7;font-size:13px;font-weight:500}
+.vp button.on{background:#2C4436;color:#fff}
+.stage{display:flex;justify-content:center;padding:26px 14px 60px}
+.canvas{width:100%;max-width:1240px;background:var(--paper);border-radius:22px;box-shadow:0 20px 50px -30px rgba(24,39,32,.45);overflow:hidden;transition:max-width .3s}
+.stage.mobile .canvas{max-width:396px;border-radius:38px;border:8px solid #182720}
+.stage.mobile .canvas::before{content:"";display:block;height:22px;background:linear-gradient(#fbf8f1,#F6F2E8)}
+
+.pbar{display:flex;align-items:center;gap:16px;padding:14px 28px;border-bottom:1px solid var(--sage-line);background:var(--card)}
+.wordmark{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--forest);display:flex;align-items:center;gap:8px}
+.wordmark .ring{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--forest);border-bottom-color:var(--lime);transform:rotate(-40deg)}
+.pnav{display:flex;gap:2px;margin-left:6px}
+.pnav button{padding:6px 11px;border-radius:8px;color:var(--ink-soft);font-size:13px}
+.pnav button:hover{background:var(--mint)}
+.pnav button.here{background:var(--forest);color:#fff;font-weight:500}
+.pbar .end{margin-left:auto;display:flex;align-items:center;gap:12px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--forest);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600}
+.dfy{font-size:12px;color:var(--ink-soft);background:var(--mint);padding:5px 11px;border-radius:99px;border:1px solid var(--mint-deep)}
+.stage.mobile .pnav,.stage.mobile .dfy{display:none}
+.stage.mobile .pbar{padding:12px 18px}
+
+.st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.st i{width:7px;height:7px;border-radius:50%;flex:none}
+.st.draft{border:1px dashed var(--sage);color:var(--ink-soft)}.st.draft i{background:var(--sage)}
+.st.approved{background:var(--mint);color:var(--forest)}.st.approved i{background:var(--forest)}
+.st.sched{background:var(--mint);color:var(--forest)}.st.sched i{background:transparent;border:1.5px solid var(--forest);width:6px;height:6px}
+.st.pub{border:1px solid var(--forest);color:var(--forest)}.st.pub i{background:var(--forest)}
+.st.live{background:var(--lime);color:var(--lime-ink)}.st.live i{background:var(--lime-ink)}
+.ev{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-soft)}
+.ev.verified{color:var(--lime-ink);font-weight:600}
+.ev.verified::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #C9E23F33}
+.ev.reported::before{content:"";width:6px;height:6px;border-radius:50%;border:1.5px solid var(--sage)}
+.cta{background:var(--forest);color:#fff;font-weight:600;padding:10px 18px;border-radius:11px;font-size:13.5px;box-shadow:0 3px 0 var(--forest-deep);transition:transform .12s}
+.cta:hover{transform:translateY(-1px)}
+.cta:active{transform:translateY(1px);box-shadow:0 1px 0 var(--forest-deep)}
+.cta.lime{background:var(--lime);color:var(--lime-ink);box-shadow:0 3px 0 #8FA32A}
+.quiet-link{font-size:12.5px;color:var(--forest);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.microlabel{font-size:11.5px;font-weight:600;color:var(--ink-soft);letter-spacing:.02em}
+.panel{background:var(--card);border:1px solid var(--sage-line);border-radius:16px}
+.panel-h{display:flex;align-items:baseline;gap:10px;padding:15px 18px 0;flex-wrap:wrap}
+.panel-h h3{font-family:var(--serif);font-weight:600;font-size:16px}
+.panel-h .sub{font-size:11.5px;color:var(--ink-soft)}
+.panel-h .more{margin-left:auto;font-size:12px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.dl{font-weight:700;font-size:11.5px}
+.dl.up{color:var(--lime-ink)}
+.dl.dn{color:var(--amber)}
+.dl.neu{color:var(--ink-soft)}
+.read{font-size:12.5px;color:var(--ink-soft)}
+.read b{color:var(--ink)}
+
+/* grid */
+.dash{padding:24px 28px 46px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.stage.mobile .dash{padding:18px 16px 26px;grid-template-columns:1fr;gap:14px}
+.greet{grid-column:1/-1;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.greet h1{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:-.01em}
+.stage.mobile .greet h1{font-size:20px}
+.greet .since{font-size:13px;color:var(--ink-soft)}
+.greet .since b{color:var(--ink);font-weight:600}
+.greet .since .win{color:var(--lime-ink);font-weight:600}
+.c5{grid-column:span 5}.c7{grid-column:span 7}.c12{grid-column:1/-1}
+.stage.mobile .c5,.stage.mobile .c7,.stage.mobile .c12{grid-column:1/-1}
+
+/* ===== WORK panel: session + queue ===== */
+.work{border-radius:16px;overflow:hidden;border:1px solid var(--forest);background:var(--card);display:flex;flex-direction:column}
+.work .coach{background:var(--forest);color:#EFF3EC}
+.coach-h{display:flex;align-items:center;gap:10px;padding:15px 18px 0}
+.coach-h .microlabel{color:#B7CDB9}
+.coach-h .prog{margin-left:auto;display:flex;gap:4px}
+.coach-h .prog i{width:22px;height:5px;border-radius:99px;background:#ffffff26}
+.coach-h .prog i.done{background:var(--lime)}
+.coach-h .prog i.now{background:#ffffff70}
+.coach-body{padding:10px 18px 16px}
+.coach-move{display:none}
+.coach-move.on{display:block}
+.coach-move h2{font-family:var(--serif);font-weight:500;font-size:20px;line-height:1.25}
+.coach-move .why{margin-top:7px;font-size:12.5px;color:#CFE0CC}
+.coach-move .why b{color:#fff}
+.coach-dn{margin-top:11px;background:#ffffff12;border-radius:11px;padding:10px 13px;font-size:12px;color:#DFEAD9}
+.coach-dn b{color:#C9E23F;font-weight:600}
+.coach-acts{margin-top:13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.coach-acts .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.coach-fin{text-align:center;padding:12px 0 4px}
+.coach-fin h2{font-family:var(--serif);font-size:21px;font-weight:500}
+.coach-fin p{font-size:12.5px;color:#CFE0CC;margin-top:5px}
+.coach-fin .skip{color:#B7CDB9;font-size:12px;text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:8px}
+.queue{padding:12px 18px 14px;flex:1}
+.queue .qh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.queue .qh .microlabel{color:var(--forest)}
+.queue .qh .streak{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:11px;color:var(--ink-soft)}
+.queue .qh .streak i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.queue .qh .streak i.off{background:var(--well);border:1px solid var(--sage-line)}
+.qrow{display:grid;grid-template-columns:auto 1fr auto;gap:11px;padding:9px 0;border-top:1px solid var(--sage-soft);align-items:start}
+.qrow:first-of-type{border-top:none}
+.qrow .pri{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;margin-top:1px;background:var(--well);color:var(--ink-soft)}
+.qrow.session .pri{background:var(--mint);color:var(--forest)}
+.qrow.now .pri{background:var(--lime);color:var(--lime-ink)}
+.qrow.done .pri{background:var(--forest);color:#fff}
+.qrow.done .t{text-decoration:line-through;color:var(--ink-soft)}
+.qrow .t{font-size:13px;font-weight:500;line-height:1.35}
+.qrow.now .t{font-weight:600}
+.qrow .m{font-size:11px;color:var(--ink-soft);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qrow .why-tag{background:var(--well);border-radius:99px;padding:1px 8px;font-weight:600}
+.qrow .sess{font-size:10px;font-weight:700;color:var(--forest);background:var(--mint);border-radius:99px;padding:1px 7px}
+.qfoot{margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+
+/* ===== performance ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);padding:14px 6px 4px}
+.stage.mobile .kpis{grid-template-columns:repeat(2,1fr)}
+.kpi{padding:4px 14px;border-right:1px solid var(--sage-line)}
+.kpi:last-child{border-right:none}
+.stage.mobile .kpi:nth-child(2){border-right:none}
+.kpi .n{font-family:var(--serif);font-size:25px;font-weight:600;color:var(--forest);line-height:1.1}
+.kpi .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.kpi .d{font-size:11px;font-weight:600;margin-top:3px}
+.kpi .d.up{color:var(--lime-ink)}
+.kpi .d.flat{color:var(--ink-soft)}
+.chartwrap{padding:8px 16px 0}
+.chartwrap svg{width:100%;height:auto;display:block}
+.chartfoot{display:flex;gap:14px;padding:8px 18px 12px;font-size:11px;color:var(--ink-soft);align-items:center;flex-wrap:wrap}
+.chartfoot .key{display:inline-flex;align-items:center;gap:6px}
+.chartfoot .key i{width:14px;height:3px;border-radius:2px;background:var(--forest)}
+.chartfoot .ev{margin-left:auto}
+.perf .readline{padding:0 18px 14px;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--sage-soft);padding-top:10px;margin:0 0}
+.perf .readline b{color:var(--ink)}
+
+
+/* ===== multi-source performance ===== */
+.srctabs{display:flex;gap:4px;padding:8px 14px 0;flex-wrap:wrap;border-bottom:1px solid var(--sage-soft);margin:0 4px}
+.srctabs button{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-soft);padding:8px 11px 9px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.srctabs button:hover{color:var(--ink)}
+.srctabs button.on{color:var(--forest);border-bottom-color:var(--forest)}
+.srctabs button.off{color:var(--ink-soft);font-weight:500}
+.srctabs .dot{width:7px;height:7px;border-radius:50%}
+.srctabs .dot.ok{background:var(--lime);box-shadow:0 0 0 3px #C9E23F33}
+.srctabs .dot.no{border:1.5px dashed var(--sage);background:transparent}
+.srctabs .cx{font-size:10px;font-weight:700;color:var(--forest);background:var(--mint);border-radius:99px;padding:1px 7px}
+.srcpane{display:none}.srcpane.on{display:block}
+.kpis-click .kpi{text-align:left;border-radius:10px;transition:background .15s}
+.kpis-click .kpi:hover{background:var(--mint)}
+.kpis-click .kpi.on{background:var(--mint)}
+.kpis-click .kpi.on .l::after{content:" · charted";font-weight:700;color:var(--forest)}
+.kpis.ghost .kpi .n{color:var(--sage)}
+.kpis.ghost .kpi .l{color:var(--sage)}
+.perfgrid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:0;padding:6px 0 4px}
+.stage.mobile .perfgrid{grid-template-columns:1fr}
+.perfgrid .chartwrap{padding:6px 16px 8px}
+.perfgrid .side{border-left:1px solid var(--sage-soft);padding:8px 16px 10px}
+.stage.mobile .perfgrid .side{border-left:none;border-top:1px solid var(--sage-soft)}
+.sh{font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+.bar{display:grid;grid-template-columns:52px 1fr 34px;gap:8px;align-items:center;font-size:11.5px;padding:3px 0}
+.bar span{color:var(--ink-soft)}
+.bar .b{height:9px;border-radius:5px;background:var(--well);position:relative}
+.bar .b i{position:absolute;inset:0;width:var(--w);background:var(--forest);border-radius:5px}
+.bar b{text-align:right;font-weight:600}
+.tq{font-size:12px;background:var(--paper);border:1px solid var(--sage-soft);border-radius:10px;padding:8px 10px}
+.tq b{font-weight:600;display:block}
+.tq small{color:var(--ink-soft);font-size:10.5px}
+.stack{display:flex;height:22px;border-radius:7px;overflow:hidden;gap:2px}
+.stack i{display:grid;place-items:center;font-style:normal;font-size:10.5px;font-weight:700;width:var(--w)}
+.stack i.live{background:var(--lime);color:var(--lime-ink)}
+.stack i.pub{background:var(--mint);color:var(--forest);border:1px solid var(--mint-deep)}
+.vq{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;padding:6px 0;border-top:1px solid var(--sage-soft)}
+.vq:first-of-type{border-top:none}
+.connect{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;padding:12px 18px 14px;align-items:center}
+.stage.mobile .connect{grid-template-columns:1fr}
+.connect .ch2{font-family:var(--serif);font-weight:500;font-size:17px;line-height:1.3}
+.connect .ch2 em{font-style:italic;color:var(--forest)}
+.connect p{margin-top:8px;font-size:12.5px;color:var(--ink-soft);max-width:52ch}
+.connect .cacts{margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.connect .cmeta{font-size:11px;color:var(--ink-soft)}
+.cpreview{background:var(--paper);border:1px dashed var(--sage);border-radius:12px;padding:10px 12px}
+.cpreview .pv-l{font-size:10px;font-weight:700;color:var(--sage);letter-spacing:.04em}
+.cpreview svg{width:100%;height:auto;display:block;margin-top:4px}
+.cpreview .pv-r{display:flex;justify-content:space-between;font-size:10.5px;color:var(--sage);font-weight:600;margin-top:4px}
+.stage.mobile .cpreview{display:none}
+.perf .readline .srcnote{display:block;margin-top:4px;font-size:12px}
+.srcpill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--forest);background:var(--mint);border:1px solid var(--mint-deep);border-radius:99px;padding:4px 11px;margin-left:auto}
+.srcpill i{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.srcpill:hover{background:var(--mint-deep)}
+.stage.mobile .srcpill{margin-left:0}
+
+
+/* ===== two source boxes ===== */
+.srcbox{margin:0 14px 12px;border-radius:14px;border:1px solid var(--sage-line);background:var(--paper);overflow:hidden}
+.srcbox.off{border-style:dashed;border-color:var(--sage);background:#F9F6EE}
+.sb-h{display:flex;align-items:center;gap:11px;padding:11px 14px 8px;border-bottom:1px solid var(--sage-soft)}
+.sb-logo{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.sb-logo.gsc{background:#fff;border:1px solid var(--sage-line);color:#1E4634;font-family:var(--serif)}
+.sb-logo.an{background:var(--well);color:var(--sage);border:1px dashed var(--sage)}
+.sb-t{flex:1;min-width:0}
+.sb-t b{font-size:13px;font-weight:600;display:block}
+.sb-t small{font-size:11px;color:var(--ink-soft);display:block}
+.srcbox .kpis{padding:10px 2px 2px}
+.srcbox .kpi{padding:4px 12px}
+.srcbox .kpi .n{font-size:23px}
+.sb-read{padding:8px 14px 12px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--sage-soft)}
+.sb-read b{color:var(--ink)}
+.sb-foot{display:flex;align-items:center;gap:12px;padding:2px 18px 14px;font-size:11.5px;flex-wrap:wrap}
+.an-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;padding:12px 14px 14px;align-items:start}
+.stage.mobile .an-body{grid-template-columns:1fr}
+.an-txt .ch2{font-family:var(--serif);font-weight:500;font-size:16px;line-height:1.3}
+.an-txt .ch2 em{font-style:italic;color:var(--forest)}
+.an-txt p{margin-top:8px;font-size:12px;color:var(--ink-soft)}
+.an-opts{display:grid;gap:8px}
+.an-opt{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;text-align:left;background:var(--card);border:1px solid var(--sage-line);border-radius:12px;padding:10px 12px;transition:border-color .15s,transform .12s}
+.an-opt:hover{border-color:var(--forest);transform:translateY(-1px)}
+.an-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.an-ic.ga{background:#FFF3E0;color:#B7541C}
+.an-ic.cf{background:#FFF0E6;color:#C4591C}
+.an-lbl b{font-size:13px;font-weight:600;display:block}
+.an-lbl small{font-size:11px;color:var(--ink-soft);display:block}
+.an-go{font-size:12px;font-weight:700;color:#fff;background:var(--forest);border-radius:9px;padding:7px 12px}
+.an-alt{font-size:11.5px;color:var(--ink-soft);padding:2px 2px 0}
+
+
+/* ===== two clean boxes ===== */
+.perf{display:flex;flex-direction:column}
+.twobox{flex:1;display:grid;grid-template-rows:1.15fr 1fr;gap:14px;padding:0 18px 18px}
+.stage.mobile .twobox{grid-template-rows:auto auto}
+.cbox{border:1px solid var(--sage-line);border-radius:14px;background:var(--paper);display:flex;flex-direction:column;min-height:0}
+.stage.mobile .cbox{min-height:240px}
+.cbox.off{border-style:dashed;border-color:var(--sage)}
+.cb-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0}
+.cb-h b{font-family:var(--serif);font-weight:600;font-size:15px}
+.cb-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px 4px}
+.cb-kpi .n{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--forest);line-height:1.1}
+.cb-kpi .l{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.cb-kpi .d{font-size:11px;font-weight:600;margin-top:2px}
+.cb-kpi .d.up{color:var(--lime-ink)}
+.cb-chart{flex:1;display:flex;flex-direction:column;padding:6px 14px 12px;min-height:0}
+.cb-chart svg{width:100%;flex:1;min-height:0;display:block}
+.cb-cap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-soft);margin-top:4px}
+.cb-empty{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:12px;padding:16px 20px 20px}
+.cb-empty p{font-size:13.5px;color:var(--ink-soft);max-width:44ch;line-height:1.6}
+.cb-empty small{font-size:11px;color:var(--ink-soft)}
+
+/* ===== KEYWORDS panel: shape + buckets ===== */
+.kw-stats{display:flex;gap:0;padding:12px 6px 0;flex-wrap:wrap}
+.kw-stat{padding:4px 14px;border-right:1px solid var(--sage-line)}
+.kw-stat:last-child{border-right:none}
+.kw-stat .n{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--forest)}
+.kw-stat .n.up{color:var(--lime-ink)}
+.kw-stat .n.dn{color:var(--amber)}
+.kw-stat .l{font-size:11px;color:var(--ink-soft)}
+.kw-body{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:0;padding:12px 0 6px}
+.stage.mobile .kw-body{grid-template-columns:1fr}
+.kw-col{padding:6px 18px 10px;border-right:1px solid var(--sage-soft)}
+.kw-col:last-child{border-right:none}
+.stage.mobile .kw-col{border-right:none;border-top:1px solid var(--sage-soft);padding:12px 18px}
+.stage.mobile .kw-col:first-child{border-top:none}
+.kw-col .ch{font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:baseline;gap:8px}
+.kw-col .ch small{font-weight:600;color:var(--ink-soft);font-size:10.5px}
+.kw-col .ch.up{color:var(--lime-ink)}
+.kw-col .ch.dn{color:var(--amber)}
+.kw-col .ch.lost{color:var(--amber)}
+.rk-row{display:grid;grid-template-columns:48px 1fr 46px;gap:10px;align-items:center;padding:4px 0;font-size:12px}
+.rk-row .b{height:14px;border-radius:5px;background:var(--well);position:relative}
+.rk-row .b i{position:absolute;inset:0;width:var(--w);background:var(--sage);border-radius:5px}
+.rk-row.hot .b i{background:var(--forest)}
+.rk-row.top .b i{background:var(--lime)}
+.rk-row .lab{color:var(--ink-soft);font-weight:600;font-size:11px}
+.rk-row .ct{text-align:right;font-weight:600;font-size:12px}
+.rk-row .ct small{font-size:10px;margin-left:3px}
+.kwr{display:grid;grid-template-columns:1fr auto auto;gap:9px;padding:8px 0;border-top:1px solid var(--sage-soft);align-items:baseline;font-size:12.5px}
+.kwr:first-of-type{border-top:none}
+.kwr .kw{font-weight:500;min-width:0}
+.kwr .kw small{display:block;color:var(--ink-soft);font-size:10.5px;font-weight:400;margin-top:1px}
+.kwr .pos{font-family:var(--serif);font-weight:600;color:var(--forest);font-size:15px;text-align:right;min-width:24px}
+.kw-col .cl{margin-top:8px;font-size:11.5px;color:var(--ink-soft)}
+.kw-col .cl .quiet-link{font-size:11.5px}
+.kw-read{padding:10px 18px 14px;border-top:1px solid var(--sage-soft);display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.kw-read .ev{margin-left:auto}
+
+/* ===== COMPETITORS panel ===== */
+.cmp-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;padding:6px 0 0}
+.stage.mobile .cmp-body{grid-template-columns:1fr}
+.cmp-left{padding:6px 18px 14px;border-right:1px solid var(--sage-soft)}
+.stage.mobile .cmp-left{border-right:none}
+.cmp-right{padding:6px 18px 14px}
+.stage.mobile .cmp-right{border-top:1px solid var(--sage-soft);padding-top:12px}
+.cmpt{width:100%;border-collapse:collapse;font-size:12.5px}
+.cmpt th{text-align:left;font-size:10.5px;color:var(--ink-soft);font-weight:600;padding:6px 6px;border-bottom:1px solid var(--sage-line)}
+.cmpt th.num,.cmpt td.num{text-align:right}
+.cmpt td{padding:9px 6px;border-bottom:1px solid var(--sage-soft);vertical-align:middle}
+.cmpt tr:last-child td{border-bottom:none}
+.cmpt tr.you td{background:var(--mint)}
+.cmpt tr.you td:first-child{border-radius:10px 0 0 10px}
+.cmpt tr.you td:last-child{border-radius:0 10px 10px 0}
+.cmpt .nm{font-weight:600}
+.cmpt .nm small{display:block;font-weight:400;color:var(--ink-soft);font-size:10.5px}
+.cmpt svg{width:58px;height:18px;display:block}
+.cmpt td.num{font-family:var(--serif);font-weight:600;color:var(--forest);font-size:14px;white-space:nowrap}
+.cmpt td.num small{font-family:var(--sans);font-size:10px;display:block;font-weight:600}
+.stage.mobile .cmpt th:nth-child(3),.stage.mobile .cmpt td:nth-child(3){display:none}
+.intel .ih{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.intel .ir{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--sage-soft);font-size:12.5px}
+.intel .ir:first-of-type{border-top:none}
+.intel .ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;margin-top:1px}
+.intel .ir.new .ic{background:var(--mint);color:var(--forest)}
+.intel .ir.beat .ic{background:var(--amber-soft);color:var(--amber)}
+.intel .ir.pace .ic{background:var(--well);color:var(--ink-soft)}
+.intel .ir.edge .ic{background:var(--lime);color:var(--lime-ink)}
+.intel .ir b{font-weight:600}
+.intel .ir .sub{margin-top:2px;font-size:11px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cmp-read{padding:10px 18px 14px;border-top:1px solid var(--sage-soft);display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.cmp-read .ev{margin-left:auto}
+
+/* ===== calendar ===== */
+.mcal-head{display:flex;align-items:center;gap:12px;padding:6px 18px 0}
+.mcal-head .mo{font-family:var(--serif);font-weight:600;font-size:14px}
+.mcal-head .navb{color:var(--ink-soft);font-size:13px;padding:2px 7px;border-radius:6px}
+.mcal-head .navb:hover{background:var(--mint)}
+.mcal-legend{margin-left:auto;display:flex;gap:12px;font-size:10.5px;color:var(--ink-soft);flex-wrap:wrap}
+.mcal-legend span{display:inline-flex;align-items:center;gap:5px}
+.mcal-legend i{width:8px;height:8px;border-radius:3px}
+.mcal-legend .you i{background:var(--forest)}
+.mcal-legend .auto i{border:1.5px dashed var(--sage);background:transparent}
+.mcal-legend .veri i{background:var(--lime)}
+.mcal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 12px 14px;gap:3px}
+.mcal-dow{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-align:center;padding:4px 0}
+.mday{min-height:72px;border-radius:10px;padding:5px 6px;background:var(--paper);border:1px solid transparent}
+.mday.out{opacity:.38}
+.mday .dn2{font-size:10.5px;font-weight:600;color:var(--ink-soft)}
+.mday.today{background:var(--mint);border-color:var(--mint-deep)}
+.mday.today .dn2{color:var(--forest)}
+.mday.today .dn2::after{content:" · today";font-weight:700}
+.mev{margin-top:3px;font-size:9.5px;line-height:1.25;border-radius:5px;padding:2px 5px;background:var(--forest);color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mev.auto{background:transparent;border:1px dashed var(--sage);color:var(--ink-soft);font-weight:400}
+.mev.veri{background:var(--lime);color:var(--lime-ink)}
+.mev.milestone{background:var(--well);color:var(--ink);border:1px solid var(--sage-line)}
+.stage.mobile .mcal-grid{display:none}
+.mcal-agenda{display:none;padding:8px 18px 14px}
+.stage.mobile .mcal-agenda{display:block}
+.mcal-agenda .ar{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--sage-line);font-size:12.5px;align-items:baseline}
+.mcal-agenda .ar:first-child{border-top:none}
+.mcal-agenda .ad{width:58px;flex:none;font-weight:600;color:var(--ink-soft);font-size:11.5px}
+.mcal-agenda .ar .st,.mcal-agenda .ar .ev{margin-left:auto}
+.cal-read{padding:0 18px 14px;font-size:12.5px;color:var(--ink-soft)}
+.cal-read b{color:var(--ink)}
+
+.mnav{display:none}
+.stage.mobile .mnav{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--sage-line);background:var(--card);position:sticky;bottom:0}
+.mnav button{padding:10px 4px 12px;font-size:10.5px;color:var(--ink-soft);display:grid;gap:3px;justify-items:center}
+.mnav button b{font-size:15px;font-weight:400}
+.mnav button.here{color:var(--forest);font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="who">Rebound SEO <em>· your notes, consolidated</em></div>
+  <div class="vp"><button class="on" data-v="desktop">Desktop</button><button data-v="mobile">Mobile</button></div>
+</header>
+
+<div class="stage" id="stage">
+<div class="canvas">
+  <div class="pbar">
+    <div class="wordmark"><span class="ring"></span>Rebound SEO</div>
+    <nav class="pnav"><button class="here">Dashboard</button><button>Strategy</button><button>Create</button><button>Distribute</button><button>Schedule</button><button>Analytics</button></nav>
+    <div class="end"><span class="dfy">Done-for-you · check-in Thu 2pm</span><span class="avatar">MP</span></div>
+  </div>
+
+  <div class="dash">
+    <div class="greet">
+      <h1>Monday, August 31. Week 5 of the comeback.</h1>
+      <span class="since">Over the weekend: <span class="win">kiln guide verified live (Sat)</span> · <b>5 keywords gained</b> · 2 lost · ClayCraft published once · 3 interlinks unverified</span>
+      <button class="srcpill" data-jump="ga4"><i></i>Search Console connected · analytics not yet</button>
+    </div>
+
+    <!-- ========== YOUR WORK: session + queue ========== -->
+    <section class="work c5" data-coach>
+      <div class="coach">
+        <div class="coach-h"><span class="microlabel">Today’s session · 3 moves · ~35 min</span><div class="prog"><i class="now"></i><i></i><i></i></div></div>
+        <div class="coach-body">
+          <div class="coach-move on"><h2>Approve “Why your glaze cracks” for Thursday.</h2><p class="why">From your Thursday transcript, targeting <b>pottery glaze cracking · 1.9k/mo</b> — the keyword ClayCraft holds at #3 and is losing grip on. The one human input Thursday needs.</p><div class="coach-dn"><b>Done =</b> approved by you → scheduled Thu 9am → crawler-verified after publish. Streak becomes 4 weeks.</div><div class="coach-acts"><button class="cta lime" data-adv>Review the draft</button><button class="skip" data-adv>Skip</button></div></div>
+          <div class="coach-move"><h2>Post your two approved Quora answers.</h2><p class="why">Both link to the <b>verified-live kiln guide</b> — the page behind this week’s rising keywords. Copy is ready.</p><div class="coach-dn"><b>Done =</b> posted by you → referral clicks tracked automatically.</div><div class="coach-acts"><button class="cta lime" data-adv>Open Quora queue</button><button class="skip" data-adv>Skip</button></div></div>
+          <div class="coach-move"><h2>Fix the 3 interlinks the crawl can’t find.</h2><p class="why">Reported Friday, still missing. Until verified they count as <b>reported, not real</b> — and “first pottery wheel” is drifting partly for want of them.</p><div class="coach-dn"><b>Done =</b> re-added → Friday’s crawl marks them Verified.</div><div class="coach-acts"><button class="cta lime" data-adv>Show the 3 spots</button><button class="skip" data-adv>Finish</button></div></div>
+          <div class="coach-move coach-fin"><h2>Session complete. Streak safe.</h2><p>Skipped moves return tomorrow. Thursday runs itself.</p><button class="skip" data-reset>Replay (demo)</button></div>
+        </div>
+      </div>
+      <div class="queue">
+        <div class="qh"><span class="microlabel">What needs you, in order</span><span class="streak">Streak <i></i><i></i><i></i><i class="off"></i> 3 wks</span></div>
+        <div class="qrow session now" data-q="0"><span class="pri">1</span><div><div class="t">Approve the glaze-cracking draft</div><div class="m"><span class="sess">Session</span><span class="why-tag">Protects the streak</span><span class="st draft"><i></i>Draft</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow session" data-q="1"><span class="pri">2</span><div><div class="t">Post 2 Quora answers</div><div class="m"><span class="sess">Session</span><span class="why-tag">Compounds a fresh win</span><span class="st approved"><i></i>Ready</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow session" data-q="2"><span class="pri">3</span><div><div class="t">Fix 3 unverified interlinks</div><div class="m"><span class="sess">Session</span><span class="why-tag">“First pottery wheel” dropping</span><span class="ev reported">You reported</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">4</span><div><div class="t">Recover “clay drying time” (lost, was #18)</div><div class="m"><span class="why-tag">Refresh + 1 interlink</span><span>~25 min · this week</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">5</span><div><div class="t">Answer ClayCraft’s new crazing post with a better one</div><div class="m"><span class="why-tag">Competitor gap</span><span>week 6 slot</span></div></div><button class="quiet-link">Go</button></div>
+        <div class="qrow"><span class="pri">6</span><div><div class="t">Connect your analytics (GA4 or Cloudflare)</div><div class="m"><span class="why-tag">Unlocks conversions from search</span><span>~2 min · read-only</span></div></div><button class="quiet-link" data-jump="ga4">Go</button></div>
+        <div class="qfoot">Ranked by impact on the 90-day plan. The top three are today’s session; the rest can wait for the week.</div>
+      </div>
+    </section>
+
+    <!-- ========== PERFORMANCE: two clean boxes ========== -->
+    <section class="panel perf c7" id="perf">
+      <div class="panel-h" style="padding-bottom:12px"><h3>How your SEO is doing</h3><button class="more">Full analytics</button></div>
+
+      <div class="twobox">
+        <!-- Search Console -->
+        <div class="cbox">
+          <div class="cb-h"><b>Search Console</b><span class="ev verified">Connected</span></div>
+          <div class="cb-kpis">
+            <div class="cb-kpi"><div class="n">1,204</div><div class="l">Impressions</div><div class="d up">+12%</div></div>
+            <div class="cb-kpi"><div class="n">86</div><div class="l">Clicks</div><div class="d up">+9%</div></div>
+            <div class="cb-kpi"><div class="n">18.4</div><div class="l">Avg position</div><div class="d up">from 21.2</div></div>
+          </div>
+          <div class="cb-chart">
+            <svg viewBox="0 0 640 120" preserveAspectRatio="none">
+              <path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22 L640,110 L0,110 Z" fill="#C9E23F33"/>
+              <path d="M0,100 L48,101 L96,98 L144,94 L192,91 L240,86 L288,82 L336,76 L384,72 L432,66 L480,60 L528,50 L576,38 L624,26 L640,22" fill="none" stroke="#1E4634" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="600" cy="32" r="4" fill="#1E4634"/>
+            </svg>
+            <div class="cb-cap"><span>Impressions · last 28 days</span><span>synced 26 min ago</span></div>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="cbox off" id="anbox">
+          <div class="cb-h"><b>Analytics</b><span class="ev reported">Not connected</span></div>
+          <div class="cb-empty">
+            <p>Search Console shows who found you. Analytics shows what they did next — sessions, time on page, and which pages turn into inquiries.</p>
+            <button class="cta">Connect analytics</button>
+            <small>Google Analytics or Cloudflare · read-only · about 2 minutes</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== KEYWORDS: shape + buckets ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>Keywords</h3><span class="sub">23 tracked, from your keyword strategy</span><button class="more">All keywords</button></div>
+      <div class="kw-stats">
+        <div class="kw-stat"><div class="n">23</div><div class="l">Ranking</div></div>
+        <div class="kw-stat"><div class="n up">+5</div><div class="l">Gained this week</div></div>
+        <div class="kw-stat"><div class="n up">9</div><div class="l">Improved</div></div>
+        <div class="kw-stat"><div class="n dn">3</div><div class="l">Declined</div></div>
+        <div class="kw-stat"><div class="n dn">2</div><div class="l">Lost</div></div>
+      </div>
+      <div class="kw-body">
+        <div class="kw-col">
+          <div class="ch">Where they sit <small>weekly change</small></div>
+          <div class="rk-row top"><span class="lab">Top 3</span><div class="b"><i style="--w:5%"></i></div><span class="ct">1<small class="dl up">▲1</small></span></div>
+          <div class="rk-row hot"><span class="lab">4–10</span><div class="b"><i style="--w:14%"></i></div><span class="ct">3<small class="dl up">▲1</small></span></div>
+          <div class="rk-row hot"><span class="lab">11–20</span><div class="b"><i style="--w:28%"></i></div><span class="ct">6<small class="dl up">▲2</small></span></div>
+          <div class="rk-row"><span class="lab">21–50</span><div class="b"><i style="--w:42%"></i></div><span class="ct">9<small class="dl neu">–</small></span></div>
+          <div class="rk-row"><span class="lab">51–100</span><div class="b"><i style="--w:19%"></i></div><span class="ct">4<small class="dl dn">▼1</small></span></div>
+          <div class="cl">Mass is migrating up the buckets — the shape you want.</div>
+        </div>
+        <div class="kw-col">
+          <div class="ch up">Winning you back <small>top trending</small></div>
+          <div class="kwr"><span class="kw">kiln element replacement<small>Kiln guide · verified · 720/mo</small></span><span class="dl up">▲6</span><span class="pos">11</span></div>
+          <div class="kwr"><span class="kw">how to fix a pottery kiln<small>Kiln guide · verified</small></span><span class="dl up">▲3</span><span class="pos">14</span></div>
+          <div class="kwr"><span class="kw">bisque firing temperature<small>Glaze basics · verified</small></span><span class="dl up">▲4</span><span class="pos">19</span></div>
+          <div class="cl">All on verified-live pages. <button class="quiet-link">Push the kiln cluster in week 6</button></div>
+        </div>
+        <div class="kw-col">
+          <div class="ch dn">Drifting away <small>top dropping · causes attached</small></div>
+          <div class="kwr"><span class="kw">first pottery wheel<small>Page unverified · recheck tonight</small></span><span class="dl dn">▼2</span><span class="pos">28</span></div>
+          <div class="kwr"><span class="kw">ceramic glaze recipes<small>Thin section · Thursday’s article helps</small></span><span class="dl dn">▼4</span><span class="pos">35</span></div>
+          <div class="kwr"><span class="kw">pottery tool kit<small>No page yet · PotterySupplyCo holds #9</small></span><span class="dl dn">▼3</span><span class="pos">44</span></div>
+          <div class="cl">Two of today’s three moves attack these causes. <button class="quiet-link">Recovery moves</button></div>
+        </div>
+        <div class="kw-col">
+          <div class="ch lost">Lost this week <small>fell off pages 1–5</small></div>
+          <div class="kwr"><span class="kw">clay drying time<small>Was #18 · Glaze basics · recoverable</small></span><span class="dl dn">lost</span><span class="pos">—</span></div>
+          <div class="kwr"><span class="kw">pottery for beginners pdf<small>Was #47 · strategy deprioritized this</small></span><span class="dl dn">lost</span><span class="pos">—</span></div>
+          <div class="cl">One worth recovering — it’s queue item 4. The other isn’t worth chasing.</div>
+        </div>
+      </div>
+      <div class="kw-read"><span class="read"><b>Read:</b> everything rising sits on a verified page; everything drifting has a named, fixable cause. That’s the whole keyword story this week.</span><span class="ev verified">Verified · GSC positions, weekly pull</span></div>
+    </section>
+
+    <!-- ========== COMPETITORS: field + intel ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>Competitors</h3><span class="sub">shared-keyword visibility, content pace, and what they did this week</span><button class="more">Full analysis</button></div>
+      <div class="cmp-body">
+        <div class="cmp-left">
+          <table class="cmpt">
+            <thead><tr><th>Site</th><th>Visibility</th><th>Trend</th><th class="num">Published · 30d</th><th class="num">Keywords they beat you on</th></tr></thead>
+            <tbody>
+              <tr class="you"><td class="nm">You<small>23 tracked · only riser</small></td><td class="num">18%<small class="dl up">▲3 pts</small></td><td><svg viewBox="0 0 58 18"><path d="M0,15 L19,12 L38,8 L58,3" fill="none" stroke="#1E4634" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">4<small class="dl up">on pace</small></td><td class="num">—</td></tr>
+              <tr><td class="nm">ClayCraft Blog<small>overlaps 14 keywords</small></td><td class="num">31%<small class="dl dn">▼4 pts</small></td><td><svg viewBox="0 0 58 18"><path d="M0,5 L19,7 L38,9 L58,12" fill="none" stroke="#8A5A2B" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">2<small class="dl dn">slowing</small></td><td class="num">9<small class="dl neu">was 11</small></td></tr>
+              <tr><td class="nm">PotterySupplyCo<small>overlaps 9 keywords · commercial</small></td><td class="num">24%<small class="dl neu">flat</small></td><td><svg viewBox="0 0 58 18"><path d="M0,10 L19,9 L38,10 L58,9" fill="none" stroke="#9FBCA4" stroke-width="2" stroke-linecap="round"/></svg></td><td class="num">6<small class="dl neu">steady</small></td><td class="num">5<small class="dl neu">was 5</small></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cmp-right intel">
+          <div class="ih">What they did this week</div>
+          <div class="ir new"><span class="ic">+</span><div><b>ClayCraft published “Fixing glaze crazing: 7 causes”</b> (Thu). Already #6 for “glaze crazing” — a sibling of your Thursday keyword.<div class="sub"><span class="ev verified">Verified · crawl</span><button class="quiet-link" style="font-size:11px">Outline a better one · queue 5</button></div></div></div>
+          <div class="ir beat"><span class="ic">!</span><div><b>PotterySupplyCo beats you on “pottery tool kit”</b> — their #9 vs your #44, with a product roundup you don’t have.<div class="sub"><span class="ev verified">Verified · GSC + crawl</span><button class="quiet-link" style="font-size:11px">Add a tool-kit page to strategy</button></div></div></div>
+          <div class="ir edge"><span class="ic">✓</span><div><b>You took 2 keywords back from ClayCraft</b> — “kiln element replacement” and “how to fix a pottery kiln” both passed their pages this week.<div class="sub"><span class="ev verified">Verified · weekly comparison</span></div></div></div>
+          <div class="ir pace"><span class="ic">≈</span><div><b>Pace:</b> you’re out-publishing ClayCraft 2:1 this month; PotterySupplyCo publishes more but on commercial terms you don’t target.<div class="sub"><span>4 · 2 · 6 pieces, last 30 days</span></div></div></div>
+        </div>
+      </div>
+      <div class="cmp-read"><span class="read"><b>Read:</b> the gap you can close this month is ClayCraft’s — they’re slowing down and slipping exactly where Thursday’s article lands. Their crazing post is the one thing to answer.</span><span class="ev verified">Verified · crawl comparison, weekly</span></div>
+    </section>
+
+    <!-- ========== CALENDAR ========== -->
+    <section class="panel c12">
+      <div class="panel-h"><h3>The month</h3><span class="sub">solid = needs you · dashed = runs itself · lime = verified happened</span><button class="more">Week view</button></div>
+      <div class="mcal-head"><button class="navb">‹</button><span class="mo">September 2026</span><button class="navb">›</button>
+        <div class="mcal-legend"><span class="you"><i></i>Your move</span><span class="auto"><i></i>Automatic</span><span class="veri"><i></i>Verified</span></div></div>
+      <div class="mcal-grid">
+        <div class="mcal-dow">Mon</div><div class="mcal-dow">Tue</div><div class="mcal-dow">Wed</div><div class="mcal-dow">Thu</div><div class="mcal-dow">Fri</div><div class="mcal-dow">Sat</div><div class="mcal-dow">Sun</div>
+        <div class="mday today"><span class="dn2">Aug 31</span><div class="mev">Session · 3 moves</div></div>
+        <div class="mday"><span class="dn2">1</span><div class="mev">Quora ×2 if not today</div></div>
+        <div class="mday"><span class="dn2">2</span></div>
+        <div class="mday"><span class="dn2">3</span><div class="mev">Publish: glaze cracking</div><div class="mev auto">Auto-share · check-in 2pm</div></div>
+        <div class="mday"><span class="dn2">4</span><div class="mev auto">Crawl re-check · interlinks</div></div>
+        <div class="mday"><span class="dn2">5</span></div>
+        <div class="mday"><span class="dn2">6</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">7</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">8</span><div class="mev">Draft: kiln elements</div></div>
+        <div class="mday"><span class="dn2">9</span><div class="mev">Answer ClayCraft crazing</div></div>
+        <div class="mday"><span class="dn2">10</span><div class="mev">Publish: wk 6</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">11</span><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">12</span></div>
+        <div class="mday"><span class="dn2">13</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">14</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">15</span><div class="mev">Interlink sweep</div></div>
+        <div class="mday"><span class="dn2">16</span></div>
+        <div class="mday"><span class="dn2">17</span><div class="mev">Publish: wk 7</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">18</span><div class="mev">PR pitch</div><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">19</span></div>
+        <div class="mday"><span class="dn2">20</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">21</span><div class="mev">Session</div></div>
+        <div class="mday"><span class="dn2">22</span></div>
+        <div class="mday"><span class="dn2">23</span><div class="mev">Draft: tool-kit page</div></div>
+        <div class="mday"><span class="dn2">24</span><div class="mev">Publish: wk 8</div><div class="mev auto">Auto-share · check-in</div></div>
+        <div class="mday"><span class="dn2">25</span><div class="mev auto">Crawl re-check</div></div>
+        <div class="mday"><span class="dn2">26</span></div>
+        <div class="mday"><span class="dn2">27</span><div class="mev auto">GSC sync</div></div>
+        <div class="mday"><span class="dn2">28</span><div class="mev">Session</div><div class="mev milestone">Milestone: 10 verified pages</div></div>
+        <div class="mday"><span class="dn2">29</span></div>
+        <div class="mday"><span class="dn2">30</span></div>
+        <div class="mday out"><span class="dn2">Oct 1</span><div class="mev">Publish: wk 9</div></div><div class="mday out"><span class="dn2">2</span></div><div class="mday out"><span class="dn2">3</span></div><div class="mday out"><span class="dn2">4</span></div>
+      </div>
+      <div class="mcal-agenda">
+        <div class="ar"><span class="ad">Mon 31</span><span>Session · 3 moves</span><span class="st draft"><i></i>Today</span></div>
+        <div class="ar"><span class="ad">Thu 3</span><span>Publish glaze article + auto-share</span><span class="st sched"><i></i>9am</span></div>
+        <div class="ar"><span class="ad">Fri 4</span><span>Crawl re-checks 3 interlinks</span><span class="ev reported">Auto</span></div>
+        <div class="ar"><span class="ad">Wed 9</span><span>Answer ClayCraft’s crazing post</span><span class="st draft"><i></i>Planned</span></div>
+        <div class="ar"><span class="ad">Thu 10</span><span>Week 6 publish</span><span class="st sched"><i></i>Set</span></div>
+        <div class="ar"><span class="ad">Mon 28</span><span>Milestone: 10 verified pages</span><span class="st pub"><i></i>7 of 10</span></div>
+      </div>
+      <div class="cal-read"><b>Read:</b> four publish Thursdays stand between you and the milestone — 10 verified pages, currently 7 with 2 pending proof. Your part of the month is ten solid marks; everything dashed happens whether you show up or not.</div>
+    </section>
+  </div>
+  <nav class="mnav"><button class="here"><b>◉</b>Home</button><button><b>✎</b>Create</button><button><b>↗</b>Distribute</button><button><b>▦</b>Schedule</button><button><b>△</b>Analytics</button></nav>
+</div>
+</div>
+
+<script>
+const vps=document.querySelectorAll('.vp button');
+vps.forEach(v=>v.addEventListener('click',()=>{
+  vps.forEach(x=>x.classList.remove('on'));v.classList.add('on');
+  document.getElementById('stage').classList.toggle('mobile',v.dataset.v==='mobile');
+}));
+document.querySelectorAll('[data-coach]').forEach(c=>{
+  const moves=[...c.querySelectorAll('.coach-move')];
+  const prog=[...c.querySelectorAll('.prog i')];
+  const qrows=[...c.querySelectorAll('.qrow[data-q]')];
+  let i=0;
+  const render=()=>{
+    moves.forEach((m,x)=>m.classList.toggle('on',x===i));
+    prog.forEach((p,x)=>{p.className=x<i?'done':(x===i?'now':'')});
+    qrows.forEach((r,x)=>{r.classList.toggle('done',x<i);r.classList.toggle('now',x===i);});
+  };
+  c.querySelectorAll('[data-adv]').forEach(b=>b.addEventListener('click',()=>{if(i<moves.length-1){i++;render();}}));
+  c.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>{i=0;render();}));
+});
+
+/* jumps → analytics box */
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>{
+  const el=document.getElementById('anbox');el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.style.boxShadow='0 0 0 3px #C9E23F';setTimeout(()=>el.style.boxShadow='',1400);
+}));
+</script>
+</body>
+</html>
