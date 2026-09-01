@@ -1,6 +1,7 @@
 import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
 import type { CalendarEvent, CalendarSummary, EvidenceKind } from "./contracts";
 import type { ApprovedCalendarDraft } from "./calendar-scheduling";
+import { buildDistributionOpportunityAction, distributionOpportunityFreshness, type DistributionOpportunityAction, type DistributionPlatform } from "./distribution-actions";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -252,10 +253,13 @@ export type DistributionRow = {
   id: string;
   title: string;
   detail: string;
+  kind: "opportunity" | "interlink";
   owner: "you" | "rebound" | "evidence";
   href: string;
   moveLabel: string;
   evidenceKind: EvidenceKind;
+  action: DistributionOpportunityAction | null;
+  freshness: { stale: boolean; label: string } | null;
 };
 
 export function buildDistributionView(input: { opportunities: unknown[]; interlinks: unknown[] }) {
@@ -263,9 +267,12 @@ export function buildDistributionView(input: { opportunities: unknown[]; interli
     const row = record(raw);
     const title = text(row.title);
     const url = text(row.url);
-    if (!title || !url) return [];
-    const platform = text(row.platform) || "Community";
-    return [{ id: `opportunity-${index}`, title, detail: text(row.snippet) || text(row.topic) || "Matched distribution opportunity", owner: "you", href: url, moveLabel: `Open ${platform}`, evidenceKind: "reported" }];
+    if (!title) return [];
+    const detail = text(row.snippet) || text(row.topic) || "Matched distribution opportunity";
+    const action = buildDistributionOpportunityAction({ platform: row.platform, title: row.title, context: typeof row.snippet === "string" && row.snippet.trim() ? row.snippet : row.topic, url: row.url, checkedAt: row.checkedAt });
+    const freshness = distributionOpportunityFreshness(typeof row.checkedAt === "string" ? row.checkedAt : null);
+    const moveLabel = !action ? "Unavailable" : freshness.stale ? "Reverify in Distribution" : `Copy context & open ${action.platform}`;
+    return [{ id: `opportunity-${index}`, title, detail, kind: "opportunity", owner: "you", href: action?.url ?? url, moveLabel, evidenceKind: "reported", action, freshness }];
   });
   const interlinkRows = input.interlinks.flatMap((raw, index): DistributionRow[] => {
     const row = record(raw);
@@ -276,22 +283,30 @@ export function buildDistributionView(input: { opportunities: unknown[]; interli
       id: text(row.id) || `interlink-${index}`,
       title: `${source} → ${target}`,
       detail: verified ? "Crawler found the saved internal link." : "Internal-link evidence is not verified yet.",
+      kind: "interlink",
       owner: verified ? "evidence" : "you",
       href: "/internal-links",
       moveLabel: verified ? "View evidence" : "Open interlinks",
       evidenceKind: verified ? "verified" : "reported",
+      action: null,
+      freshness: null,
     }];
   });
   const rows = [...opportunityRows, ...interlinkRows];
-  const firstMove = rows.find((row) => row.owner === "you");
+  const firstMove = opportunityRows.find((row) => row.action && !row.freshness?.stale) ?? interlinkRows.find((row) => row.owner === "you");
+  const platformCounts = opportunityRows.reduce((counts, row) => {
+    if (row.action) counts[row.action.platform] += 1;
+    return counts;
+  }, { Quora: 0, Reddit: 0 } as Record<DistributionPlatform, number>);
   return {
     rows,
-    needsYou: firstMove ? { title: firstMove.title, detail: firstMove.detail, href: firstMove.href, moveLabel: firstMove.moveLabel } : null,
+    platformCounts,
+    needsYou: firstMove ? { title: firstMove.title, detail: firstMove.detail, href: firstMove.kind === "opportunity" ? `#distribution-${firstMove.id}` : firstMove.href, moveLabel: firstMove.moveLabel } : null,
     stats: {
-      ready: opportunityRows.length,
-      needsUser: rows.filter((row) => row.owner === "you").length,
+      ready: opportunityRows.filter((row) => row.action && !row.freshness?.stale).length,
+      needsUser: opportunityRows.filter((row) => row.action && !row.freshness?.stale).length + interlinkRows.filter((row) => row.owner === "you").length,
       verified: rows.filter((row) => row.evidenceKind === "verified").length,
-      stuck: interlinkRows.filter((row) => row.evidenceKind !== "verified").length,
+      stuck: interlinkRows.filter((row) => row.evidenceKind !== "verified").length + opportunityRows.filter((row) => !row.action || row.freshness?.stale).length,
     },
   };
 }
