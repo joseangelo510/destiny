@@ -1978,3 +1978,230 @@ Rollback: on any post-deployment failure, one restore to the recorded v1.0 ident
 Stop conditions: any path outside the two allowed files; inventory would need to change; TDD order not evidenced; any guard failure on exact head SHA; cto-approved missing or not applied by joseangelo510; main moves before dispatch; any remaining bracket; any 5xx or curl error; machine count ≠ 1; certificate not ready; stamp mismatch; rollback verifier budget exhausted; any second redeploy failure; ambiguity.
 
 Claim boundary: rebound-seo-v1.1.0 live on production with the evidence above and both merge SHAs + guard URLs reported. Not a new release; no tag, product, inventory, or D10-series change.
+
+## D10.4 — Release Rebound SEO v1.1.1 and authorize post-release saved-site read-only QA
+
+Date: 2026-09-01
+
+Authority: Fable 5 High (deciding). Executor: Codex. Owner action:
+`joseangelo510` applies `cto-approved` to both protected HIGH PRs.
+
+Decision source:
+<https://claude.ai/chat/fe8397c7-3efc-4a74-9c80-3b33bf678a28>
+
+Classification: HIGH. PR #81 remains a merged MEDIUM product repair, but
+repinning the production wrapper is a runtime-configuration and production
+release change. D10.3 is closed and authorized only the v1.1.0 recovery; it is
+not reusable for this release.
+
+Status: APPROVED subject to every condition below. Any deviation voids this
+approval. No implementation commit, implementation branch push, release tag,
+wrapper edit, or production action is authorized until the governance-only PR
+containing this unified D10.4 decision merges with `cto-approved` applied by
+`joseangelo510` and every required guard green.
+
+### Decision basis and immutable release identity
+
+Release the already-merged Rebound SEO UX and data-consistency repairs from
+protected main artifact:
+
+- annotated immutable tag: `rebound-seo-v1.1.1`;
+- commit: `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`;
+- tree: `42daea51c48b0eeef97bc34fe91c6660f8a6d5a1`;
+- production site: `https://app.reboundseo.com`.
+
+The release tag must be new, annotated, immutable, and never moved or reused.
+Before any implementation PR is approved,
+`git rev-parse rebound-seo-v1.1.1^{commit}` must resolve exactly to the commit
+above and `git rev-parse rebound-seo-v1.1.1^{tree}` must resolve exactly to the
+tree above. A pre-existing tag, a different object type, or either mismatch is
+a hard stop. Direct deployment of untagged main remains forbidden.
+
+The accepted protected evidence for PR #81 is:
+
+- harness:
+  <https://github.com/joseangelo510/destiny/actions/runs/33561233403>;
+- staging:
+  <https://github.com/joseangelo510/destiny/actions/runs/33561939304>;
+- checklist:
+  <https://github.com/joseangelo510/destiny/actions/runs/33561939264>;
+- policy:
+  <https://github.com/joseangelo510/destiny/actions/runs/33561939329>.
+
+### Strict authorized order
+
+1. Open a governance-only protected HIGH PR that appends this D10.4 block to
+   `destiny-product/DEPLOY_LOG.md` and changes no other file.
+2. `joseangelo510` applies `cto-approved`; all guards pass on the exact PR head;
+   then merge the governance PR through branch protection.
+3. Create annotated tag `rebound-seo-v1.1.1` at exactly
+   `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`, push it once, and verify both
+   commit and tree identity.
+4. Revalidate the read-only v1.1.0 rollback snapshot recorded below. If live
+   identity, machine count/state, machine ID, or digest differs, stop; the
+   recorded capture is stale and no implementation PR may open.
+5. Open one protected HIGH implementation PR whose complete changed-file list
+   is exactly these two files, no more and no fewer:
+   - `.github/workflows/rebound-production-deploy.yml`;
+   - `destiny-product/qa/rules/rebound-production-wrapper.test.ts`.
+6. `joseangelo510` applies `cto-approved`; all protected guards pass on the
+   exact implementation head; then merge through branch protection. Do not
+   override a red guard or rerun a flake without recording its root cause.
+7. Record the implementation merge SHA and prove `origin/main` still equals
+   it immediately before dispatch. If main moved after the merge, stop and
+   reassess.
+8. Dispatch exactly one production `deploy` action for immutable tag
+   `rebound-seo-v1.1.1` from that unchanged main.
+9. Complete every live receipt below. Only then is D10.4 closed and only then
+   may the authorized saved-site QA begin.
+
+The steps are serial. They may not be reordered or parallelized across their
+governance boundaries.
+
+### Closed seven-field production-wrapper pin set
+
+The production wrapper identity block has exactly seven authorized changes.
+No other field, variable, workflow input, secret reference, Fly setting,
+deployment parameter, or runtime value may change. All other values remain
+unchanged, byte for byte where practicable.
+
+1. `RELEASE_SHA` changes from
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213` to
+   `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`.
+2. `RELEASE_TAG` changes from `rebound-seo-v1.1.0` to
+   `rebound-seo-v1.1.1`.
+3. `PRODUCTION_IMAGE_TAG` changes from `rebound-seo-v1.1.0-prod` to exactly
+   `rebound-seo-v1.1.1-prod`. The new registry tag must not exist before the
+   release build and must never be overwritten, moved, or reused.
+4. `PRIOR_MACHINE_ID` changes from the v1.0.0 rollback value to exactly the
+   read-only captured current v1.1.0 machine ID `860714be531938`.
+5. `PRIOR_IMAGE_DIGEST` changes from the v1.0.0 rollback value to exactly the
+   read-only captured current v1.1.0 child image digest
+   `sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512`.
+6. `PRIOR_RELEASE_SHA` changes to exactly
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`.
+7. `PRIOR_RELEASE_TAG` changes to exactly `rebound-seo-v1.1.0`.
+
+Within `.github/workflows/rebound-production-deploy.yml`, only those seven
+identity values may change. Within the targeted test, changes may only assert
+the seven authorized values and the closed scope. Any third file or any
+incidental edit outside this scope invalidates the implementation PR.
+
+### Recorded v1.1.0 rollback snapshot and cross-checks
+
+Read-only capture time: `2026-09-01T22:27:25Z`.
+
+- Fly app: `destiny-production`;
+- machine count/state: exactly one machine, `started`;
+- machine ID: `860714be531938`;
+- live child image digest:
+  `sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512`;
+- live image revision:
+  `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`;
+- live image version: `rebound-seo-v1.1.0`;
+- public build stamps: SHA
+  `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`, tag
+  `rebound-seo-v1.1.0`, environment `production`, site
+  `https://app.reboundseo.com`.
+
+The live machine snapshot was captured with `flyctl machines list --json` and
+cross-checked against immutable evidence artifact `9801465031` from successful
+production run
+<https://github.com/joseangelo510/destiny/actions/runs/33510293696>.
+That artifact's `machines-after.json` records the same single started machine,
+machine ID, child digest, release SHA, and release tag. Its
+`candidate-child-digest.txt` is byte-identical to the digest above. The
+separate manifest-list digest
+`sha256:b5a8a103e87163955ae4f2dfeaa2d70104db247c744a1921f6de8d4aa9fdd7c6`
+is evidence only and is not the value authorized for `PRIOR_IMAGE_DIGEST`.
+
+Cross-checks are mandatory immediately before the implementation PR opens:
+
+1. live production still has exactly one started machine with the recorded ID;
+2. its child digest still equals the recorded `PRIOR_IMAGE_DIGEST`;
+3. the public stamps still report the recorded v1.1.0 SHA, tag, production
+   environment, and site URL;
+4. the values committed in the implementation PR are byte-identical to this
+   recorded snapshot; and
+5. `rebound-seo-v1.1.1-prod` does not already exist in the registry.
+
+Any mismatch makes the capture stale and is a hard stop. No token, credential,
+configuration secret, or secret value was read or recorded.
+
+### Deployment success criteria and completion receipts
+
+All of the following are required to close D10.4:
+
+1. governance PR URL, exact head guard URLs, and governance merge SHA;
+2. annotated tag object plus resolved commit
+   `ed8c29aff96f8b4a2644b3806077ceb6863fd72b` and resolved tree
+   `42daea51c48b0eeef97bc34fe91c6660f8a6d5a1`;
+3. implementation PR URL, final exact two-file diff, exact head guard URLs, and
+   implementation merge SHA;
+4. the single production dispatch run URL and successful conclusion;
+5. live build stamps showing release SHA
+   `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`, release tag
+   `rebound-seo-v1.1.1`, environment `production`, and site
+   `https://app.reboundseo.com`;
+6. full committed route sweep: exactly 87 of 87 materialized routes attempted,
+   zero remaining bracket segments, zero curl errors, and zero 5xx responses;
+7. exactly one healthy Fly machine, with post-deploy machine ID and image
+   digest recorded;
+8. production certificate ready;
+9. unauthenticated `POST /api/progress/report` returns exactly `401`;
+10. explicit confirmation that no email was emitted; and
+11. the pre-deploy v1.1.0 rollback snapshot and cross-check evidence above.
+
+Missing evidence means the release is not complete.
+
+### Rollback
+
+On any post-deploy failure, dispatch rollback exactly once to the verified
+v1.1.0 identity recorded above: release SHA
+`d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`, tag
+`rebound-seo-v1.1.0`, machine `860714be531938`, child image digest
+`sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512`,
+and site `https://app.reboundseo.com`.
+
+Poll every 15 seconds for at most 20 polls, five minutes total. Success requires
+exactly one healthy machine and public stamps restored to the recorded v1.1.0
+SHA and tag. One rollback attempt is the limit. If it fails or the polling
+budget expires, freeze all dispatches and stop for a new Jose decision. No
+second rollback, second deploy, or improvised recovery is authorized.
+
+### Stop conditions and forbidden scope
+
+Stop immediately, with no partial continuation, if any of the following
+occurs: tag commit/tree mismatch; any guard red, skipped, absent, or attached
+to another SHA; `cto-approved` missing or applied by anyone other than
+`joseangelo510`; any implementation path or edit outside the exact two-file
+scope; main movement before dispatch; stale rollback capture; pre-existing
+`rebound-seo-v1.1.1-prod`; route count other than 87; any unresolved bracket,
+curl error, or 5xx; machine count other than one healthy; certificate not
+ready; unauthenticated progress-report POST other than 401; any email; any
+digest, build-stamp, scope, identity, or state ambiguity.
+
+Forbidden under D10.4: schema or migration changes; Auth, RLS, or session
+changes; dependency changes; secret reads or writes; runtime configuration
+beyond the seven fields above; provider credentials; DNS or certificate
+changes; CMS or user-data writes; existing-tool behavior changes; report or
+email sends; release-tag mutation; protection bypass; and repair of the known
+ClearCheck orphaned Calendar/CMS row. That orphan remains a separate
+production-data decision.
+
+### Post-release saved-site QA authorization and claim boundary
+
+Only after every deployment receipt is complete, Codex may perform
+authenticated, read-only saved-site QA for `joseangelostudios.com` and
+`clearcheck.app`, including reading their saved CMS connection state, saved
+keywords, and the Home, Content, Calendar, Distribution, and Progress journeys.
+
+Not authorized by D10.4: creating or updating a CMS draft, mutating any keyword,
+sending an outbound report or email, or repairing any ClearCheck data. If a QA
+step would mutate state, stop that step. Read-only findings may support a new
+separately classified repair decision, but do not expand this release.
+
+Claim boundary: D10.4 may be closed only as `rebound-seo-v1.1.1` live on
+production with all required receipts and the two named saved sites tested
+read-only. It does not prove CMS write delivery, keyword-write behavior,
+outbound delivery, or ClearCheck data repair.
