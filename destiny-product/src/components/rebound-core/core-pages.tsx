@@ -10,6 +10,7 @@ import { EvidenceChip, MoveChip, NeedsYouBar, Panel, PanelHeader, StateChip, Sta
 import { ReboundCoreShell } from "./rebound-core-shell";
 import { DraftApprovalActions } from "./draft-approval-actions";
 import { DistributionOpportunityActions } from "./distribution-opportunity-actions";
+import { ProgressReportActions } from "./progress-report-actions";
 import styles from "./core-pages.module.css";
 
 function scopedHref(href: string, websiteId: string) {
@@ -22,8 +23,8 @@ function Action({ href, label, websiteId, hot = false }: { href: string; label: 
   return <MoveChip href={resolved} label={label} tone={hot ? "hot" : "default"} />;
 }
 
-function Shell({ active, calendarActions = false, children, distributionActions = false, draftActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
-  return <ReboundCoreShell active={active} calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
+function Shell({ active, calendarActions = false, children, distributionActions = false, draftActions = false, progressActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; progressActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
+  return <ReboundCoreShell active={active} calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
 }
 
 function EmptyPage({ active, actionHref, actionLabel, message, view }: { active: string; actionHref: string; actionLabel: string; message: string | null; view: ReboundCoreWorkspace }) {
@@ -103,7 +104,7 @@ export function ProgressDashboard({ view }: { view: ReboundProgressView }) {
   if (view.progress.state !== "ready" || !view.progress.data) return <EmptyPage active="/app/progress" actionHref="/this-week" actionLabel="Open this week" message={view.progress.message} view={view} />;
   const data = view.progress.data;
   const ownerGroups = [{ label: "You", subtitle: "your clear next moves", items: data.owners.you }, { label: "Rebound", subtitle: "saved work in motion", items: data.owners.rebound }, { label: "Waiting on Google", subtitle: "nothing to report as verified yet", items: data.owners.google }];
-  return <Shell active="/app/progress" view={view}><div className={styles.page}>
+  return <Shell active="/app/progress" progressActions view={view}><div className={styles.page}>
     <NeedsYouBar detail={data.needsYou?.detail ?? "There is no saved move requiring your input."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? "Nothing needs you right now"} />
     <StatusStrip items={[
       { label: "DONE", value: String(data.stats.done), detail: "completed saved moves" },
@@ -111,6 +112,7 @@ export function ProgressDashboard({ view }: { view: ReboundProgressView }) {
       { label: "IN MOTION", value: String(data.stats.inMotion), detail: "Rebound or Google" },
       { label: "STUCK", value: String(data.stats.stuck), detail: "named blockers" },
     ]} />
+    <ProgressReportActions recipient={view.reportRecipient} websiteId={view.websiteId} />
     <section><div className={styles.sectionHeading}><h2>What’s been done</h2><span>verified and reported are intentionally different</span></div><Panel><div className={styles.doneList}>{data.done.map((item) => <article key={item.id}><time>{item.at ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(item.at)) : "Saved"}</time><div><strong>{item.title}</strong><small>{item.detail}</small></div><EvidenceChip evidence={{ kind: item.evidenceKind, source: item.evidenceKind === "verified" ? "quest" : "quest", observedAt: item.at, detail: item.evidenceKind === "verified" ? "Verified" : "Reported" }} /><Action href={item.href} label={item.moveLabel} websiteId={view.websiteId} /></article>)}</div></Panel></section>
     <section><div className={styles.sectionHeading}><h2>What needs to be done</h2><span>split by who owns it</span></div><div className={styles.ownerGrid}>{ownerGroups.map((group) => <Panel key={group.label}><header className={styles.ownerHeader}><h3>{group.label}</h3><span>{group.items.length}</span><small>{group.subtitle}</small></header><div className={styles.ownerRows}>{group.items.length ? group.items.map((item) => <article key={item.id}><div><strong>{item.title}</strong><small>{item.detail}</small></div><EvidenceChip evidence={{ kind: item.evidenceKind, source: "schedule", observedAt: item.at, detail: group.label }} /><Action href={item.href} hot={group.label === "You"} label={item.moveLabel} websiteId={view.websiteId} /></article>) : <p>Nothing in this lane.</p>}</div></Panel>)}</div></section>
     <section><div className={styles.sectionHeading}><h2>Where we are</h2><span>honest counts from saved work</span></div><div className={styles.milestones}>{data.milestones.map((item) => <Panel key={item.label}><strong>{item.value}<small> / {item.total}</small></strong><span>{item.label}</span><i><b style={{ width: `${item.total ? Math.min(100, Math.round(item.value / item.total * 100)) : 0}%` }} /></i></Panel>)}</div></section>
