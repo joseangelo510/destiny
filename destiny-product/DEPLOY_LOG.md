@@ -1875,3 +1875,57 @@ Site URL change; secret value read or write; real email send; DNS or
 certificate change; existing-tool change; any staging-project mutation; and
 function deletion on rollback. Anything outside this sequence requires a new
 recorded Fable 5 High decision.
+
+## Amendment 1 to D10.2-REBOUND-REDESIGN-V1.1-RELEASE
+
+**Status:** Amendment to existing decision
+`D10.2-REBOUND-REDESIGN-V1.1-RELEASE`. This is not a new decision. All terms
+of the original decision remain in force except the single verification
+predicate replaced below.
+
+### Reason for amendment
+
+The original decision, as repinned by Amendment 2, requires post-merge
+`origin/main` to equal the release artifact SHA
+`d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`. That check is
+unsatisfiable: the governance-only PR appends to
+`destiny-product/DEPLOY_LOG.md`, so merging it necessarily advances
+`origin/main` past `d75a8b9`. This amendment replaces the impossible
+equality check with a non-recursive predicate that preserves the original
+intent: the release artifact remains byte-identical to what was verified, and
+the only change on `main` is this decision record.
+
+### Replaced verification predicate
+
+The check "post-merge `origin/main` equals
+`d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`" is replaced by the following,
+all of which must hold:
+
+1. **Ancestry:** post-merge `origin/main` is a descendant of
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`.
+2. **Exact changed-path set:** the complete set of paths that differ between
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213` and post-merge `origin/main`
+   is exactly `destiny-product/DEPLOY_LOG.md`. No application, configuration,
+   migration, or workflow path may differ.
+3. **Tag integrity:** the annotated tag `rebound-seo-v1.1.0` must point
+   exactly to `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`. The tag may not be
+   moved, re-created, or re-pointed by this amendment or the governance
+   merge.
+4. **Artifact integrity:** the release artifact tree at
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213` remains exactly
+   `cef9cda96ecb69869b2778ab931392448267fdf6`; all subsequent release steps
+   continue to build and verify against that SHA and tag, not against
+   post-merge `origin/main`.
+
+### Amended stop conditions
+
+Stop immediately, before any further step, if the ancestry check fails; the
+changed-path set differs in any way from exactly
+`destiny-product/DEPLOY_LOG.md`; tag `rebound-seo-v1.1.0` exists at any object
+other than `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`; the release artifact
+tree is altered; or any stop condition defined in the original decision
+occurs.
+
+The strict authorized order and every exclusion in the original decision are
+unchanged. All other provisions of
+`D10.2-REBOUND-REDESIGN-V1.1-RELEASE` remain in full effect.
