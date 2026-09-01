@@ -209,6 +209,9 @@
 .move { padding: 3px 10px; border: 1px solid var(--mint-deep); background: var(--mint); color: var(--forest); font-size: 11px; font-weight: 700; }
 .move_hot { border-color: #b5cc30; background: var(--lime); color: var(--lime-ink); }
 .move_quiet { border-color: var(--sage-line); background: transparent; color: var(--ink-soft); }
+.stage a.move { color: var(--forest); }
+.stage a.move_hot { color: var(--lime-ink); }
+.stage a.move_quiet { color: var(--ink-soft); }
 .primaryAction { display: inline-flex; padding: 10px 18px; border-radius: 11px; background: var(--lime); box-shadow: 0 3px 0 #8fa32a; color: var(--lime-ink) !important; font-size: 13.5px; font-weight: 700; }
 
 .needsYou { display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-radius: 14px; background: var(--forest); color: #eff3ec; }
@@ -217,7 +220,7 @@
 .needsYou strong, .needsYou small { display: block; }
 .needsYou small { color: #cfe0cc; font-size: 12px; }
 .needsYouCalm { background: var(--mint); color: var(--forest); }
-.needsYouCalm small { color: var(--ink-soft); }
+.needsYou.needsYouCalm > span, .needsYouCalm small { color: var(--ink-soft); }
 .statusStrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .statusStrip > div { padding: 12px 14px; border: 1px solid var(--sage-line); border-radius: 12px; background: var(--card); }
 .statusStrip span, .statusStrip strong, .statusStrip small { display: block; }
