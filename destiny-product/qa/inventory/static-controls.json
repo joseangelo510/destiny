@@ -5769,6 +5769,213 @@
     "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
   },
   {
+    "control_id": "src/components/rebound-core/home-calendar.tsx:8:Link:1",
+    "file": "src/components/rebound-core/home-calendar.tsx",
+    "line": 8,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "export function HomeCalendar({ result }: { result: PanelResult<CalendarSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Open editorial calendar\" href=\"/content#publishing-plan\" subtitle=\"solid = your move · dashed = automatic · lime = verified\" title=\"The month\" />{result.state !== \"ready\" || !result.data ? <div className={styles.calendarEmpty}><p>{result.message}</p><Link href=\"/content#publishing-plan\">Open the existing editorial calendar</Link></div> : <><MonthCalendar "
+  },
+  {
+    "control_id": "src/components/rebound-core/home-competitors.tsx:12:Link:1",
+    "file": "src/components/rebound-core/home-competitors.tsx",
+    "line": 12,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "export function HomeCompetitors({ result }: { result: PanelResult<CompetitorSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"saved sites and evidence coverage\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><tr><th>Site</th><th>Relationship</th><"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-competitors.tsx:12:Link:2",
+    "file": "src/components/rebound-core/home-competitors.tsx",
+    "line": 12,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "export function HomeCompetitors({ result }: { result: PanelResult<CompetitorSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"saved sites and evidence coverage\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><tr><th>Site</th><th>Relationship</th><"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-dashboard.tsx:18:Link:1",
+    "file": "src/components/rebound-core/home-dashboard.tsx",
+    "line": 18,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead of becoming estimates.</p><Link href=\"/i"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-keywords.tsx:12:Link:1",
+    "file": "src/components/rebound-core/home-keywords.tsx",
+    "line": 12,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "export function HomeKeywords({ result }: { result: PanelResult<KeywordSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"All keywords\" href=\"/rank-tracker\" subtitle={result.state === \"ready\" && result.data ? `${result.data.tracked} active tracked keywords` : \"Current keyword strategy\"} title=\"Keywords\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/keywords\">Open keyword strategy</Link></div> : <><div clas"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-performance.tsx:37:Link:1",
+    "file": "src/components/rebound-core/home-performance.tsx",
+    "line": 37,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "function SearchBox({ result }: { result: PanelResult<SearchConsoleSummary> }) { if (result.state !== \"ready\" || !result.data) return <div className={`${styles.sourceBox} ${styles.sourceBoxOff}`}><header><b>Search Console</b><EvidenceChip fallback={result.state === \"not_connected\" ? \"Not connected\" : \"Waiting for data\"} /></header><div className={styles.sourceEmpty}><p>{result.message}</p><Link href=\"/integrations\">Open Connections</Link></div></div>; const data = result.data;"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-performance.tsx:45:Link:1",
+    "file": "src/components/rebound-core/home-performance.tsx",
+    "line": 45,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "if (result.state === \"ready\" && result.data) return <div className={styles.sourceBox}><header><b>Analytics</b><EvidenceChip evidence={result.evidence[0]} /></header><div className={styles.analyticsReady}><strong>{value(result.data.engagedVisits)}</strong><span>Organic engaged visits</span><small>{delta(result.data.engagedVisitsChange)} · {syncedLabel(result.data.syncedAt)}</small></div></div>; return <div className={`${styles.sourceBox} ${styles.sourceBoxOff}`}><header><b>Analytics</b><EvidenceC"
+  },
+  {
+    "control_id": "src/components/rebound-core/preview-strip.tsx:9:button:1",
+    "file": "src/components/rebound-core/preview-strip.tsx",
+    "line": 9,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> This new Home uses current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/preview-strip.tsx:9:onClick:2",
+    "file": "src/components/rebound-core/preview-strip.tsx",
+    "line": 9,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!visible) return null; return <div className={styles.previewStrip} role=\"status\"><span><strong>Preview — read-only.</strong> This new Home uses current workspace data while your existing Rebound SEO tools remain unchanged.</span><button aria-label=\"Dismiss preview notice\" onClick={() => setVisible(false)} type=\"button\">Dismiss</button></div>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/primitives.tsx:17:Link:1",
+    "file": "src/components/rebound-core/primitives.tsx",
+    "line": 17,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "export function MoveChip({ href, label, tone = \"default\" }: { href: string; label: string; tone?: \"hot\" | \"default\" | \"quiet\" }) { return <Link className={`${styles.move} ${styles[`move_${tone}`]}`} href={href}>{label}</Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/primitives.tsx:26:Link:1",
+    "file": "src/components/rebound-core/primitives.tsx",
+    "line": 26,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const id = `panel-${title.toLocaleLowerCase(\"en-US\").replace(/[^a-z0-9]+/g, \"-\")}`; return <header className={styles.panelHeader}><h2 id={id}>{title}</h2>{subtitle ? <span>{subtitle}</span> : null}{href ? <Link href={href}>{action}</Link> : null}</header>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/primitives.tsx:39:Link:1",
+    "file": "src/components/rebound-core/primitives.tsx",
+    "line": 39,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!move) return <div className={`${styles.sessionPill} ${styles.sessionPillCalm}`}><small>Today&apos;s session</small><strong>Nothing needs you right now</strong><span>Rebound SEO is watching for the next move.</span></div>; return <Link className={styles.sessionPill} href={move.href}><small>Today&apos;s session</small><strong>{move.title}</strong><span>Move 1 of {Math.min(3, count)} · open</span></Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:13:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 13,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (item.href !== \"/app/home\") return <span aria-disabled=\"true\" className={styles.futureLink}>{item.label}<small>Next</small></span>; return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:24:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 24,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:28:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 28,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<span className={styles.tier}>EVERY WEEK</span><nav aria-label=\"Every week\">{weekly.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav> <span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpp"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:29:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 29,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref(\"/account\", websiteId)}>Account</Link></div></div> </aside>"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:35:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 35,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => item.href === \"/app/home\" ? <Link aria-current=\"page\" href={siteScopedHref(item.href, websiteId)} key={item.href}><b>◉</b>{item.label}</Link> : <span aria-disabled=\"true\" key={item.href}><b>▪</b>{item.label}</span>)}</nav> </section>"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:22:button:1",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 22,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.coachHeader}><span>Today&apos;s session · {session.length} move{session.length === 1 ? \"\" : \"s\"}</span><div>{session.map((item, index) => <i className={index < current ? styles.done : index === current ? styles.now : \"\"} key={item.id} />)}</div></div> {finished ? <div className={styles.coachBody}><h2>Session preview complete.</h2><p>No data changed. Reopen any move from the ranked queue below.</p><button className={styles.skip} onClick={() => setCurrent(0)} type=\"button\">R"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:22:onClick:2",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 22,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.coachHeader}><span>Today&apos;s session · {session.length} move{session.length === 1 ? \"\" : \"s\"}</span><div>{session.map((item, index) => <i className={index < current ? styles.done : index === current ? styles.now : \"\"} key={item.id} />)}</div></div> {finished ? <div className={styles.coachBody}><h2>Session preview complete.</h2><p>No data changed. Reopen any move from the ranked queue below.</p><button className={styles.skip} onClick={() => setCurrent(0)} type=\"button\">R"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:22:Link:3",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 22,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.coachHeader}><span>Today&apos;s session · {session.length} move{session.length === 1 ? \"\" : \"s\"}</span><div>{session.map((item, index) => <i className={index < current ? styles.done : index === current ? styles.now : \"\"} key={item.id} />)}</div></div> {finished ? <div className={styles.coachBody}><h2>Session preview complete.</h2><p>No data changed. Reopen any move from the ranked queue below.</p><button className={styles.skip} onClick={() => setCurrent(0)} type=\"button\">R"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:22:button:4",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 22,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.coachHeader}><span>Today&apos;s session · {session.length} move{session.length === 1 ? \"\" : \"s\"}</span><div>{session.map((item, index) => <i className={index < current ? styles.done : index === current ? styles.now : \"\"} key={item.id} />)}</div></div> {finished ? <div className={styles.coachBody}><h2>Session preview complete.</h2><p>No data changed. Reopen any move from the ranked queue below.</p><button className={styles.skip} onClick={() => setCurrent(0)} type=\"button\">R"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:22:onClick:5",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 22,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<div className={styles.coachHeader}><span>Today&apos;s session · {session.length} move{session.length === 1 ? \"\" : \"s\"}</span><div>{session.map((item, index) => <i className={index < current ? styles.done : index === current ? styles.now : \"\"} key={item.id} />)}</div></div> {finished ? <div className={styles.coachBody}><h2>Session preview complete.</h2><p>No data changed. Reopen any move from the ranked queue below.</p><button className={styles.skip} onClick={() => setCurrent(0)} type=\"button\">R"
+  },
+  {
+    "control_id": "src/components/rebound-core/session-queue.tsx:26:Link:1",
+    "file": "src/components/rebound-core/session-queue.tsx",
+    "line": 26,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.queueHeading}><span>What needs you, in order</span><small>Ranked from current workspace tasks</small></div> {queue.items.map((item, index) => <div className={`${styles.queueRow} ${index < session.length ? styles.sessionRow : \"\"} ${index === current && !finished ? styles.currentRow : \"\"}`} data-queue-item={item.id} key={item.id}><span className={styles.priority}>{index + 1}</span><div><strong>{item.title}</strong><p><span>{item.why}</span><em>{item.state}</em></p></div><Lin"
+  },
+  {
     "control_id": "src/components/repurpose-workspace.tsx:133:input:1",
     "file": "src/components/repurpose-workspace.tsx",
     "line": 133,

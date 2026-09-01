@@ -271,6 +271,11 @@
   },
   {
     "kind": "page",
+    "route": "/app/home",
+    "file": "src/app/app/home/page.tsx"
+  },
+  {
+    "kind": "page",
     "route": "/audits",
     "file": "src/app/audits/page.tsx"
   },
