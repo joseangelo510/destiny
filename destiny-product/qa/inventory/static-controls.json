@@ -351,18 +351,18 @@
     "context": "if (preferenceError) return NextResponse.json({ error: preferenceError.message }, { status: 500 }); const { error: pauseError } = await supabase.from(\"tracked_keywords\").update({ status: \"paused\" }) .eq(\"website_id\", audit.website_id)"
   },
   {
-    "control_id": "src/app/api/keywords/decisions/route.ts:143:data-mutation:1",
+    "control_id": "src/app/api/keywords/decisions/route.ts:142:data-mutation:1",
     "file": "src/app/api/keywords/decisions/route.ts",
-    "line": 143,
+    "line": 142,
     "type": "data-mutation",
     "route": "/api/keywords/decisions",
     "side_effect_class": 2,
     "context": "if (trackerError) return NextResponse.json({ error: `Keyword decisions were saved, but rank tracking could not start: ${trackerError.message}` }, { status: 500 }); const { error: resumeError } = await supabase.from(\"tracked_keywords\").update({ status: \"pending\", next_check_at: new Date().toISOString(), last_error: null }) .eq(\"website_id\", audit.website_id)"
   },
   {
-    "control_id": "src/app/api/keywords/decisions/route.ts:151:data-mutation:1",
+    "control_id": "src/app/api/keywords/decisions/route.ts:150:data-mutation:1",
     "file": "src/app/api/keywords/decisions/route.ts",
-    "line": 151,
+    "line": 150,
     "type": "data-mutation",
     "route": "/api/keywords/decisions",
     "side_effect_class": 1,
@@ -648,27 +648,27 @@
     "context": "<p>For your security, Rebound SEO’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
-    "control_id": "src/app/content/page.tsx:129:data-mutation:1",
+    "control_id": "src/app/content/page.tsx:137:data-mutation:1",
     "file": "src/app/content/page.tsx",
-    "line": 129,
+    "line": 137,
     "type": "data-mutation",
     "route": "/content",
     "side_effect_class": 0,
     "context": "const { data: cmsTransferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/content/page.tsx:168:Link:1",
+    "control_id": "src/app/content/page.tsx:183:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 168,
+    "line": 183,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 3,
     "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{interviewArticleDraft ? \"Interview draft ready\" : repurposeArticleDraft ? \"Repurposed draft ready\" : \"Three outlines ready\"}</strong><small>{interviewArticleDraft ? \"Built from your exact interview answers\" : repurposeArticleDraft ? \"Loaded from your saved source\" : \"Built from your keyword strategy\"}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Gene"
   },
   {
-    "control_id": "src/app/content/page.tsx:211:button:1",
+    "control_id": "src/app/content/page.tsx:226:button:1",
     "file": "src/app/content/page.tsx",
-    "line": 211,
+    "line": 226,
     "type": "button",
     "route": "/content",
     "side_effect_class": 0,
@@ -1017,58 +1017,40 @@
     "context": "<details className=\"weekly-momentum-drawer\"> <summary><span><strong>Your momentum</strong><small>{weekly.currentStreak}-week streak · {done} of {actionableTasks.length} complete</small></span><b>View history</b></summary> <section className=\"weekly-momentum-grid\" aria-label=\"Weekly streak and completion history\">{["
   },
   {
-    "control_id": "src/components/account-settings.tsx:149:input:1",
+    "control_id": "src/components/account-settings.tsx:150:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 149,
+    "line": 150,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
-    "control_id": "src/components/account-settings.tsx:149:onChange:2",
+    "control_id": "src/components/account-settings.tsx:150:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 149,
+    "line": 150,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
-    "control_id": "src/components/account-settings.tsx:149:button:3",
+    "control_id": "src/components/account-settings.tsx:150:button:3",
     "file": "src/components/account-settings.tsx",
-    "line": 149,
+    "line": 150,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
   },
   {
-    "control_id": "src/components/account-settings.tsx:149:onClick:4",
+    "control_id": "src/components/account-settings.tsx:150:onClick:4",
     "file": "src/components/account-settings.tsx",
-    "line": 149,
+    "line": 150,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><dt>Login email</dt><dd>{loginEmail}</dd><p>This is the email connected to your authenticated Rebound SEO account.</p></div> <div><dt>Audit and contact email</dt><dd>{savedNotificationEmail || \"Not set\"}</dd><p>Welcome messages and audit-ready links for the current website go here. Each website can use a different address.</p><label className={styles.emailEditor}><span>Notification email</span><input aria-label=\"Audit and contact email\" autoComplete=\"email\" onChange={(event) => { setNotific"
-  },
-  {
-    "control_id": "src/components/account-settings.tsx:163:button:1",
-    "file": "src/components/account-settings.tsx",
-    "line": 163,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role=\"group\"> <button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} typ"
-  },
-  {
-    "control_id": "src/components/account-settings.tsx:163:onClick:2",
-    "file": "src/components/account-settings.tsx",
-    "line": 163,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role=\"group\"> <button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} typ"
   },
   {
     "control_id": "src/components/account-settings.tsx:164:button:1",
@@ -1077,7 +1059,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean"
+    "context": "<div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role=\"group\"> <button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} typ"
   },
   {
     "control_id": "src/components/account-settings.tsx:164:onClick:2",
@@ -1086,7 +1068,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean"
+    "context": "<div aria-label={`Ranking email frequency for ${website.normalizedDomain}`} className={styles.frequencyControl} role=\"group\"> <button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} typ"
   },
   {
     "control_id": "src/components/account-settings.tsx:165:button:1",
@@ -1095,7 +1077,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"off\")} type=\"button\"><span>Off</span></button> </div>"
+    "context": "<button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean"
   },
   {
     "control_id": "src/components/account-settings.tsx:165:onClick:2",
@@ -1104,111 +1086,129 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
+    "context": "<button aria-pressed={frequency === \"three_day\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"three_day\")} type=\"button\"><span>Every 3 days</span></button> <button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean"
+  },
+  {
+    "control_id": "src/components/account-settings.tsx:166:button:1",
+    "file": "src/components/account-settings.tsx",
+    "line": 166,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
     "context": "<button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"off\")} type=\"button\"><span>Off</span></button> </div>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:181:button:1",
+    "control_id": "src/components/account-settings.tsx:166:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 181,
+    "line": 166,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<button aria-pressed={frequency === \"weekly\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"weekly\")} type=\"button\"><span>Weekly</span><small>Recommended</small></button> <button aria-pressed={frequency === \"off\"} disabled={Boolean(savingDigestWebsiteId)} onClick={() => void saveRankingDigestFrequency(website.id, \"off\")} type=\"button\"><span>Off</span></button> </div>"
+  },
+  {
+    "control_id": "src/components/account-settings.tsx:182:button:1",
+    "file": "src/components/account-settings.tsx",
+    "line": 182,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <button className={styles.websiteDeleteButton} disabled={deletingWebsite} onClick={() => beginWebsiteDeletion(website)} type=\"button\">Delete website</button> </div>)}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:181:onClick:2",
+    "control_id": "src/components/account-settings.tsx:182:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 181,
+    "line": 182,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <button className={styles.websiteDeleteButton} disabled={deletingWebsite} onClick={() => beginWebsiteDeletion(website)} type=\"button\">Delete website</button> </div>)}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:187:input:1",
+    "control_id": "src/components/account-settings.tsx:188:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 187,
+    "line": 188,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Delete {pendingWebsite.normalizedDomain}?</strong><p>This permanently removes this website’s audits, keywords, three-month plans, tasks, rank tracking, drafts, reviews, and connections. This cannot be undone.</p></div> <label className={styles.confirmation}>Type <strong>{pendingWebsite.normalizedDomain}</strong> to confirm<input autoComplete=\"off\" autoFocus onChange={(event) => setWebsiteConfirmation(event.target.value)} placeholder={pendingWebsite.normalizedDomain} spellCheck={fals"
   },
   {
-    "control_id": "src/components/account-settings.tsx:187:onChange:2",
+    "control_id": "src/components/account-settings.tsx:188:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 187,
+    "line": 188,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>Delete {pendingWebsite.normalizedDomain}?</strong><p>This permanently removes this website’s audits, keywords, three-month plans, tasks, rank tracking, drafts, reviews, and connections. This cannot be undone.</p></div> <label className={styles.confirmation}>Type <strong>{pendingWebsite.normalizedDomain}</strong> to confirm<input autoComplete=\"off\" autoFocus onChange={(event) => setWebsiteConfirmation(event.target.value)} placeholder={pendingWebsite.normalizedDomain} spellCheck={fals"
   },
   {
-    "control_id": "src/components/account-settings.tsx:189:button:1",
+    "control_id": "src/components/account-settings.tsx:190:button:1",
     "file": "src/components/account-settings.tsx",
-    "line": 189,
+    "line": 190,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:189:onClick:2",
+    "control_id": "src/components/account-settings.tsx:190:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 189,
+    "line": 190,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:189:button:3",
+    "control_id": "src/components/account-settings.tsx:190:button:3",
     "file": "src/components/account-settings.tsx",
-    "line": 189,
+    "line": 190,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:189:onClick:4",
+    "control_id": "src/components/account-settings.tsx:190:onClick:4",
     "file": "src/components/account-settings.tsx",
-    "line": 189,
+    "line": 190,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{websiteError && <p aria-live=\"polite\" className={styles.error}>{websiteError}</p>} <div className={styles.websiteDeleteActions}><button className={styles.cancelButton} disabled={deletingWebsite} onClick={cancelWebsiteDeletion} type=\"button\">Keep website</button><button className={styles.deleteButton} disabled={!websiteMatches || deletingWebsite} onClick={deleteWebsite} type=\"button\">{deletingWebsite ? \"Deleting website…\" : \"Permanently delete website\"}</button></div> </div> : null}"
   },
   {
-    "control_id": "src/components/account-settings.tsx:196:input:1",
+    "control_id": "src/components/account-settings.tsx:197:input:1",
     "file": "src/components/account-settings.tsx",
-    "line": 196,
+    "line": 197,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "<label className={styles.confirmation}>Type <strong>{loginEmail}</strong> to confirm <input autoComplete=\"off\" onChange={(event) => setConfirmation(event.target.value)} placeholder={loginEmail} spellCheck={false} value={confirmation} /> </label>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:196:onChange:2",
+    "control_id": "src/components/account-settings.tsx:197:onChange:2",
     "file": "src/components/account-settings.tsx",
-    "line": 196,
+    "line": 197,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "<label className={styles.confirmation}>Type <strong>{loginEmail}</strong> to confirm <input autoComplete=\"off\" onChange={(event) => setConfirmation(event.target.value)} placeholder={loginEmail} spellCheck={false} value={confirmation} /> </label>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:199:button:1",
+    "control_id": "src/components/account-settings.tsx:200:button:1",
     "file": "src/components/account-settings.tsx",
-    "line": 199,
+    "line": 200,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <p aria-live=\"polite\" className={styles.error}>{error}</p>} <button className={styles.deleteButton} disabled={!matches || deleting} onClick={deleteAccount} type=\"button\">{deleting ? \"Deleting account…\" : \"Delete account\"}</button> </section>"
   },
   {
-    "control_id": "src/components/account-settings.tsx:199:onClick:2",
+    "control_id": "src/components/account-settings.tsx:200:onClick:2",
     "file": "src/components/account-settings.tsx",
-    "line": 199,
+    "line": 200,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
@@ -5895,22 +5895,31 @@
     "context": "function EditInContentStudioLink({ websiteId }: { websiteId: string }) { return <Link className={styles.approvalSecondary} href={siteScopedHref(\"/content#article-review-workspace\", websiteId)}>Edit in Content Studio</Link>; }"
   },
   {
-    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:button:1",
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:Link:1",
     "file": "src/components/rebound-core/draft-approval-actions.tsx",
     "line": 62,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <div className={styles.approvalActions} id=\"draft-actions\"> {approved ? <Link className={styles.approvalPrimary} href={siteScopedHref(\"/app/calendar\", websiteId)}>Schedule in Calendar</Link> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button>"
+  },
+  {
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:63:button:1",
+    "file": "src/components/rebound-core/draft-approval-actions.tsx",
+    "line": 63,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "return <div className={styles.approvalActions} id=\"draft-actions\"> <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
+    "context": "{approved ? <Link className={styles.approvalPrimary} href={siteScopedHref(\"/app/calendar\", websiteId)}>Schedule in Calendar</Link> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
   },
   {
-    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:onClick:2",
+    "control_id": "src/components/rebound-core/draft-approval-actions.tsx:63:onClick:2",
     "file": "src/components/rebound-core/draft-approval-actions.tsx",
-    "line": 62,
+    "line": 63,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "return <div className={styles.approvalActions} id=\"draft-actions\"> <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
+    "context": "{approved ? <Link className={styles.approvalPrimary} href={siteScopedHref(\"/app/calendar\", websiteId)}>Schedule in Calendar</Link> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
   },
   {
     "control_id": "src/components/rebound-core/home-calendar.tsx:8:Link:1",
