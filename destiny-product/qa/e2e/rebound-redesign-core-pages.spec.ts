@@ -3,7 +3,13 @@ import { resolve } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-type BrowserFixture = { mvp: { draftId: string; websiteId: string } };
+type BrowserFixture = {
+  mvp: {
+    draftId: string;
+    distributionOpportunity: { checkedAt: string; platform: "Quora" | "Reddit"; snippet: string; title: string; url: string };
+    websiteId: string;
+  };
+};
 const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath ? JSON.parse(readFileSync(fixturePath, "utf8")) as BrowserFixture : null;
 
@@ -29,7 +35,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
   for (const expected of [
     { route: "content", heading: "Content", landmark: "Content pipeline" },
     { route: "calendar", heading: "Calendar", landmark: "The month", preview: "Preview — calendar scheduling enabled." },
-    { route: "distribution", heading: "Distribution", landmark: "Waiting for saved data" },
+    { route: "distribution", heading: "Distribution", landmark: "Reach what you published", preview: "Preview — distribution actions enabled." },
     { route: "progress", heading: "Progress", landmark: "What needs to be done" },
   ]) {
     test(`${expected.route} renders real scoped evidence at the approved viewport`, async ({ page }, testInfo) => {
@@ -93,6 +99,46 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       focusKeyword: "small business seo consultant",
     });
     expect(writes[0]).not.toHaveProperty("draftId");
+  });
+
+  test("Distribution copies only saved context and opens only the exact saved live thread", async ({ page }, testInfo) => {
+    const activeFixture = requireFixture();
+    const mobile = testInfo.project.name === "mobile";
+    await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
+    await page.addInitScript(() => {
+      const state = { copied: "", opened: [] as Array<{ features?: string; target?: string; url?: string }> };
+      Object.defineProperty(window, "__distributionActionState", { configurable: true, value: state });
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (text: string) => { state.copied = text; } } });
+      window.open = ((url?: string | URL, target?: string, features?: string) => {
+        state.opened.push({ features, target, url: String(url) });
+        return null;
+      }) as typeof window.open;
+    });
+    const mutatingRequests: string[] = [];
+    page.on("request", (request) => {
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) mutatingRequests.push(`${request.method()} ${request.url()}`);
+    });
+
+    await page.goto(`/app/distribution?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
+    mutatingRequests.length = 0;
+    const row = page.locator('[data-distribution-kind="opportunity"]').first();
+    await expect(row).toContainText(activeFixture.mvp.distributionOpportunity.title);
+    await expect(row).toContainText("you move");
+    await expect(row).toContainText("opens www.quora.com");
+    await expect(row).not.toContainText(/answer drafted|answered|posted|approved|done/i);
+    await expect(page.locator("body")).not.toContainText(/Approve all we post|batch approve/i);
+
+    await row.getByRole("button", { name: "Copy saved context and open Quora" }).click();
+    await expect(row.getByRole("status")).toHaveText("Context copied.");
+    const browserState = await page.evaluate(() => (window as typeof window & { __distributionActionState: { copied: string; opened: Array<{ features?: string; target?: string; url?: string }> } }).__distributionActionState);
+    expect(browserState.copied).toBe([
+      activeFixture.mvp.distributionOpportunity.title,
+      activeFixture.mvp.distributionOpportunity.snippet,
+      activeFixture.mvp.distributionOpportunity.url,
+      `Checked ${activeFixture.mvp.distributionOpportunity.checkedAt}`,
+    ].join("\n"));
+    expect(browserState.opened).toEqual([{ features: "noopener,noreferrer", target: "_blank", url: activeFixture.mvp.distributionOpportunity.url }]);
+    expect(mutatingRequests).toEqual([]);
   });
 
   test("draft detail enables only the governed approval path", async ({ page }, testInfo) => {
