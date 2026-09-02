@@ -2554,3 +2554,109 @@ Complete final implementation file list:
 Claim boundary: D10.5 authorizes only the governed MEDIUM implementation slice
 above after its governance PR merges. It authorizes no implementation before
 that merge and no deployment under any circumstance.
+
+## DEPLOY_LOG DECISION BLOCK
+
+### D10.6: Production release of D10.5 remediation as rebound-seo-v1.1.2
+
+### 1. Decision identity and classification
+
+Decision ID: **D10.6**
+Classification: **HIGH** (production wrapper repin and Dockerfile identity substitution = runtime configuration; production deploy dispatch). Issued under HARNESS_POLICY GOV-1.
+Predecessors: D10.4 (with A1, A2) closed. D10.5 closed complete: governance PR #86 (4e8136eb6cd4571981aa66cf55c35536e32e69dc), implementation PR #87 (4f42e08f404b34700ea8b1d0d216b2624654150c, tree 050969d943cba03e8414d8305939347cbd2f0cf8, 19-file list in receipts), receipt PR #88 (1a97c2edae9253ddf18faffd7164582527ed873c), with RED run 33584861455, implementation harness 33584982846, and receipt-head guards 33585810930 / 33586403184 / 33586403241 / 33586403249 all green.
+
+**DECISION: APPROVED, subject to the strict conditions below. Any deviation voids this approval.**
+
+### 2. Release identity resolution (ambiguity closed)
+
+Tag: **rebound-seo-v1.1.2** (annotated, immutable, never moved or reused; remote confirmed absent at decision time)
+Commit: **4f42e08f404b34700ea8b1d0d216b2624654150c**
+Tree: **050969d943cba03e8414d8305939347cbd2f0cf8**
+
+The tag is placed at the **product implementation merge**, not at current main 1a97c2e. Rationale, recorded to close the ambiguity permanently:
+
+1. Precedent: rebound-seo-v1.1.1 was tagged at the product merge ed8c29a..., not at the then-tip of main after governance commits. Release identity in this repository is the product change set.
+2. The only delta between 4f42e08 and 1a97c2e is the D10.5 DEPLOY_LOG completion receipt: governance documentation, not product code. Shipping identity must not absorb documentation about its own preparation.
+3. The implementation harness 33584982846 certified exactly tree 050969d9... The tag then points at the precise tested product tree with zero interpretation required.
+4. 4f42e08 is an ancestor of protected main, so the tag remains fully on the protected history.
+
+Verification, mandatory before any implementation edit: `git rev-parse rebound-seo-v1.1.2^{commit}` must return 4f42e08f404b34700ea8b1d0d216b2624654150c and `git rev-parse rebound-seo-v1.1.2^{tree}` must return 050969d943cba03e8414d8305939347cbd2f0cf8. Any mismatch is a stop condition. Deployment of untagged main remains forbidden.
+
+### 3. Closed wrapper pin set for v1.1.2
+
+The seven-field set is closed and exhaustive. Exactly these values, byte for byte:
+
+1. RELEASE_SHA: ed8c29a... → **4f42e08f404b34700ea8b1d0d216b2624654150c**
+2. RELEASE_TAG: rebound-seo-v1.1.1 → **rebound-seo-v1.1.2**
+3. PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.1-prod → **rebound-seo-v1.1.2-prod** (new, never-pushed; pre-existence in GHCR or Fly registry is a stop condition, never an overwrite)
+4. PRIOR_RELEASE_SHA: d75a8b9... → **ed8c29aff96f8b4a2644b3806077ceb6863fd72b**
+5. PRIOR_RELEASE_TAG: rebound-seo-v1.1.0 → **rebound-seo-v1.1.1**
+6. PRIOR_MACHINE_ID: **860714be531938** (unchanged value, revalidated capture; no hand-typed carryover, the committed value must be byte-identical to the fresh capture)
+7. PRIOR_IMAGE_DIGEST: sha256:09600e94... → **sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3** (the current live v1.1.1 child digest; the outgoing v1.1.0 digest is retired from the wrapper)
+
+Rollback target is thereby the verified live v1.1.1 identity. Mandatory read-only revalidation of the rollback baseline occurs twice: immediately before opening the implementation PR (the values are committed into it) and immediately before deploy dispatch. Each revalidation must show exactly one healthy machine 860714be531938 in started state, child digest sha256:618150a9...cc3, and live stamps SHA ed8c29a..., tag rebound-seo-v1.1.1, env production, site https://app.reboundseo.com. Any drift voids the capture and stops execution for reassessment. All captures record identifiers only, never secrets.
+
+### 4. Implementation file list
+
+Exactly three files, no more and no fewer:
+
+1. `.github/workflows/rebound-production-deploy.yml` (the seven pins in section 3 and nothing else)
+2. `Dockerfile` (exactly four literal substitutions: both hard-coded SHA occurrences ed8c29aff96f8b4a2644b3806077ceb6863fd72b → 4f42e08f404b34700ea8b1d0d216b2624654150c in the build-time and start-time assertions; both hard-coded tag occurrences rebound-seo-v1.1.1 → rebound-seo-v1.1.2. All other bytes unchanged. The identity assertions are guards and must be preserved, never weakened or removed.)
+3. `destiny-product/qa/rules/rebound-production-wrapper.test.ts` (asserts the seven pins, the four Dockerfile identity literals at their asserted positions, and the closed three-file scope)
+
+No other file is mechanically required, and none is authorized. If implementation discovers a genuinely mechanically necessary fourth file, that discovery is a stop condition requiring a governance amendment naming the exact file and justification before any further edit. A fourth file may not be added by convenience.
+
+### 5. Strict serial sequence (no reordering, no parallelization)
+
+1. Governance-only DEPLOY_LOG PR containing this D10.6 block. No code, wrapper, or tag activity in or before it.
+2. joseangelo510 applies cto-approved; all exact-head guards green; protected merge.
+3. Annotated tag rebound-seo-v1.1.2 created at 4f42e08... and verified per section 2 (commit and tree both match).
+4. Registry absence check: rebound-seo-v1.1.2-prod returns MANIFEST_UNKNOWN in both GHCR and Fly registry. Rollback baseline revalidation number one per section 3.
+5. **RED commit alone:** the targeted test updated to the full section 4 item 3 scope, committed by itself, visibly failing in CI against the unchanged workflow and Dockerfile.
+6. **GREEN commit:** workflow repin plus the four Dockerfile substitutions, turning the test green. PR history preserves RED then GREEN through guard review.
+7. Full protected guards and staging green on the implementation PR; joseangelo510 applies cto-approved; protected merge.
+8. No-movement check: at dispatch time, protected main must resolve exactly to the implementation PR merge SHA. If main moved, stop.
+9. Rollback baseline revalidation number two per section 3. Then exactly **one** production deploy dispatch.
+10. Live verification and receipts per sections 6 and 9. Only then does D10.6 close.
+
+No implementation edit or commit, including the RED commit, may occur before step 2 completes. Any implementation artifact created earlier is invalid and discarded, not retrofitted.
+
+### 6. Deployment invariants (all required)
+
+1. Dynamic full committed inventory sweep at its current committed size (presently 87): 100% materialized, zero unresolved brackets, zero curl errors, zero 5xx.
+2. Exactly one healthy Fly machine post-deploy; certificate ready.
+3. Live startup stamps: SHA 4f42e08f404b34700ea8b1d0d216b2624654150c, tag rebound-seo-v1.1.2, env production, site https://app.reboundseo.com.
+4. Unauthenticated POST /api/progress/report returns 401.
+5. No email, report, or social send emitted by build, deploy, or verification.
+6. Provenance chain recorded: tag object SHA, image digest pushed as rebound-seo-v1.1.2-prod, machine ID, and both rollback revalidation captures.
+
+### 7. Rollback path
+
+Target: the verified v1.1.1 identity exactly as pinned in section 3 (tag rebound-seo-v1.1.1, SHA ed8c29a..., machine baseline 860714be531938, child digest sha256:618150a9...cc3). One rollback dispatch pinned to that identity. Bounded polling: health check every 15 seconds, maximum 20 polls, 5 minutes total. Success requires live stamps ed8c29a... / rebound-seo-v1.1.1 and one healthy machine. **One attempt only.** On failure or poll exhaustion: freeze all dispatches, stop entirely, escalate to Jose for manual decision. No automated second attempt, no improvisation.
+
+### 8. Stop conditions and forbidden scope
+
+Stop immediately on any of: tag/commit or tag/tree mismatch; PRODUCTION_IMAGE_TAG pre-existence; any guard red; RED tests passing against unchanged code; any file beyond the three named; any edit beyond the seven pins and four substitutions; rollback baseline drift at either revalidation; main movement before dispatch; route sweep below 100%, any bracket, curl error, or 5xx; machine count ≠ 1; certificate not ready; wrong live stamps; progress-report POST ≠ 401; any email; any digest/log/PR byte disagreement; any ambiguity, which resolves to stop and amendment, never to proceed.
+
+Forbidden under D10.6: schema, migration, Auth/RLS/session, dependency, secret, provider credential, DNS/certificate changes; CMS or user-data writes; keyword mutation; email/report/social sends; any release-tag mutation other than creating the new immutable rebound-seo-v1.1.2; ClearCheck orphan repair (still a separate production-data decision); JAS credential entry.
+
+### 9. Completion receipts (all required to close D10.6)
+
+1. Governance PR URL and merge SHA.
+2. Tag verification output (tag object, commit 4f42e08..., tree 050969d9...).
+3. Registry MANIFEST_UNKNOWN evidence and both rollback revalidation captures.
+4. Implementation PR URL, final three-file diff list, RED evidence run URL, GREEN guard/staging run URLs, merge SHA.
+5. Deploy dispatch run URL and conclusion.
+6. Live stamp output, full route sweep results, machine ID and post-deploy digest, certificate check, 401 evidence, no-email confirmation.
+
+### 10. Post-release authenticated recertification
+
+**Authorized after all section 9 receipts:** read-only authenticated recertification of saved sites joseangelostudios.com (d8885d33-2047-45fa-a0c7-4ccd44fa4932) and clearcheck.app (99a7af37-6588-4b97-a848-8877760182a9) across Home, Content, Calendar, Distribution, Progress, saved CMS connection state, and saved keyword/count consistency, including verification that the eight D10.5 defect fixes behave as specified. **Still excluded:** CMS writes, keyword mutation, outbound sends of any kind, ClearCheck orphan repair, JAS credential entry. Read-only means read-only; a step that would mutate state is out of scope and stops there.
+
+### 11. Claim boundary
+
+This release claims exactly: the D10.5 eight-defect remediation scope applied on top of the v1.1.1 production behavior, with unchanged schema, auth, dependencies, configuration beyond the seven pins, and legacy-tool behavior. No other behavioral claim is made or implied. The nonreproduced React #418 log remains a watch item, unclaimed and unrepaired.
+
+---
+
+D10.6 issued. Nothing has been executed under this release. Execution authority begins at section 5 step 1 and terminates automatically on any section 8 stop condition.
