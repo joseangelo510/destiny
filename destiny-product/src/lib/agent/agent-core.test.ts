@@ -23,6 +23,13 @@ describe("Rebound Agent core", () => {
     expect(allowAgentTurn({ userId: "u1", websiteId: "w2", now: 1_000 })).toEqual({ ok: true });
   });
 
+  it("caps one user across multiple websites", () => {
+    for (let index = 0; index < 60; index += 1) {
+      expect(allowAgentTurn({ userId: "u1", websiteId: `w${index}`, now: 1_000 })).toEqual({ ok: true });
+    }
+    expect(allowAgentTurn({ userId: "u1", websiteId: "w60", now: 1_000 })).toMatchObject({ ok: false });
+  });
+
   it("calls Anthropic with the existing Messages API contract", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       content: [{ type: "text", text: "Here is the opportunity." }],
@@ -42,6 +49,21 @@ describe("Rebound Agent core", () => {
       method: "POST",
       headers: expect.objectContaining({ "x-api-key": "secret" }),
     }));
+  });
+
+  it("retries one provider 429 and then stops retrying", async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { message: "slow down" } }), { status: 429 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        content: [{ type: "text", text: "Recovered." }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 2, output_tokens: 2 },
+      }), { status: 200 }));
+    const result = await callAnthropic({
+      apiKey: "secret", model: "claude-test", messages: [], system: "Stay scoped.", tools: [], fetchImpl,
+    });
+    expect(result.text).toBe("Recovered.");
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
   it("streams visible work before the final answer", async () => {

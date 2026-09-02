@@ -31,4 +31,15 @@ describe("agent tool registry", () => {
     await expect(runAgentTool("publish_to_cms", {}, context)).resolves.toMatchObject({ ok: false });
     expect(context.query).not.toHaveBeenCalled();
   });
+
+  it("fails closed when a read tool exceeds ten seconds", async () => {
+    vi.useFakeTimers();
+    const promise = runAgentTool("get_evidence", { topic: "seo", limit: 5 }, {
+      userId: "u", organizationId: "o", websiteId: "w",
+      businessName: "Example", domain: "example.com", query: vi.fn(() => new Promise(() => undefined)),
+    });
+    await vi.advanceTimersByTimeAsync(10_001);
+    await expect(promise).resolves.toMatchObject({ ok: false, data: null });
+    vi.useRealTimers();
+  });
 });

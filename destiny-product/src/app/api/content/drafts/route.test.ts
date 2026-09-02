@@ -7,6 +7,7 @@ const { getClaims, from, selectRows, upsertRows } = vi.hoisted(() => ({
   upsertRows: vi.fn(),
 }));
 
+vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getClaims }, from }),
 }));

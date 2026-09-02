@@ -21,6 +21,9 @@ type Tenant = {
   auditId: string;
   planId: string;
   cmsTransferId: string;
+  agentConversationId: string;
+  agentMessageId: string;
+  agentProposalId: string;
   client: Client;
   readRows: ReadIsolationRow[];
   rows: Array<{
@@ -119,6 +122,9 @@ function seedReadIsolationRows(input: {
     interviewAnswer: randomUUID(),
     voiceItem: randomUUID(),
     cmsTransfer: randomUUID(),
+    agentConversation: randomUUID(),
+    agentMessage: randomUUID(),
+    agentProposal: randomUUID(),
   };
   const label = input.label;
   runDatabaseSql(`
@@ -222,10 +228,31 @@ function seedReadIsolationRows(input: {
     values
       ('${ids.cmsTransfer}', '${input.websiteId}', '${ids.integration}', 'qa-${label.toLowerCase()}-${runId}',
        'local-only-${label.toLowerCase()}', 'succeeded');
+
+    insert into public.agent_conversations
+      (id, organization_id, website_id, user_id, title)
+    values
+      ('${ids.agentConversation}', '${input.organizationId}', '${input.websiteId}', '${input.userId}',
+       'Agent conversation ${label}');
+
+    insert into public.agent_messages
+      (id, organization_id, website_id, conversation_id, role, content)
+    values
+      ('${ids.agentMessage}', '${input.organizationId}', '${input.websiteId}', '${ids.agentConversation}',
+       'assistant', '{"text":"Tenant ${label} evidence"}'::jsonb);
+
+    insert into public.agent_proposals
+      (id, organization_id, website_id, conversation_id, message_id, payload)
+    values
+      ('${ids.agentProposal}', '${input.organizationId}', '${input.websiteId}', '${ids.agentConversation}',
+       '${ids.agentMessage}', '{"title":"Tenant ${label} draft","targetKeyword":"tenant ${label}"}'::jsonb);
   `);
 
   return {
     cmsTransferId: ids.cmsTransfer,
+    agentConversationId: ids.agentConversation,
+    agentMessageId: ids.agentMessage,
+    agentProposalId: ids.agentProposal,
     readRows: [
       { table: "audit_metrics", key: "audit_id", value: input.auditId },
       { table: "competitors", key: "id", value: ids.competitor },
@@ -393,6 +420,9 @@ async function createTenant(label: "A" | "B" | "C"): Promise<Tenant> {
     auditId: audit.id,
     planId: plan.id,
     cmsTransferId: extended.cmsTransferId,
+    agentConversationId: extended.agentConversationId,
+    agentMessageId: extended.agentMessageId,
+    agentProposalId: extended.agentProposalId,
     client,
     readRows: extended.readRows,
     rows: [
@@ -405,6 +435,9 @@ async function createTenant(label: "A" | "B" | "C"): Promise<Tenant> {
       { table: "interviews", id: interview.id, field: "status", original: "in_progress", attempted: "partial" },
       { table: "interlink_runs", id: interlink.id, field: "status", original: "complete", attempted: "running" },
       { table: "notifications", id: notificationId, field: "read_at", original: null, attempted: new Date().toISOString() },
+      { table: "agent_conversations", id: extended.agentConversationId, field: "title", original: `Agent conversation ${label}`, attempted: "Cross-tenant agent conversation" },
+      { table: "agent_messages", id: extended.agentMessageId, field: "partial", original: false, attempted: true },
+      { table: "agent_proposals", id: extended.agentProposalId, field: "result", original: null, attempted: { crossTenant: true } },
     ],
   };
 }
@@ -480,6 +513,26 @@ async function verifyExtendedReadIsolation(owner: Tenant, outsider: Tenant) {
 }
 
 async function verifyBlendedPairRejection(a: Tenant, b: Tenant) {
+  await expectInsertRejected(a.client, "agent_conversations", {
+    organization_id: a.organizationId,
+    website_id: b.websiteId,
+    user_id: a.userId,
+    title: "Blended agent conversation",
+  });
+  await expectInsertRejected(a.client, "agent_messages", {
+    organization_id: a.organizationId,
+    website_id: b.websiteId,
+    conversation_id: a.agentConversationId,
+    role: "user",
+    content: { text: "Must not exist" },
+  });
+  await expectInsertRejected(a.client, "agent_proposals", {
+    organization_id: a.organizationId,
+    website_id: b.websiteId,
+    conversation_id: a.agentConversationId,
+    message_id: a.agentMessageId,
+    payload: { title: "Must not exist", targetKeyword: "blocked" },
+  });
   await expectInsertRejected(a.client, "websites", {
     organization_id: b.organizationId,
     url: "https://cross-tenant-website.example/",
@@ -581,6 +634,16 @@ async function grantSharedMembership(owner: Tenant, member: Tenant) {
     id: owner.websiteId,
     business_name: "Isolation business A",
   });
+
+  for (const [table, id] of [
+    ["agent_conversations", owner.agentConversationId],
+    ["agent_messages", owner.agentMessageId],
+    ["agent_proposals", owner.agentProposalId],
+  ] as const) {
+    const privateAgentRead = await member.client.from(table).select("id").eq("id", id).maybeSingle();
+    expect(privateAgentRead.error, `${table}: a same-organization non-owner read should resolve as hidden.`).toBeNull();
+    expect(privateAgentRead.data, `${table}: a user-owned agent record leaked to another organization member.`).toBeNull();
+  }
 }
 
 async function verifyMemberCannotEscalate(owner: Tenant, member: Tenant, thirdParty: Tenant) {

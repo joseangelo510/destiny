@@ -13,8 +13,8 @@ describe("D10.7 agent vertical slice", () => {
     for (const table of ["agent_conversations", "agent_messages", "agent_proposals"]) {
       expect(sql).toContain("create table public." + table);
       expect(sql).toContain("alter table public." + table + " enable row level security");
-      expect(sql).toMatch(new RegExp("grant select, insert, update on public\\\\." + table + " to authenticated"));
-      expect(sql).not.toMatch(new RegExp("grant delete on public\\\\." + table));
+      expect(sql).toMatch(new RegExp("grant select, insert, update on public\\." + table + " to authenticated"));
+      expect(sql).not.toMatch(new RegExp("grant delete on public\\." + table));
     }
     expect(sql).toContain("user_id = (select auth.uid())");
     expect(sql).toContain("organization_members");

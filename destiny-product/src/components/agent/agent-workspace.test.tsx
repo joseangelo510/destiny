@@ -15,6 +15,7 @@ describe("AgentWorkspace", () => {
         targetKeyword: "technical seo audit", angle: "Evidence first", outlineBullets: ["Proof", "Decision"],
       }]}
       selectedConversationId="c1"
+      suggestedPrompts={["Summarize the saved SEO progress for Example Co."]}
       website={{ id: "11111111-1111-4111-8111-111111111111", label: "Example Co", domain: "example.com" }}
     />);
     expect(html).toContain("Ask Rebound");

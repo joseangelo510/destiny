@@ -14,13 +14,13 @@ test.describe("@gate Rebound Agent", () => {
       status: 200,
       contentType: "text/event-stream",
       body: [
-        'event: status\\ndata: {"type":"status","message":"Reading saved SEO evidence"}\\n',
-        'event: tool_start\\ndata: {"type":"tool_start","name":"get_progress_summary"}\\n',
-        'event: tool_end\\ndata: {"type":"tool_end","name":"get_progress_summary","summary":"Loaded current progress"}\\n',
-        'event: text\\ndata: {"type":"text","text":"The clearest move is a stronger audit page."}\\n',
-        'event: proposal\\ndata: {"type":"proposal","proposal":{"id":"11111111-1111-4111-8111-111111111112","status":"proposed","title":"Create an SEO audit draft","targetKeyword":"seo audit","angle":"Evidence first","outlineBullets":["Proof","Decision"]}}\\n',
-        'event: done\\ndata: {"type":"done","conversationId":"11111111-1111-4111-8111-111111111113"}\\n',
-      ].join("\\n"),
+        'event: status\ndata: {"type":"status","message":"Reading saved SEO evidence"}\n',
+        'event: tool_start\ndata: {"type":"tool_start","name":"get_progress_summary"}\n',
+        'event: tool_end\ndata: {"type":"tool_end","name":"get_progress_summary","summary":"Loaded current progress"}\n',
+        'event: text\ndata: {"type":"text","text":"The clearest move is a stronger audit page."}\n',
+        'event: proposal\ndata: {"type":"proposal","proposal":{"id":"11111111-1111-4111-8111-111111111112","status":"proposed","title":"Create an SEO audit draft","targetKeyword":"seo audit","angle":"Evidence first","outlineBullets":["Proof","Decision"]}}\n',
+        'event: done\ndata: {"type":"done","conversationId":"11111111-1111-4111-8111-111111111113"}\n',
+      ].join("\n"),
     }));
     await page.route("**/api/agent/proposals/*/decide", (route) => route.fulfill({
       status: 200,
