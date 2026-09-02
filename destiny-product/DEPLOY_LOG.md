@@ -2793,3 +2793,156 @@ of v1.1.1 through the closed seven-pin wrapper. Schema, Auth, dependencies,
 legacy-tool behavior, CMS/user data, saved keyword decisions, and outbound state
 were not changed by this release or recertification. The nonreproduced React
 #418 log remains an unclaimed watch item.
+
+## D10.7 — Rebound Agent vertical slice v1
+
+Decision name: `REBOUND_AGENT_VERTICAL_SLICE_V1`
+
+Date: 2026-09-02
+
+Authority: Fable 5.1 High
+
+Classification: HIGH (schema/migration, RLS, site-scope allowlist, and new
+provider-calling routes)
+
+Base: protected `main` at
+`247d91217a46f81c60e4f9a6f00f356fbc0f3fb4`
+
+Status: AUTHORIZED. Execution was initially gated by the single-active-job
+rule on task `Rename product to Rebound SEO`
+(`01a04e20-cc65-7553-ad31-28f5a0c120cb`). The harness reported that task's
+latest turn completed and its task status changed to `idle` at
+2026-09-02T14:44:32Z. The gate was rechecked at 2026-09-02T14:45:37Z before
+the feature branch was created. No repository mutation, branch, migration
+apply, stop, yield, interrupt, or ownership inference occurred while the gate
+was active.
+
+### Product decision
+
+Build Rebound Agent as a persistent conversational workspace inspired by the
+outcome-first, clarify, work, permission, artifact, and refinement loop of
+Letaido. It is not a sixth core tab. Every Rebound core page receives one
+additive `Ask Rebound` header action. The full workspace lives at `/app/agent`
+and conversations at `/app/agent/[conversationId]`.
+
+The provider is the existing Anthropic Messages HTTP path. Reuse only
+`ANTHROPIC_API_KEY` and `ANTHROPIC_COPY_MODEL`; add no SDK, dependency, env
+var, secret, or provider. Provider calls are non-streaming per turn. The app
+route may stream its own typed SSE events: `status`, `tool_start`, `tool_end`,
+`text`, `proposal`, `done`, and `error`.
+
+### Authorized database surface
+
+One migration, `<timestamp>_agent_vertical_slice_v1.sql`, may create exactly
+three public tables: `agent_conversations`, `agent_messages`, and
+`agent_proposals`. Each carries `id`, `organization_id`, `website_id`, and
+`created_at`.
+
+- Conversations additionally carry `user_id`, `title`, and `updated_at`.
+- Messages additionally carry `conversation_id`, role `user|assistant`, JSONB
+  `content`, `partial`, `input_tokens`, and `output_tokens`.
+- Proposals additionally carry `conversation_id`, `message_id`, kind `draft`,
+  JSONB `payload`, status `proposed|approved|rejected|failed`, JSONB `result`,
+  `artifact_id`, `decided_by`, and `decided_at`.
+
+Grant authenticated users only `select`, `insert`, and `update`; there is no
+delete grant in v1. Enable RLS with per-operation policies `TO authenticated`.
+Copy the current site-access predicate exactly, require conversation
+`user_id = (select auth.uid())`, enforce the same parent ownership and
+organization/website relationship for messages and proposals, and index every
+policy and lookup field. Add exactly these three table names to the typed site
+scope allowlist.
+
+Migration authoring and application to a disposable local database and the
+existing staging pipeline are authorized. Production migration apply is not
+authorized.
+
+### Authorized application surface
+
+New files are limited to:
+
+- `destiny-product/src/app/app/agent/page.tsx`
+- `destiny-product/src/app/app/agent/[conversationId]/page.tsx`
+- `destiny-product/src/app/api/agent/turn/route.ts`
+- `destiny-product/src/app/api/agent/proposals/[proposalId]/decide/route.ts`
+- `destiny-product/src/lib/agent/**`
+- `destiny-product/src/components/agent/**`
+
+Also authorized are one additive `Ask Rebound` action in the existing core
+shell header, the three allowlist entries, and one additive ESLint restricted
+import boundary that prevents agent server code from entering client bundles.
+
+Validation must use dependency-free type guards returning
+`{ ok: true, value } | { ok: false, errors }`; adding Zod is forbidden.
+
+The read-only tool registry contains exactly these eleven tools:
+
+1. `get_website_context()`
+2. `get_search_console_summary({days:7|28|90})`
+3. `get_search_console_queries({days,sort,limit})`
+4. `get_search_console_pages({days,sort,limit})`
+5. `get_keyword_verdicts({verdict,limit})`
+6. `list_drafts({status,limit})`
+7. `get_draft({draftId})`
+8. `get_calendar({from,to})`
+9. `get_distribution_status()`
+10. `get_progress_summary()`
+11. `get_evidence({topic,limit})`
+
+Every tool receives verified `userId`, `organizationId`, and `websiteId` from
+server context, never from model input, and returns
+`{ ok, summary, data, fetchedAt }`. Lists are capped at 50, drafts at 25,
+evidence at 20, and draft body context at 6,000 characters.
+
+The only v1 mutation is `propose_draft({title,targetKeyword,angle,
+outlineBullets[]})`. A proposal is persisted before it is rendered and may be
+executed only by a separate decide route after an explicit human click. If
+draft creation does not expose a callable service, a behavior-preserving
+extraction to `src/lib/drafts/createDraft.ts` is authorized, with the existing
+caller delegating to it. A shared Anthropic Messages fetch may likewise be
+extracted without changing existing behavior.
+
+The UI comprises a conversation list, fresh composer, safe text blocks,
+collapsible work blocks, proposal cards, send/abort controls, and explicit
+idle, sending, working, complete, proposal, error, rate-limited, and
+website-not-ready states. Suggested prompts must be derived from real saved
+site data. Stored payloads are validated both when written and when executed.
+Tool output is untrusted and delimited. Rendered links are limited to safe app
+or selected-site destinations. Provider credentials remain server-only.
+
+Per-turn limits are six provider calls, ten tool executions, the latest 24
+messages, 2,048 output tokens, and 4,000 user-input characters. Limits are 30
+turns per website per hour and 60 per user per hour. The turn route has a
+55-second ceiling, provider calls 40 seconds, individual tools 10 seconds, and
+one retry only for provider 429 or 5xx responses.
+
+### Forbidden and excluded
+
+- New env vars, secrets, providers, SDKs, runtime or development dependencies.
+- Changes to the five core routes beyond the header action.
+- Model-reachable publishing, draft-body edits, CMS writes, email, scheduling,
+  integration changes, distribution actions, deletion, external URL fetching,
+  or image generation.
+- Calendar or keyword proposals, keyword-research calls, service-role keys, a
+  second migration, or alterations to existing tables.
+- Direct changes to `main` or `container-staging`.
+- Production migration apply, release, deploy, wrapper, tag, DNS, or public
+  traffic change. Production remains a separate HIGH decision.
+
+### Required proof and completion boundary
+
+Use RED then GREEN coverage for validation, provider, registry, loop, prompt,
+rate limit, turn route, decide route, RLS isolation, rendering, and Playwright
+journeys. Run the full `pnpm gate` and all required protected checks. Staging
+must prove the exact PR SHA, zero 5xx on touched routes, `/app/agent`, visible
+work, an approved proposal, and the resulting saved draft. RLS proof must cover
+two users and cross-organization/cross-website rejection. The existing
+five-tab Playwright journeys must remain green. The PR description must map
+each tool to its backing service or explicit TODO query, identify the copied
+RLS predicate source, and document any draft-service extraction.
+
+The implementation PR may merge only after the full protected workflow and
+review are green and Jose applies `cto-approved`. Merge does not authorize a
+production migration or release. Rollback is a normal merge revert; staging
+rollback drops the new policies and tables in reverse dependency order. There
+is no env rollback because no env change is authorized.
