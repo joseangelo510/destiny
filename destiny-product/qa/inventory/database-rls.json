@@ -1,4 +1,7 @@
 [
+  { "table": "agent_conversations", "scope": "website", "access": "authenticated" },
+  { "table": "agent_messages", "scope": "website", "access": "authenticated" },
+  { "table": "agent_proposals", "scope": "website", "access": "authenticated" },
   { "table": "article_drafts", "scope": "website", "access": "authenticated" },
   { "table": "audit_metrics", "scope": "website", "access": "authenticated" },
   { "table": "audits", "scope": "website", "access": "authenticated" },

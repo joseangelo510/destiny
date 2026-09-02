@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
+import { persistArticleDraftRows } from "@/lib/drafts/createDraft";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_DRAFTS = 3;
@@ -104,7 +105,7 @@ export async function PUT(request: Request) {
   }));
   if (rows.length === 0) return NextResponse.json({ saved: 0, protected: protectedCount });
 
-  const { error } = await articleDrafts.upsert(rows, { onConflict: "website_id,audit_id,keyword" });
+  const { error } = await persistArticleDraftRows(supabase, rows);
   if (error) return NextResponse.json({ error: "Rebound SEO generated the article but could not save it yet." }, { status: 500 });
 
   return NextResponse.json(protectedCount ? { saved: rows.length, protected: protectedCount } : { saved: rows.length });

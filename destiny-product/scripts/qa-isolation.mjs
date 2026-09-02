@@ -4,6 +4,9 @@ import { fileURLToPath } from "node:url";
 import { assertLoopbackSupabaseUrl, parseSupabaseStatus } from "./qa-isolation-environment.mjs";
 
 export const ISOLATION_TABLES = [
+  "agent_conversations",
+  "agent_messages",
+  "agent_proposals",
   "article_drafts",
   "audit_metrics",
   "audits",

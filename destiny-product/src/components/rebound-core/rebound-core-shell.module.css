@@ -186,6 +186,9 @@
 .topbar > div:first-child { display: flex; align-items: baseline; gap: 12px; }
 .topbar h1 { margin: 0; font-family: var(--serif); font-size: 21px; font-weight: 500; }
 .topbar > div > span { color: var(--ink-soft); font-size: 12.5px; }
+.topbarActions { display: flex; align-items: center; gap: 12px; }
+.askRebound { padding: 7px 12px; border: 1px solid var(--mint-deep); border-radius: 999px; background: var(--mint); color: var(--forest); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.askRebound:hover { border-color: var(--forest); }
 
 .previewStrip {
   display: flex;
@@ -275,7 +278,9 @@
   .mobileSiteContext > span, .mobileSiteContext summary > span { display: grid; }
   .mobileSiteContext summary > div { min-width: 0; }
   .mobileSiteContext .siteMenu { right: 0; left: auto; }
-  .topbar > .evidence { display: none; }
+  .topbarActions { margin-left: auto; }
+  .topbarActions .evidence { display: none; }
+  .askRebound { padding: 6px 10px; }
   .previewStrip { padding: 8px 16px; }
   .mobileNav { position: fixed; z-index: 20; bottom: 14px; left: 50%; display: grid; width: min(346px, calc(100vw - 44px)); grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--sage-line); border-radius: 0 0 28px 28px; background: var(--card); box-shadow: 0 -8px 20px rgba(24, 39, 32, .08); transform: translateX(-50%); }
   .mobileNav a, .mobileNav span { display: grid; min-width: 0; justify-items: center; gap: 2px; padding: 9px 2px 11px; color: var(--ink-soft); font-size: 9.5px; text-align: center; }
