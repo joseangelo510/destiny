@@ -35,7 +35,7 @@ test.describe("@gate Rebound Agent", () => {
     await expect(page.getByText("The clearest move is a stronger audit page.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Create draft" })).toBeVisible();
     await page.getByRole("button", { name: "Create draft" }).click();
-    await expect(page.getByText("Draft created")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Draft created · open draft" })).toBeVisible();
     const accessibility = await new AxeBuilder({ page }).analyze();
     expect(accessibility.violations.filter((item) => ["serious", "critical"].includes(item.impact ?? ""))).toEqual([]);
   });
