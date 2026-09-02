@@ -27,3 +27,22 @@ test("all visible homepage controls have an accessible name", async ({ page }) =
   );
   expect(unnamed, `Unnamed visible controls:\n${unnamed.join("\n")}`).toEqual([]);
 });
+
+test("homepage header exposes a clear login journey on desktop and mobile", async ({ page }) => {
+  for (const viewport of [
+    { width: 1280, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+
+    const header = page.locator("header.site");
+    const login = header.getByRole("link", { name: "Log in", exact: true });
+    await expect(login).toBeVisible();
+    await expect(login).toHaveAttribute("href", "/login?next=%2Fapp");
+
+    const analyze = header.getByRole("link", { name: "Analyze a website", exact: true });
+    await expect(analyze).toBeVisible();
+    await expect(analyze).toHaveAttribute("href", "#plan");
+  }
+});
