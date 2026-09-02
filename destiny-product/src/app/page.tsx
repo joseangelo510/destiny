@@ -23,7 +23,7 @@ export default function HomePage() {
             <a href="#plan">Pricing</a>
           </nav>
           <div className="nav-right">
-            <a className="quiet" href="/login?next=%2Fapp">Open demo</a>
+            <a className="quiet" href="/login?next=%2Fapp">Log in</a>
             <a className="btn btn-forest btn-sm" href="#plan">Analyze a website</a>
           </div>
         </div>

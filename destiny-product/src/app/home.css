@@ -51,7 +51,7 @@ html:has(.lp-root){scroll-behavior:smooth}
 .lp-root .nav-links{display:flex;gap:24px;margin-left:16px;font-size:14.5px;font-weight:500;color:var(--ink-soft)}
 .lp-root .nav-links a:hover{color:var(--ink)}
 .lp-root .nav-right{margin-left:auto;display:flex;align-items:center;gap:18px}
-.lp-root .nav-right .quiet{font-size:14.5px;font-weight:600;color:var(--ink-soft)}
+.lp-root .nav-right .quiet{font-size:14.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
 .lp-root .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;font-size:15px;padding:11px 22px;border:1px solid transparent;cursor:pointer;transition:background .15s,border-color .15s;font-family:var(--sans)}
 .lp-root .btn-forest{background:var(--forest);color:#fff}
 .lp-root .btn-forest:hover{background:var(--forest-deep)}
@@ -59,7 +59,7 @@ html:has(.lp-root){scroll-behavior:smooth}
 .lp-root .btn-outline:hover{border-color:var(--ink-faint)}
 .lp-root .btn-lime{background:var(--lime);color:var(--lime-ink)}
 .lp-root .btn-sm{padding:8px 16px;font-size:13.5px}
-@media (max-width:820px){.lp-root .nav-links,.lp-root .nav-right .quiet{display:none}}
+@media (max-width:820px){.lp-root .nav{gap:14px}.lp-root .nav-links{display:none}.lp-root .nav-right{gap:10px}.lp-root .nav-right .quiet{font-size:13.5px}.lp-root .nav-right .btn-sm{font-size:13px;padding:8px 12px}}
 
 /* hero */
 .lp-root .hero{padding:72px 0 48px}
