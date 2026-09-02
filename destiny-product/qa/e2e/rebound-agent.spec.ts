@@ -5,10 +5,9 @@ import { expect, test } from "@playwright/test";
 type BrowserFixture = { mvp: { websiteId: string } };
 const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath ? JSON.parse(readFileSync(fixturePath, "utf8")) as BrowserFixture : null;
+if (!fixture) throw new Error("Run pnpm qa:browser-fixture against disposable local Supabase first.");
 
 test.describe("@gate Rebound Agent", () => {
-  test.skip(!fixture, "Run pnpm qa:browser-fixture against disposable local Supabase first.");
-
   test("shows visible work and requires approval before creating a draft", async ({ page }) => {
     await page.route("**/api/agent/turn", (route) => route.fulfill({
       status: 200,
