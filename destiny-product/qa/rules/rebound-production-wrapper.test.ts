@@ -4,10 +4,18 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213";
-const releaseTag = "rebound-seo-v1.1.0";
-const priorImageDigest = "sha256:321828758e811bbc7bd25aea52a38e253e49b5d7d1402eb27553bc1ed93bb82b";
+const releaseSha = "ed8c29aff96f8b4a2644b3806077ceb6863fd72b";
+const releaseTag = "rebound-seo-v1.1.1";
+const productionImageTag = "rebound-seo-v1.1.1-prod";
+const priorReleaseSha = "d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213";
+const priorReleaseTag = "rebound-seo-v1.1.0";
+const priorImageDigest = "sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512";
 const priorMachineId = "860714be531938";
+const authorizedImplementationFiles = [
+  ".github/workflows/rebound-production-deploy.yml",
+  "Dockerfile",
+  "destiny-product/qa/rules/rebound-production-wrapper.test.ts",
+];
 const routePlaceholder = "00000000-0000-0000-0000-000000000000";
 const genericRouteMaterializer = String.raw`gsub("\\[[^/\\[\\]]+\\]"; $route_placeholder)`;
 
@@ -37,10 +45,13 @@ describe("D9.1 Rebound SEO production wrapper", () => {
     expect(workflow).not.toMatch(/^  push:/m);
     expect(workflow).toContain(`RELEASE_SHA: ${releaseSha}`);
     expect(workflow).toContain(`RELEASE_TAG: ${releaseTag}`);
+    expect(workflow).toContain(`PRODUCTION_IMAGE_TAG: ${productionImageTag}`);
     expect(workflow).toContain("PRODUCTION_SITE_URL: https://app.reboundseo.com");
     expect(workflow).toContain("FLY_APP: destiny-production");
     expect(workflow).toContain(`PRIOR_IMAGE_DIGEST: ${priorImageDigest}`);
     expect(workflow).toContain(`PRIOR_MACHINE_ID: ${priorMachineId}`);
+    expect(workflow).toContain(`PRIOR_RELEASE_SHA: ${priorReleaseSha}`);
+    expect(workflow).toContain(`PRIOR_RELEASE_TAG: ${priorReleaseTag}`);
     expect(workflow).toContain("rollback:");
     expect(workflow).toContain("registry.fly.io/${FLY_APP}@${PRIOR_IMAGE_DIGEST}");
     expect(workflow).toContain("environment: production");
@@ -126,8 +137,10 @@ describe("D9.1 Rebound SEO production wrapper", () => {
     const dockerfile = await repositoryFile("Dockerfile");
     const flyConfig = await repositoryFile("fly.toml");
 
-    expect(dockerfile).toContain(releaseSha);
-    expect(dockerfile).toContain(releaseTag);
+    expect(dockerfile.split(releaseSha)).toHaveLength(3);
+    expect(dockerfile.split(releaseTag)).toHaveLength(3);
+    expect(dockerfile).not.toContain(priorReleaseSha);
+    expect(dockerfile).not.toContain(priorReleaseTag);
     expect(dockerfile).toContain("https://app.reboundseo.com");
     expect(dockerfile).toContain("build-sha.txt");
     expect(dockerfile).toContain("build-tag.txt");
@@ -137,5 +150,13 @@ describe("D9.1 Rebound SEO production wrapper", () => {
     expect(flyConfig).toContain('primary_region = "sjc"');
     expect(flyConfig).toContain('min_machines_running = 1');
     expect(flyConfig).toContain('path = "/_next/static/build-sha.txt"');
+  });
+
+  it("records the closed D10.4 Amendment A2 implementation scope", async () => {
+    const deployLog = await repositoryFile("destiny-product/DEPLOY_LOG.md");
+
+    expect(deployLog).toMatch(/complete\s+implementation PR file list is exactly these three files/);
+    for (const file of authorizedImplementationFiles) expect(deployLog).toContain(`\`${file}\``);
+    expect(authorizedImplementationFiles).toHaveLength(3);
   });
 });
