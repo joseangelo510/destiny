@@ -2329,3 +2329,173 @@ Claim boundary: Amendment A2 authorizes only the exact three-file RED/GREEN
 implementation above. It authorizes no production dispatch by itself and no
 change to product behavior, secrets, providers, data, authentication, schema,
 dependencies, routing, certificates, email, or saved-site state.
+
+## D10.5 — Post-release v1.1.1 UX remediation slice
+
+Date: 2026-09-01
+
+Authority: Fable 5 High (deciding). Executor: Codex. Owner action:
+`joseangelo510` applies `cto-approved` to the governance and implementation
+PRs.
+
+Decision source:
+<https://claude.ai/chat/fe8397c7-3efc-4a74-9c80-3b33bf678a28>
+
+### Decision identity and classification
+
+Classification: MEDIUM. The slice changes no schema, migration, Auth, RLS,
+session, dependency, secret, provider, DNS, certificate, CMS-write, or runtime
+configuration surface, and this decision authorizes no deploy. Shared
+site-selection and `effectiveRankSource` touchpoints keep the work at MEDIUM
+rather than LOW. If either shared boundary must be edited, that affected work
+stops under the split below.
+
+D10.4 and Amendments A1 and A2 are closed complete: PRs #82, #83, and #84
+merged; production run 33580758741 is green; and live identity is
+`ed8c29aff96f8b4a2644b3806077ceb6863fd72b`, `rebound-seo-v1.1.1`,
+`production`. The existing `rebound-seo-v1.1.1` tag remains immutable and
+untouched.
+
+### Authorized defect set
+
+Defects 1 through 8 from the authenticated read-only saved-site QA are
+authorized in one bounded slice:
+
+1. Add explicit Content row origin/type discrimination. Only `article_draft`
+   rows may link to `/app/content/[draftId]`.
+   `publishing_schedule_items.needs_review` rows must hand off to an existing,
+   valid, site-scoped route. If no existing route can receive the handoff
+   truthfully, stop; this decision does not authorize a new route or data write.
+2. Include actionable `needs_review` schedule rows in the Content needs-you
+   count, or otherwise make the state and call to action truthful. A row and its
+   page summary may not contradict each other.
+3. Filter core quests to the current completed audit, matching legacy This
+   Week/Roadmap semantics. This is read-side filtering only; do not delete or
+   mutate historical quests.
+4. Anchor the Home calendar to the current month, not `events[0].date`.
+5. Render the Home date through an explicit workspace, account, or browser
+   timezone contract. Add an `America/Los_Angeles` regression proving that
+   September 1 renders as September 1.
+6. Correct Distribution presentation so its stuck count truthfully names both
+   stale opportunities and unverified interlinks, or decompose the count. Do
+   not change its underlying computation beyond labeling or presentation.
+7. Add a core-shell site switcher by consuming the existing website-selection
+   path. Preserve selection persistence semantics.
+8. Make Keyword Strategy consume `effectiveRankSource` against normalized
+   approved keywords so its counts agree with Rank Tracker.
+
+The nonreproduced React minified error #418 is a watch item only. No code change
+is authorized for it. A QA-log reproduction attempt may be recorded, but repair
+requires reproducible evidence and a separate decision.
+
+### Surface boundary
+
+The implementation PR is limited to the following surfaces and their targeted
+tests:
+
+- `core-pages.ts` for Content row origin/type discrimination and routing;
+- the `loadReboundDraft` and `loadReboundProgress` read paths for query
+  discrimination and current-audit filtering;
+- `workspace-context.ts` quest loading for read-side filtering only;
+- core-shell components for the site switcher and static-label replacement;
+- Home calendar and date components for the current-month anchor and timezone
+  contract;
+- Distribution presentation/copy for the stuck count;
+- Keyword Strategy count computation as a consumer of `effectiveRankSource`;
+- targeted tests for every item above; and
+- generated QA-inventory output only if mechanically required.
+
+The implementation PR description must enumerate its complete final file list.
+Every file must map to a surface above. Any file outside that mapping invalidates
+the PR. The shared website-selection path and `effectiveRankSource` helper are
+not writable surfaces under this decision.
+
+### Required RED then GREEN history and evidence
+
+Before implementation, commit failing tests for each confirmed defect 1 through
+8. CI must show those tests fail against unchanged product code. Required
+coverage is:
+
+1. `article_draft` versus `publishing_schedule_items` routing discrimination;
+2. `needs_review` inclusion in needs-you semantics;
+3. quest filtering to the current completed audit;
+4. current-month Home anchoring;
+5. the `America/Los_Angeles` date regression;
+6. truthful stuck-count labeling;
+7. site-switcher presence with persistence semantics unchanged; and
+8. Keyword Strategy and Rank Tracker count parity on the same fixture.
+
+Each defect test must be isolatable and meaningful on its own. GREEN
+implementation commits follow the RED commits. Preserve reviewable RED then
+GREEN history through guard review; do not squash away the RED evidence before
+review completes. The full protected harness, checklist guard, and policy guard
+must be green before merge, with run URLs recorded in this log on completion.
+
+### Process order and completion receipts
+
+1. Merge this decision through a governance-only `DEPLOY_LOG.md` PR with
+   `cto-approved` applied by `joseangelo510` and every protected guard green.
+2. Open one protected implementation PR for the authorized slice, with
+   `cto-approved` applied by `joseangelo510` and every protected guard green,
+   then merge.
+3. Close D10.5 only after recording the governance PR URL and merge SHA,
+   implementation PR URL and complete final file list, RED evidence run, GREEN
+   harness/checklist/policy runs, and implementation merge SHA.
+
+No implementation edit or commit, including a RED commit, may occur before
+step 1 completes.
+
+### Release and deploy boundary
+
+D10.5 authorizes no tag, production-wrapper change, workflow dispatch, staging
+deploy, or production deploy. `rebound-seo-v1.1.1` remains the immutable live
+identity. Releasing this slice, presumptively as `rebound-seo-v1.1.2`, requires
+a new HIGH decision following the D10.4/A1/A2 governance-first, immutable-tag,
+closed-pin, rollback-capture, one-dispatch, and receipt pattern. Any separately
+authorized staging or production certification remains read-only.
+
+### Stop conditions
+
+Stop immediately if any of the following occurs:
+
+- any diff line appears in the shared website-selection path or in
+  `effectiveRankSource` itself;
+- the `needs_review` handoff cannot land on an existing valid route;
+- quest filtering cannot be achieved read-side;
+- a schema, migration, Auth, RLS, session, dependency, secret, provider,
+  CMS-connection, CMS-write, or runtime-configuration change appears necessary;
+- any guard is red, skipped, absent, or attached to another SHA, or a RED test
+  passes against unchanged code;
+- the final implementation file list exceeds the authorized surface mapping;
+- any keyword mutation, email/report/social send, tag mutation, deployment, or
+  production dispatch occurs;
+- any ClearCheck orphan-row touch or JAS credential entry occurs; or
+- scope, semantics, or state is ambiguous. Ambiguity requires stop and a
+  governance amendment, never inferred authority.
+
+### Shared-reuse authorization and split
+
+Authorized: consume the existing website-selection path and
+`effectiveRankSource` exactly as they exist. Reuse is read-only dependency with
+byte-unchanged helpers, unchanged signatures, and unchanged behavior for every
+existing caller. The harness must prove zero legacy behavioral diffs.
+
+Not authorized, Split B: if remediation requires editing either shared helper's
+signature, logic, export shape, or module location, stop the affected defect.
+Split B requires its own governance amendment naming the exact helper diff,
+complete caller inventory, and regression coverage for every legacy consumer.
+Partial delivery is acceptable: if defect 7 or 8 enters Split B, defects that
+remain inside this decision may continue and the blocked defect waits for the
+amendment.
+
+### Standing exclusions
+
+No schema, migration, Auth, RLS, session, dependency, secret, provider, DNS,
+certificate, CMS-connection, CMS-write, keyword mutation, email, report,
+social send, tag mutation, production deploy, ClearCheck orphan repair, JAS
+credential entry, legacy-tool behavior change beyond consumers-only reuse, or
+repair based on the nonreproduced React error is authorized.
+
+Claim boundary: D10.5 authorizes only the governed MEDIUM implementation slice
+above after its governance PR merges. It authorizes no implementation before
+that merge and no deployment under any circumstance.
