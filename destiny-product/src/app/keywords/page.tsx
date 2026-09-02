@@ -7,6 +7,7 @@ import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { keywordHasGeographicConflict, rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
 import { keywordStrategyAction } from "@/lib/seo/keyword-strategy-actions";
+import { keywordWatchlistCount } from "@/lib/seo/keyword-strategy-summary";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 import "./claude-keyword-strategy.css";
@@ -205,7 +206,8 @@ export default async function KeywordsPage() {
   const nextAction = nextActions[keywordPolicy.keywordNextStep];
   const strategyComplete = keywordQuest?.status === "complete" && approvedCount >= INITIAL_KEYWORD_APPROVAL_TARGET;
   const reviewedCount = approvedCount + declinedCount;
-  const watchlistCount = (trackedKeywords ?? []).filter((keyword) => keyword.source !== "strategy").length;
+  const approvedStrategyKeywords = new Set((savedPreferences ?? []).filter((preference) => preference.decision === "approved").map((preference) => preference.normalized_keyword));
+  const watchlistCount = keywordWatchlistCount(trackedKeywords ?? [], approvedStrategyKeywords);
   const auditDate = context.audit?.created_at ? new Date(context.audit.created_at) : null;
   const dateLabel = (date: Date | null) => date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : null;
   const latestRankCheck = workspaceKeywords.flatMap((keyword) => keyword.rankCheckedAt ? [new Date(keyword.rankCheckedAt)] : []).filter((date) => !Number.isNaN(date.getTime())).sort((left, right) => right.getTime() - left.getTime())[0] ?? null;

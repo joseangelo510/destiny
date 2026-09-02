@@ -24,7 +24,7 @@ function Action({ href, label, websiteId, hot = false }: { href: string; label: 
 }
 
 function Shell({ active, calendarActions = false, children, distributionActions = false, draftActions = false, progressActions = false, view, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; progressActions?: boolean; view: ReboundCoreWorkspace; title?: string; subtitle?: string }) {
-  return <ReboundCoreShell active={active} calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel}>{children}</ReboundCoreShell>;
+  return <ReboundCoreShell active={active} calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} queue={view.queue} searchConnected={view.searchConnected} subtitle={subtitle} title={title} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}>{children}</ReboundCoreShell>;
 }
 
 function EmptyPage({ active, actionHref, actionLabel, message, view }: { active: string; actionHref: string; actionLabel: string; message: string | null; view: ReboundCoreWorkspace }) {
@@ -38,17 +38,17 @@ function BackToContentPipeline({ websiteId }: { websiteId: string }) {
 export function ContentDashboard({ view }: { view: ReboundContentView }) {
   if (view.pipeline.state !== "ready" || !view.pipeline.data) return <EmptyPage active="/app/content" actionHref="/content" actionLabel="Open Content Studio" message={view.pipeline.message} view={view} />;
   const data = view.pipeline.data;
-  const firstDraft = data.columns.find((column) => column.state === "draft")?.items[0];
+  const firstDraft = data.items.find((item) => item.needsUser);
   return <Shell active="/app/content" view={view}><div className={styles.page}>
-    <NeedsYouBar detail={firstDraft ? "This is the first saved draft awaiting human judgment." : "Every saved piece has moved beyond draft review."} move={firstDraft ? { href: scopedHref(firstDraft.href, view.websiteId), label: firstDraft.moveLabel } : undefined} title={firstDraft?.title ?? "No draft is waiting on you"} />
+    <NeedsYouBar detail={firstDraft ? "This is the first saved content item awaiting human judgment." : "Every saved piece has moved beyond review."} move={firstDraft ? { href: scopedHref(firstDraft.href, view.websiteId), label: firstDraft.moveLabel } : undefined} title={firstDraft?.title ?? "No content review is waiting on you"} />
     <StatusStrip items={[
       { label: "DONE", value: String(data.stats.done), detail: "published or verified" },
-      { label: "NEEDS YOU", value: String(data.stats.needsUser), detail: "saved drafts to review" },
+      { label: "NEEDS YOU", value: String(data.stats.needsUser), detail: "saved items to review" },
       { label: "PROGRESS", value: `${data.stats.verified}/${data.items.length}`, detail: "verified live" },
       { label: "STUCK", value: String(data.stats.stuck), detail: "published, awaiting proof" },
     ]} />
     <div className={styles.filters}><span className={styles.filterOn}>All · {data.items.length}</span><span>Needs me · {data.stats.needsUser}</span><span>Sort: true state</span></div>
-    <section aria-label="Content pipeline" className={styles.pipeline}>{data.columns.map((column) => <div className={`${styles.column} ${column.state === "verified_live" ? styles.liveColumn : ""}`} key={column.state}><header><b>{column.label}</b><span>{column.items.length}</span></header>{column.items.length ? column.items.map((item) => <article className={styles.contentCard} key={item.id}><strong>{item.title}</strong><small>{item.keyword}</small><p>{item.detail}</p><footer><StateChip state={item.state} />{item.evidenceKind ? <EvidenceChip evidence={{ kind: item.evidenceKind, source: item.evidenceKind === "verified" ? "crawl" : "schedule", observedAt: null, detail: item.evidenceKind === "verified" ? "Verified evidence" : "Saved state" }} /> : null}<Action href={item.href} hot={item.state === "draft"} label={item.moveLabel} websiteId={view.websiteId} /></footer></article>) : <p className={styles.columnEmpty}>No saved items in this state.</p>}</div>)}</section>
+    <section aria-label="Content pipeline" className={styles.pipeline}>{data.columns.map((column) => <div className={`${styles.column} ${column.state === "verified_live" ? styles.liveColumn : ""}`} key={column.state}><header><b>{column.label}</b><span>{column.items.length}</span></header>{column.items.length ? column.items.map((item) => <article className={styles.contentCard} key={item.id}><strong>{item.title}</strong><small>{item.keyword}</small><p>{item.detail}</p><footer><StateChip state={item.state} />{item.evidenceKind ? <EvidenceChip evidence={{ kind: item.evidenceKind, source: item.evidenceKind === "verified" ? "crawl" : "schedule", observedAt: null, detail: item.evidenceKind === "verified" ? "Verified evidence" : "Saved state" }} /> : null}<Action href={item.href} hot={item.needsUser} label={item.moveLabel} websiteId={view.websiteId} /></footer></article>) : <p className={styles.columnEmpty}>No saved items in this state.</p>}</div>)}</section>
     <p className={styles.read}><b>Read:</b> each piece appears once, in its highest supported state. “Verified live” requires complete public evidence.</p>
   </div></Shell>;
 }
@@ -92,7 +92,7 @@ export function DistributionDashboard({ view }: { view: ReboundDistributionView 
       { label: "READY", value: String(data.stats.ready), detail: "saved community matches" },
       { label: "NEEDS YOU", value: String(data.stats.needsUser), detail: "manual next moves" },
       { label: "VERIFIED", value: String(data.stats.verified), detail: "crawler-confirmed interlinks" },
-      { label: "STUCK", value: String(data.stats.stuck), detail: "interlinks awaiting proof" },
+      { label: "STUCK", value: String(data.stats.stuck), detail: "stale opportunities or interlinks awaiting proof" },
     ]} />
     <div className={styles.filters}><span className={styles.filterOn}>Quora · {data.platformCounts.Quora}</span><span>Reddit · {data.platformCounts.Reddit}</span><span>valid saved destinations only</span></div>
     <Panel><PanelHeader href={siteScopedHref("/distribution", view.websiteId)} subtitle="existing opportunities and interlink evidence only" title="Reach what you published" /><div className={styles.timeline}>{data.rows.map((row, index) => <article data-distribution-kind={row.kind} id={`distribution-${row.id}`} key={row.id}><span className={styles.when}>{index + 1}</span><i className={row.evidenceKind === "verified" ? styles.dotVerified : ""} /><div><strong>{row.title}</strong><small>{row.detail}</small><em>{row.owner === "you" ? "you move" : row.owner === "rebound" ? "Rebound" : "evidence"}</em></div><EvidenceChip evidence={{ kind: row.evidenceKind, source: row.evidenceKind === "verified" ? "crawl" : "quest", observedAt: row.action?.checkedAt ?? null, detail: row.freshness?.label ?? (row.evidenceKind === "verified" ? "Verified" : "Saved evidence") }} />{row.kind === "opportunity" ? <DistributionOpportunityActions action={row.action} reverifyHref={siteScopedHref("/distribution#community", view.websiteId)} stale={row.freshness?.stale ?? true} /> : <Action href={row.href} hot={row.owner === "you"} label={row.moveLabel} websiteId={view.websiteId} />}</article>)}</div></Panel>

@@ -60,7 +60,7 @@ export const getWorkspaceContext = cache(async function getWorkspaceContext() {
     website,
     audit,
     metrics,
-    quests: quests ?? [],
+    quests: audit ? (quests ?? []).filter((quest) => quest.audit_id === audit.id) : [],
     competitors: competitors ?? [],
     integrations: integrations ?? [],
   };

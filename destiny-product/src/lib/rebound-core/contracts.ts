@@ -88,10 +88,18 @@ export type CalendarSummary = {
   events: CalendarEvent[];
 };
 
+export type ReboundWebsite = {
+  id: string;
+  business_name: string | null;
+  normalized_domain: string;
+};
+
 export type ReboundHomeView = {
   firstName: string | null;
   websiteLabel: string;
   websiteId: string;
+  websites: ReboundWebsite[];
+  timeZone: string;
   queue: PanelResult<CoreQueue>;
   searchConsole: PanelResult<SearchConsoleSummary>;
   analytics: PanelResult<AnalyticsSummary>;
@@ -104,6 +112,7 @@ export type ReboundCoreWorkspace = {
   firstName: string | null;
   websiteLabel: string;
   websiteId: string;
+  websites: ReboundWebsite[];
   queue: PanelResult<CoreQueue>;
   searchConnected: boolean;
 };
