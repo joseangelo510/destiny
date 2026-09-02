@@ -942,7 +942,7 @@
     "type": "a",
     "route": "/",
     "side_effect_class": 0,
-    "context": "<div className=\"nav-right\"> <a className=\"quiet\" href=\"/login?next=%2Fapp\">Open demo</a> <a className=\"btn btn-forest btn-sm\" href=\"#plan\">Analyze a website</a>"
+    "context": "<div className=\"nav-right\"> <a className=\"quiet\" href=\"/login?next=%2Fapp\">Log in</a> <a className=\"btn btn-forest btn-sm\" href=\"#plan\">Analyze a website</a>"
   },
   {
     "control_id": "src/app/page.tsx:27:a:1",
@@ -951,7 +951,7 @@
     "type": "a",
     "route": "/",
     "side_effect_class": 0,
-    "context": "<a className=\"quiet\" href=\"/login?next=%2Fapp\">Open demo</a> <a className=\"btn btn-forest btn-sm\" href=\"#plan\">Analyze a website</a> </div>"
+    "context": "<a className=\"quiet\" href=\"/login?next=%2Fapp\">Log in</a> <a className=\"btn btn-forest btn-sm\" href=\"#plan\">Analyze a website</a> </div>"
   },
   {
     "control_id": "src/app/page.tsx:45:a:1",
