@@ -48,6 +48,32 @@ describe("Rebound redesign Slice 2", () => {
     expect(pipeline.columns.find((column) => column.state === "published")?.items[0]).toMatchObject({ keyword: "thin proof", evidenceKind: "reported" });
   });
 
+  it("routes a publishing-plan review item to the existing Content Studio review surface", () => {
+    const pipeline = buildContentPipeline({
+      approvedKeywords: [],
+      drafts: [],
+      scheduleItems: [{ id: "62fa799d-1111-4111-8111-111111111111", keyword: "saved review", title: "Saved review", state: "needs_review" }],
+      receipts: [],
+    });
+
+    expect(pipeline.items[0]).toMatchObject({
+      state: "approved",
+      href: "/content#publishing-plan",
+      moveLabel: "Review",
+    });
+  });
+
+  it("counts publishing-plan review items as needing the user", () => {
+    const pipeline = buildContentPipeline({
+      approvedKeywords: [],
+      drafts: [],
+      scheduleItems: [{ id: "review-1", keyword: "saved review", title: "Saved review", state: "needs_review" }],
+      receipts: [],
+    });
+
+    expect(pipeline.stats.needsUser).toBe(1);
+  });
+
   it("derives the calendar status and needs-you move from saved schedule items", () => {
     const view = buildCalendarView({
       now: new Date("2026-09-01T19:00:00Z"),
@@ -153,6 +179,21 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.owners.you[0]).toMatchObject({ title: "Review the draft", moveLabel: "Open" });
     expect(view.owners.rebound[0]).toMatchObject({ title: "Publish Thursday" });
     expect(view.owners.google[0]).toMatchObject({ title: "Waiting page", evidenceKind: "reported" });
+  });
+
+  it("keeps Progress on the current audit instead of repeating historical quests", () => {
+    const view = buildProgressView({
+      auditId: "audit-current",
+      quests: [
+        { id: "current", audit_id: "audit-current", task_type: "content_review", title: "Review current draft", status: "todo" },
+        { id: "historical", audit_id: "audit-old", task_type: "content_review", title: "Review old draft", status: "todo" },
+      ],
+      scheduleItems: [],
+      receipts: [],
+    });
+
+    expect(view.owners.you.map((item) => item.id)).toEqual(["current"]);
+    expect(view.milestones[0]).toMatchObject({ label: "Completed moves", total: 1 });
   });
 
   it("surfaces overdue schedule items as blockers and removes old product naming", () => {

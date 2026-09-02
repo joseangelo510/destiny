@@ -11,6 +11,7 @@ const base = {
   firstName: "Jordan",
   websiteLabel: "Example Co",
   websiteId,
+  websites: [{ id: websiteId, business_name: "Example Co", normalized_domain: "example.com" }],
   queue: ready({ items: [], sessionMoves: [] }),
   searchConnected: true,
 };
@@ -56,6 +57,18 @@ describe("Rebound read-only core pages", () => {
     expect(progress).toContain("Send progress report");
     expect(progress).toContain("reports@example.com");
     expect(progress).not.toContain("Delivered");
+  });
+
+  it("describes the mixed Distribution blocker count without calling every blocker an interlink", () => {
+    const distribution = buildDistributionView({
+      opportunities: [{ platform: "Quora", title: "Stale question", url: "https://www.quora.com/example", checkedAt: "2026-01-01T00:00:00Z" }],
+      interlinks: [{ id: "link-1", source_title: "Source", target_title: "Target", status: "reported", verified_at: null }],
+    });
+    const html = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(distribution) }} />);
+
+    expect(distribution.stats.stuck).toBe(2);
+    expect(html).toContain("<small>stale opportunities or interlinks awaiting proof</small>");
+    expect(html).not.toContain("<small>interlinks awaiting proof</small>");
   });
 
   it("renders the governed draft approval surface without inventing request tracking", () => {
