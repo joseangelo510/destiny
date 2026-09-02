@@ -26,18 +26,18 @@ permissions:
   packages: write
 
 env:
-  RELEASE_SHA: ed8c29aff96f8b4a2644b3806077ceb6863fd72b
-  RELEASE_TAG: rebound-seo-v1.1.1
-  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.1-prod
+  RELEASE_SHA: 4f42e08f404b34700ea8b1d0d216b2624654150c
+  RELEASE_TAG: rebound-seo-v1.1.2
+  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.2-prod
   PRODUCTION_SITE_URL: https://app.reboundseo.com
   PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
   STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
   FLY_APP: destiny-production
   FLY_REGION: sjc
   PRIOR_MACHINE_ID: 860714be531938
-  PRIOR_IMAGE_DIGEST: sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512
-  PRIOR_RELEASE_SHA: d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213
-  PRIOR_RELEASE_TAG: rebound-seo-v1.1.0
+  PRIOR_IMAGE_DIGEST: sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3
+  PRIOR_RELEASE_SHA: ed8c29aff96f8b4a2644b3806077ceb6863fd72b
+  PRIOR_RELEASE_TAG: rebound-seo-v1.1.1
   PRIOR_SITE_URL: https://app.reboundseo.com
 
 jobs:
