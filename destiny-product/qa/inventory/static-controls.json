@@ -783,18 +783,18 @@
     "context": "> {fromStrategy && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>You can keep your current decisions</strong><small>Research alternatives here; the original recommendations stay available when you return.</small></div><Link className=\"secondary-button\" href={`/keywords?site=${website?.id ?? \"\"}`}>Back to keyword strategy</Link></div></section>} <FeatureJourneyCallout actionHref=\"#keyword-research-workspace\" actionLabel=\"Research one opportunity\" milesto"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:221:a:1",
+    "control_id": "src/app/keywords/page.tsx:223:a:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 221,
+    "line": 223,
     "type": "a",
     "route": "/keywords",
     "side_effect_class": 1,
     "context": "{context.audit && <KeywordStrategyReview auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} initialTab={keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKeywordsHref={`/keyword-research?site=${context.website?.id ?? \"\"}&from=strategy`} nextAction={nextAction} nextHref={`/content?site=${context.website?.id ?? \"\"}&strategy=complete`} questId={keywor"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:222:summary:1",
+    "control_id": "src/app/keywords/page.tsx:224:summary:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 222,
+    "line": 224,
     "type": "summary",
     "route": "/keywords",
     "side_effect_class": 1,
@@ -5949,13 +5949,13 @@
     "context": "export function HomeCompetitors({ result }: { result: PanelResult<CompetitorSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"saved sites and evidence coverage\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><tr><th>Site</th><th>Relationship</th><"
   },
   {
-    "control_id": "src/components/rebound-core/home-dashboard.tsx:18:Link:1",
+    "control_id": "src/components/rebound-core/home-dashboard.tsx:23:Link:1",
     "file": "src/components/rebound-core/home-dashboard.tsx",
-    "line": 18,
+    "line": 23,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead of becoming estimates.</p><Link href=\"/i"
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead "
   },
   {
     "control_id": "src/components/rebound-core/home-keywords.tsx:12:Link:1",
@@ -6084,36 +6084,63 @@
     "context": "function CoreLink({ item, active, websiteId }: { item: (typeof CORE_NAVIGATION)[number]; active: string; websiteId: string }) { return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>; }"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:32:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:24:summary:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 32,
+    "line": 24,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <details className={`${styles.siteContext} ${className}`}> <summary aria-label={`Current website: ${websiteName(current)}. Choose another website.`}><span>{websiteName(current).slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><small>Current website</small><strong>{websiteName(current)}</strong></div></summary> <div className={styles.siteMenu}>{websites.map((website) => <a data-site-switch={website.id} href={siteScopedHref(active, website.id)} key={website.id}><strong>{websiteName(websit"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:25:a:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 25,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<summary aria-label={`Current website: ${websiteName(current)}. Choose another website.`}><span>{websiteName(current).slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><small>Current website</small><strong>{websiteName(current)}</strong></div></summary> <div className={styles.siteMenu}>{websites.map((website) => <a data-site-switch={website.id} href={siteScopedHref(active, website.id)} key={website.id}><strong>{websiteName(website)}</strong>{website.business_name ? <small>{website.normalized_do"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:25:Link:2",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 25,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />"
+    "context": "<summary aria-label={`Current website: ${websiteName(current)}. Choose another website.`}><span>{websiteName(current).slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><small>Current website</small><strong>{websiteName(current)}</strong></div></summary> <div className={styles.siteMenu}>{websites.map((website) => <a data-site-switch={website.id} href={siteScopedHref(active, website.id)} key={website.id}><strong>{websiteName(website)}</strong>{website.business_name ? <small>{website.normalized_do"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:36:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:46:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 36,
+    "line": 46,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <WebsiteSwitcher active={active} websiteId={websiteId} websites={websites} />"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:51:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 51,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className={styles.tier}>EVERY WEEK</span><nav aria-label=\"Every week\">{weekly.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav> <span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpp"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:37:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:52:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 37,
+    "line": 52,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref(\"/account\", websiteId)}>Account</Link></div></div> </aside>"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:43:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 43,
+    "line": 58,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,

@@ -38,6 +38,7 @@ export type ContentPipelineItem = {
   detail: string;
   href: string;
   moveLabel: string;
+  needsUser: boolean;
   evidenceKind: EvidenceKind | null;
 };
 
@@ -52,8 +53,9 @@ const CONTENT_STATES: Array<{ state: ContentState; label: string }> = [
 
 const STATE_PRIORITY = Object.fromEntries(CONTENT_STATES.map((item, index) => [item.state, index])) as Record<ContentState, number>;
 
-function contentMove(state: ContentState, id: string) {
+function contentMove(state: ContentState, id: string, source: "draft" | "schedule" | "other" = "other") {
   if (state === "idea") return { href: "/keywords", moveLabel: "Open strategy" };
+  if (state === "approved" && source === "schedule") return { href: "/content#publishing-plan", moveLabel: "Review" };
   if (state === "draft" || state === "approved") return { href: id.startsWith("draft-") || id.includes("-") ? `/app/content/${id}` : "/content", moveLabel: "Review" };
   if (state === "scheduled") return { href: "/app/calendar", moveLabel: "Open calendar" };
   if (state === "published") return { href: "/content#publishing-plan", moveLabel: "View proof" };
@@ -86,7 +88,7 @@ export function buildContentPipeline(input: {
     if (!keyword) return;
     const id = `idea-${index}-${normalized(keyword).replaceAll(" ", "-")}`;
     const move = contentMove("idea", id);
-    keepHighest(items, { id, title: sentence(keyword), keyword, state: "idea", detail: "Approved keyword · no saved draft yet", evidenceKind: null, ...move });
+    keepHighest(items, { id, title: sentence(keyword), keyword, state: "idea", detail: "Approved keyword · no saved draft yet", needsUser: false, evidenceKind: null, ...move });
   });
 
   input.drafts.forEach((raw, index) => {
@@ -98,7 +100,7 @@ export function buildContentPipeline(input: {
     const state: ContentState = draft.approved === true ? "approved" : "draft";
     const title = text(draft.title) || sentence(keyword);
     const status = text(draft.generationStatus).replaceAll("_", " ") || "saved draft";
-    keepHighest(items, { id, title, keyword, state, detail: state === "approved" ? `Approved · ${status}` : sentence(status), evidenceKind: "reported", ...contentMove(state, id) });
+    keepHighest(items, { id, title, keyword, state, detail: state === "approved" ? `Approved · ${status}` : sentence(status), needsUser: state === "draft", evidenceKind: "reported", ...contentMove(state, id, "draft") });
   });
 
   input.scheduleItems.forEach((raw, index) => {
@@ -109,7 +111,7 @@ export function buildContentPipeline(input: {
     const state = scheduleState(text(row.state));
     const when = text(row.scheduled_for);
     const detail = when ? `${sentence(text(row.state) || "planned")} · ${when}` : sentence(text(row.state) || "planned");
-    keepHighest(items, { id, title: text(row.title) || sentence(keyword), keyword, state, detail, evidenceKind: "reported", ...contentMove(state, id) });
+    keepHighest(items, { id, title: text(row.title) || sentence(keyword), keyword, state, detail, needsUser: text(row.state) === "needs_review", evidenceKind: "reported", ...contentMove(state, id, "schedule") });
   });
 
   input.receipts.forEach((raw, index) => {
@@ -124,6 +126,7 @@ export function buildContentPipeline(input: {
       keyword,
       state,
       detail: receipt.stage === "live_verified" ? "Crawler and CMS evidence complete" : "Published · verification pending",
+      needsUser: false,
       evidenceKind: receipt.stage === "live_verified" ? "verified" : "reported",
       ...contentMove(state, id),
     });
@@ -136,7 +139,7 @@ export function buildContentPipeline(input: {
     columns,
     stats: {
       done: ordered.filter((item) => item.state === "published" || item.state === "verified_live").length,
-      needsUser: ordered.filter((item) => item.state === "draft").length,
+      needsUser: ordered.filter((item) => item.needsUser).length,
       verified: ordered.filter((item) => item.state === "verified_live").length,
       stuck: ordered.filter((item) => item.state === "published").length,
     },
@@ -358,9 +361,10 @@ export type ProgressItem = {
   at: string | null;
 };
 
-export function buildProgressView(input: { quests: unknown[]; scheduleItems: unknown[]; receipts: PublicationReceiptInput[]; now?: Date }) {
+export function buildProgressView(input: { auditId?: string | null; quests: unknown[]; scheduleItems: unknown[]; receipts: PublicationReceiptInput[]; now?: Date }) {
   const now = input.now ?? new Date();
-  const quests = input.quests.map(record);
+  const auditId = text(input.auditId);
+  const quests = input.quests.map(record).filter((quest) => !auditId || text(quest.audit_id) === auditId);
   const scheduleRows = input.scheduleItems.map(record);
   const done = quests.filter((quest) => text(quest.status) === "complete").map((quest, index): ProgressItem => ({
     id: text(quest.id) || `done-${index}`,

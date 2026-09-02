@@ -60,6 +60,7 @@ async function coreWorkspace(context: WorkspaceContext): Promise<ReboundCoreWork
     firstName: context.profile?.first_name?.trim() || null,
     websiteLabel: context.website.business_name?.trim() || context.website.normalized_domain,
     websiteId: context.website.id,
+    websites: context.websites.map((website) => ({ id: website.id, business_name: website.business_name, normalized_domain: website.normalized_domain })),
     queue,
     searchConnected: context.integrations.some((item) => item.provider === "google_search_console" && item.status === "connected"),
   };
@@ -197,7 +198,7 @@ export async function loadReboundProgress(): Promise<ReboundProgressView | null>
   const recipient = reportRecipient(context.website.notification_email) ?? reportRecipient(context.profile?.contact_email);
   try {
     const [schedule, receipts] = await Promise.all([latestPlanAndItems(context), publicationReceipts(context)]);
-    const built = buildProgressView({ quests: context.quests, scheduleItems: schedule.items, receipts });
+    const built = buildProgressView({ auditId: context.audit?.id ?? null, quests: context.quests, scheduleItems: schedule.items, receipts });
     const progress = schedule.error
       ? failed<ProgressView>("The cross-workspace progress view could not be loaded.")
       : (built.done.length || built.owners.you.length || built.owners.rebound.length || built.owners.google.length)

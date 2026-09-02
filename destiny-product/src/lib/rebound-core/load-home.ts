@@ -15,6 +15,7 @@ import type {
 } from "./contracts";
 import { empty, failed, notConnected, ready } from "./panel-result";
 import { buildCoreQueue } from "./queue";
+import { buildHomeCalendarSummary } from "./home-calendar-summary";
 
 function finiteNumber(value: unknown) {
   if (value === null || value === undefined || value === "") return null;
@@ -34,10 +35,6 @@ function averagePositions(metadata: Record<string, unknown> | null) {
     current: finiteNumber(period.averagePosition ?? period.avgPosition ?? metadata.averagePosition ?? metadata.avgPosition),
     previous: finiteNumber(period.previousAveragePosition ?? period.previousAvgPosition ?? metadata.previousAveragePosition),
   };
-}
-
-function monthLabel(date: Date) {
-  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(date);
 }
 
 function calendarTone(state: string): CalendarEvent["tone"] {
@@ -156,6 +153,7 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
     : empty<CompetitorSummary>("No competitors are saved yet. Add them in the existing audit and strategy tools.");
 
   let calendar: ReboundHomeView["calendar"];
+  let homeTimeZone = "UTC";
   try {
     const scoped = await scopedClient(context.website.id);
     const { data: plans, error: planError } = await scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1);
@@ -165,6 +163,7 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
       calendar = empty<CalendarSummary>("No publishing plan is active yet. Your saved schedule will appear here when it exists.");
     } else {
       const plan = plans[0];
+      homeTimeZone = typeof plan.timezone === "string" && plan.timezone.trim() ? plan.timezone : "UTC";
       const { data: items, error: itemError } = await scoped.select("publishing_schedule_items", "id,plan_id,keyword,title,scheduled_for,state").eq("plan_id", plan.id).order("scheduled_for");
       if (itemError) {
         calendar = failed("The publishing schedule could not be loaded.");
@@ -181,8 +180,7 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
         if (!events.length) {
           calendar = empty<CalendarSummary>("The publishing plan has no scheduled content yet.");
         } else {
-          const anchor = new Date(events[0].date);
-          calendar = ready({ month: monthLabel(Number.isNaN(anchor.getTime()) ? new Date() : anchor), events }, [{ kind: "verified", source: "schedule", observedAt: typeof plan.updated_at === "string" ? plan.updated_at : null, detail: "Saved publishing plan" }]);
+          calendar = ready(buildHomeCalendarSummary({ events, timeZone: homeTimeZone }), [{ kind: "verified", source: "schedule", observedAt: typeof plan.updated_at === "string" ? plan.updated_at : null, detail: "Saved publishing plan" }]);
         }
       }
     }
@@ -194,6 +192,8 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
     firstName: context.profile?.first_name?.trim() || null,
     websiteLabel: context.website.business_name?.trim() || context.website.normalized_domain,
     websiteId: context.website.id,
+    websites: context.websites.map((website) => ({ id: website.id, business_name: website.business_name, normalized_domain: website.normalized_domain })),
+    timeZone: homeTimeZone,
     queue,
     searchConsole,
     analytics,
