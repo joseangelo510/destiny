@@ -4,12 +4,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "ed8c29aff96f8b4a2644b3806077ceb6863fd72b";
-const releaseTag = "rebound-seo-v1.1.1";
-const productionImageTag = "rebound-seo-v1.1.1-prod";
-const priorReleaseSha = "d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213";
-const priorReleaseTag = "rebound-seo-v1.1.0";
-const priorImageDigest = "sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512";
+const releaseSha = "4f42e08f404b34700ea8b1d0d216b2624654150c";
+const releaseTag = "rebound-seo-v1.1.2";
+const productionImageTag = "rebound-seo-v1.1.2-prod";
+const priorReleaseSha = "ed8c29aff96f8b4a2644b3806077ceb6863fd72b";
+const priorReleaseTag = "rebound-seo-v1.1.1";
+const priorImageDigest = "sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3";
 const priorMachineId = "860714be531938";
 const authorizedImplementationFiles = [
   ".github/workflows/rebound-production-deploy.yml",
@@ -37,7 +37,7 @@ function materializeRoutes(routes: string[]) {
   return result.trimEnd().split("\n");
 }
 
-describe("D9.1 Rebound SEO production wrapper", () => {
+describe("D10.6 Rebound SEO production wrapper", () => {
   it("is manual-only, immutable, production-scoped, and rollback-capable", async () => {
     const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
 
@@ -152,10 +152,11 @@ describe("D9.1 Rebound SEO production wrapper", () => {
     expect(flyConfig).toContain('path = "/_next/static/build-sha.txt"');
   });
 
-  it("records the closed D10.4 Amendment A2 implementation scope", async () => {
+  it("records the closed D10.6 implementation scope", async () => {
     const deployLog = await repositoryFile("destiny-product/DEPLOY_LOG.md");
 
-    expect(deployLog).toMatch(/complete\s+implementation PR file list is exactly these three files/);
+    expect(deployLog).toContain("### D10.6: Production release of D10.5 remediation as rebound-seo-v1.1.2");
+    expect(deployLog).toContain("Exactly three files, no more and no fewer:");
     for (const file of authorizedImplementationFiles) expect(deployLog).toContain(`\`${file}\``);
     expect(authorizedImplementationFiles).toHaveLength(3);
   });
