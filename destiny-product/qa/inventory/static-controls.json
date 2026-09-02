@@ -1329,7 +1329,7 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<strong>{message.role === \"user\" ? \"You\" : \"Rebound\"}</strong> {message.work?.length ? <details open={!message.text}><summary>Work completed</summary><ul>{message.work.map((item) => <li key={item}>{item}</li>)}</ul></details> : null} {message.text ? <p>{message.text}</p> : null}"
+    "context": "<strong>{message.role === \"user\" ? \"You\" : \"Rebound\"}</strong> {message.work?.length ? <details open><summary>Work completed</summary><ul>{message.work.map((item) => <li key={item}>{item}</li>)}</ul></details> : null} {message.text ? <p>{message.text}</p> : null}"
   },
   {
     "control_id": "src/components/agent/agent-workspace.tsx:198:button:1",
