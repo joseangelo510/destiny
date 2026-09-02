@@ -187,7 +187,7 @@ export function AgentWorkspace({
           <div>{starters.map((starter) => <button key={starter} onClick={() => void send(starter)} type="button">{starter}</button>)}</div>
         </div> : messages.map((message) => <article className={message.role === "user" ? styles.user : styles.assistant} key={message.id}>
           <strong>{message.role === "user" ? "You" : "Rebound"}</strong>
-          {message.work?.length ? <details open={!message.text}><summary>Work completed</summary><ul>{message.work.map((item) => <li key={item}>{item}</li>)}</ul></details> : null}
+          {message.work?.length ? <details open><summary>Work completed</summary><ul>{message.work.map((item) => <li key={item}>{item}</li>)}</ul></details> : null}
           {message.text ? <p>{message.text}</p> : null}
         </article>)}
         {proposals.map((proposal) => <article className={styles.proposal} key={proposal.id}>
