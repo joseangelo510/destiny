@@ -37,7 +37,7 @@
 }
 .threads > a:hover { background: #dfe9dc; }
 .threads > a[aria-current="page"] { background: #1e4634; color: #fff; }
-.threads > p { padding: 8px; color: #6a776f; font-size: 12px; }
+.threads > p { padding: 8px; color: #526359; font-size: 12px; }
 
 .chat {
   display: grid;
