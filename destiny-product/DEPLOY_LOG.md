@@ -2205,3 +2205,127 @@ Claim boundary: D10.4 may be closed only as `rebound-seo-v1.1.1` live on
 production with all required receipts and the two named saved sites tested
 read-only. It does not prove CMS write delivery, keyword-write behavior,
 outbound delivery, or ClearCheck data repair.
+
+## D10.4 Amendment A2 — Authorize Dockerfile release-identity substitutions
+
+Date: 2026-09-01
+
+Authority: Fable 5 High (deciding). Executor: Codex. Owner action:
+`joseangelo510` applies `cto-approved` to the governance and implementation
+PRs.
+
+Decision source:
+<https://claude.ai/chat/fe8397c7-3efc-4a74-9c80-3b33bf678a28>
+
+Classification: HIGH. This amendment resolves a mechanical contradiction in
+D10.4 Amendment A1. It does not authorize implementation until this
+governance-only amendment merges with every protected guard green and
+`cto-approved` applied by `joseangelo510`.
+
+### A2.1 Basis
+
+The D10.4 governance PR merged as
+<https://github.com/joseangelo510/destiny/pull/82> at
+`7eeb79df71a714a2b4facac633475b960a289213`, with owner approval and all
+guards green. Annotated immutable tag `rebound-seo-v1.1.1` is verified as tag
+object `c0268864cdf5484a2293d0d667153a194f58c0eb`, commit
+`ed8c29aff96f8b4a2644b3806077ceb6863fd72b`, and tree
+`42daea51c48b0eeef97bc34fe91c6660f8a6d5a1`.
+
+The read-only rollback snapshot still reports exactly one started Fly machine
+`860714be531938`, child image digest
+`sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512`,
+release SHA `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`, and tag
+`rebound-seo-v1.1.0`. Both GHCR and the Fly registry returned
+`MANIFEST_UNKNOWN` for `rebound-seo-v1.1.1-prod`. No implementation file was
+edited or committed before this amendment.
+
+Amendment A1 limited implementation to the workflow and its targeted test.
+That scope cannot build the approved release: `Dockerfile` preserves hard-coded
+v1.1.0 SHA and tag assertions at build time and container start. Repinning only
+the workflow to v1.1.1 would fail those assertions. The ambiguity stop
+condition was correctly triggered before implementation.
+
+### A2.2 Closed implementation file list
+
+Amendment A1's two-file implementation list is replaced in full. The complete
+implementation PR file list is exactly these three files, no more and no fewer:
+
+1. `.github/workflows/rebound-production-deploy.yml`;
+2. `Dockerfile`;
+3. `destiny-product/qa/rules/rebound-production-wrapper.test.ts`.
+
+Any fourth file, or any change within these files beyond A2.3 through A2.5,
+invalidates the PR and is a hard stop.
+
+### A2.3 Exact Dockerfile authorization
+
+The only authorized `Dockerfile` changes are four literal substitutions:
+
+1. replace both hard-coded occurrences of
+   `d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213` in the build-time and
+   start-time assertions with
+   `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`;
+2. replace both hard-coded occurrences of `rebound-seo-v1.1.0` in those same
+   assertions with `rebound-seo-v1.1.1`.
+
+Every other `Dockerfile` byte remains unchanged. No base-image change, layer
+reordering, instruction addition or removal, whitespace edit, comment edit, or
+assertion weakening is authorized. Review must confirm that the Dockerfile diff
+is exactly those four token replacements.
+
+### A2.4 Targeted test scope
+
+The targeted wrapper test may assert, and may change only to assert:
+
+1. all seven workflow values authorized by Amendment A1:
+   - `RELEASE_SHA=ed8c29aff96f8b4a2644b3806077ceb6863fd72b`;
+   - `RELEASE_TAG=rebound-seo-v1.1.1`;
+   - `PRODUCTION_IMAGE_TAG=rebound-seo-v1.1.1-prod`;
+   - `PRIOR_RELEASE_SHA=d75a8b9dcf7bdecf0272eb2f5d2aebe19ec22213`;
+   - `PRIOR_RELEASE_TAG=rebound-seo-v1.1.0`;
+   - `PRIOR_MACHINE_ID=860714be531938`;
+   - `PRIOR_IMAGE_DIGEST=sha256:09600e9480bb2f3c29a1f679bbb0d4bb9115ba341449a348ecfaef701ce7f512`;
+2. both new SHA occurrences and both new tag occurrences in `Dockerfile`, with
+   the identity assertions preserved; and
+3. the closed three-file implementation scope above.
+
+### A2.5 Required RED then GREEN history
+
+The implementation PR has exactly two commits in this order:
+
+1. **RED:** update only the targeted test to assert the complete A2.4 scope.
+   The unchanged workflow and Dockerfile must fail that test, and the failing
+   result must remain visible in CI as evidence.
+2. **GREEN:** repin the seven workflow values and make the four authorized
+   Dockerfile substitutions together, turning the targeted test green.
+
+Do not squash away the RED evidence before review. Any other implementation
+commit is out of scope.
+
+### A2.6 Governance precondition
+
+No implementation edit or commit, including the RED commit, may occur before a
+governance-only PR containing this amendment is opened, `joseangelo510`
+applies `cto-approved`, all exact-head guards are green, and the PR merges to
+main. The already-created implementation branch may be retained only while it
+has zero commits beyond its post-governance base at A2 merge time; otherwise it
+must be discarded and recreated.
+
+### A2.7 Preservation and staleness
+
+All other D10.4 terms remain unchanged: preserve the existing immutable tag and
+do not recreate it; preserve the seven workflow pins, rollback identity,
+one-attempt bounded rollback, stop conditions, completion receipts, read-only
+saved-site QA authorization, ClearCheck orphan exclusion, and every other
+forbidden scope.
+
+If live production identity, rollback snapshot values, or either registry's
+`MANIFEST_UNKNOWN` status changes between this amendment's merge and
+implementation PR approval, the affected capture is stale and execution stops
+for reassessment.
+
+Claim boundary: Amendment A2 authorizes only the exact three-file RED/GREEN
+implementation above. It authorizes no production dispatch by itself and no
+change to product behavior, secrets, providers, data, authentication, schema,
+dependencies, routing, certificates, email, or saved-site state.
