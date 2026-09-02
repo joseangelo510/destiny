@@ -25,6 +25,18 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["src/components/**/*.{ts,tsx}"],
+    ignores: testFiles,
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["@/lib/agent/*"],
+          message: "Agent server modules must stay out of client component bundles.",
+        }],
+      }],
+    },
+  },
+  {
     files: [
       "src/app/**/*.{ts,tsx}",
       "src/components/**/*.{ts,tsx}",

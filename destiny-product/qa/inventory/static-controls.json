@@ -27,6 +27,24 @@
     "context": "const { data: preference, error } = await untyped.from(\"notification_preferences\") .update({ ranking_digest_frequency: rankingDigestFrequency,"
   },
   {
+    "control_id": "src/app/api/agent/proposals/[proposalId]/decide/route.ts:34:data-mutation:1",
+    "file": "src/app/api/agent/proposals/[proposalId]/decide/route.ts",
+    "line": 34,
+    "type": "data-mutation",
+    "route": "/api/agent/proposals/[proposalId]/decide",
+    "side_effect_class": 1,
+    "context": "if (action === \"reject\") { const { data: updated, error: updateError } = await scope.client.update(\"agent_proposals\", { status: \"rejected\","
+  },
+  {
+    "control_id": "src/app/api/agent/proposals/[proposalId]/decide/route.ts:59:data-mutation:1",
+    "file": "src/app/api/agent/proposals/[proposalId]/decide/route.ts",
+    "line": 59,
+    "type": "data-mutation",
+    "route": "/api/agent/proposals/[proposalId]/decide",
+    "side_effect_class": 1,
+    "context": "}, validated.value); const { data: updated, error: updateError } = await scope.client.update(\"agent_proposals\", { status: \"approved\","
+  },
+  {
     "control_id": "src/app/api/content/infographic/document/route.ts:31:a:1",
     "file": "src/app/api/content/infographic/document/route.ts",
     "line": 31,
@@ -1213,6 +1231,213 @@
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <p aria-live=\"polite\" className={styles.error}>{error}</p>} <button className={styles.deleteButton} disabled={!matches || deleting} onClick={deleteAccount} type=\"button\">{deleting ? \"Deleting account…\" : \"Delete account\"}</button> </section>"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:18:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 18,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<aside className={styles.sidebar}> <Link className={styles.brand} href={siteScopedHref(\"/app/home\", website.id)}><i />Rebound SEO</Link> <div className={styles.site}><span>{website.label.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><small>Current website</small><strong>{website.label}</strong></div></div>"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:21:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 21,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<span className={styles.tier}>CORE</span> <nav aria-label=\"Rebound core pages\">{CORE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, website.id)} key={item.href}>{item.label}</Link>)}</nav> <Link aria-current=\"page\" className={styles.agentLink} href={siteScopedHref(\"/app/agent\", website.id)}>✦ Ask Rebound</Link>"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:22:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 22,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<nav aria-label=\"Rebound core pages\">{CORE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, website.id)} key={item.href}>{item.label}</Link>)}</nav> <Link aria-current=\"page\" className={styles.agentLink} href={siteScopedHref(\"/app/agent\", website.id)}>✦ Ask Rebound</Link> <span className={styles.tier}>TOOLS</span>"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:24:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 24,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<span className={styles.tier}>TOOLS</span> <nav aria-label=\"Existing Rebound SEO tools\">{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, website.id)} key={item.href}>{item.label}</Link>)}</nav> <p className={styles.account}>{website.domain}</p>"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:28:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 28,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<section className={styles.main}> <header className={styles.topbar}><div><h1>Ask Rebound</h1><span>your site-aware SEO operating partner</span></div><Link href={siteScopedHref(\"/app/home\", website.id)}>Back to Home</Link></header> {children}"
+  },
+  {
+    "control_id": "src/components/agent/agent-shell.tsx:30:Link:1",
+    "file": "src/components/agent/agent-shell.tsx",
+    "line": 30,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, website.id)} key={item.href}>{item.label}</Link>)}</nav> </section>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:173:Link:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 173,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<aside className={styles.threads}> <div><span>CONVERSATIONS</span><Link href={\"/app/agent?site=\" + website.id}>+ New</Link></div> {conversations.length ? conversations.map((conversation) => <Link"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:174:Link:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 174,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div><span>CONVERSATIONS</span><Link href={\"/app/agent?site=\" + website.id}>+ New</Link></div> {conversations.length ? conversations.map((conversation) => <Link aria-current={conversation.id === conversationId ? \"page\" : undefined}"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:187:button:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 187,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<p>I can read your saved SEO evidence, explain the clearest move, and prepare a draft proposal for your approval.</p> <div>{starters.map((starter) => <button key={starter} onClick={() => void send(starter)} type=\"button\">{starter}</button>)}</div> </div> : messages.map((message) => <article className={message.role === \"user\" ? styles.user : styles.assistant} key={message.id}>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:187:onClick:2",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 187,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<p>I can read your saved SEO evidence, explain the clearest move, and prepare a draft proposal for your approval.</p> <div>{starters.map((starter) => <button key={starter} onClick={() => void send(starter)} type=\"button\">{starter}</button>)}</div> </div> : messages.map((message) => <article className={message.role === \"user\" ? styles.user : styles.assistant} key={message.id}>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:190:summary:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 190,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<strong>{message.role === \"user\" ? \"You\" : \"Rebound\"}</strong> {message.work?.length ? <details open><summary>Work completed</summary><ul>{message.work.map((item) => <li key={item}>{item}</li>)}</ul></details> : null} {message.text ? <p>{message.text}</p> : null}"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:198:button:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 198,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<ul>{proposal.outlineBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> {proposal.status === \"proposed\" ? <div><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"approve\")} type=\"button\">Create draft</button><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"reject\")} type=\"button\">Reject</button></div> : <strong>{proposal.status === \"approved\" ? proposal.href ? <Link href={proposal.href}>Draft created ·"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:198:onClick:2",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 198,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<ul>{proposal.outlineBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> {proposal.status === \"proposed\" ? <div><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"approve\")} type=\"button\">Create draft</button><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"reject\")} type=\"button\">Reject</button></div> : <strong>{proposal.status === \"approved\" ? proposal.href ? <Link href={proposal.href}>Draft created ·"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:198:button:3",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 198,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<ul>{proposal.outlineBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> {proposal.status === \"proposed\" ? <div><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"approve\")} type=\"button\">Create draft</button><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"reject\")} type=\"button\">Reject</button></div> : <strong>{proposal.status === \"approved\" ? proposal.href ? <Link href={proposal.href}>Draft created ·"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:198:onClick:4",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 198,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<ul>{proposal.outlineBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> {proposal.status === \"proposed\" ? <div><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"approve\")} type=\"button\">Create draft</button><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"reject\")} type=\"button\">Reject</button></div> : <strong>{proposal.status === \"approved\" ? proposal.href ? <Link href={proposal.href}>Draft created ·"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:198:Link:5",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 198,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<ul>{proposal.outlineBullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> {proposal.status === \"proposed\" ? <div><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"approve\")} type=\"button\">Create draft</button><button disabled={decidingProposalId === proposal.id} onClick={() => void decide(proposal, \"reject\")} type=\"button\">Reject</button></div> : <strong>{proposal.status === \"approved\" ? proposal.href ? <Link href={proposal.href}>Draft created ·"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:201:form:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 201,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <form className={styles.composer} onSubmit={submit}> <span className={styles.composerLabel}>What outcome do you want?</span>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:201:onSubmit:2",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 201,
+    "type": "onSubmit",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <form className={styles.composer} onSubmit={submit}> <span className={styles.composerLabel}>What outcome do you want?</span>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:203:textarea:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 203,
+    "type": "textarea",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<span className={styles.composerLabel}>What outcome do you want?</span> <textarea aria-label=\"Message Rebound\" maxLength={4_000} onChange={(event) => setInput(event.target.value)} placeholder=\"Ask about your SEO, content, calendar, distribution, or progress…\" rows={3} value={input} /> <div><span>{error || \"Rebound uses saved workspace evidence. Nothing publishes automatically.\"}</span>{working ? <button onClick={() => controller.current?.abort()} type=\"button\">Stop</button> : <button disabled={!"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:203:onChange:2",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 203,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<span className={styles.composerLabel}>What outcome do you want?</span> <textarea aria-label=\"Message Rebound\" maxLength={4_000} onChange={(event) => setInput(event.target.value)} placeholder=\"Ask about your SEO, content, calendar, distribution, or progress…\" rows={3} value={input} /> <div><span>{error || \"Rebound uses saved workspace evidence. Nothing publishes automatically.\"}</span>{working ? <button onClick={() => controller.current?.abort()} type=\"button\">Stop</button> : <button disabled={!"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:204:button:1",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 204,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<textarea aria-label=\"Message Rebound\" maxLength={4_000} onChange={(event) => setInput(event.target.value)} placeholder=\"Ask about your SEO, content, calendar, distribution, or progress…\" rows={3} value={input} /> <div><span>{error || \"Rebound uses saved workspace evidence. Nothing publishes automatically.\"}</span>{working ? <button onClick={() => controller.current?.abort()} type=\"button\">Stop</button> : <button disabled={!input.trim()} type=\"submit\">Send</button>}</div> </form>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:204:onClick:2",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 204,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<textarea aria-label=\"Message Rebound\" maxLength={4_000} onChange={(event) => setInput(event.target.value)} placeholder=\"Ask about your SEO, content, calendar, distribution, or progress…\" rows={3} value={input} /> <div><span>{error || \"Rebound uses saved workspace evidence. Nothing publishes automatically.\"}</span>{working ? <button onClick={() => controller.current?.abort()} type=\"button\">Stop</button> : <button disabled={!input.trim()} type=\"submit\">Send</button>}</div> </form>"
+  },
+  {
+    "control_id": "src/components/agent/agent-workspace.tsx:204:button:3",
+    "file": "src/components/agent/agent-workspace.tsx",
+    "line": 204,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<textarea aria-label=\"Message Rebound\" maxLength={4_000} onChange={(event) => setInput(event.target.value)} placeholder=\"Ask about your SEO, content, calendar, distribution, or progress…\" rows={3} value={input} /> <div><span>{error || \"Rebound uses saved workspace evidence. Nothing publishes automatically.\"}</span>{working ? <button onClick={() => controller.current?.abort()} type=\"button\">Stop</button> : <button disabled={!input.trim()} type=\"submit\">Send</button>}</div> </form>"
   },
   {
     "control_id": "src/components/analytics-dashboard.tsx:103:button:1",
@@ -6136,6 +6361,15 @@
     "route": "component",
     "side_effect_class": 0,
     "context": "<span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref(\"/account\", websiteId)}>Account</Link></div></div> </aside>"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:55:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 55,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<section className={styles.main}> <header className={styles.topbar}><div><h1>{title ?? current?.label ?? \"Rebound SEO\"}</h1><span>{subtitle ?? PAGE_SUBTITLES[active] ?? \"read-only workspace\"}</span></div><WebsiteSwitcher active={active} className={styles.mobileSiteContext} websiteId={websiteId} websites={websites} /><div className={styles.topbarActions}><Link className={styles.askRebound} href={siteScopedHref(\"/app/agent\", websiteId)}>✦ Ask Rebound</Link><EvidenceChip fallback={searchConnected ?"
   },
   {
     "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:Link:1",

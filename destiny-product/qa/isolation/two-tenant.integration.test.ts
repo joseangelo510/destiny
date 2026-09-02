@@ -4,16 +4,14 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect, test } from "vitest";
 import { assertLoopbackSupabaseUrl } from "../../scripts/qa-isolation-environment.mjs";
-
+import { verifyAgentIsolation } from "./agent-rls";
 type RowResult = { id: string } & Record<string, unknown>;
 type Client = SupabaseClient;
-
 type ReadIsolationRow = {
   table: string;
   key: string;
   value: string;
 };
-
 type Tenant = {
   userId: string;
   organizationId: string;
@@ -801,6 +799,8 @@ test("three real local users cannot read, mutate, or blend each other's website 
     }
     await verifyPrivilegedEdgeFunctionDenials(a, b);
     await grantSharedMembership(a, c);
+    // Runtime coverage: "agent_conversations", "agent_messages", "agent_proposals".
+    await verifyAgentIsolation({ owner: a, outsider: b, sameOrganizationMember: c });
     await verifyMemberCannotEscalate(a, c, b);
     await verifyRevokedMembership(a, c);
     verifyExecutableAudit(a, b);

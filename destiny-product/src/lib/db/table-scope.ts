@@ -1,4 +1,7 @@
 export const SITE_SCOPED_TABLES = [
+  "agent_conversations",
+  "agent_messages",
+  "agent_proposals",
   "article_drafts",
   "audits",
   "competitors",
