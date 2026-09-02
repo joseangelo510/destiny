@@ -2660,3 +2660,136 @@ This release claims exactly: the D10.5 eight-defect remediation scope applied on
 ---
 
 D10.6 issued. Nothing has been executed under this release. Execution authority begins at section 5 step 1 and terminates automatically on any section 8 stop condition.
+
+### D10.6 completion receipts
+
+Status: **CLOSED COMPLETE on 2026-09-01**. The authorized wrapper landed, the
+single production dispatch completed successfully, the live invariants passed,
+and both saved websites passed authenticated read-only recertification. This
+receipt authorizes no further deploy, rollback, CMS write, keyword mutation,
+credential entry, email, report, social send, or ClearCheck orphan repair.
+
+#### Governance and immutable release identity
+
+- Governance PR: <https://github.com/joseangelo510/destiny/pull/89>
+- Governance merge SHA:
+  `d758639215c624ea9acacbaafb01ad62436e56d8`
+- Annotated tag: `rebound-seo-v1.1.2`
+- Tag object:
+  `e2d2070b0642da03818628e8ce0806d391e2377e`
+- Tag commit:
+  `4f42e08f404b34700ea8b1d0d216b2624654150c`
+- Tag tree:
+  `050969d943cba03e8414d8305939347cbd2f0cf8`
+- Before implementation, `rebound-seo-v1.1.2-prod` returned
+  `MANIFEST_UNKNOWN` in both GHCR and the Fly registry.
+
+Rollback revalidation capture 1 and capture 2 both recorded exactly one
+started, healthy Fly machine `860714be531938` in `sjc`, outgoing child digest
+`sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3`,
+image revision `ed8c29aff96f8b4a2644b3806077ceb6863fd72b`, image version
+`rebound-seo-v1.1.1`, and public stamps for that same SHA and tag with
+environment `production` and site `https://app.reboundseo.com`. The second
+capture was taken after the no-movement check confirmed protected main at the
+implementation merge SHA and immediately before the only deploy dispatch.
+
+#### Protected implementation
+
+- Implementation PR: <https://github.com/joseangelo510/destiny/pull/90>
+- RED commit:
+  `d96d3d7bf4bab7bddcea4eae6580ef18287a39ec`
+- Preserved failing RED run:
+  <https://github.com/joseangelo510/destiny/actions/runs/33587689679>
+- GREEN head:
+  `b500eaa6e25fe79aff9451ae4789cb3fe29035db`
+- Final GREEN harness, 1,272 tests:
+  <https://github.com/joseangelo510/destiny/actions/runs/33587839268>
+- Evidence-complete checklist guard:
+  <https://github.com/joseangelo510/destiny/actions/runs/33588331828>
+- Evidence-complete policy guard:
+  <https://github.com/joseangelo510/destiny/actions/runs/33588331829>
+- Evidence-complete staging run:
+  <https://github.com/joseangelo510/destiny/actions/runs/33588331825>
+- Implementation merge SHA:
+  `e29ab018483f21f74f1341c2c55e6fa9576fc1f7`
+
+The final implementation diff remained exactly the authorized three files:
+
+1. `.github/workflows/rebound-production-deploy.yml`
+2. `Dockerfile`
+3. `destiny-product/qa/rules/rebound-production-wrapper.test.ts`
+
+#### Single production dispatch and live evidence
+
+- Production dispatch and successful conclusion:
+  <https://github.com/joseangelo510/destiny/actions/runs/33588528053>
+- Immutable production evidence artifact: `9830995267`, digest
+  `sha256:67d8a42b53894d89a065e8d1cb23e0c388cc8970f54b4dcc90adec2e27c5109c`
+- Live machine: exactly one started machine `860714be531938` in `sjc`
+- Live child image digest:
+  `sha256:6fe1106aadb5fbe2367581302b106f27f508378af213171ea2c44077aa23261a`
+- Live image revision:
+  `4f42e08f404b34700ea8b1d0d216b2624654150c`
+- Live image version: `rebound-seo-v1.1.2`
+- Public build stamps: SHA
+  `4f42e08f404b34700ea8b1d0d216b2624654150c`, tag
+  `rebound-seo-v1.1.2`, environment `production`, site
+  `https://app.reboundseo.com`
+- Fly health check: passing with output
+  `4f42e08f404b34700ea8b1d0d216b2624654150c`
+- Certificate: `app.reboundseo.com` is `Ready`, configured, with the Fly
+  certificate present
+- Root: HTTP 200
+- Independent full inventory sweep: 87 of 87 materialized routes, zero
+  unresolved brackets, zero curl errors, zero 5xx; status distribution was 37
+  HTTP 200, 49 HTTP 401, and one HTTP 405
+- Unauthenticated `POST /api/progress/report`: HTTP 401
+- No email, progress report, social post, or other outbound send was emitted.
+  The report probe was unauthenticated and rejected with 401, and no send
+  control was activated during recertification.
+
+#### Authenticated read-only saved-site recertification
+
+Both saved workspaces loaded Home, Content, Calendar, Distribution, and
+Progress under the correct site selector. Existing tool links remained present,
+and no approve, decline, schedule, connect, sync, send, CMS, keyword, or other
+mutation control was activated.
+
+`joseangelostudios.com` (`d8885d33-2047-45fa-a0c7-4ccd44fa4932`):
+
+- Home, Content, Calendar, Distribution, and Progress loaded current saved
+  state; session move 1 and queue item 1 both named the keyword-strategy review.
+- Keyword Strategy showed 23 to review, 2 approved, and 0 declined. Rank Tracker
+  showed 2 Plan keywords plus 4 Watchlist keywords, exactly 6 tracked; Home also
+  showed 6 active tracked keywords.
+- Search Console was connected. Google Analytics and WordPress were honestly
+  shown as not connected. No credential was entered.
+- The public root and `/wp-json/` both returned HTTP 200.
+
+`clearcheck.app` (`99a7af37-6588-4b97-a848-8877760182a9`):
+
+- Home, Content, Calendar, Distribution, and Progress loaded current saved
+  state; session move 1 and queue item 1 both named the keyword-strategy review.
+- Keyword Strategy showed 35 to review, 6 approved, and 1 declined. Rank Tracker
+  showed 6 Plan keywords plus 0 Watchlist keywords, exactly 6 tracked; Home also
+  showed 6 active tracked keywords.
+- WordPress was still `Verified` and connected to `https://clearcheck.app`.
+  Search Console was connected; Google Analytics retained its saved connection
+  and truthfully showed `Sync overdue`.
+- The public root and `/wp-json/` both returned HTTP 200.
+
+The eight D10.5 remediation behaviors were observed in production: schedule
+`needs_review` rows handed off to the existing publishing-plan anchor; Content
+counted and surfaced the one ClearCheck item needing user review; the core quest
+and Progress used the current audit rather than duplicating historical audit
+tasks; Home rendered the current saved-site month; publishing-plan dates were
+shown in the saved schedule without invented cadence; Distribution labeled
+stale opportunities and unverified interlinks as stuck or awaiting proof;
+desktop site context remained correct across all five tabs; and Keyword
+Strategy, Rank Tracker, and Home counts agreed for both sites.
+
+Claim boundary: D10.6 released exactly the D10.5 eight-defect remediation on top
+of v1.1.1 through the closed seven-pin wrapper. Schema, Auth, dependencies,
+legacy-tool behavior, CMS/user data, saved keyword decisions, and outbound state
+were not changed by this release or recertification. The nonreproduced React
+#418 log remains an unclaimed watch item.
