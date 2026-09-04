@@ -90,6 +90,25 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.calendar.events).toHaveLength(3);
   });
 
+  it("keeps the current month visible and carries approved keyword topics as unscheduled suggestions", () => {
+    const view = buildCalendarView({
+      now: new Date("2026-09-04T19:00:00Z"),
+      timeZone: "America/Los_Angeles",
+      items: [],
+      approvedKeywords: [
+        { id: "first", keyword: "youtube video production services", updated_at: "2026-09-03T18:00:00Z" },
+        { id: "second", keyword: "youtube seo checklist", updated_at: "2026-09-02T18:00:00Z" },
+      ],
+    });
+
+    expect(view.calendar).toMatchObject({ month: "September 2026", anchorDate: "2026-09-04", events: [] });
+    expect(view.calendar.suggestions).toEqual([
+      { id: "first", title: "Youtube video production services", approvedAt: "2026-09-03T18:00:00Z" },
+      { id: "second", title: "Youtube seo checklist", approvedAt: "2026-09-02T18:00:00Z" },
+    ]);
+    expect(view.stats.suggested).toBe(2);
+  });
+
   it("anchors Calendar to the current month and never offers a past day", () => {
     const view = buildCalendarView({
       now: new Date("2026-09-01T19:00:00Z"),
