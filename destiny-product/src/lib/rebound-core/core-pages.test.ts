@@ -185,6 +185,7 @@ describe("Rebound redesign Slice 2", () => {
 
   it("keeps completed work split between verified and user-reported evidence", () => {
     const view = buildProgressView({
+      now: new Date("2026-09-01T12:00:00Z"),
       quests: [
         { id: "verified", title: "Publish the guide", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" },
         { id: "reported", title: "Add the links", description: "Done", action_path: "/internal-links", status: "complete", verification_status: "unverified", completed_at: "2026-08-30T12:00:00Z" },
