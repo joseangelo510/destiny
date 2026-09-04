@@ -3128,3 +3128,199 @@ no staging, production, or environment rollback because none is touched.
   repository wins.
 - No production change, release, deploy, or frozen action is authorized by
   D10.8.
+
+## D10.9 — Owner-delegated execution of owner-attributed GitHub actions
+
+Decision name: `OWNER_DELEGATED_EXECUTION_GOV_1_2`
+
+Date: 2026-09-04
+
+Authority: Fable 5.1 High, on the explicit direction of Jose Gallegos:
+"We'll need to change that policy, because that is up to me, not Claude."
+
+Classification: HIGH (canonical policy, agent pointers, governance skill,
+governance enforcement code and test, PR template)
+
+Base: protected `main` at
+`573d237bf9083fffd3ab4c46a2aeb02140363bda`. The D10.8 record commit
+`c0daa602c7f58cc2a5bbd10ca56d2e41672fb7a8` (PR #98, reviewed GO, unmerged
+at decision time) is carried unchanged by this decision's PR.
+
+Policy verified: `HARNESS_POLICY.md` at `573d237b` is identical to the text
+verified for D10.8 at `77b0e0d0`. The repository wins over the cloud pointer.
+
+Status: DECIDED, pending owner authorization. Implementation may begin only
+after this block is committed on the implementation branch ahead of every
+implementation commit, and the rule takes effect only when Jose personally
+applies `cto-approved` and `policy-change` and merges the PR. Nothing in
+D10.9 authorizes a production deployment, release tag, `container-staging`
+push, migration, or any other frozen action.
+
+### Owner directive and what it does and does not change
+
+Jose remains the sole approval authority. This decision does not move any
+decision to Fable or Codex. It changes one thing: an owner-attributed
+GitHub action (`cto-approved`, `policy-change`, protected merge) may be
+executed by Codex, from Jose's authenticated GitHub session, when Jose has
+issued a valid Owner Execution Authorization (OEA) for that exact PR and
+head. Delegation transfers the click, never the decision.
+
+The rule cannot apply to the PR that introduces it. Until this decision is
+merged, GOV-1 and GOV-1.1 require Jose's personal click, so the D10.9 PR is
+the last PR that Jose must label and merge personally. Any earlier claim of
+delegation is invalid.
+
+### Decision
+
+1. A valid OEA is a standalone message from Jose Gallegos to Codex in the
+   live session, in the form `OEA #<pr> <40-char head>: <actions>`, where
+   actions is a comma-separated subset of `cto-approved`, `policy-change`,
+   and `merge`. It names exactly one PR and one head. "Yes", "go",
+   "approve", "just do it", a short SHA, or a Codex-drafted message that
+   Jose merely affirms is not an OEA. Codex may quote the live PR number,
+   head, and remaining actions so Jose can copy them.
+2. An OEA is single-use and expires 60 minutes after issuance. It is void
+   earlier if the head changes, any required check is red, missing, or at
+   another SHA, the PR has conflicts, or Jose later says stop, hold, or
+   wait.
+3. Execution requires the existing Fable 5.1 `GO` receipt at the same head
+   (D10.8). Fable does not gate Jose's execution decision; Fable gates the
+   code. A HIGH PR must carry its deploy-log decision link. A PR touching
+   `HARNESS_POLICY.md` must list `policy-change` in the OEA.
+4. Before the first action Codex posts a PR comment beginning `Owner
+   execution authorization` with `Executed by: Codex`, `Authorized by: Jose
+   Gallegos (joseangelo510)`, the OEA verbatim on an `OEA:` line,
+   `Authorized at:` as an ISO-8601 UTC timestamp, `Authorized head:`, and
+   `Authorized actions:`. Labels come after the comment; guards re-run
+   green at the same head; only then the merge. Outcome is recorded on the
+   PR and in the completion report as "executed under OEA".
+5. `policy-guard` enforces consistency mechanically: the latest delegation
+   record must name the PR head, must authorize every owner label present,
+   and every owner label must be applied after the record was posted and
+   within 60 minutes of `Authorized at:`. A record whose first line says
+   `void` is ignored. Absence of a record means a personal act by Jose.
+6. Codex may take no other action from Jose's authenticated GitHub session.
+   Fabricating, back-dating, altering, or reusing an OEA, or acting without
+   one, is a HIGH incident recorded in this log.
+7. Residual risk, accepted by Jose: delegated actions are attributed to
+   `joseangelo510` on GitHub; the delegation record and Jose's own session
+   transcript are the audit sources. A separate executor identity for
+   delegated actions, which would make the GitHub trail itself attribute
+   the click to Codex, may be adopted only under a future recorded decision.
+8. The policy revision label becomes `GOV-1.2`. The policy ID stays `GOV-1`.
+
+### Amendment to D10.8 § Protected-PR order
+
+D10.8's G0/G1 split is superseded. The D10.8 record commit is carried
+unchanged as the first commit of this decision's PR, and the D10.8
+implementation (GOV-1.1 content) ships in the same GREEN commit as the
+D10.9 implementation. Both records precede every implementation commit, as
+the required workflow demands. D10.8's decision text is not edited. PR #98
+is closed unmerged with a comment pointing to this decision's PR once that
+PR is open; its reviewed commit lives on in the new branch.
+
+### Allowed files (exhaustive)
+
+- `destiny-product/DEPLOY_LOG.md` (record commits only: the carried D10.8
+  commit and one `green:` commit appending this block verbatim)
+- `HARNESS_POLICY.md`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.claude/skills/destiny-harness/SKILL.md`
+- `docs/DESTINY_GOVERNANCE_POINTER.md`
+- `docs/HARNESS_RUNBOOK.md`
+- `.github/pull_request_template.md`
+- `destiny-product/scripts/governance-policy.mjs`
+- `destiny-product/qa/rules/harness-governance.test.ts`
+
+### Forbidden and excluded
+
+- `.github/workflows/**`. No CI or deploy workflow change: `policy-guard`
+  already has `issues: read` and `pull-requests: read`, which is all the
+  comment and event reads need.
+- Any executor account, GitHub App, token, secret, or credential. None is
+  created, referenced, or stored.
+- Schema, migrations, RLS, auth, secrets, env, runtime config,
+  dependencies, `package.json`, the lockfile, and any product source under
+  `destiny-product/src/**`.
+- Release tag, `container-staging` push, production or parallel-launch
+  change, Replit, DNS.
+- Historical design documents under `docs/design/**`.
+- Editing the D10.8 block or any prior decision text.
+
+### Protected-PR sequence
+
+Branch `codex/gov-1-2-owner-delegated-execution` created from
+`c0daa602c7f58cc2a5bbd10ca56d2e41672fb7a8`, so its first commit is the
+reviewed D10.8 record. Then, in this order:
+
+1. `green: record D10.9 owner-delegated execution decision` touching only
+   `destiny-product/DEPLOY_LOG.md`, appending this block verbatim after the
+   D10.8 block.
+2. `test-change: require Fable 5.1 receipts and validate owner-delegated
+   execution records` touching only
+   `destiny-product/qa/rules/harness-governance.test.ts`. Justification:
+   the checklist and policy-guard contracts change, so the existing
+   complete-body fixture must carry the Fable receipt and the guard tests
+   must cover delegation. RED: fails two cases against `main`'s
+   `governance-policy.mjs` and the policy-text assertions.
+3. `green: enforce Fable 5.1 receipts and owner-delegated execution; revise
+   GOV-1 to GOV-1.2` touching only the eight non-test, non-log files.
+
+PR classification HIGH. Fable 5.1 reviews the final head and the PR body
+carries the receipt. Labels `cto-approved` and `policy-change` and the
+protected merge are Jose's personal clicks. This is the final mandatory
+personal click set; every later governed PR may use an OEA.
+
+Alternative, at Jose's choice: merge PR #98 personally first, then branch
+this PR from the resulting `main` with the same three commits. That costs
+one extra personal click set and changes nothing else.
+
+### Tests and gates
+
+- RED evidence: the test-change commit SHA and the failing Vitest output
+  against `main`.
+- GREEN evidence: all seven cases in `harness-governance.test.ts` pass at
+  the PR head.
+- Full `pnpm gate` in GitHub Actions at the PR head. `policy-guard` must
+  classify HIGH with both labels valid and report `execution: personal`;
+  `checklist-guard` must run the new receipt logic against this PR's own
+  receipt; `harness-gates` green, all at the merge SHA.
+- Touched routes: none. The touched-route evidence states that no product
+  route changed and records the staging build stamp at the PR head with
+  zero 5xx.
+
+### Stop conditions
+
+- `HARNESS_POLICY.md` at the working SHA is unreachable or differs from the
+  text this decision was made against: stop.
+- Any file outside the allowed list, any edit to the D10.8 block, or any
+  DEPLOY_LOG.md change other than the two record commits: stop.
+- Any required check red, skipped, missing, or at another SHA: not
+  complete.
+- Any attempt to apply a label or merge this PR under an OEA: invalid; the
+  rule is not in force until this PR merges.
+- Jose does not apply the labels: nothing merges.
+
+### Rollback
+
+A merge revert of this PR restores GOV-1 text and the previous guard in one
+HIGH PR (`cto-approved` and `policy-change`, personal, since the reverted
+policy no longer recognizes an OEA). Both record blocks remain in this log
+as history and are annotated, not deleted. No environment, staging, or
+production rollback exists because none is touched.
+
+### Claim boundary and completion
+
+- Complete: merged with `cto-approved` and `policy-change` applied
+  personally by `joseangelo510`; `policy-guard`, `checklist-guard`, and
+  `harness-gates` green at the merge SHA; RED and GREEN commit SHAs listed;
+  the Fable 5.1 receipt names the merged head; the completion receipt
+  states "Owner actions: personal by joseangelo510".
+- After merge Jose updates the Claude Project cloud pointer to name the
+  merge SHA as the canonical policy commit and `GOV-1.2` as the policy
+  version.
+- From the merge onward, PR #98's superseded status is recorded by its
+  closing comment; no further D10.8 G0 or G1 PR is opened.
+- No production change, release, deploy, or frozen action is authorized by
+  D10.9.
