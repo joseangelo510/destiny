@@ -6057,6 +6057,24 @@
     "context": "</div> : <div className={styles.calendarActionEmpty}><strong>{openDates.length ? \"No approved draft is ready\" : \"No open day remains in this month\"}</strong><p>{approvedDrafts.message ?? \"Use Content Studio to review the next draft or publishing date.\"}</p></div>} <Link className={styles.calendarActionSecondary} href={studioHref}>Open Content Studio</Link> {notice ? <small className={styles.calendarActionNotice} role=\"status\">{notice}</small> : null}"
   },
   {
+    "control_id": "src/components/rebound-core/competitor-audit-refresh.tsx:25:button:1",
+    "file": "src/components/rebound-core/competitor-audit-refresh.tsx",
+    "line": 25,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className={styles.auditRefresh}><button disabled={state === \"running\"} onClick={() => void run()} type=\"button\">{state === \"running\" ? \"Starting audit…\" : \"Run a fresh audit\"}</button>{state === \"error\" ? <span role=\"alert\">The audit could not start. Try again.</span> : null}</div>; }"
+  },
+  {
+    "control_id": "src/components/rebound-core/competitor-audit-refresh.tsx:25:onClick:2",
+    "file": "src/components/rebound-core/competitor-audit-refresh.tsx",
+    "line": 25,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <div className={styles.auditRefresh}><button disabled={state === \"running\"} onClick={() => void run()} type=\"button\">{state === \"running\" ? \"Starting audit…\" : \"Run a fresh audit\"}</button>{state === \"error\" ? <span role=\"alert\">The audit could not start. Try again.</span> : null}</div>; }"
+  },
+  {
     "control_id": "src/components/rebound-core/core-pages.tsx:22:a:1",
     "file": "src/components/rebound-core/core-pages.tsx",
     "line": 22,
@@ -6156,22 +6174,22 @@
     "context": "export function HomeCalendar({ result }: { result: PanelResult<CalendarSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Open editorial calendar\" href=\"/content#publishing-plan\" subtitle=\"solid = your move · dashed = automatic · lime = verified\" title=\"The month\" />{result.state !== \"ready\" || !result.data ? <div className={styles.calendarEmpty}><p>{result.message}</p><Link href=\"/content#publishing-plan\">Open the existing editorial calendar</Link></div> : <><MonthCalendar "
   },
   {
-    "control_id": "src/components/rebound-core/home-competitors.tsx:12:Link:1",
+    "control_id": "src/components/rebound-core/home-competitors.tsx:13:Link:1",
     "file": "src/components/rebound-core/home-competitors.tsx",
-    "line": 12,
+    "line": 13,
     "type": "Link",
     "route": "component",
-    "side_effect_class": 3,
-    "context": "export function HomeCompetitors({ result }: { result: PanelResult<CompetitorSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"saved sites and evidence coverage\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><tr><th>Site</th><th>Relationship</th><"
+    "side_effect_class": 1,
+    "context": "export function HomeCompetitors({ result, websiteId }: { result: PanelResult<CompetitorSummary>; websiteId: string }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"latest saved audit and DataForSEO overlap\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><"
   },
   {
-    "control_id": "src/components/rebound-core/home-competitors.tsx:12:Link:2",
+    "control_id": "src/components/rebound-core/home-competitors.tsx:13:Link:2",
     "file": "src/components/rebound-core/home-competitors.tsx",
-    "line": 12,
+    "line": 13,
     "type": "Link",
     "route": "component",
-    "side_effect_class": 3,
-    "context": "export function HomeCompetitors({ result }: { result: PanelResult<CompetitorSummary> }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"saved sites and evidence coverage\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><tr><th>Site</th><th>Relationship</th><"
+    "side_effect_class": 1,
+    "context": "export function HomeCompetitors({ result, websiteId }: { result: PanelResult<CompetitorSummary>; websiteId: string }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"latest saved audit and DataForSEO overlap\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><"
   },
   {
     "control_id": "src/components/rebound-core/home-dashboard.tsx:23:Link:1",
@@ -6224,7 +6242,7 @@
     "line": 10,
     "type": "a",
     "route": "component",
-    "side_effect_class": 0,
+    "side_effect_class": 1,
     "context": "<div className={styles.calendarGrid}><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>{cells.map((cell) => <section className={cell.inMonth ? styles.calendarDay : `${styles.calendarDay} ${styles.outsideMonth}`} key={cell.key}><span>{cell.date.getUTCDate()}</span>{cell.events.slice(0, 2).map((event) => <p className={styles[`event_${event.tone}`]} key={event.id}>{event.title}</p>)}{cell.inMonth && !cell.events.length && emptyDayHref ? <a aria-label="
   },
   {

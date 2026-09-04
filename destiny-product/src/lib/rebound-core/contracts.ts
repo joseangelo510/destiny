@@ -71,7 +71,15 @@ export type KeywordSummary = {
 
 export type CompetitorSummary = {
   websiteLabel: string;
-  competitors: Array<{ name: string; url: string | null }>;
+  sourceLabel: string | null;
+  fetchedAt: string | null;
+  competitors: Array<{
+    name: string;
+    url: string | null;
+    domain: string;
+    relationship: "Saved competitor" | "Search competitor";
+    sharedKeywords: number | null;
+  }>;
 };
 
 export type CalendarEvent = {
@@ -86,6 +94,7 @@ export type CalendarSummary = {
   month: string;
   anchorDate?: string;
   events: CalendarEvent[];
+  suggestions?: Array<{ id: string; title: string; approvedAt: string | null }>;
 };
 
 export type ReboundWebsite = {

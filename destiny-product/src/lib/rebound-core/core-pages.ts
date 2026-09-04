@@ -169,6 +169,22 @@ export function approvedCalendarDrafts(rows: unknown[], websiteId: string): Appr
   });
 }
 
+export function approvedKeywordCalendarSuggestions(rows: unknown[]): NonNullable<CalendarSummary["suggestions"]> {
+  const seen = new Set<string>();
+  return rows.flatMap((raw, index) => {
+    const row = record(raw);
+    const keyword = text(row.keyword);
+    const key = normalized(keyword);
+    if (!keyword || seen.has(key)) return [];
+    seen.add(key);
+    return [{
+      id: text(row.id) || `approved-topic-${index}-${key.replaceAll(" ", "-")}`,
+      title: sentence(keyword),
+      approvedAt: text(row.updated_at) || null,
+    }];
+  });
+}
+
 export function derivedCalendarCadence(items: unknown[], timeZone: string) {
   const dates = items.map(record).map((item) => Date.parse(text(item.scheduled_for))).filter(Number.isFinite).sort((left, right) => left - right);
   if (dates.length < 2) return {
@@ -245,7 +261,7 @@ function scheduleItemIsOverdue(row: JsonRecord, now: Date) {
   return Number.isFinite(scheduledAt) && scheduledAt < now.getTime();
 }
 
-export function buildCalendarView(input: { items: unknown[]; timeZone?: string; now?: Date }) {
+export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; timeZone?: string; now?: Date }) {
   const now = input.now ?? new Date();
   const anchorDate = calendarLocalDateKey(now, input.timeZone ?? "UTC");
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
@@ -274,9 +290,10 @@ export function buildCalendarView(input: { items: unknown[]; timeZone?: string; 
     state: row.state,
     tone: row.state === "verified_live" ? "verified" as const : row.state === "needs_review" || row.state === "failed" ? "move" as const : "automatic" as const,
   }));
+  const suggestions = approvedKeywordCalendarSuggestions(input.approvedKeywords ?? []);
   const needs = rows.find((row) => row.state === "needs_review") ?? rows.find((row) => row.overdue);
   return {
-    calendar: { month: monthLabelFromDateKey(anchorDate), anchorDate, events } satisfies CalendarSummary,
+    calendar: { month: monthLabelFromDateKey(anchorDate), anchorDate, events, suggestions } satisfies CalendarSummary,
     cadence: derivedCalendarCadence(input.items, input.timeZone ?? "UTC"),
     rows,
     needsYou: needs ? { title: needs.title, detail: needs.overdue ? "This saved publishing item is overdue and needs a resolution." : "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
@@ -285,6 +302,7 @@ export function buildCalendarView(input: { items: unknown[]; timeZone?: string; 
       needsUser: rows.filter((row) => row.state === "needs_review").length,
       scheduled: rows.filter((row) => (row.state === "scheduled" || row.state === "planned") && !row.overdue).length,
       stuck: rows.filter((row) => row.state === "failed" || row.overdue).length,
+      suggested: suggestions.length,
     },
   };
 }

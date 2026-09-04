@@ -125,6 +125,10 @@
 .competitorBody aside p { padding: 9px 0; border-top: 1px solid var(--sage-soft); color: var(--ink-soft); font-size: 12px; }
 .competitorBody aside p:first-of-type { margin-top: 4px; }
 .competitorBody aside a { color: var(--forest); font-size: 11.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.auditRefresh { display: grid; gap: 6px; margin-top: 12px; }
+.auditRefresh button { width: max-content; border: 0; border-radius: 9px; background: var(--forest); color: #fff; cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 8px 12px; }
+.auditRefresh button:disabled { cursor: wait; opacity: .65; }
+.auditRefresh span { color: var(--amber); font-size: 10.5px; }
 
 .calendarHead { display: flex; align-items: center; gap: 12px; padding: 4px 18px 0; }
 .calendarHead > strong { font-family: var(--serif); font-size: 14px; }
@@ -151,6 +155,15 @@
 .calendarAgenda time, .calendarAgenda span { color: var(--ink-soft); font-size: 11px; text-transform: capitalize; }
 .calendarAgenda strong { font-size: 12px; }
 .calendarAgenda .calendarAdd { justify-self: end; margin-top: 0; }
+.calendarSuggestions { border-top: 1px solid var(--sage-soft); padding: 12px 18px 15px; }
+.calendarSuggestions > header { display: flex; align-items: baseline; gap: 10px; }
+.calendarSuggestions > header strong { font-size: 12px; }
+.calendarSuggestions > header span { color: var(--ink-soft); font-size: 10.5px; }
+.calendarSuggestions > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 9px; }
+.calendarSuggestions article { display: grid; gap: 3px; min-width: 0; padding: 9px 10px; border: 1px dashed var(--sage); border-radius: 9px; background: var(--paper); }
+.calendarSuggestions article span { color: var(--forest); font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.calendarSuggestions article strong { overflow: hidden; font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+.calendarSuggestions article small { color: var(--ink-soft); font-size: 9.5px; }
 
 @media (max-width: 980px) and (min-width: 761px) {
   .dashboard { padding-inline: 20px; }
@@ -180,4 +193,5 @@
   .calendarAgenda { display: block; }
   .calendarHead > div { margin-left: 0; }
   .calendarHead { align-items: flex-start; flex-direction: column; }
+  .calendarSuggestions > div { grid-template-columns: 1fr; }
 }

@@ -5,3 +5,7 @@ export const CORE_NAVIGATION = [
   { label: "Distribution", href: "/app/distribution", cadence: "every_week" },
   { label: "Progress", href: "/app/progress", cadence: "every_week" },
 ] as const;
+
+export function workspaceHomeDestination(websiteId: string) {
+  return `/app/home?site=${encodeURIComponent(websiteId)}`;
+}
