@@ -3633,3 +3633,36 @@ and 8 only; every other section stands verbatim.
    two (before dispatch) remain mandatory and must be captured fresh.
 
 Nothing in A1 authorizes a tag, wrapper edit, dispatch, or any send.
+
+### D10.10 Addendum A2 — type-only relocation for the Agent withhold; rollback polling cadence
+
+Date: 2026-09-04. Authority: Fable 5.1 High. Amends D10.10 section 4 (PR-A)
+and section 7 only; every other section and A1 stand verbatim.
+
+1. PR-A preflight reproduced TS2307 at
+   `src/lib/drafts/createDraft.ts` line 3, which imports the type
+   `DraftProposalInput` from `@/lib/agent/types`, a module PR-A deletes. It
+   is the only importer of `@/lib/agent` outside the withheld directories.
+   Section 4's "untouched" list is amended: PR-A's green commit may edit
+   `src/lib/drafts/createDraft.ts` for exactly one type-only change: remove
+   the line-3 import and declare the identical shape locally as
+   `type DraftProposalInput = { title: string; targetKeyword: string;
+   angle: string; outlineBullets: string[] }`. No runtime statement, export
+   surface, signature, validation, or write path changes; the emitted
+   JavaScript is identical. Any other edit to that file is a stop.
+
+2. PR-A's test-change commit adds one targeted assertion (in a new
+   `src/lib/drafts/createDraft.test.ts` or an existing test file already
+   named in PR-A) that `createDraft.ts` contains no `@/lib/agent` import and
+   declares `DraftProposalInput` locally with those four fields. RED against
+   main, GREEN after the relocation. PR-A's commit discipline is otherwise
+   unchanged.
+
+3. Section 7 is corrected: rollback polling is the existing wrapper cadence,
+   60 attempts at 5-second intervals (five minutes), as already implemented
+   in `rebound-production-deploy.yml`. The "15 s × 20" wording was carried
+   from the D10.6 decision text, not the workflow. PR-C's three-file scope
+   is unchanged and permits only the seven pins and four Dockerfile
+   substitutions; no polling or other logic edit is authorized.
+
+Nothing in A2 authorizes a tag, wrapper edit, dispatch, or any send.
