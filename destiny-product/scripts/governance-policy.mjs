@@ -71,7 +71,60 @@ export function compareDependencyManifests(base, head) {
   return { high: reasons.length > 0, reasons };
 }
 
-export function evaluatePolicyGuard({ files, labels, labelActors, dependencyDecision }) {
+const OWNER_LABELS = ["cto-approved", "policy-change"];
+const OEA_PATTERN = /\bOEA\s+#(\d+)\s+([0-9a-f]{40})\s*:\s*([a-z-]+(?:\s*,\s*[a-z-]+)*)/i;
+const OEA_ACTIONS = new Set(["cto-approved", "policy-change", "merge"]);
+const OEA_WINDOW_MS = 60 * 60 * 1000;
+
+export function parseOwnerExecutionAuthorization(text = "", { prNumber, headSha } = {}) {
+  const match = String(text).match(OEA_PATTERN);
+  if (!match) return { ok: false, errors: ["No OEA found. Expected: OEA #<pr> <40-char head>: <actions>."] };
+  const errors = [];
+  const number = Number(match[1]);
+  const head = match[2].toLowerCase();
+  const actions = match[3].split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+  for (const action of actions) if (!OEA_ACTIONS.has(action)) errors.push(`Unknown OEA action: ${action}.`);
+  if (prNumber !== undefined && number !== Number(prNumber)) errors.push(`OEA names PR #${number}, not PR #${prNumber}.`);
+  if (headSha && head !== String(headSha).toLowerCase()) errors.push(`OEA names head ${head}, not the PR head ${String(headSha).toLowerCase()}.`);
+  return { ok: errors.length === 0, number, head, actions, errors };
+}
+
+function recordField(body, label) {
+  return body.match(new RegExp(`^\\s*-\\s*${label}:\\s*(.+?)\\s*$`, "im"))?.[1] ?? "";
+}
+
+export function evaluateDelegation({ record, prNumber, headSha, labels = [], labelTimes = {} }) {
+  if (!record) return { mode: "personal", errors: [] };
+  const errors = [];
+  const body = String(record.body ?? "");
+  if (!/^\s*Owner execution authorization/i.test(body)) return { mode: "personal", errors: [] };
+  if (/^\s*Owner execution authorization[^\n]*\bvoid\b/i.test(body)) return { mode: "void", errors: [] };
+  if (!/^\s*-\s*Executed by:\s*Codex\s*$/im.test(body)) errors.push("Delegation record must state Executed by: Codex.");
+  if (!/^\s*-\s*Authorized by:\s*Jose Gallegos \(joseangelo510\)/im.test(body)) errors.push("Delegation record must state Authorized by: Jose Gallegos (joseangelo510).");
+  const oea = parseOwnerExecutionAuthorization(recordField(body, "OEA"), { prNumber, headSha });
+  errors.push(...oea.errors);
+  const recordedHead = recordField(body, "Authorized head").toLowerCase();
+  if (!/^[0-9a-f]{40}$/.test(recordedHead)) errors.push("Delegation record must state Authorized head as a full 40-character SHA.");
+  else if (headSha && recordedHead !== String(headSha).toLowerCase()) errors.push(`Delegation record names head ${recordedHead}, not the PR head ${String(headSha).toLowerCase()}.`);
+  const authorizedAt = Date.parse(recordField(body, "Authorized at"));
+  if (!Number.isFinite(authorizedAt)) errors.push("Delegation record must state Authorized at as an ISO-8601 timestamp.");
+  const recordedActions = recordField(body, "Authorized actions").split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+  if (oea.ok && recordedActions.join(",") !== oea.actions.join(",")) errors.push("Authorized actions must match the OEA action list exactly.");
+  const postedAt = Date.parse(record.created_at ?? "");
+  for (const label of labels.map((item) => item.toLowerCase())) {
+    if (!OWNER_LABELS.includes(label)) continue;
+    if (oea.ok && !oea.actions.includes(label)) errors.push(`Label ${label} is present but the OEA does not authorize it.`);
+    const appliedAt = Date.parse(labelTimes[label] ?? "");
+    if (!Number.isFinite(appliedAt)) continue;
+    if (Number.isFinite(postedAt) && appliedAt < postedAt) errors.push(`Label ${label} was applied before the delegation record was posted.`);
+    if (Number.isFinite(authorizedAt) && (appliedAt < authorizedAt || appliedAt - authorizedAt > OEA_WINDOW_MS)) {
+      errors.push(`Label ${label} was applied outside the 60-minute OEA window.`);
+    }
+  }
+  return { mode: "delegated", oea: oea.ok ? { number: oea.number, head: oea.head, actions: oea.actions } : null, errors: [...new Set(errors)] };
+}
+
+export function evaluatePolicyGuard({ files, labels, labelActors, dependencyDecision, delegationRecord, prNumber, headSha, labelTimes }) {
   const classification = classifyGovernanceChange(files, dependencyDecision);
   const normalizedLabels = new Set(labels.map((label) => label.toLowerCase()));
   const actors = Object.fromEntries(Object.entries(labelActors).map(([key, value]) => [key.toLowerCase(), String(value).toLowerCase()]));
@@ -87,14 +140,36 @@ export function evaluatePolicyGuard({ files, labels, labelActors, dependencyDeci
     else if (actors["policy-change"] !== JOSE_LOGIN) errors.push(`policy-change must be applied by ${JOSE_LOGIN}.`);
   }
 
-  return { classification, errors };
+  const delegation = evaluateDelegation({ record: delegationRecord, prNumber, headSha, labels, labelTimes: labelTimes ?? {} });
+  errors.push(...delegation.errors);
+
+  return { classification, execution: delegation.mode, errors: [...new Set(errors)] };
 }
 
 function checked(body, label) {
   return new RegExp(`^- \\[x\\] ${label}`, "im").test(body);
 }
 
-export function evaluateChecklist(body = "") {
+export function evaluateFableReview(body = "", headSha = "") {
+  const errors = [];
+  if (!checked(body, "Fable 5.1 reviewed this PR at its current head")) {
+    errors.push("Every PR requires a checked Fable 5.1 review item.");
+  }
+  const verdict = body.match(/^\s*-\s*Verdict:\s*(GO|HOLD)\b/im)?.[1]?.toUpperCase() ?? null;
+  if (verdict !== "GO") errors.push("The Fable 5.1 verdict must be GO before merge.");
+  const reviewedHead = body.match(/^\s*-\s*Reviewed head:\s*([0-9a-f]{40})\b/im)?.[1]?.toLowerCase() ?? null;
+  if (!reviewedHead) {
+    errors.push("The Fable 5.1 review must name the reviewed head as a full 40-character SHA.");
+  } else if (headSha && reviewedHead !== String(headSha).toLowerCase()) {
+    errors.push(`The Fable 5.1 review covers ${reviewedHead}, not the PR head ${String(headSha).toLowerCase()}.`);
+  }
+  if (!/^\s*-\s*Reviewed on:\s*\d{4}-\d{2}-\d{2}\b/im.test(body)) {
+    errors.push("The Fable 5.1 review must record the review date as YYYY-MM-DD.");
+  }
+  return { verdict, reviewedHead, errors };
+}
+
+export function evaluateChecklist(body = "", context = {}) {
   const errors = [];
   const classifications = [...body.matchAll(/^- \[x\] Classification:\s*(MEDIUM|HIGH)\s*$/gim)].map((match) => match[1].toUpperCase());
   const unique = [...new Set(classifications)];
@@ -111,7 +186,11 @@ export function evaluateChecklist(body = "") {
 
   const runUrls = body.match(runUrlPattern) ?? [];
   if (runUrls.length < 3) errors.push("Vitest, ESLint, and Playwright require GitHub Actions run URLs.");
-  if (!/\b[0-9a-f]{40}\b/i.test(body)) errors.push("Build-stamp evidence must include the full 40-character PR SHA.");
+  const headSha = context.headSha ? String(context.headSha).toLowerCase() : "";
+  const stampBlock = body.match(/^- \[x\] Build stamp on staging matches this PR SHA[^\n]*\n((?:(?!^- \[)[^\n]*\n?)*)/im)?.[1] ?? "";
+  const stampSha = stampBlock.match(/\b[0-9a-f]{40}\b/i)?.[0]?.toLowerCase() ?? null;
+  if (!stampSha) errors.push("Build-stamp evidence must include the full 40-character PR SHA.");
+  else if (headSha && stampSha !== headSha) errors.push(`Build-stamp evidence names ${stampSha}, not the PR head ${headSha}.`);
   if (!/zero 5xx/i.test(body)) errors.push("Touched-route evidence must state zero 5xx.");
 
   if (unique[0] === "HIGH") {
@@ -124,7 +203,10 @@ export function evaluateChecklist(body = "") {
     errors.push("MEDIUM work must confirm that no frozen files or actions are touched.");
   }
 
-  return { classification: unique[0] ?? null, errors: [...new Set(errors)] };
+  const fable = evaluateFableReview(body, headSha);
+  errors.push(...fable.errors);
+
+  return { classification: unique[0] ?? null, fable: { verdict: fable.verdict, reviewedHead: fable.reviewedHead }, errors: [...new Set(errors)] };
 }
 
 function gitShowJson(sha, file) {
@@ -158,19 +240,35 @@ async function pullRequestContext(event) {
   const api = event.repository.url;
   const files = await githubPages(`${api}/pulls/${number}/files`, token);
   const events = await githubPages(`${api}/issues/${number}/events`, token);
+  const comments = await githubPages(`${api}/issues/${number}/comments`, token);
   const labelActors = {};
+  const labelTimes = {};
   for (const item of events) {
     const name = item.label?.name?.toLowerCase();
-    if (item.event === "labeled" && name) labelActors[name] = item.actor?.login ?? "";
-    if (item.event === "unlabeled" && name) delete labelActors[name];
+    if (item.event === "labeled" && name) {
+      labelActors[name] = item.actor?.login ?? "";
+      labelTimes[name] = item.created_at ?? "";
+    }
+    if (item.event === "unlabeled" && name) {
+      delete labelActors[name];
+      delete labelTimes[name];
+    }
   }
+  const delegationRecord = comments
+    .filter((comment) => /^\s*Owner execution authorization/i.test(comment.body ?? ""))
+    .map((comment) => ({ body: comment.body ?? "", created_at: comment.created_at ?? "", author: comment.user?.login ?? "" }))
+    .at(-1) ?? null;
 
   return {
     files: files.map((file) => file.filename),
     labels: (event.pull_request.labels ?? []).map((label) => label.name),
     labelActors,
+    labelTimes,
+    delegationRecord,
+    prNumber: number,
     body: event.pull_request.body ?? "",
     baseSha: event.pull_request.base?.sha,
+    headSha: event.pull_request.head?.sha ?? "",
   };
 }
 
@@ -182,7 +280,7 @@ async function main() {
   const context = await pullRequestContext(event);
 
   if (command === "checklist") {
-    const result = evaluateChecklist(context.body);
+    const result = evaluateChecklist(context.body, { headSha: context.headSha });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     if (result.errors.length) process.exitCode = 1;
     return;

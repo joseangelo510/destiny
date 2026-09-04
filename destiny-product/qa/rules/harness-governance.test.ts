@@ -5,8 +5,14 @@ import {
   classifyGovernanceChange,
   compareDependencyManifests,
   evaluateChecklist,
+  evaluateDelegation,
+  evaluateFableReview,
   evaluatePolicyGuard,
+  parseOwnerExecutionAuthorization,
 } from "../../scripts/governance-policy.mjs";
+
+const prHead = "6668c6a3601a96c66c9f726143af41d362039b3e";
+const staleHead = "0123456789abcdef0123456789abcdef01234567";
 
 const productRoot = process.cwd();
 const repositoryRoot = path.resolve(productRoot, "..");
@@ -24,7 +30,8 @@ const completeMediumBody = `
 ## Governance classification
 
 - [x] Classification: MEDIUM
-- [x] Fable review: Medium is sufficient
+- [x] Fable 5.1 confirmed this classification before implementation
+  - Confirmed on: 2026-09-04 at base: 77b0e0d002f6acda2168e438f99c9fb01d5bc767
 - [x] Frozen zone: no frozen files or actions are touched
 
 ## Harness evidence
@@ -36,9 +43,17 @@ const completeMediumBody = `
 - [x] Playwright journeys green
   - Run: https://github.com/joseangelo510/destiny/actions/runs/123
 - [x] Build stamp on staging matches this PR SHA
-  - Evidence: sha=0123456789abcdef0123456789abcdef01234567
+  - Evidence: sha=${prHead}
 - [x] Touched staging routes checked with zero 5xx
   - Evidence: /this-week=200
+
+## Fable 5.1 review
+
+- [x] Fable 5.1 reviewed this PR at its current head
+  - Verdict: GO
+  - Reviewed head: ${prHead}
+  - Reviewed on: 2026-09-04
+  - Record: pasted below
 `;
 
 describe("Destiny GOV-1 harness governance", () => {
@@ -108,13 +123,12 @@ describe("Destiny GOV-1 harness governance", () => {
   });
 
   it("rejects incomplete claims and requires a recorded CTO decision for HIGH work", () => {
-    expect(evaluateChecklist(completeMediumBody).errors).toEqual([]);
+    expect(evaluateChecklist(completeMediumBody, { headSha: prHead }).errors).toEqual([]);
     expect(evaluateChecklist(completeMediumBody.replace("- [x] Playwright", "- [ ] Playwright")).errors)
       .toEqual(expect.arrayContaining([expect.stringMatching(/unchecked/i)]));
 
     const highWithoutDecision = completeMediumBody
       .replace("Classification: MEDIUM", "Classification: HIGH")
-      .replace("Fable review: Medium is sufficient", "Fable review: High required")
       .replace(
         "Frozen zone: no frozen files or actions are touched",
         "Frozen zone changes are authorized by the linked CTO decision",
@@ -126,7 +140,77 @@ describe("Destiny GOV-1 harness governance", () => {
 - [x] CTO decision recorded before implementation
   - Decision: destiny-product/DEPLOY_LOG.md#cto-governance-decision-gov-1
 `;
-    expect(evaluateChecklist(highWithDecision).errors).toEqual([]);
+    expect(evaluateChecklist(highWithDecision, { headSha: prHead }).errors).toEqual([]);
+  });
+
+  it("requires a Fable 5.1 GO verdict recorded at the exact PR head on every PR", () => {
+    const withoutReceipt = completeMediumBody.replace(/## Fable 5\.1 review[\s\S]*$/, "");
+    expect(evaluateChecklist(withoutReceipt, { headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/Fable 5\.1 review item/i)]));
+
+    expect(evaluateChecklist(completeMediumBody.replace("Verdict: GO", "Verdict: HOLD"), { headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/verdict must be GO/i)]));
+
+    expect(evaluateChecklist(completeMediumBody.replace(`Reviewed head: ${prHead}`, `Reviewed head: ${staleHead}`), { headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/not the PR head/i)]));
+
+    expect(evaluateChecklist(completeMediumBody.replace("Reviewed on: 2026-09-04", "Reviewed on: today"), { headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/review date/i)]));
+
+    expect(evaluateChecklist(completeMediumBody.replace(`sha=${prHead}`, `sha=${staleHead}`), { headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/Build-stamp evidence names/i)]));
+
+    const review = evaluateFableReview(completeMediumBody, prHead);
+    expect(review).toMatchObject({ verdict: "GO", reviewedHead: prHead, errors: [] });
+  });
+
+  it("accepts owner-delegated execution only under a valid, fresh, head-bound OEA record", () => {
+    const record = (overrides: Partial<{ head: string; oeaHead: string; actions: string; at: string }> = {}) => {
+      const head = overrides.head ?? prHead;
+      const actions = overrides.actions ?? "cto-approved, merge";
+      return {
+        created_at: "2026-09-04T18:41:00Z",
+        author: "joseangelo510",
+        body: [
+          "Owner execution authorization",
+          "- Executed by: Codex",
+          "- Authorized by: Jose Gallegos (joseangelo510)",
+          `- OEA: OEA #98 ${overrides.oeaHead ?? head}: ${actions}`,
+          `- Authorized at: ${overrides.at ?? "2026-09-04T18:40:00Z"}`,
+          `- Authorized head: ${head}`,
+          `- Authorized actions: ${actions}`,
+        ].join("\n"),
+      };
+    };
+    const base = {
+      files: ["destiny-product/DEPLOY_LOG.md"],
+      labels: ["cto-approved"],
+      labelActors: { "cto-approved": "joseangelo510" },
+      dependencyDecision: { high: false, reasons: [] },
+      prNumber: 98,
+      headSha: prHead,
+      labelTimes: { "cto-approved": "2026-09-04T18:45:00Z" },
+    };
+
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: null })).toMatchObject({ execution: "personal", errors: [] });
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: record() })).toMatchObject({ execution: "delegated", errors: [] });
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: record({ head: staleHead }) }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/not the PR head/i)]));
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: record({ actions: "merge" }) }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/does not authorize it/i)]));
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: record(), labelTimes: { "cto-approved": "2026-09-04T18:30:00Z" } }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/before the delegation record/i)]));
+    expect(evaluatePolicyGuard({ ...base, delegationRecord: record(), labelTimes: { "cto-approved": "2026-09-04T19:50:00Z" } }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/60-minute OEA window/i)]));
+    expect(evaluateDelegation({ record: { ...record(), body: "Owner execution authorization - VOID (head changed)" }, prNumber: 98, headSha: prHead }))
+      .toMatchObject({ mode: "void", errors: [] });
+
+    expect(parseOwnerExecutionAuthorization("just go", { prNumber: 98, headSha: prHead }).ok).toBe(false);
+    expect(parseOwnerExecutionAuthorization("OEA #98 c0daa602: merge", { prNumber: 98, headSha: prHead }).ok).toBe(false);
+    expect(parseOwnerExecutionAuthorization(`OEA #98 ${prHead}: cto-approved, policy-change, merge`, { prNumber: 98, headSha: prHead }))
+      .toMatchObject({ ok: true, number: 98, head: prHead, actions: ["cto-approved", "policy-change", "merge"] });
+    expect(parseOwnerExecutionAuthorization(`OEA #99 ${prHead}: merge`, { prNumber: 98, headSha: prHead }).errors)
+      .toEqual(expect.arrayContaining([expect.stringMatching(/names PR #99/i)]));
   });
 
   it("installs one canonical policy with thin agent and cloud pointers", async () => {
@@ -145,12 +229,21 @@ describe("Destiny GOV-1 harness governance", () => {
     expect(policy).toContain("Complete means merged with all required checks green at the merge SHA");
     expect(policy).toContain("Conversational instructions do not override this file");
 
+    expect(policy).toContain("Fable 5.1 reviewed this PR at its current head");
+    expect(policy).toContain("## Owner Execution Authorization");
+    expect(policy).toContain("OEA #<pr> <40-char head>: <actions>");
+
     for (const pointer of ["AGENTS.md", "CLAUDE.md"]) {
       const contents = await readFile(path.join(repositoryRoot, pointer), "utf8");
       expect(contents).toContain("HARNESS_POLICY.md");
       expect(contents).toContain("Supabase Auth Site URL");
       expect(contents).toContain("container-staging");
       expect(contents).toContain("Never claim a gate passed without");
+    }
+
+    for (const mirror of ["AGENTS.md", "CLAUDE.md", ".claude/skills/destiny-harness/SKILL.md", "docs/DESTINY_GOVERNANCE_POINTER.md", ".github/pull_request_template.md"]) {
+      const contents = await readFile(path.join(repositoryRoot, mirror), "utf8");
+      expect(contents, mirror).toContain("Fable 5.1");
     }
   });
 });
