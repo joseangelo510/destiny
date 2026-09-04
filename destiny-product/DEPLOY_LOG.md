@@ -3324,3 +3324,312 @@ production rollback exists because none is touched.
   closing comment; no further D10.8 G0 or G1 PR is opened.
 - No production change, release, deploy, or frozen action is authorized by
   D10.9.
+
+## D10.10 — Release Rebound SEO v1.1.3: Home month grid, approved-topic suggestions, DataForSEO competitor evidence; Rebound Agent withheld
+
+Decision name: `RELEASE_V1_1_3_CALENDAR_COMPETITOR_AGENT_WITHHELD`
+
+Date: 2026-09-04
+
+Authority: Fable 5.1 High, under HARNESS_POLICY GOV-1.2 at protected `main`
+`34665a51fe39b3b31fff795d67be2004bc69b3af`.
+
+Classification: HIGH (production release tag, production wrapper repin and
+Dockerfile identity substitution, production deploy dispatch, withholding of
+a merged D10.7 surface). Every PR below carries a Fable 5.1 `GO` receipt at
+its final head; owner labels and merges may be executed under a valid OEA
+per GOV-1.2. Production deploy dispatch is authorized to Codex by this record
+exactly once, after every pre-dispatch gate, with Jose as rollback owner
+(precedent: the D10.x deployer clause).
+
+Status: DECIDED, pending owner authorization of the record PR.
+
+### 0. Recorded departure (not precedent)
+
+PR #99's `cto-approved`, `policy-change`, and merge were executed by Codex
+on Jose's express session instruction while GOV-1 still required personal
+clicks and before any OEA existed, recorded transparently at
+https://github.com/joseangelo510/destiny/pull/99#issuecomment-5545407930.
+No OEA was fabricated; the merge tree equals the reviewed head `4f39cbff`;
+no verdict changes. This paragraph is the log record GOV-1.2 requires for an
+owner-attributed action taken without an OEA. It is the owner's bootstrap
+departure, it is closed, and it is not precedent: from here every
+owner-attributed action follows GOV-1.2 § Owner Execution Authorization.
+
+### 1. Current state, verified on objects
+
+- Production runs `rebound-seo-v1.1.2` at `4f42e08f404b34700ea8b1d0d216b2624654150c`
+  (tag object `e2d2070b0642da03818628e8ce0806d391e2377e`), live stamps
+  confirmed by Codex; `/api/version` is unreliable, static stamps govern.
+- Since the tag, `main` gained: #88, #89, #90 (wrapper repin to v1.1.2), #91,
+  #94 (D10.7 record), **#95 Rebound Agent** (`eaf0d7d`), #96 login link
+  (`77b0e0d`), #97 calendar/keyword/competitor (`573d237`, tree identical to
+  the reviewed head `6668c6a3`), #99 GOV-1.2 (`34665a51`).
+- `20260902150330_agent_vertical_slice_v1.sql` is committed and unapplied in
+  production. D10.7 forbids its production apply. The deploy workflow never
+  applies migrations; it builds from the tag checkout only.
+- Without its tables the Agent renders an empty workspace whose every turn
+  fails, reachable from `✦ Ask Rebound` on every core page. It cannot ship.
+
+### 2. Decision
+
+1. **Release identity.** `rebound-seo-v1.1.3`, annotated, immutable, placed
+   at the merge commit of PR-B (section 4), which is the last product change
+   in the candidate. Commit and tree are recorded at tagging and verified
+   before any wrapper edit (precedent D10.6 § 2).
+2. **Composition.** The candidate is `main` with the Rebound Agent
+   *application* code withheld (PR-A) and the two #97 pre-release defects
+   fixed (PR-B). It therefore carries #96, #97, PR-A, PR-B, and the
+   governance/documentation commits, which do not enter the Next build.
+3. **Rejected: release branch from v1.1.2 with cherry-picks.** Cherry-picked
+   squash commits fail `validateCommitShape` (no prefix, mixed test and
+   production files), `harness-gates` and branch protection exist only for
+   `main`, so nothing on a release branch can ever satisfy "merged with all
+   required checks green at the merge SHA". Supporting release branches
+   would be a governance broadening this release does not need.
+4. **Rejected: shipping the Agent gated.** A gate adds new logic to a
+   surface whose tables are absent in production and whose correctness
+   would then decide whether a broken feature is reachable. Withholding the
+   code is structurally certain; nothing withheld can be reached.
+5. **Migration stays in the repository, unapplied.** It is D10.7's authorized
+   artifact and the database-layer inventory, allowlist, isolation harness,
+   and RLS proof stay consistent with it. Only application code is withheld.
+6. **Re-landing the Agent** is a later revert of PR-A's green commit under
+   D10.7's separate production-migration decision, with full gates again.
+
+### 3. Pre-release defects in #97 (must fix, PR-B)
+
+Verified in `home-competitor-summary.ts` and the provider payload shape in
+`supabase/functions/process-audit/seo.ts`:
+
+1. `count()` coerced with `Number(value)`, so a `null` or empty
+   `sharedKeywords` became `0` and rendered as "0 shared keywords". Fix:
+   only a finite non-negative `number` is measured; everything else is
+   `null`. This defect was present in the head Fable reviewed for #97 and
+   was missed; it is recorded here as a review miss.
+2. A non-DataForSEO receipt (`source: "demo"`, which the edge function can
+   still write) was rendered as competitor evidence with `.example` domains
+   as "Search competitor" rows under a DataForSEO subtitle. Fix: only
+   `source === "dataforseo"` counts as evidence; otherwise no discovered
+   rows, no label, no timestamp, saved rows unmeasured.
+3. A measured `0` is rendered as "No overlap measured in this audit" rather
+   than "0 shared keywords", because the provider writes `0` for a saved
+   competitor absent from its top-five list (`?? 0` in the edge function),
+   which is not a true zero. The copy claims only what the data supports.
+
+Confirmed correct and unchanged: approved topics come from
+`keyword_preferences.decision = 'approved'` and render in a separate
+"Ready to plan · not scheduled yet" block with no dates; the audit button
+uses the existing `POST /api/audits` → `process-audit` →
+`dataforseo_labs/google/competitors_domain/live`; both new table reads go
+through `scopedClient(...).eq("website_id", …)`.
+
+Non-blocking follow-ups (not in this release): the edge function's `?? 0`
+should become `null` in a later edge-function decision; a saved competitor
+with no URL uses its name as a pseudo-domain in the small print.
+
+### 4. Protected-PR sequence, exact scope
+
+**PR-R — record.** Branch `codex/d10-10-release-record`. One commit
+`green: record D10.10 v1.1.3 release decision`, only
+`destiny-product/DEPLOY_LOG.md`, this block verbatim. HIGH; `cto-approved`.
+
+**PR-A — withhold the Agent application code.** Branch
+`codex/v1-1-3-withhold-agent`. HIGH by decision (withholds a merged D10.7
+surface; ambiguity defaults to HIGH); `cto-approved`.
+Commit 1, `test-change: withhold Rebound Agent coverage from the v1.1.3
+release candidate`, test files only:
+- modify `src/components/rebound-core/rebound-core-shell.test.tsx`: assert the
+  shell renders no `Ask Rebound` link and no `/app/agent` href (RED);
+- delete `qa/rules/agent-vertical-slice.test.ts`, `qa/e2e/rebound-agent.spec.ts`,
+  `src/lib/agent/agent-core.test.ts`, `src/lib/agent/validate.test.ts`,
+  `src/lib/agent/tools/registry.test.ts`, `src/app/api/agent/turn/route.test.ts`,
+  `src/app/api/agent/proposals/[proposalId]/decide/route.test.ts`,
+  `src/components/agent/agent-workspace.test.tsx`.
+Commit 2, `green: withhold Rebound Agent application code from the v1.1.3
+release candidate`, production files only:
+- delete `src/lib/agent/**` (loop, prompt, provider, rate-limit, store, types,
+  validate, tools/data-query, tools/registry), `src/app/app/agent/**`,
+  `src/app/api/agent/**`, `src/components/agent/**`;
+- modify `src/components/rebound-core/rebound-core-shell.tsx`: remove the
+  `✦ Ask Rebound` link only;
+- regenerate `qa/inventory/routes.json`, `coverage-ledger.csv`,
+  `static-controls.json` (expected 87 routes).
+Untouched by design: `supabase/migrations/**`, `src/lib/db/table-scope.ts`,
+`qa/inventory/database-rls.json`, `qa/isolation/**`, `scripts/qa-isolation.mjs`,
+`eslint.config.mjs`, `src/lib/drafts/createDraft.ts`, `src/app/api/content/**`,
+`rebound-core-shell.module.css`. Any of these in the diff is a stop.
+
+**PR-B — #97 defect fixes.** Branch `codex/v1-1-3-competitor-truth`. MEDIUM.
+Commit 1, `test-change: require unmeasured competitor overlap to stay
+unmeasured` (`D10.10-PR-B-1-test-change.patch`, RED: three cases fail on
+main). Commit 2, `green: keep competitor overlap truthful and
+DataForSEO-only on Home` (`D10.10-PR-B-2-green.patch`, plus
+`qa/inventory/static-controls.json` only if regeneration changes it).
+Touched-route check on staging: `/app/home`, `/app/calendar`, `/audits`.
+
+**Tag.** After PR-B merges: `git tag -a rebound-seo-v1.1.3 <PR-B merge SHA>`,
+pushed once. Record tag object, commit, and tree. Registry absence check:
+`rebound-seo-v1.1.3-prod` must return MANIFEST_UNKNOWN in GHCR and the Fly
+registry. Rollback-baseline revalidation number one (section 5).
+
+**PR-C — wrapper repin.** Branch `codex/v1-1-3-wrapper`. HIGH; `cto-approved`.
+Exactly three files. Commit 1, `test-change: pin the production wrapper to
+rebound-seo-v1.1.3` (`qa/rules/rebound-production-wrapper.test.ts` constants
+updated; RED against the unchanged wrapper). Commit 2, `green: repin the
+production wrapper to rebound-seo-v1.1.3` (`.github/workflows/
+rebound-production-deploy.yml` seven pins; `Dockerfile` exactly four literal
+substitutions). Fourth file: stop and amend.
+
+**Dispatch.** After PR-C merges: no-movement check (`main` == PR-C merge
+SHA), rollback-baseline revalidation number two, then exactly one
+`rebound-production-deploy` dispatch with `action=deploy`,
+`release_tag=rebound-seo-v1.1.3`. If the GitHub `production` environment
+requires an approval, that approval is Jose's and is not an OEA action.
+
+Every PR: Fable 5.1 confirms classification before the first commit and
+reviews the final head; the receipt goes in the body; labels and merge
+under OEA (`OEA #<pr> <40-char head>: cto-approved, merge` or
+`...: merge` for PR-B).
+
+### 5. Closed wrapper pin set for v1.1.3
+
+1. `RELEASE_SHA`: `4f42e08f404b34700ea8b1d0d216b2624654150c` → **PR-B merge SHA**
+2. `RELEASE_TAG`: `rebound-seo-v1.1.2` → **`rebound-seo-v1.1.3`**
+3. `PRODUCTION_IMAGE_TAG`: **`rebound-seo-v1.1.3-prod`** (new, never pushed)
+4. `PRIOR_RELEASE_SHA`: `ed8c29af…` → **`4f42e08f404b34700ea8b1d0d216b2624654150c`**
+5. `PRIOR_RELEASE_TAG`: `rebound-seo-v1.1.1` → **`rebound-seo-v1.1.2`**
+6. `PRIOR_MACHINE_ID`: **`860714be531938`** (fresh capture, byte-identical)
+7. `PRIOR_IMAGE_DIGEST`: `sha256:618150a9…` → **the live v1.1.2 child digest,
+   expected `sha256:6fe1106aadb5fbe2367581302b106f27f508378af213171ea2c44077aa23261a`
+   per the D10.6 completion receipts, committed only from a fresh capture**
+
+Dockerfile: both `4f42e08f404b34700ea8b1d0d216b2624654150c` literals → PR-B
+merge SHA; both `rebound-seo-v1.1.2` literals → `rebound-seo-v1.1.3`. All
+other bytes unchanged; the identity assertions are guards and stay.
+
+Rollback baseline revalidation (twice: before opening PR-C, before
+dispatch): one healthy machine `860714be531938` started, child digest equal
+to pin 7, live stamps `4f42e08f…` / `rebound-seo-v1.1.2` / `production` /
+`https://app.reboundseo.com`. Drift voids the capture and stops execution.
+
+### 6. Deployment invariants
+
+Full committed-inventory sweep at its committed size (expected 87): 100%
+materialized, zero brackets, zero curl errors, zero 5xx. Exactly one
+healthy machine; certificate ready. Live stamps: PR-B merge SHA,
+`rebound-seo-v1.1.3`, `production`, `https://app.reboundseo.com`.
+Unauthenticated `POST /api/progress/report` → 401. No email, report, or
+social send by build, deploy, or verification. Provenance chain recorded.
+
+### 7. Rollback
+
+Target: the verified v1.1.2 identity (tag `rebound-seo-v1.1.2`, SHA
+`4f42e08f…`, machine `860714be531938`, child digest = pin 7). One rollback
+dispatch, bounded polling (15 s × 20), one attempt only; on failure freeze
+and escalate to Jose. Code rollback of PR-A or PR-B is a normal merge
+revert; the tag is never moved or reused.
+
+### 8. Post-release verification (authorized)
+
+Authenticated recertification on `joseangelostudios.com`
+(`d8885d33-2047-45fa-a0c7-4ccd44fa4932`) and `clearcheck.app`
+(`99a7af37-6588-4b97-a848-8877760182a9`): Home renders the current month
+grid with saved items on their real dates; approved keyword topics appear
+only in the unscheduled block; competitor rows come from the latest
+completed DataForSEO audit with truthful labels; `✦ Ask Rebound` is absent;
+`/app/agent` is not in the inventory; Calendar, Content, Distribution,
+Progress, `/this-week`, and `/audits` load.
+
+If a site has no completed DataForSEO audit, exactly **one** audit may be
+started from the Home button: on JAS without further authorization; on
+ClearCheck only if the written client authorization (condition C1) is on
+file in this log, otherwise ClearCheck stays read-only. Each audit start is
+a deliberate, hand-recorded action (site, audit id, time, DataForSEO spend
+acknowledged). Scripted production journeys must not click any mutation
+control: the production read-only guard is still host-pinned to
+`destiny-seo.replit.app` and does not protect `app.reboundseo.com`; fixing
+that guard is a separate HIGH item and a precondition for the next scripted
+production recertification.
+
+Excluded: CMS publishes, schedules, emails, deletions, keyword mutation,
+ClearCheck orphan repair, JAS credential entry, production migration apply.
+
+### 9. Stop conditions and forbidden scope
+
+Stop on: tag/commit or tag/tree mismatch; image tag pre-existence; any
+guard red; a RED commit passing against unchanged code; any file beyond a
+PR's named list; rollback baseline drift; `main` movement before dispatch;
+sweep < 100%, bracket, curl error, or 5xx; machine count ≠ 1; certificate
+not ready; wrong live stamps; progress-report POST ≠ 401; any send; any
+attempt to apply `20260902150330_agent_vertical_slice_v1.sql` anywhere but
+staging; any Agent file surviving in the tagged tree; any ambiguity.
+
+Forbidden: schema, migration apply, Auth/RLS/session, dependency, secret,
+provider credential, DNS/certificate, Replit, `container-staging` push,
+tag mutation other than creating `rebound-seo-v1.1.3`.
+
+### 10. Completion receipts
+
+1. PR-R, PR-A, PR-B, PR-C URLs, merge SHAs, RED run URLs, guard and staging
+   run URLs, Fable receipts at merged heads, OEA record links.
+2. Tag verification (tag object, commit, tree) and the Agent-absence proof
+   (`git ls-tree -r rebound-seo-v1.1.3 --name-only | grep -c agent` on
+   application paths returns 0).
+3. Registry MANIFEST_UNKNOWN evidence and both rollback revalidations.
+4. Dispatch run URL and conclusion; live stamps; sweep results; machine and
+   post-deploy digest; certificate; 401; no-send confirmation.
+5. Recertification results per section 8, including any audit started.
+6. A `## Release: rebound-seo-v1.1.3` entry with every field the deploy-log
+   checker requires.
+
+### 11. Claim boundary
+
+This release claims exactly: v1.1.2 behavior plus the #96 login link, the
+#97 Home/Calendar/competitor work with the three section-3 corrections, and
+the absence of the Rebound Agent surface. Schema, auth, dependencies, and
+configuration beyond the seven pins are unchanged. The Agent migration
+remains unapplied and the Agent unreleased; both await D10.7's separate
+production decision.
+
+### D10.10 Addendum A1 — PR-B scope, no audit starts, baseline pre-capture
+
+Date: 2026-09-04. Authority: Fable 5.1 High. Amends D10.10 sections 3, 4,
+and 8 only; every other section stands verbatim.
+
+1. Section 8 is amended: no audit may be started on any site during this
+   release. `process-audit/index.ts` sends the audit-ready email through
+   `sendAuditReadyEmailWithRetry` on completion, so an audit start is an
+   outbound send and conflicts with the no-send invariant. Both sites
+   already hold completed DataForSEO audits (JAS: HubSpot 164,
+   InfluencerMarketingHub 129; ClearCheck: Checkr 429, GoodHire 361,
+   BackgroundChecks 400, iProspectCheck 273), and approved topics exist
+   (JAS 2: "ai seo services", "youtube seo checklist"; ClearCheck 6).
+   Post-release verification is authenticated read-only on both sites. The
+   Home audit button is verified present and not clicked.
+
+2. Section 3 gains a fourth PR-B correction, MEDIUM: on viewports at or
+   below 760px `.calendarGrid` is hidden and `.calendarAgenda` is shown, but
+   with no saved events and no `emptyDayHref` the agenda renders nothing,
+   so mobile Home shows no calendar. Fix so a compact month remains visible
+   without a plan: the grid or a compact agenda with the month's days and a
+   single "No saved items this month" line; no invented dates, no
+   `emptyDayHref` on Home.
+
+3. Section 4, PR-B allowed files are extended by exactly:
+   `src/components/rebound-core/home-calendar.tsx`,
+   `src/components/rebound-core/month-calendar.tsx`,
+   `src/components/rebound-core/home-dashboard.module.css`, and one
+   targeted component test (`month-calendar.test.tsx` or an assertion in
+   `rebound-core-shell.test.tsx`), committed RED then GREEN under the
+   existing PR-B commit discipline. Inventory regeneration stays allowed if
+   `static-controls.json` changes. Nothing else is added.
+
+4. Pre-capture recorded, not a substitute for the two section-5
+   revalidations: a fresh Fly readback shows machine `860714be531938`
+   started, child digest
+   `sha256:6fe1106aadb5fbe2367581302b106f27f508378af213171ea2c44077aa23261a`,
+   certificate active, matching pin 7. Revalidation one (before PR-C) and
+   two (before dispatch) remain mandatory and must be captured fresh.
+
+Nothing in A1 authorizes a tag, wrapper edit, dispatch, or any send.
