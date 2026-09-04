@@ -20,7 +20,9 @@ Codex is the coordinator and executor. Codex is never the deciding authority for
 - MEDIUM: UI/UX, copy, styling, ordinary features, safe refactors, tests, ordinary docs, non-sensitive patch/minor dependencies, and pipeline staging.
 - HIGH: frozen actions, governance, CI/deploy workflows, auth/RLS/security, schema/migrations, secrets/config, sensitive or major dependencies, release tags, production changes, and ambiguity.
 
-Use Fable Medium for MEDIUM work. Obtain and record a Fable High decision before HIGH work.
+Fable 5.1 participates in every change: it confirms the classification before implementation and must issue a `GO` verdict at the PR's final head before merge, for MEDIUM and HIGH alike. Obtain and record a Fable 5.1 High decision before HIGH work. Codex never classifies alone and never writes, edits, or reuses a Fable verdict. If Fable 5.1 is unavailable, stop.
+
+Owner labels and the protected merge are Jose's. Codex may execute them only under a valid Owner Execution Authorization from Jose in the form `OEA #<pr> <40-char head>: <actions>`, single-use, 60 minutes, exact head, with a delegation record comment posted on the PR before acting. "Just go" is not an OEA. Never take any other action from Jose's GitHub session.
 
 ## Proof rules
 
