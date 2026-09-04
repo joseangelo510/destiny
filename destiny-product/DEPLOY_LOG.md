@@ -2946,3 +2946,185 @@ review are green and Jose applies `cto-approved`. Merge does not authorize a
 production migration or release. Rollback is a normal merge revert; staging
 rollback drops the new policies and tables in reverse dependency order. There
 is no env rollback because no env change is authorized.
+
+## D10.8 — Mandatory Fable 5.1 participation in every Rebound change
+
+Decision name: `MANDATORY_FABLE_5_1_PARTICIPATION_GOV_1_1`
+
+Date: 2026-09-04
+
+Authority: Fable 5.1 High, on the explicit direction of Jose Gallegos:
+"we still need Fable 5.1 always in the process. change that rule."
+
+Classification: HIGH (canonical policy, agent pointers, governance skill,
+governance enforcement code and test, PR template)
+
+Base: protected `main` at
+`77b0e0d002f6acda2168e438f99c9fb01d5bc767`
+
+Policy verified: `HARNESS_POLICY.md` at `77b0e0d0` read in full. It differs
+from the cloud pointer's pinned `24c0ee82` only in the parallel-launch host
+line (`app.caminoseo.com` -> `app.reboundseo.com`). The repository wins.
+
+Status: DECIDED, pending owner authorization. This block is the record that
+GOV-1 requires before implementation. Implementation may begin only after
+this block is merged to protected `main` through a PR that Jose labels
+`cto-approved`. Nothing in D10.8 authorizes a production deployment, release
+tag, `container-staging` push, migration, or any other frozen action.
+
+### Owner directive and conflict-of-interest note
+
+Jose directed that Fable 5.1 be present in every change, including MEDIUM.
+Fable 5.1 designed the rule that mandates its own participation. For that
+reason this decision does not self-authorize: it takes effect only through
+Jose's `cto-approved` on the record PR and `cto-approved` plus
+`policy-change` on the policy PR, and the rule itself states that a Fable
+verdict is evidence, never authorization.
+
+### Decision
+
+1. Fable 5.1 participation is mandatory for every Rebound change, MEDIUM and
+   HIGH, at two points:
+   a. Classification confirmation before the first implementation commit.
+      The confirmation date and base SHA are recorded in the PR.
+   b. A head-level review of the PR at its final head SHA with exactly one
+      verdict, `GO` or `HOLD`, recorded in the PR body with the reviewed head
+      SHA, the review date, and the verbatim verdict text.
+2. Risk classification is unchanged. MEDIUM stays MEDIUM: no `cto-approved`
+   label and no deploy-log decision. HIGH stays HIGH: a Fable 5.1 High
+   decision recorded before implementation, `cto-approved` from Jose, and
+   `policy-change` from Jose whenever `HARNESS_POLICY.md` changes.
+3. Jose's owner-only approvals are untouched and remain the only
+   authorization. A Fable verdict cannot substitute for a label or a merge.
+4. `checklist-guard` enforces the receipt mechanically on every PR: a checked
+   `Fable 5.1 reviewed this PR at its current head` item, `Verdict: GO`,
+   `Reviewed head:` equal to the PR head SHA, and `Reviewed on: YYYY-MM-DD`.
+   Any push after the review turns the check red until a new review is
+   recorded at the new head. The build-stamp SHA check is tightened to the
+   build-stamp evidence block and must equal the PR head, so the new
+   mandatory SHA lines cannot weaken it.
+5. Fable unavailability is a stop condition. There is no lane for merging
+   without a Fable 5.1 `GO` at the head. Codex may not act as Fable, may not
+   classify alone, and may not write, edit, or reuse a verdict. Any request
+   for an owner-override, urgency, or Fable-unavailable merge lane is a new
+   Fable 5.1 High decision, not an amendment inside a PR.
+6. The policy revision label becomes `GOV-1.1`. The policy ID stays `GOV-1`.
+7. Two textual corrections ride in the same policy PR because the file is
+   already open under `policy-change`: the stale `79-route` sweep wording
+   becomes a full sweep of every route in the committed QA inventory, and
+   the in-repo pointer's hardcoded canonical-commit SHA becomes the rule
+   "latest protected `main` commit touching `HARNESS_POLICY.md`".
+
+### Allowed files for the policy PR (exhaustive)
+
+- `HARNESS_POLICY.md`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `.claude/skills/destiny-harness/SKILL.md`
+- `docs/DESTINY_GOVERNANCE_POINTER.md`
+- `docs/HARNESS_RUNBOOK.md`
+- `.github/pull_request_template.md`
+- `destiny-product/scripts/governance-policy.mjs`
+- `destiny-product/qa/rules/harness-governance.test.ts`
+
+### Forbidden and excluded
+
+- `.github/workflows/**`. No CI or deploy workflow change: `checklist-guard`
+  already invokes `governance-policy.mjs checklist`, and the pull-request
+  event payload already carries `head.sha`.
+- `destiny-product/DEPLOY_LOG.md` inside the policy PR. This record merges
+  first and separately.
+- Schema, migrations, RLS, auth, secrets, env, runtime config, dependencies,
+  `package.json`, and the lockfile.
+- Any product source under `destiny-product/src/**`.
+- Release tag, `container-staging` push, production or parallel-launch
+  change, Replit, DNS.
+- Combining with `codex/rebound-calendar-competitor-evidence` or any other
+  product work.
+- Historical design documents under `docs/design/**` that quote the old
+  policy text stay as written; they are records, not mirrors.
+
+### Protected-PR order
+
+G0. Branch `codex/gov-1-1-decision-record` from `main`. One commit,
+`green: record D10.8 mandatory Fable 5.1 participation decision`, touching
+only `destiny-product/DEPLOY_LOG.md` with this block appended verbatim.
+PR classification HIGH (governance; ambiguity defaults to HIGH). Label:
+`cto-approved` by `joseangelo510`. Merge before any G1 commit exists.
+
+G1. Branch `codex/gov-1-1-mandatory-fable-review` from `main` at or after
+the G0 merge SHA. Commits in this order:
+1. `test-change: require a Fable 5.1 GO verdict at the PR head on every PR`
+   touching only `destiny-product/qa/rules/harness-governance.test.ts`.
+   Justification: the checklist contract changes, so the existing
+   complete-body fixture must carry the receipt. This is the RED commit; it
+   fails against `main`'s `governance-policy.mjs` on the new verdict test and
+   on the policy-text assertion.
+2. `green: enforce Fable 5.1 review receipts and revise GOV-1 to GOV-1.1`
+   touching only the eight non-test files in the allowed list.
+PR classification HIGH. Labels: `cto-approved` and `policy-change`, both by
+`joseangelo510`. G1's own PR body must carry a Fable 5.1 review receipt at
+its final head; the rule applies to the PR that introduces it.
+
+Product PR from `codex/rebound-calendar-competitor-evidence`: independent of
+G0 and G1. See Transition.
+
+### Tests and gates
+
+- RED evidence: the G1 test-change commit SHA and the failing Vitest output
+  for `harness-governance.test.ts` against `main`.
+- GREEN evidence: all six cases in `harness-governance.test.ts` pass at the
+  G1 head.
+- Full `pnpm gate` in GitHub Actions at the G1 head. `policy-guard` must
+  classify HIGH with both labels valid, `checklist-guard` must run the new
+  logic against G1's own receipt, and `harness-gates` must be green, all at
+  the merge SHA.
+- Touched routes: none. The touched-route evidence states that no product
+  route changed and records the staging build stamp at the G1 head with
+  zero 5xx.
+
+### Transition
+
+- The product PR from `codex/rebound-calendar-competitor-evidence` at head
+  `6668c6a3601a96c66c9f726143af41d362039b3e` was reviewed by Fable 5.1 on
+  2026-09-04 with verdict GO under GOV-1 as MEDIUM. It may be opened and
+  merged under GOV-1 without waiting for G0 or G1. Its PR body must carry
+  the Fable 5.1 review section in the D10.8 format with that head SHA. Any
+  push to that branch after the review requires a new Fable 5.1 review
+  before merge. Before G0 merges this is owner intent; from the G0 merge it
+  is a term of D10.8.
+- Any PR open when G1 merges must add the receipt before merge.
+
+### Stop conditions
+
+- `HARNESS_POLICY.md` at the working SHA is unreachable or differs from
+  what this decision describes: stop.
+- Any file outside the allowed list appears in G1, or `DEPLOY_LOG.md`
+  changes inside G1: stop.
+- Any required check is red, skipped, missing, or belongs to another SHA:
+  not complete.
+- `checklist-guard` fails on G1's own receipt: obtain a new review at the
+  new head. Never edit the guard to make the receipt pass.
+- Jose does not apply the labels: nothing merges. Approval does not expire
+  into permission.
+
+### Rollback
+
+A merge revert of G1 restores the GOV-1 text and the previous checklist
+contract in one HIGH PR with `cto-approved` and `policy-change`. The G0
+record stays in this log as history and is annotated, not deleted. There is
+no staging, production, or environment rollback because none is touched.
+
+### Claim boundary and completion
+
+- G0 complete: merged with `cto-approved`, and `policy-guard`,
+  `checklist-guard`, and `harness-gates` green at the G0 merge SHA.
+- G1 complete: merged with `cto-approved` and `policy-change`; the three
+  required checks green at the G1 merge SHA; RED and GREEN commit SHAs
+  listed; the Fable 5.1 receipt names the merged head.
+- After G1 merges, Jose updates the Claude Project cloud pointer to name the
+  G1 merge SHA as the canonical policy commit and `GOV-1.1` as the policy
+  version. Until then the cloud pointer is one revision stale and the
+  repository wins.
+- No production change, release, deploy, or frozen action is authorized by
+  D10.8.
