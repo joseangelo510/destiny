@@ -3,11 +3,10 @@ import "server-only";
 import { buildAnalyticsPeriods, buildRankMovers } from "@/lib/analytics/dashboard";
 import { scopedClient } from "@/lib/db";
 import { buildCoachTaskSet } from "@/lib/product/coach-experience";
-import { getWorkspaceContext, record } from "@/lib/workspace-context";
+import { getWorkspaceContext, providerResultFromMetrics, record } from "@/lib/workspace-context";
 import type {
   AnalyticsSummary,
   CalendarEvent,
-  CalendarSummary,
   CompetitorSummary,
   KeywordSummary,
   ReboundHomeView,
@@ -16,6 +15,8 @@ import type {
 import { empty, failed, notConnected, ready } from "./panel-result";
 import { buildCoreQueue } from "./queue";
 import { buildHomeCalendarSummary } from "./home-calendar-summary";
+import { approvedKeywordCalendarSuggestions } from "./core-pages";
+import { buildHomeCompetitorSummary } from "./home-competitor-summary";
 
 function finiteNumber(value: unknown) {
   if (value === null || value === undefined || value === "") return null;
@@ -144,26 +145,36 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
     keywords = ready(data, [{ kind: "verified", source: "gsc", observedAt: searchData.syncedAt, detail: "Latest stored rank observations" }]);
   }
 
-  const competitorData: CompetitorSummary = {
+  const providerResult = providerResultFromMetrics(context.metrics);
+  const competitorData: CompetitorSummary = buildHomeCompetitorSummary({
     websiteLabel: context.website.business_name?.trim() || context.website.normalized_domain,
-    competitors: context.competitors.map((item) => ({ name: item.name, url: item.url })),
-  };
+    saved: context.competitors.map((item) => ({ name: item.name, url: item.url })),
+    providerResult,
+  });
   const competitors = competitorData.competitors.length
-    ? ready(competitorData)
+    ? ready(competitorData, competitorData.sourceLabel ? [{ kind: "reported", source: "crawl", observedAt: competitorData.fetchedAt, detail: competitorData.sourceLabel }] : [])
     : empty<CompetitorSummary>("No competitors are saved yet. Add them in the existing audit and strategy tools.");
 
   let calendar: ReboundHomeView["calendar"];
   let homeTimeZone = "UTC";
   try {
     const scoped = await scopedClient(context.website.id);
-    const { data: plans, error: planError } = await scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1);
-    if (planError) {
+    const [planResult, keywordResult, preferenceResult] = await Promise.all([
+      scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1),
+      scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
+      scoped.select("notification_preferences", "timezone").limit(1),
+    ]);
+    const plan = planResult.data?.[0] ?? null;
+    const preferenceTimeZone = typeof preferenceResult.data?.[0]?.timezone === "string" && preferenceResult.data[0].timezone.trim()
+      ? preferenceResult.data[0].timezone
+      : "UTC";
+    homeTimeZone = typeof plan?.timezone === "string" && plan.timezone.trim() ? plan.timezone : preferenceTimeZone;
+    const suggestions = approvedKeywordCalendarSuggestions(keywordResult.data ?? []);
+    if (planResult.error || keywordResult.error) {
       calendar = failed("The publishing calendar could not be loaded.");
-    } else if (!plans?.[0]) {
-      calendar = empty<CalendarSummary>("No publishing plan is active yet. Your saved schedule will appear here when it exists.");
+    } else if (!plan) {
+      calendar = ready(buildHomeCalendarSummary({ events: [], suggestions, timeZone: homeTimeZone }), suggestions.length ? [{ kind: "reported", source: "schedule", observedAt: suggestions[0]?.approvedAt ?? null, detail: "Approved keyword strategy" }] : []);
     } else {
-      const plan = plans[0];
-      homeTimeZone = typeof plan.timezone === "string" && plan.timezone.trim() ? plan.timezone : "UTC";
       const { data: items, error: itemError } = await scoped.select("publishing_schedule_items", "id,plan_id,keyword,title,scheduled_for,state").eq("plan_id", plan.id).order("scheduled_for");
       if (itemError) {
         calendar = failed("The publishing schedule could not be loaded.");
@@ -177,11 +188,7 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
           const state = typeof item.state === "string" ? item.state : "scheduled";
           return [{ id: String(item.id), date, title, state, tone: calendarTone(state) } satisfies CalendarEvent];
         });
-        if (!events.length) {
-          calendar = empty<CalendarSummary>("The publishing plan has no scheduled content yet.");
-        } else {
-          calendar = ready(buildHomeCalendarSummary({ events, timeZone: homeTimeZone }), [{ kind: "verified", source: "schedule", observedAt: typeof plan.updated_at === "string" ? plan.updated_at : null, detail: "Saved publishing plan" }]);
-        }
+        calendar = ready(buildHomeCalendarSummary({ events, suggestions, timeZone: homeTimeZone }), [{ kind: "reported", source: "schedule", observedAt: typeof plan.updated_at === "string" ? plan.updated_at : null, detail: "Saved publishing plan" }]);
       }
     }
   } catch {

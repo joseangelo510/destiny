@@ -145,9 +145,11 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
   if (!base || !context.website) return null;
   try {
     const scoped = await scopedClient(context.website.id);
-    const [schedule, { data: drafts, error: draftError }] = await Promise.all([
+    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }] = await Promise.all([
       latestPlanAndItems(context),
       scoped.select("article_drafts", "id,website_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+      scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
+      scoped.select("notification_preferences", "timezone").limit(1),
     ]);
     const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id);
     const approvedDrafts = draftError
@@ -155,12 +157,11 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
       : draftOptions.length
         ? ready(draftOptions)
         : empty<ApprovedCalendarDraft[]>("No approved draft is ready to schedule yet.");
-    const planTimezone = typeof schedule.plan?.timezone === "string" && schedule.plan.timezone.trim() ? schedule.plan.timezone : "UTC";
-    const calendarView = schedule.error
+    const savedPreferenceTimeZone = typeof preferences?.[0]?.timezone === "string" && preferences[0].timezone.trim() ? preferences[0].timezone : "UTC";
+    const planTimezone = typeof schedule.plan?.timezone === "string" && schedule.plan.timezone.trim() ? schedule.plan.timezone : savedPreferenceTimeZone;
+    const calendarView = schedule.error || keywordError
       ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
-      : !schedule.plan
-        ? empty<CalendarView>("No publishing plan exists yet. Create one in the existing Content Studio.")
-        : ready(buildCalendarView({ items: schedule.items, timeZone: planTimezone }));
+      : ready(buildCalendarView({ approvedKeywords: approvedKeywords ?? [], items: schedule.items, timeZone: planTimezone }));
     return { ...base, approvedDrafts, calendarView, planTimezone };
   } catch {
     return {
