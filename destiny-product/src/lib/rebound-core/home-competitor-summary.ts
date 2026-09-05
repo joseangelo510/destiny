@@ -25,8 +25,7 @@ function domain(value: unknown) {
 }
 
 function count(value: unknown) {
-  const parsed = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
 export function buildHomeCompetitorSummary(input: {
@@ -34,7 +33,8 @@ export function buildHomeCompetitorSummary(input: {
   saved: Array<{ name: string; url: string | null }>;
   providerResult: unknown;
 }): CompetitorSummary {
-  const provider = record(input.providerResult);
+  const receipt = record(input.providerResult);
+  const provider = receipt.source === "dataforseo" ? receipt : {};
   const measured = list(provider.competitors).map(record).flatMap((item) => {
     const measuredDomain = domain(item.domain);
     if (!measuredDomain) return [];

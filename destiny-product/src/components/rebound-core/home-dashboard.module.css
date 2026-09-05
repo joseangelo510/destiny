@@ -150,6 +150,7 @@
 .event_automatic { border: 1px dashed var(--sage); color: var(--ink-soft); }
 .event_verified { background: var(--lime); color: var(--lime-ink); }
 .calendarAgenda { display: none; padding: 8px 18px 14px; }
+.calendarEmptyNote { padding: 0 18px 14px; color: var(--ink-soft); font-size: 12px; }
 .calendarAgenda > div { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--sage-line); }
 .calendarAgenda > div:first-child { border-top: 0; }
 .calendarAgenda time, .calendarAgenda span { color: var(--ink-soft); font-size: 11px; text-transform: capitalize; }
@@ -190,6 +191,8 @@
   .competitorBody > div { overflow-x: auto; border-right: 0; }
   .competitorBody aside { border-top: 1px solid var(--sage-soft); }
   .calendarGrid { display: none; }
+  .calendarGrid[data-empty-month="true"] { display: grid; }
+  .calendarGrid[data-empty-month="true"] .calendarDay { min-height: 34px; padding: 5px 4px; }
   .calendarAgenda { display: block; }
   .calendarHead > div { margin-left: 0; }
   .calendarHead { align-items: flex-start; flex-direction: column; }

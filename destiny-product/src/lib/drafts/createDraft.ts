@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DraftProposalInput } from "@/lib/agent/types";
+type DraftProposalInput = { title: string; targetKeyword: string; angle: string; outlineBullets: string[] };
 
 type DraftWriteResult = { data?: unknown; error: { message?: string } | null };
 type RawDraftClient = {
