@@ -66,7 +66,7 @@ export async function discoverNewKeywordRecommendations(input: NewKeywordInput, 
       const normalized = normalizeTrackedKeyword(row.keyword);
       if (!normalized || seen.has(normalized) || !Number.isFinite(row.volume) || row.volume <= 0 || row.position > 0 || row.url || row.intent === "navigational") return [];
       seen.add(normalized);
-      if (input.existingKeywords.some(known => topicMatches(row.keyword, known.keyword)) || input.pages.some(page => topicMatches(row.keyword, `${page.title} ${new URL(page.url).pathname}`))) return [];
+      if (input.existingKeywords.some(known => topicMatches(row.keyword, known.keyword) || sameContentTopic(row.keyword, known.keyword, input.brief)) || input.pages.some(page => topicMatches(row.keyword, `${page.title} ${new URL(page.url).pathname}`))) return [];
       return [{ keyword: row.keyword, searchVolume: row.volume, difficulty: row.difficulty, cpc: row.cpc, rank: 0, url: "", intent: row.intent, opportunity: "site_idea", competitorRankers: 0 }];
     });
     const ranked = rankKeywordOpportunities(candidates, business, candidates.length, input.brief);

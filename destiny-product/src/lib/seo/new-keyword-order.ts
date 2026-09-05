@@ -1,11 +1,11 @@
 import type { BusinessSearchBrief } from "../../../supabase/functions/process-audit/business-search-brief";
 import type { RankedKeywordOpportunity } from "./keyword-opportunity";
 const angle = /\b(how|why|what|when|vs|versus|compare|comparison|alternatives?|guide|checklist|strateg(?:y|ies)|tips|examples?|mistakes?|cost|pricing|prices?|budget|roi|benchmarks?|statistics|trends|audit|template|planning|measurement|analytics|tracking|attribution|not|fix|improve|increase|reduce|benefits|types|structure|reporting|retargeting|targeting|conversion|funnel|engagement|implementation|compliance)\b/i;
-const words = (text: string) => text.toLowerCase().replace(/\b(?:what|is|the|a|an|for|of|in|to|and|with|your|how|does|do|free)\b/g, " ").replace(/[^a-z0-9]+/g, " ").split(" ").filter(Boolean).map(word => word.replace(/ies$/, "y").replace(/s$/, ""));
+const words = (text: string) => text.toLowerCase().replace(/\b(?:what|is|the|a|an|for|of|in|to|and|with|your|how|does|do|free|much)\b/g, " ").replace(/[^a-z0-9]+/g, " ").split(" ").filter(Boolean).map(word => word.replace(/ies$/, "y").replace(/s$/, ""));
 export function sameContentTopic(left: string, right: string, brief?: BusinessSearchBrief) {
-  const identity = (text: string) => [...new Set(words(text).map(word => /^(service|agency|agencie|company|companie)$/.test(word) ? "provider" : /^(cost|price|pricing|rate)$/.test(word) ? "pricing" : word))].filter(word => word !== "provider").sort().join(" ");
+  const identity = (text: string) => [...new Set(words(/\b(?:cost|price|prices|pricing)\b/i.test(text) ? text.replace(/\b(?:low|cheap|affordable)\b/gi, "") : text).map(word => /^(service|agency|agencie|company|companie)$/.test(word) ? "provider" : /^(cost|price|pricing|rate)$/.test(word) ? "pricing" : word))].filter(word => word !== "provider").sort().join(" ");
   if (identity(left) === identity(right)) return true;
-  const family = (value: string) => /\bstrateg(?:y|ies)\b/i.test(value) ? "strategy" : /\bchecklist\b/i.test(value) ? "checklist" : /\bexamples?\b/i.test(value) ? "examples" : /\bguide\b|how (?:does .* work|to (?:run|manage|set up))/i.test(value) ? "guide" : "";
+  const family = (value: string) => /\bstrateg(?:y|ies)\b/i.test(value) ? "strategy" : /\bchecklist\b/i.test(value) ? "checklist" : /\bexamples?\b/i.test(value) ? "examples" : /\bguide\b|how (?:does .* work|to (?:run|manage|set up|start))/i.test(value) ? "guide" : "";
   const leftFamily = family(left);
   return Boolean(leftFamily && leftFamily === family(right) && brief?.offerVsEnablement.whatCompanySells.some(offer => {
     const core = words(offer.match(/\(([^)]+)\)/)?.[1] ?? offer).filter(word => !/^(service|agency|management|repair)$/.test(word));
