@@ -65,6 +65,9 @@ describe("Destiny GOV-1 harness governance", () => {
 
     for (const frozen of [
       "HARNESS_POLICY.md",
+      "destiny-product/qa/rules/governance-readiness.test.ts",
+      "destiny-product/qa/rules/governance-refresh.test.ts",
+      "destiny-product/qa/rules/staging-evidence-policy.test.ts",
       "AGENTS.md",
       "CLAUDE.md",
       ".github/workflows/policy-guard.yml",
