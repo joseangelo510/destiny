@@ -4218,7 +4218,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 3,
-    "context": "{newKeywords.length > 0 && newResearchStatus === \"unavailable\" ? <p className=\"claude-ks-section-note\" role=\"status\">Additional research is temporarily unavailable. Your saved options remain available.</p> : null} <p className=\"claude-ks-section-note\">{discoveryRound < 5 ? <Link prefetch={false} href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`}><DiscoveryLabel /></Link> : <Link href={moreKeywordsHref}>Explore more keywords →</Link>} · Uses your saved bus"
+    "context": "{newKeywords.length > 0 && newResearchStatus === \"unavailable\" ? <p className=\"claude-ks-section-note\" role=\"status\">Additional research is temporarily unavailable. Your saved options remain available.</p> : null} <p className=\"claude-ks-section-note\">{discoveryRound < 5 ? <Link aria-label=\"Discover more recommendations\" prefetch={false} href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`}><DiscoveryLabel /></Link> : <Link href={moreKeywordsHref}>Explore mo"
   },
   {
     "control_id": "src/components/keyword-strategy-review.tsx:267:Link:2",
@@ -4227,7 +4227,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 3,
-    "context": "{newKeywords.length > 0 && newResearchStatus === \"unavailable\" ? <p className=\"claude-ks-section-note\" role=\"status\">Additional research is temporarily unavailable. Your saved options remain available.</p> : null} <p className=\"claude-ks-section-note\">{discoveryRound < 5 ? <Link prefetch={false} href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`}><DiscoveryLabel /></Link> : <Link href={moreKeywordsHref}>Explore more keywords →</Link>} · Uses your saved bus"
+    "context": "{newKeywords.length > 0 && newResearchStatus === \"unavailable\" ? <p className=\"claude-ks-section-note\" role=\"status\">Additional research is temporarily unavailable. Your saved options remain available.</p> : null} <p className=\"claude-ks-section-note\">{discoveryRound < 5 ? <Link aria-label=\"Discover more recommendations\" prefetch={false} href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`}><DiscoveryLabel /></Link> : <Link href={moreKeywordsHref}>Explore mo"
   },
   {
     "control_id": "src/components/keyword-strategy-review.tsx:274:button:1",

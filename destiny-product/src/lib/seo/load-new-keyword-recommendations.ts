@@ -1,3 +1,4 @@
+import { recoverDiscoveryPool, retainDiscoveryOrder } from "./keyword-discovery-recovery";
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { deterministicBusinessSearchBrief, type BusinessSearchBrief } from "../../../supabase/functions/process-audit/business-search-brief";
@@ -31,15 +32,15 @@ export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<
   const brief = Array.isArray(savedBrief.themes) && savedBrief.themes.length
     ? savedBrief as unknown as BusinessSearchBrief : deterministicBusinessSearchBrief(business);
   try {
-    const result = await cachedResearch(website.id, context.audit.id, {
+    const result = await recoverDiscoveryPool((currentRound) => cachedResearch(website.id, context.audit.id, {
       domain: website.url, business, brief,
       existingKeywords: list(provider.keywords).map(record).map((keyword) => ({ keyword: String(keyword.keyword ?? ""), rank: Number(keyword.rank ?? 0), url: String(keyword.url ?? "") })),
       pages: list(provider.pages).map(record).flatMap((page) => typeof page.url === "string" && /^https?:\/\//.test(page.url) ? [{ url: page.url, title: String(page.title || String(page.text ?? "").split("\n")[0]) }] : []),
-    }, Math.max(0, Math.min(5, Math.floor(round))));
+    }, currentRound), Math.max(0, Math.min(5, Math.floor(round))));
     const { data: preferences, error } = await context.supabase.from("keyword_preferences").select("normalized_keyword,decision,reason,updated_at").eq("website_id", website.id);
     if (error) throw new Error("Saved keyword feedback could not be checked.");
     const signals = (preferences ?? []).map((item) => ({ normalizedKeyword: item.normalized_keyword, decision: item.decision, reason: item.reason, updatedAt: item.updated_at })) as KeywordPreferenceSignal[];
-    return { ...result, keywords: applyKeywordPreferenceSignals(result.keywords, signals) };
+    return { ...result, keywords: retainDiscoveryOrder(result.keywords, applyKeywordPreferenceSignals(result.keywords, signals)) };
   } catch {
     return { keywords: [], status: "unavailable" as const };
   }
