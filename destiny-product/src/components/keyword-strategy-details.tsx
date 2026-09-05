@@ -60,11 +60,14 @@ export type NextAction = {
   description: string;
 };
 
-export function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, saving }: { keyword: KeywordRecommendation; onApprove: () => void; onPageType: (value: string) => void; pageType?: string; saving: boolean }) {
-  const recommendedPageType = keyword.providerIntent === "transactional" || keyword.searchIntent === "conversion"
+export function recommendedKeywordPageType(keyword: KeywordRecommendation) {
+  return keyword.pageType ?? (keyword.providerIntent === "transactional" || keyword.searchIntent === "conversion"
     ? "Service landing page"
-    : /\b(vs|versus|best|alternative|comparison)\b/i.test(keyword.keyword) ? "Comparison page" : "Blog guide / FAQ";
-  const selectedPageType = pageType ?? recommendedPageType;
+    : /\b(vs|versus|best|alternative|comparison)\b/i.test(keyword.keyword) ? "Comparison page" : "Blog guide / FAQ");
+}
+
+export function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, saving }: { keyword: KeywordRecommendation; onApprove: () => void; onPageType: (value: string) => void; pageType?: string; saving: boolean }) {
+  const selectedPageType = pageType ?? recommendedKeywordPageType(keyword);
   const rankEvidence = keyword.rank > 0 ? `DataForSEO currently observes this result at #${keyword.rank}.` : "No current DataForSEO ranking was verified.";
   const gscEvidence = keyword.gscPosition > 0
     ? ` Search Console reports an average position of ${keyword.gscPosition.toFixed(1)} with ${keyword.gscImpressions.toLocaleString()} impressions and ${keyword.gscClicks.toLocaleString()} clicks in its latest snapshot.`
@@ -103,4 +106,3 @@ export function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, 
     <div className="claude-ks-drawer-action"><button disabled={saving} onClick={onApprove} type="button">{saving ? "Creating your change doc…" : "Approve + create change doc"}</button><span>Counts toward your five. Nothing publishes without review.</span></div>
   </div>;
 }
-

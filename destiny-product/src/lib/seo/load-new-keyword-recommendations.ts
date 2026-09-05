@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { deterministicBusinessSearchBrief, type BusinessSearchBrief } from "../../../supabase/functions/process-audit/business-search-brief";
 import { getResearchClient } from "./research";
 import { checkKeywordCoverage } from "./keyword-coverage";
+import { applyKeywordPreferenceSignals, type KeywordPreferenceSignal } from "./keyword-opportunity";
 import { discoverNewKeywordRecommendations, type NewKeywordInput } from "./new-keyword-recommendations";
 import { getWorkspaceContext, list, record, providerResultFromMetrics } from "../workspace-context";
 
@@ -27,11 +28,15 @@ export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<
   const brief = Array.isArray(savedBrief.themes) && savedBrief.themes.length
     ? savedBrief as unknown as BusinessSearchBrief : deterministicBusinessSearchBrief(business);
   try {
-    return await cachedResearch(website.id, context.audit.id, {
+    const result = await cachedResearch(website.id, context.audit.id, {
       domain: website.url, business, brief,
       existingKeywords: list(provider.keywords).map(record).map((keyword) => ({ keyword: String(keyword.keyword ?? ""), rank: Number(keyword.rank ?? 0), url: String(keyword.url ?? "") })),
       pages: list(provider.pages).map(record).flatMap((page) => typeof page.url === "string" && /^https?:\/\//.test(page.url) ? [{ url: page.url, title: String(page.title ?? "") }] : []),
     });
+    const { data: preferences, error } = await context.supabase.from("keyword_preferences").select("normalized_keyword,decision,reason,updated_at").eq("website_id", website.id);
+    if (error) throw new Error("Saved keyword feedback could not be checked.");
+    const signals = (preferences ?? []).map((item) => ({ normalizedKeyword: item.normalized_keyword, decision: item.decision, reason: item.reason, updatedAt: item.updated_at })) as KeywordPreferenceSignal[];
+    return { ...result, keywords: applyKeywordPreferenceSignals(result.keywords, signals) };
   } catch {
     return { keywords: [], status: "unavailable" as const };
   }

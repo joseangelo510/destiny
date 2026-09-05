@@ -7,6 +7,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
 import { buildArticleDraft, buildPersistedArticleDraftSeeds, mergePersistedArticleDrafts } from "@/lib/content/article-draft";
+import { restoreKeywordDraftBrief } from "@/lib/content/keyword-draft-brief";
 import { articleGenerationCapability } from "@/lib/content/article-generation";
 import { SEARCH_INTENT_DEFINITIONS, buildEditorialCalendar, inferBusinessModel, mergeApprovedSavedKeywords, selectKeywordsForCalendar } from "@/lib/content/editorial-calendar";
 import { parseBuilderProfile } from "@/lib/integrations/website-profile";
@@ -124,7 +125,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
     : { data: [] };
-  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => row.draft).sort((left, right) => Number(normalizeTrackedKeyword(String(record(right).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")) - Number(normalizeTrackedKeyword(String(record(left).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")));
+  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => restoreKeywordDraftBrief(row.draft)).sort((left, right) => Number(normalizeTrackedKeyword(String(record(right).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")) - Number(normalizeTrackedKeyword(String(record(left).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")));
   const articleDraftSeeds = buildPersistedArticleDraftSeeds(articleDrafts, savedArticleDrafts, {
     businessName: context.website?.business_name ?? "Your business",
     problemSolved: context.website?.problem_solved ?? "",

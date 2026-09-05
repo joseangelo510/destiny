@@ -30,7 +30,6 @@ export async function POST(request: Request) {
       targetKeyword: savedKeyword,
       angle: `${pageType} about ${savedKeyword}, for ${String(website.ideal_customer || "your customers")}.`,
       outlineBullets: [],
-      writingInstructions: `Create a ${pageType.toLowerCase()} focused on “${savedKeyword}”. Use the saved business context and verify factual claims before publication.`,
     });
     return NextResponse.json({ ...draft, url: `/content?site=${encodeURIComponent(websiteId)}&keyword=${encodeURIComponent(savedKeyword)}#article-review-workspace` });
   } catch {

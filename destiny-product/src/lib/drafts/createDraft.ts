@@ -1,7 +1,6 @@
 import "server-only";
-import { DEFAULT_ARTICLE_PREFERENCES } from "../content/article-generation";
 
-type DraftProposalInput = { title: string; targetKeyword: string; angle: string; outlineBullets: string[]; writingInstructions?: string };
+type DraftProposalInput = { title: string; targetKeyword: string; angle: string; outlineBullets: string[] };
 
 type DraftWriteResult = { data?: unknown; error: { message?: string } | null };
 type RawDraftClient = {
@@ -41,7 +40,6 @@ export async function createDraft(
     body: "",
     generationStatus: "starter",
     approved: false,
-    ...(input.writingInstructions ? { preferences: { ...DEFAULT_ARTICLE_PREFERENCES, specialInstructions: input.writingInstructions } } : {}),
     agentBrief: {
       angle: input.angle,
       outlineBullets: input.outlineBullets,
