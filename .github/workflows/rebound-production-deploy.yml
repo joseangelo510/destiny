@@ -119,6 +119,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Refuse existing or unverifiable release image tags
+        run: |
+          set -euo pipefail
+          image_repository=ghcr.io/joseangelo510/destiny-production
+          docker buildx imagetools inspect "${image_repository}:${PRIOR_RELEASE_SHA}" > /dev/null
+          : > registry-preflight.txt
+          for image_tag in "${PRODUCTION_IMAGE_TAG}" "${RELEASE_SHA}"; do
+            if docker buildx imagetools inspect "${image_repository}:${image_tag}" > /dev/null 2> registry-preflight-error.txt; then
+              echo "Refusing existing image tag: ${image_tag}" >&2
+              exit 1
+            fi
+            if grep -Eiq '(unauthorized|denied|forbidden|401|403)' registry-preflight-error.txt \
+              || ! grep -Eiq '(manifest unknown|not found)' registry-preflight-error.txt; then
+              echo "Registry preflight could not verify tag absence: ${image_tag}" >&2
+              cat registry-preflight-error.txt >&2
+              exit 1
+            fi
+            printf '%s: absent\n' "${image_tag}" | tee -a registry-preflight.txt
+          done
+
       - name: Build and push exact Rebound image
         id: build
         uses: docker/build-push-action@v6
@@ -276,6 +296,8 @@ jobs:
         with:
           name: rebound-production-evidence-${{ github.run_id }}
           path: |
+            registry-preflight.txt
+            registry-preflight-error.txt
             route-inventory-counts.txt
             route-paths.txt
             candidate-digest.txt
