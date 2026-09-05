@@ -40,7 +40,11 @@ export default defineConfig({
   webServer: productionReadOnly
     ? undefined
     : {
-        command: "pnpm dev --hostname 127.0.0.1 --port 4173",
+        // The CI gate builds with the disposable fixture before browser tests.
+        // Exercise that production build, not the overlapping developer toolbar.
+        command: process.env.CI
+          ? "pnpm start --hostname 127.0.0.1 --port 4173"
+          : "pnpm dev --hostname 127.0.0.1 --port 4173",
         url: "http://127.0.0.1:4173",
         env: {
           ...process.env,
@@ -49,7 +53,7 @@ export default defineConfig({
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
             process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_playwright_placeholder",
         },
-        reuseExistingServer: true,
+        reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },
 });
