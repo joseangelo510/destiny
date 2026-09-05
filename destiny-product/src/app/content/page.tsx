@@ -21,7 +21,7 @@ import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string }> }) {
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string; keyword?: string }> }) {
   const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const context = await getWorkspaceContext();
@@ -124,7 +124,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
     : { data: [] };
-  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => row.draft);
+  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => row.draft).sort((left, right) => Number(normalizeTrackedKeyword(String(record(right).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")) - Number(normalizeTrackedKeyword(String(record(left).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")));
   const articleDraftSeeds = buildPersistedArticleDraftSeeds(articleDrafts, savedArticleDrafts, {
     businessName: context.website?.business_name ?? "Your business",
     problemSolved: context.website?.problem_solved ?? "",

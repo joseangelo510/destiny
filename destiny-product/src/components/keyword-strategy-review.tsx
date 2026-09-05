@@ -7,7 +7,8 @@ import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../lib/product/plan-horizon";
 
 import { KeywordActionDrawer, REASON_LABELS, VERDICT_LABELS, displayPath, type KeywordRecommendation, type KeywordTab, type KeywordDecision, type VerdictFilter, type KeywordReason, type NextAction } from "./keyword-strategy-details";
 
-export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, initialDocumentLinks = {}, initialReasons, initialTab, keywords, moreKeywordsHref, nextAction, nextHref, questId, questStatus, newResearchStatus = "ready" }: {
+export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, initialDocumentLinks = {}, initialReasons, initialTab, keywords, moreKeywordsHref, nextAction, nextHref, questId, questStatus, websiteId, newResearchStatus = "ready" }: {
+  websiteId: string;
   newResearchStatus?: "ready" | "unavailable";
   auditHref?: string;
   auditId: string;
@@ -127,7 +128,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     setSaving(keyword.keyword);
     setError("");
     try {
-      const response = await fetch("/api/keywords/create-content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword: keyword.keyword, pageType: pageTypes[keyword.keyword] ?? keyword.pageType }) });
+      const response = await fetch("/api/keywords/create-content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, auditId, keyword: keyword.keyword, pageType: pageTypes[keyword.keyword] ?? keyword.pageType }) });
       const payload = await response.json() as { error?: string; url?: string };
       if (!response.ok || !payload.url) throw new Error(payload.error || "The draft could not be saved. Your keyword approval is kept; try again from Approved.");
       router.push(payload.url);
