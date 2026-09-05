@@ -63,20 +63,20 @@ export function DraftDashboard({ view }: { view: ReboundDraftView }) {
   </div></Shell>;
 }
 
-export function CalendarDashboard({ view }: { view: ReboundCalendarView }) {
+export function CalendarDashboard({ view, selectedKeyword }: { view: ReboundCalendarView; selectedKeyword?: string }) {
   if (view.calendarView.state !== "ready" || !view.calendarView.data) return <EmptyPage active="/app/calendar" actionHref="/content#publishing-plan" actionLabel="Open publishing plan" message={view.calendarView.message} view={view} />;
   const data = view.calendarView.data;
   const studioHref = siteScopedHref("/content#publishing-plan", view.websiteId);
   const openDates = openCalendarDates(data.calendar);
   return <Shell active="/app/calendar" calendarActions view={view}><div className={styles.page}>
-    <NeedsYouBar detail={data.needsYou?.detail ?? "The saved publishing plan has no review item."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? "The calendar can run without you"} />
+    <NeedsYouBar detail={data.needsYou?.detail ?? "Start with an unscheduled topic. Choose publication dates after reviewing the finished articles."} move={data.needsYou ? { href: scopedHref(data.needsYou.href, view.websiteId), label: data.needsYou.moveLabel } : undefined} title={data.needsYou?.title ?? (data.calendar.suggestions?.length ? "Your topics are ready to write" : "No content is scheduled yet")} />
     <StatusStrip items={[
       { label: "DONE", value: String(data.stats.done), detail: "saved completed items" },
       { label: "NEEDS YOU", value: String(data.stats.needsUser), detail: "items needing review" },
       { label: "IN MOTION", value: String(data.stats.scheduled), detail: "planned or scheduled" },
       { label: "STUCK", value: String(data.stats.stuck), detail: "failed or overdue" },
     ]} />
-    <Panel><PanelHeader action="Open publishing plan" href={studioHref} subtitle="saved items only · mobile becomes an agenda" title="The month" /><MonthCalendar data={data.calendar} emptyDayHref="#calendar-actions" /></Panel>
+    <Panel><PanelHeader action="Open publishing plan" href={studioHref} subtitle="saved items only · mobile becomes an agenda" title="The month" /><MonthCalendar data={data.calendar} emptyDayHref="#calendar-actions" websiteId={view.websiteId} selectedKeyword={selectedKeyword} /></Panel>
     <CalendarActions approvedDrafts={view.approvedDrafts} openDates={openDates} studioHref={studioHref} timeZone={view.planTimezone} websiteId={view.websiteId} />
     <div className={styles.calendarMetaGrid}><Panel><div className={styles.calendarMeta}><span>Cadence</span><h3>{data.cadence.label}</h3><p>{data.cadence.detail}</p><Action href="/content#publishing-plan" label="Edit in Content Studio" websiteId={view.websiteId} /></div></Panel><Panel><div className={styles.calendarMeta}><span>Milestone</span><h3>Milestone not configured</h3><p>No workspace milestone is stored, so Rebound SEO will not invent a target or progress claim.</p></div></Panel></div>
     <Panel><PanelHeader subtitle="one honest state and one move per row" title="Schedule" /><div className={styles.list}>{data.rows.map((row) => <article key={row.id}><div><strong>{row.title}</strong><small>{row.detail}</small></div><StateChip label={row.state.replaceAll("_", " ")} state={row.state === "published" || row.state === "verified_live" ? row.state : row.state === "scheduled" || row.state === "managed_externally" ? "scheduled" : row.state === "needs_review" ? "approved" : "idea"} /><Action href={row.href} hot={row.state === "needs_review" || row.state === "failed"} label={row.moveLabel} websiteId={view.websiteId} /></article>)}</div></Panel>

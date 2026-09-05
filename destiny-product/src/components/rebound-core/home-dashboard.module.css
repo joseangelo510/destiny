@@ -198,3 +198,6 @@
   .calendarHead { align-items: flex-start; flex-direction: column; }
   .calendarSuggestions > div { grid-template-columns: 1fr; }
 }
+
+.calendarSuggestions article[data-highlighted="true"] { outline: 2px solid var(--forest, #1e3a2f); outline-offset: 3px; background: #e8f0e7; scroll-margin-top: 24px; }
+.calendarSuggestions article a { margin-top: 8px; color: #1e3a2f; text-decoration: underline; font-size: 13px; font-weight: 600; }

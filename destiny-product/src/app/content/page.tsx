@@ -106,7 +106,9 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .maybeSingle()
     : { data: null };
   const interviewArticleDraft = parseInterviewArticleDraft(interviewArticleRow?.draft);
-  const calendarArticleDrafts = calendar.slice(0, 3).map((item) => buildArticleDraft({
+  const selectedApprovedKeyword = calendarKeywordPool.find(keyword => keywordDecisions[keyword.keyword] === "approved" && normalizeTrackedKeyword(keyword.keyword) === normalizeTrackedKeyword(params.keyword ?? ""));
+  const selectedTopic = selectedApprovedKeyword ? [{ focusKeyword: selectedApprovedKeyword.keyword }] : [];
+  const calendarArticleDrafts = [...selectedTopic, ...calendar].slice(0, 3).map((item) => buildArticleDraft({
     keyword: item.focusKeyword,
     businessName: context.website?.business_name ?? "Your business",
     problemSolved: context.website?.problem_solved ?? "",
@@ -131,7 +133,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
-  });
+  }, 3, params.keyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows } = context.website

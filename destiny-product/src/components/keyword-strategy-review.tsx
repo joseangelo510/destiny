@@ -3,6 +3,7 @@
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useRouter } from "next/navigation";
 import { Fragment, useRef, useState } from "react";
+import { KeywordContentPlanConfirmation, useKeywordContentPlan } from "./keyword-content-plan";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../lib/product/plan-horizon";
 
 import { KeywordActionDrawer, recommendedKeywordPageType, REASON_LABELS, VERDICT_LABELS, displayPath, type KeywordRecommendation, type KeywordTab, type KeywordDecision, type VerdictFilter, type KeywordReason, type NextAction } from "./keyword-strategy-details";
@@ -47,6 +48,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const [openDrawer, setOpenDrawer] = useState("");
   const [pageTypes, setPageTypes] = useState<Record<string, string>>({});
 
+  const plan = useKeywordContentPlan({ websiteId, auditId, approve: async keyword => { const result = await saveDecision(keyword, "approved"); setStatus(""); setError(""); return result; }, refresh: () => router.refresh() });
   const approvedKeywords = keywords.filter((keyword) => decisions[keyword.keyword] === "approved");
   const declinedKeywords = keywords.filter((keyword) => decisions[keyword.keyword] === "declined");
   const reviewKeywords = keywords.filter((keyword) => !decisions[keyword.keyword]);
@@ -59,7 +61,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const recommendedUnreviewed = reviewKeywords.slice(0, approvalsRemaining);
   const visibleKeywords = activeTab === "approved" ? approvedKeywords : activeTab === "declined" ? declinedKeywords : reviewKeywords;
   const newOrder = new Map(newKeywordOrder.map((keyword, index) => [keyword, index]));
-  const newKeywords = reviewKeywords.filter((keyword) => keyword.verdict === "create" && keyword.searchVolume > 0).sort((a, b) => (newOrder.get(a.keyword) ?? 9999) - (newOrder.get(b.keyword) ?? 9999));
+  const newKeywords = keywords.filter((keyword) => (!decisions[keyword.keyword] || Boolean(plan.entries[keyword.keyword])) && decisions[keyword.keyword] !== "declined" && keyword.verdict === "create" && keyword.searchVolume > 0).sort((a, b) => (newOrder.get(a.keyword) ?? 9999) - (newOrder.get(b.keyword) ?? 9999));
   const existingKeywords = activeTab === "review" ? visibleKeywords.filter((keyword) => !newKeywords.includes(keyword)) : visibleKeywords;
   const filteredKeywords = verdictFilter === "all" ? existingKeywords : existingKeywords.filter((keyword) => keyword.verdict === verdictFilter);
   const displayedKeywords = showAll ? filteredKeywords : filteredKeywords.slice(0, 10);
@@ -92,6 +94,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       setDecisions((current) => ({ ...current, [keyword]: decision }));
       setReasons((current) => ({ ...current, [keyword]: reason }));
       setPendingDecline("");
+      if (decision === "declined") plan.forget(keyword);
       setStatus(decision === "approved"
         ? `Approved “${keyword}.” It now supports your three-month plan and weekly rank tracking.`
         : `Moved “${keyword}” to Declined. Rebound SEO will use this feedback when shaping future recommendations.`);
@@ -132,20 +135,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     if (approved) await createChangeDocument(keyword);
   };
 
-  const createContent = async (keyword: KeywordRecommendation) => {
-    if (decisions[keyword.keyword] !== "approved" && !await saveDecision(keyword.keyword, "approved")) return;
-    setSaving(keyword.keyword);
-    setError("");
-    try {
-      const response = await fetch("/api/keywords/create-content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, auditId, keyword: keyword.keyword, pageType: pageTypes[keyword.keyword] ?? recommendedKeywordPageType(keyword) }) });
-      const payload = await response.json() as { error?: string; url?: string };
-      if (!response.ok || !payload.url) throw new Error(payload.error || "The draft could not be saved. Your keyword approval is kept; try again from Approved.");
-      router.push(payload.url);
-    } catch (cause) {
-      setStatus(`“${keyword.keyword}” is approved. Draft creation needs another attempt.`);
-      setError(cause instanceof Error ? cause.message : "The draft could not be saved.");
-    } finally { setSaving(""); }
-  };
+  const createContent = (keyword: KeywordRecommendation) => plan.add(keyword.keyword, decisions[keyword.keyword] === "approved", pageTypes[keyword.keyword] ?? recommendedKeywordPageType(keyword));
 
   const restoreToReview = async (keyword: string) => {
     setSaving(keyword);
@@ -166,6 +156,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
         delete next[keyword];
         return next;
       });
+      plan.forget(keyword);
       setActiveTab("review");
       setStatus(`“${keyword}” is back in To Review. Existing drafts and rank history were kept.`);
     } catch (cause) {
@@ -226,6 +217,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const renderTable = (tableKeywords: KeywordRecommendation[], tableTotal: number, isNew = false) => <section className="claude-ks-panel" role="tabpanel">
       <div className="claude-ks-table-scroll"><table><thead><tr><th>Keyword</th><th>Intent</th><th>Monthly searches</th><th>Opportunity</th><th>Plan status</th><th>Action</th></tr></thead><tbody>{tableKeywords.map((keyword) => {
         const decision = decisions[keyword.keyword];
+        const entry = plan.entries[keyword.keyword];
         const reason = reasons[keyword.keyword];
         const opportunityLabel = keyword.priorityScore >= 70 ? "High" : keyword.priorityScore >= 50 ? "Good" : "Fair";
         const opportunityWidth = `${Math.max(12, Math.min(100, keyword.priorityScore))}%`;
@@ -235,11 +227,11 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
           <td><span className={`claude-ks-intent ${keyword.providerIntent}`}>{intentLabel}</span></td>
           <td className="claude-ks-number">{keyword.searchVolume.toLocaleString()}</td>
           <td><div className="claude-ks-opportunity" title={`${keyword.priorityScore} out of 100`}><span><i style={{ width: opportunityWidth }} /></span><b>{opportunityLabel}</b></div></td>
-          <td className="claude-ks-plan-status">{decision === "declined" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : "Saved feedback"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === "approved" ? keyword.verdict === "improve" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : "In plan · tracking weekly" : keyword.verdictDescription}</small></>}</td>
-          <td className="claude-ks-row-actions">{activeTab === "review" ? <><button aria-label={keyword.verdict === "improve" ? "Re-optimize: opens Approve + create change doc" : undefined} className="primary" disabled={saving === keyword.keyword || saving === "batch"} onClick={() => keyword.verdict === "create" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? "" : keyword.keyword)} type="button">{keyword.verdict === "improve" ? "Re-optimize" : keyword.verdict === "overlap" ? "Resolve overlap" : keyword.verdict === "defend" ? "Protect" : saving === keyword.keyword ? "Creating…" : "Create content"}</button><button disabled={saving === keyword.keyword || saving === "batch"} onClick={() => setPendingDecline(keyword.keyword)} type="button">Decline</button></> : activeTab === "approved" ? <>{keyword.verdict === "create" ? <button disabled={saving === keyword.keyword} onClick={() => void createContent(keyword)} type="button">{saving === keyword.keyword ? "Creating…" : "Create content"}</button> : null}{keyword.verdict === "improve" ? documentLinks[keyword.keyword] ? <><Link href={documentLinks[keyword.keyword]}>Change doc</Link><button disabled={saving === keyword.keyword} onClick={() => void createChangeDocument(keyword, true)} title="Runs new DataForSEO research and creates a fresh plan" type="button">{saving === keyword.keyword ? "Refreshing…" : "Refresh research"}</button></> : <button disabled={saving === keyword.keyword} onClick={() => void createChangeDocument(keyword)} type="button">{saving === keyword.keyword ? "Creating…" : "Create change doc"}</button> : null}<button disabled={saving === keyword.keyword} onClick={() => void restoreToReview(keyword.keyword)} type="button">Unapprove</button></> : <button disabled={saving === keyword.keyword} onClick={() => void restoreToReview(keyword.keyword)} type="button">Restore to review</button>}</td>
-        </tr>{openDrawer === keyword.keyword && activeTab === "review" ? <tr className="claude-ks-drawer-row"><td colSpan={6}><KeywordActionDrawer keyword={keyword} pageType={pageTypes[keyword.keyword]} saving={saving === keyword.keyword} onPageType={(pageType) => setPageTypes((current) => ({ ...current, [keyword.keyword]: pageType }))} onApprove={() => void (keyword.verdict === "create" ? createContent(keyword) : keyword.verdict === "improve" ? approveForReoptimization(keyword) : saveDecision(keyword.keyword, "approved"))} /></td></tr> : null}{pendingDecline === keyword.keyword ? <tr><td className="claude-ks-decline" colSpan={6}><strong>Why decline? <small>Optional</small></strong><div>{(Object.keys(REASON_LABELS) as KeywordReason[]).map((code) => <button disabled={saving === keyword.keyword} key={code} onClick={() => void saveDecision(keyword.keyword, "declined", code)} type="button">{REASON_LABELS[code]}</button>)}</div><button disabled={saving === keyword.keyword} onClick={() => void saveDecision(keyword.keyword, "declined")} type="button">Decline without a reason</button><button onClick={() => setPendingDecline("")} type="button">Cancel</button></td></tr> : null}</Fragment>;
+          <td className="claude-ks-plan-status">{decision === "declined" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : "Saved feedback"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{keyword.verdict === "create" && decision === "approved" ? "In plan" : VERDICT_LABELS[keyword.verdict]}</span><small>{decision === "approved" ? keyword.verdict === "improve" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : entry?.state === "saved" ? "Brief saved" : "Topic approved" : keyword.verdictDescription}</small></>}</td>
+          <td className="claude-ks-row-actions">{activeTab === "review" ? <><button aria-label={keyword.verdict === "improve" ? "Re-optimize: opens Approve + create change doc" : undefined} className="primary" disabled={Boolean(saving) || plan.busy || entry?.state === "adding" || entry?.state === "saved"} onClick={() => keyword.verdict === "create" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? "" : keyword.keyword)} type="button">{keyword.verdict === "improve" ? "Re-optimize" : keyword.verdict === "overlap" ? "Resolve overlap" : keyword.verdict === "defend" ? "Protect" : entry?.state === "saved" ? "Added" : entry?.state === "adding" ? "Adding…" : "Add to content plan"}</button>{entry?.state !== "saved" ? <button disabled={Boolean(saving) || plan.busy} onClick={() => setPendingDecline(keyword.keyword)} type="button">Decline</button> : null}</> : activeTab === "approved" ? <>{keyword.verdict === "create" ? <button disabled={Boolean(saving) || plan.busy || entry?.state === "saved"} onClick={() => void createContent(keyword)} type="button">{entry?.state === "saved" ? "Added" : entry?.state === "adding" ? "Adding…" : "Add to content plan"}</button> : null}{keyword.verdict === "improve" ? documentLinks[keyword.keyword] ? <><Link href={documentLinks[keyword.keyword]}>Change doc</Link><button disabled={saving === keyword.keyword} onClick={() => void createChangeDocument(keyword, true)} title="Runs new DataForSEO research and creates a fresh plan" type="button">{saving === keyword.keyword ? "Refreshing…" : "Refresh research"}</button></> : <button disabled={saving === keyword.keyword} onClick={() => void createChangeDocument(keyword)} type="button">{saving === keyword.keyword ? "Creating…" : "Create change doc"}</button> : null}<button disabled={Boolean(saving) || plan.busy} onClick={() => void restoreToReview(keyword.keyword)} type="button">Unapprove</button></> : <button disabled={Boolean(saving) || plan.busy} onClick={() => void restoreToReview(keyword.keyword)} type="button">Restore to review</button>}</td>
+        </tr>{entry ? <KeywordContentPlanConfirmation entry={entry} keyword={keyword.keyword} websiteId={websiteId} retry={() => void createContent(keyword)} /> : null}{openDrawer === keyword.keyword && !entry && activeTab === "review" ? <tr className="claude-ks-drawer-row"><td colSpan={6}><KeywordActionDrawer keyword={keyword} pageType={pageTypes[keyword.keyword]} saving={saving === keyword.keyword} onPageType={(pageType) => setPageTypes((current) => ({ ...current, [keyword.keyword]: pageType }))} onApprove={() => void (keyword.verdict === "create" ? createContent(keyword) : keyword.verdict === "improve" ? approveForReoptimization(keyword) : saveDecision(keyword.keyword, "approved"))} /></td></tr> : null}{pendingDecline === keyword.keyword ? <tr><td className="claude-ks-decline" colSpan={6}><strong>Why decline? <small>Optional</small></strong><div>{(Object.keys(REASON_LABELS) as KeywordReason[]).map((code) => <button disabled={saving === keyword.keyword} key={code} onClick={() => void saveDecision(keyword.keyword, "declined", code)} type="button">{REASON_LABELS[code]}</button>)}</div><button disabled={saving === keyword.keyword} onClick={() => void saveDecision(keyword.keyword, "declined")} type="button">Decline without a reason</button><button onClick={() => setPendingDecline("")} type="button">Cancel</button></td></tr> : null}</Fragment>;
       })}</tbody></table></div>
-      <footer className="claude-ks-table-foot"><span>Showing {tableKeywords.length} of {tableTotal} {activeTab === "review" ? "keywords to review" : `${activeTab} keywords`}{activeTab === "declined" ? " · Restoring sends a keyword back to To Review" : ""}</span>{isNew ? tableTotal > newLimit ? <button onClick={() => setNewLimit(current => current + 15)} type="button">Show {Math.min(15, tableTotal - newLimit)} more <span aria-hidden="true">→</span></button> : null : tableTotal > 10 ? <button onClick={() => setShowAll(current => !current)} type="button">{showAll ? "Show first 10" : `View all ${tableTotal}`} <span aria-hidden="true">→</span></button> : null}</footer>
+      <footer className="claude-ks-table-foot"><span>Showing {tableKeywords.length} of {tableTotal} {isNew ? "recommendations" : activeTab === "review" ? "keywords to review" : `${activeTab} keywords`}{activeTab === "declined" ? " · Restoring sends a keyword back to To Review" : ""}</span>{isNew ? tableTotal > newLimit ? <button onClick={() => setNewLimit(current => current + 15)} type="button">Show {Math.min(15, tableTotal - newLimit)} more <span aria-hidden="true">→</span></button> : null : tableTotal > 10 ? <button onClick={() => setShowAll(current => !current)} type="button">{showAll ? "Show first 10" : `View all ${tableTotal}`} <span aria-hidden="true">→</span></button> : null}</footer>
     </section>;
 
   return <section className="keyword-strategy-review" id="keyword-strategy-review">
@@ -260,11 +252,11 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     </div>
 
     {activeTab === "review" ? <section aria-label="New keyword recommendations" className="claude-ks-new-section">
-      <div className="claude-ks-section-heading"><h3>New keyword recommendations <span>{newKeywords.length}</span></h3><p>New content ideas matched to your business and customers using your onboarding answers.</p></div>
+      <div className="claude-ks-section-heading"><h3>New keyword recommendations <span>{newKeywords.filter(keyword => !decisions[keyword.keyword]).length}</span></h3><p>New content ideas matched to your business and customers using your onboarding answers.</p></div>
       {newKeywords.length ? renderTable(newKeywords.slice(0, newLimit), newKeywords.length, true) : <p className="claude-ks-section-note">{newResearchStatus === "unavailable" ? "New keyword research is temporarily unavailable. Your existing strategy is still available below." : "No additional measured opportunities cleared the current checks. Your approved and declined keywords are saved in their tabs."}</p>}
       {newKeywords.length > 0 && newResearchStatus === "unavailable" ? <p className="claude-ks-section-note" role="status">Additional research is temporarily unavailable. Your saved options remain available.</p> : null}
       <p className="claude-ks-section-note">{discoveryRound < 5 ? <DiscoveryLink href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`} /> : <Link href={moreKeywordsHref}>Explore more keywords →</Link>} · Uses your saved business, customer, and problem details.</p>
-      {newKeywords.length > 0 ? <p className="claude-ks-section-note">Create content saves a brief in Content Studio. You generate and review it before publishing. Coverage reflects checked pages and search results; it is not a full-site crawl.</p> : null}
+      {newKeywords.length > 0 ? <p className="claude-ks-section-note">Keep choosing keywords. Start writing whenever you are ready. Adding a topic saves its brief; publication scheduling follows article approval. Coverage reflects checked pages and search results; it is not a full-site crawl.</p> : null}
       <div className="claude-ks-section-heading"><h3>Existing keyword opportunities <span>{existingKeywords.length}</span></h3><p>Improve or protect the pages your site already has.</p></div>
     </section> : null}
 

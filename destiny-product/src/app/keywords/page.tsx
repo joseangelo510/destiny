@@ -1,3 +1,4 @@
+import "./keyword-content-plan.css";
 import { prepareKeywordCandidates } from "@/lib/seo/prepare-keyword-candidates";
 import { loadNewKeywordRecommendations } from "@/lib/seo/load-new-keyword-recommendations";
 import { KeywordStrategyReview } from "@/components/keyword-strategy-review";

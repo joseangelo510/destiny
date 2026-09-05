@@ -1,0 +1,16 @@
+.claude-ks-panel tr.approved:has(+ .claude-ks-plan-confirmation-row) { background: #f0f6f1; }
+.claude-ks-plan-confirmation-row > td { padding: 0 8px 8px !important; background: #f0f6f1; white-space: normal !important; }
+.claude-ks-plan-confirmation { display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid var(--claude-sage-deep); border-radius: 6px; padding: 20px 24px; color: var(--claude-forest); }
+.claude-ks-plan-confirmation strong { font-size: 14px; font-weight: 600; }
+.claude-ks-plan-confirmation p { font-size: 13px; margin: 5px 0; overflow-wrap: anywhere; }
+.claude-ks-plan-confirmation small { display: block; color: var(--claude-ink-soft); font-size: 12px; }
+.claude-ks-plan-next { flex-shrink: 0; }
+.claude-ks-plan-next > div { display: flex; align-items: center; gap: 24px; margin-bottom: 8px; }
+.claude-ks-plan-next a { color: var(--claude-forest); font-size: 13px; font-weight: 600; text-decoration: none; }
+.claude-ks-plan-next .claude-ks-calendar-link, .claude-ks-plan-next button { border: 1px solid var(--claude-forest); border-radius: 6px; background: transparent; padding: 10px 20px; }
+.claude-ks-plan-next a:hover { text-decoration: underline; }
+.claude-ks-plan-next a:focus-visible, .claude-ks-plan-next button:focus-visible { outline: 2px solid var(--claude-forest); outline-offset: 3px; }
+@media (max-width: 700px) { .claude-ks-plan-confirmation { align-items: flex-start; flex-direction: column; gap: 14px; padding: 16px; } .claude-ks-plan-next > div { gap: 18px; } }
+
+.claude-ks-panel .claude-ks-row-actions button { white-space: normal; }
+.claude-ks-panel tr.approved:has(+ .claude-ks-plan-confirmation-row) .primary:disabled { background: transparent; border-color: transparent; opacity: 1; color: var(--claude-forest); cursor: default; }

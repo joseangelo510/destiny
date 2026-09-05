@@ -3441,3 +3441,15 @@ production rollback exists because none is touched.
 - Fresh prior point: live Fly machine 860714be531938 started in sjc; v1.1.5 source 9a36890f5d05abc05766a571933b07a893d86890 and runtime digest sha256:43600a95d740cdbca6d9f89ee59dc0ca8aac8c91eaf05e8bd91dd00ac031774b verified before this record. It preserves the expanded pool but has the documented client-link limitation in D10.19. Recheck certificate, health, machine/stamps before dispatch.
 - Dispatch the guarded workflow once. Verify immutable source/tag/image/live identity, all 88 inventory routes with zero 5xx, JAS 15 initial/Show15more/ordinary Discover-more click reaching 45, and second website with preserved decisions/drafts. Existing guarded rollback to v1.1.5 is within this correction if a new post-mutation regression appears; no blind repeat or tag mutation.
 - No customer decisions, content drafts, publishing, emails, audits, migrations, Replit, DNS, auth/config or policy changes. Recommendation research/cache requests remain necessary read-only verification.
+
+
+## Keyword content plan handoff — 2026-09-05
+
+- Classification: MEDIUM UI and existing-state presentation; no schema, auth/RLS, dependencies, publishing jobs, or deployment configuration changes.
+- Base: 773357827b874104dfc56254fb385f565a0f147a. Single implementation owner: Codex in task Add new keyword opportunities; no other active Rebound implementation task observed.
+- Owner request: “great let build it” after the selected inline Add to content plan mockup. This authorizes the implementation and validation, not a new production release.
+- Scope: keep keyword triage in place, confirm saved briefs inline, explicit exact-topic Calendar and writing navigation, truthful brief versus article pipeline states, preserved briefs after unapproval, partial-save retry. Existing keyword decisions, onboarding, rank tracking, and publication approval rules are reused.
+- Visual target: selected mockup exec-759cdaa7-be47-4549-9849-13325afef8ea.png; preserve the compact keyword table and existing design tokens.
+- RED evidence: content-plan-handoff.test.ts failed because empty starters were reviewable Drafts rather than Ideas/Brief saved. Separate test-change commits replace the old automatic-redirect promise and add partial-save retry and preservation acceptance checks.
+- Pre-gate validation: focused desktop/mobile saved-brief journeys passed, including simulated partial failure/retry, repeat reuse, outsider 404, explicit Calendar/writer handoff and brief preservation after unapproval. Focused content tests and TypeScript passed. Additional RED 0c88d22 reproduced an explicitly selected approved topic being displaced by three older drafts; preferred-draft tests now pass. Full exact-head harness and final visual evidence will be recorded in the protected PR before merge.
+- Rollback: protected revert of this UI change; no data deletion or migration required.

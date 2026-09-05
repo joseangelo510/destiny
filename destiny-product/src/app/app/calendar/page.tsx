@@ -4,8 +4,9 @@ import { loadReboundCalendar } from "@/lib/rebound-core/load-core-pages";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReboundCalendarPage() {
+export default async function ReboundCalendarPage({ searchParams }: { searchParams: Promise<{ keyword?: string }> }) {
   const view = await loadReboundCalendar();
   if (!view) redirect("/onboarding");
-  return <CalendarDashboard view={view} />;
+  const { keyword } = await searchParams;
+  return <CalendarDashboard view={view} selectedKeyword={keyword} />;
 }
