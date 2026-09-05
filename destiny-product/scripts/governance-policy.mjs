@@ -13,7 +13,7 @@ const frozenRules = [
   [/^docs\/(?:HARNESS_RUNBOOK|DESTINY_GOVERNANCE_POINTER)\.md$/, "governance knowledge"],
   [/^\.github\/(?:workflows|scripts)\//, "CI or enforcement workflow"],
   [/^destiny-product\/scripts\/(?:governance-[^/]+|pr-preflight)\.mjs$/, "governance enforcement code"],
-  [/^destiny-product\/qa\/rules\/harness-governance\.test\.ts$/, "governance enforcement test"],
+  [/^destiny-product\/qa\/rules\/(?:harness-governance|governance-[^/]+|staging-evidence-policy)\.test\.ts$/, "governance enforcement test"],
   [/^destiny-product\/supabase\/migrations\//, "database migration"],
   [/^destiny-product\/supabase\/config\.toml$/, "Supabase configuration"],
   [/^destiny-product\/supabase\/functions\/(?:delete-account|google-oauth[^/]*)\//, "authentication or security function"],
