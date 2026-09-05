@@ -21,7 +21,9 @@ test.describe("@gate core navigation from returning-user entry and existing tool
     const mobile = testInfo.project.name === "mobile";
     await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
     const serverErrors: string[] = [];
+    const pageErrors: string[] = [];
     page.on("response", (response) => { if (response.status() >= 500) serverErrors.push(response.url()); });
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     for (const tool of ["/content/infographics", "/keywords"]) {
       await page.goto(`${tool}?site=${fixture.mvp.websiteId}`);
       const navigation = page.getByRole("navigation", { name: mobile ? "Primary mobile navigation" : "Rebound SEO workspace", exact: true });
@@ -37,5 +39,6 @@ test.describe("@gate core navigation from returning-user entry and existing tool
       await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();
     }
     expect(serverErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
   });
 });
