@@ -3324,3 +3324,16 @@ production rollback exists because none is touched.
   closing comment; no further D10.8 G0 or G1 PR is opened.
 - No production change, release, deploy, or frozen action is authorized by
   D10.9.
+
+## D10.11 - Owner-directed navigation repair and review workflow simplification
+
+- Recorded: 2026-09-04. Authority: Jose Gallegos, product owner, directly in the active Codex task. Executor: Codex. This is not a Fable decision or verdict.
+- Owner request, verbatim: "I dont see the new features and tabs we shipped out for reboudn recently. i only see the old features. can you help fix that. and lets not use claude anymore. it complicates the process."
+- Context: the owner previously requested that approval authority remain his, that Codex execute authorized actions on his behalf, and that the policy reflect that choice. No owner authorization is fabricated or attributed to another model.
+- Classification: HIGH because governance and navigation under an auth-adjacent module are affected. Authentication, sessions, RLS, credentials, and database behavior are not changed.
+- Observed production: build 4f42e08f404b34700ea8b1d0d216b2624654150c, rebound-seo-v1.1.2. /app redirects to /this-week, while /app/home renders the five shipped core tabs. Existing tools render the old navigation. The default-route fix on protected main is not yet deployed.
+- Approved implementation scope: make the five core destinations the primary navigation on existing tools; retain all existing tools and legacy coaching destinations; route returning users and completed onboarding to /app; preserve selected-site scoping and explicit new-website onboarding. Add regression tests and desktop/mobile journey coverage.
+- Workflow scope: remove mandatory Claude/Fable classification and review. Codex supplies an honestly attributed technical review and evidence at the exact PR head; Jose remains the sole approval authority. Record explicit owner authorization in ordinary language, with the executor, resolved PR/head, and permitted actions, instead of requiring the owner to type a machine token. Existing OEA records remain historical evidence.
+- Required protections retained: protected PRs, no direct main pushes or admin bypass, owner-attributed approval labels, HIGH classification of sensitive changes, RED/GREEN discipline, complete harness, isolation, exact-head review, staging identity and zero-5xx checks, immutable releases, recorded deployment and rollback evidence. No fabricated review or passing-check claim.
+- This record authorizes preparation of the navigation repair and workflow update, not a blind deployment of all current main. The unreleased Agent's unapplied migration must be accounted for in the separate release plan. No database migration, CMS write, email, new audit, credentials change, or unrelated feature is included.
+- Rollback: protected revert of the navigation/workflow PR with the same checks. Do not rewrite prior decision records. Production stays at its recorded immutable release until a fully verified release candidate is ready.
