@@ -65,6 +65,7 @@ describe("merge-blocking readiness", () => {
       expect(workflow).not.toContain(`name: ${name}-guard\n    runs-on`);
       expect(workflow).toContain("issue_comment:");
       expect(workflow).toContain("workflow_dispatch:");
+      expect(workflow).toContain("types: [requested, in_progress, completed]");
     }
     const staging = readFileSync("../.github/workflows/staging-evidence.yml", "utf8");
     expect(staging).toContain("types: [opened, synchronize, reopened]");

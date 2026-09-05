@@ -16,7 +16,7 @@ describe("CI-ephemeral staging evidence policy", () => {
     );
 
     expect(workflow).toContain("pull_request:");
-    expect(workflow).toContain("types: [opened, synchronize, reopened, edited]");
+    expect(workflow).toContain("types: [opened, synchronize, reopened]");
     expect(workflow).toContain("ref: ${{ github.event.pull_request.head.sha }}");
     expect(workflow).toContain("DESTINY_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}");
     expect(workflow).toContain("destiny-product/qa/artifacts/staging-evidence");
