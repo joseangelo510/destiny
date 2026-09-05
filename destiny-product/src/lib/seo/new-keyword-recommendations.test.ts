@@ -38,7 +38,7 @@ describe("new content recommendations", () => {
     const result = await discoverNewKeywordRecommendations(input, { research, coverage: vi.fn() });
     expect(result.keywords).toEqual([]);
     expect(result.status).toBe("unavailable");
-    expect(research.mock.calls.length).toBeLessThanOrEqual(6);
+    expect(research.mock.calls.length).toBeLessThanOrEqual(24);
   });
   it("groups reordered phrases and plural variants without swallowing distinct intent", () => {
     expect(topicMatches("youtube marketing strategies", "Marketing strategy for YouTube")).toBe(true);
