@@ -1,16 +1,15 @@
 "use client";
 
 import { WorkspaceLink as Link } from "./workspace-link";
-import { useLinkStatus } from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useRef, useState } from "react";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "../lib/product/plan-horizon";
 
 import { KeywordActionDrawer, recommendedKeywordPageType, REASON_LABELS, VERDICT_LABELS, displayPath, type KeywordRecommendation, type KeywordTab, type KeywordDecision, type VerdictFilter, type KeywordReason, type NextAction } from "./keyword-strategy-details";
 
-function DiscoveryLabel() {
-  const { pending } = useLinkStatus();
-  return <span role="status">{pending ? "Finding more recommendations…" : "Discover more recommendations →"}</span>;
+function DiscoveryLink({ href }: { href: string }) {
+  const [pending, setPending] = useState(false);
+  return <a aria-label="Discover more recommendations" aria-busy={pending} href={href} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setPending(true); }}><span role="status">{pending ? "Finding more recommendations…" : "Discover more recommendations →"}</span></a>;
 }
 
 export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, initialDocumentLinks = {}, initialReasons, initialTab, keywords, moreKeywordsHref, nextAction, nextHref, questId, questStatus, websiteId, newResearchStatus = "ready", discoveryRound = 0, newKeywordOrder = [] }: {
@@ -264,7 +263,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       <div className="claude-ks-section-heading"><h3>New keyword recommendations <span>{newKeywords.length}</span></h3><p>New content ideas matched to your business and customers using your onboarding answers.</p></div>
       {newKeywords.length ? renderTable(newKeywords.slice(0, newLimit), newKeywords.length, true) : <p className="claude-ks-section-note">{newResearchStatus === "unavailable" ? "New keyword research is temporarily unavailable. Your existing strategy is still available below." : "No additional measured opportunities cleared the current checks. Your approved and declined keywords are saved in their tabs."}</p>}
       {newKeywords.length > 0 && newResearchStatus === "unavailable" ? <p className="claude-ks-section-note" role="status">Additional research is temporarily unavailable. Your saved options remain available.</p> : null}
-      <p className="claude-ks-section-note">{discoveryRound < 5 ? <Link aria-label="Discover more recommendations" prefetch={false} href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`}><DiscoveryLabel /></Link> : <Link href={moreKeywordsHref}>Explore more keywords →</Link>} · Uses your saved business, customer, and problem details.</p>
+      <p className="claude-ks-section-note">{discoveryRound < 5 ? <DiscoveryLink href={`/keywords?site=${websiteId}&discover=${discoveryRound + 1}#keyword-strategy-review`} /> : <Link href={moreKeywordsHref}>Explore more keywords →</Link>} · Uses your saved business, customer, and problem details.</p>
       {newKeywords.length > 0 ? <p className="claude-ks-section-note">Create content saves a brief in Content Studio. You generate and review it before publishing. Coverage reflects checked pages and search results; it is not a full-site crawl.</p> : null}
       <div className="claude-ks-section-heading"><h3>Existing keyword opportunities <span>{existingKeywords.length}</span></h3><p>Improve or protect the pages your site already has.</p></div>
     </section> : null}
