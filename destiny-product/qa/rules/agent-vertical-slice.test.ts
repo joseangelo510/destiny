@@ -20,24 +20,20 @@ describe("D10.7 agent vertical slice", () => {
     expect(sql).toContain("organization_members");
   });
 
-  it("keeps the agent on authorized routes and out of the five-tab navigation", async () => {
+  it("withholds the Agent application while preserving its database safety artifacts", async () => {
     const [shell, routes, tables] = await Promise.all([
       readFile(path.join(root, "src/components/rebound-core/rebound-core-shell.tsx"), "utf8"),
       readFile(path.join(root, "src/lib/rebound-core/routes.ts"), "utf8"),
       readFile(path.join(root, "src/lib/db/table-scope.ts"), "utf8"),
     ]);
-    expect(shell).toContain("Ask Rebound");
-    expect(shell).toContain("/app/agent");
+    expect(shell).not.toContain("Ask Rebound");
+    expect(shell).not.toContain("/app/agent");
     expect(routes).not.toContain("/app/agent");
     for (const table of ["agent_conversations", "agent_messages", "agent_proposals"]) expect(tables).toContain(table);
   });
 
-  it("forbids model-reachable publishing and client imports of agent server code", async () => {
-    const [registry, eslint] = await Promise.all([
-      readFile(path.join(root, "src/lib/agent/tools/registry.ts"), "utf8"),
-      readFile(path.join(root, "eslint.config.mjs"), "utf8"),
-    ]);
-    expect(registry).not.toMatch(/publish_to_cms|send_email|delete_record/);
+  it("keeps client-import restrictions for any future Agent reintroduction", async () => {
+    const eslint = await readFile(path.join(root, "eslint.config.mjs"), "utf8");
     expect(eslint).toContain("@/lib/agent/*");
   });
 });
