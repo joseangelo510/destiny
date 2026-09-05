@@ -62,17 +62,19 @@ async function main() {
     if (!response.ok) throw new Error(`GitHub API ${response.status} on ${method} ${route}`);
     return response.json();
   };
-  let numbers = [];
-  if (event.pull_request) numbers = [event.pull_request.number];
-  else if (event.issue?.pull_request) numbers = [event.issue.number];
-  else if (event.inputs?.pr_number) {
-    if (!/^[1-9]\d*$/.test(String(event.inputs.pr_number))) throw new Error("Invalid PR number.");
-    numbers = [Number(event.inputs.pr_number)];
-  } else if (event.workflow_run?.head_sha) {
-    const prs = await api("/pulls?state=open", "PAGES");
-    numbers = prs.filter((pr) => pr.head.sha === event.workflow_run.head_sha).map((pr) => pr.number);
-  }
+  if (event.issue && !event.issue.pull_request) return;
+  const requested = event.inputs?.pr_number;
+  if (requested && !/^[1-9]\d*$/.test(String(requested))) throw new Error("Invalid PR number.");
+  // GitHub concurrency retains only one pending run. Reconcile every open PR
+  // so coalesced events from different PRs cannot leave stale approval green.
+  const prs = await api("/pulls?state=open", "PAGES");
+  const numbers = prs.map((pr) => pr.number).sort((a, b) => Number(b === Number(requested)) - Number(a === Number(requested)));
   const detailsUrl = `https://github.com/${repository.full_name}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-  for (const number of numbers) await refreshGovernance({ mode, number, repository, api, detailsUrl });
+  const errors = [];
+  for (const number of numbers) {
+    try { await refreshGovernance({ mode, number, repository, api, detailsUrl }); }
+    catch (error) { errors.push(new Error(`PR #${number}: ${error.message}`)); }
+  }
+  if (errors.length) throw new AggregateError(errors, "Governance refresh failed; required checks remain blocking.");
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

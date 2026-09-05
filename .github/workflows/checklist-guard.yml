@@ -7,7 +7,7 @@ on:
     types: [created, edited, deleted]
   workflow_run:
     workflows: [Destiny test harness, Destiny staging evidence]
-    types: [completed]
+    types: [requested, in_progress, completed]
   workflow_dispatch:
     inputs:
       pr_number:
