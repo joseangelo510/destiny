@@ -12,6 +12,8 @@ it("keeps useful content angles and removes agency variants, boilerplate and exa
 it("does not count free checklists or reordered pricing variants as additional options", () => {
   expect(sameContentTopic("free conversion rate optimization checklist", "conversion rate optimization checklist", brief)).toBe(true);
   expect(sameContentTopic("cost for seo services", "seo services pricing", brief)).toBe(true);
+  expect(sameContentTopic("low price seo services", "cost for seo services", brief)).toBe(true);
+  expect(sameContentTopic("google ads campaign price", "how much does a google ads campaign cost", brief)).toBe(true);
   expect(sameContentTopic("google ads campaign budget", "google ads campaign structure", brief)).toBe(false);
 });
 it("interleaves business themes before considering the next high-volume phrase", () => {
