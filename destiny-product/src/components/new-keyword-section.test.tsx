@@ -20,7 +20,7 @@ describe("approved new keyword section design", () => {
     expect(html.indexOf("New keyword recommendations")).toBeLessThan(html.indexOf("Existing keyword opportunities"));
     expect(html.indexOf("youtube marketing strategy</strong>")).toBeLessThan(html.indexOf("Existing keyword opportunities"));
     expect(html.match(/<table>/g)).toHaveLength(2);
-    expect(html).toContain(">Create content</button>");
+    expect(html).toContain(">Add to content plan</button>");
     expect(html).toContain("Show content angle");
     expect(html).not.toContain("Pending / Checked on approve");
   });

@@ -5,12 +5,12 @@ if (!fixturePath) throw new Error("Disposable browser fixture is required.");
 const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as { keywordWorkspaces: Record<string, { websiteId: string; auditId: string }>; outsiderSiteId: string; outsiderAuditId: string };
 const keyword = "seo website migration checklist";
 
-test("@gate new recommendations preserve decisions and hand off a saved draft", async ({ page }, testInfo) => {
+test("@gate new recommendations preserve decisions and keep planning and explicitly hand off a saved brief", async ({ page }, testInfo) => {
   const { websiteId, auditId } = fixture.keywordWorkspaces[testInfo.project.name];
   await page.goto(`/keywords?site=${websiteId}`);
   const section = page.getByRole("region", { name: "New keyword recommendations", exact: true });
   await expect(section.getByRole("row").filter({ hasText: keyword })).toBeVisible();
-  await expect(section.getByRole("button", { name: "Create content", exact: true })).toBeVisible();
+  await expect(section.getByRole("button", { name: "Add to content plan", exact: true })).toBeVisible();
   await section.getByRole("button", { name: "Decline", exact: true }).click();
   const declined = page.waitForResponse((response) => response.url().endsWith("/api/keywords/decisions") && response.request().method() === "POST");
   await section.getByRole("button", { name: "Not now", exact: true }).click();
@@ -22,12 +22,21 @@ test("@gate new recommendations preserve decisions and hand off a saved draft", 
   await expect(section.getByRole("row").filter({ hasText: keyword })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath(`keyword-recommendations-${testInfo.project.name}.png`), fullPage: true });
   const saved = page.waitForResponse((response) => response.url().endsWith("/api/keywords/create-content") && response.request().method() === "POST");
-  await section.getByRole("button", { name: "Create content", exact: true }).click();
+  await section.getByRole("button", { name: "Add to content plan", exact: true }).click();
   const first = await saved;
   expect(first.status()).toBe(200);
   const firstDraft = await first.json();
+  await expect(page).toHaveURL(new RegExp(`/keywords\\?site=${websiteId}$`));
+  const confirmation = section.getByRole("status").filter({ hasText: "Added to your content plan" });
+  await expect(confirmation).toContainText(keyword);
+  await expect(confirmation.getByRole("link", { name: "View in Calendar" })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath(`keyword-plan-confirmation-${testInfo.project.name}.png`), fullPage: true });
+  await confirmation.getByRole("link", { name: "View in Calendar" }).click();
+  const topic = page.getByRole("article").filter({ hasText: "Seo website migration checklist" });
+  await expect(topic).toBeVisible();
+  await expect(topic).toHaveAttribute("data-highlighted", "true");
+  await topic.getByRole("link", { name: "Start draft" }).click();
   await expect(page).toHaveURL(new RegExp(`/content\\?site=${websiteId}&keyword=seo%20website%20migration%20checklist`));
-  await expect(page.getByRole("button", { name: /1.*seo website migration checklist/ })).toBeVisible();
   await expect(page.getByText("Brief saved", { exact: true })).toBeVisible();
   const repeat = await page.request.post("/api/keywords/create-content", { data: { websiteId, auditId, keyword } });
   expect(repeat.status()).toBe(200);
