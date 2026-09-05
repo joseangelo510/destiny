@@ -26,6 +26,7 @@ main.app-shell[data-design="claude-keyword-strategy"] {
   grid-template-columns: 236px minmax(0, 1fr);
   margin: 0 auto;
   max-width: 1440px;
+  width: 100%;
 }
 
 main.app-shell[data-design="claude-keyword-strategy"] > .sidebar {
