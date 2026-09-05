@@ -26,6 +26,7 @@ const cachedResearch = unstable_cache(async (websiteId: string, auditId: string,
 export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<typeof getWorkspaceContext>>, round = 0) {
   if (!context.website || !context.audit) return { keywords: [], status: "unavailable" as const, round };
   const website = context.website;
+  const auditId = context.audit.id;
   const provider = providerResultFromMetrics(context.metrics);
   const business = { businessName: website.business_name ?? "", productsServices: website.products_services ?? "", idealCustomer: website.ideal_customer ?? "", problemSolved: website.problem_solved ?? "", audienceChallengesGoals: website.audience_challenges_goals ?? "", differentiation: website.differentiation ?? "", market: website.market ?? "" };
   const savedBrief = record(provider.businessSearchBrief);
@@ -35,7 +36,7 @@ export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<
     const { data: preferences, error } = await context.supabase.from("keyword_preferences").select("normalized_keyword,decision,reason,updated_at").eq("website_id", website.id);
     if (error) throw new Error("Saved keyword feedback could not be checked.");
     const signals = (preferences ?? []).map((item) => ({ normalizedKeyword: item.normalized_keyword, decision: item.decision, reason: item.reason, updatedAt: item.updated_at })) as KeywordPreferenceSignal[];
-    const result = await loadSufficientDiscovery((currentRound) => cachedResearch(website.id, context.audit.id, {
+    const result = await loadSufficientDiscovery((currentRound) => cachedResearch(website.id, auditId, {
       domain: website.url, business, brief,
       existingKeywords: list(provider.keywords).map(record).map((keyword) => ({ keyword: String(keyword.keyword ?? ""), rank: Number(keyword.rank ?? 0), url: String(keyword.url ?? "") })),
       pages: list(provider.pages).map(record).flatMap((page) => typeof page.url === "string" && /^https?:\/\//.test(page.url) ? [{ url: page.url, title: String(page.title || String(page.text ?? "").split("\n")[0]) }] : []),
