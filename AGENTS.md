@@ -1,6 +1,6 @@
 # Destiny agent instructions
 
-Read root `HARNESS_POLICY.md` at the exact working SHA. GOV-1.3 implements owner decision D10.11.
+Read root `HARNESS_POLICY.md` at the exact working SHA. GOV-1.4 implements owner decision D10.22.
 
 Jose owns approval authority. Codex executes scoped requests and provides honestly attributed technical review. Do not consult Claude/Fable unless Jose explicitly asks again.
 

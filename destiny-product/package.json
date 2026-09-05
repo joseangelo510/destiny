@@ -22,6 +22,7 @@
     "test:isolation": "vitest run --config vitest.isolation.config.mjs",
     "qa:migrations": "node scripts/qa-migrations.mjs",
     "qa:audit": "node scripts/qa-audit.mjs",
+    "qa:pr-preflight": "node scripts/pr-preflight.mjs",
     "qa:inventory": "node scripts/qa-inventory.mjs",
     "qa:repository": "node scripts/qa-repository-policy.mjs",
     "qa:commits": "node scripts/qa-commit-policy.mjs",

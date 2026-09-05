@@ -1,35 +1,47 @@
 name: Destiny policy guard
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled, ready_for_review, converted_to_draft]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_run:
+    workflows: [Destiny test harness, Destiny staging evidence]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to refresh from current GitHub state
+        required: true
+        type: string
 
 permissions:
   contents: read
   issues: read
   pull-requests: read
+  actions: read
+  checks: write
 
 concurrency:
-  group: destiny-policy-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: destiny-policy-readiness
+  cancel-in-progress: false
 
 jobs:
-  policy-guard:
-    name: policy-guard
+  policy-evaluator:
+    name: policy-evaluator
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check out the exact PR commit
+      - name: Check out trusted default-branch governance only
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.repository.default_branch }}
+          persist-credentials: false
       - name: Use Node.js 22
         uses: actions/setup-node@v6
         with:
           node-version: 22
-
-      - name: Enforce Destiny classification, frozen paths, and label authority
+      - name: Refresh required merge-blocking check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node destiny-product/scripts/governance-policy.mjs policy
+        run: node destiny-product/scripts/governance-refresh.mjs policy
