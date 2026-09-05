@@ -332,6 +332,19 @@ const mvp = await seedMvpCertification({
   websiteId: memberSite.websiteId,
 });
 
+const keywordWorkspaces = {};
+for (const device of ["desktop", "mobile"]) {
+  const site = await createWebsite(member.client, organizationC, `Keyword-${device}`, member.userId);
+  const scenario = await seedMvpCertification({ auditId: site.auditIds.at(-1), organizationId: organizationC, ownerId: member.userId, websiteId: site.websiteId });
+  const { data: metric } = await service.from("audit_metrics").select("raw_provider_payload").eq("audit_id", scenario.auditId).single();
+  const raw = metric.raw_provider_payload;
+  raw.providerResult.siteVocabulary = [{ term: "SEO consulting", normalized: "seo consulting", weight: 1, evidence: "Disposable business profile" }];
+  raw.providerResult.keywords.push({ keyword: "seo website migration checklist", intent: "informational", searchVolume: 170, difficulty: 25, cpc: 3, opportunity: "site_idea", priorityScore: 75, priorityReason: "Supporting SEO audit topic for small businesses", themeId: "seo-audits", themeLabel: "SEO audits", themeRole: "awareness" });
+  const { error } = await service.from("audit_metrics").update({ raw_provider_payload: raw }).eq("audit_id", scenario.auditId);
+  if (error) throw new Error(`Keyword browser fixture failed: ${error.message}`);
+  keywordWorkspaces[device] = scenario;
+}
+
 const alphaMembership = await ownerA.client.from("organization_members").insert({
   organization_id: organizationA,
   user_id: member.userId,
@@ -352,6 +365,7 @@ await writeFile(manifestPath, JSON.stringify({
   beta,
   member: memberSite,
   mvp,
+  keywordWorkspaces,
   outsiderAuditId: outsiderSite.auditIds[0],
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));
