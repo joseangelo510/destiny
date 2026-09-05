@@ -5,12 +5,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "4f42e08f404b34700ea8b1d0d216b2624654150c";
-const releaseTag = "rebound-seo-v1.1.2";
-const productionImageTag = "rebound-seo-v1.1.2-prod";
-const priorReleaseSha = "ed8c29aff96f8b4a2644b3806077ceb6863fd72b";
-const priorReleaseTag = "rebound-seo-v1.1.1";
-const priorImageDigest = "sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3";
+const releaseSha = "dffe81bfe0ff326988ada580c1316399d2ffc69c";
+const releaseTag = "rebound-seo-v1.1.3";
+const productionImageTag = "rebound-seo-v1.1.3-prod";
+const priorReleaseSha = "4f42e08f404b34700ea8b1d0d216b2624654150c";
+const priorReleaseTag = "rebound-seo-v1.1.2";
+const priorImageDigest = "sha256:6fe1106aadb5fbe2367581302b106f27f508378af213171ea2c44077aa23261a";
 const priorMachineId = "860714be531938";
 const authorizedImplementationFiles = [
   ".github/workflows/rebound-production-deploy.yml",
@@ -79,7 +79,7 @@ async function registryPreflight(mode: string) {
   }
 }
 
-describe("D10.6 Rebound SEO production wrapper", () => {
+describe("D10.14 Rebound SEO production wrapper", () => {
   it("verifies registry access and both unused tags before publication or Fly mutation", async () => {
     const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
     const guard = workflow.indexOf("- name: Refuse existing or unverifiable release image tags");
@@ -106,6 +106,7 @@ describe("D10.6 Rebound SEO production wrapper", () => {
     const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
 
     expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain(`default: ${releaseTag}`);
     expect(workflow).not.toMatch(/^  push:/m);
     expect(workflow).toContain(`RELEASE_SHA: ${releaseSha}`);
     expect(workflow).toContain(`RELEASE_TAG: ${releaseTag}`);
