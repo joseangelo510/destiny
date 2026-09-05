@@ -7,19 +7,22 @@ import { applyKeywordPreferenceSignals, type KeywordPreferenceSignal } from "./k
 import { discoverNewKeywordRecommendations, type NewKeywordInput } from "./new-keyword-recommendations";
 import { getWorkspaceContext, list, record, providerResultFromMetrics } from "../workspace-context";
 
-// All arguments, including the website, audit and business context, form the cache key.
-// No auth client or cookies enter this cache. Current decisions are applied afterward.
-const cachedResearch = unstable_cache(async (_websiteId: string, _auditId: string, input: NewKeywordInput) => {
-  const client = getResearchClient();
-  const result = await discoverNewKeywordRecommendations(input, {
-    research: (query) => client.keywordResearch({ query, mode: "keyword" }),
-    coverage: checkKeywordCoverage,
-  });
+type ResearchResult = Awaited<ReturnType<typeof discoverNewKeywordRecommendations>>;
+const cachedSeed = unstable_cache(async (query: string, related: boolean, offset: number) => getResearchClient().keywordResearch({ query, mode: "keyword", related, offset }), ["keyword-discovery-seed-v2"], { revalidate: 86400 });
+const cachedCoverage = unstable_cache(checkKeywordCoverage, ["keyword-discovery-coverage-v2"], { revalidate: 86400 });
+// Each continuation appends a fresh provider page to the same site-scoped pool.
+// Earlier accepted rows retain their order, and decisions remain outside cache.
+const cachedResearch = unstable_cache(async (websiteId: string, auditId: string, input: NewKeywordInput, round: number): Promise<ResearchResult> => {
+  const previous = round > 0 ? await cachedResearch(websiteId, auditId, input, round - 1) : null;
+  const result = await discoverNewKeywordRecommendations({ ...input, existingKeywords: [...input.existingKeywords, ...(previous?.keywords ?? []).map(keyword => ({ keyword: keyword.keyword, rank: 0, url: "" }))] }, {
+    research: (query, options) => cachedSeed(query, options?.related ?? false, options?.offset ?? 0),
+    coverage: cachedCoverage,
+  }, { offset: round * 100, target: round ? 15 : 30 });
   if (result.status === "unavailable" && !result.keywords.length) throw new Error("New keyword research is unavailable.");
-  return result;
-}, ["new-keyword-recommendations-v1"], { revalidate: 86400 });
+  return { ...result, keywords: [...(previous?.keywords ?? []), ...result.keywords] };
+}, ["new-keyword-recommendations-v2"], { revalidate: 86400 });
 
-export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<typeof getWorkspaceContext>>) {
+export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<typeof getWorkspaceContext>>, round = 0) {
   if (!context.website || !context.audit) return { keywords: [], status: "unavailable" as const };
   const website = context.website;
   const provider = providerResultFromMetrics(context.metrics);
@@ -31,8 +34,8 @@ export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<
     const result = await cachedResearch(website.id, context.audit.id, {
       domain: website.url, business, brief,
       existingKeywords: list(provider.keywords).map(record).map((keyword) => ({ keyword: String(keyword.keyword ?? ""), rank: Number(keyword.rank ?? 0), url: String(keyword.url ?? "") })),
-      pages: list(provider.pages).map(record).flatMap((page) => typeof page.url === "string" && /^https?:\/\//.test(page.url) ? [{ url: page.url, title: String(page.title ?? "") }] : []),
-    });
+      pages: list(provider.pages).map(record).flatMap((page) => typeof page.url === "string" && /^https?:\/\//.test(page.url) ? [{ url: page.url, title: String(page.title || String(page.text ?? "").split("\n")[0]) }] : []),
+    }, Math.max(0, Math.min(5, Math.floor(round))));
     const { data: preferences, error } = await context.supabase.from("keyword_preferences").select("normalized_keyword,decision,reason,updated_at").eq("website_id", website.id);
     if (error) throw new Error("Saved keyword feedback could not be checked.");
     const signals = (preferences ?? []).map((item) => ({ normalizedKeyword: item.normalized_keyword, decision: item.decision, reason: item.reason, updatedAt: item.updated_at })) as KeywordPreferenceSignal[];

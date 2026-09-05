@@ -400,16 +400,17 @@ export class DataForSeoResearchClient {
     return response.json() as Promise<unknown>;
   }
 
-  async keywordResearch(input: { query: string; mode: "keyword" | "domain"; locationName?: string }): Promise<KeywordResearchResult> {
+  async keywordResearch(input: { query: string; mode: "keyword" | "domain"; locationName?: string; related?: boolean; offset?: number }): Promise<KeywordResearchResult> {
     const location = input.locationName?.trim() || "United States";
     const query = input.mode === "domain" ? normalizeWebsite(input.query).domain : input.query.trim();
     if (query.length < 2 || query.length > 200) throw new Error("Enter a keyword or public domain between 2 and 200 characters.");
     const path = input.mode === "domain"
       ? "/v3/dataforseo_labs/google/ranked_keywords/live"
-      : "/v3/dataforseo_labs/google/keyword_suggestions/live";
+      : input.related ? "/v3/dataforseo_labs/google/related_keywords/live" : "/v3/dataforseo_labs/google/keyword_suggestions/live";
     const request = input.mode === "domain"
       ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
-      : { keyword: query, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
+      : input.related ? { keyword: query, location_name: location, language_name: "English", depth: 2, include_seed_keyword: true, offset: input.offset ?? 0, limit: 100, filters: ["keyword_data.keyword_info.search_volume", ">", 0], order_by: ["keyword_data.keyword_info.search_volume,desc"] }
+      : { keyword: query, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
     const payload = await this.post(path, [request]);
     const result = firstResult(payload);
     const rows = parseKeywordResearch(payload);
