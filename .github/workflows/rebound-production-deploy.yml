@@ -130,7 +130,7 @@ jobs:
               echo "Refusing existing image tag: ${image_tag}" >&2
               exit 1
             fi
-            if grep -Eiq '(unauthorized|denied|forbidden|401|403)' registry-preflight-error.txt \
+            if grep -Eiq '(unauthorized|denied|forbidden|(^|[^[:alnum:]])(401|403)([^[:alnum:]]|$))' registry-preflight-error.txt \
               || ! grep -Eiq '(manifest unknown|not found)' registry-preflight-error.txt; then
               echo "Registry preflight could not verify tag absence: ${image_tag}" >&2
               cat registry-preflight-error.txt >&2
