@@ -1,3 +1,4 @@
+import { startKeywordDraftHref } from "@/lib/content/plan-links";
 import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
 import type { CalendarEvent, CalendarSummary, EvidenceKind } from "./contracts";
 import type { ApprovedCalendarDraft } from "./calendar-scheduling";
@@ -97,10 +98,11 @@ export function buildContentPipeline(input: {
     const keyword = text(row.keyword) || text(draft.keyword);
     if (!keyword) return;
     const id = text(row.id) || `draft-${index}`;
-    const state: ContentState = draft.approved === true ? "approved" : "draft";
+    const starter = draft.generationStatus === "starter" && !text(draft.body) && draft.approved !== true;
+    const state: ContentState = draft.approved === true ? "approved" : starter ? "idea" : "draft";
     const title = text(draft.title) || sentence(keyword);
     const status = text(draft.generationStatus).replaceAll("_", " ") || "saved draft";
-    keepHighest(items, { id, title, keyword, state, detail: state === "approved" ? `Approved · ${status}` : sentence(status), needsUser: state === "draft", evidenceKind: "reported", ...contentMove(state, id, "draft") });
+    keepHighest(items, { id, title, keyword, state, detail: starter ? "Brief saved" : state === "approved" ? `Approved · ${status}` : sentence(status), needsUser: state === "draft", evidenceKind: "reported", ...(starter ? { href: startKeywordDraftHref(keyword), moveLabel: "Start draft" } : contentMove(state, id, "draft")) });
   });
 
   input.scheduleItems.forEach((raw, index) => {

@@ -123,6 +123,7 @@ export function buildPersistedArticleDraftSeeds(
   saved: unknown,
   context: Omit<ArticleDraftInput, "keyword">,
   limit = 3,
+  preferredKeyword?: string,
 ) {
   const fallbackByKeyword = new Map(fallbacks.map((draft) => [draft.keyword.trim().toLocaleLowerCase("en-US"), draft]));
   const savedKeywords = Array.isArray(saved) ? saved.flatMap((value) => {
@@ -131,6 +132,8 @@ export function buildPersistedArticleDraftSeeds(
     return typeof keyword === "string" && keyword.trim() ? [keyword.trim()] : [];
   }) : [];
   const orderedKeywords = [...savedKeywords, ...fallbacks.map((draft) => draft.keyword)];
+  const preferred = preferredKeyword?.trim().toLocaleLowerCase("en-US");
+  if (preferred) orderedKeywords.sort((a, b) => Number(b.trim().toLocaleLowerCase("en-US") === preferred) - Number(a.trim().toLocaleLowerCase("en-US") === preferred));
   const seen = new Set<string>();
   return orderedKeywords.flatMap((keyword) => {
     const normalizedKeyword = keyword.trim().toLocaleLowerCase("en-US");

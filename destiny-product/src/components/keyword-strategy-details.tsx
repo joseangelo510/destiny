@@ -80,7 +80,7 @@ export function KeywordActionDrawer({ keyword, onApprove, onPageType, pageType, 
       ["Comparison page", "“X vs Y,” alternatives, and best-solution searches."],
       ["Blog guide / FAQ", "Educational questions and research searches."],
     ].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? "selected" : ""} key={label} onClick={() => onPageType(label)} type="button"><strong>{label}{selectedPageType === label ? " ✓" : ""}</strong><span>{description}</span></button>)}</div>
-    <div className="claude-ks-drawer-action"><button disabled={saving} onClick={onApprove} type="button">Create content</button><span>Saves a brief in Content Studio. Generate and review before publishing.</span></div>
+    <div className="claude-ks-drawer-action"><button disabled={saving} onClick={onApprove} type="button">Add to content plan</button><span>Saves your topic and brief. Start writing when you are ready.</span></div>
   </div>;
 
   if (keyword.verdict === "defend") return <div className="claude-ks-drawer">
