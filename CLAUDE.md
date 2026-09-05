@@ -1,6 +1,6 @@
 # Historical assistant pointer
 
-Follow root `HARNESS_POLICY.md`, GOV-1.3, owner decision D10.11.
+Follow root `HARNESS_POLICY.md`, GOV-1.4, owner decision D10.22.
 Claude/Fable is no longer required. Do not initiate consultation unless Jose requests it again.
 Jose retains authority; Codex executes scoped requests with transparent attribution and protected PRs, technical review, and full checks.
 Supabase Auth Site URL, Replit, migrations, `container-staging`, auth/RLS, secrets, releases, and production remain explicitly scoped HIGH work.

@@ -12,8 +12,8 @@ const frozenRules = [
   [/^\.claude\/skills\/destiny-harness\//, "Claude governance skill"],
   [/^docs\/(?:HARNESS_RUNBOOK|DESTINY_GOVERNANCE_POINTER)\.md$/, "governance knowledge"],
   [/^\.github\/(?:workflows|scripts)\//, "CI or enforcement workflow"],
-  [/^destiny-product\/scripts\/governance-policy\.mjs$/, "governance enforcement code"],
-  [/^destiny-product\/qa\/rules\/harness-governance\.test\.ts$/, "governance enforcement test"],
+  [/^destiny-product\/scripts\/(?:governance-[^/]+|pr-preflight)\.mjs$/, "governance enforcement code"],
+  [/^destiny-product\/qa\/rules\/(?:harness-governance|governance-[^/]+|staging-evidence-policy)\.test\.ts$/, "governance enforcement test"],
   [/^destiny-product\/supabase\/migrations\//, "database migration"],
   [/^destiny-product\/supabase\/config\.toml$/, "Supabase configuration"],
   [/^destiny-product\/supabase\/functions\/(?:delete-account|google-oauth[^/]*)\//, "authentication or security function"],
@@ -238,12 +238,12 @@ async function githubPages(url, token) {
     if (!response.ok) throw new Error(`GitHub API ${response.status}: ${await response.text()}`);
     const batch = await response.json();
     values.push(...batch);
-    if (batch.length < 100) break;
+    if (batch.length < 100) return values;
   }
-  return values;
+  throw new Error("GitHub pagination exhausted; cannot approve partial data.");
 }
 
-async function pullRequestContext(event) {
+export async function pullRequestContext(event) {
   const repository = event.repository?.full_name;
   const number = event.pull_request?.number;
   const token = process.env.GITHUB_TOKEN;
