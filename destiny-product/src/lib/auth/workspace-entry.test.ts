@@ -9,7 +9,7 @@ describe("onboardingEntryDestination", () => {
 
   it("restores a returning user's populated workspace", () => {
     expect(onboardingEntryDestination({ authenticated: true, hasWebsite: true }))
-      .toBe("/this-week");
+      .toBe("/app");
   });
 
   it("lets a signed-in first-time user complete onboarding", () => {

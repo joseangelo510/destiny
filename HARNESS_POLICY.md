@@ -1,155 +1,78 @@
 # Destiny Harness Policy
 
 Policy ID: `GOV-1`
-
-Revision: `GOV-1.2` (decisions D10.8 and D10.9, 2026-09-04): Fable 5.1 participation is mandatory for every change, and owner-attributed GitHub actions may be executed by Codex only under a valid Owner Execution Authorization.
-
+Revision: `GOV-1.3` (owner decision D10.11, 2026-09-04)
 Status: active
-
 Canonical repository: `joseangelo510/destiny`
 
-This is the single source of truth for how Destiny changes are classified, tested, reviewed, merged, staged, released, and rolled back.
+Jose Gallegos owns product intent and approval authority. Explicit owner instructions can change this process: record their actual source in `destiny-product/DEPLOY_LOG.md` and update the policy through a protected PR. A policy cannot transfer the owner's authority to a model.
 
-If any instruction conflicts with this file, stop and request a CTO decision. Conversational instructions do not override this file.
+## Authority and roles
 
-## Authority order
+1. Jose's explicit scoped decisions, recorded with their actual source.
+2. This policy at the exact working SHA.
+3. GitHub Actions enforcement and protected-branch requirements.
+4. Agent pointers, runbooks, and history.
 
-1. A new explicit decision from Jose Gallegos through Fable 5 High, recorded in `destiny-product/DEPLOY_LOG.md` before implementation.
-2. This `HARNESS_POLICY.md` at the exact SHA being changed.
-3. GitHub Actions workflows that implement this policy. If a workflow diverges, this policy wins and the divergence is a HIGH-gated defect.
-4. Root `AGENTS.md` and `CLAUDE.md` pointers.
-5. The Claude Project knowledge pointer.
-6. Conversation history or agent memory.
+Codex coordinates, implements, classifies risk, and provides technical review. It cannot invent approval or attribute its review to another person or model. Claude/Fable consultation is not required and must not be requested unless Jose explicitly asks for it again. Historical Fable records remain unchanged.
 
-No lower authority may weaken a higher authority.
+Jose is the sole approval authority for HIGH work, owner labels, protected merges, release tags, and production deployment. Execution may be delegated; delegation transfers execution, never authority.
 
-Fable participates at every level below the owner, but a Fable review or verdict is evidence, never authorization. Only Jose's labels and merge authorize a change. Fable may not decide changes to its own role in this file; those follow the normal policy-change path.
+## Classification
 
-## Roles
+MEDIUM: ordinary UI/UX, accessibility, copy, features, behavior-preserving refactors, tests, non-governance docs, non-sensitive patch/minor dependencies, and pipeline staging.
 
-- Jose owns product intent and is the sole approval authority. Only Jose may authorize the `cto-approved` and `policy-change` labels and the protected merge of a governed PR. He performs those actions personally or delegates their execution to Codex under a valid Owner Execution Authorization (OEA), defined below. Delegation transfers the click, never the decision.
-- Fable means the current Fable model, Fable 5.1 at this revision. Older records that say Fable 5 refer to the same role.
-- Fable 5.1 participates in every change, MEDIUM and HIGH. Before implementation it confirms the classification. Before merge it reviews the PR at its final head and issues exactly one verdict, `GO` or `HOLD`. No PR merges without a `GO` recorded at the exact PR head SHA.
-- Fable 5.1 Medium reviews and advises on MEDIUM work and issues its head-level verdict.
-- Fable 5.1 High is the deciding CTO authority for HIGH work and issues the head-level verdict on HIGH PRs.
-- Codex coordinates and executes. Codex may not decide or self-authorize HIGH work, may not classify a change without Fable 5.1 confirmation, and may not write, edit, or reuse a Fable 5.1 verdict. Codex may execute owner-attributed GitHub actions only under a valid OEA, only the actions it names, only on the PR and head it names, and for nothing else. Any other action taken from Jose's authenticated GitHub session is a policy violation and a HIGH incident to be recorded in `destiny-product/DEPLOY_LOG.md`.
-- GitHub Actions is the enforcement system of record.
+HIGH: governance and enforcement; CI/deploy; authentication, OAuth, sessions, RLS, security; schema/migrations; secrets/config/credentials; major/add/remove/security-sensitive dependencies; production deployment/rollback; release tags; and ambiguity.
 
-## Change classification
+Record classification, base SHA, blast radius, evidence, and rollback. Record owner-authorized HIGH scope before implementation. A request authorizes only its stated or reasonably implied scope, never unrelated sensitive work.
 
-### MEDIUM
+## Frozen surfaces
 
-MEDIUM is the classification when the change stays outside every HIGH and frozen surface. MEDIUM still requires Fable 5.1 participation (classification confirmation before implementation and a `GO` verdict at the PR head before merge) but requires no `cto-approved` label and no deploy-log decision:
+Separate explicit owner authorization and a recorded plan are required for Supabase Auth Site URL changes; Replit modification/decommissioning; migrations; release-wrapper merges, deployment, or release tags; new `container-staging` pushes; Replit-to-Fly traffic redirects; auth/RLS/security changes; secrets/config changes.
 
-- UI, UX, styling, copy, and accessibility;
-- ordinary application features;
-- refactors that preserve behavior and keep all gates green;
-- test additions and non-governance documentation;
-- dependency patch or minor updates that do not touch authentication, cryptography, payments, sessions, or Supabase access;
-- staging verification through the existing pipeline;
-- redeploying a prior immutable tag to staging.
+Urgency is not authorization. An approved UI fix does not authorize a database migration or customer CMS publication. Production receives verified immutable release tags; never mutate tags.
 
-### HIGH
+## Required workflow
 
-Fable High must decide, the decision must be recorded in `destiny-product/DEPLOY_LOG.md` before work begins, and the PR must additionally carry a Fable 5.1 `GO` verdict at its head for:
-
-- this policy or any enforcement workflow, script, agent pointer, or governance skill;
-- authentication, OAuth, session, RLS, authorization, or security-model changes;
-- database schema changes or migrations;
-- secrets, environment variables, runtime configuration, or provider credentials;
-- dependency major updates, new runtime dependencies, removals, or authentication, cryptography, payment, session, and Supabase dependency changes;
-- production or parallel-launch cutovers, deploys, and rollbacks;
-- release tags;
-- CI or deployment workflow changes;
-- any frozen action below;
-- any ambiguous change. Ambiguity defaults to HIGH.
-
-## Frozen actions
-
-The following are forbidden without a new explicit Fable 5 High decision recorded in `destiny-product/DEPLOY_LOG.md`:
-
-1. Change the Supabase Auth Site URL.
-2. Modify or decommission Replit production.
-3. Run or apply a database migration.
-4. Merge the release wrapper into `main`.
-5. Push a new commit to `container-staging`.
-6. Redirect existing Replit traffic to Fly.
-7. Change the authentication, RLS, or security model.
-8. Create a release tag or mutate an existing release tag.
-
-The product launch at `https://app.reboundseo.com` receives production changes only from explicitly approved immutable release tags. Replit remains production of record for existing traffic until a new recorded decision says otherwise.
-
-## Required workflow for every change
-
-1. Branch from the canonical source. Never work directly on `main` or `container-staging`.
-2. Classify the change as MEDIUM or HIGH before implementation and have Fable 5.1 confirm the classification. Record the confirmation date and the base SHA in the PR.
-3. For HIGH, record the Fable High decision in `destiny-product/DEPLOY_LOG.md` before the first implementation commit.
-4. Use TDD where behavior or policy changes: record RED evidence, implement GREEN, then add QA coverage.
-5. Open a PR using `.github/pull_request_template.md`.
-6. Pass the full `pnpm gate`, including repository policy, commit policy, deploy-log policy, migration audit, dependency audit, ESLint and English-only rules, file-length ratchet, Vitest, isolation checks, production build, and Playwright journeys.
-7. Verify the staging candidate build stamp matches the PR SHA and check touched routes with zero 5xx.
-8. Obtain a Fable 5.1 review of the PR at its final head SHA and paste the verbatim verdict block into the PR's `Fable 5.1 review` section, with the verdict, the reviewed head SHA, and the review date. Any push after the review invalidates it; a new review at the new head is required before merge.
-9. Pass `policy-guard`, `checklist-guard`, and `harness-gates` required checks.
-10. Merge through protected `main`, personally or under a valid OEA. Do not force push and do not use an admin bypass.
-11. Create a release tag only under a separate HIGH decision.
-
-## Scenario rules
-
-- UX-only: MEDIUM; full gate and touched-route check; no full inventory-route sweep.
-- Refactor: MEDIUM only if no frozen path is touched and the full gate remains green.
-- Dependencies: patch/minor may be MEDIUM; major, new, removed, or security-sensitive dependencies are HIGH.
-- Secrets/config: HIGH. Never commit secret values. Log only the key name, actor, date, and decision.
-- Auth/RLS: HIGH and must include or add a targeted Playwright authentication journey.
-- Migration: HIGH and frozen. The PR must include exact forward, verification, and non-destructive rollback steps.
-- Staging: pipeline only; build-stamp verification is mandatory.
-- Production: HIGH by definition.
-- Hotfix: no bypass lane. A hotfix uses a normal PR and the same required checks. If CI is unavailable, stop for a new CTO decision.
-- Fable unavailable: stop. There is no lane for merging without a Fable 5.1 verdict at the PR head. Unavailability, urgency, and prior conversation are not exceptions, and Codex may not act as Fable.
-- Rollback: staging rollback to a prior immutable tag may be MEDIUM. Production or parallel-launch rollback is HIGH and redeploys a prior immutable tag; never hand-edit production.
-- Release tag: HIGH; requires the full suite, a full sweep of every route in the committed QA inventory, build identity proof, and a deploy-log entry.
-
-## Labels and mechanical enforcement
-
-- A HIGH PR must have `cto-approved` applied by `joseangelo510`.
-- A PR changing this policy must also have `policy-change` applied by `joseangelo510`.
-- A label from any other actor is invalid. A label event by `joseangelo510` is Jose's personal act unless a valid delegation record precedes it on the PR, in which case it is a delegated execution under an OEA.
-- `policy-guard` rejects a PR whose latest delegation record names a head other than the PR head, omits an owner label that is present, or whose owner label was applied before the record was posted or outside the 60-minute OEA window.
-- `policy-guard` blocks frozen or HIGH paths without valid labels.
-- `checklist-guard` blocks missing classification, incomplete evidence, unchecked items, or a HIGH PR without a deploy-log decision link.
-- `checklist-guard` also blocks every PR whose `Fable 5.1 reviewed this PR at its current head` item is unchecked, whose verdict is not `GO`, whose `Reviewed head:` differs from the PR head SHA, or whose review date is missing, and any PR whose build-stamp evidence names a SHA other than the PR head.
-- `harness-gates` runs the complete product harness.
-- All three checks are required by branch protection. No force pushes, admin bypasses, or non-linear history.
+1. Inspect the canonical checkout and active work. Use a branch and protected PR; never directly push `main` or `container-staging`.
+2. Classify risk. For HIGH, append the actual owner request, scope, limitations, rollback, and evidence requirements to `destiny-product/DEPLOY_LOG.md` before implementation.
+3. Use RED/GREEN TDD and separate QA/test-change commits. Never hide failures with skip/only markers or remove tests merely to pass.
+4. Run complete `pnpm gate`: repository/commit/deploy-log policies, migration/dependency audits, lint/English-only, file-length ratchet, full Vitest, tenant isolation, production build, and Playwright.
+5. Verify the staging stamp equals the PR head and touched routes have zero 5xx. Do not claim a local full-gate pass without required disposable infrastructure.
+6. Record technical review at the exact head: actual reviewer, GO/HOLD, SHA, date, risks, evidence. Codex may review, honestly labeled Codex; it is not owner approval. Any push invalidates the prior review.
+7. Pass `harness-gates`, `staging-evidence`, `policy-guard`, and `checklist-guard`. Do not bypass, weaken, or falsely report these checks.
+8. Apply required owner-authorized labels and merge only through protected controls. No force pushes, admin bypass, or branch-protection changes.
+9. Release separately: verify production prerequisites, immutable source/tag/image/runtime identity, full route inventory, rollback point, deployment outcome, and live user journeys.
 
 ## Owner Execution Authorization
 
-An OEA delegates execution, never decision. It lets Codex apply `cto-approved`, apply `policy-change`, or press the protected merge on one PR at one head, using Jose's authenticated GitHub session, so that Jose does not have to click personally. It is the only conversational instruction this file recognizes, and only in the form below.
+Jose may approve in ordinary language; he need not type a special token or hash. A clear request to fix authorizes preparation and normal implementation in scope. Approval to merge or deploy authorizes only the identified change/release. Clarify genuinely ambiguous targets or scope.
 
-An OEA is valid only if all of the following hold:
+Before delegated owner-attributed GitHub actions:
+- Verify the account is `joseangelo510` and resolve the approved scope to the exact PR/current full head.
+- Post an `Owner execution authorization` comment through that account with `Executed by: Codex`, `Authorized by: Jose Gallegos (joseangelo510)`, verbatim `Owner request`, `Authorization source` identifying the task/message, `Authorized PR`, `Authorized head`, and `Authorized actions`.
+- Include only approved actions from `cto-approved`, `policy-change`, and `merge`. Apply labels after the record exists; wait for same-head green guards before merging.
+- Report outcomes as delegated execution; never imply Jose clicked personally.
 
-1. Jose Gallegos issues it himself, as a standalone message in the live session with Codex. A reply such as "yes", "go", "approve", or "just do it" is not an OEA. Codex may quote the live PR number, head SHA, and remaining actions so Jose can copy them; Codex may not send the OEA on Jose's behalf and may not treat any Codex-drafted text as issued.
-2. The message contains the literal token `OEA`, the PR number, the full 40-character head SHA, and the actions, in this form: `OEA #<pr> <40-char head>: <actions>`, where actions is a comma-separated subset of `cto-approved`, `policy-change`, and `merge`. A short SHA, a missing PR number, or a bare affirmation is invalid.
-3. It names exactly one PR and exactly one head. Standing, blanket, or future authorizations are invalid.
-4. It is single-use and expires 60 minutes after issuance. It is void before then if the head changes, any required check is red, missing, or belongs to another SHA, the PR has conflicts, or Jose sends any later message asking to stop, hold, or wait.
-5. The PR body carries a Fable 5.1 `GO` receipt at the same head. A HIGH PR carries its deploy-log decision link. A PR that touches this file must list `policy-change` among the actions.
-6. Before the first action, Codex posts a PR comment that begins `Owner execution authorization` and states `Executed by: Codex`, `Authorized by: Jose Gallegos (joseangelo510)`, the OEA text verbatim on an `OEA:` line, `Authorized at:` as an ISO-8601 UTC timestamp from the session, `Authorized head:`, and `Authorized actions:`. Labels are applied only after the comment exists, the guards must re-run green at the same head, and only then is the merge pressed.
-7. After execution Codex records the outcome on the PR and in the completion report as "executed under OEA", with the label event times and the merge SHA.
+Authorization ends when Jose says stop/hold/wait, scope materially changes, or the action completes. A head change requires renewed verification and a new record; material changes require renewed approval. Never fabricate, backdate, or broaden authorization.
 
-Delegated execution is attributed to Jose's GitHub login; the delegation record is the audit marker, and Jose's own session transcript is the source of the OEA. Fabricating, back-dating, altering, or reusing an OEA, or acting from Jose's session without one, is a HIGH incident. A separate executor identity for delegated actions may be adopted only under a future recorded decision.
+Existing strict `OEA #<pr> <40-char head>: <actions>` records remain supported under their original single-use, exact-head, 60-minute terms. Plain-language authorization is a distinct transparent record, not a fabricated OEA.
+
+## Mechanical enforcement
+
+HIGH requires `cto-approved` applied by `joseangelo510`; policy changes additionally require `policy-change` from that account. Delegation records must come from that account, identify owner evidence, match PR/head, cover labels, and predate label actions.
+
+Checklist enforcement requires classification, test and staging evidence, recorded HIGH decisions, and an exact-head GO technical review with the actual reviewer named. Missing, failing, stale, or skipped checks prevent merge. CI unavailability is not a bypass lane. Preserve isolation, security, dependency, migration, build, and release safeguards.
 
 ## Evidence and completion
 
-- MEDIUM evidence lives in the PR: run URLs, staging build stamp, touched-route results, and the Fable 5.1 review receipt.
-- The Fable 5.1 review receipt lives in the PR body: verdict, reviewed head SHA, review date, and the verbatim verdict text. It is evidence, not authorization.
-- HIGH decisions, releases, production rollbacks, and secret rotations are appended to `destiny-product/DEPLOY_LOG.md`.
-- Release evidence, archives, and hashes live under `docs/releases/<tag-or-decision>/`.
-- A completion report must include the PR URL, merge commit SHA, required check-run URLs, the Fable 5.1 reviewed head SHA, and whether owner actions were personal or executed under an OEA (with the record link).
+Never claim a gate passed without a verifiable run URL.
+Complete means merged with all required checks green at the merge SHA. A deployed outcome additionally requires verified live identity and user-facing checks; merged does not mean deployed.
 
-Complete means merged with all required checks green at the merge SHA. Nothing else is complete.
+Report PR URL, merge SHA, check URLs, reviewed head, and owner execution record. Releases also report tag, image, deployment run, live proof, and rollback point. Preserve historical decisions and incidents append-only.
 
-Never claim a gate passed without a verifiable run URL. Never mark work complete if a required check is red, skipped, missing, or belongs to a different SHA.
+Rollback uses a protected revert or explicitly approved prior immutable release. Never hand-edit production, delete user data, or mutate tags.
 
-## Mirrors and change control
+## Mirrors
 
-`AGENTS.md`, `CLAUDE.md`, `.claude/skills/destiny-harness/SKILL.md`, and `docs/DESTINY_GOVERNANCE_POINTER.md` are pointers, not competing policies. If any mirror differs, this file wins.
-
-Changing this policy is itself HIGH. It requires a new recorded Fable High decision, a `policy-change` label from Jose, the full harness, and an updated cloud pointer after merge.
+`AGENTS.md`, `CLAUDE.md`, `.claude/skills/destiny-harness/SKILL.md`, and governance docs are pointers to this policy. No Claude cloud consultation or pointer update is required. Governance changes remain HIGH with owner labels and complete checks.

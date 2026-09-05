@@ -90,7 +90,7 @@ export function parseOwnerExecutionAuthorization(text = "", { prNumber, headSha 
 }
 
 function recordField(body, label) {
-  return body.match(new RegExp(`^\\s*-\\s*${label}:\\s*(.+?)\\s*$`, "im"))?.[1] ?? "";
+  return body.match(new RegExp(`^[ \\t]*-[ \\t]*${label}:[ \\t]*([^\\r\\n]+?)[ \\t]*$`, "im"))?.[1] ?? "";
 }
 
 export function evaluateDelegation({ record, prNumber, headSha, labels = [], labelTimes = {} }) {
@@ -99,15 +99,26 @@ export function evaluateDelegation({ record, prNumber, headSha, labels = [], lab
   const body = String(record.body ?? "");
   if (!/^\s*Owner execution authorization/i.test(body)) return { mode: "personal", errors: [] };
   if (/^\s*Owner execution authorization[^\n]*\bvoid\b/i.test(body)) return { mode: "void", errors: [] };
+  if (String(record.author ?? "").toLowerCase() !== JOSE_LOGIN) errors.push("The authorization record must be posted through the verified owner's account.");
   if (!/^\s*-\s*Executed by:\s*Codex\s*$/im.test(body)) errors.push("Delegation record must state Executed by: Codex.");
   if (!/^\s*-\s*Authorized by:\s*Jose Gallegos \(joseangelo510\)/im.test(body)) errors.push("Delegation record must state Authorized by: Jose Gallegos (joseangelo510).");
-  const oea = parseOwnerExecutionAuthorization(recordField(body, "OEA"), { prNumber, headSha });
+  const ownerRequest = recordField(body, "Owner request");
+  const ownerDirected = !recordField(body, "OEA");
+  const oea = ownerDirected
+    ? { ok: true, number: Number(recordField(body, "Authorized PR")), head: recordField(body, "Authorized head").toLowerCase(), actions: recordField(body, "Authorized actions").split(",").map((action) => action.trim().toLowerCase()), errors: [] }
+    : parseOwnerExecutionAuthorization(recordField(body, "OEA"), { prNumber, headSha });
+  if (ownerDirected) {
+    if (!ownerRequest.trim()) errors.push("Delegation requires the verbatim Owner request.");
+    if (!recordField(body, "Authorization source").trim()) errors.push("Delegation requires an Authorization source identifying the owner message.");
+    if (!Number.isInteger(oea.number) || oea.number < 1 || (prNumber !== undefined && oea.number !== Number(prNumber))) errors.push("Authorized PR must match this PR.");
+    if (!oea.actions.length || oea.actions.some((action) => !OEA_ACTIONS.has(action))) errors.push("Authorized actions must name only supported owner actions.");
+  }
   errors.push(...oea.errors);
   const recordedHead = recordField(body, "Authorized head").toLowerCase();
   if (!/^[0-9a-f]{40}$/.test(recordedHead)) errors.push("Delegation record must state Authorized head as a full 40-character SHA.");
   else if (headSha && recordedHead !== String(headSha).toLowerCase()) errors.push(`Delegation record names head ${recordedHead}, not the PR head ${String(headSha).toLowerCase()}.`);
   const authorizedAt = Date.parse(recordField(body, "Authorized at"));
-  if (!Number.isFinite(authorizedAt)) errors.push("Delegation record must state Authorized at as an ISO-8601 timestamp.");
+  if (!ownerDirected && !Number.isFinite(authorizedAt)) errors.push("Delegation record must state Authorized at as an ISO-8601 timestamp.");
   const recordedActions = recordField(body, "Authorized actions").split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
   if (oea.ok && recordedActions.join(",") !== oea.actions.join(",")) errors.push("Authorized actions must match the OEA action list exactly.");
   const postedAt = Date.parse(record.created_at ?? "");
@@ -117,7 +128,7 @@ export function evaluateDelegation({ record, prNumber, headSha, labels = [], lab
     const appliedAt = Date.parse(labelTimes[label] ?? "");
     if (!Number.isFinite(appliedAt)) continue;
     if (Number.isFinite(postedAt) && appliedAt < postedAt) errors.push(`Label ${label} was applied before the delegation record was posted.`);
-    if (Number.isFinite(authorizedAt) && (appliedAt < authorizedAt || appliedAt - authorizedAt > OEA_WINDOW_MS)) {
+    if (!ownerDirected && Number.isFinite(authorizedAt) && (appliedAt < authorizedAt || appliedAt - authorizedAt > OEA_WINDOW_MS)) {
       errors.push(`Label ${label} was applied outside the 60-minute OEA window.`);
     }
   }
@@ -150,21 +161,22 @@ function checked(body, label) {
   return new RegExp(`^- \\[x\\] ${label}`, "im").test(body);
 }
 
-export function evaluateFableReview(body = "", headSha = "") {
+export function evaluateTechnicalReview(body = "", headSha = "") {
   const errors = [];
-  if (!checked(body, "Fable 5.1 reviewed this PR at its current head")) {
-    errors.push("Every PR requires a checked Fable 5.1 review item.");
+  if (!checked(body, "Technical review completed at the current PR head")) {
+    errors.push("Every PR requires a checked technical review item.");
   }
+  if (!/^[ \t]*-[ \t]*Reviewer:[ \t]*\S[^\r\n]*$/im.test(body)) errors.push("Technical review must identify its actual reviewer.");
   const verdict = body.match(/^\s*-\s*Verdict:\s*(GO|HOLD)\b/im)?.[1]?.toUpperCase() ?? null;
-  if (verdict !== "GO") errors.push("The Fable 5.1 verdict must be GO before merge.");
+  if (verdict !== "GO") errors.push("The technical review verdict must be GO before merge.");
   const reviewedHead = body.match(/^\s*-\s*Reviewed head:\s*([0-9a-f]{40})\b/im)?.[1]?.toLowerCase() ?? null;
   if (!reviewedHead) {
-    errors.push("The Fable 5.1 review must name the reviewed head as a full 40-character SHA.");
+    errors.push("The technical review must name the reviewed head as a full 40-character SHA.");
   } else if (headSha && reviewedHead !== String(headSha).toLowerCase()) {
-    errors.push(`The Fable 5.1 review covers ${reviewedHead}, not the PR head ${String(headSha).toLowerCase()}.`);
+    errors.push(`The technical review covers ${reviewedHead}, not the PR head ${String(headSha).toLowerCase()}.`);
   }
   if (!/^\s*-\s*Reviewed on:\s*\d{4}-\d{2}-\d{2}\b/im.test(body)) {
-    errors.push("The Fable 5.1 review must record the review date as YYYY-MM-DD.");
+    errors.push("The technical review must record the review date as YYYY-MM-DD.");
   }
   return { verdict, reviewedHead, errors };
 }
@@ -203,10 +215,10 @@ export function evaluateChecklist(body = "", context = {}) {
     errors.push("MEDIUM work must confirm that no frozen files or actions are touched.");
   }
 
-  const fable = evaluateFableReview(body, headSha);
-  errors.push(...fable.errors);
+  const review = evaluateTechnicalReview(body, headSha);
+  errors.push(...review.errors);
 
-  return { classification: unique[0] ?? null, fable: { verdict: fable.verdict, reviewedHead: fable.reviewedHead }, errors: [...new Set(errors)] };
+  return { classification: unique[0] ?? null, review: { verdict: review.verdict, reviewedHead: review.reviewedHead }, errors: [...new Set(errors)] };
 }
 
 function gitShowJson(sha, file) {

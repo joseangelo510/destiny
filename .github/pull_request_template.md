@@ -6,14 +6,14 @@
 
 - [ ] Classification: MEDIUM
 - [ ] Classification: HIGH
-- [ ] Fable 5.1 confirmed this classification before implementation
+- [ ] Classification recorded before implementation
   - Confirmed on: <!-- YYYY-MM-DD --> at base: <!-- full 40-character base SHA -->
 - [ ] Frozen zone: no frozen files or actions are touched
 - [ ] Frozen zone changes are authorized by the linked CTO decision
 - [ ] CTO decision recorded before implementation
   - Decision: <!-- Required for HIGH: destiny-product/DEPLOY_LOG.md#... -->
 
-Delete the unused classification and frozen-zone lines. For MEDIUM work, remove the CTO-decision checkbox and line. HIGH work requires `cto-approved`; policy changes also require `policy-change`. Jose must apply both labels. Every PR, MEDIUM or HIGH, requires the Fable 5.1 review section below.
+Delete the unused classification and frozen-zone lines. For MEDIUM work, remove the CTO-decision checkbox and line. HIGH work requires `cto-approved`; policy changes also require `policy-change`. Jose must apply both labels. Every PR requires the exact-head technical review below; Claude consultation is not required.
 
 ## Specification and TDD
 
@@ -40,18 +40,19 @@ Delete the unused classification and frozen-zone lines. For MEDIUM work, remove 
 - [ ] No production mutation was used for verification
 - [ ] Screenshots, traces, database receipts, or provider receipts are attached when required
 
-## Fable 5.1 review
+## Technical review
 
-- [ ] Fable 5.1 reviewed this PR at its current head
+- [ ] Technical review completed at the current PR head
+  - Reviewer: <!-- Actual reviewer, such as Codex; this is not owner approval. -->
   - Verdict: <!-- GO or HOLD. HOLD blocks merge. -->
-  - Reviewed head: <!-- full 40-character SHA that Fable 5.1 reviewed; must equal the current PR head -->
+  - Reviewed head: <!-- full 40-character SHA that was reviewed; must equal the current PR head -->
   - Reviewed on: <!-- YYYY-MM-DD -->
-  - Record: verbatim verdict block below
+  - Record: review findings below
 
 <details>
-<summary>Fable 5.1 verdict (verbatim)</summary>
+<summary>Technical review findings</summary>
 
-<!-- Paste the exact verdict text here. Codex must not write or edit it. -->
+<!-- Record the actual review findings, risks, and supporting evidence. Never attribute Codex review to another person or model. -->
 
 </details>
 
@@ -67,5 +68,5 @@ Any push after this review invalidates it. Request a new review at the new head 
 - PR URL: <!-- required before completion -->
 - Merge commit SHA: <!-- required before completion -->
 - Required check-run URLs: <!-- required before completion -->
-- Fable 5.1 reviewed head: <!-- must equal the PR head that merged -->
-- Owner actions: <!-- "personal by joseangelo510" or "executed under OEA" with the delegation record comment link -->
+- Technical review head: <!-- must equal the PR head that merged -->
+- Owner actions: <!-- "personal by joseangelo510" or "executed under owner authorization" with the delegation record comment link -->

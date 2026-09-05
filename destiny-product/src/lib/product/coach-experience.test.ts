@@ -24,15 +24,19 @@ const tasks = [
 ];
 
 describe("Rebound SEO SEO coach experience", () => {
-  it("visually separates the four coaching destinations from visible feature pages", () => {
+  it("keeps the five core tabs primary and preserves coaching destinations as tools", () => {
     expect(PRIMARY_NAVIGATION.map((item) => item.label)).toEqual([
+      "Home",
+      "Content",
+      "Calendar",
+      "Distribution",
+      "Progress",
+    ]);
+    expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
       "This week",
       "Roadmap",
       "Game Plan",
       "Analytics",
-    ]);
-    expect(FEATURE_NAVIGATION.map((item) => item.label)).toEqual([
-      "Home",
       "Website audits",
       "Internal links",
       "Content studio",

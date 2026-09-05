@@ -11,6 +11,6 @@ export function onboardingEntryDestination({
   startNew = false,
 }: OnboardingEntryState) {
   if (!authenticated) return "/login?next=%2Fonboarding";
-  if (hasWebsite && !startNew) return "/this-week";
+  if (hasWebsite && !startNew) return "/app";
   return null;
 }

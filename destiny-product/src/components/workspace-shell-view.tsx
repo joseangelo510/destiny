@@ -38,9 +38,9 @@ export function WorkspaceShellView({ active, eyebrow, title, description, design
   const href = (path: string) => siteScopedHref(path, activeWebsiteId);
   return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell" data-design={design}>
     <aside className="sidebar">
-      <Link aria-label="Rebound SEO workspace home" className="brand sidebar-brand" href={href("/app")}><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
+      <Link aria-label="Rebound SEO workspace home" className="brand sidebar-brand" href={href("/app/home")}><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
       <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />
-      <nav aria-label="Rebound SEO workspace"><span className="nav-section-label">Your coaching</span>{PRIMARY_NAVIGATION.map((item) => <Link className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.label}</Link>)}</nav>
+      <nav aria-label="Rebound SEO workspace"><span className="nav-section-label">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? "page" : undefined} className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.label}</Link>)}</nav>
       <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details>
       <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}<Link className={`mobile-menu-account ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link><form action="/auth/signout" method="post"><button className="mobile-menu-signout" type="submit">Sign out</button></form></div></details>
       <div className="sidebar-account-actions">

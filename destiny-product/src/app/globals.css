@@ -1912,7 +1912,7 @@ html[data-reduced-celebrations="true"] .audit-live-progress-track > span::after 
   .mobile-feature-menu a.active { background: #e8f1ed; color: var(--forest-dark); }
   .mobile-feature-menu .mobile-menu-account { border-top: 1px solid var(--line); margin-top: 3px; padding-top: 12px; }
   .mobile-feature-menu .mobile-menu-signout { background: none; border: 0; border-radius: 10px; color: var(--muted); cursor: pointer; display: block; font: inherit; font-size: 14px; font-weight: 750; padding: 10px 12px; text-align: left; width: 100%; }
-  .mobile-primary-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mobile-primary-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .mobile-primary-nav a, .mobile-primary-nav > span { border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 800; min-width: 0; padding: 11px 3px; text-align: center; text-decoration: none; }
   .mobile-primary-nav a.active, .mobile-primary-nav > span.active { background: #e8f1ed; color: var(--forest-dark); }
 }

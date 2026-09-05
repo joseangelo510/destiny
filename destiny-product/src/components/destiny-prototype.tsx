@@ -259,7 +259,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           setError("Rebound SEO’s browser and server rules did not agree. No inconsistent recommendation was shown.");
           return;
         }
-        window.location.assign("/this-week");
+        window.location.assign("/app");
       }
       if (payload.audit?.status === "failed") {
         setAuditStatus("failed");
