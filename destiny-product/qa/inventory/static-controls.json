@@ -783,18 +783,18 @@
     "context": "> {fromStrategy && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>You can keep your current decisions</strong><small>Research alternatives here; the original recommendations stay available when you return.</small></div><Link className=\"secondary-button\" href={`/keywords?site=${website?.id ?? \"\"}`}>Back to keyword strategy</Link></div></section>} <FeatureJourneyCallout actionHref=\"#keyword-research-workspace\" actionLabel=\"Research one opportunity\" milesto"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:228:a:1",
+    "control_id": "src/app/keywords/page.tsx:221:a:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 228,
+    "line": 221,
     "type": "a",
     "route": "/keywords",
     "side_effect_class": 1,
     "context": "{context.audit && <KeywordStrategyReview websiteId={context.website?.id ?? \"\"} auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} newResearchStatus={newResearch.status} initialTab={workspaceKeywords.some((keyword) => keyword.verdict === \"create\" && !initialDecisions[keyword.keyword]) ? \"review\" : keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKe"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:229:summary:1",
+    "control_id": "src/app/keywords/page.tsx:222:summary:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 229,
+    "line": 222,
     "type": "summary",
     "route": "/keywords",
     "side_effect_class": 1,

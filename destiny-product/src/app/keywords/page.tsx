@@ -1,3 +1,4 @@
+import { prepareKeywordCandidates } from "@/lib/seo/prepare-keyword-candidates";
 import { loadNewKeywordRecommendations } from "@/lib/seo/load-new-keyword-recommendations";
 import { KeywordStrategyReview } from "@/components/keyword-strategy-review";
 import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
@@ -6,7 +7,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { runDestinyServerLogic } from "@/lib/logicaffeine-server";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
-import { keywordHasGeographicConflict, rankKeywordOpportunities } from "@/lib/seo/keyword-opportunity";
+import { keywordHasGeographicConflict } from "@/lib/seo/keyword-opportunity";
 import { keywordStrategyAction } from "@/lib/seo/keyword-strategy-actions";
 import { keywordWatchlistCount } from "@/lib/seo/keyword-strategy-summary";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
@@ -65,19 +66,11 @@ export default async function KeywordsPage() {
     themeLabel: String(keyword.themeLabel ?? ""),
     themeRole: String(keyword.themeRole ?? ""),
   }] : []).filter((keyword) => !keywordHasGeographicConflict(keyword, keywordBusinessContext));
-  const hasPersistedSemanticStrategy = keywordCandidates.length > 0
-    && keywordCandidates.every((keyword) => keyword.priorityScore > 0 && keyword.priorityReason && keyword.themeId && keyword.themeLabel);
-  const usableKeywords = hasPersistedSemanticStrategy
-    ? keywordCandidates.map((keyword) => ({
-      ...keyword,
-      competitorRankers: Number(keyword.competitorRankers ?? 0),
-      essential: Boolean(keyword.essential),
-    }))
-    : rankKeywordOpportunities(keywordCandidates, keywordBusinessContext, 50).map((keyword) => ({
-      ...keyword,
-      competitorRankers: Number(keyword.competitorRankers ?? 0),
-      essential: keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational",
-    }));
+  const usableKeywords = prepareKeywordCandidates(keywordCandidates, keywordBusinessContext).map((keyword) => ({
+    ...keyword,
+    competitorRankers: Number(keyword.competitorRankers ?? 0),
+    essential: Boolean(keyword.essential) || (keyword.opportunity === "competitor_gap" && keyword.competitorRankers >= 2 && keyword.providerIntent !== "informational"),
+  }));
   const [{ data: savedPreferences }, { data: trackedKeywords }, { data: rankObservations }] = context.website
     ? await Promise.all([
       context.supabase.from("keyword_preferences").select("keyword,normalized_keyword,decision,reason,search_volume,difficulty,priority_score,provider_intent,search_intent,theme_id,theme_label").eq("website_id", context.website.id),
