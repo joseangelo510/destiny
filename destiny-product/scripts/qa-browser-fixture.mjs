@@ -1,3 +1,4 @@
+import { seedKeywordDepthWorkspaces } from "./qa-keyword-depth-fixture.mjs";
 import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -344,6 +345,7 @@ for (const device of ["desktop", "mobile"]) {
   keywordWorkspaces[device] = scenario;
 }
 
+const keywordDepthWorkspaces = await seedKeywordDepthWorkspaces({ createWebsite, seedMvpCertification, member, organizationId: organizationC, service });
 const alphaMembership = await ownerA.client.from("organization_members").insert({
   organization_id: organizationA,
   user_id: member.userId,
@@ -364,7 +366,7 @@ await writeFile(manifestPath, JSON.stringify({
   beta,
   member: memberSite,
   mvp,
-  keywordWorkspaces,
+  keywordWorkspaces, keywordDepthWorkspaces,
   outsiderAuditId: outsiderSite.auditIds[0],
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));
