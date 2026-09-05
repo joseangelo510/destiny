@@ -35,10 +35,12 @@ test("@gate new recommendations preserve decisions and keep planning and explici
   await expect(confirmation).toContainText(keyword);
   await expect(confirmation.getByRole("link", { name: "View in Calendar" })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath(`keyword-plan-confirmation-${testInfo.project.name}.png`), fullPage: true });
+  await confirmation.screenshot({ path: testInfo.outputPath(`confirmation-detail-${testInfo.project.name}.png`) });
   await confirmation.getByRole("link", { name: "View in Calendar" }).click();
   const topic = page.getByRole("article").filter({ hasText: "Seo website migration checklist" });
   await expect(topic).toBeVisible();
   await expect(topic).toHaveAttribute("data-highlighted", "true");
+  await page.screenshot({ path: testInfo.outputPath(`calendar-topic-${testInfo.project.name}.png`), fullPage: true });
   await topic.getByRole("link", { name: "Start draft" }).click();
   await expect(page).toHaveURL(new RegExp(`/content\\?site=${websiteId}&keyword=seo%20website%20migration%20checklist`));
   await expect(page.getByText("Brief saved", { exact: true })).toBeVisible();
