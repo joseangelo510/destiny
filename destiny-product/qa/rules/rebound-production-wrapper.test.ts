@@ -60,6 +60,7 @@ async function registryPreflight(mode: string) {
       '  denied) echo "403 forbidden" >&2; exit 1 ;;',
       '  ambiguous) echo "connection timed out" >&2; exit 1 ;;',
       '  misleading) echo "denied: not found" >&2; exit 1 ;;',
+      '  absent-reference-digits) echo "ERROR: ghcr.io/example:imageabc401def403abc: not found" >&2; exit 1 ;;',
       "esac",
       'echo "ERROR: manifest unknown: not found" >&2',
       "exit 1",
@@ -90,6 +91,7 @@ describe("D10.6 Rebound SEO production wrapper", () => {
     expect(result.calls).toEqual([priorReleaseSha, productionImageTag, releaseSha].map((tag) => "ghcr.io/joseangelo510/destiny-production:" + tag));
     expect(result.stdout).toContain(productionImageTag + ": absent");
     expect(result.stdout).toContain(releaseSha + ": absent");
+    expect((await registryPreflight("absent-reference-digits")).status).toBe(0);
   });
 
   it("fails closed on existing tags, denied prior access, permission errors, and ambiguous errors", async () => {
