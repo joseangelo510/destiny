@@ -1,5 +1,6 @@
-import { execFileSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { execFileSync, spawnSync } from "node:child_process";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -37,7 +38,68 @@ function materializeRoutes(routes: string[]) {
   return result.trimEnd().split("\n");
 }
 
+async function registryPreflight(mode: string) {
+  const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
+  const marker = "      - name: Refuse existing or unverifiable release image tags\n        run: |\n";
+  expect(workflow).toContain(marker);
+  const block = workflow.split(marker)[1].split("\n      - name:")[0];
+  const script = block.split("\n").map((line) => line.startsWith("          ") ? line.slice(10) : line).join("\n");
+  const fixtureDirectory = await mkdtemp(path.join(tmpdir(), "rebound-registry-test-"));
+  try {
+    const docker = path.join(fixtureDirectory, "docker");
+    await writeFile(docker, [
+      "#!/bin/sh",
+      'printf "%s\\n" "$4" >> "$QA_CALLS"',
+      'if [ "$4" = "ghcr.io/joseangelo510/destiny-production:$PRIOR_RELEASE_SHA" ]; then',
+      '  if [ "$QA_MODE" = "prior-denied" ]; then echo "unauthorized" >&2; exit 1; fi',
+      "  exit 0",
+      "fi",
+      'case "$QA_MODE" in',
+      '  existing-release) [ "$4" != "ghcr.io/joseangelo510/destiny-production:$PRODUCTION_IMAGE_TAG" ] || exit 0 ;;',
+      '  existing-sha) [ "$4" != "ghcr.io/joseangelo510/destiny-production:$RELEASE_SHA" ] || exit 0 ;;',
+      '  denied) echo "403 forbidden" >&2; exit 1 ;;',
+      '  ambiguous) echo "connection timed out" >&2; exit 1 ;;',
+      '  misleading) echo "denied: not found" >&2; exit 1 ;;',
+      "esac",
+      'echo "ERROR: manifest unknown: not found" >&2',
+      "exit 1",
+    ].join("\n"));
+    await chmod(docker, 0o755);
+    const callsFile = path.join(fixtureDirectory, "calls.txt");
+    const result = spawnSync("bash", ["-c", script], {
+      cwd: fixtureDirectory,
+      encoding: "utf8",
+      env: { ...process.env, PATH: fixtureDirectory + path.delimiter + process.env.PATH, QA_MODE: mode, QA_CALLS: callsFile, RELEASE_SHA: releaseSha, PRIOR_RELEASE_SHA: priorReleaseSha, PRODUCTION_IMAGE_TAG: productionImageTag },
+    });
+    const calls = (await readFile(callsFile, "utf8")).trim().split("\n");
+    return { status: result.status, stdout: result.stdout, stderr: result.stderr, calls };
+  } finally {
+    await rm(fixtureDirectory, { recursive: true, force: true });
+  }
+}
+
 describe("D10.6 Rebound SEO production wrapper", () => {
+  it("verifies registry access and both unused tags before publication or Fly mutation", async () => {
+    const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
+    const guard = workflow.indexOf("- name: Refuse existing or unverifiable release image tags");
+    expect(guard).toBeGreaterThan(workflow.indexOf("- name: Login GHCR"));
+    expect(guard).toBeLessThan(workflow.indexOf("- name: Build and push exact Rebound image"));
+    expect(workflow).toContain("            registry-preflight.txt");
+    const result = await registryPreflight("absent");
+    expect(result.status).toBe(0);
+    expect(result.calls).toEqual([priorReleaseSha, productionImageTag, releaseSha].map((tag) => "ghcr.io/joseangelo510/destiny-production:" + tag));
+    expect(result.stdout).toContain(productionImageTag + ": absent");
+    expect(result.stdout).toContain(releaseSha + ": absent");
+  });
+
+  it("fails closed on existing tags, denied prior access, permission errors, and ambiguous errors", async () => {
+    for (const [mode, expectedCalls] of [["existing-release", 2], ["existing-sha", 3], ["prior-denied", 1], ["denied", 2], ["ambiguous", 2], ["misleading", 2]] as const) {
+      const result = await registryPreflight(mode);
+      expect(result.status, mode).not.toBe(0);
+      expect(result.calls, mode).toHaveLength(expectedCalls);
+    }
+  });
+
   it("is manual-only, immutable, production-scoped, and rollback-capable", async () => {
     const workflow = await repositoryFile(".github/workflows/rebound-production-deploy.yml");
 
