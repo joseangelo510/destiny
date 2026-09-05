@@ -789,7 +789,7 @@
     "type": "a",
     "route": "/keywords",
     "side_effect_class": 1,
-    "context": "{context.audit && <KeywordStrategyReview key={`${context.website?.id}:${discoveryRound}`} discoveryRound={discoveryRound} newKeywordOrder={newResearch.keywords.map(keyword => keyword.keyword)} websiteId={context.website?.id ?? \"\"} auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} newResearchStatus={newResearch.status} initialTab={workspaceKeywords.some((keyword) =>"
+    "context": "{context.audit && <KeywordStrategyReview key={`${context.website?.id}:${discoveryRound}`} discoveryRound={newResearch.round} newKeywordOrder={newResearch.keywords.map(keyword => keyword.keyword)} websiteId={context.website?.id ?? \"\"} auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} newResearchStatus={newResearch.status} initialTab={workspaceKeywords.some((keyword)"
   },
   {
     "control_id": "src/app/keywords/page.tsx:223:summary:1",
