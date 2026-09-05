@@ -186,6 +186,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/keywords/create-content",
+    "file": "src/app/api/keywords/create-content/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/keywords/decisions",
     "file": "src/app/api/keywords/decisions/route.ts"
   },

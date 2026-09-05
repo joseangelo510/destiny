@@ -36,6 +36,7 @@ const keywords = Array.from({ length: 25 }, (_, index) => ({
 describe("KeywordStrategyReview planning horizon", () => {
   it("makes five approvals sufficient without forcing a review of all 25", () => {
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={Object.fromEntries(keywords.slice(0, 5).map((keyword) => [keyword.keyword, "approved" as const]))}
       keywords={keywords}
@@ -63,6 +64,7 @@ describe("KeywordStrategyReview planning horizon", () => {
 
   it("shows Claude's separate OBS and GSC evidence with an improvement diagnostic", () => {
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={{}}
       initialReasons={{}}
@@ -92,6 +94,7 @@ describe("KeywordStrategyReview planning horizon", () => {
       { ...keywords[0], keyword: "overlap test", verdict: "overlap" as const, verdictDescription: "Overlap", rankingUrls: ["https://example.com/a", "https://example.com/b"] },
     ];
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={{}}
       initialReasons={{}}
@@ -104,8 +107,8 @@ describe("KeywordStrategyReview planning horizon", () => {
       questStatus="todo"
     />);
 
-    for (const [keyword, primaryLabel] of [["create test", "Approve"], ["improve test", "Re-optimize"], ["defend test", "Protect"], ["overlap test", "Resolve overlap"]]) {
-      const rowStart = html.indexOf(`<strong>${keyword}</strong>`);
+    for (const [keyword, primaryLabel] of [["create test", "Create content"], ["improve test", "Re-optimize"], ["defend test", "Protect"], ["overlap test", "Resolve overlap"]]) {
+      const rowStart = html.indexOf(`${keyword}</strong>`);
       const rowEnd = html.indexOf("</tr>", rowStart);
       const row = html.slice(rowStart, rowEnd);
       expect(row).toContain(`class="primary"`);
@@ -130,6 +133,7 @@ describe("KeywordStrategyReview planning horizon", () => {
 
   it("turns a completed strategy into a working summary with the next useful action", () => {
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={Object.fromEntries(keywords.map((keyword, index) => [keyword.keyword, index < 5 ? "approved" as const : "declined" as const]))}
       keywords={keywords}
@@ -153,6 +157,7 @@ describe("KeywordStrategyReview planning horizon", () => {
   it("uses Claude's compact approved-keyword table and initially limits long lists to ten rows", () => {
     const approvedKeywords = keywords.slice(0, 12);
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={Object.fromEntries(approvedKeywords.map((keyword) => [keyword.keyword, "approved" as const]))}
       keywords={keywords}
@@ -178,6 +183,7 @@ describe("KeywordStrategyReview planning horizon", () => {
   it("keeps a generated change document available from the Approved tab", () => {
     const approvedKeyword = keywords[0];
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={{ [approvedKeyword.keyword]: "approved" }}
       initialDocumentLinks={{ [approvedKeyword.keyword]: "/reoptimization/doc-1" }}
@@ -199,6 +205,7 @@ describe("KeywordStrategyReview planning horizon", () => {
 
   it("explains the exact approval gap instead of showing a silent disabled finish button", () => {
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={Object.fromEntries(keywords.slice(0, 3).map((keyword) => [keyword.keyword, "approved" as const]))}
       keywords={keywords}
@@ -220,6 +227,7 @@ describe("KeywordStrategyReview planning horizon", () => {
   it("keeps declined keywords visible with the reason and a reversible action", () => {
     const declinedKeyword = keywords[0].keyword;
     const html = renderToStaticMarkup(<KeywordStrategyReview
+      websiteId="website-1"
       auditId="audit-1"
       initialDecisions={{ [declinedKeyword]: "declined" }}
       initialReasons={{ [declinedKeyword]: "wrong_audience" }}

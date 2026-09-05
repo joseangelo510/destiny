@@ -33,7 +33,8 @@ test.describe("@gate core navigation from returning-user entry and existing tool
         await expect(link).toBeVisible();
         await expect(link).toHaveAttribute("href", `/app/${label.toLowerCase()}?site=${fixture.mvp.websiteId}`);
       }
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(mobile ? 390 : 1360);
+      const overflow = await page.evaluate(() => [...document.querySelectorAll("body *")].filter((element) => element.getBoundingClientRect().right > innerWidth + 1).slice(0, 12).map((element) => ({ tag: element.tagName, class: element.className, right: element.getBoundingClientRect().right })));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), JSON.stringify(overflow)).toBeLessThanOrEqual(mobile ? 390 : 1360);
       await navigation.getByRole("link", { name: "Home", exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/app/home\\?site=${fixture.mvp.websiteId}$`));
       await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();

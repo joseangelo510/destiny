@@ -648,27 +648,27 @@
     "context": "<p>For your security, Rebound SEO’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
-    "control_id": "src/app/content/page.tsx:137:data-mutation:1",
+    "control_id": "src/app/content/page.tsx:138:data-mutation:1",
     "file": "src/app/content/page.tsx",
-    "line": 137,
+    "line": 138,
     "type": "data-mutation",
     "route": "/content",
     "side_effect_class": 0,
     "context": "const { data: cmsTransferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/content/page.tsx:183:Link:1",
+    "control_id": "src/app/content/page.tsx:184:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 183,
+    "line": 184,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 3,
     "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{interviewArticleDraft ? \"Interview draft ready\" : repurposeArticleDraft ? \"Repurposed draft ready\" : \"Three outlines ready\"}</strong><small>{interviewArticleDraft ? \"Built from your exact interview answers\" : repurposeArticleDraft ? \"Loaded from your saved source\" : \"Built from your keyword strategy\"}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Gene"
   },
   {
-    "control_id": "src/app/content/page.tsx:226:button:1",
+    "control_id": "src/app/content/page.tsx:227:button:1",
     "file": "src/app/content/page.tsx",
-    "line": 226,
+    "line": 227,
     "type": "button",
     "route": "/content",
     "side_effect_class": 0,
@@ -783,18 +783,18 @@
     "context": "> {fromStrategy && <section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>You can keep your current decisions</strong><small>Research alternatives here; the original recommendations stay available when you return.</small></div><Link className=\"secondary-button\" href={`/keywords?site=${website?.id ?? \"\"}`}>Back to keyword strategy</Link></div></section>} <FeatureJourneyCallout actionHref=\"#keyword-research-workspace\" actionLabel=\"Research one opportunity\" milesto"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:223:a:1",
+    "control_id": "src/app/keywords/page.tsx:221:a:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 223,
+    "line": 221,
     "type": "a",
     "route": "/keywords",
     "side_effect_class": 1,
-    "context": "{context.audit && <KeywordStrategyReview auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} initialTab={keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKeywordsHref={`/keyword-research?site=${context.website?.id ?? \"\"}&from=strategy`} nextAction={nextAction} nextHref={`/content?site=${context.website?.id ?? \"\"}&strategy=complete`} questId={keywor"
+    "context": "{context.audit && <KeywordStrategyReview websiteId={context.website?.id ?? \"\"} auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} newResearchStatus={newResearch.status} initialTab={workspaceKeywords.some((keyword) => keyword.verdict === \"create\" && !initialDecisions[keyword.keyword]) ? \"review\" : keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKe"
   },
   {
-    "control_id": "src/app/keywords/page.tsx:224:summary:1",
+    "control_id": "src/app/keywords/page.tsx:222:summary:1",
     "file": "src/app/keywords/page.tsx",
-    "line": 224,
+    "line": 222,
     "type": "summary",
     "route": "/keywords",
     "side_effect_class": 1,
@@ -3789,513 +3789,549 @@
     "context": "<div className=\"keyword-save-actions\"><button className=\"primary-button\" disabled={saving} onClick={() => void onSave(listId || null, track)} type=\"button\">{saving ? \"Saving…\" : track ? \"Save and track\" : \"Save keywords\"}</button><button className=\"secondary-button\" onClick={onCancel} type=\"button\">Cancel</button></div> <form className=\"keyword-new-list\" onSubmit={createList}><input aria-label=\"New keyword list name\" onChange={(event) => setNewList(event.target.value)} placeholder=\"New list name"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:81:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 81,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "[\"Blog guide / FAQ\", \"Educational questions and research searches.\"], ].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve with this page"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:81:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 81,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "[\"Blog guide / FAQ\", \"Educational questions and research searches.\"], ].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve with this page"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:82:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
+    "control_id": "src/components/keyword-strategy-details.tsx:82:button:1",
+    "file": "src/components/keyword-strategy-details.tsx",
     "line": 82,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve with this page type</button><span>Draft only. You review before publishing.</span></"
+    "context": "[\"Blog guide / FAQ\", \"Educational questions and research searches.\"], ].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Create content</button"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:82:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
+    "control_id": "src/components/keyword-strategy-details.tsx:82:onClick:2",
+    "file": "src/components/keyword-strategy-details.tsx",
     "line": 82,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve with this page type</button><span>Draft only. You review before publishing.</span></"
+    "context": "[\"Blog guide / FAQ\", \"Educational questions and research searches.\"], ].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Create content</button"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:88:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 88,
+    "control_id": "src/components/keyword-strategy-details.tsx:83:button:1",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 83,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Create content</button><span>Saves a brief in Content Studio. Generate and review before pub"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-details.tsx:83:onClick:2",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 83,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "].map(([label, description]) => <button aria-pressed={selectedPageType === label} className={selectedPageType === label ? \"selected\" : \"\"} key={label} onClick={() => onPageType(label)} type=\"button\"><strong>{label}{selectedPageType === label ? \" ✓\" : \"\"}</strong><span>{description}</span></button>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Create content</button><span>Saves a brief in Content Studio. Generate and review before pub"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-details.tsx:89:button:1",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 89,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"claude-ks-defend-grid\"><div><b>🔒</b><span><strong>Protect the winner</strong><small>Avoid unnecessary rewrites while it holds the top three.</small></span></div><div><b>📅</b><span><strong>Quarterly refresh</strong><small>Review dates, proof, testimonials, and offer details every 90 days.</small></span></div><div><b>🔔</b><span><strong>Slip alert</strong><small>Move it to Improve if verified rankings fall below the top three.</small></span></div></div> <div className=\"claude-ks-"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:88:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 88,
+    "control_id": "src/components/keyword-strategy-details.tsx:89:onClick:2",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 89,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"claude-ks-defend-grid\"><div><b>🔒</b><span><strong>Protect the winner</strong><small>Avoid unnecessary rewrites while it holds the top three.</small></span></div><div><b>📅</b><span><strong>Quarterly refresh</strong><small>Review dates, proof, testimonials, and offer details every 90 days.</small></span></div><div><b>🔔</b><span><strong>Slip alert</strong><small>Move it to Improve if verified rankings fall below the top three.</small></span></div></div> <div className=\"claude-ks-"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:94:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 94,
+    "control_id": "src/components/keyword-strategy-details.tsx:95:button:1",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 95,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"claude-ks-overlap-pages\">{keyword.rankingUrls.map((url, index) => <div className={index === 0 ? \"primary\" : \"\"} key={url}><small>{index === 0 ? \"Primary · recommended\" : \"Supporting page\"}</small><strong>{displayPath(url)}</strong></div>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve overlap plan</button><span>Nothing changes on your site without review.</span></div> </div>;"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:94:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 94,
+    "control_id": "src/components/keyword-strategy-details.tsx:95:onClick:2",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 95,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"claude-ks-overlap-pages\">{keyword.rankingUrls.map((url, index) => <div className={index === 0 ? \"primary\" : \"\"} key={url}><small>{index === 0 ? \"Primary · recommended\" : \"Supporting page\"}</small><strong>{displayPath(url)}</strong></div>)}</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">Approve overlap plan</button><span>Nothing changes on your site without review.</span></div> </div>;"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:105:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 105,
+    "control_id": "src/components/keyword-strategy-details.tsx:106:button:1",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 106,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">{saving ? \"Creating your change doc…\" : \"Approve + create change doc\"}</button><span>Counts toward your five. Nothing publishes without review.</span></div> </div>;"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:105:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 105,
+    "control_id": "src/components/keyword-strategy-details.tsx:106:onClick:2",
+    "file": "src/components/keyword-strategy-details.tsx",
+    "line": 106,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div className=\"claude-ks-drawer-action\"><button disabled={saving} onClick={onApprove} type=\"button\">{saving ? \"Creating your change doc…\" : \"Approve + create change doc\"}</button><span>Counts toward your five. Nothing publishes without review.</span></div> </div>;"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:302:Link:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:225:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 302,
+    "line": 225,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <Fragment key={keyword.keyword}><tr className={decision ?? \"pending\"} ref={keyword.keyword === firstUnreviewedKeyword ? firstUnreviewedRef : undefined} tabIndex={keyword.keyword === firstUnreviewedKeyword ? -1 : undefined}> <td className=\"claude-ks-keyword\"><strong>{keyword.verdict === \"create\" ? <button aria-expanded={openDrawer === keyword.keyword} aria-label={`Show content angle for ${keyword.keyword}`} className=\"claude-ks-angle\" onClick={() => setOpenDrawer((current) => current === k"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:225:onClick:2",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 225,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <Fragment key={keyword.keyword}><tr className={decision ?? \"pending\"} ref={keyword.keyword === firstUnreviewedKeyword ? firstUnreviewedRef : undefined} tabIndex={keyword.keyword === firstUnreviewedKeyword ? -1 : undefined}> <td className=\"claude-ks-keyword\"><strong>{keyword.verdict === \"create\" ? <button aria-expanded={openDrawer === keyword.keyword} aria-label={`Show content angle for ${keyword.keyword}`} className=\"claude-ks-angle\" onClick={() => setOpenDrawer((current) => current === k"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:1",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:2",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:3",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:4",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:5",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:6",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:Link:7",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:8",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:9",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:10",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:11",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:12",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:13",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:button:14",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:230:onClick:15",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 230,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:button:1",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:onClick:2",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:button:3",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:onClick:4",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:button:5",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:231:onClick:6",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 231,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => keyword.verdict === \"create\" ? void createContent(keyword) : setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \""
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:233:button:1",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 233,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "})}</tbody></table></div> <footer className=\"claude-ks-table-foot\"><span>Showing {tableKeywords.length} of {tableTotal} {activeTab === \"review\" ? \"keywords to review\" : `${activeTab} keywords`}{activeTab === \"declined\" ? \" · Restoring sends a keyword back to To Review\" : \"\"}</span>{tableTotal > (isNew ? 4 : 10) ? <button onClick={() => setShowAll((current) => !current)} type=\"button\">{showAll ? isNew ? \"Show first 4\" : \"Show first 10\" : `View all ${tableTotal}`} <span aria-hidden=\"true\">→</span>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:233:onClick:2",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 233,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "})}</tbody></table></div> <footer className=\"claude-ks-table-foot\"><span>Showing {tableKeywords.length} of {tableTotal} {activeTab === \"review\" ? \"keywords to review\" : `${activeTab} keywords`}{activeTab === \"declined\" ? \" · Restoring sends a keyword back to To Review\" : \"\"}</span>{tableTotal > (isNew ? 4 : 10) ? <button onClick={() => setShowAll((current) => !current)} type=\"button\">{showAll ? isNew ? \"Show first 4\" : \"Show first 10\" : `View all ${tableTotal}`} <span aria-hidden=\"true\">→</span>"
+  },
+  {
+    "control_id": "src/components/keyword-strategy-review.tsx:241:Link:1",
+    "file": "src/components/keyword-strategy-review.tsx",
+    "line": 241,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"claude-ks-stat\"><strong>{declined}</strong><span>Declined</span><small>Saved · restorable anytime</small></div> <div className=\"claude-ks-next-step\"><div><small>Next step</small><strong>{nextAction.code === \"create_first_article\" && approvedKeywords[0] ? <>Your first article is ready to plan: <em>{approvedKeywords[0].keyword}</em>.</> : nextAction.description}</strong></div><Link href={nextAction.href}>{nextAction.label}</Link></div> </section> : <section className=\"claude-ks-dec"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:309:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:248:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 309,
+    "line": 248,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div aria-label=\"Keyword decision lists\" className=\"claude-ks-tabs\" id=\"keyword-strategy-tabs\" role=\"tablist\"> <button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved "
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:309:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:248:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 309,
+    "line": 248,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div aria-label=\"Keyword decision lists\" className=\"claude-ks-tabs\" id=\"keyword-strategy-tabs\" role=\"tablist\"> <button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved "
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:309:role:3",
+    "control_id": "src/components/keyword-strategy-review.tsx:248:role:3",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 309,
+    "line": 248,
     "type": "role",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div aria-label=\"Keyword decision lists\" className=\"claude-ks-tabs\" id=\"keyword-strategy-tabs\" role=\"tablist\"> <button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved "
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:310:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:249:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 310,
+    "line": 249,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"dec"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:310:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:249:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 310,
+    "line": 249,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"dec"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:310:role:3",
+    "control_id": "src/components/keyword-strategy-review.tsx:249:role:3",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 310,
+    "line": 249,
     "type": "role",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"review\"} className={activeTab === \"review\" ? \"active\" : \"\"} onClick={() => selectTab(\"review\")} role=\"tab\" type=\"button\">To Review <span>{reviewKeywords.length}</span></button> <button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"dec"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:311:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:250:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 311,
+    "line": 250,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"declined\" ? \"active\" : \"\"} onClick={() => selectTab(\"declined\")} role=\"tab\" type=\"button\">Declined <span>{declined}</span></button> </div>"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:311:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:250:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 311,
+    "line": 250,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"declined\" ? \"active\" : \"\"} onClick={() => selectTab(\"declined\")} role=\"tab\" type=\"button\">Declined <span>{declined}</span></button> </div>"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:311:role:3",
+    "control_id": "src/components/keyword-strategy-review.tsx:250:role:3",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 311,
+    "line": 250,
     "type": "role",
     "route": "component",
     "side_effect_class": 1,
     "context": "<button aria-selected={activeTab === \"approved\"} className={activeTab === \"approved\" ? \"active\" : \"\"} onClick={() => selectTab(\"approved\")} role=\"tab\" type=\"button\">Approved <span>{approved}</span></button> <button aria-selected={activeTab === \"declined\"} className={activeTab === \"declined\" ? \"active\" : \"\"} onClick={() => selectTab(\"declined\")} role=\"tab\" type=\"button\">Declined <span>{declined}</span></button> </div>"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:316:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:262:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 316,
+    "line": 262,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>{themeCoverage.length} distinct search themes</strong><span>No single phrase family can consume the whole strategy.</span></div> <div className=\"claude-ks-review-actions\">{!canComplete && <button disabled={!recommendedUnreviewed.length || saving === \"batch\"} onClick={() => void approveMany(recommendedUnreviewed)} type=\"button\">Approve next {approvalsRemaining}</button>}<Link href={moreKeywordsHref}>Find more keywords</Link></div> </div> : null}"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:316:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:262:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 316,
+    "line": 262,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>{themeCoverage.length} distinct search themes</strong><span>No single phrase family can consume the whole strategy.</span></div> <div className=\"claude-ks-review-actions\">{!canComplete && <button disabled={!recommendedUnreviewed.length || saving === \"batch\"} onClick={() => void approveMany(recommendedUnreviewed)} type=\"button\">Approve next {approvalsRemaining}</button>}<Link href={moreKeywordsHref}>Find more keywords</Link></div> </div> : null}"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:316:Link:3",
+    "control_id": "src/components/keyword-strategy-review.tsx:262:Link:3",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 316,
+    "line": 262,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div><strong>{themeCoverage.length} distinct search themes</strong><span>No single phrase family can consume the whole strategy.</span></div> <div className=\"claude-ks-review-actions\">{!canComplete && <button disabled={!recommendedUnreviewed.length || saving === \"batch\"} onClick={() => void approveMany(recommendedUnreviewed)} type=\"button\">Approve next {approvalsRemaining}</button>}<Link href={moreKeywordsHref}>Find more keywords</Link></div> </div> : null}"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:321:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:267:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 321,
+    "line": 267,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<span>Checked against your site:</span> <button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{visibleKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"impro"
+    "context": "<span>Checked against your site:</span> <button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{existingKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"impr"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:321:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:267:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 321,
+    "line": 267,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<span>Checked against your site:</span> <button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{visibleKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"impro"
+    "context": "<span>Checked against your site:</span> <button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{existingKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"impr"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:322:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:268:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 322,
+    "line": 268,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{visibleKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"improve\" ? \"Improve · quick wins\" : VERDICT_L"
+    "context": "<button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{existingKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"improve\" ? \"Improve · quick wins\" : VERDICT_"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:322:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:268:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 322,
+    "line": 268,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{visibleKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"improve\" ? \"Improve · quick wins\" : VERDICT_L"
+    "context": "<button className={verdictFilter === \"all\" ? \"active\" : \"\"} onClick={() => { setVerdictFilter(\"all\"); setShowAll(false); }} type=\"button\">All <b>{existingKeywords.length}</b></button> {(Object.keys(VERDICT_LABELS) as KeywordRecommendation[\"verdict\"][]).map((verdict) => <button className={`${verdictFilter === verdict ? \"active\" : \"\"} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type=\"button\">{verdict === \"improve\" ? \"Improve · quick wins\" : VERDICT_"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:325:Link:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:271:Link:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 325,
+    "line": 271,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "{status && <div aria-live=\"polite\" className=\"integration-banner success keyword-decision-status\" role=\"status\"><strong>Decision saved</strong><p>{status}{statusLink ? <> <Link href={statusLink.href}>{statusLink.label} →</Link></> : null}</p></div>}"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:Link:3",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:Link:3",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:Link:4",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:Link:4",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:button:5",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:button:5",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:327:onClick:6",
+    "control_id": "src/components/keyword-strategy-review.tsx:273:onClick:6",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 327,
+    "line": 273,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!visibleKeywords.length ? <section className=\"claude-ks-panel\" role=\"tabpanel\"><div className=\"claude-ks-empty\"><span aria-hidden=\"true\">✓</span><h3>{activeTab === \"review\" ? \"You’re all caught up\" : activeTab === \"approved\" ? \"No approved keywords yet\" : \"No declined keywords\"}</h3><p>{activeTab === \"review\" ? \"Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit.\" : activeTab === \"approved\" ? \"Approve relevant searches from To Review to bu"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:1",
+    "control_id": "src/components/keyword-strategy-review.tsx:275:button:1",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:3",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:4",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:Link:5",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:6",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:7",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:8",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:9",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:10",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:11",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:button:12",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:340:onClick:13",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 340,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-plan-status\">{decision === \"declined\" ? <><strong>{reason && reason in REASON_LABELS ? REASON_LABELS[reason as KeywordReason] : \"Saved feedback\"}</strong> · Restorable</> : <><span className={`claude-ks-verdict ${keyword.verdict}`}>{VERDICT_LABELS[keyword.verdict]}</span><small>{decision === \"approved\" ? keyword.verdict === \"improve\" ? `In plan · re-optimizing ${displayPath(keyword.rankingUrl)}` : \"In plan · tracking weekly\" : keyword.verdictDescription}</small></>}</td>"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:button:3",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:onClick:4",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:button:5",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:341:onClick:6",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 341,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "<td className=\"claude-ks-row-actions\">{activeTab === \"review\" ? <><button aria-label={keyword.verdict === \"improve\" ? \"Re-optimize: opens Approve + create change doc\" : undefined} className=\"primary\" disabled={saving === keyword.keyword || saving === \"batch\"} onClick={() => setOpenDrawer((current) => current === keyword.keyword ? \"\" : keyword.keyword)} type=\"button\">{keyword.verdict === \"improve\" ? \"Re-optimize\" : keyword.verdict === \"overlap\" ? \"Resolve overlap\" : keyword.verdict === \"defend\" ?"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:343:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 343,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "})}</tbody></table></div> <footer className=\"claude-ks-table-foot\"><span>Showing {displayedKeywords.length} of {filteredKeywords.length} {activeTab === \"review\" ? \"keywords to review\" : `${activeTab} keywords`}{activeTab === \"declined\" ? \" · Restoring sends a keyword back to To Review\" : \"\"}</span>{filteredKeywords.length > 10 ? <button onClick={() => setShowAll((current) => !current)} type=\"button\">{showAll ? \"Show first 10\" : `View all ${filteredKeywords.length}`} <span aria-hidden=\"true\">→</s"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:343:onClick:2",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 343,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "})}</tbody></table></div> <footer className=\"claude-ks-table-foot\"><span>Showing {displayedKeywords.length} of {filteredKeywords.length} {activeTab === \"review\" ? \"keywords to review\" : `${activeTab} keywords`}{activeTab === \"declined\" ? \" · Restoring sends a keyword back to To Review\" : \"\"}</span>{filteredKeywords.length > 10 ? <button onClick={() => setShowAll((current) => !current)} type=\"button\">{showAll ? \"Show first 10\" : `View all ${filteredKeywords.length}`} <span aria-hidden=\"true\">→</s"
-  },
-  {
-    "control_id": "src/components/keyword-strategy-review.tsx:346:button:1",
-    "file": "src/components/keyword-strategy-review.tsx",
-    "line": 346,
+    "line": 275,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "{!strategyComplete ? <div className=\"claude-ks-finish\"><div><strong>{canComplete ? \"Ready to build your three-month content plan\" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? \"Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker.\" : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disab"
   },
   {
-    "control_id": "src/components/keyword-strategy-review.tsx:346:onClick:2",
+    "control_id": "src/components/keyword-strategy-review.tsx:275:onClick:2",
     "file": "src/components/keyword-strategy-review.tsx",
-    "line": 346,
+    "line": 275,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
