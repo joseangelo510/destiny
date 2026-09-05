@@ -19,11 +19,11 @@ describe("WorkspaceShell coaching hierarchy", () => {
     expect(html).toContain("Backlink analytics");
     expect(html).toContain('data-active="/this-week"');
     expect(html).not.toContain("LOGOS rules active");
-    expect(html).not.toMatch(/<details[^>]*class="desktop-feature-menu"[^>]*open/);
+    expect(html).toMatch(/<details[^>]*class="desktop-feature-menu"[^>]*open/);
     expect(html).toContain("Current website");
     expect(html).toContain("Example Co");
     expect(html).toContain(`/roadmap?site=${site.id}`);
-    expect(html).toContain(`/app?site=${site.id}`);
+    expect(html).toContain(`/app/home?site=${site.id}`);
     expect(html).not.toContain('aria-label="Rebound SEO homepage"');
     expect(html).toContain(`href="/account?site=${site.id}"`);
     expect(html).toMatch(/>Account<[\s\S]*>Sign out</);

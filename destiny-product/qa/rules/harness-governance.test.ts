@@ -6,7 +6,7 @@ import {
   compareDependencyManifests,
   evaluateChecklist,
   evaluateDelegation,
-  evaluateFableReview,
+  evaluateTechnicalReview,
   evaluatePolicyGuard,
   parseOwnerExecutionAuthorization,
 } from "../../scripts/governance-policy.mjs";
@@ -30,7 +30,7 @@ const completeMediumBody = `
 ## Governance classification
 
 - [x] Classification: MEDIUM
-- [x] Fable 5.1 confirmed this classification before implementation
+- [x] Classification recorded before implementation
   - Confirmed on: 2026-09-04 at base: 77b0e0d002f6acda2168e438f99c9fb01d5bc767
 - [x] Frozen zone: no frozen files or actions are touched
 
@@ -47,9 +47,10 @@ const completeMediumBody = `
 - [x] Touched staging routes checked with zero 5xx
   - Evidence: /this-week=200
 
-## Fable 5.1 review
+## Technical review
 
-- [x] Fable 5.1 reviewed this PR at its current head
+- [x] Technical review completed at the current PR head
+  - Reviewer: Codex
   - Verdict: GO
   - Reviewed head: ${prHead}
   - Reviewed on: 2026-09-04
@@ -143,10 +144,10 @@ describe("Destiny GOV-1 harness governance", () => {
     expect(evaluateChecklist(highWithDecision, { headSha: prHead }).errors).toEqual([]);
   });
 
-  it("requires a Fable 5.1 GO verdict recorded at the exact PR head on every PR", () => {
-    const withoutReceipt = completeMediumBody.replace(/## Fable 5\.1 review[\s\S]*$/, "");
+  it("requires an attributed technical GO review at the exact PR head on every PR", () => {
+    const withoutReceipt = completeMediumBody.replace(/## Technical review[\s\S]*$/, "");
     expect(evaluateChecklist(withoutReceipt, { headSha: prHead }).errors)
-      .toEqual(expect.arrayContaining([expect.stringMatching(/Fable 5\.1 review item/i)]));
+      .toEqual(expect.arrayContaining([expect.stringMatching(/technical review item/i)]));
 
     expect(evaluateChecklist(completeMediumBody.replace("Verdict: GO", "Verdict: HOLD"), { headSha: prHead }).errors)
       .toEqual(expect.arrayContaining([expect.stringMatching(/verdict must be GO/i)]));
@@ -160,7 +161,7 @@ describe("Destiny GOV-1 harness governance", () => {
     expect(evaluateChecklist(completeMediumBody.replace(`sha=${prHead}`, `sha=${staleHead}`), { headSha: prHead }).errors)
       .toEqual(expect.arrayContaining([expect.stringMatching(/Build-stamp evidence names/i)]));
 
-    const review = evaluateFableReview(completeMediumBody, prHead);
+    const review = evaluateTechnicalReview(completeMediumBody, prHead);
     expect(review).toMatchObject({ verdict: "GO", reviewedHead: prHead, errors: [] });
   });
 
@@ -227,9 +228,9 @@ describe("Destiny GOV-1 harness governance", () => {
 
     const policy = await readFile(path.join(repositoryRoot, "HARNESS_POLICY.md"), "utf8");
     expect(policy).toContain("Complete means merged with all required checks green at the merge SHA");
-    expect(policy).toContain("Conversational instructions do not override this file");
+    expect(policy).toContain("Jose Gallegos owns product intent and approval authority");
 
-    expect(policy).toContain("Fable 5.1 reviewed this PR at its current head");
+    expect(policy).toContain("Claude/Fable consultation is not required");
     expect(policy).toContain("## Owner Execution Authorization");
     expect(policy).toContain("OEA #<pr> <40-char head>: <actions>");
 
@@ -243,7 +244,7 @@ describe("Destiny GOV-1 harness governance", () => {
 
     for (const mirror of ["AGENTS.md", "CLAUDE.md", ".claude/skills/destiny-harness/SKILL.md", "docs/DESTINY_GOVERNANCE_POINTER.md", ".github/pull_request_template.md"]) {
       const contents = await readFile(path.join(repositoryRoot, mirror), "utf8");
-      expect(contents, mirror).toContain("Fable 5.1");
+      expect(contents, mirror).toMatch(/HARNESS_POLICY\.md|Technical review/);
     }
   });
 });
