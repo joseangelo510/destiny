@@ -77,7 +77,7 @@ export function AuditMomentumProcessing({
         setProgress(100);
         setStatus("complete");
         void playDestinySound("verified_result");
-        window.setTimeout(() => window.location.assign("/this-week"), 1100);
+        window.setTimeout(() => window.location.assign("/app"), 1100);
       } else if (payload.audit?.status === "failed") {
         setStatus("failed");
         setError(payload.audit.failure_message || "Rebound SEO could not complete this audit.");

@@ -1,5 +1,6 @@
 import { runDestinyServerLogic } from "../logicaffeine-server";
 import { isActionableGuidanceState } from "../quests/guidance-state";
+import { CORE_NAVIGATION } from "../rebound-core/routes";
 
 export const DEFAULT_WEEKLY_TASK_LIMIT = 8;
 
@@ -15,15 +16,13 @@ export function certifiedMvpWeeklyTasks<T extends { task_type: string }>(tasks: 
   return tasks.filter((task) => MVP_CERTIFIED_WEEKLY_TASK_TYPES.has(task.task_type));
 }
 
-export const PRIMARY_NAVIGATION = [
+export const PRIMARY_NAVIGATION = CORE_NAVIGATION;
+
+export const FEATURE_NAVIGATION = [
   { label: "This week", href: "/this-week" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Game Plan", href: "/results" },
   { label: "Analytics", href: "/analytics" },
-] as const;
-
-export const FEATURE_NAVIGATION = [
-  { label: "Home", href: "/app" },
   { label: "Website audits", href: "/audits" },
   { label: "Internal links", href: "/internal-links" },
   { label: "Content studio", href: "/content" },
