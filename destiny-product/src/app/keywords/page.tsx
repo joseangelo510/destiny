@@ -1,3 +1,4 @@
+import { loadNewKeywordRecommendations } from "@/lib/seo/load-new-keyword-recommendations";
 import { KeywordStrategyReview } from "@/components/keyword-strategy-review";
 import { StrategyPipelineStrip } from "@/components/strategy-pipeline-strip";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -27,7 +28,8 @@ export default async function KeywordsPage() {
   const provider = providerResultFromMetrics(context.metrics);
   const pages = list(provider.pages).map(record).filter((page) => String(page.role || "other") !== "other" && !/\/(?:blog|news|articles?|category|tag|uncategorized)(?:\/|$)/i.test(String(page.url || "")));
   const vocabulary = list(provider.siteVocabulary).map(record);
-  const keywords = list(provider.keywords).map(record);
+  const newResearch = await loadNewKeywordRecommendations(context);
+  const keywords = [...list(provider.keywords).map(record), ...newResearch.keywords.map(record)];
   const keywordQuest = context.quests.find((quest) => quest.audit_id === context.audit?.id && quest.task_type === "keyword_review");
   const locationEvidence = pages.map((page) => String(page.text || "")).join(" ");
   const keywordBusinessContext = {
@@ -42,6 +44,9 @@ export default async function KeywordsPage() {
   };
   const keywordCandidates = keywords.flatMap((keyword) => typeof keyword.keyword === "string" ? [{
     keyword: keyword.keyword,
+    coverageDescription: typeof keyword.coverageDescription === "string" ? keyword.coverageDescription : undefined,
+    coverageCheckedAt: typeof keyword.coverageCheckedAt === "string" ? keyword.coverageCheckedAt : undefined,
+    pageType: typeof keyword.pageType === "string" ? keyword.pageType : undefined,
     searchVolume: Number(keyword.searchVolume ?? 0),
     difficulty: Number(keyword.difficulty ?? 0),
     competitorRankers: Number(keyword.competitorRankers ?? 0),
@@ -219,7 +224,7 @@ export default async function KeywordsPage() {
   return <WorkspaceShell active="/keywords" design="claude-keyword-strategy" eyebrow="Keyword strategy" title={strategyComplete ? "Your strategy is set." : "Choose your keyword strategy."} description={auditMeta}>
     <StrategyPipelineStrip active="keywords" approvedKeywords={approvedCount} contentDrafts={articleDraftCount ?? 0} watchedKeywords={watchlistCount} />
     {!vocabulary.length ? <WorkspaceEmpty title="Keyword strategy is not ready" description="Run a live audit so Rebound SEO can inspect up to five important pages and build the initial recommendations." /> : <>
-      {context.audit && <KeywordStrategyReview auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} initialTab={keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKeywordsHref={`/keyword-research?site=${context.website?.id ?? ""}&from=strategy`} nextAction={nextAction} nextHref={`/content?site=${context.website?.id ?? ""}&strategy=complete`} questId={keywordQuest?.id} questStatus={keywordQuest?.status} />}
+      {context.audit && <KeywordStrategyReview auditHref={`/audits/${context.audit.id}`} auditId={context.audit.id} initialDecisions={initialDecisions} initialDocumentLinks={documentLinksByKeyword} initialReasons={initialReasons} newResearchStatus={newResearch.status} initialTab={workspaceKeywords.some((keyword) => keyword.verdict === "create" && !initialDecisions[keyword.keyword]) ? "review" : keywordPolicy.keywordWorkspaceTab} keywords={workspaceKeywords} moreKeywordsHref={`/keyword-research?site=${context.website?.id ?? ""}&from=strategy`} nextAction={nextAction} nextHref={`/content?site=${context.website?.id ?? ""}&strategy=complete`} questId={keywordQuest?.id} questStatus={keywordQuest?.status} />}
       <section className="workspace-card"><div className="workspace-card-heading"><div><strong>Verified pages inspected</strong><small>Only real strategic pages from the live site; blog posts and guessed URLs are excluded</small></div><span>{pages.length} page{pages.length === 1 ? "" : "s"}</span></div><div className="evidence-page-list">{pages.map((page, index) => <a href={String(page.url)} key={`${String(page.url)}-${index}`} rel="noreferrer" target="_blank"><span>{String(page.role).replaceAll("_", " ")}</span><strong>{String(page.title || page.url)}</strong><small>{String(page.url)}</small></a>)}</div></section>
       <details className="workspace-card keyword-methodology"><summary><span><strong>How Rebound SEO prioritized these keywords</strong><small>Open the research and scoring method</small></span><b>View method</b></summary><div><section><div className="workspace-card-heading"><div><strong>Business understanding</strong><small>Verified site pages plus your onboarding answers</small></div><span>{vocabulary.length} evidence terms</span></div><div className="vocabulary-cloud">{vocabulary.slice(0, 40).map((term) => <span key={String(term.normalized)} title={String(term.evidence)}>{String(term.term)} <b>{Number(term.weight).toFixed(1)}</b></span>)}</div></section><section><div className="workspace-card-heading"><div><strong>Revenue-opportunity scoring</strong><small>Search intent + monthly demand + attainable difficulty + CPC value + current rank or competitor gap</small></div><span>{usableKeywords.length} current recommendations</span></div><p className="keyword-method-note">Transactional and commercial searches lead when demand is meaningful. Informational topics remain in the pool when they support the business, but raw volume alone cannot outrank a stronger path to revenue. Approved and declined choices remain attached to this website and guide later recommendations.</p></section></div></details>
     </>}

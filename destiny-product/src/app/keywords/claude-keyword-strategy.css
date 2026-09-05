@@ -474,3 +474,11 @@ main.app-shell[data-design="claude-keyword-strategy"] > .dashboard > .workspace-
   main.app-shell[data-design="claude-keyword-strategy"] *::before,
   main.app-shell[data-design="claude-keyword-strategy"] *::after { transition: none !important; }
 }
+
+.claude-ks-section-heading { margin: 28px 0 16px; }
+.claude-ks-section-heading h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 7px; font-family: var(--font-fraunces), Georgia, serif; font-size: 21px; font-weight: 500; }
+.claude-ks-section-heading h3 span { border-radius: 20px; padding: 3px 9px; background: #e7eeea; font-family: var(--font-inter), Arial, sans-serif; font-size: 11px; font-weight: 600; }
+.claude-ks-section-heading p, .claude-ks-section-note { margin: 0; color: #76877e; font-size: 12px; line-height: 1.6; }
+.claude-ks-section-note { margin-top: 12px; }
+.claude-ks-angle { border: 0; padding: 0 8px 0 0; background: none; color: #76877e; font: inherit; cursor: pointer; }
+.claude-ks-angle:focus-visible { outline: 2px solid #214b3e; outline-offset: 3px; }
