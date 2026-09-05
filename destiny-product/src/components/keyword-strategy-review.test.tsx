@@ -57,7 +57,7 @@ describe("KeywordStrategyReview planning horizon", () => {
     expect(html).toContain("To Review");
     expect(html).toContain("Approved");
     expect(html).toContain("Declined");
-    expect(html).toContain("In plan · tracking weekly");
+    expect(html).toContain("Topic approved");
     expect(html).toContain("Checked against your site:");
     expect(html).not.toContain("Decline unreviewed");
   });
@@ -107,7 +107,7 @@ describe("KeywordStrategyReview planning horizon", () => {
       questStatus="todo"
     />);
 
-    for (const [keyword, primaryLabel] of [["create test", "Create content"], ["improve test", "Re-optimize"], ["defend test", "Protect"], ["overlap test", "Resolve overlap"]]) {
+    for (const [keyword, primaryLabel] of [["create test", "Add to content plan"], ["improve test", "Re-optimize"], ["defend test", "Protect"], ["overlap test", "Resolve overlap"]]) {
       const rowStart = html.indexOf(`${keyword}</strong>`);
       const rowEnd = html.indexOf("</tr>", rowStart);
       const row = html.slice(rowStart, rowEnd);

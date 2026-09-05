@@ -21,8 +21,12 @@ test("@gate new recommendations preserve decisions and keep planning and explici
   await page.getByRole("button", { name: "Restore to review", exact: true }).click();
   await expect(section.getByRole("row").filter({ hasText: keyword })).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath(`keyword-recommendations-${testInfo.project.name}.png`), fullPage: true });
-  const saved = page.waitForResponse((response) => response.url().endsWith("/api/keywords/create-content") && response.request().method() === "POST");
+  await page.route("**/api/keywords/create-content", async route => { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Temporary failure" }) }); }, { times: 1 });
   await section.getByRole("button", { name: "Add to content plan", exact: true }).click();
+  await expect(section.getByRole("status").filter({ hasText: "Topic approved" })).toContainText("Retry");
+  await expect(page).toHaveURL(new RegExp(`/keywords\\?site=${websiteId}$`));
+  const saved = page.waitForResponse((response) => response.url().endsWith("/api/keywords/create-content") && response.request().method() === "POST");
+  await section.getByRole("button", { name: "Retry", exact: true }).click();
   const first = await saved;
   expect(first.status()).toBe(200);
   const firstDraft = await first.json();
@@ -47,4 +51,13 @@ test("@gate new recommendations preserve decisions and keep planning and explici
   expect(outside.status()).toBe(404);
   await page.reload();
   await expect(page.getByText("Brief saved", { exact: true })).toBeVisible();
+  await page.goto(`/app/content?site=${websiteId}`);
+  const briefCard = page.getByRole("article").filter({ hasText: keyword });
+  await expect(briefCard).toContainText("Brief saved");
+  await expect(briefCard.getByRole("link", { name: "Start draft" })).toBeVisible();
+  await page.goto(`/keywords?site=${websiteId}`);
+  await page.getByRole("tab", { name: /Approved/ }).click();
+  await page.getByRole("row").filter({ hasText: keyword }).getByRole("button", { name: "Unapprove", exact: true }).click();
+  await page.goto(`/app/content?site=${websiteId}`);
+  await expect(page.getByRole("article").filter({ hasText: keyword })).toContainText("Brief saved");
 });
