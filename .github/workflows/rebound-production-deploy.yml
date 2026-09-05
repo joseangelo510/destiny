@@ -13,7 +13,7 @@ on:
       release_tag:
         description: Immutable release tag; any other value is refused
         required: true
-        default: rebound-seo-v1.1.0
+        default: rebound-seo-v1.1.3
         type: string
 
 concurrency:
@@ -26,18 +26,18 @@ permissions:
   packages: write
 
 env:
-  RELEASE_SHA: 4f42e08f404b34700ea8b1d0d216b2624654150c
-  RELEASE_TAG: rebound-seo-v1.1.2
-  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.2-prod
+  RELEASE_SHA: dffe81bfe0ff326988ada580c1316399d2ffc69c
+  RELEASE_TAG: rebound-seo-v1.1.3
+  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.3-prod
   PRODUCTION_SITE_URL: https://app.reboundseo.com
   PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
   STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
   FLY_APP: destiny-production
   FLY_REGION: sjc
   PRIOR_MACHINE_ID: 860714be531938
-  PRIOR_IMAGE_DIGEST: sha256:618150a9b7b6fe863c41b74967cb2ae1d4a9ae02136fb3662ad054ca9d616cc3
-  PRIOR_RELEASE_SHA: ed8c29aff96f8b4a2644b3806077ceb6863fd72b
-  PRIOR_RELEASE_TAG: rebound-seo-v1.1.1
+  PRIOR_IMAGE_DIGEST: sha256:6fe1106aadb5fbe2367581302b106f27f508378af213171ea2c44077aa23261a
+  PRIOR_RELEASE_SHA: 4f42e08f404b34700ea8b1d0d216b2624654150c
+  PRIOR_RELEASE_TAG: rebound-seo-v1.1.2
   PRIOR_SITE_URL: https://app.reboundseo.com
 
 jobs:
@@ -118,6 +118,26 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Refuse existing or unverifiable release image tags
+        run: |
+          set -euo pipefail
+          image_repository=ghcr.io/joseangelo510/destiny-production
+          docker buildx imagetools inspect "${image_repository}:${PRIOR_RELEASE_SHA}" > /dev/null
+          : > registry-preflight.txt
+          for image_tag in "${PRODUCTION_IMAGE_TAG}" "${RELEASE_SHA}"; do
+            if docker buildx imagetools inspect "${image_repository}:${image_tag}" > /dev/null 2> registry-preflight-error.txt; then
+              echo "Refusing existing image tag: ${image_tag}" >&2
+              exit 1
+            fi
+            if grep -Eiq '(unauthorized|denied|forbidden|(^|[^[:alnum:]])(401|403)([^[:alnum:]]|$))' registry-preflight-error.txt \
+              || ! grep -Eiq '(manifest unknown|not found)' registry-preflight-error.txt; then
+              echo "Registry preflight could not verify tag absence: ${image_tag}" >&2
+              cat registry-preflight-error.txt >&2
+              exit 1
+            fi
+            printf '%s: absent\n' "${image_tag}" | tee -a registry-preflight.txt
+          done
 
       - name: Build and push exact Rebound image
         id: build
@@ -276,6 +296,8 @@ jobs:
         with:
           name: rebound-production-evidence-${{ github.run_id }}
           path: |
+            registry-preflight.txt
+            registry-preflight-error.txt
             route-inventory-counts.txt
             route-paths.txt
             candidate-digest.txt

@@ -21,8 +21,8 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY src/destiny-product/ ./
-RUN test "$GIT_SHA" = "4f42e08f404b34700ea8b1d0d216b2624654150c" \
- && test "$RELEASE_TAG" = "rebound-seo-v1.1.2" \
+RUN test "$GIT_SHA" = "dffe81bfe0ff326988ada580c1316399d2ffc69c" \
+ && test "$RELEASE_TAG" = "rebound-seo-v1.1.3" \
  && test "$PRODUCTION_SUPABASE_REF" = "etkksjebqgtkkdqznnxa" \
  && case "$NEXT_PUBLIC_SUPABASE_URL" in *"$PRODUCTION_SUPABASE_REF"*) ;; *) echo "refusing non-production Supabase URL" && exit 1;; esac \
  && case "$NEXT_PUBLIC_SUPABASE_URL" in *titjatewvcjiuhisoppp*) echo "refusing staging Supabase URL" && exit 1;; *) ;; esac \
@@ -57,4 +57,4 @@ COPY --from=build --chown=app:app /app/.next ./.next
 COPY --from=build --chown=app:app /app/public ./public
 USER app
 EXPOSE 3000
-CMD ["sh","-c","SHA=\"$(cat .next/static/build-sha.txt)\" && TAG=\"$(cat .next/static/build-tag.txt)\" && BUILD_ENV=\"$(cat .next/static/build-env.txt)\" && BUILD_SITE_URL=\"$(cat .next/static/build-site-url.txt)\" && test \"$SHA\" = \"4f42e08f404b34700ea8b1d0d216b2624654150c\" && test \"$TAG\" = \"rebound-seo-v1.1.2\" && test \"$BUILD_ENV\" = \"production\" && test \"$BUILD_SITE_URL\" = \"https://app.reboundseo.com\" && test \"$SHA\" = \"$DESTINY_BUILD_SHA\" && echo \"DESTINY_BUILD_SHA=$SHA\" && echo \"DESTINY_BUILD_TAG=$TAG\" && echo \"DESTINY_BUILD_ENV=$BUILD_ENV\" && echo \"DESTINY_BUILD_SITE_URL=$BUILD_SITE_URL\" && echo \"FLY_IMAGE_REF=${FLY_IMAGE_REF:-unset}\" && exec node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh","-c","SHA=\"$(cat .next/static/build-sha.txt)\" && TAG=\"$(cat .next/static/build-tag.txt)\" && BUILD_ENV=\"$(cat .next/static/build-env.txt)\" && BUILD_SITE_URL=\"$(cat .next/static/build-site-url.txt)\" && test \"$SHA\" = \"dffe81bfe0ff326988ada580c1316399d2ffc69c\" && test \"$TAG\" = \"rebound-seo-v1.1.3\" && test \"$BUILD_ENV\" = \"production\" && test \"$BUILD_SITE_URL\" = \"https://app.reboundseo.com\" && test \"$SHA\" = \"$DESTINY_BUILD_SHA\" && echo \"DESTINY_BUILD_SHA=$SHA\" && echo \"DESTINY_BUILD_TAG=$TAG\" && echo \"DESTINY_BUILD_ENV=$BUILD_ENV\" && echo \"DESTINY_BUILD_SITE_URL=$BUILD_SITE_URL\" && echo \"FLY_IMAGE_REF=${FLY_IMAGE_REF:-unset}\" && exec node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]
