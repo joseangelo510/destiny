@@ -338,7 +338,6 @@ for (const device of ["desktop", "mobile"]) {
   const scenario = await seedMvpCertification({ auditId: site.auditIds.at(-1), organizationId: organizationC, ownerId: member.userId, websiteId: site.websiteId });
   const { data: metric } = await service.from("audit_metrics").select("raw_provider_payload").eq("audit_id", scenario.auditId).single();
   const raw = metric.raw_provider_payload;
-  raw.providerResult.siteVocabulary = [{ term: "SEO consulting", normalized: "seo consulting", weight: 1, evidence: "Disposable business profile" }];
   raw.providerResult.keywords.push({ keyword: "seo website migration checklist", intent: "informational", searchVolume: 170, difficulty: 25, cpc: 3, opportunity: "site_idea", priorityScore: 75, priorityReason: "Supporting SEO audit topic for small businesses", themeId: "seo-audits", themeLabel: "SEO audits", themeRole: "awareness" });
   const { error } = await service.from("audit_metrics").update({ raw_provider_payload: raw }).eq("audit_id", scenario.auditId);
   if (error) throw new Error(`Keyword browser fixture failed: ${error.message}`);

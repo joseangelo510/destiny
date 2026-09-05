@@ -23,7 +23,7 @@ export async function loadNewKeywordRecommendations(context: Awaited<ReturnType<
   if (!context.website || !context.audit) return { keywords: [], status: "unavailable" as const };
   const website = context.website;
   const provider = providerResultFromMetrics(context.metrics);
-  const business = { businessName: website.business_name ?? "", productsServices: website.products_services ?? "", idealCustomer: website.ideal_customer ?? "", problemSolved: website.problem_solved ?? "", differentiation: website.differentiation ?? "", market: website.market ?? "" };
+  const business = { businessName: website.business_name ?? "", productsServices: website.products_services ?? "", idealCustomer: website.ideal_customer ?? "", problemSolved: website.problem_solved ?? "", audienceChallengesGoals: website.audience_challenges_goals ?? "", differentiation: website.differentiation ?? "", market: website.market ?? "" };
   const savedBrief = record(provider.businessSearchBrief);
   const brief = Array.isArray(savedBrief.themes) && savedBrief.themes.length
     ? savedBrief as unknown as BusinessSearchBrief : deterministicBusinessSearchBrief(business);
