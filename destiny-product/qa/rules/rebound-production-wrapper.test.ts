@@ -5,12 +5,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "7b648609411bbb25f39bef6c6baf8bb5592ca8de";
-const releaseTag = "rebound-seo-v1.1.6";
-const productionImageTag = "rebound-seo-v1.1.6-prod";
-const priorReleaseSha = "9a36890f5d05abc05766a571933b07a893d86890";
-const priorReleaseTag = "rebound-seo-v1.1.5";
-const priorImageDigest = "sha256:43600a95d740cdbca6d9f89ee59dc0ca8aac8c91eaf05e8bd91dd00ac031774b";
+const releaseSha = "173df2acfb291114c38eada22fb7c3106c0ddf36";
+const releaseTag = "rebound-seo-v1.1.7";
+const productionImageTag = "rebound-seo-v1.1.7-prod";
+const priorReleaseSha = "7b648609411bbb25f39bef6c6baf8bb5592ca8de";
+const priorReleaseTag = "rebound-seo-v1.1.6";
+const priorImageDigest = "sha256:5118f3b07b56f579ae2c340ad73e9afeb9c0562eedca802600367095f5b4d5f0";
 const priorMachineId = "860714be531938";
 const authorizedImplementationFiles = [
   ".github/workflows/rebound-production-deploy.yml",
