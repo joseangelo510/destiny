@@ -3337,3 +3337,11 @@ production rollback exists because none is touched.
 - Required protections retained: protected PRs, no direct main pushes or admin bypass, owner-attributed approval labels, HIGH classification of sensitive changes, RED/GREEN discipline, complete harness, isolation, exact-head review, staging identity and zero-5xx checks, immutable releases, recorded deployment and rollback evidence. No fabricated review or passing-check claim.
 - This record authorizes preparation of the navigation repair and workflow update, not a blind deployment of all current main. The unreleased Agent's unapplied migration must be accounted for in the separate release plan. No database migration, CMS write, email, new audit, credentials change, or unrelated feature is included.
 - Rollback: protected revert of the navigation/workflow PR with the same checks. Do not rewrite prior decision records. Production stays at its recorded immutable release until a fully verified release candidate is ready.
+
+## D10.13 - Production-build browser verification for the navigation repair
+
+- Recorded: 2026-09-04. Authority: Jose's D10.11 navigation-fix request; executor and technical reviewer: Codex. Classification: HIGH, test harness configuration only.
+- Evidence: PR #101 head 2f499656f59aaf770747dc7e40e9bbc8d5c81a1d, harness run 33933755830. The mobile Home link is visible and correctly scoped, but Next.js's development toolbar intercepts its center. Failure artifact 9959562839 shows only the development-tools button, not a runtime error. Desktop and the other authenticated journeys passed.
+- Scope: in CI, Playwright starts the production build already created by qa-gate.mjs with the same disposable Supabase fixture. Local interactive runs retain the development server. Require regression coverage of build-before-browser ordering and production start. Capture page errors in the new navigation test. No force-click, hidden portal, skipped test, timeout increase, dependency, production configuration, auth, schema, or data change.
+- Evidence required: RED configuration regression, GREEN targeted/full tests, complete authenticated harness and staging at the new head. Any actual production-build failure remains a failure.
+- Rollback: protected revert of this narrow test-harness adjustment. No live environment is modified.
