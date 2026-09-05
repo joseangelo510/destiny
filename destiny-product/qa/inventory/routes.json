@@ -26,16 +26,6 @@
   },
   {
     "kind": "api",
-    "route": "/api/agent/proposals/[proposalId]/decide",
-    "file": "src/app/api/agent/proposals/[proposalId]/decide/route.ts"
-  },
-  {
-    "kind": "api",
-    "route": "/api/agent/turn",
-    "file": "src/app/api/agent/turn/route.ts"
-  },
-  {
-    "kind": "api",
     "route": "/api/audits",
     "file": "src/app/api/audits/route.ts"
   },
@@ -283,16 +273,6 @@
     "kind": "page",
     "route": "/app",
     "file": "src/app/app/page.tsx"
-  },
-  {
-    "kind": "page",
-    "route": "/app/agent",
-    "file": "src/app/app/agent/page.tsx"
-  },
-  {
-    "kind": "page",
-    "route": "/app/agent/[conversationId]",
-    "file": "src/app/app/agent/[conversationId]/page.tsx"
   },
   {
     "kind": "page",
