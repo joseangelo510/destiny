@@ -9,7 +9,7 @@
   "overrides": {
     "nanoid": "3.3.18",
     "postcss": "8.5.23",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   },
   "scripts": {
     "dev": "next dev",
@@ -41,11 +41,11 @@
     "@supabase/supabase-js": "^2.111.0",
     "html-to-docx": "1.8.0",
     "mammoth": "^1.12.1",
-    "next": "16.2.12",
+    "next": "16.3.3",
     "pdfjs-dist": "^6.2.108",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -55,7 +55,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.3.3",
     "supabase": "2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5",
