@@ -5,12 +5,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = path.resolve(process.cwd(), "..");
-const releaseSha = "173df2acfb291114c38eada22fb7c3106c0ddf36";
-const releaseTag = "rebound-seo-v1.1.7";
-const productionImageTag = "rebound-seo-v1.1.7-prod";
-const priorReleaseSha = "7b648609411bbb25f39bef6c6baf8bb5592ca8de";
-const priorReleaseTag = "rebound-seo-v1.1.6";
-const priorImageDigest = "sha256:5118f3b07b56f579ae2c340ad73e9afeb9c0562eedca802600367095f5b4d5f0";
+const releaseSha = "ebef11852207e268ebd0450add7dd2b2a77bda96";
+const releaseTag = "rebound-seo-v1.1.8";
+const productionImageTag = "rebound-seo-v1.1.8-prod";
+const priorReleaseSha = "173df2acfb291114c38eada22fb7c3106c0ddf36";
+const priorReleaseTag = "rebound-seo-v1.1.7";
+const priorImageDigest = "sha256:b31b646eed8c1e75fb1f97b335609ceae3757e49998c762532952c509ec87a0a";
 const priorMachineId = "860714be531938";
 const authorizedImplementationFiles = [
   ".github/workflows/rebound-production-deploy.yml",
@@ -196,6 +196,16 @@ describe("D10.14 Rebound SEO production wrapper", () => {
 
     expect(workflow).toContain('test "${rollback_root_code}" = "200"');
     expect(workflow).toContain('test "${rollback_report_code}" = "401"');
+  });
+
+  it("copies committed framework patches before each frozen dependency install", async () => {
+    const dockerfile = await repositoryFile("Dockerfile");
+    for (const stage of ["deps", "prod-deps"]) {
+      const block = dockerfile.split(`FROM base AS ${stage}\n`)[1].split("\nFROM ")[0];
+      const copy = block.indexOf("COPY src/destiny-product/patches ./patches");
+      expect(copy).toBeGreaterThan(-1);
+      expect(copy).toBeLessThan(block.indexOf("RUN pnpm install --frozen-lockfile"));
+    }
   });
 
   it("pins build identity and the one-machine Fly topology", async () => {
