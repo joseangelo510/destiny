@@ -10,10 +10,10 @@ test.describe("@gate core navigation from returning-user entry and existing tool
     if (!fixture) throw new Error("Disposable browser fixture is required.");
     await page.goto(`/app?site=${fixture.mvp.websiteId}`);
     await expect(page).toHaveURL(new RegExp(`/app/home\\?site=${fixture.mvp.websiteId}$`));
-    await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();
+    await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
     await page.goto("/onboarding");
     await expect(page).toHaveURL(/\/app\/home\?site=/);
-    await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();
+    await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
   });
 
   test("existing tools retain all five tabs and return to the same website", async ({ page }, testInfo) => {
@@ -37,7 +37,7 @@ test.describe("@gate core navigation from returning-user entry and existing tool
       expect(await page.evaluate(() => document.documentElement.scrollWidth), JSON.stringify(overflow)).toBeLessThanOrEqual(mobile ? 390 : 1360);
       await navigation.getByRole("link", { name: "Home", exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/app/home\\?site=${fixture.mvp.websiteId}$`));
-      await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();
+      await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
     }
     expect(serverErrors).toEqual([]);
     expect(pageErrors).toEqual([]);
