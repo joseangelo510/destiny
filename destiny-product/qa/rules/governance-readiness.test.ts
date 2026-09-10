@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { evaluateReadiness, checkPayload, verifyEvidenceRuns } from "../../scripts/governance-readiness.mjs";
+import { evaluateReadiness, statusPayload, verifyEvidenceRuns } from "../../scripts/governance-readiness.mjs";
 import { validatePreflight } from "../../scripts/pr-preflight.mjs";
 
 const head = "a".repeat(40);
@@ -45,9 +45,9 @@ describe("merge-blocking readiness", () => {
     expect(verifyEvidenceRuns(body.replaceAll("runs/1", "runs/999"), head, runs).length).toBeGreaterThan(0);
   });
   it("never reports success, skipped or neutral for unmet requirements", () => {
-    expect(checkPayload("checklist", head, { state: "waiting", reasons: ["Awaiting review"] })).toMatchObject({ name: "checklist-guard", head_sha: head, status: "in_progress" });
-    expect(checkPayload("policy", head, { state: "waiting", reasons: [] })).not.toHaveProperty("conclusion");
-    expect(checkPayload("policy", head, { state: "failure", reasons: ["Invalid authority"] })).toMatchObject({ conclusion: "failure" });
+    expect(statusPayload("checklist", head, { state: "waiting", reasons: ["Awaiting review"] })).toMatchObject({ context: "checklist-guard", state: "pending" });
+    expect(statusPayload("policy", head, { state: "waiting", reasons: [] })).not.toHaveProperty("conclusion");
+    expect(statusPayload("policy", head, { state: "failure", reasons: ["Invalid authority"] })).toMatchObject({ state: "failure" });
   });
   it("preflights generated inventory drift and exact evidence formatting", () => {
     expect(validatePreflight({ body, headSha: head, inventoryDirty: false })).toEqual([]);
@@ -62,6 +62,8 @@ describe("merge-blocking readiness", () => {
       expect(workflow).toContain("persist-credentials: false");
       expect(workflow).not.toContain("ref: ${{ github.event.pull_request.head.sha }}");
       expect(workflow).toContain("cancel-in-progress: false");
+      expect(workflow).toContain("statuses: write");
+      expect(workflow).not.toContain("checks: write");
       expect(workflow).not.toContain(`name: ${name}-guard\n    runs-on`);
       expect(workflow).toContain("issue_comment:");
       expect(workflow).toContain("workflow_dispatch:");

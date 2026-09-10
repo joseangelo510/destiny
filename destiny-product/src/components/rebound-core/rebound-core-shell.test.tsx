@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { FEATURE_NAVIGATION } from "@/lib/product/coach-experience";
 import type { ReboundHomeView } from "@/lib/rebound-core/contracts";
 import { empty, notConnected, ready } from "@/lib/rebound-core/panel-result";
-import { HomeDashboard } from "./home-dashboard";
+import { HomeWorkspace } from "./home-dashboard";
 import { ReboundCoreShell } from "./rebound-core-shell";
 
 const websiteId = "11111111-1111-4111-8111-111111111111";
@@ -66,7 +66,7 @@ describe("Rebound redesign Slice 1", () => {
       calendar: ready({ month: "September 2026", anchorDate: "2026-09-01", events: [], suggestions: [{ id: "topic-1", title: "Youtube SEO checklist", approvedAt: "2026-09-01T12:00:00Z" }] }),
     };
 
-    const html = renderToStaticMarkup(<HomeDashboard view={view} />);
+    const html = renderToStaticMarkup(<HomeWorkspace view={view} />);
     expect(html).toContain("Monday, August 31. Jordan, here is the clearest next move.");
     expect(html).toContain("Youtube SEO checklist");
     expect(html).toContain("Approved topic · not scheduled");
@@ -86,7 +86,7 @@ describe("Rebound redesign Slice 1", () => {
       competitors: empty("No competitors"),
       calendar: ready({ month: "September 2026", anchorDate: "2026-09-01", events: [], suggestions: [] }),
     };
-    const html = renderToStaticMarkup(<HomeDashboard view={view} />);
+    const html = renderToStaticMarkup(<HomeWorkspace view={view} />);
     const labels = ["How your SEO is doing", "Keywords", "Competitors", "The month"];
     labels.reduce((previous, label) => {
       const index = html.indexOf(label);

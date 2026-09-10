@@ -34,16 +34,13 @@ export function evaluateReadiness(mode, context) {
   return { state: invalidAuthority ? "failure" : reasons.length ? "waiting" : "success", reasons };
 }
 
-export function checkPayload(mode, headSha, result, detailsUrl) {
-  const waiting = result.state === "waiting";
+export function statusPayload(mode, headSha, result, detailsUrl) {
+  if (!["policy", "checklist"].includes(mode) || !/^[a-f0-9]{40}$/.test(headSha)) throw new Error("Invalid guard identity.");
+  if (!["waiting", "success", "failure"].includes(result.state)) throw new Error("Invalid guard result.");
   return {
-    name: `${mode}-guard`, head_sha: headSha,
-    status: waiting ? "in_progress" : "completed",
-    ...(waiting ? {} : { conclusion: result.state, completed_at: new Date().toISOString() }),
-    ...(detailsUrl ? { details_url: detailsUrl } : {}),
-    output: {
-      title: waiting ? "Waiting for required evidence or approval" : result.state === "success" ? "Requirements verified" : "Invalid approval evidence",
-      summary: (result.reasons.join("\n\n") || "Current-head requirements verified.").slice(0, 60000),
-    },
+    context: `${mode}-guard`,
+    state: result.state === "waiting" ? "pending" : result.state,
+    ...(detailsUrl ? { target_url: detailsUrl } : {}),
+    description: (result.reasons.join("; ") || "Current-head requirements verified.").slice(0, 140),
   };
 }

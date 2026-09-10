@@ -19,7 +19,7 @@ No direct main/container-staging pushes, force pushes, admin bypass, skipped che
 
 Run `pnpm qa:pr-preflight` before pushing; inspect and commit any regenerated QA inventory as a separate implementation change. Before submitting final PR evidence, run `pnpm qa:pr-preflight --body-file /absolute/path/to/pr.md`. It checks format and the exact local head, not remote approval or run results.
 
-The required policy/checklist checks are published separately from their evaluator jobs. `in_progress` means merge is blocked awaiting evidence, review, readiness or approval. A successful evaluator job only means it refreshed the check; inspect the required `policy-guard` and `checklist-guard` themselves. Invalid authority and API/operational errors still fail. Full harness and staging failures retain normal GitHub alerts.
+The required policy/checklist commit statuses are published independently of evaluator check suites. `pending` means merge is blocked awaiting evidence, review, readiness or approval. A successful evaluator job only means it refreshed the check; inspect the required `policy-guard` and `checklist-guard` themselves. Invalid authority and API/operational errors still fail. Full harness and staging failures retain normal GitHub alerts.
 
 Automatic evaluators execute trusted default-branch code, read current PR metadata twice and serialize refreshes. New heads cannot reuse older evidence. Successful checklist evidence must link the latest successful current-head PR harness and staging runs. Staging rebuilds on open, synchronize or reopen; body edits refresh the checklist without rebuilding code.
 

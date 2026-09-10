@@ -1,7 +1,7 @@
 # Destiny governance pointer
 
 Canonical repository: `joseangelo510/destiny`.
-Canonical policy: root `HARNESS_POLICY.md`, GOV-1.4, owner decision D10.22.
+Canonical policy: root `HARNESS_POLICY.md`, GOV-1.5, owner decision D10.24.
 Read the policy at the working SHA; cached pointers are not current-state evidence.
 
 Jose Gallegos owns approval authority. Codex coordinates, implements, and provides technical review. Claude/Fable is not required unless Jose requests it.

@@ -1,0 +1,46 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
+const fixture = fixturePath ? JSON.parse(readFileSync(fixturePath, "utf8")) as { mvp: { websiteId: string }; alpha: { websiteId: string } } : null;
+
+test("@gate Warm-up coach focuses real work and keeps the full workspace reachable", async ({ page }, testInfo) => {
+  if (!fixture) throw new Error("Disposable browser fixture is required.");
+  const width = testInfo.project.name === "mobile" ? 390 : 1360;
+  await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+  const errors: string[] = [];
+  const writes: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("request", (request) => { if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writes.push(request.url()); });
+  await page.goto(`/app/home?site=${fixture.mvp.websiteId}`);
+  await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
+  const firstTitle = await page.locator("[data-coach-title]").innerText();
+  const firstHref = await page.getByRole("link", { name: /^(Review the draft|Open this move)$/ }).getAttribute("href");
+  expect(firstHref).toContain(`site=${fixture.mvp.websiteId}`);
+  await expect(page.getByRole("heading", { name: "What done looks like" })).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(/glaze|pottery|5-minute|Since your last visit/i);
+  const swap = page.getByRole("button", { name: "See another move", exact: true });
+  await expect(swap).toBeVisible();
+  await swap.click();
+  await expect(page.locator("[data-coach-title]")).not.toHaveText(firstTitle);
+  await page.getByText("Your full system, one tap away", { exact: false }).click();
+  await expect(page.getByRole("navigation", { name: "Existing Rebound SEO tools", exact: true })).toBeVisible();
+  for (const link of await page.getByRole("navigation", { name: "Existing Rebound SEO tools", exact: true }).getByRole("link").all()) {
+    expect(await link.getAttribute("href")).toContain(`site=${fixture.mvp.websiteId}`);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations.filter((item) => ["serious", "critical"].includes(item.impact ?? ""))).toEqual([]);
+  await page.getByRole("button", { name: "Open full workspace", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Home", exact: true })).toBeVisible();
+  await expect(page.locator("[data-queue-item]").first().locator("strong")).toHaveText(firstTitle);
+  await page.getByRole("button", { name: "Back to your coach", exact: false }).click();
+  await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
+  expect(writes).toEqual([]);
+  await page.getByLabel(/Current website:.*Choose another website/).click();
+  await page.locator(`[data-site-switch="${fixture.alpha.websiteId}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`site=${fixture.alpha.websiteId}`));
+  await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
+  expect(errors).toEqual([]);
+});
