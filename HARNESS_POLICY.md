@@ -1,7 +1,7 @@
 # Destiny Harness Policy
 
 Policy ID: `GOV-1`
-Revision: `GOV-1.4` (owner decision D10.22, 2026-09-05)
+Revision: `GOV-1.5` (owner decision D10.24, 2026-09-09)
 Status: active
 Canonical repository: `joseangelo510/destiny`
 
@@ -64,7 +64,7 @@ HIGH requires `cto-approved` applied by `joseangelo510`; policy changes addition
 
 Checklist enforcement requires classification, test and staging evidence, recorded HIGH decisions, and an exact-head GO technical review with the actual reviewer named. Missing, failing, stale, or skipped checks prevent merge. CI unavailability is not a bypass lane. Preserve isolation, security, dependency, migration, build, and release safeguards.
 
-Required guard names remain GitHub Actions checks. Missing approvals, draft state, incomplete/stale evidence and unfinished validation are `in_progress`, never success, neutral or skipped. Invalid approval authority remains a failure. Trusted default-branch evaluators refresh current GitHub state on PR metadata, comment and validation events; they never execute PR code with a write token. An evaluator failure leaves the required check blocking and reports an Actions failure. Checklist success also requires actual latest successful current-head harness and staging runs; links alone are insufficient.
+Required guard names and GitHub Actions integration remain unchanged. The trusted evaluators publish commit statuses, independent of workflow check suites. Missing approvals, draft state, incomplete/stale evidence and unfinished validation are `pending`, never success, neutral or skipped. Invalid approval authority remains a failure. Trusted default-branch evaluators refresh current GitHub state on PR metadata, comment and validation events; they never execute PR code with a write token. An evaluator failure leaves the required status blocking and reports an Actions failure. Checklist success also requires actual latest successful current-head harness and staging runs; links alone are insufficient.
 
 Staging runs on PR open, synchronize and reopen. Description-only edits reuse successful evidence for that unchanged head; every new head requires full validation. Run `pnpm qa:pr-preflight` before pushing and `pnpm qa:pr-preflight --body-file /absolute/path/to/pr.md` before final evidence submission. Preflight regenerates QA inventory and rejects uncommitted drift; format validation is not CI or owner approval.
 

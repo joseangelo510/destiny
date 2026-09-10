@@ -20,7 +20,7 @@ permissions:
   issues: read
   pull-requests: read
   actions: read
-  checks: write
+  statuses: write
 
 concurrency:
   group: destiny-policy-readiness

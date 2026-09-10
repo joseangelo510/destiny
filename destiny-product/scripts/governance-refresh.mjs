@@ -2,15 +2,15 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareDependencyManifests, pullRequestContext } from "./governance-policy.mjs";
-import { checkPayload, evaluateReadiness } from "./governance-readiness.mjs";
+import { statusPayload, evaluateReadiness } from "./governance-readiness.mjs";
 
 export async function refreshGovernance({ mode, number, repository, api, detailsUrl, loadContext = pullRequestContext }) {
   // Read current GitHub state, never an old event payload. Do not execute PR files.
   const pr = await api(`/pulls/${number}`);
   if (pr.state !== "open" || pr.base.repo.full_name !== repository.full_name) return;
   const head = pr.head.sha;
-  const pending = checkPayload(mode, head, { state: "waiting", reasons: ["Refreshing current PR evidence and approval."] }, detailsUrl);
-  const check = await api("/check-runs", "POST", pending);
+  const pending = statusPayload(mode, head, { state: "waiting", reasons: ["Refreshing current PR evidence and approval."] }, detailsUrl);
+  await api(`/statuses/${head}`, "POST", pending);
   const context = await loadContext({ repository, pull_request: pr });
   const snapshot = JSON.stringify(context);
   const packagePath = "destiny-product/package.json";
@@ -29,9 +29,7 @@ export async function refreshGovernance({ mode, number, repository, api, details
   const fresh = await api(`/pulls/${number}`);
   // Edits or pushes during API reads cannot turn the older snapshot green.
   if (fresh.state !== "open" || fresh.head.sha !== head || fresh.base.sha !== pr.base.sha || fresh.updated_at !== pr.updated_at || fresh.body !== pr.body || JSON.stringify(fresh.labels) !== JSON.stringify(pr.labels) || fresh.draft !== pr.draft) return;
-  const { head_sha: ignoredHead, ...payload } = checkPayload(mode, head, result, detailsUrl);
-  void ignoredHead;
-  await api(`/check-runs/${check.id}`, "PATCH", payload);
+  await api(`/statuses/${head}`, "POST", statusPayload(mode, head, result, detailsUrl));
   if (result.state === "failure") throw new Error(result.reasons.join("; "));
   process.stdout.write(`PR #${number} ${mode}: ${result.state}\n${result.reasons.join("\n")}\n`);
 }
