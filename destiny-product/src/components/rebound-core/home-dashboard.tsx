@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CoachHome } from "./coach-home";
 import type { ReboundHomeView } from "@/lib/rebound-core/contracts";
 import { HomeCalendar } from "./home-calendar";
 import { HomeCompetitors } from "./home-competitors";
@@ -18,7 +19,11 @@ function greeting(firstName: string | null, timeZone: string) {
   return `${today}. ${firstName ? `${firstName}, here is` : "Here is"} the clearest next move.`;
 }
 
-export function HomeDashboard({ view }: { view: ReboundHomeView }) {
+export function HomeWorkspace({ view }: { view: ReboundHomeView }) {
   const searchConnected = view.searchConsole.state === "ready" || view.searchConsole.state === "empty";
   return <ReboundCoreShell active="/app/home" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead of becoming estimates.</p><Link href="/integrations"><i />{searchConnected ? "Search Console connected" : "Connect Search Console"}</Link></header><SessionQueue result={view.queue} websiteId={view.websiteId} /><HomePerformance analytics={view.analytics} searchConsole={view.searchConsole} /><HomeKeywords result={view.keywords} /><HomeCompetitors result={view.competitors} websiteId={view.websiteId} /><HomeCalendar result={view.calendar} /></div></ReboundCoreShell>;
+}
+
+export function HomeDashboard({ view }: { view: ReboundHomeView }) {
+  return <CoachHome key={view.websiteId} view={view}><HomeWorkspace view={view} /></CoachHome>;
 }
