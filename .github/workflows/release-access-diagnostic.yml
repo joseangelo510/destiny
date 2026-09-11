@@ -1,0 +1,25 @@
+name: Rebound release access diagnostic
+
+on:
+  push:
+    branches: [codex/rebound-release-access-diagnostic]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  read-only-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Read rate allowance and pull request access
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node destiny-product/scripts/release-access-diagnostic.mjs
