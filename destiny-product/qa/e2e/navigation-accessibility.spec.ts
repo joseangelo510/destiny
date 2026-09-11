@@ -9,6 +9,10 @@ test("@gate navigation controls remain reachable at tablet widths and in the mob
   await page.goto(`/app/home?site=${fixture.mvp.websiteId}`);
   if (testInfo.project.name === "mobile") {
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/keywords?site=${fixture.mvp.websiteId}`);
+    await page.evaluate(() => window.scrollTo(0, 650));
+    const header = await page.locator('[class*="mobilebar"]').boundingBox();
+    expect(header?.y).toBe(0);
     const trigger = page.getByRole("button", { name: "Open navigation", exact: true });
     const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
     await trigger.click();
