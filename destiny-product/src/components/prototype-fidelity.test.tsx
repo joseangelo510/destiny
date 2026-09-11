@@ -9,7 +9,7 @@ const other = { ...site, id: "22222222-2222-4222-8222-222222222222", business_na
 
 describe("the selected preservation prototype", () => {
   it("has the same complete navigation on Coach and every legacy tool", () => {
-    const pages = [<ReboundCoreShell active="/app/home" coach queue={ready({items:[],sessionMoves:[]})} searchConnected={false} websiteId={site.id} websiteLabel="Example" websites={[site,other]}>Coach</ReboundCoreShell>,
+    const pages = [<ReboundCoreShell key="coach" active="/app/home" coach queue={ready({items:[],sessionMoves:[]})} searchConnected={false} websiteId={site.id} websiteLabel="Example" websites={[site,other]}>Coach</ReboundCoreShell>,
       ...["/keywords","/reviews","/content","/integrations"].map(active => <WorkspaceShellView key={active} active={active} activeWebsiteId={site.id} title="Tool" eyebrow="Example" description="Original body" websites={[site,other]}>Original body</WorkspaceShellView>)];
     for (const page of pages) {
       const html = renderToStaticMarkup(page);

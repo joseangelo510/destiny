@@ -26,7 +26,8 @@ test.describe("@gate core navigation from returning-user entry and existing tool
     page.on("pageerror", (error) => pageErrors.push(error.message));
     for (const tool of ["/content/infographics", "/keywords"]) {
       await page.goto(`${tool}?site=${fixture.mvp.websiteId}`);
-      const navigation = page.getByRole("navigation", { name: mobile ? "Primary mobile navigation" : "Rebound SEO workspace", exact: true });
+      if (mobile) await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+      const navigation = page.getByRole("navigation", { name: "Main navigation", exact: true });
       await expect(navigation).toBeVisible();
       for (const label of coreTabs) {
         const link = navigation.getByRole("link", { name: label, exact: true });
