@@ -38,8 +38,10 @@ test("@gate password login and setup preserve the same user and website without 
   await expect(page.locator(".login-card").getByRole("status")).toContainText("Password saved");
   await page.getByRole("link", { name: "Return to your workspace" }).click();
   await expect(page).toHaveURL(new RegExp(user.websiteId));
+  if (testInfo.project.name === "mobile") await page.locator(".mobile-feature-menu summary").click();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto("/login");
   await page.getByLabel("Email address", { exact: true }).fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(newPassword);
   await page.getByRole("button", { name: "Log in", exact: true }).click();
