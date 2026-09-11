@@ -35,7 +35,7 @@
 .returnBar button:focus-visible { outline: 2px solid #9e1b40; outline-offset: 2px; }
 
 /* Match the final preservation prototype; queue, actions and evidence remain real. */
-.stage { --paper: #f6f3ed; --card: #f6f3ed; --ink: #1a1218; --soft: #686369; --forest: #e8194e; --line: #ddd7d3; padding: 0 38px 60px; position: relative; }
+.stage { --paper: #f6f3ed; --card: #f6f3ed; --ink: #1a1218; --soft: #686369; --forest: #e7194e; --line: #ddd7d3; padding: 0 38px 60px; position: relative; }
 .workspaceAccess { position: absolute; right: 94px; top: -75px; }
 .ticker { font-size: 14px; gap: 30px; padding: 22px 0; flex-wrap: wrap; }
 .ticker > span { font-size: 14px; }
@@ -79,4 +79,14 @@
   .actions { width: 100%; gap: 14px; margin-top: 18px; }
   .primary { width: 100%; }
   .deck { margin-top: 30px; }
+}
+
+@media(max-width:800px) {
+ .workspaceAccess { padding: 0; font-size: 12px; }
+ .workspaceAccess .quiet { padding: 0 0 8px; }
+ .hero { padding-top: 14px; }
+ .meta { margin: 8px 0; }
+ .donebox { line-height: 1.4; }
+ .donebox small { font-size: 11px; }
+ .focus > h2 { font-size: 26px; }
 }

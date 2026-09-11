@@ -326,3 +326,5 @@
  .topbar h1 { font-size: 23px; }
  .topbar > div > span { font-size: 13px; }
 }
+
+@media(max-width:800px) { .topbar { padding-top: 18px; padding-bottom: 16px; } }

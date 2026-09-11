@@ -8,11 +8,12 @@ import { ReboundCoreShell } from "./rebound-core-shell";
 import styles from "./coach-home.module.css";
 
 function DoneDefinition({ move }: { move: CoreMove }) {
+  const keywordReview = move.href.split("?")[0] === "/keywords";
   return <section className={styles.donebox} aria-label="What done looks like">
     <h2>What done looks like</h2>
     <ul>
-      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Read the draft." : "Open the task and follow its recommended steps."}<small>You{move.estimateMinutes !== null ? ` · about ${move.estimateMinutes} min` : ""}</small></div></li>
-      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Approve or request edits." : "Save your work in the tool."}<small>{move.state === "draft" ? "You · approval comes before scheduling" : "You · opening a task does not complete it"}</small></div></li>
+      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Read the draft." : keywordReview ? "Review the suggested keywords." : "Follow the recommended steps."}<small>You{move.estimateMinutes !== null ? ` · about ${move.estimateMinutes} min` : ""}</small></div></li>
+      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Approve or request edits." : keywordReview ? "Approve, decline or re-optimize." : "Save your work in the tool."}<small>{move.state === "draft" ? "You · approval comes before scheduling" : "You · save your decision to complete this step"}</small></div></li>
       <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Check publication evidence." : "Check the result in your workspace."}<small>{move.state === "draft" ? "Rebound, when connected" : "Reported work and verified outcomes stay separate"}</small></div></li>
     </ul>
   </section>;
@@ -29,9 +30,9 @@ function StatusStrip({ view }: { view: ReboundHomeView }) {
         ? <><b>{data.impressions.toLocaleString("en-US")} impressions</b> Search Console · last 30 days{data.syncedAt ? <time dateTime={data.syncedAt}>Synced {new Date(data.syncedAt).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" })}</time> : " · sync date unavailable"}</>
         : <><b>Search Console</b> {search.state === "not_connected" ? "Not connected" : search.state === "error" ? "Temporarily unavailable" : search.state === "loading" ? "Loading" : "Waiting for data"}</>}
     </span>
-    <span><b>{view.queue.state === "ready" ? `${items.length} open move${items.length === 1 ? "" : "s"}` : view.queue.state === "empty" ? "No open moves" : "Queue unavailable"}</b> in this workspace</span>
+    <span><b>{view.queue.state === "ready" ? `${items.length} open move${items.length === 1 ? "" : "s"}` : view.queue.state === "empty" ? "No open moves" : "Queue unavailable"}</b></span>
     {drafts > 0 ? <span><b>{drafts} draft{drafts === 1 ? "" : "s"}</b> awaiting your review</span> : null}
-    {view.keywords.state === "ready" && view.keywords.data ? <span><b>{view.keywords.data.tracked} keyword{view.keywords.data.tracked === 1 ? "" : "s"}</b> being tracked</span> : null}
+
   </section>;
 }
 
