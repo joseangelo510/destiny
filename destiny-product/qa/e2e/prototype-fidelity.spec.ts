@@ -18,6 +18,10 @@ test("@gate the approved prototype shell follows every tool and preserves site-s
     expect(response?.status(), route).toBe(200);
     const navigation = page.locator('[data-approved-navigation="preservation"]');
     await expect(navigation).toHaveCount(1);
+    if (route === "/this-week") {
+      const reveal = page.getByRole("button", { name: "Close plan reveal", exact: true });
+      if (await reveal.isVisible()) await reveal.click();
+    }
     if (mobile) await page.getByRole("button", { name: "Open navigation", exact: true }).click();
     const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
     await expect(sidebar).toBeVisible();
