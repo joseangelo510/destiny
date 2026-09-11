@@ -819,36 +819,36 @@
     "context": "const { pending } = useFormStatus(); return <button className=\"primary-button\" type=\"submit\" disabled={pending || remaining > 0} aria-busy={pending}> {pending ? \"Sending your link…\" : remaining > 0 ? `Try again in ${remaining}s` : resend ? \"Send another sign-in link\" : \"Email me a sign-in link\"}"
   },
   {
-    "control_id": "src/app/login/login-form.tsx:23:form:1",
+    "control_id": "src/app/login/login-form.tsx:28:form:1",
     "file": "src/app/login/login-form.tsx",
-    "line": 23,
+    "line": 28,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "}, [cooldown]); return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} />"
   },
   {
-    "control_id": "src/app/login/login-form.tsx:24:input:1",
+    "control_id": "src/app/login/login-form.tsx:29:input:1",
     "file": "src/app/login/login-form.tsx",
-    "line": 24,
+    "line": 29,
     "type": "input",
     "route": "component",
     "side_effect_class": 2,
     "context": "return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>}"
   },
   {
-    "control_id": "src/app/login/login-form.tsx:25:input:1",
+    "control_id": "src/app/login/login-form.tsx:30:input:1",
     "file": "src/app/login/login-form.tsx",
-    "line": 25,
+    "line": 30,
     "type": "input",
     "route": "component",
     "side_effect_class": 2,
     "context": "<input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>} {error && <div className=\"error-banner\" role=\"alert\">{error}</div>}"
   },
   {
-    "control_id": "src/app/login/login-form.tsx:25:input:2",
+    "control_id": "src/app/login/login-form.tsx:30:input:2",
     "file": "src/app/login/login-form.tsx",
-    "line": 25,
+    "line": 30,
     "type": "input",
     "route": "component",
     "side_effect_class": 2,
@@ -870,7 +870,7 @@
     "type": "a",
     "route": "/login",
     "side_effect_class": 2,
-    "context": "<LoginForm key={`sent:${params.email}`} email={params.email} next={next} cooldown={60} resend /> <a className=\"secondary-button login-link\" href={`/login?${new URLSearchParams({ next })}`}>Use another email</a> </>"
+    "context": "<LoginForm key={`sent:${params.email}:${params.attempt}`} email={params.email} next={next} cooldown={60} resend /> <a className=\"secondary-button login-link\" href={`/login?${new URLSearchParams({ next })}`}>Use another email</a> </>"
   },
   {
     "control_id": "src/app/page.tsx:15:a:1",

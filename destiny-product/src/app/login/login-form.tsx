@@ -16,8 +16,13 @@ export function LoginForm({ email = "", next, error, cooldown = 0, resend = fals
 }) {
   const [remaining, setRemaining] = useState(cooldown);
   useEffect(() => {
+    if (cooldown <= 0) return;
     const deadline = Date.now() + cooldown * 1000;
-    const timer = window.setInterval(() => setRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000))), 1000);
+    const timer = window.setInterval(() => {
+      const seconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setRemaining(seconds);
+      if (seconds === 0) window.clearInterval(timer);
+    }, 1000);
     return () => window.clearInterval(timer);
   }, [cooldown]);
   return <form action={sendMagicLink}>

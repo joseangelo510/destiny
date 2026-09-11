@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function sendMagicLink(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const next = safeInternalPath(formData.get("next"));
-  const result = new URLSearchParams({ email, next });
+  const result = new URLSearchParams({ email, next, attempt: crypto.randomUUID() });
   if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 320) {
     result.set("error", "Enter a valid email address.");
     redirect(`/login?${result}`);
