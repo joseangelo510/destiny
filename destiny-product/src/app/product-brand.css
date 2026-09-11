@@ -2,6 +2,7 @@
 :root { --font-display: var(--font-body); --font-fraunces: var(--font-body); --font-inter: var(--font-body); --font-wordmark: "Fraunces", Georgia, serif; --paper: #faf8f5; --focus-ring: #a51e46; }
 .brand, .brand-mark { font-family: var(--font-wordmark); }
 body { background: var(--paper); }
+main.app-shell > .dashboard { min-width: 0; }
 main.app-shell[data-design] { font-family: var(--font-body); }
 main.app-shell .sidebar { background: #281c25; color: #f7f1f4; border-color: #44303c; overflow-y: auto; scrollbar-width: thin; }
 main.app-shell .sidebar-brand { color: #f7f1f4; font-family: var(--font-wordmark); }

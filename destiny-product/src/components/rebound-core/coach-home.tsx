@@ -31,7 +31,7 @@ function StatusStrip({ view }: { view: ReboundHomeView }) {
     </span>
     <span><b>{view.queue.state === "ready" ? `${items.length} open move${items.length === 1 ? "" : "s"}` : view.queue.state === "empty" ? "No open moves" : "Queue unavailable"}</b> in this workspace</span>
     {drafts > 0 ? <span><b>{drafts} draft{drafts === 1 ? "" : "s"}</b> awaiting your review</span> : null}
-    {view.keywords.state === "ready" && view.keywords.data ? <span><b>{view.keywords.data.tracked} keywords</b> being tracked</span> : null}
+    {view.keywords.state === "ready" && view.keywords.data ? <span><b>{view.keywords.data.tracked} keyword{view.keywords.data.tracked === 1 ? "" : "s"}</b> being tracked</span> : null}
   </section>;
 }
 
