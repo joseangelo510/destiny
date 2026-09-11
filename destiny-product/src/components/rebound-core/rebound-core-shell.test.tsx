@@ -23,7 +23,7 @@ describe("Rebound redesign Slice 1", () => {
     expect(html).toContain(`/app/home?site=${websiteId}`);
     for (const route of ["content", "calendar", "distribution", "progress"]) expect(html).toContain(`/app/${route}?site=${websiteId}`);
     expect(html).toContain("Preview — read-only");
-    expect(html).toContain("These new core pages use current workspace data");
+    expect(html).toContain("Explore your current progress here");
     expect(html).toContain(`href="/content?site=${websiteId}"`);
   });
 
