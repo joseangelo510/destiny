@@ -27,7 +27,7 @@ function WebsiteSwitcher({ active, className = "", websiteId, websites }: { acti
 }
 
 const PAGE_SUBTITLES: Record<string, string> = {
-  "/app/home": "the dashboard — fixed, as approved",
+  "/app/home": "your comeback, at a glance",
   "/app/content": "every piece, by its true state",
   "/app/calendar": "what happens when",
   "/app/distribution": "every useful next touchpoint",
