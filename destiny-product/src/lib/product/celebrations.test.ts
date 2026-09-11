@@ -11,7 +11,7 @@ describe("Rebound SEO celebration preferences and original sounds", () => {
   it("uses earned coach language without points or fabricated outcomes", () => {
     expect(celebrationMessage("task_complete")).toEqual({
       title: "Shipped.",
-      detail: "Your roadmap moved forward.",
+      detail: "One more move in your comeback. Your roadmap moved forward.",
     });
     expect(celebrationMessage("verified_result").title).toBe("Verified result.");
     expect(CELEBRATION_KINDS.map(celebrationMessage).join(" ")).not.toContain("XP");
