@@ -5958,175 +5958,94 @@
     "context": "return <article id={calendarTopicId(keyword)} key={suggestion.id} ref={highlighted ? selected : undefined} tabIndex={highlighted ? -1 : undefined} data-highlighted={highlighted}> <span>In plan</span><strong>{suggestion.title}</strong><small>Approved topic · not scheduled</small>{websiteId ? <Link href={startKeywordDraftHref(keyword, websiteId)}>Start draft</Link> : null} </article>;"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:57:button:1",
+    "control_id": "src/components/rebound-core/coach-home.tsx:56:button:1",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 57,
+    "line": 56,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "} if (workspaceOpen) return <><div className={styles.returnBar}><button ref={coachButton} type=\"button\" onClick={openCoach}>← Back to your coach</button></div>{children}</>; return <ReboundCoreShell active=\"/app/home\" coach queue={view.queue} searchConnected={view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites} title=\"Your coach\" subtitle=\"Your comeback starts with this move.\">"
+  },
+  {
+    "control_id": "src/components/rebound-core/coach-home.tsx:56:onClick:2",
+    "file": "src/components/rebound-core/coach-home.tsx",
+    "line": 56,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "} if (workspaceOpen) return <><div className={styles.returnBar}><button ref={coachButton} type=\"button\" onClick={openCoach}>← Back to your coach</button></div>{children}</>; return <ReboundCoreShell active=\"/app/home\" coach queue={view.queue} searchConnected={view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites} title=\"Your coach\" subtitle=\"Your comeback starts with this move.\">"
+  },
+  {
+    "control_id": "src/components/rebound-core/coach-home.tsx:59:button:1",
+    "file": "src/components/rebound-core/coach-home.tsx",
+    "line": 59,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "} if (workspaceOpen) return <><div className={styles.returnBar}><button ref={coachButton} type=\"button\" onClick={openCoach}>← Back to your coach</button></div>{children}</>; return <main className={styles.stage} data-coach-home=\"warmup\">"
+    "context": "<div className={styles.stage} data-coach-home=\"warmup\" data-coach-design=\"preserved\"> <div className={styles.workspaceAccess}><button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button></div> <StatusStrip view={view} />"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:57:onClick:2",
+    "control_id": "src/components/rebound-core/coach-home.tsx:59:onClick:2",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 57,
+    "line": 59,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "} if (workspaceOpen) return <><div className={styles.returnBar}><button ref={coachButton} type=\"button\" onClick={openCoach}>← Back to your coach</button></div>{children}</>; return <main className={styles.stage} data-coach-home=\"warmup\">"
+    "context": "<div className={styles.stage} data-coach-home=\"warmup\" data-coach-design=\"preserved\"> <div className={styles.workspaceAccess}><button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button></div> <StatusStrip view={view} />"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:61:Link:1",
+    "control_id": "src/components/rebound-core/coach-home.tsx:70:Link:1",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 61,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<header className={styles.topbar}> <Link className={styles.wordmark} href={href(\"/app/home\")}><i aria-hidden=\"true\" />Rebound SEO</Link> <div className={styles.headerEnd}>"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:63:button:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 63,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className={styles.headerEnd}> <button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button> <details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:63:onClick:2",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 63,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<div className={styles.headerEnd}> <button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button> <details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:64:summary:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 64,
-    "type": "summary",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button> <details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site.business_name || site.normalized_d"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:64:a:2",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 64,
-    "type": "a",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button> <details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site.business_name || site.normalized_d"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:64:Link:3",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 64,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<button ref={workspaceButton} className={styles.quiet} type=\"button\" onClick={openWorkspace}>Open full workspace</button> <details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site.business_name || site.normalized_d"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:65:Link:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 65,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className={styles.sitePicker}><summary aria-label={`Current website: ${view.websiteLabel}. Choose another website.`}>{view.websiteLabel}<span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Choose website\">{view.websites.map((site) => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(\"/app/home\", site.id)}>{site.business_name || site.normalized_domain}</a>)}<Link href=\"/onboarding?new=1\">+ Add another website</Link></nav></details> <Link className={styles.avatar} ar"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:77:Link:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 77,
+    "line": 70,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className={styles.actions}> {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === \"draft\" ? \"Review the draft\" : \"Open this move\"}</Link> : <button className={styles.primary} type=\"button\" onClick={openWorkspace}>Explore your workspace</button>} {items.length > 1 ? <button className={styles.quiet} type=\"button\" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null}"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:77:button:2",
+    "control_id": "src/components/rebound-core/coach-home.tsx:70:button:2",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 77,
+    "line": 70,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className={styles.actions}> {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === \"draft\" ? \"Review the draft\" : \"Open this move\"}</Link> : <button className={styles.primary} type=\"button\" onClick={openWorkspace}>Explore your workspace</button>} {items.length > 1 ? <button className={styles.quiet} type=\"button\" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null}"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:77:onClick:3",
+    "control_id": "src/components/rebound-core/coach-home.tsx:70:onClick:3",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 77,
+    "line": 70,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className={styles.actions}> {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === \"draft\" ? \"Review the draft\" : \"Open this move\"}</Link> : <button className={styles.primary} type=\"button\" onClick={openWorkspace}>Explore your workspace</button>} {items.length > 1 ? <button className={styles.quiet} type=\"button\" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null}"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:78:button:1",
+    "control_id": "src/components/rebound-core/coach-home.tsx:71:button:1",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 78,
+    "line": 71,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{move ? <Link className={styles.primary} href={href(move.href)}>{move.state === \"draft\" ? \"Review the draft\" : \"Open this move\"}</Link> : <button className={styles.primary} type=\"button\" onClick={openWorkspace}>Explore your workspace</button>} {items.length > 1 ? <button className={styles.quiet} type=\"button\" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null} </div>"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:78:onClick:2",
+    "control_id": "src/components/rebound-core/coach-home.tsx:71:onClick:2",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 78,
+    "line": 71,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "{move ? <Link className={styles.primary} href={href(move.href)}>{move.state === \"draft\" ? \"Review the draft\" : \"Open this move\"}</Link> : <button className={styles.primary} type=\"button\" onClick={openWorkspace}>Explore your workspace</button>} {items.length > 1 ? <button className={styles.quiet} type=\"button\" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null} </div>"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:81:Link:1",
+    "control_id": "src/components/rebound-core/coach-home.tsx:74:Link:1",
     "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 81,
+    "line": 74,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</section> {onDeck.length > 0 ? <section className={styles.deck} aria-label=\"On deck after this\"><h2>On deck after this</h2>{onDeck.map((item) => <Link href={href(item.href)} className={styles.deckRow} key={item.id}><div><strong>{item.title}</strong><small>{item.why}</small></div><span className={styles.state}>{item.state === \"draft\" ? \"Draft\" : item.state === \"reported\" ? \"You reported\" : item.state === \"ready\" ? \"Ready\" : \"Open\"}</span></Link>)}</section> : null} <details className={styles.dra"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:82:summary:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 82,
-    "type": "summary",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "{onDeck.length > 0 ? <section className={styles.deck} aria-label=\"On deck after this\"><h2>On deck after this</h2>{onDeck.map((item) => <Link href={href(item.href)} className={styles.deckRow} key={item.id}><div><strong>{item.title}</strong><small>{item.why}</small></div><span className={styles.state}>{item.state === \"draft\" ? \"Draft\" : item.state === \"reported\" ? \"You reported\" : item.state === \"ready\" ? \"Ready\" : \"Open\"}</span></Link>)}</section> : null} <details className={styles.drawer}><summa"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:82:Link:2",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 82,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "{onDeck.length > 0 ? <section className={styles.deck} aria-label=\"On deck after this\"><h2>On deck after this</h2>{onDeck.map((item) => <Link href={href(item.href)} className={styles.deckRow} key={item.id}><div><strong>{item.title}</strong><small>{item.why}</small></div><span className={styles.state}>{item.state === \"draft\" ? \"Draft\" : item.state === \"reported\" ? \"You reported\" : item.state === \"ready\" ? \"Ready\" : \"Open\"}</span></Link>)}</section> : null} <details className={styles.drawer}><summa"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:82:Link:3",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 82,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "{onDeck.length > 0 ? <section className={styles.deck} aria-label=\"On deck after this\"><h2>On deck after this</h2>{onDeck.map((item) => <Link href={href(item.href)} className={styles.deckRow} key={item.id}><div><strong>{item.title}</strong><small>{item.why}</small></div><span className={styles.state}>{item.state === \"draft\" ? \"Draft\" : item.state === \"reported\" ? \"You reported\" : item.state === \"ready\" ? \"Ready\" : \"Open\"}</span></Link>)}</section> : null} <details className={styles.drawer}><summa"
-  },
-  {
-    "control_id": "src/components/rebound-core/coach-home.tsx:83:Link:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 83,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<details className={styles.drawer}><summary>Your full system, one tap away <span aria-hidden=\"true\">⌄</span></summary><nav aria-label=\"Core workspace\" className={styles.coreLinks}>{CORE_NAVIGATION.filter((item) => item.href !== \"/app/home\").map((item) => <Link href={href(item.href)} key={item.href}>{item.label}<span aria-hidden=\"true\">↗</span></Link>)}</nav><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={href(item.href)} key={it"
+    "context": "</section> {onDeck.length > 0 ? <section className={styles.deck} aria-label=\"On deck after this\"><h2>On deck after this</h2>{onDeck.map((item) => <Link href={href(item.href)} className={styles.deckRow} key={item.id}><div><strong>{item.title}</strong><small>{item.why}</small></div><span className={styles.state}>{item.state === \"draft\" ? \"Draft\" : item.state === \"reported\" ? \"You reported\" : item.state === \"ready\" ? \"Ready\" : \"Open\"}</span></Link>)}</section> : null} </div>"
   },
   {
     "control_id": "src/components/rebound-core/competitor-audit-refresh.tsx:25:button:1",
@@ -6396,7 +6315,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "function CoreLink({ item, active, websiteId }: { item: (typeof CORE_NAVIGATION)[number]; active: string; websiteId: string }) { return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>; }"
+    "context": "function CoreLink({ item, active, websiteId }: { item: (typeof CORE_NAVIGATION)[number]; active: string; websiteId: string }) { return <Link aria-current={item.href === active ? \"page\" : undefined} className={item.href === active ? styles.activeLink : \"\"} href={siteScopedHref(item.href === \"/app/home\" ? \"/app/home?view=dashboard\" : item.href, websiteId)}>{item.href === \"/app/home\" ? \"Home dashboard\" : item.label}</Link>; }"
   },
   {
     "control_id": "src/components/rebound-core/rebound-core-shell.tsx:24:summary:1",
@@ -6432,16 +6351,16 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <WebsiteSwitcher active={active} websiteId={websiteId} websites={websites} />"
+    "context": "<aside className={styles.sidebar}> <Link aria-label=\"Rebound SEO current workspace home\" className={styles.wordmark} href={siteScopedHref(\"/app\", websiteId)}><i />Rebound SEO</Link> <WebsiteSwitcher active={active === \"/app/home\" && !coach ? \"/app/home?view=dashboard\" : active} websiteId={websiteId} websites={websites} />"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:51:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:49:Link:1",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
-    "line": 51,
+    "line": 49,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<span className={styles.tier}>EVERY WEEK</span><nav aria-label=\"Every week\">{weekly.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav> <span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpp"
+    "context": "{!coach && <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />} <nav aria-label=\"Coach\"><Link className={coach ? styles.activeLink : \"\"} aria-current={coach ? \"page\" : undefined} href={siteScopedHref(\"/app/home\", websiteId)}>Coach</Link></nav> <span className={styles.tier}>EVERY DAY</span><nav aria-label=\"Every day\">{daily.map((item) => <CoreLink active={coach ? \"coach\" : active} item={item} key={item.href} websiteId={web"
   },
   {
     "control_id": "src/components/rebound-core/rebound-core-shell.tsx:52:Link:1",
@@ -6450,16 +6369,52 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<span className={styles.tier}>EVERY WEEK</span><nav aria-label=\"Every week\">{weekly.map((item) => <CoreLink active={coach ? \"coach\" : active} item={item} key={item.href} websiteId={websiteId} />)}</nav> <span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:53:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 53,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<span className={styles.tier}>TOOLS</span><nav aria-label=\"Existing Rebound SEO tools\" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav> <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase(\"en-US\")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref(\"/account\", websiteId)}>Account</Link></div></div> </aside>"
   },
   {
-    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:Link:1",
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:summary:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 58,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{!coach && <PreviewStrip calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} />} <details className={styles.mobileTools}><summary>Your full system, one tap away</summary><nav aria-label=\"Mobile workspace tools\"><Link href={siteScopedHref(\"/app/home?view=dashboard\", websiteId)}>Home dashboard</Link>{FEATURE_NAVIGATION.map((item) => <Link key={item.href} href={siteScopedHref(item.href, websiteId)}>{item.label}</L"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:Link:2",
     "file": "src/components/rebound-core/rebound-core-shell.tsx",
     "line": 58,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? \"◉\" : \"▪\"}</b>{item.label}</Link>)}</nav> </section>"
+    "context": "{!coach && <PreviewStrip calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} />} <details className={styles.mobileTools}><summary>Your full system, one tap away</summary><nav aria-label=\"Mobile workspace tools\"><Link href={siteScopedHref(\"/app/home?view=dashboard\", websiteId)}>Home dashboard</Link>{FEATURE_NAVIGATION.map((item) => <Link key={item.href} href={siteScopedHref(item.href, websiteId)}>{item.label}</L"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:58:Link:3",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 58,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{!coach && <PreviewStrip calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} />} <details className={styles.mobileTools}><summary>Your full system, one tap away</summary><nav aria-label=\"Mobile workspace tools\"><Link href={siteScopedHref(\"/app/home?view=dashboard\", websiteId)}>Home dashboard</Link>{FEATURE_NAVIGATION.map((item) => <Link key={item.href} href={siteScopedHref(item.href, websiteId)}>{item.label}</L"
+  },
+  {
+    "control_id": "src/components/rebound-core/rebound-core-shell.tsx:60:Link:1",
+    "file": "src/components/rebound-core/rebound-core-shell.tsx",
+    "line": 60,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{children} <nav aria-label=\"Core mobile navigation\" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? \"◉\" : \"▪\"}</b>{item.href === \"/app/home\" ? \"Coach\" : item.label}</Link>)}</nav> </section>"
   },
   {
     "control_id": "src/components/rebound-core/session-queue.tsx:22:button:1",
@@ -7539,16 +7494,16 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boo"
+    "context": "<SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} /> <Link className=\"dashboard-entry\" href={href(\"/app/home?view=dashboard\")}>Home dashboard</Link> <nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span class"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:44:summary:1",
+    "control_id": "src/components/workspace-shell-view.tsx:44:Link:1",
     "file": "src/components/workspace-shell-view.tsx",
     "line": 44,
-    "type": "summary",
+    "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b"
+    "context": "<Link className=\"dashboard-entry\" href={href(\"/app/home?view=dashboard\")}>Home dashboard</Link> <nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.href === \"/app/home\" ? \"Coach\" : item.label}</Link>)}</nav> <deta"
   },
   {
     "control_id": "src/components/workspace-shell-view.tsx:45:summary:1",
@@ -7557,66 +7512,75 @@
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<nav aria-label=\"Rebound SEO workspace\"><span className=\"nav-section-label\">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? \"page\" : undefined} className={`primary-nav-item ${item.href === active ? \"active\" : \"\"}`} href={href(item.href)} key={item.label}><span className=\"nav-dot\" />{item.href === \"/app/home\" ? \"Coach\" : item.label}</Link>)}</nav> <details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature"
+  },
+  {
+    "control_id": "src/components/workspace-shell-view.tsx:46:summary:1",
+    "file": "src/components/workspace-shell-view.tsx",
+    "line": 46,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:45:Link:2",
+    "control_id": "src/components/workspace-shell-view.tsx:46:Link:2",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 45,
+    "line": 46,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:45:form:3",
+    "control_id": "src/components/workspace-shell-view.tsx:46:form:3",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 45,
+    "line": 46,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:45:button:4",
+    "control_id": "src/components/workspace-shell-view.tsx:46:button:4",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 45,
+    "line": 46,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<details className=\"desktop-feature-menu\" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? \"Tools & reports\"}</span><b>{activeFeature ? \"Current tool\" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details> <details className=\"mobile-feature-menu\"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:47:Link:1",
+    "control_id": "src/components/workspace-shell-view.tsx:48:Link:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 47,
+    "line": 48,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className=\"sidebar-account-actions\"> <Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:48:form:1",
+    "control_id": "src/components/workspace-shell-view.tsx:49:form:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 48,
+    "line": 49,
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </div>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:48:button:2",
+    "control_id": "src/components/workspace-shell-view.tsx:49:button:2",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 48,
+    "line": 49,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={`sidebar-account-link ${active === \"/account\" ? \"active\" : \"\"}`} href={href(\"/account\")}>Account</Link> <form action=\"/auth/signout\" method=\"post\"><button className=\"sidebar-signout\" type=\"submit\">Sign out</button></form> </div>"
   },
   {
-    "control_id": "src/components/workspace-shell-view.tsx:52:Link:1",
+    "control_id": "src/components/workspace-shell-view.tsx:53:Link:1",
     "file": "src/components/workspace-shell-view.tsx",
-    "line": 52,
+    "line": 53,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,

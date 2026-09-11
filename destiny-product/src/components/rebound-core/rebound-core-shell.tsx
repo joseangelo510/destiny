@@ -9,7 +9,7 @@ import { EvidenceChip, SessionPill } from "./primitives";
 import styles from "./rebound-core-shell.module.css";
 
 function CoreLink({ item, active, websiteId }: { item: (typeof CORE_NAVIGATION)[number]; active: string; websiteId: string }) {
-  return <Link aria-current={item.href === active ? "page" : undefined} className={item.href === active ? styles.activeLink : ""} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>;
+  return <Link aria-current={item.href === active ? "page" : undefined} className={item.href === active ? styles.activeLink : ""} href={siteScopedHref(item.href === "/app/home" ? "/app/home?view=dashboard" : item.href, websiteId)}>{item.href === "/app/home" ? "Home dashboard" : item.label}</Link>;
 }
 
 function websiteName(website: ReboundWebsite) {
@@ -34,7 +34,7 @@ const PAGE_SUBTITLES: Record<string, string> = {
   "/app/progress": "the full check-in, split by owner",
 };
 
-export function ReboundCoreShell({ active, calendarActions = false, children, distributionActions = false, draftActions = false, progressActions = false, queue, websiteId, websiteLabel, websites, searchConnected, title, subtitle }: { active: string; calendarActions?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; progressActions?: boolean; queue: PanelResult<CoreQueue>; websiteId: string; websiteLabel: string; websites: ReboundWebsite[]; searchConnected: boolean; title?: string; subtitle?: string }) {
+export function ReboundCoreShell({ active, calendarActions = false, coach = false, children, distributionActions = false, draftActions = false, progressActions = false, queue, websiteId, websiteLabel, websites, searchConnected, title, subtitle }: { active: string; calendarActions?: boolean; coach?: boolean; children: ReactNode; distributionActions?: boolean; draftActions?: boolean; progressActions?: boolean; queue: PanelResult<CoreQueue>; websiteId: string; websiteLabel: string; websites: ReboundWebsite[]; searchConnected: boolean; title?: string; subtitle?: string }) {
   const firstMove = queue.state === "ready" ? queue.data?.items[0] ?? null : null;
   const queueCount = queue.state === "ready" ? queue.data?.sessionMoves.length ?? 0 : 0;
   const daily = CORE_NAVIGATION.filter((item) => item.cadence === "every_day");
@@ -44,18 +44,20 @@ export function ReboundCoreShell({ active, calendarActions = false, children, di
     <div className={styles.canvas}>
       <aside className={styles.sidebar}>
         <Link aria-label="Rebound SEO current workspace home" className={styles.wordmark} href={siteScopedHref("/app", websiteId)}><i />Rebound SEO</Link>
-        <WebsiteSwitcher active={active} websiteId={websiteId} websites={websites} />
-        <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />
-        <span className={styles.tier}>EVERY DAY</span><nav aria-label="Every day">{daily.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav>
-        <span className={styles.tier}>EVERY WEEK</span><nav aria-label="Every week">{weekly.map((item) => <CoreLink active={active} item={item} key={item.href} websiteId={websiteId} />)}</nav>
+        <WebsiteSwitcher active={active === "/app/home" && !coach ? "/app/home?view=dashboard" : active} websiteId={websiteId} websites={websites} />
+        {!coach && <SessionPill count={queueCount} move={firstMove ? { ...firstMove, href: siteScopedHref(firstMove.href, websiteId) } : null} />}
+        <nav aria-label="Coach"><Link className={coach ? styles.activeLink : ""} aria-current={coach ? "page" : undefined} href={siteScopedHref("/app/home", websiteId)}>Coach</Link></nav>
+        <span className={styles.tier}>EVERY DAY</span><nav aria-label="Every day">{daily.map((item) => <CoreLink active={coach ? "coach" : active} item={item} key={item.href} websiteId={websiteId} />)}</nav>
+        <span className={styles.tier}>EVERY WEEK</span><nav aria-label="Every week">{weekly.map((item) => <CoreLink active={coach ? "coach" : active} item={item} key={item.href} websiteId={websiteId} />)}</nav>
         <span className={styles.tier}>TOOLS</span><nav aria-label="Existing Rebound SEO tools" className={styles.tools}>{FEATURE_NAVIGATION.map((item) => <Link href={siteScopedHref(item.href, websiteId)} key={item.href}>{item.label}</Link>)}</nav>
         <div className={styles.account}><span>{websiteLabel.slice(0, 2).toLocaleUpperCase("en-US")}</span><div><strong>{websiteLabel}</strong><Link href={siteScopedHref("/account", websiteId)}>Account</Link></div></div>
       </aside>
       <section className={styles.main}>
-        <header className={styles.topbar}><div><h1>{title ?? current?.label ?? "Rebound SEO"}</h1><span>{subtitle ?? PAGE_SUBTITLES[active] ?? "read-only workspace"}</span></div><WebsiteSwitcher active={active} className={styles.mobileSiteContext} websiteId={websiteId} websites={websites} /><div className={styles.topbarActions}><EvidenceChip fallback={searchConnected ? "Search Console connected" : "Search Console not connected"} /></div></header>
-        <PreviewStrip calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} />
+        <header className={styles.topbar}><div><h1>{title ?? current?.label ?? "Rebound SEO"}</h1><span>{subtitle ?? PAGE_SUBTITLES[active] ?? "read-only workspace"}</span></div><WebsiteSwitcher active={active === "/app/home" && !coach ? "/app/home?view=dashboard" : active} className={styles.mobileSiteContext} websiteId={websiteId} websites={websites} /><div className={styles.topbarActions}><EvidenceChip fallback={searchConnected ? "Search Console connected" : "Search Console not connected"} /></div></header>
+        {!coach && <PreviewStrip calendarActions={calendarActions} distributionActions={distributionActions} draftActions={draftActions} progressActions={progressActions} />}
+        <details className={styles.mobileTools}><summary>Your full system, one tap away</summary><nav aria-label="Mobile workspace tools"><Link href={siteScopedHref("/app/home?view=dashboard", websiteId)}>Home dashboard</Link>{FEATURE_NAVIGATION.map((item) => <Link key={item.href} href={siteScopedHref(item.href, websiteId)}>{item.label}</Link>)}</nav></details>
         {children}
-        <nav aria-label="Core mobile navigation" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? "page" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? "◉" : "▪"}</b>{item.label}</Link>)}</nav>
+        <nav aria-label="Core mobile navigation" className={styles.mobileNav}>{CORE_NAVIGATION.map((item) => <Link aria-current={item.href === active ? "page" : undefined} href={siteScopedHref(item.href, websiteId)} key={item.href}><b>{item.href === active ? "◉" : "▪"}</b>{item.href === "/app/home" ? "Coach" : item.label}</Link>)}</nav>
       </section>
     </div>
   </main>;

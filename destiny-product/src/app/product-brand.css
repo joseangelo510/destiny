@@ -1,0 +1,20 @@
+/* Product typography and palette only: original tool layouts remain authoritative. */
+:root { --font-display: var(--font-body); --font-fraunces: var(--font-body); --font-inter: var(--font-body); --font-wordmark: "Fraunces", Georgia, serif; --paper: #faf8f5; --focus-ring: #a51e46; }
+.brand, .brand-mark { font-family: var(--font-wordmark); }
+body { background: var(--paper); }
+main.app-shell[data-design] { font-family: var(--font-body); }
+main.app-shell .sidebar { background: #281c25; color: #f7f1f4; border-color: #44303c; overflow-y: auto; scrollbar-width: thin; }
+main.app-shell .sidebar-brand { color: #f7f1f4; font-family: var(--font-wordmark); }
+main.app-shell .sidebar nav a, main.app-shell .desktop-feature-menu a, main.app-shell .sidebar-account-link, main.app-shell .sidebar-signout { color: #ded1d9; }
+main.app-shell .sidebar nav a:hover, main.app-shell .sidebar nav a.active, main.app-shell .desktop-feature-menu a:hover, main.app-shell .desktop-feature-menu a.active { background: #4c303f; color: #fff; }
+main.app-shell .nav-section-label, main.app-shell .desktop-feature-menu > summary b { color: #bca9b5; }
+main.app-shell .desktop-feature-menu { border-color: #55404d; }
+main.app-shell .desktop-feature-menu > summary { color: #f7f1f4; }
+main.app-shell .desktop-feature-menu > summary:hover { background: #4c303f; }
+main.app-shell .sidebar [class*="siteContext"] > summary, main.app-shell .sidebar [class*="singleSite"] { background: #362631; color: #f7f1f4; }
+main.app-shell .sidebar [class*="siteCopy"] strong { color: #f7f1f4; }
+main.app-shell .sidebar [class*="siteCopy"] small, main.app-shell .sidebar [class*="singleSiteAdd"] { color: #cbb8c3; }
+main.app-shell .sidebar [class*="siteMenu"] { color: #281c25; }
+.dashboard-entry { padding: 10px 12px; font-size: 13px; color: #ded1d9; text-decoration: none; }
+.dashboard-entry:hover { text-decoration: underline; }
+@media (max-width: 760px) { .dashboard-entry { align-self: center; white-space: nowrap; padding: 6px; font-size: 11px; } }

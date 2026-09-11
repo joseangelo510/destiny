@@ -4,8 +4,9 @@ import { loadReboundHome } from "@/lib/rebound-core/load-home";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReboundHomePage() {
+export default async function ReboundHomePage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const params = await searchParams;
   const view = await loadReboundHome();
   if (!view) redirect("/onboarding");
-  return <HomeDashboard view={view} />;
+  return <HomeDashboard view={view} dashboardOpen={params.view === "dashboard"} />;
 }
