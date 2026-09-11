@@ -33,6 +33,13 @@ describe("Coach integration preserves the complete workspace", () => {
     expect(html).toContain("No tracked keywords");
   });
 
+  it("keeps workspace entry and return as site-scoped URL destinations", () => {
+    const coach = renderToStaticMarkup(<HomeDashboard view={view} />);
+    const dashboard = renderToStaticMarkup(<HomeDashboard view={view} dashboardOpen />);
+    expect(coach).toMatch(new RegExp(`<a[^>]*href="/app/home\\?view=dashboard&amp;site=${websiteId}"[^>]*>Open full workspace</a>`));
+    expect(dashboard).toMatch(new RegExp(`<a[^>]*href="/app/home\\?site=${websiteId}"[^>]*>← Back to your coach</a>`));
+  });
+
   it("uses real move estimates and states and offers no synthetic completion", () => {
     const move = { id: "technical-1", title: "Review crawl findings", description: "Check the crawl.", why: "Removes a search blocker", href: "/audits", state: "reported" as const, estimateMinutes: 18 };
     const html = renderToStaticMarkup(<HomeDashboard view={{ ...view, queue: ready({ items: [move], sessionMoves: [move] }) }} />);
