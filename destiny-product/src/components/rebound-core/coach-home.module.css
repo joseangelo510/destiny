@@ -38,7 +38,12 @@
   .ticker { justify-content: flex-start; gap: 16px; }
   .ticker > span { max-width: 230px; }
   .hero { padding: 24px 0; }
-  .why { font-size: 14px; }
+  .focus { display: contents; }
+  .focus > h2 { order: 1; }
+  .meta { order: 2; }
+  .why { font-size: 14px; order: 3; }
+  .actions { order: 4; }
+  .donebox { order: 5; }
   .donebox { padding: 17px; }
   .donebox li { font-size: 13px; }
   .actions { gap: 16px; }
