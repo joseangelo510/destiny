@@ -19,7 +19,7 @@ describe("Warm-up coach Home", () => {
     expect(html).toContain("Review your saved article");
     expect(html).toContain("/app/content/article-1?site=00000000-0000-4000-8000-000000000001");
     expect(html).toContain("Open full workspace");
-    expect(html).toContain("Your full system, one tap away");
+    expect(html).toContain('aria-label="All tools"');
     expect(html).not.toContain("5-minute");
     expect(html).not.toContain("See another move");
     expect(html).not.toMatch(/pottery|glaze|Thursday|automatically scheduled|Since your last visit/i);

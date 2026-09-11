@@ -19,13 +19,13 @@ describe("the shipped core tabs stay reachable from existing tools", () => {
     }
   });
 
-  it("renders all five site-scoped tabs in desktop and mobile navigation on every tool", () => {
+  it("renders all six site-scoped destinations in the shared responsive navigation on every tool", () => {
     for (const site of sites) {
       for (const tool of FEATURE_NAVIGATION) {
         const html = renderToStaticMarkup(<WorkspaceShellView active={tool.href} activeWebsiteId={site.id} description="Existing tool" eyebrow={site.normalized_domain} title={tool.label} websites={sites}><p>Existing feature</p></WorkspaceShellView>);
-        for (const navLabel of ["Rebound SEO workspace", "Primary mobile navigation"]) {
+        for (const navLabel of ["Main navigation"]) {
           const nav = html.match(new RegExp(`<nav aria-label="${navLabel}"[^>]*>(.*?)</nav>`))?.[1] ?? "";
-          expect(nav.match(/<a /g), `${tool.href}: ${navLabel}`).toHaveLength(5);
+          expect(nav.match(/<a /g), `${tool.href}: ${navLabel}`).toHaveLength(6);
           for (const item of CORE_NAVIGATION) expect(nav).toContain(`href="${item.href}?site=${site.id}"`);
         }
         expect(html).toContain(`href="/app/home?site=${site.id}"`);

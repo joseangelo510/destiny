@@ -19,8 +19,8 @@ describe("Coach integration preserves the complete workspace", () => {
     const html = renderToStaticMarkup(<HomeDashboard view={view} />);
     expect(html).toContain('data-coach-design="preserved"');
     expect(html).toContain('href="/app/home?view=dashboard&amp;site=' + websiteId + '"');
-    expect(html).toContain('>Home dashboard</a>');
-    expect(html).toContain('>Coach</a>');
+    expect(html).toContain('>Home dashboard</span></a>');
+    expect(html).toContain('>Coach</span></a>');
     for (const tool of FEATURE_NAVIGATION) expect(html).toContain(tool.label.replaceAll("&", "&amp;"));
   });
 
