@@ -810,58 +810,67 @@
     "context": "<div className=\"analytics-grid\"><article className=\"result-stat analytics-stat\"><strong>{Number(llm.totalMentions ?? 0).toLocaleString()}</strong><span>Company mentions</span><small>Across available tracked AI platforms</small></article><article className=\"result-stat analytics-stat\"><strong>{Number(llm.aiSearchVolume ?? 0).toLocaleString()}</strong><span>AI search volume</span><small>DataForSEO estimate</small></article>{platforms.map((platform) => <article className=\"result-stat analytics-stat"
   },
   {
-    "control_id": "src/app/login/page.tsx:13:Link:1",
+    "control_id": "src/app/login/login-form.tsx:9:button:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 9,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "const { pending } = useFormStatus(); return <button className=\"primary-button\" type=\"submit\" disabled={pending || remaining > 0} aria-busy={pending}> {pending ? \"Sending your link…\" : remaining > 0 ? `Try again in ${remaining}s` : resend ? \"Send another sign-in link\" : \"Email me a sign-in link\"}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:28:form:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 28,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "}, [cooldown]); return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} />"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:29:input:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 29,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:30:input:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 30,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>} {error && <div className=\"error-banner\" role=\"alert\">{error}</div>}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:30:input:2",
+    "file": "src/app/login/login-form.tsx",
+    "line": 30,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>} {error && <div className=\"error-banner\" role=\"alert\">{error}</div>}"
+  },
+  {
+    "control_id": "src/app/login/page.tsx:16:Link:1",
     "file": "src/app/login/page.tsx",
-    "line": 13,
+    "line": 16,
     "type": "Link",
     "route": "/login",
     "side_effect_class": 0,
     "context": "<section className=\"login-card\"> <Link className=\"brand login-brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> {params.sent === \"1\" ? ("
   },
   {
-    "control_id": "src/app/login/page.tsx:19:a:1",
+    "control_id": "src/app/login/page.tsx:24:a:1",
     "file": "src/app/login/page.tsx",
-    "line": 19,
+    "line": 24,
     "type": "a",
     "route": "/login",
-    "side_effect_class": 0,
-    "context": "<p>We sent a secure sign-in link to <strong>{params.email}</strong>. Open it in this browser to continue.</p> <a className=\"secondary-button login-link\" href=\"/login\">Use another email</a> </>"
-  },
-  {
-    "control_id": "src/app/login/page.tsx:26:form:1",
-    "file": "src/app/login/page.tsx",
-    "line": 26,
-    "type": "form",
-    "route": "/login",
-    "side_effect_class": 0,
-    "context": "<p>Enter your email. No password required—we’ll send you a secure sign-in link.</p> <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} />"
-  },
-  {
-    "control_id": "src/app/login/page.tsx:27:input:1",
-    "file": "src/app/login/page.tsx",
-    "line": 27,
-    "type": "input",
-    "route": "/login",
     "side_effect_class": 2,
-    "context": "<form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} /> <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" /></label>"
-  },
-  {
-    "control_id": "src/app/login/page.tsx:28:input:1",
-    "file": "src/app/login/page.tsx",
-    "line": 28,
-    "type": "input",
-    "route": "/login",
-    "side_effect_class": 1,
-    "context": "<input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} /> <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" /></label> {params.error && <div className=\"error-banner\">{params.error}</div>}"
-  },
-  {
-    "control_id": "src/app/login/page.tsx:30:button:1",
-    "file": "src/app/login/page.tsx",
-    "line": 30,
-    "type": "button",
-    "route": "/login",
-    "side_effect_class": 0,
-    "context": "{params.error && <div className=\"error-banner\">{params.error}</div>} <button className=\"primary-button\" type=\"submit\">Email me a sign-in link</button> </form>"
+    "context": "<LoginForm key={`sent:${params.email}:${params.attempt}`} email={params.email} next={next} cooldown={60} resend /> <a className=\"secondary-button login-link\" href={`/login?${new URLSearchParams({ next })}`}>Use another email</a> </>"
   },
   {
     "control_id": "src/app/page.tsx:15:a:1",
