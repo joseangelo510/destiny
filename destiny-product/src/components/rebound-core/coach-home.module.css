@@ -33,19 +33,50 @@
 .returnBar { padding: 8px 24px; background: #faf8f5; border-bottom: 1px solid #e5dee1; }
 .returnBar button { border: 0; background: none; color: #91203f; cursor: pointer; padding: 8px; font: 13px var(--font-body); text-decoration: underline; text-underline-offset: 3px; }
 .returnBar button:focus-visible { outline: 2px solid #9e1b40; outline-offset: 2px; }
-@media (max-width: 760px) {
-  .stage { padding: 0 18px 70px; }
-  .ticker { justify-content: flex-start; gap: 16px; }
-  .ticker > span { max-width: 230px; }
-  .hero { padding: 24px 0; }
-  .focus { display: contents; }
-  .focus > h2 { order: 1; }
-  .meta { order: 2; }
-  .why { font-size: 14px; order: 3; }
-  .actions { order: 4; }
-  .donebox { order: 5; }
-  .donebox { padding: 17px; }
-  .donebox li { font-size: 13px; }
-  .actions { gap: 16px; }
-  .deck { padding-inline: 0; }
+
+/* Match the final preservation prototype; queue, actions and evidence remain real. */
+.stage { --paper: #f6f3ed; --card: #f6f3ed; --ink: #1a1218; --soft: #686369; --forest: #e8194e; --line: #ddd7d3; padding: 0 38px 60px; position: relative; }
+.workspaceAccess { position: absolute; right: 94px; top: -75px; }
+.ticker { font-size: 14px; gap: 30px; padding: 22px 0; flex-wrap: wrap; }
+.ticker > span { font-size: 14px; }
+.ticker b { font-weight: 400; color: var(--soft); }
+.hero { padding: 42px 0 0; max-width: 790px; margin: 0 auto; }
+.kicker { font-size: 16px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.focus > h2 { font-size: 39px; margin: 20px 0 12px; max-width: 100%; letter-spacing: -1.1px; }
+.taskName { font-size: 24px; color: var(--soft); margin: 10px 0; }
+.meta { font-size: 16px; margin: 20px 0; }
+.why { font-size: 16px; margin: 8px 0 0; }
+.donebox { width: min(600px,100%); margin: 27px auto 0; padding: 23px; background: transparent; }
+.donebox h2 { font-size: 15px; margin: 0 0 18px; }
+.donebox li { font-size: 15px; gap: 8px; }
+.donebox i { background: currentColor; width: 19px; height: 19px; border: 0; border-radius: 0; mask: url('/icons/rebound/file.svg') center/contain no-repeat; }
+.donebox li:nth-child(2) i { mask-image: url('/icons/rebound/check.svg'); }
+.donebox li:last-child i { mask-image: url('/icons/rebound/search.svg'); }
+.actions { margin-top: 25px; gap: 28px; }
+.primary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 15px 30px; min-height: 53px; border-radius: 6px; font-size: 15px; cursor: pointer; }
+.primary:hover { background: #c50e3d; }
+.arrow { width: 18px; height: 18px; background: currentColor; mask: url('/icons/rebound/arrow.svg') center/contain no-repeat; }
+.deck { padding: 0; margin: 38px auto 0; }
+.deck h2 { font-size: 14px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.deckRow { font-size: 15px; }
+.deckRow strong { font-weight: 400; }
+.state { background: none; color: #8e2040; padding: 0; font-size: 12px; }
+@media(max-width:800px) {
+  .stage { padding: 0 23px 50px; }
+  .workspaceAccess { position: static; padding: 0 0 12px; }
+  .ticker { padding: 15px 0; justify-content: flex-start; gap: 10px; }
+  .ticker > span { max-width: 100%; font-size: 11px; }
+  .ticker time { font-size: 10px; }
+  .hero { padding-top: 20px; }
+  .kicker, .why { font-size: 14px; }
+  .focus > h2 { font-size: 27px; margin: 12px 0; }
+  .taskName { font-size: 19px; }
+  .meta { font-size: 12px; margin: 12px 0; }
+  .donebox { padding: 15px; margin: 18px auto 0; }
+  .donebox h2 { margin-bottom: 12px; }
+  .donebox li { font-size: 14px; }
+  .donebox ul { gap: 11px; margin-top: 12px; }
+  .actions { width: 100%; gap: 14px; margin-top: 18px; }
+  .primary { width: 100%; }
+  .deck { margin-top: 30px; }
 }

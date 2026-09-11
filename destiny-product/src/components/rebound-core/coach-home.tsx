@@ -11,9 +11,9 @@ function DoneDefinition({ move }: { move: CoreMove }) {
   return <section className={styles.donebox} aria-label="What done looks like">
     <h2>What done looks like</h2>
     <ul>
-      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Read the draft and decide what needs editing." : "Open the task and follow its recommended steps."}<small>You{move.estimateMinutes !== null ? ` · about ${move.estimateMinutes} min` : ""}</small></div></li>
-      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Approve it when you are happy with the article." : "Save your work in the tool."}<small>{move.state === "draft" ? "You · approval comes before scheduling" : "You · opening a task does not complete it"}</small></div></li>
-      <li><i aria-hidden="true" /><div>Check the result in your workspace.<small>Reported work and verified outcomes stay separate</small></div></li>
+      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Read the draft." : "Open the task and follow its recommended steps."}<small>You{move.estimateMinutes !== null ? ` · about ${move.estimateMinutes} min` : ""}</small></div></li>
+      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Approve or request edits." : "Save your work in the tool."}<small>{move.state === "draft" ? "You · approval comes before scheduling" : "You · opening a task does not complete it"}</small></div></li>
+      <li><i aria-hidden="true" /><div>{move.state === "draft" ? "Check publication evidence." : "Check the result in your workspace."}<small>{move.state === "draft" ? "Rebound, when connected" : "Reported work and verified outcomes stay separate"}</small></div></li>
     </ul>
   </section>;
 }
@@ -61,13 +61,14 @@ export function CoachHome({ view, children, dashboardOpen = false }: { view: Reb
       <section className={styles.hero} aria-labelledby="coach-title" data-session-queue>
         <p className={styles.kicker}>Today’s move</p>
         <div aria-live="polite" aria-atomic="true" className={styles.focus}>
-          <h2 id="coach-title" data-coach-title>{move?.title ?? (view.queue.state === "error" ? "Your next move is temporarily unavailable." : view.queue.state === "loading" ? "Finding your next move…" : view.queue.state === "not_connected" ? "Connect your workspace to find your next move." : "Nothing needs you right now.")}</h2>
+          <h2 id="coach-title" data-coach-title>{(move?.state === "draft" ? "Review your next article" : move?.title) ?? (view.queue.state === "error" ? "Your next move is temporarily unavailable." : view.queue.state === "loading" ? "Finding your next move…" : view.queue.state === "not_connected" ? "Connect your workspace to find your next move." : "Nothing needs you right now.")}</h2>
+          {move?.state === "draft" ? <p className={styles.taskName}>{move.title}</p> : null}
           <p className={styles.meta}>{move ? <>{move.state === "draft" ? "Draft" : move.state === "reported" ? "You reported" : move.state === "ready" ? "Ready" : "Open"}{move.estimateMinutes !== null ? ` · about ${move.estimateMinutes} min` : ""}</> : null}</p>
-          <p className={styles.why}>{move ? <>{move.description} <strong>{move.why}.</strong></> : view.queue.message || "Your existing tools and saved work are ready whenever you need them."}</p>
+          <p className={styles.why}>{move ? move.state === "draft" ? "Read it, request changes or approve. Nothing publishes without you." : <>{move.description} <strong>{move.why}.</strong></> : view.queue.message || "Your existing tools and saved work are ready whenever you need them."}</p>
           {move ? <DoneDefinition move={move} /> : null}
         </div>
         <div className={styles.actions}>
-          {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === "draft" ? "Review the draft" : "Open this move"}</Link> : <button className={styles.primary} type="button" onClick={openWorkspace}>Explore your workspace</button>}
+          {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === "draft" ? "Review article" : "Open this move"}<span className={styles.arrow} aria-hidden="true" /></Link> : <button className={styles.primary} type="button" onClick={openWorkspace}>Explore your workspace</button>}
           {items.length > 1 ? <button className={styles.quiet} type="button" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null}
         </div>
       </section>
