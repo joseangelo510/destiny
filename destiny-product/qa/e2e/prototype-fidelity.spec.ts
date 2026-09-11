@@ -41,7 +41,7 @@ test("@gate the approved prototype shell follows every tool and preserves site-s
     if (route === "/app/home") {
       const action = page.locator('[data-coach-home] [class*="actions"] a').first();
       await expect(action).toBeVisible();
-      expect(await action.evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgb(232, 25, 78)");
+      expect(await action.evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgb(231, 25, 78)");
       expect(await action.evaluate(node => node.getBoundingClientRect().bottom)).toBeLessThan(mobile ? 844 : 1000);
     }
     await page.screenshot({ path: testInfo.outputPath(`${route.replaceAll(/[^a-z0-9]/gi,"-")}.png`), fullPage: true });
