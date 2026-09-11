@@ -31,7 +31,7 @@ export function ProgressReportActions({ recipient, websiteId }: { recipient: str
   }
 
   return <section className={styles.progressReport} data-progress-report="manual">
-    <div><span>SHARE THIS CHECK-IN</span><h2>Send the saved progress summary.</h2><p>{recipient ? <>One report goes to <strong>{recipient}</strong>. Rebound SEO resolves this saved address on the server.</> : <>Add a report email in Account before sending.</>}</p></div>
+    <div><span>SHARE THIS CHECK-IN</span><h2>Share your progress.</h2><p>{recipient ? <>One report goes to <strong>{recipient}</strong>. You can change this address in Account.</> : <>Add a report email in Account before sending.</>}</p></div>
     <div className={styles.progressReportControls}>
       <button aria-label={recipient ? `Send progress report to ${recipient}` : "Report email unavailable"} disabled={!recipient || state === "sending"} onClick={sendReport} type="button">{state === "sending" ? "Sending…" : "Send progress report"}</button>
       <Link href={siteScopedHref("/account", websiteId)}>Change report email</Link>
