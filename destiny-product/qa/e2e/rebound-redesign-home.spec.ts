@@ -25,7 +25,7 @@ test.describe("@gate Rebound redesign read-only Home", () => {
     const response = await page.goto(`/app/home?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
     expect(response?.status()).toBe(200);
     await expect(page).not.toHaveURL(/\/login/);
-    await page.getByRole("button", { name: "Open full workspace", exact: true }).click();
+    await page.getByRole("link", { name: "Open full workspace", exact: true }).click();
     await expect(page.locator('[data-rebound-core="v1"]')).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
     await expect(page.getByText("Preview — read-only.")).toBeVisible();
