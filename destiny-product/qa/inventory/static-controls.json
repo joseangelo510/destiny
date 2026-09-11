@@ -6270,7 +6270,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead "
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Your progress for <b>{view.websiteLabel}</b>. Connect your data to see what your work is earn"
   },
   {
     "control_id": "src/components/rebound-core/home-keywords.tsx:12:Link:1",
