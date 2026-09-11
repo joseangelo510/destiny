@@ -1,9 +1,9 @@
 .frame { width: 265px; min-width: 0; font-family: var(--font-body); }
 .sidebar { width: 265px; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; position: fixed; top: 0; left: 0; z-index: 40; display: flex; flex-direction: column; background: #180f15; color: #f7f1eb; padding: 30px 20px 20px; box-sizing: border-box; }
 .sidebar *, .mobilebar * { box-sizing: border-box; }
-.wordmark { display: block; padding: 0 12px; color: #f7f1eb !important; font: 400 29px/1.4 var(--font-wordmark); letter-spacing: -1.2px; text-decoration: none; white-space: nowrap; }
-.wordmark em { color: #e8194e; font-weight: 400; }
-.site { margin: 20px 10px 24px; position: relative; border: 1px solid #4d3947; border-radius: 6px; font-size: 14px; }
+.wordmark { display: block; padding: 0 22px; color: #f7f1eb !important; font: 600 28px/34px var(--font-wordmark); letter-spacing: -1.2px; text-decoration: none; white-space: nowrap; }
+.wordmark em { color: #e8194e; font-weight: 500; }
+.site { margin: 20px 10px 20px; position: relative; border: 1px solid #4d3947; border-radius: 6px; font-size: 14px; }
 .site summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; list-style: none; cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
 .site summary::-webkit-details-marker { display: none; }
 .siteMenu { position: absolute; top: calc(100% + 5px); left: -10px; right: -10px; max-height: 320px; overflow-y: auto; z-index: 45; padding: 6px; border: 1px solid #4d3947; border-radius: 6px; background: #281b25; box-shadow: 0 10px 24px #0004; }
@@ -11,7 +11,7 @@
 .siteMenu a:hover, .siteMenu a[aria-current] { background: #49303f; }
 .siteMenu small { display: block; margin-top: 3px; color: #c3b7c0; font-size: 11px; }
 .sidebar nav { display: grid; gap: 4px; }
-.sidebar nav a { position: relative; display: flex; align-items: center; gap: 19px; min-height: 43px; padding: 9px 13px; border-radius: 5px; color: #c8bfc5; font-size: 14px; line-height: 1.5; font-weight: 400; text-decoration: none; }
+.sidebar nav a { position: relative; display: flex; align-items: center; gap: 19px; min-height: 43px; padding: 0 20px; border-radius: 5px; color: #c8bfc5; font-size: 15px; line-height: 1.5; font-weight: 400; text-decoration: none; }
 .sidebar nav a:hover, .sidebar nav a.active { background: #2d1d28; color: #fff8fb; }
 .sidebar nav a.active::before { content: ""; position: absolute; left: -10px; top: 4px; bottom: 4px; width: 4px; border-radius: 3px; background: #e8194e; }
 .active .icon { color: #e8194e; }
@@ -22,9 +22,9 @@
 .send { --nav-icon: url('/icons/rebound/send.svg'); }
 .menu { --nav-icon: url('/icons/rebound/menu.svg'); }
 .caret { --nav-icon: url('/icons/rebound/caret.svg'); width: 16px; height: 16px; }
-.divider { border-top: 1px solid #3c2b36; margin: 22px 4px 12px; padding: 20px 0 0; color: #aa9aa4; font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; }
+.divider { border-top: 1px solid #3c2b36; margin: 18px 14px 12px; padding: 18px 1px 0; color: #aa9aa4; font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; }
 .sidebar .tools { gap: 1px; }
-.sidebar .tools a { min-height: 32px; padding: 5px 13px; font-size: 13px; gap: 15px; }
+.sidebar .tools a { min-height: 32px; padding: 0 17px; font-size: 13px; gap: 17px; }
 .tools .icon { width: 21px; height: 21px; }
 .signout { border-top: 1px solid #3c2b36; margin: 20px 4px 0; padding-top: 15px; }
 .signout button, .close { background: none; border: 0; color: #c8bfc5; padding: 9px; font: 13px var(--font-body); cursor: pointer; }
