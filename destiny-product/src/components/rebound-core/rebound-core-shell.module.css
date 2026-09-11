@@ -311,3 +311,20 @@
   .mobileTools a { padding: 8px; border-radius: 6px; background: var(--mint); }
   .mobileNav { bottom: 0; width: 100%; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* The selected prototype uses one full-height sidebar and a quiet page heading. */
+.stage { --paper: #f6f3ed; --ink: #1a1218; --ink-soft: #686369; background: var(--paper); }
+.canvas { grid-template-columns: 265px minmax(0,1fr); overflow: visible; box-shadow: none; }
+.topbar { min-height: 110px; padding: 30px 38px 20px; border: 0; background: transparent; align-items: flex-start; }
+.topbar > div:first-child { display: block; }
+.topbar h1 { font: 600 27px/1.2 var(--font-body); letter-spacing: -1px; }
+.topbar > div > span { display: block; font-size: 14px; margin-top: 7px; color: var(--ink); }
+@media(max-width:800px) {
+ .stage { padding: 0; }
+ .canvas { display: block; }
+ .topbar { padding: 25px 23px 20px; min-height: 0; }
+ .topbar h1 { font-size: 23px; }
+ .topbar > div > span { font-size: 13px; }
+}
+
+@media(max-width:800px) { .topbar { padding-top: 18px; padding-bottom: 16px; } }

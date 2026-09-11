@@ -19,8 +19,8 @@ describe("Coach integration preserves the complete workspace", () => {
     const html = renderToStaticMarkup(<HomeDashboard view={view} />);
     expect(html).toContain('data-coach-design="preserved"');
     expect(html).toContain('href="/app/home?view=dashboard&amp;site=' + websiteId + '"');
-    expect(html).toContain('>Home dashboard</a>');
-    expect(html).toContain('>Coach</a>');
+    expect(html).toContain('>Home dashboard</span></a>');
+    expect(html).toContain('>Coach</span></a>');
     for (const tool of FEATURE_NAVIGATION) expect(html).toContain(tool.label.replaceAll("&", "&amp;"));
   });
 
@@ -31,6 +31,13 @@ describe("Coach integration preserves the complete workspace", () => {
     expect(html).toContain("Your progress for");
     expect(html).toContain("Back to your coach");
     expect(html).toContain("No tracked keywords");
+  });
+
+  it("keeps workspace entry and return as site-scoped URL destinations", () => {
+    const coach = renderToStaticMarkup(<HomeDashboard view={view} />);
+    const dashboard = renderToStaticMarkup(<HomeDashboard view={view} dashboardOpen />);
+    expect(coach).toMatch(new RegExp(`<a[^>]*href="/app/home\\?view=dashboard&amp;site=${websiteId}"[^>]*>Open full workspace</a>`));
+    expect(dashboard).toMatch(new RegExp(`<a[^>]*href="/app/home\\?site=${websiteId}"[^>]*>← Back to your coach</a>`));
   });
 
   it("uses real move estimates and states and offers no synthetic completion", () => {

@@ -19,3 +19,13 @@ main.app-shell .sidebar [class*="siteMenu"] { color: #281c25; }
 .dashboard-entry { padding: 10px 12px; font-size: 13px; color: #ded1d9; text-decoration: none; }
 .dashboard-entry:hover { text-decoration: underline; }
 @media (max-width: 760px) { .dashboard-entry { align-self: center; white-space: nowrap; padding: 6px; font-size: 11px; } }
+
+/* Final preservation prototype palette; leave tool layout and controls unchanged. */
+:root { --paper: #f6f3ed; --ink: #1a1218; --muted: #686369; --line: #ddd7d3; --focus-ring: #e8194e; }
+main.app-shell.prototype-workspace { display: grid; grid-template-columns: 265px minmax(0,1fr); background: #f6f3ed; }
+main.app-shell.prototype-workspace > .dashboard { width: 100%; max-width: none; padding: 30px 28px 60px; }
+main.app-shell.prototype-workspace .workspace-header h1 { font-family: var(--font-body); }
+@media(max-width:800px) {
+ main.app-shell.prototype-workspace { display: block; }
+ main.app-shell.prototype-workspace > .dashboard { padding: 25px 18px 50px; }
+}

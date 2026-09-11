@@ -24,7 +24,7 @@ const fixture = fixturePath
 test.describe("@gate authenticated local website switching", () => {
   test.skip(!fixture, "Run pnpm qa:browser-fixture against disposable local Supabase first.");
 
-  test("shared user switches real websites without blending state", async ({ page }) => {
+  test("shared user switches real websites without blending state", async ({ page }, testInfo) => {
     const alpha = fixture!.alpha;
     const beta = fixture!.beta;
 
@@ -33,6 +33,7 @@ test.describe("@gate authenticated local website switching", () => {
     await expect(page.locator(".workspace-header .eyebrow")).toHaveText(alpha.normalizedDomain);
     await expect(page.locator(".audit-history-compact .audit-section-heading > span")).toHaveText("1 saved");
 
+    if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Open navigation", exact: true }).click();
     const betaSwitch = page.locator(`[data-site-switch="${beta.websiteId}"]`);
     await betaSwitch.locator("xpath=ancestor::details").locator("summary").click();
     await expect(betaSwitch).toBeVisible();

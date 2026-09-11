@@ -9,7 +9,7 @@ test("@gate Home without a publishing plan keeps a visible compact month", async
   const mobile = testInfo.project.name === "mobile";
   await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
   await page.goto(`/app/home?site=${fixture.alpha.websiteId}`);
-  await page.getByRole("button", { name: "Open full workspace", exact: true }).click();
+  await page.getByRole("link", { name: "Open full workspace", exact: true }).click();
   const grid = page.locator('[data-empty-month="true"]');
   await expect(grid).toBeVisible();
   await expect(grid.locator(":scope > section")).toHaveCount(42);

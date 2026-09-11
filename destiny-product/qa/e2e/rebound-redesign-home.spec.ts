@@ -25,7 +25,7 @@ test.describe("@gate Rebound redesign read-only Home", () => {
     const response = await page.goto(`/app/home?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
     expect(response?.status()).toBe(200);
     await expect(page).not.toHaveURL(/\/login/);
-    await page.getByRole("button", { name: "Open full workspace", exact: true }).click();
+    await page.getByRole("link", { name: "Open full workspace", exact: true }).click();
     await expect(page.locator('[data-rebound-core="v1"]')).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
     await expect(page.getByText("Preview — read-only.")).toBeVisible();
@@ -43,17 +43,16 @@ test.describe("@gate Rebound redesign read-only Home", () => {
     await expect(page.locator("body")).not.toContainText(/Maya.?s Pottery|ClayCraft|pottery glaze|kiln guide/i);
     expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(mobile ? 390 : 1360);
 
-    const mobileNavigation = page.getByRole("navigation", { name: "Core mobile navigation" });
-    if (mobile) {
-      await expect(mobileNavigation).toBeVisible();
-      expect(await mobileNavigation.locator(":scope > *").count()).toBe(5);
-    } else {
-      await expect(mobileNavigation).toBeHidden();
-      await expect(page.getByRole("navigation", { name: "Existing Rebound SEO tools" })).toBeVisible();
-      for (const label of ["Website audits", "Content studio", "Keyword strategy", "Rank tracker", "Distribution", "Connections"]) {
-        await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeAttached();
-      }
+    if (mobile) await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+    const navigation = page.getByRole("navigation", { name: "Main navigation", exact: true });
+    await expect(navigation).toBeVisible();
+    expect(await navigation.getByRole("link").count()).toBe(6);
+    const tools = page.getByRole("navigation", { name: "All tools", exact: true });
+    await expect(tools).toBeVisible();
+    for (const label of ["Website audits", "Content studio", "Keyword strategy", "Rank tracker", "Distribution tools", "Connections"]) {
+      await expect(tools.getByRole("link", { name: label, exact: true })).toBeAttached();
     }
+    if (mobile) await page.keyboard.press("Escape");
 
     const accessibility = await new AxeBuilder({ page }).analyze();
     expect(accessibility.violations.filter((item) => ["serious", "critical"].includes(item.impact ?? ""))).toEqual([]);

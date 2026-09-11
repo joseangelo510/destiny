@@ -1,55 +1,13 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { FEATURE_NAVIGATION, PRIMARY_NAVIGATION } from "../lib/product/coach-experience";
-import { siteScopedHref } from "../lib/workspace-selection";
 import { WorkspaceNotifications } from "./workspace-notifications";
 import { WorkspaceWebsiteProvider } from "./workspace-link";
-import styles from "./workspace-shell.module.css";
+import { ProductNavigation } from "./product-navigation";
 
 export type WorkspaceSite = { id: string; business_name: string | null; normalized_domain: string };
 
-function siteLabel(site: WorkspaceSite) { return site.business_name?.trim() || site.normalized_domain; }
-
-function FeatureNavigationLink({ active, item, websiteId }: { active: string; item: (typeof FEATURE_NAVIGATION)[number]; websiteId: string | null }) {
-  const scopedHref = siteScopedHref(item.href, websiteId);
-  const className = item.href === active ? "active" : "";
-  return item.href.includes("#") ? <a className={className} data-document-navigation="true" href={scopedHref}>{item.label}</a> : <Link className={className} href={scopedHref}>{item.label}</Link>;
-}
-
-function SiteContext({ activeWebsiteId, pathname, websites }: { activeWebsiteId: string | null; pathname: string; websites: WorkspaceSite[] }) {
-  const current = websites.find((website) => website.id === activeWebsiteId) ?? websites[0];
-  if (!current) return <Link className={styles.singleSiteAdd} href="/onboarding?new=1">Add your first website</Link>;
-  const mark = siteLabel(current).slice(0, 2);
-  if (websites.length === 1) return <div className={styles.siteContext}>
-    <div className={styles.singleSite}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></div>
-    <Link className={styles.singleSiteAdd} href="/onboarding?new=1">+ Add another website</Link>
-  </div>;
-  return <details className={styles.siteContext}>
-    <summary aria-label={`Current website: ${siteLabel(current)}. Choose another website.`}><span className={styles.siteMark}>{mark}</span><span className={styles.siteCopy}><small>Current website</small><strong>{siteLabel(current)}</strong></span></summary>
-    <div className={styles.siteMenu}>
-      {websites.map((website) => <a className={`${styles.siteOption} ${website.id === current.id ? styles.siteOptionActive : ""}`} data-site-switch={website.id} href={siteScopedHref(pathname, website.id)} key={website.id}>{siteLabel(website)}{website.business_name ? <small>{website.normalized_domain}</small> : null}</a>)}
-      <Link className={styles.addSite} href="/onboarding?new=1">+ Add another website</Link>
-    </div>
-  </details>;
-}
-
 export function WorkspaceShellView({ active, eyebrow, title, description, design, children, websites = [], activeWebsiteId = null }: { active: string; eyebrow: string; title: string; description: string; design?: "claude-keyword-strategy" | "claude-analytics"; children: ReactNode; websites?: WorkspaceSite[]; activeWebsiteId?: string | null }) {
-  const activeFeature = FEATURE_NAVIGATION.find((item) => item.href === active);
-  const href = (path: string) => siteScopedHref(path, activeWebsiteId);
-  return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell" data-design={design}>
-    <aside className="sidebar">
-      <Link aria-label="Rebound SEO workspace home" className="brand sidebar-brand" href={href("/app/home")}><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
-      <SiteContext activeWebsiteId={activeWebsiteId} pathname={active} websites={websites} />
-      <Link className="dashboard-entry" href={href("/app/home?view=dashboard")}>Home dashboard</Link>
-      <nav aria-label="Rebound SEO workspace"><span className="nav-section-label">Your workspace</span>{PRIMARY_NAVIGATION.map((item) => <Link aria-current={item.href === active ? "page" : undefined} className={`primary-nav-item ${item.href === active ? "active" : ""}`} href={href(item.href)} key={item.label}><span className="nav-dot" />{item.href === "/app/home" ? "Coach" : item.label}</Link>)}</nav>
-      <details className="desktop-feature-menu" open={Boolean(activeFeature)}><summary><span>{activeFeature?.label ?? "Tools & reports"}</span><b>{activeFeature ? "Current tool" : `${FEATURE_NAVIGATION.length} available`}</b></summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}</div></details>
-      <details className="mobile-feature-menu"><summary>Tools & reports</summary><div>{FEATURE_NAVIGATION.map((item) => <FeatureNavigationLink active={active} item={item} key={item.label} websiteId={activeWebsiteId} />)}<Link className={`mobile-menu-account ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link><form action="/auth/signout" method="post"><button className="mobile-menu-signout" type="submit">Sign out</button></form></div></details>
-      <div className="sidebar-account-actions">
-        <Link className={`sidebar-account-link ${active === "/account" ? "active" : ""}`} href={href("/account")}>Account</Link>
-        <form action="/auth/signout" method="post"><button className="sidebar-signout" type="submit">Sign out</button></form>
-      </div>
-    </aside>
+  return <WorkspaceWebsiteProvider websiteId={activeWebsiteId}><main className="app-shell prototype-workspace" data-design={design}>
+    <ProductNavigation active={active} websiteId={activeWebsiteId} websites={websites} />
     <section className="dashboard workspace-page" data-active={active} data-workspace-website={activeWebsiteId ?? "none"} key={activeWebsiteId ?? "none"}><header className="workspace-header"><div className="workspace-header-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div><WorkspaceNotifications key={activeWebsiteId ?? "none"} websiteId={activeWebsiteId} /></header>{children}</section>
-    <nav aria-label="Primary mobile navigation" className="mobile-primary-nav">{PRIMARY_NAVIGATION.map((item) => <Link className={item.href === active ? "active" : ""} href={href(item.href)} key={item.label}>{item.href === "/app/home" ? "Coach" : item.label}</Link>)}</nav>
   </main></WorkspaceWebsiteProvider>;
 }
