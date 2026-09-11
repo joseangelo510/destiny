@@ -30,7 +30,7 @@
 .deckRow:hover strong { text-decoration: underline; text-underline-offset: 3px; }
 .deckRow small { display: block; margin-top: 4px; font-size: 12px; color: var(--soft); }
 .state { padding: 3px 8px; background: var(--mint); color: #67364a; border-radius: 5px; font-size: 11px; white-space: nowrap; }
-.returnBar { margin-left: 265px; padding: 8px 24px; background: #faf8f5; border-bottom: 1px solid #e5dee1; }
+.returnBar { padding: 0 0 12px; background: #f6f3ed; border-bottom: 1px solid #ddd7d3; }
 .returnBar a { border: 0; background: none; color: #91203f; cursor: pointer; padding: 8px; font: 13px var(--font-body); text-decoration: underline; text-underline-offset: 3px; }
 .returnBar a:focus-visible { outline: 2px solid #9e1b40; outline-offset: 2px; }
 

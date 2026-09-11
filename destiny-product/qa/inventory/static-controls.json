@@ -6264,15 +6264,6 @@
     "context": "return <article id={calendarTopicId(keyword)} key={suggestion.id} ref={highlighted ? selected : undefined} tabIndex={highlighted ? -1 : undefined} data-highlighted={highlighted}> <span>In plan</span><strong>{suggestion.title}</strong><small>Approved topic · not scheduled</small>{websiteId ? <Link href={startKeywordDraftHref(keyword, websiteId)}>Start draft</Link> : null} </article>;"
   },
   {
-    "control_id": "src/components/rebound-core/coach-home.tsx:46:Link:1",
-    "file": "src/components/rebound-core/coach-home.tsx",
-    "line": 46,
-    "type": "Link",
-    "route": "component",
-    "side_effect_class": 1,
-    "context": "const href = (path: string) => siteScopedHref(path, view.websiteId); if (dashboardOpen) return <><div className={styles.returnBar}><Link href={href(\"/app/home\")}>← Back to your coach</Link></div>{children}</>; return <ReboundCoreShell active=\"/app/home\" coach queue={view.queue} searchConnected={view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites} title=\"Your coach\" subtitle=\"Your comebac"
-  },
-  {
     "control_id": "src/components/rebound-core/coach-home.tsx:49:Link:1",
     "file": "src/components/rebound-core/coach-home.tsx",
     "line": 49,
@@ -6462,13 +6453,22 @@
     "context": "export function HomeCompetitors({ result, websiteId }: { result: PanelResult<CompetitorSummary>; websiteId: string }) { return <Panel className={styles.c12}><PanelHeader action=\"Full analysis\" href=\"/audits\" subtitle=\"latest saved audit and DataForSEO overlap\" title=\"Competitors\" />{result.state !== \"ready\" || !result.data ? <div className={styles.panelEmpty}><p>{result.message}</p><Link href=\"/audits\">Open website audits</Link></div> : <div className={styles.competitorBody}><div><table><thead><"
   },
   {
-    "control_id": "src/components/rebound-core/home-dashboard.tsx:24:Link:1",
+    "control_id": "src/components/rebound-core/home-dashboard.tsx:26:Link:1",
     "file": "src/components/rebound-core/home-dashboard.tsx",
-    "line": 24,
+    "line": 26,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Your progress for <b>{view.websiteLabel}</b>. Connect your data to see what your work is earn"
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}>{showCoachReturn && <div className={coachStyles.returnBar}><Link href={siteScopedHref(\"/app/home\", view.websiteId)}>← Back to your coach</Link></div>}<header className={styles.greeti"
+  },
+  {
+    "control_id": "src/components/rebound-core/home-dashboard.tsx:26:Link:2",
+    "file": "src/components/rebound-core/home-dashboard.tsx",
+    "line": 26,
+    "type": "Link",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}>{showCoachReturn && <div className={coachStyles.returnBar}><Link href={siteScopedHref(\"/app/home\", view.websiteId)}>← Back to your coach</Link></div>}<header className={styles.greeti"
   },
   {
     "control_id": "src/components/rebound-core/home-keywords.tsx:12:Link:1",

@@ -43,7 +43,7 @@ export function CoachHome({ view, children, dashboardOpen = false }: { view: Reb
   const move = items[selected];
   const onDeck = items.filter((item) => item.id !== move?.id).slice(0, 3);
   const href = (path: string) => siteScopedHref(path, view.websiteId);
-  if (dashboardOpen) return <><div className={styles.returnBar}><Link href={href("/app/home")}>← Back to your coach</Link></div>{children}</>;
+  if (dashboardOpen) return <>{children}</>;
   return <ReboundCoreShell active="/app/home" coach queue={view.queue} searchConnected={view.searchConsole.state === "ready" || view.searchConsole.state === "empty"} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites} title="Your coach" subtitle="Your comeback starts with this move.">
     <div className={styles.stage} data-coach-home="warmup" data-coach-design="preserved">
       <div className={styles.workspaceAccess}><Link className={styles.quiet} href={href("/app/home?view=dashboard")}>Open full workspace</Link></div>
