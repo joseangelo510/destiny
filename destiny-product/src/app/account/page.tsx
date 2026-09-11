@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { AccountSettings } from "@/components/account-settings";
 import { WorkspaceShell } from "@/components/workspace-shell";
@@ -26,7 +27,7 @@ export default async function AccountPage() {
   const byWebsite = new Map((preferences ?? []).map((preference) => [String(preference.website_id), preference]));
   const latestSendByWebsite = new Map<string, Record<string, unknown>>();
   for (const send of digestSends ?? []) if (!latestSendByWebsite.has(String(send.website_id))) latestSendByWebsite.set(String(send.website_id), send);
-  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and control where and how often Rebound SEO sends updates."><AccountSettings activeWebsiteId={context.website?.id ?? null} loginEmail={loginEmail} notificationEmail={context.website?.notification_email ?? context.profile?.contact_email ?? null} websites={context.websites.map((website) => {
+  return <WorkspaceShell active="/account" eyebrow="Account settings" title="Your account" description="See exactly which email is signed in and control where and how often Rebound SEO sends updates."><p><Link className="secondary-button" href="/account/password?next=%2Faccount">Set or change your password</Link></p><AccountSettings activeWebsiteId={context.website?.id ?? null} loginEmail={loginEmail} notificationEmail={context.website?.notification_email ?? context.profile?.contact_email ?? null} websites={context.websites.map((website) => {
     const preference = byWebsite.get(website.id);
     const latestSend = latestSendByWebsite.get(website.id);
     const frequency = preference?.ranking_digest_frequency;
