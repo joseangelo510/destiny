@@ -4,7 +4,7 @@ test("login cooldown explains retry and keeps the workspace destination", async 
   const params = new URLSearchParams({ email: "sam@example.com", next: "/app/content?site=test", retry: "2", error: "Please wait before requesting another sign-in link." });
   await page.goto(`/login?${params}`);
   await expect(page.getByLabel("Email address")).toHaveValue("sam@example.com");
-  await expect(page.getByRole("alert")).toContainText("Please wait");
+  await expect(page.locator(".login-card").getByRole("alert")).toContainText("Please wait");
   await expect(page.getByRole("button", { name: /Try again in/ })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Email me a sign-in link" })).toBeEnabled({ timeout: 5000 });
   await expect(page.locator('input[name="next"]')).toHaveValue("/app/content?site=test");
