@@ -13,7 +13,7 @@ on:
       release_tag:
         description: Immutable release tag; any other value is refused
         required: true
-        default: rebound-seo-v1.1.9
+        default: rebound-seo-v1.1.10
         type: string
 
 concurrency:
@@ -26,18 +26,18 @@ permissions:
   packages: write
 
 env:
-  RELEASE_SHA: 0139481c92c7085dafa3f504481104c43970a400
-  RELEASE_TAG: rebound-seo-v1.1.9
-  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.9-prod
+  RELEASE_SHA: b26f9c6590667c383df96a0b2cb9620bcfdcbe0b
+  RELEASE_TAG: rebound-seo-v1.1.10
+  PRODUCTION_IMAGE_TAG: rebound-seo-v1.1.10-prod
   PRODUCTION_SITE_URL: https://app.reboundseo.com
   PRODUCTION_SUPABASE_REF: etkksjebqgtkkdqznnxa
   STAGING_SUPABASE_REF: titjatewvcjiuhisoppp
   FLY_APP: destiny-production
   FLY_REGION: sjc
   PRIOR_MACHINE_ID: 860714be531938
-  PRIOR_IMAGE_DIGEST: sha256:58c830e83ce54d4c791c0982bb74d5dcc44e0d572dfe9fde6f8266a82e39ec9c
-  PRIOR_RELEASE_SHA: ebef11852207e268ebd0450add7dd2b2a77bda96
-  PRIOR_RELEASE_TAG: rebound-seo-v1.1.8
+  PRIOR_IMAGE_DIGEST: sha256:7c69d6862847e50998156908106bea62b774ece0ef181e5308c155782492d675
+  PRIOR_RELEASE_SHA: 0139481c92c7085dafa3f504481104c43970a400
+  PRIOR_RELEASE_TAG: rebound-seo-v1.1.9
   PRIOR_SITE_URL: https://app.reboundseo.com
 
 jobs:
