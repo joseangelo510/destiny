@@ -26,7 +26,7 @@ export function ProductNavigation({ active, websiteId, websites }: { active: str
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
-  const current = websites.find(site => site.id === websiteId) ?? websites[0];
+  const current = websites.find(site => site.id === websiteId);
   const href = (path: string) => siteScopedHref(path, websiteId);
   useEffect(() => {
     if (!open) return;
@@ -54,7 +54,7 @@ export function ProductNavigation({ active, websiteId, websites }: { active: str
     <aside className={`${styles.sidebar} ${open ? styles.open : ""}`} ref={panel} aria-label="Workspace navigation">
       <button className={styles.close} aria-label="Close navigation" onClick={() => { setOpen(false); trigger.current?.focus(); }}>Close</button>
       <Link className={styles.wordmark} href={href("/app/home")} aria-label="Rebound SEO workspace home">Rebound <em>SEO.</em></Link>
-      {current ? <details className={styles.site}><summary aria-label={`Current website: ${name(current)}. Choose another website.`}>{name(current)}<span className={`${styles.icon} ${styles.caret}`} aria-hidden="true" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(active,site.id)} aria-current={site.id === current.id ? "true" : undefined}>{name(site)}<small>{site.normalized_domain}</small></a>)}<Link href="/onboarding?new=1">+ Add another website</Link></div></details> : <Link className={styles.add} href="/onboarding?new=1">Add your first website</Link>}
+      {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : "Choose a website"}>{current ? name(current) : "Choose a website"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden="true" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(active,site.id)} aria-current={site.id === current?.id ? "true" : undefined}>{name(site)}<small>{site.normalized_domain}</small></a>)}<Link href="/onboarding?new=1">+ Add another website</Link></div></details> : <Link className={styles.add} href="/onboarding?new=1">Add your first website</Link>}
       <nav aria-label="Main navigation">{primary.map(itemLink)}</nav>
       <p className={styles.divider}>All tools</p>
       <nav aria-label="All tools" className={styles.tools}>{tools.map(itemLink)}</nav>

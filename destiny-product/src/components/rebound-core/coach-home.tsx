@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { CoreMove, ReboundHomeView } from "@/lib/rebound-core/contracts";
 import { siteScopedHref } from "@/lib/workspace-selection";
 import { ReboundCoreShell } from "./rebound-core-shell";
@@ -37,27 +37,16 @@ function StatusStrip({ view }: { view: ReboundHomeView }) {
 }
 
 export function CoachHome({ view, children, dashboardOpen = false }: { view: ReboundHomeView; children: ReactNode; dashboardOpen?: boolean }) {
-  const [workspaceOpen, setWorkspaceOpen] = useState(dashboardOpen);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const workspaceButton = useRef<HTMLButtonElement>(null);
-  const coachButton = useRef<HTMLButtonElement>(null);
   const items = view.queue.state === "ready" ? view.queue.data?.items ?? [] : [];
   const selected = Math.max(0, items.findIndex((item) => item.id === selectedId));
   const move = items[selected];
   const onDeck = items.filter((item) => item.id !== move?.id).slice(0, 3);
   const href = (path: string) => siteScopedHref(path, view.websiteId);
-  function openWorkspace() {
-    setWorkspaceOpen(true);
-    requestAnimationFrame(() => coachButton.current?.focus());
-  }
-  function openCoach() {
-    setWorkspaceOpen(false);
-    requestAnimationFrame(() => workspaceButton.current?.focus());
-  }
-  if (workspaceOpen) return <><div className={styles.returnBar}><button ref={coachButton} type="button" onClick={openCoach}>← Back to your coach</button></div>{children}</>;
+  if (dashboardOpen) return <><div className={styles.returnBar}><Link href={href("/app/home")}>← Back to your coach</Link></div>{children}</>;
   return <ReboundCoreShell active="/app/home" coach queue={view.queue} searchConnected={view.searchConsole.state === "ready" || view.searchConsole.state === "empty"} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites} title="Your coach" subtitle="Your comeback starts with this move.">
     <div className={styles.stage} data-coach-home="warmup" data-coach-design="preserved">
-      <div className={styles.workspaceAccess}><button ref={workspaceButton} className={styles.quiet} type="button" onClick={openWorkspace}>Open full workspace</button></div>
+      <div className={styles.workspaceAccess}><Link className={styles.quiet} href={href("/app/home?view=dashboard")}>Open full workspace</Link></div>
       <StatusStrip view={view} />
       <section className={styles.hero} aria-labelledby="coach-title" data-session-queue>
         <p className={styles.kicker}>Today’s move</p>
@@ -69,7 +58,7 @@ export function CoachHome({ view, children, dashboardOpen = false }: { view: Reb
           {move ? <DoneDefinition move={move} /> : null}
         </div>
         <div className={styles.actions}>
-          {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === "draft" ? "Review article" : "Open this move"}<span className={styles.arrow} aria-hidden="true" /></Link> : <button className={styles.primary} type="button" onClick={openWorkspace}>Explore your workspace</button>}
+          {move ? <Link className={styles.primary} href={href(move.href)}>{move.state === "draft" ? "Review article" : "Open this move"}<span className={styles.arrow} aria-hidden="true" /></Link> : <Link className={styles.primary} href={href("/app/home?view=dashboard")}>Explore your workspace</Link>}
           {items.length > 1 ? <button className={styles.quiet} type="button" onClick={() => setSelectedId(items[(selected + 1) % items.length].id)}>See another move</button> : null}
         </div>
       </section>
