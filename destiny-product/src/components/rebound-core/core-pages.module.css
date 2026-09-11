@@ -68,7 +68,7 @@
 .articleBody { min-height: 520px; padding: 26px 28px 42px; color: var(--ink); font-family: var(--serif); font-size: 16px; line-height: 1.8; white-space: pre-wrap; }
 .articleRail { display: grid; gap: 14px; }
 .railAction { display: grid; gap: 10px; padding: 20px; border-radius: 16px; background: var(--forest); color: #fff; }
-.railAction > span { color: #cdb7c0; font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.railAction > span { color: #dfcdd4; font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 .railAction h3 { margin: 0; font-family: var(--serif); font-size: 20px; font-weight: 500; }
 .railAction p { color: #dfcdd4; font-size: 12px; }
 .approvalActions { display: grid; gap: 8px; }
@@ -108,7 +108,7 @@
 
 .calendarActions { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 1.4fr); gap: 16px 22px; align-items: end; padding: 20px; border-radius: 16px; background: var(--forest); color: #fff; }
 .calendarActions > div:first-child { align-self: start; }
-.calendarActions > div:first-child > span { color: #cdb7c0; font-size: 10px; font-weight: 800; letter-spacing: .04em; }
+.calendarActions > div:first-child > span { color: #dfcdd4; font-size: 10px; font-weight: 800; letter-spacing: .04em; }
 .calendarActions h3 { margin: 5px 0 7px; font-family: var(--serif); font-size: 21px; font-weight: 500; }
 .calendarActions p { max-width: 62ch; color: #dfcdd4; font-size: 11.5px; line-height: 1.5; }
 .calendarActionForm { display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, .8fr); gap: 10px; }
@@ -175,7 +175,7 @@
 .milestones i { position: relative; height: 6px; overflow: hidden; border-radius: 999px; background: var(--well); }
 .milestones i b { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--forest); }
 .progressReport { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 18px 20px; border-radius: 16px; background: var(--forest); color: #fff; }
-.progressReport > div:first-child > span { color: #cdb7c0; font-size: 9.5px; font-weight: 800; letter-spacing: .05em; }
+.progressReport > div:first-child > span { color: #dfcdd4; font-size: 9.5px; font-weight: 800; letter-spacing: .05em; }
 .progressReport h2 { margin: 5px 0 6px; font-family: var(--serif); font-size: 20px; font-weight: 500; }
 .progressReport p { color: #dfcdd4; font-size: 11px; line-height: 1.5; }
 .progressReport p strong { color: #fff; }

@@ -15,7 +15,7 @@
 
 .work { grid-column: span 5; display: flex; min-width: 0; overflow: hidden; flex-direction: column; border: 1px solid var(--forest); border-radius: 16px; background: var(--card); }
 .coach { background: var(--forest); color: #f3ecef; }
-.coachHeader { display: flex; align-items: center; gap: 10px; padding: 15px 18px 0; color: #cdb7c0; font-size: 11.5px; font-weight: 600; }
+.coachHeader { display: flex; align-items: center; gap: 10px; padding: 15px 18px 0; color: #dfcdd4; font-size: 11.5px; font-weight: 600; }
 .coachHeader div { display: flex; gap: 4px; margin-left: auto; }
 .coachHeader i { width: 22px; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, .15); }
 .coachHeader i.now { background: rgba(255, 255, 255, .5); }
@@ -26,7 +26,7 @@
 .doneDefinition { margin-top: 11px; padding: 10px 13px; border-radius: 11px; background: rgba(255, 255, 255, .08); color: #e8dbe0; font-size: 12px; }
 .doneDefinition b { color: var(--lime); }
 .coachActions { display: flex; align-items: center; gap: 12px; margin-top: 13px; flex-wrap: wrap; }
-.skip { border: 0; background: transparent; color: #cdb7c0; cursor: pointer; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.skip { border: 0; background: transparent; color: #dfcdd4; cursor: pointer; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .queue { flex: 1; padding: 12px 18px 14px; }
 .queueHeading { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
 .queueHeading span { color: var(--forest); font-size: 11.5px; font-weight: 700; }
@@ -44,7 +44,7 @@
 .queueFoot { margin-top: 8px; color: var(--ink-soft); font-size: 11.5px; }
 .workCalm { min-height: 390px; }
 .workCalm .coach { padding: 18px; }
-.workCalm .coach > span { color: #cdb7c0; font-size: 11px; }
+.workCalm .coach > span { color: #dfcdd4; font-size: 11px; }
 .workCalm .coach h2 { margin-top: 5px; font-family: var(--serif); font-size: 20px; }
 .workCalm .coach p { margin-top: 8px; color: #dfcdd4; }
 .queueEmpty { padding: 18px; color: var(--ink-soft); }
