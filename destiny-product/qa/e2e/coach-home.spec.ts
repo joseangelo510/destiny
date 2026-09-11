@@ -24,9 +24,11 @@ test("@gate Warm-up coach focuses real work and keeps the full workspace reachab
   await expect(swap).toBeVisible();
   await swap.click();
   await expect(page.locator("[data-coach-title]")).not.toHaveText(firstTitle);
-  await page.getByText("Your full system, one tap away", { exact: false }).click();
-  await expect(page.getByRole("navigation", { name: "Existing Rebound SEO tools", exact: true })).toBeVisible();
-  for (const link of await page.getByRole("navigation", { name: "Existing Rebound SEO tools", exact: true }).getByRole("link").all()) {
+  const mobile = testInfo.project.name === "mobile";
+  if (mobile) await page.getByText("Your full system, one tap away", { exact: false }).click();
+  const tools = page.getByRole("navigation", { name: mobile ? "Mobile workspace tools" : "Existing Rebound SEO tools", exact: true });
+  await expect(tools).toBeVisible();
+  for (const link of await tools.getByRole("link").all()) {
     expect(await link.getAttribute("href")).toContain(`site=${fixture.mvp.websiteId}`);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -38,8 +40,8 @@ test("@gate Warm-up coach focuses real work and keeps the full workspace reachab
   await page.getByRole("button", { name: "Back to your coach", exact: false }).click();
   await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
   expect(writes).toEqual([]);
-  await page.getByLabel(/Current website:.*Choose another website/).click();
-  await page.locator(`[data-site-switch="${fixture.alpha.websiteId}"]`).click();
+  await page.getByLabel(/Current website:.*Choose another website/).filter({ visible: true }).click();
+  await page.locator(`[data-site-switch="${fixture.alpha.websiteId}"]`).filter({ visible: true }).click();
   await expect(page).toHaveURL(new RegExp(`site=${fixture.alpha.websiteId}`));
   await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
   expect(errors).toEqual([]);

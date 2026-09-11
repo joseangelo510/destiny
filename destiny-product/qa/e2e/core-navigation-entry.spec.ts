@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
 const fixture = fixturePath ? JSON.parse(readFileSync(fixturePath, "utf8")) as { mvp: { websiteId: string } } : null;
-const coreTabs = ["Home", "Content", "Calendar", "Distribution", "Progress"];
+const coreTabs = ["Coach", "Content", "Calendar", "Distribution", "Progress"];
 
 test.describe("@gate core navigation from returning-user entry and existing tools", () => {
   test("default workspace and returning onboarding land on the shipped Home", async ({ page }) => {
@@ -31,11 +31,11 @@ test.describe("@gate core navigation from returning-user entry and existing tool
       for (const label of coreTabs) {
         const link = navigation.getByRole("link", { name: label, exact: true });
         await expect(link).toBeVisible();
-        await expect(link).toHaveAttribute("href", `/app/${label.toLowerCase()}?site=${fixture.mvp.websiteId}`);
+        await expect(link).toHaveAttribute("href", `/app/${label === "Coach" ? "home" : label.toLowerCase()}?site=${fixture.mvp.websiteId}`);
       }
       const overflow = await page.evaluate(() => [...document.querySelectorAll("body *")].filter((element) => element.getBoundingClientRect().right > innerWidth + 1).slice(0, 12).map((element) => ({ tag: element.tagName, class: element.className, right: element.getBoundingClientRect().right })));
       expect(await page.evaluate(() => document.documentElement.scrollWidth), JSON.stringify(overflow)).toBeLessThanOrEqual(mobile ? 390 : 1360);
-      await navigation.getByRole("link", { name: "Home", exact: true }).click();
+      await navigation.getByRole("link", { name: "Coach", exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/app/home\\?site=${fixture.mvp.websiteId}$`));
       await expect(page.locator('[data-coach-home="warmup"]')).toBeVisible();
     }

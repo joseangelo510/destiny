@@ -44,7 +44,7 @@ describe("Rebound redesign Slice 1", () => {
 
     expect(html).toContain("Choose another website");
     expect(html).toContain("ClearCheck");
-    expect(html).toContain(`/app/home?site=${secondWebsiteId}`);
+    expect(html).toContain(`/app/home?view=dashboard&amp;site=${secondWebsiteId}`);
     expect(html).toContain(`data-site-switch="${secondWebsiteId}"`);
   });
 
