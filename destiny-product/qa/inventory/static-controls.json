@@ -1788,7 +1788,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<header className=\"processing-header\"> <Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button>"
+    "context": "<header className=\"processing-header\"> <Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:130:button:1",
@@ -1797,7 +1797,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
+    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:130:onClick:2",
@@ -1806,7 +1806,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
+    "context": "<Link className=\"brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <button aria-label={celebrationPreferences.muted ? \"Turn Rebound SEO sounds on\" : \"Mute Rebound SEO sounds\"} className=\"onboarding-sound-toggle\" disabled={!celebrationsReady} onClick={toggleSound} type=\"button\">{celebrationPreferences.muted ? \"Sound off\" : \"♪ Sound on\"}</button> </header>"
   },
   {
     "control_id": "src/components/audit-momentum-processing.tsx:167:button:1",
@@ -4677,7 +4677,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "<header className=\"guided-onboarding-header\"> <Link className=\"brand\" href=\"/\" aria-label=\"Return to Rebound SEO home\"><span className=\"brand-mark\">D</span><span>Rebound SEO</span></Link> <span className=\"live-connection\"><i />Live SEO data connected</span>"
+    "context": "<header className=\"guided-onboarding-header\"> <Link className=\"brand\" href=\"/\" aria-label=\"Return to Rebound SEO home\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <span className=\"live-connection\"><i />Live SEO data connected</span>"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:267:button:1",
@@ -6270,7 +6270,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Current evidence for <b>{view.websiteLabel}</b> · missing sources stay visibly empty instead "
+    "context": "const searchConnected = view.searchConsole.state === \"ready\" || view.searchConsole.state === \"empty\"; return <ReboundCoreShell active=\"/app/home\" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Your progress for <b>{view.websiteLabel}</b>. Connect your data to see what your work is earn"
   },
   {
     "control_id": "src/components/rebound-core/home-keywords.tsx:12:Link:1",

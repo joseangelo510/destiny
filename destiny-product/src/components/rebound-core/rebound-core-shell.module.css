@@ -1,25 +1,25 @@
 .stage {
-  --paper: #f6f2e8;
-  --well: #ede7d7;
-  --card: #fbf8f1;
-  --ink: #182720;
-  --ink-soft: #42544a;
-  --forest: #1e4634;
-  --forest-deep: #143324;
-  --sage: #9fbca4;
-  --sage-line: #cfdacb;
-  --sage-soft: #dce4d8;
-  --mint: #dfebdd;
-  --mint-deep: #cbdcc7;
-  --lime: #c9e23f;
-  --lime-ink: #3a4a0b;
+  --paper: #fbf6f4;
+  --well: #f2e8ec;
+  --card: #fffcfa;
+  --ink: #241119;
+  --ink-soft: #715d68;
+  --forest: #9e1b40;
+  --forest-deep: #72132f;
+  --sage: #bc9fab;
+  --sage-line: #dacbd1;
+  --sage-soft: #e4d8dd;
+  --mint: #f8e8ee;
+  --mint-deep: #dcc7d0;
+  --lime: #f3bfd0;
+  --lime-ink: #72132f;
   --amber: #8a5a2b;
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --serif: var(--font-display);
+  --sans: var(--font-body);
   flex: 1;
   min-height: 100vh;
   padding: 20px;
-  background: #e8e2d2;
+  background: #f2e8ec;
   color: var(--ink);
   font-family: var(--sans);
   font-size: 14px;
@@ -112,11 +112,11 @@
   padding: 11px 12px;
   border-radius: 12px;
   background: var(--forest);
-  color: #eff3ec !important;
+  color: #f3ecef !important;
 }
 
 .sessionPill small, .sessionPill strong, .sessionPill span { display: block; }
-.sessionPill small { color: #b7cdb9; font-size: 10.5px; font-weight: 600; }
+.sessionPill small { color: #dfcdd4; font-size: 10.5px; font-weight: 600; }
 .sessionPill strong { margin-top: 4px; font-size: 13px; line-height: 1.3; }
 .sessionPill span { margin-top: 8px; color: var(--lime); font-size: 11.5px; font-weight: 700; }
 .sessionPillCalm { background: var(--mint); color: var(--forest) !important; }
@@ -242,18 +242,18 @@
 .evidence_verified { color: var(--lime-ink); font-weight: 600; }
 .evidence_verified::before { border: 0; background: var(--lime); box-shadow: 0 0 0 3px rgba(201, 226, 63, .2); }
 .move { padding: 3px 10px; border: 1px solid var(--mint-deep); background: var(--mint); color: var(--forest); font-size: 11px; font-weight: 700; }
-.move_hot { border-color: #b5cc30; background: var(--lime); color: var(--lime-ink); }
+.move_hot { border-color: #9a6279; background: var(--lime); color: var(--lime-ink); }
 .move_quiet { border-color: var(--sage-line); background: transparent; color: var(--ink-soft); }
 .stage a.move { color: var(--forest); }
 .stage a.move_hot { color: var(--lime-ink); }
 .stage a.move_quiet { color: var(--ink-soft); }
-.primaryAction { display: inline-flex; padding: 10px 18px; border-radius: 11px; background: var(--lime); box-shadow: 0 3px 0 #8fa32a; color: var(--lime-ink) !important; font-size: 13.5px; font-weight: 700; }
+.primaryAction { display: inline-flex; padding: 10px 18px; border-radius: 11px; background: var(--lime); box-shadow: 0 3px 0 #7d5063; color: var(--lime-ink) !important; font-size: 13.5px; font-weight: 700; }
 
-.needsYou { display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-radius: 14px; background: var(--forest); color: #eff3ec; }
-.needsYou > span { color: #b7cdb9; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; }
+.needsYou { display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-radius: 14px; background: var(--forest); color: #f3ecef; }
+.needsYou > span { color: #dfcdd4; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; }
 .needsYou div { flex: 1; }
 .needsYou strong, .needsYou small { display: block; }
-.needsYou small { color: #cfe0cc; font-size: 12px; }
+.needsYou small { color: #dfcdd4; font-size: 12px; }
 .needsYouCalm { background: var(--mint); color: var(--forest); }
 .needsYou.needsYouCalm > span, .needsYouCalm small { color: var(--ink-soft); }
 .statusStrip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }

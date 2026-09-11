@@ -126,7 +126,7 @@ export function AuditMomentumProcessing({
   return <main className={`processing-shell momentum-processing ${failed ? "failed" : complete ? "complete" : "running"}`}>
     <section className="processing-card momentum-processing-card">
       <header className="processing-header">
-        <Link className="brand" href="/"><span className="brand-mark">D</span><span>Rebound SEO</span></Link>
+        <Link className="brand" href="/"><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
         <button aria-label={celebrationPreferences.muted ? "Turn Rebound SEO sounds on" : "Mute Rebound SEO sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button>
       </header>
       <div className="momentum-processing-grid">

@@ -67,7 +67,7 @@ export function CoachHome({ view, children }: { view: ReboundHomeView; children:
       </header>
       <StatusStrip view={view} />
       <section className={styles.hero} aria-labelledby="coach-title" data-session-queue>
-        <p className={styles.kicker}>One move today. Everything else is ambient.</p>
+        <p className={styles.kicker}>Your comeback, one clear move at a time.</p>
         <div aria-live="polite" aria-atomic="true" className={styles.focus}>
           <h1 id="coach-title" data-coach-title>{move?.title ?? (view.queue.state === "error" ? "Your next move is temporarily unavailable." : view.queue.state === "loading" ? "Finding your next move…" : view.queue.state === "not_connected" ? "Connect your workspace to find your next move." : "Nothing needs you right now.")}</h1>
           <p className={styles.why}>{move ? <>{move.description} <strong>{move.why}.</strong></> : view.queue.message || "Your existing tools and saved work are ready whenever you need them."}</p>

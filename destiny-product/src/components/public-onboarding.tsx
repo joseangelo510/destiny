@@ -262,16 +262,16 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
   return (
     <main className="guided-onboarding-shell">
       <header className="guided-onboarding-header">
-        <Link className="brand" href="/" aria-label="Return to Rebound SEO home"><span className="brand-mark">D</span><span>Rebound SEO</span></Link>
+        <Link className="brand" href="/" aria-label="Return to Rebound SEO home"><span className="brand-mark">R</span><span>Rebound SEO</span></Link>
         <span className="live-connection"><i />Live SEO data connected</span>
         <div className="guided-header-actions"><button aria-label={celebrationPreferences.muted ? "Turn Rebound SEO sounds on" : "Mute Rebound SEO sounds"} className="onboarding-sound-toggle" disabled={!celebrationsReady} onClick={toggleSound} type="button">{celebrationPreferences.muted ? "Sound off" : "♪ Sound on"}</button><button aria-label="Open notifications" className="guided-notification" title="Notifications become available after your audit starts" type="button">◇</button></div>
       </header>
 
       <div className="guided-onboarding-layout">
         <aside className="guided-onboarding-intro">
-          <p className="eyebrow">Your guided SEO starting line</p>
-          <h1>Build the momentum to be found.</h1>
-          <p>You bring the business knowledge. Rebound SEO turns it into the research, priorities, and weekly coaching an SEO agency would normally prepare.</p>
+          <p className="eyebrow">Your comeback starts here</p>
+          <h1>A fresh start. Built around you.</h1>
+          <p>Leave the vague reports and wasted time behind. Tell your story once. Rebound SEO uses it to build your research, priorities, and weekly plan—with you in control.</p>
           <div className="onboarding-momentum-summary"><CompassCompanion ariaLabel={`${onboardingJourney.completedCount} of ${ONBOARDING_MOMENTUM_STAGES.length} onboarding building blocks complete`} compact completed={onboardingJourney.completedCount} total={ONBOARDING_MOMENTUM_STAGES.length} /><div><span>Your path</span><strong>{onboardingJourney.completedCount} of {ONBOARDING_MOMENTUM_STAGES.length} building blocks complete</strong><div aria-hidden="true" className="onboarding-momentum-track"><span style={{ width: `${onboardingJourney.percent}%` }} /></div></div></div>
           <ol aria-label="Onboarding journey" className="guided-stage-list">
             {onboardingJourney.stages.map((stage, index) => {

@@ -14,14 +14,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {params.sent === "1" ? (
           <>
             <div className="eyebrow">Check your inbox</div>
-            <h1>Your path is waiting.</h1>
+            <h1>Your next chapter is waiting.</h1>
             <p>We sent a secure sign-in link to <strong>{params.email}</strong>. Open it in this browser to continue.</p>
             <a className="secondary-button login-link" href="/login">Use another email</a>
           </>
         ) : (
           <>
-            <div className="eyebrow">Welcome to Rebound SEO</div>
-            <h1>Make SEO a habit that compounds.</h1>
+            <div className="eyebrow">Log in to Rebound SEO</div>
+            <h1>Your next chapter starts here.</h1>
             <p>Enter your email. No password required—we’ll send you a secure sign-in link.</p>
             <form action={sendMagicLink}>
               <input name="next" type="hidden" value={params.next ?? "/app"} />

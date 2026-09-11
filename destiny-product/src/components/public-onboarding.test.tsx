@@ -10,7 +10,7 @@ describe("PublicOnboarding momentum experience", () => {
     const html = renderToStaticMarkup(<PublicOnboarding initialMomentumPolicy={initialMomentumPolicy} />);
     const source = readFileSync(new URL("./public-onboarding.tsx", import.meta.url), "utf8");
 
-    expect(html).toContain("Build the momentum to be found");
+    expect(html).toContain("A fresh start. Built around you.");
     expect(html).toContain("Your path");
     expect(html).toContain("Let’s start with what is already true about your business");
     expect(html).toContain("Small steps. Real evidence. No SEO team required.");

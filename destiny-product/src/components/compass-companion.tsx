@@ -25,13 +25,13 @@ export function CompassCompanion({
     <svg aria-label={ariaLabel ?? `Rebound SEO compass illuminated to ${progress} percent`} role="img" viewBox="0 0 220 220">
       <defs>
         <radialGradient id="compass-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#d9ff75" stopOpacity=".95" />
-          <stop offset="70%" stopColor="#7dbb8e" stopOpacity=".35" />
-          <stop offset="100%" stopColor="#183f33" stopOpacity="0" />
+          <stop offset="0%" stopColor="#f3bfd0" stopOpacity=".95" />
+          <stop offset="70%" stopColor="#e02e5a" stopOpacity=".35" />
+          <stop offset="100%" stopColor="#241119" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="compass-needle" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="#d9ff75" />
-          <stop offset="100%" stopColor="#f0c34a" />
+          <stop offset="0%" stopColor="#f3bfd0" />
+          <stop offset="100%" stopColor="#e6c9a8" />
         </linearGradient>
       </defs>
       <circle className="compass-halo" cx="110" cy="110" r="100" fill="url(#compass-glow)" />
