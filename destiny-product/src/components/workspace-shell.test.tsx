@@ -102,9 +102,10 @@ describe("WorkspaceShell coaching hierarchy", () => {
 
   it("shows Internal links as a website-scoped tool between audits and content", () => {
     const html = renderToStaticMarkup(<WorkspaceShellView active="/internal-links" activeWebsiteId={site.id} description="Find links." eyebrow="example.com" title="Internal links" websites={[site]}><p>Work</p></WorkspaceShellView>);
-    expect(html).toContain(`href="/internal-links?site=${site.id}"`);
-    expect(html.indexOf(`href="/audits?site=${site.id}"`)).toBeLessThan(html.indexOf(`href="/internal-links?site=${site.id}"`));
-    expect(html.indexOf(`href="/internal-links?site=${site.id}"`)).toBeLessThan(html.lastIndexOf(`href="/content?site=${site.id}"`));
+    const navigation = html.match(/<nav aria-label="All tools"[^>]*>(.*?)<\/nav>/)?.[1] ?? "";
+    expect(navigation).toContain(`href="/internal-links?site=${site.id}"`);
+    expect(navigation.indexOf(`href="/audits?site=${site.id}"`)).toBeLessThan(navigation.indexOf(`href="/internal-links?site=${site.id}"`));
+    expect(navigation.indexOf(`href="/internal-links?site=${site.id}"`)).toBeLessThan(navigation.lastIndexOf(`href="/content?site=${site.id}"`));
   });
 
   it("keeps every tool and account action in the mobile drawer with a shrinkable site selector", async () => {
