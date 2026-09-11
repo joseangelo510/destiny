@@ -18,6 +18,11 @@ test("@gate Warm-up coach focuses real work and keeps the full workspace reachab
   const firstTitle = await page.locator("[data-coach-title]").innerText();
   const firstHref = await page.getByRole("link", { name: /^(Review the draft|Open this move)$/ }).getAttribute("href");
   expect(firstHref).toContain(`site=${fixture.mvp.websiteId}`);
+  if (width === 390) {
+    const action = await page.getByRole("link", { name: /^(Review the draft|Open this move)$/ }).boundingBox();
+    expect(action).not.toBeNull();
+    expect(action!.y + action!.height).toBeLessThan(780);
+  }
   await expect(page.getByRole("heading", { name: "What done looks like" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/glaze|pottery|5-minute|Since your last visit/i);
   const swap = page.getByRole("button", { name: "See another move", exact: true });
