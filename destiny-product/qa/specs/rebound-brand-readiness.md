@@ -10,7 +10,7 @@ Use the homepage's plum, pink and cream with lighter work screens. Visible name:
 
 ## Scope and preservation
 
-Update existing stylesheet palettes, local display/body fonts, login label, onboarding brand initial and copy, Coach kicker, companion artwork colors, and earned celebration copy. Preserve existing authentication actions, site selection, tenant isolation, integrations, SEO tools, approvals, records, and truthful result states. No data, auth, dependency, migration, deployment, or release changes.
+Update existing stylesheet palettes, local display/body fonts, login label, onboarding brand initial and copy, Coach kicker, companion artwork colors, earned celebration copy, and branding on newly generated fallback article artwork. Preserve existing authentication actions, site selection, tenant isolation, integrations, SEO tools, approvals, records, and truthful result states. No data, auth, dependency, migration, deployment, or release changes.
 
 ## Acceptance
 

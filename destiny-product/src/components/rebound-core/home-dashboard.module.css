@@ -24,7 +24,7 @@
 .coachBody h2 { margin: 0; font-family: var(--serif); font-size: 20px; font-weight: 500; line-height: 1.25; }
 .coachBody > p { margin-top: 7px; color: #dfcdd4; font-size: 12.5px; }
 .doneDefinition { margin-top: 11px; padding: 10px 13px; border-radius: 11px; background: rgba(255, 255, 255, .08); color: #e8dbe0; font-size: 12px; }
-.doneDefinition b { color: var(--lime); }
+.doneDefinition b { color: #fbf2ee; }
 .coachActions { display: flex; align-items: center; gap: 12px; margin-top: 13px; flex-wrap: wrap; }
 .skip { border: 0; background: transparent; color: #dfcdd4; cursor: pointer; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .queue { flex: 1; padding: 12px 18px 14px; }
