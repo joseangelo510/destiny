@@ -1,59 +1,59 @@
 .stack { display: grid; gap: 22px; max-width: 880px; }
 .card { background: #fff; border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 16px 40px rgba(23, 59, 48, .06); padding: clamp(25px, 4vw, 40px); }
 .heading span { color: var(--forest); display: block; font-size: 12px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-.heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 4vw, 44px); font-weight: 500; letter-spacing: -.04em; margin: 8px 0 10px; }
+.heading h2 { font-family: var(--font-display); font-size: clamp(30px, 4vw, 44px); font-weight: 500; letter-spacing: -.04em; margin: 8px 0 10px; }
 .heading p { color: var(--muted); font-size: 17px; line-height: 1.6; margin: 0; max-width: 710px; }
 .identityList { display: grid; gap: 12px; margin: 28px 0 0; }
-.identityList > div { background: #f6f8f5; border: 1px solid #e4e9e4; border-radius: 16px; padding: 20px; }
+.identityList > div { background: #f8f5f6; border: 1px solid #e9e4e6; border-radius: 16px; padding: 20px; }
 .identityList dt { color: var(--muted); font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .identityList dd { color: var(--forest-dark); font-size: 18px; font-weight: 800; margin: 7px 0; overflow-wrap: anywhere; }
 .identityList p { color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0; }
 .emailEditor { display: grid; gap: 7px; margin-top: 18px; }
 .emailEditor span { color: var(--muted); font-size: 13px; font-weight: 800; }
-.emailEditor input { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 48px; padding: 0 14px; }
+.emailEditor input { background: #fff; border: 1px solid #d8cfd3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 48px; padding: 0 14px; }
 .emailEditor input:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(48, 112, 88, .13); outline: 0; }
 .saveButton { background: var(--forest); border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 800; margin-top: 12px; min-height: 44px; padding: 0 17px; }
 .saveButton:disabled { cursor: not-allowed; opacity: .42; }
 .success { color: var(--forest) !important; font-weight: 750; margin-top: 10px !important; }
 .digestList { display: grid; gap: 14px; margin-top: 28px; }
-.digestRow { align-items: center; background: #f6f8f5; border: 1px solid #e1e8e3; border-radius: 18px; display: grid; gap: 16px; grid-template-columns: minmax(190px, 1fr) minmax(360px, auto); padding: 20px; }
+.digestRow { align-items: center; background: #f8f5f6; border: 1px solid #e8e1e4; border-radius: 18px; display: grid; gap: 16px; grid-template-columns: minmax(190px, 1fr) minmax(360px, auto); padding: 20px; }
 .digestIdentity { display: grid; gap: 4px; min-width: 0; }
 .digestIdentity strong { color: var(--forest-dark); font-size: 17px; }
 .digestIdentity span, .digestIdentity small { color: var(--muted); overflow-wrap: anywhere; }
 .digestIdentity span { font-size: 14px; }
 .digestIdentity small { font-size: 12px; line-height: 1.45; }
-.frequencyControl { background: #e8eeea; border-radius: 13px; display: grid; gap: 4px; grid-template-columns: 1.25fr 1fr .7fr; padding: 4px; }
-.frequencyControl button { align-items: center; background: transparent; border: 0; border-radius: 10px; color: #60716a; cursor: pointer; display: flex; flex-direction: column; font: inherit; font-size: 13px; font-weight: 800; justify-content: center; min-height: 48px; padding: 6px 12px; }
-.frequencyControl button small { color: #72837c; font-size: 10px; font-weight: 750; margin-top: 2px; }
+.frequencyControl { background: #eee8eb; border-radius: 13px; display: grid; gap: 4px; grid-template-columns: 1.25fr 1fr .7fr; padding: 4px; }
+.frequencyControl button { align-items: center; background: transparent; border: 0; border-radius: 10px; color: #716067; cursor: pointer; display: flex; flex-direction: column; font: inherit; font-size: 13px; font-weight: 800; justify-content: center; min-height: 48px; padding: 6px 12px; }
+.frequencyControl button small { color: #837279; font-size: 10px; font-weight: 750; margin-top: 2px; }
 .frequencyControl button[aria-pressed="true"] { background: #fff; box-shadow: 0 2px 9px rgba(23, 59, 48, .1); color: var(--forest); }
 .frequencyControl button[aria-pressed="true"] small { color: var(--forest); }
 .frequencyControl button:disabled { cursor: wait; opacity: .58; }
 .digestStatus { color: var(--muted); font-size: 13px; grid-column: 1 / -1; margin: -5px 0 0; }
-.websiteList { border: 1px solid #e4e9e4; border-radius: 18px; display: grid; margin-top: 28px; overflow: hidden; }
+.websiteList { border: 1px solid #e9e4e6; border-radius: 18px; display: grid; margin-top: 28px; overflow: hidden; }
 .websiteRow { align-items: center; background: #fff; display: flex; gap: 18px; justify-content: space-between; padding: 18px 20px; }
-.websiteRow + .websiteRow { border-top: 1px solid #e4e9e4; }
+.websiteRow + .websiteRow { border-top: 1px solid #e9e4e6; }
 .websiteIdentity { display: grid; gap: 5px; min-width: 0; }
 .websiteIdentity > span { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
 .websiteTitleLine { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; }
 .websiteTitleLine strong { color: var(--forest-dark); font-size: 17px; }
-.currentBadge { background: #e8f4ee; border-radius: 999px; color: var(--forest); font-size: 11px; font-weight: 850; letter-spacing: .04em; padding: 5px 9px; text-transform: uppercase; }
+.currentBadge { background: #f2eaed; border-radius: 999px; color: var(--forest); font-size: 11px; font-weight: 850; letter-spacing: .04em; padding: 5px 9px; text-transform: uppercase; }
 .websiteDeleteButton { background: transparent; border: 1px solid #d9b7b3; border-radius: 10px; color: #923c36; cursor: pointer; flex: 0 0 auto; font-size: 14px; font-weight: 800; min-height: 42px; padding: 0 14px; }
 .websiteDeleteButton:hover { background: #fff6f5; }
 .websiteDeleteButton:disabled { cursor: not-allowed; opacity: .45; }
 .websiteSafety, .emptyWebsites { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 14px 2px 0; }
-.emptyWebsites { background: #f6f8f5; border-radius: 14px; margin-top: 24px; padding: 18px; }
+.emptyWebsites { background: #f8f5f6; border-radius: 14px; margin-top: 24px; padding: 18px; }
 .websiteDeletePanel { background: #fff7f6; border: 1px solid #e9c9c5; border-radius: 16px; display: grid; gap: 18px; margin-top: 22px; padding: 22px; }
 .websiteDeletePanel > div:first-child > strong { color: #7e302b; font-size: 19px; }
 .websiteDeletePanel > div:first-child > p { color: #735b59; font-size: 15px; line-height: 1.55; margin: 7px 0 0; }
 .websiteDeletePanel .confirmation { margin-top: 0; }
 .websiteDeleteActions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
 .websiteDeleteActions .deleteButton { margin-top: 0; }
-.cancelButton { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--forest-dark); cursor: pointer; font-size: 15px; font-weight: 800; min-height: 48px; padding: 0 18px; }
+.cancelButton { background: #fff; border: 1px solid #d8cfd3; border-radius: 12px; color: var(--forest-dark); cursor: pointer; font-size: 15px; font-weight: 800; min-height: 48px; padding: 0 18px; }
 .cancelButton:disabled { cursor: not-allowed; opacity: .45; }
 .danger { border-color: #efd8d5; }
 .danger .heading span { color: #a43f38; }
 .confirmation { display: grid; font-size: 15px; gap: 9px; margin-top: 26px; }
-.confirmation input { background: #fff; border: 1px solid #cfd8d3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 50px; padding: 0 15px; }
+.confirmation input { background: #fff; border: 1px solid #d8cfd3; border-radius: 12px; color: var(--ink); font: inherit; min-height: 50px; padding: 0 15px; }
 .confirmation input:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(48, 112, 88, .13); outline: 0; }
 .deleteButton { background: #a43f38; border: 0; border-radius: 12px; color: #fff; cursor: pointer; font-size: 15px; font-weight: 800; margin-top: 17px; min-height: 48px; padding: 0 20px; }
 .deleteButton:disabled { cursor: not-allowed; opacity: .42; }

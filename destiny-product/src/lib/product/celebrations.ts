@@ -41,10 +41,10 @@ const SOUND_PATTERNS: Record<CelebrationKind, SoundStep[]> = {
 };
 
 const CELEBRATION_MESSAGES: Record<CelebrationKind, { title: string; detail: string }> = {
-  task_complete: { title: "Shipped.", detail: "Your roadmap moved forward." },
-  perfect_week: { title: "Perfect Week.", detail: "You completed every assigned step. That consistency compounds." },
+  task_complete: { title: "Shipped.", detail: "One more move in your comeback. Your roadmap moved forward." },
+  perfect_week: { title: "Perfect Week.", detail: "Your glow-up has receipts. You completed every assigned step this week." },
   verified_result: { title: "Verified result.", detail: "Connected evidence confirmed that your visibility is moving." },
-  roadmap_unlock: { title: "New ground unlocked.", detail: "Your completed work opened the next part of the journey." },
+  roadmap_unlock: { title: "Your next chapter.", detail: "Your completed work opened the next part of the journey." },
 };
 
 export function celebrationMessage(kind: CelebrationKind) {

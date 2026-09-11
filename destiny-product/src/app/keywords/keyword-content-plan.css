@@ -1,5 +1,5 @@
-.claude-ks-panel tr.approved:has(+ .claude-ks-plan-confirmation-row) { background: #f0f6f1; }
-.claude-ks-plan-confirmation-row > td { padding: 0 8px 8px !important; background: #f0f6f1; white-space: normal !important; }
+.claude-ks-panel tr.approved:has(+ .claude-ks-plan-confirmation-row) { background: #f6f0f3; }
+.claude-ks-plan-confirmation-row > td { padding: 0 8px 8px !important; background: #f6f0f3; white-space: normal !important; }
 .claude-ks-plan-confirmation { display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid var(--claude-sage-deep); border-radius: 6px; padding: 20px 24px; color: var(--claude-forest); }
 .claude-ks-plan-confirmation strong { font-size: 14px; font-weight: 600; }
 .claude-ks-plan-confirmation p { font-size: 13px; margin: 5px 0; overflow-wrap: anywhere; }
