@@ -11,8 +11,14 @@ test("@gate the preserved tools retain their complete pages under the new brand"
   await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
   const writes: string[] = [];
   const failures: string[] = [];
+  const reconciliations: Array<{ websiteId: string; articleKey: string }> = [];
   page.on("pageerror", (error) => failures.push(error.message));
-  page.on("request", (request) => { if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writes.push(request.url()); });
+  page.on("request", (request) => {
+    // The original publishing plan checks due WordPress receipts on load.
+    // Keep that behavior, scoped exclusively to the disposable fixture.
+    if (request.method() === "POST" && new URL(request.url()).pathname === "/api/integrations/cms/wordpress/reconcile") reconciliations.push(request.postDataJSON());
+    else if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) writes.push(request.url());
+  });
   const pages = ["/app/home", "/app/home?view=dashboard", "/app/content", "/app/calendar", "/app/distribution", "/app/progress", "/keywords", "/content", "/reviews", "/integrations"];
   for (const path of pages) {
     const response = await page.goto(`${path}${path.includes("?") ? "&" : "?"}site=${fixture.mvp.websiteId}`);
@@ -36,6 +42,10 @@ test("@gate the preserved tools retain their complete pages under the new brand"
     if (process.env.QA_CAPTURE_COACH === "1") {
       await page.screenshot({ path: testInfo.outputPath(`${path.replaceAll(/[^a-z0-9]/gi, "-")}.png`), fullPage: true });
     }
+  }
+  for (const receipt of reconciliations) {
+    expect(receipt.websiteId).toBe(fixture.mvp.websiteId);
+    expect(receipt.articleKey).toBeTruthy();
   }
   expect(writes).toEqual([]);
   expect(failures).toEqual([]);
