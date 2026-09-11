@@ -4,6 +4,8 @@ New product code must use `src/lib/db/`. These are the explicitly reviewed legac
 
 | Path | Class | Justification |
 | --- | --- | --- |
+| `src/app/login/password-actions.ts` | auth-bootstrap | D10.31: public password login/signup/recovery must precede workspace scope; password update calls getUser before user-scoped auth.updateUser. Uses only cookie-bound Auth methods, no database or admin client. |
+| `src/app/account/password/page.tsx` | auth-bootstrap | D10.31: validates getUser before rendering setup, including users without a workspace; no database access or admin client. |
 | `src/app/account/page.tsx` | legacy | Existing call site retained during the timeboxed scoped-client migration; RLS remains the primary boundary. |
 | `src/app/api/account/route.ts` | legacy | Existing call site retained during the timeboxed scoped-client migration; RLS remains the primary boundary. |
 | `src/app/api/audits/[id]/route.ts` | legacy | Existing call site retained during the timeboxed scoped-client migration; RLS remains the primary boundary. |

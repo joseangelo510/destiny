@@ -1,0 +1,7 @@
+# Password login, same account
+
+D10.31. Password login is the default and accepts Gmail, Yahoo and other valid email addresses. It uses Supabase signInWithPassword; it never silently signs up a failed login. Existing validated sessions can add a password through Account, preserving user ID, memberships and website IDs. Reset uses the existing PKCE callback and an authenticated password-setup screen. Signup honors provider confirmation. Email links remain optional, with the already-prepared PR121 cooldown guidance. No provider settings, SMTP, identity merges or database changes.
+
+Unit RED: password-actions.test.ts failed to import the unimplemented password-actions module. GREEN:12 auth tests passed. Existing page.test.ts expected a magic-link submit on the default login screen; updated deliberately to the approved password-first behavior and explicit optional fallback. Its original destination and confirmation-not-authenticated assertions remain. New browser tests were corrected to follow the existing signout redirect to home and the mobile Tools & reports menu; production signout is unchanged.
+
+Browser evidence must exercise wrong-password then successful login, validated same-user password change, signout/new-password signin, original website and outsider denial on independent desktop/mobile fixture accounts. Credentials exist only in the temporary loopback fixture, not production. Recovery, signup confirmation and provider errors remain separately covered; no email-delivery guarantee is inferred from a UI render.

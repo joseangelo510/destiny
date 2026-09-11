@@ -1,5 +1,41 @@
 [
   {
+    "control_id": "src/app/account/page.tsx:30:Link:1",
+    "file": "src/app/account/page.tsx",
+    "line": 30,
+    "type": "Link",
+    "route": "/account",
+    "side_effect_class": 2,
+    "context": "for (const send of digestSends ?? []) if (!latestSendByWebsite.has(String(send.website_id))) latestSendByWebsite.set(String(send.website_id), send); return <WorkspaceShell active=\"/account\" eyebrow=\"Account settings\" title=\"Your account\" description=\"See exactly which email is signed in and control where and how often Rebound SEO sends updates.\"><p><Link className=\"secondary-button\" href=\"/account/password?next=%2Faccount\">Set or change your password</Link></p><AccountSettings activeWebsiteId={c"
+  },
+  {
+    "control_id": "src/app/account/password/page.tsx:15:Link:1",
+    "file": "src/app/account/password/page.tsx",
+    "line": 15,
+    "type": "Link",
+    "route": "/account/password",
+    "side_effect_class": 0,
+    "context": "return <main className=\"login-shell\"><section className=\"login-card\"> <Link className=\"brand login-brand\" href={next}><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> <div className=\"eyebrow\">Your account, your way in</div>"
+  },
+  {
+    "control_id": "src/app/account/password/page.tsx:19:Link:1",
+    "file": "src/app/account/password/page.tsx",
+    "line": 19,
+    "type": "Link",
+    "route": "/account/password",
+    "side_effect_class": 1,
+    "context": "<p>Set a password for <strong>{data.user.email}</strong>. Your websites and saved work stay in this account.</p> {params.saved === \"1\" ? <><p role=\"status\">Password saved. Next time, use your email and password to log in.</p><Link className=\"primary-button login-link\" href={next}>Return to your workspace</Link></> : <PasswordForm mode=\"set\" next={next} error={params.error} />}"
+  },
+  {
+    "control_id": "src/app/account/password/page.tsx:21:Link:1",
+    "file": "src/app/account/password/page.tsx",
+    "line": 21,
+    "type": "Link",
+    "route": "/account/password",
+    "side_effect_class": 0,
+    "context": ": <PasswordForm mode=\"set\" next={next} error={params.error} />} <Link className=\"secondary-button login-link\" href={next}>Back to workspace</Link> </section></main>;"
+  },
+  {
     "control_id": "src/app/api/account/ranking-emails/route.ts:16:data-mutation:1",
     "file": "src/app/api/account/ranking-emails/route.ts",
     "line": 16,
@@ -810,58 +846,184 @@
     "context": "<div className=\"analytics-grid\"><article className=\"result-stat analytics-stat\"><strong>{Number(llm.totalMentions ?? 0).toLocaleString()}</strong><span>Company mentions</span><small>Across available tracked AI platforms</small></article><article className=\"result-stat analytics-stat\"><strong>{Number(llm.aiSearchVolume ?? 0).toLocaleString()}</strong><span>AI search volume</span><small>DataForSEO estimate</small></article>{platforms.map((platform) => <article className=\"result-stat analytics-stat"
   },
   {
-    "control_id": "src/app/login/page.tsx:13:Link:1",
+    "control_id": "src/app/login/login-form.tsx:9:button:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 9,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "const { pending } = useFormStatus(); return <button className=\"primary-button\" type=\"submit\" disabled={pending || remaining > 0} aria-busy={pending}> {pending ? \"Sending your link…\" : remaining > 0 ? `Try again in ${remaining}s` : resend ? \"Send another sign-in link\" : \"Email me a sign-in link\"}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:28:form:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 28,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "}, [cooldown]); return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} />"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:29:input:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 29,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "return <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:30:input:1",
+    "file": "src/app/login/login-form.tsx",
+    "line": 30,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>} {error && <div className=\"error-banner\" role=\"alert\">{error}</div>}"
+  },
+  {
+    "control_id": "src/app/login/login-form.tsx:30:input:2",
+    "file": "src/app/login/login-form.tsx",
+    "line": 30,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "<input name=\"next\" type=\"hidden\" value={next} /> {resend ? <input name=\"email\" type=\"hidden\" value={email} /> : <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" defaultValue={email} /></label>} {error && <div className=\"error-banner\" role=\"alert\">{error}</div>}"
+  },
+  {
+    "control_id": "src/app/login/page.tsx:21:Link:1",
     "file": "src/app/login/page.tsx",
-    "line": 13,
+    "line": 21,
     "type": "Link",
     "route": "/login",
     "side_effect_class": 0,
     "context": "<section className=\"login-card\"> <Link className=\"brand login-brand\" href=\"/\"><span className=\"brand-mark\">R</span><span>Rebound SEO</span></Link> {params.sent === \"1\" ? ("
   },
   {
-    "control_id": "src/app/login/page.tsx:19:a:1",
+    "control_id": "src/app/login/page.tsx:29:a:1",
     "file": "src/app/login/page.tsx",
-    "line": 19,
+    "line": 29,
+    "type": "a",
+    "route": "/login",
+    "side_effect_class": 2,
+    "context": "<LoginForm key={`sent:${params.email}:${params.attempt}`} email={params.email} next={next} cooldown={60} resend /> <a className=\"secondary-button login-link\" href={href(\"password\")}>Log in with password</a> <a className=\"password-nav\" href={href(\"link\", \"\")}>Use another email</a>"
+  },
+  {
+    "control_id": "src/app/login/page.tsx:30:a:1",
+    "file": "src/app/login/page.tsx",
+    "line": 30,
     "type": "a",
     "route": "/login",
     "side_effect_class": 0,
-    "context": "<p>We sent a secure sign-in link to <strong>{params.email}</strong>. Open it in this browser to continue.</p> <a className=\"secondary-button login-link\" href=\"/login\">Use another email</a> </>"
+    "context": "<a className=\"secondary-button login-link\" href={href(\"password\")}>Log in with password</a> <a className=\"password-nav\" href={href(\"link\", \"\")}>Use another email</a> </>"
   },
   {
-    "control_id": "src/app/login/page.tsx:26:form:1",
+    "control_id": "src/app/login/page.tsx:42:a:1",
     "file": "src/app/login/page.tsx",
-    "line": 26,
-    "type": "form",
+    "line": 42,
+    "type": "a",
     "route": "/login",
     "side_effect_class": 0,
-    "context": "<p>Enter your email. No password required—we’ll send you a secure sign-in link.</p> <form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} />"
+    "context": "<nav className=\"password-nav\" aria-label=\"Sign-in options\"> {mode === \"password\" ? <><a href={href(\"reset\")}>Set or reset password</a><a href={href(\"signup\")}>Create an account</a><a href={href(\"link\")}>Use an email link instead</a></> : <a href={href(\"password\")}>Back to password login</a>}"
   },
   {
-    "control_id": "src/app/login/page.tsx:27:input:1",
+    "control_id": "src/app/login/page.tsx:42:a:2",
     "file": "src/app/login/page.tsx",
-    "line": 27,
-    "type": "input",
+    "line": 42,
+    "type": "a",
     "route": "/login",
-    "side_effect_class": 2,
-    "context": "<form action={sendMagicLink}> <input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} /> <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" /></label>"
+    "side_effect_class": 0,
+    "context": "<nav className=\"password-nav\" aria-label=\"Sign-in options\"> {mode === \"password\" ? <><a href={href(\"reset\")}>Set or reset password</a><a href={href(\"signup\")}>Create an account</a><a href={href(\"link\")}>Use an email link instead</a></> : <a href={href(\"password\")}>Back to password login</a>}"
   },
   {
-    "control_id": "src/app/login/page.tsx:28:input:1",
+    "control_id": "src/app/login/page.tsx:42:a:3",
     "file": "src/app/login/page.tsx",
-    "line": 28,
-    "type": "input",
+    "line": 42,
+    "type": "a",
     "route": "/login",
-    "side_effect_class": 1,
-    "context": "<input name=\"next\" type=\"hidden\" value={params.next ?? \"/app\"} /> <label>Email address<input autoComplete=\"email\" name=\"email\" required type=\"email\" /></label> {params.error && <div className=\"error-banner\">{params.error}</div>}"
+    "side_effect_class": 0,
+    "context": "<nav className=\"password-nav\" aria-label=\"Sign-in options\"> {mode === \"password\" ? <><a href={href(\"reset\")}>Set or reset password</a><a href={href(\"signup\")}>Create an account</a><a href={href(\"link\")}>Use an email link instead</a></> : <a href={href(\"password\")}>Back to password login</a>}"
   },
   {
-    "control_id": "src/app/login/page.tsx:30:button:1",
+    "control_id": "src/app/login/page.tsx:43:a:1",
     "file": "src/app/login/page.tsx",
-    "line": 30,
+    "line": 43,
+    "type": "a",
+    "route": "/login",
+    "side_effect_class": 0,
+    "context": "{mode === \"password\" ? <><a href={href(\"reset\")}>Set or reset password</a><a href={href(\"signup\")}>Create an account</a><a href={href(\"link\")}>Use an email link instead</a></> : <a href={href(\"password\")}>Back to password login</a>} </nav>"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:12:button:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 12,
     "type": "button",
-    "route": "/login",
-    "side_effect_class": 0,
-    "context": "{params.error && <div className=\"error-banner\">{params.error}</div>} <button className=\"primary-button\" type=\"submit\">Email me a sign-in link</button> </form>"
+    "route": "component",
+    "side_effect_class": 2,
+    "context": "const label = { password: \"Log in\", signup: \"Create account\", reset: \"Send password recovery email\", set: \"Save password\" }[mode]; return <button className=\"primary-button\" type=\"submit\" disabled={pending} aria-busy={pending}>{pending ? \"Please wait…\" : label}</button>; }"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:18:form:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 18,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "const action = { password: signInWithPassword, signup: signUpWithPassword, reset: requestPasswordReset, set: savePassword }[mode]; return <form action={action}> <input name=\"next\" type=\"hidden\" value={next} />"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:19:input:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 19,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "return <form action={action}> <input name=\"next\" type=\"hidden\" value={next} /> {mode !== \"set\" && <label>Email address<input name=\"email\" type=\"email\" autoComplete=\"email\" defaultValue={email} required /></label>}"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:20:input:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 20,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<input name=\"next\" type=\"hidden\" value={next} /> {mode !== \"set\" && <label>Email address<input name=\"email\" type=\"email\" autoComplete=\"email\" defaultValue={email} required /></label>} {mode !== \"reset\" && <>"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:22:input:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 22,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{mode !== \"reset\" && <> <label>{isNew ? \"New password\" : \"Password\"}<input name=\"password\" type={visible ? \"text\" : \"password\"} autoComplete={isNew ? \"new-password\" : \"current-password\"} minLength={isNew ? 12 : undefined} maxLength={isNew ? 128 : 1024} required /></label> {isNew && <><p className=\"password-help\">Use 12–128 characters. A unique passphrase works well.</p><label>Confirm password<input name=\"confirmation\" type={visible ? \"text\" : \"password\"} autoComplete=\"new-password\" minLength={12"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:23:input:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 23,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<label>{isNew ? \"New password\" : \"Password\"}<input name=\"password\" type={visible ? \"text\" : \"password\"} autoComplete={isNew ? \"new-password\" : \"current-password\"} minLength={isNew ? 12 : undefined} maxLength={isNew ? 128 : 1024} required /></label> {isNew && <><p className=\"password-help\">Use 12–128 characters. A unique passphrase works well.</p><label>Confirm password<input name=\"confirmation\" type={visible ? \"text\" : \"password\"} autoComplete=\"new-password\" minLength={12} maxLength={128} requir"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:24:button:1",
+    "file": "src/app/login/password-form.tsx",
+    "line": 24,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{isNew && <><p className=\"password-help\">Use 12–128 characters. A unique passphrase works well.</p><label>Confirm password<input name=\"confirmation\" type={visible ? \"text\" : \"password\"} autoComplete=\"new-password\" minLength={12} maxLength={128} required /></label></>} <button className=\"password-visibility\" type=\"button\" onClick={() => setVisible(!visible)} aria-pressed={visible}>{visible ? \"Hide password\" : \"Show password\"}</button> </>}"
+  },
+  {
+    "control_id": "src/app/login/password-form.tsx:24:onClick:2",
+    "file": "src/app/login/password-form.tsx",
+    "line": 24,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{isNew && <><p className=\"password-help\">Use 12–128 characters. A unique passphrase works well.</p><label>Confirm password<input name=\"confirmation\" type={visible ? \"text\" : \"password\"} autoComplete=\"new-password\" minLength={12} maxLength={128} required /></label></>} <button className=\"password-visibility\" type=\"button\" onClick={() => setVisible(!visible)} aria-pressed={visible}>{visible ? \"Hide password\" : \"Show password\"}</button> </>}"
   },
   {
     "control_id": "src/app/page.tsx:15:a:1",

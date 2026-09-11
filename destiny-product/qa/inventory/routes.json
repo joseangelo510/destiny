@@ -11,6 +11,11 @@
   },
   {
     "kind": "page",
+    "route": "/account/password",
+    "file": "src/app/account/password/page.tsx"
+  },
+  {
+    "kind": "page",
     "route": "/analytics",
     "file": "src/app/analytics/page.tsx"
   },

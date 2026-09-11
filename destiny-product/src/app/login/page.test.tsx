@@ -11,7 +11,9 @@ describe("Rebound SEO account entry", () => {
     expect(html).toContain('name="next"');
     expect(html).toContain("/app/content?site=example");
     expect(html).toContain('type="email"');
-    expect(html).toContain("Email me a sign-in link");
+    expect(html).toContain('type="password"');
+    expect(html).toContain("Use an email link instead");
+    expect(html).toContain("Set or reset password");
   });
   it("keeps email confirmation distinct from a successful login", async () => {
     const html = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ sent: "1", email: "sam@example.com" }) }));

@@ -359,6 +359,15 @@ const betaMembership = await ownerB.client.from("organization_members").insert({
 });
 if (betaMembership.error) throw new Error(`Grant Beta browser membership: ${betaMembership.error.message}`);
 
+const passwordUsers = {};
+for (const device of ["desktop", "mobile"]) {
+  const user = await createUser(`Password-${device}`);
+  const organizationId = await createOrganization(user.client, `Password-${device}`);
+  const site = await createWebsite(user.client, organizationId, `Password-${device}`, user.userId);
+  // Ephemeral local-only credentials; the loopback guard above prohibits production.
+  passwordUsers[device] = { email: user.email, password: user.password, userId: user.userId, websiteId: site.websiteId };
+}
+
 await mkdir(artifactRoot, { recursive: true });
 await writeFile(authStatePath, JSON.stringify({ cookies: await createBrowserCookies(member.email, member.password), origins: [] }, null, 2));
 await writeFile(manifestPath, JSON.stringify({
@@ -366,7 +375,7 @@ await writeFile(manifestPath, JSON.stringify({
   beta,
   member: memberSite,
   mvp,
-  keywordWorkspaces, keywordDepthWorkspaces,
+  keywordWorkspaces, keywordDepthWorkspaces, passwordUsers,
   outsiderAuditId: outsiderSite.auditIds[0],
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));
