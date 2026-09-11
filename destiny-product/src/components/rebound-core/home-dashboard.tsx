@@ -24,6 +24,6 @@ export function HomeWorkspace({ view }: { view: ReboundHomeView }) {
   return <ReboundCoreShell active="/app/home" queue={view.queue} searchConnected={searchConnected} websiteId={view.websiteId} websiteLabel={view.websiteLabel} websites={view.websites}><div className={styles.dashboard}><header className={styles.greeting}><h2>{greeting(view.firstName, view.timeZone)}</h2><p>Your progress for <b>{view.websiteLabel}</b>. Connect your data to see what your work is earning.</p><Link href="/integrations"><i />{searchConnected ? "Search Console connected" : "Connect Search Console"}</Link></header><SessionQueue result={view.queue} websiteId={view.websiteId} /><HomePerformance analytics={view.analytics} searchConsole={view.searchConsole} /><HomeKeywords result={view.keywords} /><HomeCompetitors result={view.competitors} websiteId={view.websiteId} /><HomeCalendar result={view.calendar} /></div></ReboundCoreShell>;
 }
 
-export function HomeDashboard({ view }: { view: ReboundHomeView }) {
-  return <CoachHome key={view.websiteId} view={view}><HomeWorkspace view={view} /></CoachHome>;
+export function HomeDashboard({ view, dashboardOpen = false }: { view: ReboundHomeView; dashboardOpen?: boolean }) {
+  return <CoachHome key={`${view.websiteId}:${dashboardOpen}`} view={view} dashboardOpen={dashboardOpen}><HomeWorkspace view={view} /></CoachHome>;
 }

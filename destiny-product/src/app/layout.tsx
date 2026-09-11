@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./product-brand.css";
 
 export const metadata: Metadata = {
   title: "Rebound SEO — Your SEO growth companion",
