@@ -1,3 +1,4 @@
+import { reserveContentWork, finishContentWork, invokeBillingWorker } from "@/lib/billing/worker";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -156,13 +157,18 @@ export async function POST(request: Request) {
     }, { status: 503 });
   }
 
+  const suppliedKey = request.headers.get("idempotency-key");
+  if (suppliedKey && !/^[a-zA-Z0-9_-]{8,160}$/.test(suppliedKey)) return NextResponse.json({ error: "Invalid request identifier." }, { status: 400 });
+  const billingClient = supabase as unknown as SupabaseClient;
+  const reservation = await reserveContentWork(billingClient, websiteId, "articles", `article-${suppliedKey ?? crypto.randomUUID()}`);
+  if (reservation.response) return reservation.response;
   const model = process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
   const generatePayload = async (onPhase: (phase: ArticleGenerationPhase) => void) => {
     let researchData: unknown;
     let evidenceTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
       const result = await Promise.race([
-        supabase.functions.invoke("seo-research", { body: { kind: "article_evidence", keyword: input.keyword, locationName: "United States" } }),
+        invokeBillingWorker(billingClient, "seo-research", { kind: "article_evidence", keyword: input.keyword, locationName: "United States", billingUsageId: reservation.id }),
         new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
       ]);
       if (result.error || !result.data) throw new Error(result.error?.message || "Rebound SEO could not retrieve article evidence.");
@@ -352,9 +358,11 @@ export async function POST(request: Request) {
       };
       send(encodeArticleGenerationEvent({ type: "phase", phase: "researching" }));
       keepalive = setInterval(() => send(encodeArticleGenerationEvent({ type: "keepalive" })), ARTICLE_GENERATION_KEEPALIVE_MS);
-      void generatePayload((phase) => send(encodeArticleGenerationEvent({ type: "phase", phase }))).then((payload) => {
+      void generatePayload((phase) => send(encodeArticleGenerationEvent({ type: "phase", phase }))).then(async (payload) => {
+        await finishContentWork(billingClient, reservation.id, !("error" in payload) && payload.draft?.generationStatus !== "needs_generation");
         send(encodeArticleGenerationEvent({ type: "result", payload }));
-      }).catch((cause) => {
+      }).catch(async (cause) => {
+        await finishContentWork(billingClient, reservation.id, false);
         send(encodeArticleGenerationEvent({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Rebound SEO could not generate this article." } }));
       }).finally(() => {
         if (keepalive) clearInterval(keepalive);

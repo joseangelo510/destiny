@@ -1,5 +1,10 @@
 [
   {
+    "path": "supabase/functions/billing-usage/index.ts",
+    "auth": "user",
+    "boundary": "billing_claim"
+  },
+  {
     "path": "supabase/functions/billing-webhook/index.ts",
     "auth": "none",
     "boundary": "stripe_signature"

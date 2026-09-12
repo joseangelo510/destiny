@@ -1,3 +1,4 @@
+import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
 import { runDomainOverview } from "./domain-overview.ts";
@@ -5,6 +6,7 @@ import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWind
 
 type ResearchRequest = {
   kind?: unknown;
+  billingUsageId?: unknown;
   query?: unknown;
   mode?: unknown;
   locationName?: unknown;
@@ -42,10 +44,17 @@ export default {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
     const ownerId = context.userClaims?.id;
     if (!ownerId) return json({ error: "Sign in again to continue." }, 401);
+    const raw = await request.text();
     let body: ResearchRequest;
-    try { body = await request.json() as ResearchRequest; }
+    try { body = JSON.parse(raw) as ResearchRequest; }
     catch { return json({ error: "Request body must be valid JSON." }, 400); }
 
+    if (body.kind === "article_evidence") {
+      if (!await verifyWorkerRequest(raw, "seo-research", request.headers, Deno.env.get("BILLING_WORKER_SECRET") ?? "")) return json({ error: "Article reservation required." }, 403);
+      if (typeof body.billingUsageId !== "string") return json({ error: "Article reservation required." }, 403);
+      const { data: usage, error } = await context.supabaseAdmin.from("billing_usage").select("id").eq("id", body.billingUsageId).eq("owner_id", ownerId).eq("meter", "articles").eq("state", "reserved").gt("created_at", new Date(Date.now()-15*60_000).toISOString()).maybeSingle();
+      if (error || !usage) return json({ error: "Article reservation is unavailable." }, 403);
+    }
     const login = Deno.env.get("DATAFORSEO_LOGIN")?.trim();
     const password = Deno.env.get("DATAFORSEO_PASSWORD")?.trim();
     if (!login || !password) return json({ error: "Live SEO research is not configured yet." }, 503);
