@@ -1,5 +1,6 @@
 "use client";
 
+import { cmsDeliveryProviders, type CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
 import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -111,12 +112,7 @@ function issueCategory(code: string) {
   return "Editorial quality";
 }
 
-export type CmsDeliveryProvider = {
-  id: string;
-  label: string;
-  connected: boolean;
-  draftEndpoint: string;
-};
+export type { CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
 
 export type CmsFieldReportEntry = {
   field: string;
@@ -219,10 +215,7 @@ export function ArticleReviewWorkspace({
   const [exporting, setExporting] = useState(false);
   const [cmsDrafts, setCmsDrafts] = useState<Record<string, CmsDraftResult>>(() => hydrateCmsDrafts(initialCmsTransfers, auditId));
 
-  const cmsProviders: CmsDeliveryProvider[] = [
-    { id: "wordpress", label: "WordPress", connected: wordpressConnected, draftEndpoint: "/api/integrations/cms/wordpress/draft" },
-    { id: "webflow", label: "Webflow", connected: webflowConnected, draftEndpoint: "/api/integrations/cms/webflow/draft" },
-  ];
+  const cmsProviders = cmsDeliveryProviders(wordpressConnected, webflowConnected);
   const connectedProviders = cmsProviders.filter((provider) => provider.connected);
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
@@ -319,12 +312,14 @@ export function ArticleReviewWorkspace({
   }, [auditId, checkingCms, cmsDrafts, websiteId]);
 
   useEffect(() => {
-    if (!draft || !cmsDrafts[`wordpress:${draft.keyword}`] || reconciledArticlesRef.current.has(draft.keyword)) return;
-    reconciledArticlesRef.current.add(draft.keyword);
-    const timer = window.setTimeout(() => void reconcileWordPress(draft.keyword, true), 0);
+    if (!draft || checkingCms || !cmsDrafts[`wordpress:${draft.keyword}`] || reconciledArticlesRef.current.has(draft.keyword)) return;
+    const timer = window.setTimeout(() => {
+      reconciledArticlesRef.current.add(draft.keyword);
+      void reconcileWordPress(draft.keyword, true);
+    }, 0);
     // One readback per selected article is enough; users can refresh manually afterward.
     return () => window.clearTimeout(timer);
-  }, [cmsDrafts, draft, reconcileWordPress]);
+  }, [checkingCms, cmsDrafts, draft, reconcileWordPress]);
 
   useEffect(() => {
     let cancelled = false;
