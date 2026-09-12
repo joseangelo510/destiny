@@ -1,3 +1,4 @@
+import { reserveContentWork, finishContentWork, infographicStage } from "@/lib/billing/worker";
 import { NextResponse } from "next/server";
 import {
   DEFAULT_INFOGRAPHIC_RESEARCH_MODEL,
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
   });
   const model = process.env.OPENAI_INFOGRAPHIC_RESEARCH_MODEL?.trim() || DEFAULT_INFOGRAPHIC_RESEARCH_MODEL;
 
+  const reservation = await reserveContentWork(supabase, websiteId, "infographics", `infographic-${crypto.randomUUID()}`);
+  if (reservation.response) return reservation.response;
+  let prepared = false;
   try {
     const openAiResponse = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -69,9 +73,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Rebound SEO could not research this infographic yet. Try again in a moment." }, { status: 502 });
     }
     const result = parseOpenAiInfographicResearch(responseBody);
-    return NextResponse.json({ plan: result.plan, model, retrievedSourceCount: result.retrievedUrls.length }, { headers: { "Cache-Control": "private, no-store" } });
+    if (!await infographicStage(supabase, "bind", reservation.id, websiteId, result.plan)) throw new Error("The researched plan could not be saved for image creation. Please try again.");
+    prepared = true;
+    return NextResponse.json({ billingUsageId: reservation.id, plan: result.plan, model, retrievedSourceCount: result.retrievedUrls.length }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (cause) {
     console.error("infographic_research_failed", { error: cause instanceof Error ? cause.message : "unknown" });
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete the infographic research." }, { status: 502 });
+  } finally {
+    if (!prepared) await finishContentWork(supabase, reservation.id, false);
   }
 }

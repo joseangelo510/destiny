@@ -27,6 +27,7 @@ export function InfographicGenerator({ websiteId, websiteName, approvedKeywords,
   const [style, setStyle] = useState<InfographicStyle>("editorial");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [plan, setPlan] = useState<InfographicPlan | null>(null);
+  const [billingUsageId, setBillingUsageId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [busy, setBusy] = useState<"research" | "visual" | "document" | "">("");
   const [error, setError] = useState("");
@@ -38,13 +39,14 @@ export function InfographicGenerator({ websiteId, websiteName, approvedKeywords,
 
   async function research() {
     if (!topic) return setError("Choose a keyword or enter your own topic.");
-    setBusy("research"); setError(""); setPlan(null);
+    setBusy("research"); setError(""); setPlan(null); setBillingUsageId("");
     if (imageUrl) { URL.revokeObjectURL(imageUrl); setImageUrl(""); }
     try {
       const response = await fetch("/api/content/infographic/research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword: topic, style, specialInstructions }) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(errorMessage(result, "Rebound SEO could not research this topic."));
       setPlan(result.plan as InfographicPlan);
+      setBillingUsageId(typeof result.billingUsageId === "string" ? result.billingUsageId : "");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not research this topic."); }
     finally { setBusy(""); }
   }
@@ -53,7 +55,7 @@ export function InfographicGenerator({ websiteId, websiteName, approvedKeywords,
     if (!plan) return;
     setBusy("visual"); setError("");
     try {
-      const blob = await downloadResponse(await fetch("/api/content/infographic/render", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, plan, style }) }), "Rebound SEO could not create the infographic.");
+      const blob = await downloadResponse(await fetch("/api/content/infographic/render", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, plan, style, billingUsageId }) }), "Rebound SEO could not create the infographic.");
       if (imageUrl) URL.revokeObjectURL(imageUrl);
       setImageUrl(URL.createObjectURL(blob));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not create the infographic."); }
@@ -103,7 +105,8 @@ export function InfographicGenerator({ websiteId, websiteName, approvedKeywords,
       <div className="workspace-card-heading"><div><strong>Review the evidence before creating</strong><small>{plan.sources.length} live sources support four story panels.</small></div><span>Nothing has been published</span></div>
       <div className="infographic-story-grid">{plan.sections.map((section, index) => <article key={section.id}><span>STORY {index + 1}</span><h3>{section.title}</h3><p>{section.takeaway}</p><div>{section.dataPoints.map((point) => <p key={`${point.value}-${point.label}`}><strong>{point.value}</strong> {point.label}<small>{point.context}</small></p>)}</div></article>)}</div>
       <div className="infographic-source-list"><h3>Source ledger</h3>{plan.sources.map((source) => <a href={source.url} key={source.id} rel="noreferrer" target="_blank"><span>{source.id}</span><strong>{source.title}</strong><small>{source.publisher} · {source.publishedAt}</small></a>)}</div>
-      <div className="infographic-review-actions"><button className="primary-button" disabled={busy !== ""} onClick={createVisual} type="button">{busy === "visual" ? "Creating the visual…" : "Looks good — create infographic"}</button><button className="secondary-button" disabled={busy !== ""} onClick={research} type="button">Research again</button></div>
+      <p>Includes one visual. Create it before your current billing period ends.</p>
+      <div className="infographic-review-actions"><button className="primary-button" disabled={busy !== "" || !billingUsageId || !!imageUrl} onClick={createVisual} type="button">{busy === "visual" ? "Creating the visual…" : "Looks good — create infographic"}</button><button className="secondary-button" disabled={busy !== ""} onClick={research} type="button">Research again</button></div>
     </section>}
     {plan && <section className="infographic-output-grid">
       <div className="workspace-card infographic-preview"><div className="workspace-card-heading"><div><strong>Long infographic</strong><small>Exact claims and citations are rendered by Rebound SEO.</small></div></div>{imageUrl ? <><Image alt={plan.altText} height={3072} src={imageUrl} unoptimized width={1024}/><a className="primary-button" download="destiny-infographic.png" href={imageUrl}>Download PNG</a></> : <div className="infographic-preview-empty"><b>Visual preview appears here</b><span>Create it after reviewing the evidence above.</span></div>}</div>

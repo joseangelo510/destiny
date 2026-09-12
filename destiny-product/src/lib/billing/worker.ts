@@ -23,3 +23,12 @@ export async function finishContentWork(client: BillingWorkerClient, id: string,
     return !error && data?.saved === true;
   } catch { return false; }
 }
+
+export async function infographicStage(client: BillingWorkerClient, action: "bind" | "stage", id: string, websiteId: string, plan: unknown): Promise<boolean> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(plan)));
+  const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  try {
+    const { data, error } = await invokeBillingWorker(client, "billing-usage", { action, id, websiteId, hash });
+    return !error && (action === "bind" ? data?.saved === true : data?.allowed === true);
+  } catch { return false; }
+}

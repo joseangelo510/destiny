@@ -16,6 +16,17 @@ export default {
       const { data, error } = await context.supabaseAdmin.rpc("reserve_billing_usage", { p_owner_id: ownerId, p_website_id: body.websiteId, p_meter: body.meter, p_request_key: body.requestKey, p_units: 1 });
       return error ? json({ error: "Usage reservation unavailable." }, 503) : json(data);
     }
+    if (body.action === "bind" || body.action === "stage") {
+      if (typeof body.id !== "string" || typeof body.websiteId !== "string" || typeof body.hash !== "string" || !/^[a-f0-9]{64}$/.test(body.hash)) return json({ error: "Invalid artifact request." }, 400);
+      const { data: usage, error: readError } = await context.supabaseAdmin.from("billing_usage").select("id").eq("id", body.id).eq("owner_id", ownerId).eq("website_id", body.websiteId).eq("meter", "infographics").maybeSingle();
+      if (readError || !usage) return json({ error: "Artifact reservation unavailable." }, 403);
+      if (body.action === "bind") {
+        const { error } = await context.supabaseAdmin.rpc("bind_billing_artifact", { p_owner_id: ownerId, p_id: usage.id, p_hash: body.hash });
+        return error ? json({ error: "Artifact reservation unavailable." }, 409) : json({ saved: true });
+      }
+      const { data, error } = await context.supabaseAdmin.rpc("claim_billing_stage", { p_owner_id: ownerId, p_id: usage.id, p_stage: "infographic_render", p_artifact_hash: body.hash });
+      return error || data !== true ? json({ error: "This visual request has already been used or expired. Research the infographic again to create another visual." }, 409) : json({ allowed: true });
+    }
     if (body.action === "finish") {
       if (typeof body.id !== "string" || typeof body.succeeded !== "boolean") return json({ error: "Invalid usage outcome." }, 400);
       const { data: usage, error: readError } = await context.supabaseAdmin.from("billing_usage").select("id").eq("id", body.id).eq("owner_id", ownerId).maybeSingle();

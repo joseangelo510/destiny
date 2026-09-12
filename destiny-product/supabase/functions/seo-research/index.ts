@@ -52,8 +52,8 @@ export default {
     if (body.kind === "article_evidence") {
       if (!await verifyWorkerRequest(raw, "seo-research", request.headers, Deno.env.get("BILLING_WORKER_SECRET") ?? "")) return json({ error: "Article reservation required." }, 403);
       if (typeof body.billingUsageId !== "string") return json({ error: "Article reservation required." }, 403);
-      const { data: usage, error } = await context.supabaseAdmin.from("billing_usage").select("id").eq("id", body.billingUsageId).eq("owner_id", ownerId).eq("meter", "articles").eq("state", "reserved").gt("created_at", new Date(Date.now()-15*60_000).toISOString()).maybeSingle();
-      if (error || !usage) return json({ error: "Article reservation is unavailable." }, 403);
+      const { data: allowed, error } = await context.supabaseAdmin.rpc("claim_billing_stage", { p_owner_id: ownerId, p_id: body.billingUsageId, p_stage: "article_evidence", p_artifact_hash: null });
+      if (error || allowed !== true) return json({ error: "Article reservation is unavailable or already used." }, 403);
     }
     const login = Deno.env.get("DATAFORSEO_LOGIN")?.trim();
     const password = Deno.env.get("DATAFORSEO_PASSWORD")?.trim();
