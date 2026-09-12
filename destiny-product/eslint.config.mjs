@@ -57,6 +57,7 @@ const eslintConfig = defineConfig([
     "supabase/functions/**",
     // Supabase CLI-generated disposable local runtime, never application source.
     "supabase/.temp/**",
+    "qa/artifacts/playwright-report/**",
   ]),
 ]);
 
