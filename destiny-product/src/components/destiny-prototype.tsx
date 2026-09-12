@@ -223,6 +223,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
   const [audit] = useState(initialAudit ?? seededAudit);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialAuditFailure ?? "");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [listening, setListening] = useState<OnboardingField | null>(null);
   const [auditId, setAuditId] = useState<string | null>(initialAuditId ?? null);
   const [auditStatus, setAuditStatus] = useState(initialAuditStatus ?? "complete");
@@ -346,6 +347,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           locationName: "United States",
         }),
       });
+      setBillingRequired(auditResponse.status === 402);
       const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; status?: string };
       if (!auditResponse.ok || !auditPayload.auditId) {
         if (typeof auditPayload.auditId === "string") setAuditId(auditPayload.auditId);
@@ -374,7 +376,7 @@ export function DestinyPrototype({ hasWorkspace = false, initialAudit, initialAu
           <p>{failed ? error : "Rebound SEO is analyzing your website, competitors, keyword opportunities, and the first 12 weeks of your growth plan."}</p>
           {!failed && <div className="processing-steps"><span className="complete">Business profile saved</span><span className="active">Website and competitor analysis</span><span>Keyword strategy</span><span>LOGOS weekly quest</span></div>}
           {!failed && <div className="configuration-note"><strong>You can safely leave this page</strong><p>Your audit is saved. Rebound SEO will add a notification and, once email is activated, send a link when the results are ready.</p></div>}
-          {failed && <div className="processing-actions"><button className="primary-button" onClick={() => { setError(""); setView("onboarding"); }} type="button">Review and try again</button><Link className="secondary-button" href="/audits">View audit history</Link></div>}
+          {failed && <div className="processing-actions">{billingRequired ? <Link className="primary-button" href="/account/billing">View plans and billing</Link> : <button className="primary-button" onClick={() => { setError(""); setView("onboarding"); }} type="button">Review and try again</button>}<Link className="secondary-button" href="/audits">View audit history</Link></div>}
         </section>
       </main>
     );
