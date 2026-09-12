@@ -207,8 +207,9 @@ describe("privileged Edge Function authorization boundaries", () => {
 it("requires billing claims and signed Stripe events before privileged work", async () => {
   const entries = await manifest();
   for (const boundary of ["billing_claim", "stripe_signature"]) {
-    const entry = entries.find(item => item.boundary === boundary);
-    expect(entry).toBeDefined();
+    const matches = entries.filter(item => item.boundary === boundary);
+    expect(matches.length).toBeGreaterThan(0);
+    for (const entry of matches) {
     const source = handlerSource(await readFile(path.join(productRoot, entry!.path), "utf8"));
     const privileged = source.indexOf("context.supabaseAdmin");
     if (boundary === "billing_claim") {
@@ -222,6 +223,7 @@ it("requires billing claims and signed Stripe events before privileged work", as
       expect(verification).toBeGreaterThanOrEqual(0);
       expect(source.indexOf('json({ error: "Invalid signature or event." }, 400)')).toBeGreaterThan(verification);
       expect(privileged).toBeGreaterThan(verification);
+    }
     }
   }
 });
