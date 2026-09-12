@@ -37,7 +37,7 @@ test("@gate Domain Overview researches arbitrary domains without changing the wo
   await page.getByRole("button", {name:"2Y",exact:true}).click();
   await expect(page.getByRole("button", {name:"2Y",exact:true})).toHaveAttribute("aria-pressed","true");
   await page.getByRole("tab", {name:"Compare by countries",exact:true}).click();
-  await expect(page.getByText("Germany",{exact:true})).toBeVisible();
+  await expect(page.getByRole("cell",{name:"Germany",exact:true})).toBeVisible();
   await page.getByRole("tab", {name:"Overview",exact:true}).click();
   const download = page.waitForEvent("download"); await page.getByRole("button",{name:"Export CSV"}).click();
   expect((await download).suggestedFilename()).toBe("rebound-example.com-US.csv");
