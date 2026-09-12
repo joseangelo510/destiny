@@ -74,14 +74,24 @@ export default {
         completedRuns.push({ websiteId, status: "billing_paused", completed: 0, failed: 0, totalCost: 0 });
         continue;
       }
-      const refreshDays = 7;
-      const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: rows.length, started_at: now.toISOString() }).select("id").single();
+      const eligible: Array<{ row: DueKeyword; id: string; nextCheckAt: string }> = [];
+      for (const row of rows) {
+        const { data: reservation, error: reserveError } = await context.supabaseAdmin.rpc("reserve_rank_check", { p_target_id: row.id });
+        if (reserveError) return json({ error: "Tracking usage could not be reserved." }, 503);
+        if (reservation?.allowed && typeof reservation.id === "string" && typeof reservation.nextCheckAt === "string") eligible.push({ row, id: reservation.id, nextCheckAt: reservation.nextCheckAt });
+      }
+      if (!eligible.length) { completedRuns.push({ websiteId, status: "billing_limited", completed: 0, failed: 0, totalCost: 0 }); continue; }
+      const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: eligible.length, started_at: now.toISOString() }).select("id").single();
       let completed = 0;
       let failed = 0;
       let totalCost = 0;
-      for (const row of rows) {
+      for (const { row, id: usageId, nextCheckAt } of eligible) {
+        let providerCost: number | null = null;
+        let succeeded = false;
         try {
           const observation = await fetchRank({ ...row, search_depth: 100 }, login, password);
+          providerCost = observation.providerCost;
+          totalCost += observation.providerCost;
           const { error: insertError } = await context.supabaseAdmin.from("rank_observations").insert({
             tracked_keyword_id: row.id,
             website_id: row.website_id,
@@ -97,13 +107,16 @@ export default {
             evidence: observation.evidence,
           });
           if (insertError) throw insertError;
-          totalCost += observation.providerCost;
+          succeeded = true;
           completed += 1;
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: new Date(now.getTime() + refreshDays * 86_400_000).toISOString(), last_error: null }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: nextCheckAt, last_error: null }).eq("id", row.id);
         } catch (cause) {
           failed += 1;
           const message = cause instanceof Error ? cause.message : "Rank check failed.";
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: new Date(now.getTime() + refreshDays * 86_400_000).toISOString() }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: nextCheckAt }).eq("id", row.id);
+        } finally {
+          const { error: settleError } = await context.supabaseAdmin.rpc("finish_billing_usage", { p_id: usageId, p_succeeded: succeeded, p_provider_cost_usd: providerCost });
+          if (settleError) return json({ error: "Tracking usage confirmation is pending." }, 503);
         }
       }
       const status = failed === 0 ? "complete" : completed === 0 ? "failed" : "partial";
