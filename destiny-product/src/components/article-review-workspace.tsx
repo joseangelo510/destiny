@@ -1,5 +1,6 @@
 "use client";
 
+import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -469,12 +470,7 @@ export function ArticleReviewWorkspace({
         throw new Error(payload.error || "Rebound SEO could not create the Word document.");
       }
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not create the Word document.");
     } finally {
@@ -486,12 +482,7 @@ export function ArticleReviewWorkspace({
     const graphic = draft?.infographics[index];
     if (!graphic) return;
     const blob = new Blob([renderInfographicSvg(graphic)], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${graphic.id || `destiny-infographic-${index + 1}`}.svg`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `${graphic.id || `destiny-infographic-${index + 1}`}.svg`);
   };
 
   const sendToCms = async (provider: CmsDeliveryProvider) => {

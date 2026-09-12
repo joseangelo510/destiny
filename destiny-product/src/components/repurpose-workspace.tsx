@@ -2,6 +2,7 @@
 
 import { useCallback, useId, useRef, useState } from "react";
 import { WorkspaceLink } from "./workspace-link";
+import { RepurposeGenerationError } from "./repurpose-generation-error";
 import {
   REPURPOSE_OUTPUT_OPTIONS,
   REPURPOSE_SOURCE_MODES,
@@ -555,13 +556,7 @@ export function RepurposeWorkspace({
         {/* Generate button */}
         {!draft && (
           <>
-            {generateError && (
-              <div role="alert" className="repurpose-error">
-                <strong>Generation error</strong>
-                <p>{generateError}{!billingRequired && " Please try again or choose a different output format."}</p>
-                {billingRequired && <WorkspaceLink className="button" href="/account/billing">View plans and billing</WorkspaceLink>}
-              </div>
-            )}
+            <RepurposeGenerationError error={generateError} billingRequired={billingRequired} title="Generation error" retryHint=" Please try again or choose a different output format." />
             <button
               type="button"
               className="primary-button repurpose-generate-btn"
@@ -661,13 +656,7 @@ export function RepurposeWorkspace({
           )}
 
           {/* Generation error on retry */}
-          {generateError && (
-            <div role="alert" className="repurpose-error">
-              <strong>Retry error</strong>
-              <p>{generateError}{!billingRequired && " Please try again."}</p>
-              {billingRequired && <WorkspaceLink className="button" href="/account/billing">View plans and billing</WorkspaceLink>}
-            </div>
-          )}
+          <RepurposeGenerationError error={generateError} billingRequired={billingRequired} title="Retry error" retryHint=" Please try again." />
 
           {/* SEO handoff */}
           {isSeoOutput && (
