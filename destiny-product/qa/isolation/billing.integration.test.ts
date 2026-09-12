@@ -163,4 +163,41 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await expect(sql(`begin; set local role authenticated; select public.billing_rank_candidates(); rollback;`)).rejects.toThrow("permission denied");
   });
 
+  it("grants one verified initial audit and never resets it by deleting a website", async () => {
+    const org = randomUUID(), site = randomUUID(), replacement = randomUUID();
+    const results = (await sql(`begin;
+      insert into public.organizations(id,name,owner_id) values('${org}','Initial audit QA','${other}');
+      insert into public.organization_members(organization_id,user_id,role) values('${org}','${other}','owner') on conflict do nothing;
+      insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${site}','${org}','https://initial.invalid','initial.invalid','Initial QA');
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      update auth.users set email_confirmed_at=now() where id='${other}';
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      delete from public.websites where id='${site}';
+      insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${replacement}','${org}','https://replacement.invalid','replacement.invalid','Replacement QA');
+      select public.begin_billed_audit('${replacement}','${other}','demo',false);
+      rollback;`)).split("\n").map(JSON.parse);
+    expect(results[0]).toMatchObject({ allowed: false, reason: "verification_required" });
+    expect(results[1]).toMatchObject({ allowed: true, created: true, free: true });
+    expect(results[2]).toMatchObject({ allowed: true, created: false, auditId: results[1].auditId });
+    expect(results[3]).toMatchObject({ allowed: false, reason: "payment_required" });
+    await expect(sql(`begin; set local role authenticated; select public.begin_billed_audit('${website}','${owner}','demo',false); rollback;`)).rejects.toThrow("permission denied");
+  });
+
+  it("reserves paid audits before creating work and rejects cross-owner access", async () => {
+    const results = (await sql(`begin;
+      update auth.users set email_confirmed_at=now() where id='${owner}';
+      update public.billing_accounts set status='active',plan='starter',free_audit_claimed_at=now() where owner_id='${owner}';
+      insert into public.organization_members(organization_id,user_id,role) values('${organization}','${owner}','owner') on conflict do nothing;
+      select public.begin_billed_audit('${website}','${other}','demo',false);
+      select public.begin_billed_audit('${website}','${owner}','demo',false);
+      update public.audits set status='complete',completed_at=now() where website_id='${website}';
+      select public.begin_billed_audit('${website}','${owner}','demo',false);
+      rollback;`)).split("\n").map(JSON.parse);
+    expect(results[0]).toMatchObject({ allowed: false, reason: "website_unavailable" });
+    expect(results[1]).toMatchObject({ allowed: true, created: true, free: false });
+    expect(results[1].usageId).toEqual(expect.any(String));
+    expect(results[2]).toMatchObject({ allowed: false, reason: "limit_reached" });
+  });
+
 });
