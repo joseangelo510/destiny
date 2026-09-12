@@ -145,4 +145,22 @@ describe.sequential("atomic billing reservations and isolation", () => {
     expect(JSON.parse(await sql(`select public.reserve_rank_check('${first}');`))).toMatchObject({ allowed: false, reason: "check_limit" });
   });
 
+  it("selects eligible tracking work before the batch limit and excludes exhausted trials", async () => {
+    // The earlier test exhausted this owner's trial. None of its targets may queue.
+    expect(await sql(`select count(*) from public.billing_rank_candidates() row where row->>'website_id'='${website}';`)).toBe("0");
+    const otherOrg = randomUUID(), otherSite = randomUUID();
+    const rows = JSON.parse(await sql(`begin;
+      update public.billing_accounts set status='active' where owner_id='${owner}';
+      insert into public.organizations(id,name,owner_id) values('${otherOrg}','Unpaid QA','${other}');
+      insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${otherSite}','${otherOrg}','https://unpaid.invalid','unpaid.invalid','Unpaid QA');
+      insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,next_check_at)
+        select '${otherSite}','${other}','unpaid '||n,'unpaid '||n,now()-interval '10 days' from generate_series(1,150) n;
+      select coalesce(jsonb_agg(row),'[]') from public.billing_rank_candidates() row;
+      rollback;`));
+    expect(rows.filter((row: { website_id: string }) => row.website_id === website)).toHaveLength(25);
+    expect(rows.some((row: { website_id: string }) => row.website_id === otherSite)).toBe(false);
+    expect(rows.find((row: { website_id: string }) => row.website_id === website).websites.normalized_domain).toBe("billing.invalid");
+    await expect(sql(`begin; set local role authenticated; select public.billing_rank_candidates(); rollback;`)).rejects.toThrow("permission denied");
+  });
+
 });
