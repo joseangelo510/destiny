@@ -140,9 +140,11 @@ describe.sequential("atomic billing reservations and isolation", () => {
   });
 
   it("caps pooled targets and the trial's total refresh budget", async () => {
-    await sql(`update public.billing_accounts set plan='starter' where owner_id='${owner}';
+    // Seed above Starter capacity while Premium, then downgrade to preserve the legacy-target case.
+    await sql(`update public.billing_accounts set plan='premium' where owner_id='${owner}';
       insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,created_at)
-      select '${website}','${owner}','capacity '||n,'capacity '||n,now()-interval '1 hour'+n*interval '1 second' from generate_series(1,26) n;`);
+      select '${website}','${owner}','capacity '||n,'capacity '||n,now()-interval '1 hour'+n*interval '1 second' from generate_series(1,26) n;
+      update public.billing_accounts set plan='starter' where owner_id='${owner}';`);
     const last = await sql(`select id from public.tracked_keywords where website_id='${website}' and normalized_keyword='capacity 26';`);
     expect(JSON.parse(await sql(`select public.reserve_rank_check('${last}');`))).toMatchObject({ allowed: false, reason: "target_limit" });
     await sql(`update public.billing_accounts set status='trialing',trial_started_at=now()-interval '1 day',trial_end=now()+interval '6 days' where owner_id='${owner}';
@@ -161,8 +163,10 @@ describe.sequential("atomic billing reservations and isolation", () => {
       update public.billing_accounts set status='active' where owner_id='${owner}';
       insert into public.organizations(id,name,owner_id) values('${otherOrg}','Unpaid QA','${other}');
       insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${otherSite}','${otherOrg}','https://unpaid.invalid','unpaid.invalid','Unpaid QA');
+      insert into public.billing_accounts(owner_id,plan,status,period_start,period_end,paid_through) values('${other}','premium','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');
       insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,next_check_at)
         select '${otherSite}','${other}','unpaid '||n,'unpaid '||n,now()-interval '10 days' from generate_series(1,150) n;
+      update public.billing_accounts set status='past_due' where owner_id='${other}';
       select coalesce(jsonb_agg(row),'[]') from public.billing_rank_candidates() row;
       rollback;`));
     expect(rows.filter((row: { website_id: string }) => row.website_id === website)).toHaveLength(25);

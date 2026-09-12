@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getClaims, inserted, listVisible, existingKeyword } = vi.hoisted(() => ({
+const { getClaims, inserted, listVisible, existingKeyword, pausedByBilling } = vi.hoisted(() => ({
   getClaims: vi.fn(),
+  pausedByBilling: { value: false },
   inserted: [] as Array<Record<string, unknown>>,
   listVisible: { value: true },
   existingKeyword: { value: null as null | Record<string, unknown> },
@@ -23,7 +24,7 @@ vi.mock("@/lib/supabase/server", () => ({
           insert: (row: Record<string, unknown>) => {
             inserted.push(row);
             return { select: () => ({ single: async () => ({ data: {
-              id: "keyword-1", keyword: row.keyword, list_id: row.list_id, status: row.status ?? "pending", source: row.source,
+              id: "keyword-1", keyword: row.keyword, list_id: row.list_id, status: pausedByBilling.value ? "paused" : row.status ?? "pending", source: row.source,
               created_at: "2026-08-27T18:00:00.000Z", last_checked_at: null,
             }, error: null }) }) };
           },
@@ -39,6 +40,7 @@ import { POST } from "./route";
 describe("POST /api/rank-tracker/keywords research saves", () => {
   beforeEach(() => {
     inserted.length = 0;
+    pausedByBilling.value = false;
     listVisible.value = true;
     existingKeyword.value = null;
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
@@ -69,4 +71,11 @@ describe("POST /api/rank-tracker/keywords research saves", () => {
     expect(response.status).toBe(404);
     expect(inserted).toEqual([]);
   });
+});
+
+it("reports saved but paused when the database declines paid activation", async () => {
+  pausedByBilling.value = true;
+  const response = await POST(new Request("http://localhost/api/rank-tracker/keywords", { method: "POST", body: JSON.stringify({ websiteId: "site-1", keyword: "capacity keyword" }) }));
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ keyword: { status: "paused" }, trackingNotice: expect.stringContaining("paused") });
 });

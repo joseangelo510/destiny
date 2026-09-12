@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { decisionRows, existingDecisions, preferenceRows, deletedPreferences, providerKeywords, trackedRows, trackedUpsertOptions } = vi.hoisted(() => ({
+const { decisionRows, existingDecisions, preferenceRows, deletedPreferences, providerKeywords, trackedRows, trackedUpsertOptions, pausedKeywords } = vi.hoisted(() => ({
+  pausedKeywords: new Set<string>(),
   decisionRows: [] as Array<{ keyword: string; normalized_keyword?: string; decision: string; reason?: string | null }>,
   existingDecisions: [] as Array<{ keyword: string; decision: "approved" | "declined" }>,
   preferenceRows: [] as Array<{ keyword: string; normalized_keyword: string; decision: string; reason?: string | null; search_volume?: number | null; difficulty?: number | null; provider_intent?: string | null; search_intent?: string | null }>,
@@ -38,6 +39,7 @@ vi.mock("@/lib/supabase/server", () => ({
         delete: () => ({ eq: () => ({ eq: () => ({ eq: async (_column: string, keyword: string) => { deletedPreferences.push(keyword); return { error: null }; } }) }) }),
       };
       if (table === "tracked_keywords") return {
+        select: () => ({ eq: () => ({ in: async () => ({ data: trackedRows.map(row => ({ keyword: row.keyword, normalized_keyword: row.keyword.toLowerCase(), status: pausedKeywords.has(row.keyword) ? "paused" : "pending" })), error: null }) }) }),
         upsert: async (rows: Array<{ keyword: string }>, options?: Record<string, unknown>) => {
           trackedRows.push(...rows);
           trackedUpsertOptions.push(options);
@@ -67,6 +69,7 @@ const recommendation = (keyword: string, searchVolume = 100) => ({
 describe("POST /api/keywords/decisions quick approval", () => {
   beforeEach(() => {
     decisionRows.length = 0;
+    pausedKeywords.clear();
     existingDecisions.length = 0;
     preferenceRows.length = 0;
     deletedPreferences.length = 0;
@@ -176,4 +179,15 @@ describe("POST /api/keywords/decisions quick approval", () => {
     expect(deletedPreferences).toEqual(["reconsider this phrase"]);
     expect(trackedRows).toEqual([]);
   });
+});
+
+it("preserves approvals while reporting only actually enabled rank targets", async () => {
+  pausedKeywords.add("saved keyword");
+  const response = await POST(new Request("http://localhost/api/keywords/decisions", { method: "POST", body: JSON.stringify({ auditId: "audit-1", keyword: "saved keyword", decision: "approved" }) }));
+  expect(response.status).toBe(200);
+  const data = await response.json();
+  expect(data.decisions).toContainEqual(expect.objectContaining({ keyword: "saved keyword", decision: "approved" }));
+  expect(data.trackingStarted).toEqual([]);
+  expect(data.trackingPaused).toEqual(["saved keyword"]);
+  expect(data.trackingNotice).toContain("paused");
 });
