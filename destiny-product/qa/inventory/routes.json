@@ -11,6 +11,11 @@
   },
   {
     "kind": "page",
+    "route": "/account/billing",
+    "file": "src/app/account/billing/page.tsx"
+  },
+  {
+    "kind": "page",
     "route": "/account/password",
     "file": "src/app/account/password/page.tsx"
   },
@@ -38,6 +43,16 @@
     "kind": "api",
     "route": "/api/audits/[id]",
     "file": "src/app/api/audits/[id]/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/billing/checkout",
+    "file": "src/app/api/billing/checkout/route.ts"
+  },
+  {
+    "kind": "api",
+    "route": "/api/billing/portal",
+    "file": "src/app/api/billing/portal/route.ts"
   },
   {
     "kind": "api",
@@ -423,6 +438,11 @@
     "kind": "page",
     "route": "/onboarding",
     "file": "src/app/onboarding/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/pricing",
+    "file": "src/app/pricing/page.tsx"
   },
   {
     "kind": "page",
