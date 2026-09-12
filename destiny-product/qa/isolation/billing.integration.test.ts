@@ -200,4 +200,29 @@ describe.sequential("atomic billing reservations and isolation", () => {
     expect(results[2]).toMatchObject({ allowed: false, reason: "limit_reached" });
   });
 
+  it.each(["failed", "completed", "expired"])("bounds initial audit recovery after %s", async (outcome) => {
+    const org = randomUUID(), site = randomUUID(), secondSite = randomUUID();
+    const results = (await sql(`begin;
+      update auth.users set email_confirmed_at=now() where id='${other}';
+      insert into public.organizations(id,name,owner_id) values('${org}','Recovery QA','${other}');
+      insert into public.organization_members(organization_id,user_id,role) values('${org}','${other}','owner') on conflict do nothing;
+      insert into public.websites(id,organization_id,url,normalized_domain,business_name) values
+        ('${site}','${org}','https://recovery.invalid','recovery.invalid','Recovery QA'),
+        ('${secondSite}','${org}','https://second.invalid','second.invalid','Second QA');
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      update public.audits set status='failed',completed_at=now() where website_id='${site}';
+      update public.billing_usage set state='${outcome === "completed" ? "completed" : "failed"}',finished_at=now() where owner_id='${other}';
+      ${outcome === "expired" ? `update public.billing_accounts set free_audit_claimed_at=now()-interval '8 days' where owner_id='${other}';` : ""}
+      select public.begin_billed_audit('${secondSite}','${other}','demo',false);
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      update public.audits set status='failed',completed_at=now() where website_id='${site}';
+      update public.billing_usage set state='failed',finished_at=now() where owner_id='${other}' and state='reserved';
+      select public.begin_billed_audit('${site}','${other}','demo',false);
+      rollback;`)).split("\n").map(JSON.parse);
+    expect(results[0]).toMatchObject({ allowed: true, free: true });
+    expect(results[1]).toMatchObject({ allowed: false });
+    expect(results[2]).toMatchObject(outcome === "failed" ? { allowed: true, free: true, created: true } : { allowed: false });
+    expect(results[3]).toMatchObject({ allowed: false });
+  });
+
 });
