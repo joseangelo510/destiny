@@ -1,4 +1,4 @@
-.workspace { color:#321e37; min-width:0; font-family:var(--font-archivo),Arial,sans-serif; }
+.workspace { color:#321e37; min-width:0; font-family:var(--font-body),Arial,sans-serif; }
 .workspace button,.workspace input,.workspace select { font:inherit; }
 .workspace button { cursor:pointer; border:1px solid #d7ccd7; background:#fff; border-radius:7px; padding:9px 13px; color:#48294e; font-size:13px; font-weight:600; }
 .workspace button:hover { background:#f4edf3; }
