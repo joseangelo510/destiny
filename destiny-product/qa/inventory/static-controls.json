@@ -6549,7 +6549,7 @@
     "type": "a",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
+    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === \"paused\" ? <small>Paused</small> : null}<small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</spa"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:177:select:2",
@@ -6558,7 +6558,7 @@
     "type": "select",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
+    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === \"paused\" ? <small>Paused</small> : null}<small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</spa"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:177:onChange:3",
@@ -6567,7 +6567,7 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
+    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === \"paused\" ? <small>Paused</small> : null}<small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</spa"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:177:button:4",
@@ -6576,7 +6576,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
+    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === \"paused\" ? <small>Paused</small> : null}<small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</spa"
   },
   {
     "control_id": "src/components/rank-tracker-workspace.tsx:177:onClick:5",
@@ -6585,7 +6585,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td"
+    "context": "const freshness = row.policyView?.freshness ?? { message: \"Calculating freshness…\" }; return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === \"paused\" ? <small>Paused</small> : null}<small>{row.source === \"strategy\" ? \"From Keyword strategy\" : row.source === \"research\" ? \"From Keyword research\" : \"Manually added\"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</spa"
   },
   {
     "control_id": "src/components/rebound-core/calendar-actions.tsx:55:select:1",

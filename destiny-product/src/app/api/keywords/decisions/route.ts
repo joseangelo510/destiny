@@ -158,6 +158,6 @@ export async function POST(request: Request) {
   const { data: targets, error: targetError } = requested.length ? await supabase.from("tracked_keywords").select("normalized_keyword,status")
     .eq("website_id", audit.website_id).in("normalized_keyword", requested.map(normalizeTrackedKeyword)) : { data: [], error: null };
   const trackingStarted = targetError ? [] : requested.filter(keyword => targets?.some(target => target.normalized_keyword === normalizeTrackedKeyword(keyword) && target.status !== "paused"));
-  const trackingPaused = requested.filter(keyword => !trackingStarted.includes(keyword));
+  const trackingPaused = targetError ? [] : requested.filter(keyword => !trackingStarted.includes(keyword));
   return NextResponse.json({ decisions: data, trackingStarted, trackingPaused, trackingNotice: targetError ? "Your decisions are saved, but tracking status could not be confirmed. Review Rank Tracker before retrying." : trackingPaused.length ? TRACKING_PAUSED_NOTICE : undefined });
 }
