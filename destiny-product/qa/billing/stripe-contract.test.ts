@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { describe, expect, it } from "vitest";
-import { checkoutParameters, validateSubscription, verifyStripeEvent } from "@/lib/billing/stripe-contract";
+import { checkoutParameters, validateSubscription, verifyStripeEvent, verifyStripeEventAsync } from "@/lib/billing/stripe-contract";
 
 const priceIds = { starter: "price_starter", growth: "price_growth", premium: "price_premium" };
 const subscription = { id: "sub_123", customer: "cus_123", livemode: false, status: "active", items: { data: [{ id: "si_123", price: { id: "price_growth", currency: "usd", unit_amount: 9900, recurring: { interval: "month", interval_count: 1 } }, quantity: 1, current_period_start: 1000, current_period_end: 2000 }] }, latest_invoice: { status: "paid", subscription: "sub_123", period_end: 2000, lines: { data: [{ parent: { subscription_item_details: { subscription_item: "si_123", proration: false } }, pricing: { price_details: { price: "price_growth" } }, period: { start: 1000, end: 2000 } }] } }, trial_start: null, trial_end: null, cancel_at_period_end: false };
@@ -28,4 +28,14 @@ describe("Stripe contract boundaries", () => {
     const stale = stripe.webhooks.generateTestHeaderString({ payload, secret, timestamp: Math.floor(Date.now() / 1000) - 600 });
     expect(() => verifyStripeEvent(payload, stale, secret, false)).toThrow();
   });
+});
+
+it("verifies Edge-runtime signatures with asynchronous Web Crypto", async () => {
+  const secret = "whsec_edge_fixture";
+  const payload = JSON.stringify({ id: "evt_edge", livemode: false });
+  const stripe = new Stripe("sk_test_fixture");
+  const header = stripe.webhooks.generateTestHeaderString({ payload, secret });
+  expect((await verifyStripeEventAsync(payload, header, secret, false)).id).toBe("evt_edge");
+  await expect(verifyStripeEventAsync(payload + " ", header, secret, false)).rejects.toThrow();
+  await expect(verifyStripeEventAsync(payload, header, secret, true)).rejects.toThrow();
 });
