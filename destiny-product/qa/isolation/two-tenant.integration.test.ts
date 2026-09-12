@@ -706,6 +706,9 @@ async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tena
     expect(response.status, `${pathname} did not reject user A operating website B.`).toBe(403);
   }
 
+  const suggestions = await edgeRequest("/functions/v1/suggest-competitors", { website: "example.com", ownerId: owner.userId });
+  expect(suggestions.status, "Competitor suggestions accepted an anonymous caller.").toBe(401);
+
   const deleteAccount = await edgeRequest("/functions/v1/delete-account");
   expect(deleteAccount.status, "Account deletion accepted an anonymous caller.").toBe(401);
 

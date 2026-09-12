@@ -28,7 +28,7 @@ beforeAll(async () => {
     insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${website}','${organization}','https://billing.invalid','billing.invalid','Billing QA');`);
 });
 afterAll(async () => {
-  await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from public.organizations where id='${organization}'; delete from auth.users where id in ('${owner}','${other}');`);
+  await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id in ('${owner}','${other}'); delete from public.billing_accounts where owner_id in ('${owner}','${other}'); delete from public.organizations where id='${organization}'; delete from auth.users where id in ('${owner}','${other}');`);
 });
 describe.sequential("atomic billing reservations and isolation", () => {
   it("serializes checkout and webhook reconciliation and rejects stale lease releases", async () => {
@@ -223,6 +223,20 @@ describe.sequential("atomic billing reservations and isolation", () => {
     expect(results[1]).toMatchObject({ allowed: false });
     expect(results[2]).toMatchObject(outcome === "failed" ? { allowed: true, free: true, created: true } : { allowed: false });
     expect(results[3]).toMatchObject({ allowed: false });
+  });
+
+  it("caps free onboarding discovery under concurrency and charges paid searches afterward", async () => {
+    expect(JSON.parse(await sql(`select public.reserve_competitor_suggestions('${other}',false);`))).toMatchObject({ allowed: false, reason: "verification_required" });
+    await sql(`update auth.users set email_confirmed_at=now() where id='${other}';`);
+    const attempts = await Promise.all(Array.from({ length: 5 }, () => sql(`select public.reserve_competitor_suggestions('${other}',false);`).then(JSON.parse)));
+    expect(attempts.filter(result => result.allowed)).toHaveLength(2);
+    await sql(`update public.billing_usage set state='failed' where owner_id='${other}';`);
+    expect(JSON.parse(await sql(`select public.reserve_competitor_suggestions('${other}',false);`))).toMatchObject({ allowed: false, reason: "payment_required" });
+    await sql(`update public.billing_accounts set plan='starter',status='active',period_start=now()-interval '1 day',period_end=now()+interval '20 days',paid_through=now()+interval '20 days' where owner_id='${other}';`);
+    const paid = JSON.parse(await sql(`select public.reserve_competitor_suggestions('${other}',false);`));
+    expect(paid).toMatchObject({ allowed: true });
+    expect(await sql(`select meter='keywordSearches' and period_key like 'paid:%' from public.billing_usage where id='${paid.id}';`)).toBe("t");
+    await expect(sql(`begin; set local role authenticated; select public.reserve_competitor_suggestions('${owner}',false); rollback;`)).rejects.toThrow("permission denied");
   });
 
 });
