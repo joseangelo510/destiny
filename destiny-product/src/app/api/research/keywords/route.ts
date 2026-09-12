@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,6 +23,8 @@ export async function POST(request: Request) {
         locationName: typeof body.locationName === "string" ? body.locationName : undefined,
       },
     });
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     if (error || !data) {
       const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
         ? data.error

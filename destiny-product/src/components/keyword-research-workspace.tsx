@@ -1,5 +1,6 @@
 "use client";
 
+import { WorkspaceLink } from "./workspace-link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { KeywordResearchResult, KeywordResearchRow, KeywordSerpSnapshot, SearchIntent } from "@/lib/seo/research";
 import { KeywordSavePanel, KeywordSerpDrawer, KeywordSerpInsights, type KeywordListOption } from "./keyword-serp-insights";
@@ -122,6 +123,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   const [result, setResult] = useState<KeywordResearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [search, setSearch] = useState("");
   const [intent, setIntent] = useState<SearchIntent | "all">("all");
   const [sort, setSort] = useState<KeywordSort>({ key: "volume", direction: "desc" });
@@ -188,6 +190,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
 
   async function requestResearch(nextQuery: string, nextMode: "keyword" | "domain") {
     setLoading(true);
+    setBillingRequired(false);
     setError("");
     try {
       const response = await fetch("/api/research/keywords", {
@@ -196,6 +199,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         body: JSON.stringify({ query: nextQuery, mode: nextMode, locationName: "United States" }),
       });
       const payload = await response.json() as KeywordResearchResult & { error?: string };
+      setBillingRequired(response.status === 402);
       if (!response.ok) throw new Error(payload.error || "Keyword research failed.");
       shouldFocusFirstRevealedRef.current = false;
       setRevealed(false);
@@ -333,7 +337,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         <span className="research-location">Google · United States · English</span>
         <button className="primary-button" disabled={loading} type="submit">{loading ? "Researching…" : "Search"}</button>
       </form>
-      {error ? <p className="research-error" role="alert">{error}</p> : null}
+      {error ? <p className="research-error" role="alert">{error}{billingRequired && <> <WorkspaceLink href="/account/billing">View plans and billing</WorkspaceLink></>}</p> : null}
     </section>
 
     {!result ? <section className="research-empty-state"><span>⌕</span><h3>Run your first research report</h3><p>Rebound SEO will organize live provider data into demand, intent, difficulty, ranking, and traffic signals.</p></section> : <>

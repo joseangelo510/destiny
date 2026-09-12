@@ -1,3 +1,4 @@
+import { reserveContentWork, finishContentWork } from "@/lib/billing/worker";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -231,6 +232,11 @@ export async function POST(request: Request) {
   const model =
     process.env.ANTHROPIC_COPY_MODEL?.trim() || DEFAULT_COPY_MODEL;
 
+  const suppliedKey = request.headers.get("idempotency-key");
+  if (suppliedKey && !/^[a-zA-Z0-9_-]{8,160}$/.test(suppliedKey)) return NextResponse.json({ error: "Invalid request identifier." }, { status: 400 });
+  const reservation = await reserveContentWork(database, websiteId, output === "seo_blog_article" ? "articles" : "shortOutputs", `repurpose-${suppliedKey ?? crypto.randomUUID()}`);
+  if (reservation.response) return reservation.response;
+  const generate = async () => {
   // 8. Mark as writing and increment attempts before provider call
   const newAttempts = (source.generation_attempts ?? 0) + 1;
   const { error: markError } = await database
@@ -426,4 +432,14 @@ export async function POST(request: Request) {
     attribution,
     attempts: newAttempts,
   });
+  };
+  let succeeded = false;
+  try {
+    const result = await generate();
+    succeeded = result.ok;
+    return result;
+  } finally {
+    await finishContentWork(database, reservation.id, succeeded);
+  }
+
 }

@@ -212,6 +212,7 @@ export function ArticleReviewWorkspace({
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [delivering, setDelivering] = useState("");
   const [checkingCms, setCheckingCms] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -400,6 +401,7 @@ export function ArticleReviewWorkspace({
       generationAbortReasonRef.current = "timeout";
       controller.abort();
     }, ARTICLE_GENERATION_CLIENT_TIMEOUT_MS);
+    setBillingRequired(false);
     setGenerationSeconds(0);
     setGenerationPhase("researching");
     setGenerating(true);
@@ -418,6 +420,7 @@ export function ArticleReviewWorkspace({
         signal: controller.signal,
       });
       if (!response.ok || !response.body) {
+        setBillingRequired(response.status === 402);
         const failure = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(failure.error || "Rebound SEO could not generate this article.");
       }
@@ -562,7 +565,7 @@ export function ArticleReviewWorkspace({
         {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Rebound SEO verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Rebound SEO performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
         {!generating && draft.generationStatus !== "generated" && <div className="configuration-note" role="status"><strong>{draft.failureReason ? "Generation did not complete" : "Brief saved"}</strong><p>{draft.failureReason || "Set the direction above, then generate the complete article. There is no outline to review first."}</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not configured</strong><p>Your brief is still saved and ready to run once the writing model is connected.</p></div>}
-        {error && <div className="error-banner" role="alert">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}{billingRequired && <p><Link className="button" href="/account/billing">View plans and billing</Link></p>}</div>}
       </section>
 
       {reviewReady && <>

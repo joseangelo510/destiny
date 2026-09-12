@@ -192,6 +192,7 @@ export function RepurposeWorkspace({
   // --- Generation state ---
   const [draft, setDraft] = useState<DraftRecord | null>(initialDraft ?? null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [billingRequired, setBillingRequired] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   // --- Save state ---
@@ -293,6 +294,7 @@ export function RepurposeWorkspace({
 
     setGenerating(true);
     setGenerateError(null);
+    setBillingRequired(false);
     setStage("writing");
 
     try {
@@ -311,6 +313,7 @@ export function RepurposeWorkspace({
         const msg = (json && typeof json === "object" && "error" in json && typeof (json as Record<string, unknown>).error === "string")
           ? (json as Record<string, string>).error
           : `Generation failed (${res.status}). Please try again.`;
+        setBillingRequired(res.status === 402);
         setGenerateError(msg);
         setStage("reading");
         return;
@@ -555,7 +558,8 @@ export function RepurposeWorkspace({
             {generateError && (
               <div role="alert" className="repurpose-error">
                 <strong>Generation error</strong>
-                <p>{generateError} Please try again or choose a different output format.</p>
+                <p>{generateError}{!billingRequired && " Please try again or choose a different output format."}</p>
+                {billingRequired && <WorkspaceLink className="button" href="/account/billing">View plans and billing</WorkspaceLink>}
               </div>
             )}
             <button
@@ -660,7 +664,8 @@ export function RepurposeWorkspace({
           {generateError && (
             <div role="alert" className="repurpose-error">
               <strong>Retry error</strong>
-              <p>{generateError} Please try again.</p>
+              <p>{generateError}{!billingRequired && " Please try again."}</p>
+              {billingRequired && <WorkspaceLink className="button" href="/account/billing">View plans and billing</WorkspaceLink>}
             </div>
           )}
 
