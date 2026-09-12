@@ -59,7 +59,7 @@ test("@gate Domain Overview researches arbitrary domains without changing the wo
   expect(new URL(page.url()).searchParams.get("site")).toBe(fixture.mvp.websiteId);
   await page.getByLabel("Website domain").fill("failed.example.com");
   await page.getByRole("button", {name:"Analyze domain",exact:true}).click();
-  await expect(page.getByRole("alert")).toContainText("previous report for second.example.com remains");
+  await expect(page.locator("main").getByRole("alert")).toContainText("previous report for second.example.com remains");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
   expect(errors).toEqual([]);
 });
