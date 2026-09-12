@@ -12,6 +12,8 @@ export async function verifyBillingConfiguration(stripe: Stripe, config: Billing
     const price = await stripe.prices.retrieve(config.priceIds[plan.id]);
     if (!price.active || price.livemode !== config.livemode || price.currency !== "usd" || price.unit_amount !== plan.monthlyCents || price.recurring?.interval !== "month" || price.recurring.interval_count !== 1 || price.type !== "recurring") throw new BillingOperationError("stripe_price_unavailable");
   }
+  const portal = await stripe.billingPortal.configurations.retrieve(config.portalConfigurationId);
+  if (!portal.active || portal.id !== config.portalConfigurationId || portal.livemode !== config.livemode) throw new BillingOperationError("stripe_portal_unavailable");
 }
 export async function paymentAction(admin: SupabaseClient, stripe: Stripe, config: BillingConfig, ownerId: string, action: "checkout" | "portal", requestedPlan?: unknown) {
   const plan = planById(requestedPlan);
@@ -30,7 +32,7 @@ export async function paymentAction(admin: SupabaseClient, stripe: Stripe, confi
     if (customer.deleted || customer.livemode !== config.livemode || customer.metadata.rebound_owner_id !== ownerId) throw new BillingOperationError("customer_owner_mismatch");
     if (action === "portal") {
       await assertBillingOperation(admin, ownerId, token);
-      const session = await stripe.billingPortal.sessions.create({ customer: customerId, return_url: `${config.origin}/account/billing` });
+      const session = await stripe.billingPortal.sessions.create({ customer: customerId, configuration: config.portalConfigurationId, return_url: `${config.origin}/account/billing` });
       return { url: session.url };
     }
     // Read Stripe, not just the webhook mirror, before offering another subscription.
