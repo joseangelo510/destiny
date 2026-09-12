@@ -3689,3 +3689,7 @@ Before implementation: same authorized HIGH subscription scope. Add service-only
 ### D10.40 bounded free audit recovery — September 12, 2026
 
 Before implementation, same subscription scope: one retry for a confirmed failed initial-audit receipt, same website and within seven days of the original grant. Maximum two attempts; completed/reserved receipts do not qualify; deleted or substituted websites do not qualify; no timestamp reset. Preserve all usage receipts. Add explicit billing recovery on onboarding/prototype failure screens when API returns402; no simulated retry for a payment requirement. Local additive function replacement only. Separate RED testsbeffb50. No external/production mutation.
+
+### D10.40 onboarding discovery quota — September 12, 2026
+
+Before implementation, same authorized HIGH subscription scope. Existing suggest-competitors makes a paid provider request before website creation. Add verified-claim owner identity, service-only atomic reservation, two free onboarding attempts before initial audit, then one keywordSearches unit per request. All free outcomes count against two-attempt ceiling. Manual competitor input remains available. Record provider cost if returned and settle before returning suggestions. New privileged function inventory/anonymous negative test required. Local disposable migration only; no live configuration or provider call. RED50899a2. Rollback local function/RPC before release; full gate and protected release remain required.

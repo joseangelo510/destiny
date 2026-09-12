@@ -185,7 +185,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
       const payload = await response.json() as { suggestions?: CompetitorSuggestion[]; warning?: string };
       setCompetitorSuggestions(payload.suggestions ?? []);
       if (!payload.suggestions?.length) {
-        setCompetitorSuggestionNotice("No reliable search neighbors were found yet. Add two competitors you know by name or URL.");
+        setCompetitorSuggestionNotice(response.status === 402 || response.status === 403 ? "Automatic discovery is unavailable on your current allowance. Add two competitors you know by name or URL to continue." : "No reliable search neighbors were found yet. Add two competitors you know by name or URL.");
       }
     } catch {
       setCompetitorSuggestionNotice("Live competitor suggestions are unavailable right now. You can still add names or URLs yourself.");

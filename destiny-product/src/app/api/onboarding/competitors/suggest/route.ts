@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
 import { createClient } from "@/lib/supabase/server";
@@ -25,7 +26,11 @@ export async function POST(request: Request) {
         locationName: typeof body.locationName === "string" ? body.locationName : "United States",
       },
     });
-    if (error) return NextResponse.json({ suggestions: [], warning: error.message });
+    if (error) {
+      const billing = await billingFailureResponse(error);
+      if (billing) return billing;
+      return NextResponse.json({ suggestions: [], warning: "Automatic discovery is unavailable. You can still enter competitors you know." });
+    }
     return NextResponse.json({ suggestions: data?.suggestions ?? [] });
   } catch (cause) {
     return NextResponse.json({

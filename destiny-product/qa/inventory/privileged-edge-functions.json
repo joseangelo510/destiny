@@ -83,5 +83,10 @@
     "path": "supabase/functions/wordpress-reconcile/index.ts",
     "auth": "user",
     "boundary": "website_rls"
+  },
+  {
+    "path": "supabase/functions/suggest-competitors/index.ts",
+    "auth": "user",
+    "boundary": "billing_claim"
   }
 ]
