@@ -18,6 +18,8 @@ async function exists(file: string) {
 type Boundary =
   | "website_rls"
   | "account_claim"
+  | "billing_claim"
+  | "stripe_signature"
   | "oauth_state"
   | "cron_secret"
   | "signed_token_or_cron";
@@ -79,6 +81,8 @@ describe("privileged Edge Function authorization boundaries", () => {
     const allowed = new Set<Boundary>([
       "website_rls",
       "account_claim",
+      "billing_claim",
+      "stripe_signature",
       "oauth_state",
       "cron_secret",
       "signed_token_or_cron",
@@ -198,4 +202,26 @@ describe("privileged Edge Function authorization boundaries", () => {
     expect(cronUnauthorized).toBeGreaterThan(suppliedSecret);
     expect(backgroundWork).toBeGreaterThan(cronUnauthorized);
   });
+});
+
+it("requires billing claims and signed Stripe events before privileged work", async () => {
+  const entries = await manifest();
+  for (const boundary of ["billing_claim", "stripe_signature"]) {
+    const entry = entries.find(item => item.boundary === boundary);
+    expect(entry).toBeDefined();
+    const source = handlerSource(await readFile(path.join(productRoot, entry!.path), "utf8"));
+    const privileged = source.indexOf("context.supabaseAdmin");
+    if (boundary === "billing_claim") {
+      const claim = source.indexOf("const ownerId = context.userClaims?.id");
+      expect(claim).toBeGreaterThanOrEqual(0);
+      expect(source.indexOf("if (!ownerId)")).toBeGreaterThan(claim);
+      expect(privileged).toBeGreaterThan(source.indexOf("if (!ownerId)"));
+      expect(source).not.toMatch(/body\.(?:ownerId|owner_id|customerId|priceId)/);
+    } else {
+      const verification = source.indexOf("await verifyStripeEventAsync(await request.text()");
+      expect(verification).toBeGreaterThanOrEqual(0);
+      expect(source.indexOf('json({ error: "Invalid signature or event." }, 400)')).toBeGreaterThan(verification);
+      expect(privileged).toBeGreaterThan(verification);
+    }
+  }
 });
