@@ -49,9 +49,10 @@ test.describe("@gate Rebound redesign read-only Home", () => {
     expect(await navigation.getByRole("link").count()).toBe(6);
     const tools = page.getByRole("navigation", { name: "All tools", exact: true });
     await expect(tools).toBeVisible();
-    for (const label of ["Website audits", "Content studio", "Keyword strategy", "Rank tracker", "Distribution tools", "Connections"]) {
-      await expect(tools.getByRole("link", { name: label, exact: true })).toBeAttached();
+    for (const label of ["Website audits", "Content studio", "Keyword strategy", "Rank tracker", "Distribution tools"]) {
+      await expect(tools.getByRole("link", { name: label, exact: true, includeHidden: true })).toBeAttached();
     }
+    await expect(page.getByRole("navigation", { name: "Account and connections" }).getByRole("link", { name: "Connections", exact: true })).toBeVisible();
     if (mobile) await page.keyboard.press("Escape");
 
     const accessibility = await new AxeBuilder({ page }).analyze();

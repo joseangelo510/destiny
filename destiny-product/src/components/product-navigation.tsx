@@ -15,11 +15,17 @@ const primary = [
   { label: "Distribution", href: "/app/distribution", icon: "send" },
   { label: "Progress", href: "/app/progress", icon: "chart" },
 ];
-const tools = [
-  { label: "Distribution tools", href: "/distribution" },
-  ...FEATURE_NAVIGATION.filter(item => item.href !== "/distribution"),
-  { label: "Account", href: "/account" },
+const groups = [
+  { label: "Competitor research", paths: ["/domain-overview", "/backlinks"] },
+  { label: "Keywords", paths: ["/keyword-research", "/keywords", "/rank-tracker"] },
+  { label: "Content creation", paths: ["/content", "/interviews", "/content/repurpose", "/content/infographics"] },
+  { label: "Website optimization", paths: ["/audits", "/internal-links"] },
+  { label: "Publishing & distribution", paths: ["/content#publishing-plan", "/distribution", "/reviews"] },
+  { label: "Analytics & reporting", paths: ["/analytics", "/llm-visibility"] },
+  { label: "Planning", paths: ["/results", "/roadmap", "/this-week"] },
 ];
+const tool = (path: string) => ({ ...FEATURE_NAVIGATION.find(item => item.href === path)!, ...(path === "/distribution" ? { label: "Distribution tools" } : {}) });
+const utilities = [{ label: "Account", href: "/account" }, { label: "Connections", href: "/integrations" }];
 const name = (site: Website) => site.business_name?.trim() || site.normalized_domain;
 
 export function ProductNavigation({ active, websiteId, websites }: { active: string; websiteId: string | null; websites: Website[] }) {
@@ -57,7 +63,11 @@ export function ProductNavigation({ active, websiteId, websites }: { active: str
       {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : "Choose a website"}>{current ? name(current) : "Choose a website"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden="true" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} data-site-switch={site.id} href={siteScopedHref(active,site.id)} aria-current={site.id === current?.id ? "true" : undefined}>{name(site)}<small>{site.normalized_domain}</small></a>)}<Link href="/onboarding?new=1">+ Add another website</Link></div></details> : <Link className={styles.add} href="/onboarding?new=1">Add your first website</Link>}
       <nav aria-label="Main navigation">{primary.map(itemLink)}</nav>
       <p className={styles.divider}>All tools</p>
-      <nav aria-label="All tools" className={styles.tools}>{tools.map(itemLink)}</nav>
+      <nav aria-label="All tools" className={styles.tools}>{groups.map(group => <details key={`${active}:${group.label}`} data-tool-group={group.label} className={styles.group} open={group.paths.includes(active)}>
+        <summary>{group.label}<span className={`${styles.icon} ${styles.caret}`} aria-hidden="true" /></summary>
+        <div className={styles.groupLinks}>{group.paths.map(path => itemLink(tool(path)))}</div>
+      </details>)}</nav>
+      <nav aria-label="Account and connections" className={styles.utilities}>{utilities.map(itemLink)}</nav>
       <form className={styles.signout} action="/auth/signout" method="post"><button type="submit">Sign out</button></form>
     </aside>
   </div>;

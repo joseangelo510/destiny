@@ -23,10 +23,20 @@
 .menu { --nav-icon: url('/icons/rebound/menu.svg'); }
 .caret { --nav-icon: url('/icons/rebound/caret.svg'); width: 16px; height: 16px; }
 .divider { border-top: 1px solid #3c2b36; margin: 18px 14px 12px; padding: 18px 1px 0; color: #aa9aa4; font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; }
-.sidebar .tools { gap: 1px; }
+.sidebar > :not(.tools) { flex-shrink: 0; }
+.sidebar .tools { display: block; min-height: 80px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; flex: 1 1 auto; padding: 0 10px; margin: 0 -10px; }
+.group summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; padding: 6px 17px; cursor: pointer; list-style: none; color: #ddd2da; font-size: 14px; line-height: 1.5; border-radius: 5px; }
+.group summary::-webkit-details-marker { display: none; }
+.group summary:hover { background: #2d1d28; color: #fff8fb; }
+.group summary .caret { transform: rotate(-90deg); }
+.group[open] summary .caret { transform: none; }
+.groupLinks { padding-bottom: 7px; }
+.sidebar .tools .groupLinks a { padding-left: 26px; min-height: 36px; gap: 12px; }
+.sidebar .utilities { border-top: 1px solid #3c2b36; margin: 16px 4px 0; padding-top: 12px; gap: 2px; }
+.sidebar .utilities a { min-height: 36px; font-size: 13px; padding: 0 13px; gap: 17px; }
 .sidebar .tools a { min-height: 32px; padding: 0 17px; font-size: 13px; gap: 17px; }
 .tools .icon { width: 21px; height: 21px; }
-.signout { border-top: 1px solid #3c2b36; margin: 20px 4px 0; padding-top: 15px; }
+.signout { margin: 4px 4px 0; padding-left: 4px; }
 .signout button, .close { background: none; border: 0; color: #c8bfc5; padding: 9px; font: 13px var(--font-body); cursor: pointer; }
 .add { margin: 20px 0; color: #f7f1eb; }
 .mobilebar, .close, .scrim { display: none; }
