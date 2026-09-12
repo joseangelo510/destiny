@@ -8,9 +8,10 @@ vi.mock("../../supabase/functions/_shared/billing/store.ts", () => ({
   saveStripeCustomer: vi.fn(), assertBillingOperation: vi.fn(),
 }));
 import { paymentAction, verifyBillingConfiguration } from "../../supabase/functions/_shared/billing/payment-service";
-const config = { key: "sk_test_fixture", webhookSecret: "whsec_fixture", accountId: "acct_a", livemode: false, origin: "https://app.reboundseo.com", priceIds: { starter: "price_a", growth: "price_b", premium: "price_c" } };
-const create = vi.fn(), listSubscriptions = vi.fn(), listSessions = vi.fn(), expire = vi.fn(), retrieveCustomer = vi.fn();
+const config = { key: "sk_test_fixture", webhookSecret: "whsec_fixture", portalConfigurationId: "bpc_fixture", accountId: "acct_a", livemode: false, origin: "https://app.reboundseo.com", priceIds: { starter: "price_a", growth: "price_b", premium: "price_c" } };
+const createPortal = vi.fn(), create = vi.fn(), listSubscriptions = vi.fn(), listSessions = vi.fn(), expire = vi.fn(), retrieveCustomer = vi.fn();
 const fake = {
+  billingPortal: { sessions: { create: createPortal } },
   customers: { retrieve: retrieveCustomer },
   subscriptions: { list: listSubscriptions },
   checkout: { sessions: { create, list: listSessions, expire, listLineItems: async () => ({ data: [{ price: { id: "price_b" } }], has_more: false }) } },
@@ -19,7 +20,7 @@ const stripe = fake as unknown as Stripe;
 const admin = {} as SupabaseClient;
 describe("payment service subscription protection", () => {
   beforeEach(() => {
-    vi.clearAllMocks(); retrieveCustomer.mockResolvedValue({ id: "cus_a", livemode: false, metadata: { rebound_owner_id: "owner-a" } });
+    vi.clearAllMocks(); createPortal.mockResolvedValue({ url: "https://billing.stripe.com/p/session/fixture" }); retrieveCustomer.mockResolvedValue({ id: "cus_a", livemode: false, metadata: { rebound_owner_id: "owner-a" } });
     listSubscriptions.mockResolvedValue({ data: [], has_more: false }); listSessions.mockResolvedValue({ data: [], has_more: false });
     create.mockResolvedValue({ url: "https://checkout.stripe.com/c/pay/example", livemode: false });
   });
@@ -44,4 +45,24 @@ describe("payment service subscription protection", () => {
     const gateway = { accounts: { retrieve: async () => ({ id: "acct_other" }) } } as unknown as Stripe;
     await expect(verifyBillingConfiguration(gateway, config)).rejects.toThrow("stripe_account_unavailable");
   });
+  it("pins portal sessions to the reviewed configuration instead of an account default", async () => {
+    await paymentAction(admin, stripe, config, "owner-a", "portal");
+    expect(createPortal).toHaveBeenCalledWith({ customer: "cus_a", return_url: "https://app.reboundseo.com/account/billing", configuration: "bpc_fixture" });
+  });
+
+  it("rejects an inactive or wrong-mode portal before exposing checkout", async () => {
+    const retrievePortal = vi.fn(async () => ({ id: "bpc_fixture", active: false, livemode: false }));
+    const gateway = {
+      accounts: { retrieve: async () => ({ id: "acct_a" }) },
+      prices: { retrieve: async (id: string) => ({ active: true, livemode: false, currency: "usd", type: "recurring", unit_amount: { price_a: 3900, price_b: 9900, price_c: 25000 }[id], recurring: { interval: "month", interval_count: 1 } }) },
+      billingPortal: { configurations: { retrieve: retrievePortal } },
+    } as unknown as Stripe;
+    await expect(verifyBillingConfiguration(gateway, config)).rejects.toThrow("stripe_portal_unavailable");
+    retrievePortal.mockResolvedValue({ id: "bpc_fixture", active: true, livemode: true });
+    await expect(verifyBillingConfiguration(gateway, config)).rejects.toThrow("stripe_portal_unavailable");
+    retrievePortal.mockResolvedValue({ id: "bpc_fixture", active: true, livemode: false });
+    await expect(verifyBillingConfiguration(gateway, config)).resolves.toBeUndefined();
+    expect(retrievePortal).toHaveBeenCalledWith("bpc_fixture");
+  });
+
 });

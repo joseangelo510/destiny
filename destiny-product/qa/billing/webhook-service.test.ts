@@ -13,7 +13,7 @@ const rpc = vi.fn();
 const db = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { owner_id: "owner-a" }, error: null }) }) }) }), rpc } as unknown as SupabaseClient;
 const retrieve = vi.fn(), list = vi.fn();
 const stripe = { accounts: { retrieve: async () => ({ id: "acct_a" }) }, subscriptions: { list, retrieve } } as unknown as Stripe;
-const config = { key: "sk_test_fixture", accountId: "acct_a", webhookSecret: "whsec_fixture", livemode: false, origin: "https://app.reboundseo.com", priceIds: { starter: "price_a", growth: "price_b", premium: "price_c" } };
+const config = { key: "sk_test_fixture", accountId: "acct_a", webhookSecret: "whsec_fixture", portalConfigurationId: "bpc_fixture", livemode: false, origin: "https://app.reboundseo.com", priceIds: { starter: "price_a", growth: "price_b", premium: "price_c" } };
 const event = { id: "evt_old", type: "customer.subscription.updated", livemode: false, data: { object: { customer: "cus_a", status: "active" } } } as unknown as Stripe.Event;
 beforeEach(() => {
   vi.clearAllMocks(); order.length = 0;
