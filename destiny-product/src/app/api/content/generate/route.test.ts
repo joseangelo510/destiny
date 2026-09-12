@@ -2,6 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readArticleGenerationStream } from "@/lib/content/generation-stream";
 
 const createClient = vi.fn();
+const reserveContentWork = vi.fn();
+const finishContentWork = vi.fn();
+vi.mock("@/lib/billing/worker", () => ({
+  reserveContentWork, finishContentWork,
+  invokeBillingWorker: (client: { functions: { invoke: (name: string, options: unknown) => unknown } }, endpoint: string, payload: unknown) => client.functions.invoke(endpoint, { body: payload }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 
 function wordSequence(count: number, prefix: string) {
@@ -19,6 +25,8 @@ function messageResponse(text: string, stopReason = "end_turn") {
 describe("Content Studio article recovery route", () => {
   beforeEach(() => {
     vi.resetModules();
+    reserveContentWork.mockResolvedValue({ id: "usage-article-1" });
+    finishContentWork.mockResolvedValue(true);
     process.env.ANTHROPIC_API_KEY = "test-anthropic-key";
     process.env.ANTHROPIC_COPY_MODEL = "claude-opus-4-8";
     const query = (data: unknown) => {
@@ -144,4 +152,20 @@ describe("Content Studio article recovery route", () => {
     expect(payload.draft?.generationStatus).toBe("needs_generation");
     expect(payload.draft?.qualityIssues.some((issue) => issue.code === "incomplete_output")).toBe(true);
   });
+});
+
+it("denies article generation before either research or writing when its allowance is exhausted", async () => {
+  process.env.ANTHROPIC_API_KEY = "fixture";
+  reserveContentWork.mockResolvedValue({ response: Response.json({ code: "BILLING_LIMIT_REACHED" }, { status: 402 }) });
+  const builder: Record<string, unknown> = {};
+  for (const method of ["select", "eq", "order", "limit"]) builder[method] = () => builder;
+  builder.maybeSingle = async () => ({ data: { id: "site", website_id: "site", url: "https://example.com" } });
+  const invoke = vi.fn();
+  createClient.mockResolvedValue({ auth: { getClaims: async () => ({ data: { claims: { sub: "owner" } } }) }, from: () => builder, functions: { invoke } });
+  const provider = vi.fn(); vi.stubGlobal("fetch", provider);
+  try {
+    const { POST } = await import("./route");
+    const response = await POST(new Request("https://example.invalid", { method: "POST", body: JSON.stringify({ websiteId: "site", auditId: "audit", keyword: "seo", businessName: "Example" }) }));
+    expect(response.status).toBe(402); expect(invoke).not.toHaveBeenCalled(); expect(provider).not.toHaveBeenCalled();
+  } finally { delete process.env.ANTHROPIC_API_KEY; vi.unstubAllGlobals(); }
 });
