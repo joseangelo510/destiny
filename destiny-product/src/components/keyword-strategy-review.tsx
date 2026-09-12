@@ -39,6 +39,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const [pendingDecline, setPendingDecline] = useState("");
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [status, setStatus] = useState("");
   const [statusLink, setStatusLink] = useState<{ href: string; label: string } | null>(null);
   const [documentLinks, setDocumentLinks] = useState(initialDocumentLinks);
@@ -111,9 +112,11 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     setSaving(keyword.keyword);
     setError("");
     setStatusLink(null);
+    setBillingRequired(false);
     try {
       const response = await fetch("/api/reoptimization-documents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword: keyword.keyword, regenerate }) });
       const payload = await response.json() as { error?: string; document?: { url?: string } };
+      setBillingRequired(response.status === 402);
       if (!response.ok || !payload.document?.url) throw new Error(payload.error || "Rebound SEO could not create the change document.");
       const href = payload.document.url;
       setDocumentLinks((current) => ({ ...current, [keyword.keyword]: href }));
@@ -276,6 +279,6 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     {!visibleKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button onClick={() => selectTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link href={auditHref}>Run a new audit</Link> : null}{!auditHref && activeTab === "review" ? <Link href={moreKeywordsHref}>Find more keywords</Link> : null}</div></div></section> : !filteredKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{verdictFilter === "all" && activeTab === "review" ? "No existing-page opportunities in this list" : `No ${verdictFilter} keywords in this list`}</h3><p>Choose another verdict to see the recommendations Rebound SEO checked against your site.</p><div><button onClick={() => setVerdictFilter("all")} type="button">Show all keywords</button></div></div></section> : renderTable(displayedKeywords, filteredKeywords.length)}
 
     {!strategyComplete ? <div className="claude-ks-finish"><div><strong>{canComplete ? "Ready to build your three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? "Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker." : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disabled={!canComplete || !questId} disabled={saving === "quest"} onClick={() => void finish()} type="button">{saving === "quest" ? "Building your plan…" : canComplete ? "Build my three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</button></div> : null}
-    {error && <div aria-live="polite" className="error-banner">{error}</div>}
+    {error && <div aria-live="polite" className="error-banner">{error}{billingRequired && <p><Link href="/account/billing">View plans and billing</Link></p>}</div>}
   </section>;
 }

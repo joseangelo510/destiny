@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
 import { createClient } from "@/lib/supabase/server";
@@ -16,9 +17,6 @@ export async function POST(request: Request) {
   if (typeof claimsData?.claims?.sub !== "string") return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
   const { data: website } = await supabase.from("websites").select("id,normalized_domain,plan_tier").eq("id", websiteId).maybeSingle();
   if (!website) return NextResponse.json({ error: "Website not found." }, { status: 404 });
-  if (website.plan_tier !== "moderate" && website.plan_tier !== "super_growth") {
-    return NextResponse.json({ error: "Upgrade to unlock live creator recommendations." }, { status: 403 });
-  }
   const { data: competitors } = await supabase.from("competitors").select("url").eq("website_id", website.id);
   const competitorDomains = (competitors ?? []).flatMap((item) => {
     if (!item.url) return [];
@@ -30,6 +28,8 @@ export async function POST(request: Request) {
     locationName: "United States",
     excludeDomains: [website.normalized_domain, ...competitorDomains],
   } });
+  const billingFailure = await billingFailureResponse(error);
+  if (billingFailure) return billingFailure;
   if (error || !data) return NextResponse.json({ error: error?.message || "Rebound SEO could not complete creator discovery." }, { status: 502 });
   return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
 }

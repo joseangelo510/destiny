@@ -1,3 +1,4 @@
+import { loadBillingAccount } from "@/lib/billing/account";
 import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { CreatorDiscovery } from "@/components/creator-discovery";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
@@ -6,7 +7,6 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   baseDirectories,
   creatorProspects,
-  isPaidPlan,
   recommendedDirectories,
   recommendedSocialChannels,
 } from "@/lib/distribution/recommendations";
@@ -33,10 +33,10 @@ export default async function DistributionPage() {
   const xShare = `https://x.com/intent/post?text=${encodeURIComponent(`${articleTitle} ${articleUrl}`)}`;
   const facebookShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
   const businessContext = [context.website?.business_name, context.website?.products_services, context.website?.ideal_customer, context.website?.market].filter(Boolean).join(" ");
-  const paid = isPaidPlan(context.website?.plan_tier);
+  const paid = (await loadBillingAccount(context.userId)).access.canRunPaidWork;
   const social = recommendedSocialChannels(businessContext);
   const directorySuggestions = recommendedDirectories(businessContext).filter((suggestion) => !baseDirectories.some((base) => base.key === suggestion.key));
-  const visibleCreators = paid ? publishers : publishers.slice(0, 5);
+  const visibleCreators = publishers;
   const creatorTopics = list(providerResult.keywords).map(record)
     .filter((item) => item.essential === true || Number(item.priorityTier ?? 9) <= 2)
     .map((item) => String(item.keyword ?? "")).filter(Boolean).slice(0, 3);

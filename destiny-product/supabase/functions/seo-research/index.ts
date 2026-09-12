@@ -168,11 +168,13 @@ export default {
       return json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete live SEO research." }, 502);
     }
     };
-    const meter = body.kind === "keywords" || body.kind === "keyword_serp" ? "keywordSearches"
+    const meter = body.kind === "keywords" || body.kind === "keyword_serp" || body.kind === "creators" ? "keywordSearches"
       : body.kind === "domain_overview" || body.kind === "backlinks" ? "domainReports" : null;
     if (!meter) return runResearch();
+    const units = body.kind === "creators" ? creatorSearchRequests(Array.isArray(body.topics) ? body.topics.filter((topic): topic is string => typeof topic === "string").slice(0,3) : []).length : 1;
+    if (units < 1) return json({ error: "Choose at least one priority keyword first." }, 400);
     const suppliedKey = request.headers.get("idempotency-key");
     if (suppliedKey && !/^[a-zA-Z0-9_-]{8,160}$/.test(suppliedKey)) return json({ error: "Invalid request identifier." }, 400);
-    return meteredResponse(context.supabaseAdmin, { ownerId, meter, requestKey: `research-${String(body.kind)}-${suppliedKey ?? crypto.randomUUID()}` }, runResearch);
+    return meteredResponse(context.supabaseAdmin, { ownerId, meter, units, requestKey: `research-${String(body.kind)}-${suppliedKey ?? crypto.randomUUID()}` }, runResearch);
   }),
 };
