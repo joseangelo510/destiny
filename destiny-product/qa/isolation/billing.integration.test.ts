@@ -104,4 +104,17 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await sql(`select public.release_billing_operation('${owner}','${lease.token}');`);
   });
 
+  it("binds an infographic to one reviewed plan and permits only one concurrent render", async () => {
+    await sql(`update public.billing_accounts set plan='premium',status='active',period_start=now()-interval '1 day',period_end=now()+interval '20 days',paid_through=now()+interval '20 days' where owner_id='${owner}';`);
+    const reservation = await reserve("infographic-bundle", "infographics");
+    const digest = "a".repeat(64);
+    await sql(`select public.bind_billing_artifact('${owner}','${reservation.id}','${digest}');`);
+    await expect(sql(`select public.bind_billing_artifact('${owner}','${reservation.id}','${"b".repeat(64)}');`)).rejects.toThrow("Artifact already bound");
+    expect(await sql(`select public.claim_billing_stage('${other}','${reservation.id}','infographic_render','${digest}');`)).toBe("f");
+    expect(await sql(`select public.claim_billing_stage('${owner}','${reservation.id}','infographic_render','${"b".repeat(64)}');`)).toBe("f");
+    const results = await Promise.all(Array.from({ length: 5 }, () => sql(`select public.claim_billing_stage('${owner}','${reservation.id}','infographic_render','${digest}');`)));
+    expect(results.filter(value => value === "t")).toHaveLength(1);
+    await expect(sql(`begin; set local role authenticated; select public.claim_billing_stage('${owner}','${reservation.id}','infographic_render','${digest}'); rollback;`)).rejects.toThrow("permission denied");
+  });
+
 });
