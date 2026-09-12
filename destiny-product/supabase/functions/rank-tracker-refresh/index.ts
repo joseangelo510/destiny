@@ -1,3 +1,4 @@
+import { rankTrackingAccess } from "../_shared/billing/rank-access.ts";
 import { withSupabase } from "@supabase/server";
 import { parseRankObservation } from "./logic.ts";
 
@@ -65,22 +66,22 @@ export default {
     if (error) return json({ error: error.message }, 500);
     const due = (data ?? []) as unknown as DueKeyword[];
     const groups = due.reduce<Record<string, DueKeyword[]>>((acc, row) => ({ ...acc, [row.website_id]: [...(acc[row.website_id] ?? []), row] }), {});
-    const websiteIds = Object.keys(groups);
-    const { data: preferences } = websiteIds.length
-      ? await context.supabaseAdmin.from("notification_preferences").select("website_id,ranking_digest_frequency").in("website_id", websiteIds)
-      : { data: [] };
-    const cadenceByWebsite = new Map((preferences ?? []).map((preference) => [preference.website_id, preference.ranking_digest_frequency]));
-    const completedRuns: unknown[] = [];
+    const completedRuns: Array<{ websiteId: string; status: string; completed: number; failed: number; totalCost: number }> = [];
 
     for (const [websiteId, rows] of Object.entries(groups)) {
-      const refreshDays = cadenceByWebsite.get(websiteId) === "three_day" ? 3 : 7;
+      const access = await rankTrackingAccess(context.supabaseAdmin, websiteId);
+      if (!access) {
+        completedRuns.push({ websiteId, status: "billing_paused", completed: 0, failed: 0, totalCost: 0 });
+        continue;
+      }
+      const refreshDays = 7;
       const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: rows.length, started_at: now.toISOString() }).select("id").single();
       let completed = 0;
       let failed = 0;
       let totalCost = 0;
       for (const row of rows) {
         try {
-          const observation = await fetchRank(row, login, password);
+          const observation = await fetchRank({ ...row, search_depth: 100 }, login, password);
           const { error: insertError } = await context.supabaseAdmin.from("rank_observations").insert({
             tracked_keyword_id: row.id,
             website_id: row.website_id,
@@ -89,7 +90,7 @@ export default {
             position: observation.position,
             result_url: observation.resultUrl,
             result_title: observation.resultTitle,
-            search_depth: row.search_depth,
+            search_depth: 100,
             provider_task_id: observation.providerTaskId,
             provider_cost: observation.providerCost,
             check_url: observation.checkUrl,
@@ -102,13 +103,13 @@ export default {
         } catch (cause) {
           failed += 1;
           const message = cause instanceof Error ? cause.message : "Rank check failed.";
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: new Date(now.getTime() + refreshDays * 86_400_000).toISOString() }).eq("id", row.id);
         }
       }
       const status = failed === 0 ? "complete" : completed === 0 ? "failed" : "partial";
       if (run?.id) await context.supabaseAdmin.from("rank_tracker_runs").update({ status, completed_count: completed, failed_count: failed, provider_cost: totalCost, completed_at: new Date().toISOString() }).eq("id", run.id);
       completedRuns.push({ websiteId, status, completed, failed, totalCost });
     }
-    return json({ processed: due.length, runs: completedRuns });
+    return json({ considered: due.length, processed: completedRuns.reduce((count, run) => count + run.completed + run.failed, 0), runs: completedRuns });
   }),
 };
