@@ -67,6 +67,14 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await expect(sql(`begin; set local role authenticated; select public.reserve_billing_usage('${owner}',null,'browser-key','articles',1); rollback;`)).rejects.toThrow("permission denied");
     await expect(sql(`begin; set local role anon; select * from public.billing_usage; rollback;`)).rejects.toThrow("permission denied");
   });
+  it("exposes only the signed-in owner's aggregate and rejects anonymous usage reads", async () => {
+    for (const [id, ownsUsage] of [[owner, true], [other, false]] as const) {
+      const result = await sql(`begin; set local role authenticated; select set_config('request.jwt.claims','{"sub":"${id}","role":"authenticated"}',true); select coalesce(sum(used),0) from public.billing_period_usage(); rollback;`);
+      expect(Number(result.split("\n").at(-1)) > 0).toBe(ownsUsage);
+    }
+    expect(await sql(`select prosecdef from pg_proc where oid='public.billing_period_usage()'::regprocedure;`)).toBe("f");
+    await expect(sql(`begin; set local role anon; select * from public.billing_period_usage(); rollback;`)).rejects.toThrow("permission denied");
+  });
   it("blocks unpaid workers and expired trials in the database, without trusting the web UI", async () => {
     await sql(`update public.billing_accounts set status='past_due' where owner_id='${owner}';`);
     expect(await reserve("unpaid-worker", "keywordSearches")).toMatchObject({ allowed: false, reason: "payment_required" });
