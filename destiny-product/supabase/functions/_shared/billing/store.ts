@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.111.0";
 export type PaymentAccount = { owner_id: string; stripe_customer_id: string | null; stripe_subscription_id: string | null; trial_started_at: string | null; livemode: boolean };
 export class BillingOperationError extends Error {
   constructor(public readonly code: string, public readonly status = 503) { super(code); }

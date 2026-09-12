@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.111.0";
 import { billingAccess } from "./plans.ts";
 export async function websitePaidAccess(admin: SupabaseClient, websiteId: string, now = Date.now()) {
   const { data: website, error: websiteError } = await admin.from("websites").select("organizations!inner(owner_id)").eq("id", websiteId).maybeSingle();

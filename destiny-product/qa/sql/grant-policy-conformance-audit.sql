@@ -142,6 +142,13 @@ violations as (
     and privilege.privilege_type = 'EXECUTE'
     and privilege.grantee = 'authenticated'
     and routine.routine_name not in ('create_organization', 'read_cms_transfer_states')
+    -- Reviewed owner-only aggregate: exact zero-argument signature and invoker rights.
+    and not (
+      routine.routine_name = 'billing_period_usage'
+      and routine.specific_name = 'billing_period_usage_' || to_regprocedure('public.billing_period_usage()')::oid::text
+      and routine.security_type = 'INVOKER'
+      and routine.external_language = 'SQL'
+    )
 
   union all
 

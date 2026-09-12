@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.111.0";
 import type { BillingConfig } from "./config.ts";
 import { BillingOperationError, withBillingOperation } from "./store.ts";
 import { validateSubscription } from "./stripe-contract.ts";

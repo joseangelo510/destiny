@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.111.0";
 import type { Meter } from "./plans.ts";
 type MeteredInput = { ownerId: string; websiteId?: string; meter: Meter; requestKey: string; units?: number };
 const json = (error: string, code: string, status: number) => Response.json({ error, code, billingUrl: "/account/billing" }, { status, headers: { "Cache-Control": "private, no-store" } });
