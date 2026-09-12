@@ -38,7 +38,7 @@ beforeAll(async () => {
     people[index].token = signedIn.session.access_token;
     if (index === 0) {
       organizationId = checked(await client.rpc("create_organization", { organization_name: "Entitlement isolation" })) as string;
-      const website = checked(await client.from("websites").insert({ organization_id: organizationId, url: `https://${randomUUID()}.example`, normalized_domain: `${randomUUID()}.example` }).select("id").single());
+      const website = checked(await client.from("websites").insert({ organization_id: organizationId, business_name: "Entitlement fixture", url: `https://${randomUUID()}.example`, normalized_domain: `${randomUUID()}.example` }).select("id").single());
       websiteId = website.id;
     }
   }
