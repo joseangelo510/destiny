@@ -7,14 +7,18 @@ import { meterLabels, planById, type Meter } from "@/lib/billing/plans";
 import styles from "@/components/billing/pricing.module.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Plans and billing — Rebound SEO", description: "Your subscription, usage and payment settings." };
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const query = await searchParams;
   const context = await getWorkspaceContext();
   const billing = await loadBillingAccount(context.userId);
   const { account, access } = billing;
   const plan = planById(account?.plan);
-  // Checkout is deliberately gated until end-to-end provider configuration is verified.
-  const checkoutReady = false;
+  const checkoutReady = billing.available && billing.checkoutReady;
   return <WorkspaceShell active="/account/billing" eyebrow="Your subscription" title="Plans and billing" description="See your allowance, choose a plan and manage payments in one place.">
+    {query.billing_error === "unavailable" && <p className={styles.notice} role="alert">We couldn’t open billing. Please try again shortly. No new access has been granted.</p>}
+    {query.checkout === "returned" && <p className={styles.notice} role="status">You’re back from Checkout. Your subscription status below updates when Stripe confirms the trial or payment. If it hasn’t updated yet, refresh this page shortly.</p>}
+    {query.checkout === "canceled" && <p className={styles.notice} role="status">Checkout was canceled. You can choose a plan when you’re ready.</p>}
+    {billing.mode === "test" && <p className={styles.notice} role="status">Test billing environment. Use Stripe test payment details only.</p>}
     <section className={styles.summary} aria-label="Current subscription">
       <h2>{plan ? `${plan.name}${account?.status === "trialing" ? " trial" : ""}` : "Your account"}</h2>
       {!billing.available ? <p role="status">We couldn’t load billing information. Your saved work is still available. Please try again shortly.</p>

@@ -1,5 +1,15 @@
 [
   {
+    "path": "supabase/functions/billing-webhook/index.ts",
+    "auth": "none",
+    "boundary": "stripe_signature"
+  },
+  {
+    "path": "supabase/functions/billing/index.ts",
+    "auth": "user",
+    "boundary": "billing_claim"
+  },
+  {
     "path": "supabase/functions/calendar-orphan-repair/index.ts",
     "auth": "user",
     "boundary": "website_rls"

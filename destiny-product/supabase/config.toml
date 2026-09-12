@@ -48,3 +48,7 @@ verify_jwt = false
 
 [functions.rank-tracker-refresh]
 verify_jwt = false
+
+# Stripe authenticates this endpoint using a verified raw-body signature.
+[functions.billing-webhook]
+verify_jwt = false

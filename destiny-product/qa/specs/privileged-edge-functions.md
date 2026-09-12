@@ -31,3 +31,7 @@ the disposable database harness.
 Static enforcement is not a substitute for an end-to-end authorization test.
 It is the tripwire that prevents a privileged function from silently escaping
 review.
+
+## Billing boundaries (September 12, 2026; local implementation)
+
+`billing` derives owner identity from verified claims, verifies the email on the server, and ignores browser-owned customer or price identifiers. Account-wide locks serialize payment operations. `billing-webhook` uses raw-body Stripe signature verification with timestamp tolerance and test/live validation before any service-role query. Customer ownership comes from the server-created billing account mapping; event metadata cannot select an owner. It refreshes current Stripe state under a lease and saves the state and event receipt atomically. Negative authorization coverage includes invalid signatures/modes, absent claims, stale or missing leases, and competing current subscriptions. These are prepared boundaries, not production deployment evidence.

@@ -16,5 +16,18 @@ export async function billingClient(ownerId: string) {
   return {
     account: () => runtime.from("billing_accounts").select("owner_id,stripe_customer_id,stripe_subscription_id,plan,status,period_start,period_end,paid_through,trial_started_at,trial_end,cancel_at_period_end").eq("owner_id", ownerId).maybeSingle<BillingAccountRow>(),
     usage: () => runtime.rpc("billing_period_usage"),
+    status: () => client.functions.invoke("billing", { body: { action: "status" } }),
+  };
+}
+
+/** No service key: the Edge Function receives and verifies the caller's JWT. */
+export async function billingSessionClient() {
+  const client = await createClient();
+  return {
+    async getClaims() {
+      const { data } = await client.auth.getClaims();
+      return typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+    },
+    invoke: (body: { action: "checkout" | "portal" | "status"; plan?: string }) => client.functions.invoke("billing", { body }),
   };
 }
