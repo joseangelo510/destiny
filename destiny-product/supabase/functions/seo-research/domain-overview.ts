@@ -76,7 +76,7 @@ export async function runDomainOverview(input: string, selected: string, post: (
     try {
       const result = firstResult(await post(request.path, request.body));
       results[key] = result;
-      const hasData = "items" in result ? rows(result.items).length > 0 : key === "ai" ? Object.keys(row(result.aggregated_metrics)).length > 0 : Object.keys(result).length > 0;
+      const hasData = key === "ai" ? Object.keys(row(result.aggregated_metrics)).length > 0 : "items" in result ? rows(result.items).length > 0 : Object.keys(result).length > 0;
       sections[key] = { state: hasData ? "available" : "empty", total: number(result.total_count) };
     } catch {
       sections[key] = { state: "unavailable", message: "This data could not be retrieved. Try again later.", total: null };
