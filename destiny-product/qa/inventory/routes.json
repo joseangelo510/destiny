@@ -256,6 +256,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/research/domain-overview",
+    "file": "src/app/api/research/domain-overview/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/research/keyword-serp",
     "file": "src/app/api/research/keyword-serp/route.ts"
   },
@@ -363,6 +368,11 @@
     "kind": "page",
     "route": "/distribution",
     "file": "src/app/distribution/page.tsx"
+  },
+  {
+    "kind": "page",
+    "route": "/domain-overview",
+    "file": "src/app/domain-overview/page.tsx"
   },
   {
     "kind": "page",

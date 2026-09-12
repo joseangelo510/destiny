@@ -1,0 +1,65 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+import { runDomainOverview } from "../../supabase/functions/seo-research/domain-overview";
+const fixturePath = process.env.QA_LOCAL_BROWSER_FIXTURE;
+const fixture = fixturePath ? JSON.parse(readFileSync(fixturePath, "utf8")) as { mvp: { websiteId: string } } : null;
+const payload = (result: unknown) => ({ status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] });
+async function snapshot(domain: string, market: string) {
+  const metrics = { organic: { etv: 903, count: 1100, pos_1: 3, pos_2_3: 7, pos_4_10: 20, is_new: 4 }, paid: { etv: 0, count: 0 } };
+  return runDomainOverview(domain, market, async path => {
+    if (path.includes("domain_rank_overview")) return payload({ items: [{ location_code: 2840, language_code: "en", metrics }, { location_code: 2276, language_code: "de", metrics }] });
+    if (path.includes("historical_rank")) return payload({ items: Array.from({length: 30}, (_, i) => ({ year: 2024 + Math.floor(i / 12), month: i % 12 + 1, metrics: { organic: { etv: 100 + i * 10, count: 1000 + i } } })) });
+    if (path.includes("ranked_keywords")) return payload({ total_count: 1100, items: Array.from({length: 15}, (_, i) => ({ keyword_data: { keyword: `seo topic ${i}`, keyword_info: { search_volume: 1000 + i }, keyword_properties: { keyword_difficulty: 20 } }, ranked_serp_element: { serp_item: { rank_group: i + 1, etv: 100, url: `https://${domain}/page-${i}` } } })) });
+    if (path.includes("backlinks/summary")) return payload({ rank: 26, backlinks: 2095, referring_domains: 652 });
+    if (path.includes("llm_mentions")) throw new Error("unavailable");
+    return payload({ items: [] });
+  });
+}
+test("@gate Domain Overview researches arbitrary domains without changing the workspace", async ({ page }, testInfo) => {
+  if (!fixture) throw new Error("Disposable browser fixture required.");
+  const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
+  const lookups: {target: string; market: string}[] = [];
+  await page.route("**/api/research/domain-overview", async route => {
+    const body = route.request().postDataJSON(); lookups.push(body);
+    if (body.target === "failed.example.com") return route.fulfill({ status: 502, json: { error: "Research is unavailable." } });
+    await route.fulfill({ json: await snapshot(body.target, body.market) });
+  });
+  await page.goto(`/domain-overview?site=${fixture.mvp.websiteId}`);
+  await expect(page.getByRole("heading", {name:"Every domain has a story."})).toBeVisible();
+  expect(lookups).toHaveLength(0);
+  await page.getByLabel("Website domain").fill("example.com");
+  await page.getByRole("button", {name:"Analyze domain",exact:true}).click();
+  await expect(page.getByRole("heading", {name:"example.com",exact:true})).toBeVisible();
+  await expect(page.getByRole("status").filter({hasText:"Report for"})).toContainText("Some sources unavailable");
+  const summary = page.locator('[class*="summaryGrid"]');
+  await expect(summary).toContainText("1.1K"); await expect(summary).toContainText("Unavailable");
+  await page.getByRole("tab", {name:"Growth report",exact:true}).click();
+  await page.getByRole("button", {name:"2Y",exact:true}).click();
+  await expect(page.getByRole("button", {name:"2Y",exact:true})).toHaveAttribute("aria-pressed","true");
+  await page.getByRole("tab", {name:"Compare by countries",exact:true}).click();
+  await expect(page.getByRole("cell",{name:"Germany",exact:true})).toBeVisible();
+  await page.getByRole("tab", {name:"Overview",exact:true}).click();
+  const keywordTable = page.getByRole("table",{name:"Organic keywords",exact:true});
+  await expect(keywordTable.getByRole("row")).toHaveCount(11);
+  await page.getByLabel("Filter Organic keywords",{exact:true}).fill("seo topic 14");
+  await expect(keywordTable.getByRole("row")).toHaveCount(2);
+  await page.getByLabel("Filter Organic keywords",{exact:true}).fill("");
+  await keywordTable.getByRole("button",{name:"Volume",exact:true}).click();
+  await expect(keywordTable.getByRole("row").nth(1)).toContainText("seo topic 14");
+  await keywordTable.locator("..").locator("..").getByRole("button",{name:"Show 10 more",exact:true}).click();
+  await expect(keywordTable.getByRole("row")).toHaveCount(16);
+  const download = page.waitForEvent("download"); await page.getByRole("button",{name:"Export CSV"}).click();
+  expect((await download).suggestedFilename()).toBe("rebound-example.com-US.csv");
+  await page.screenshot({path:testInfo.outputPath("domain-overview.png"),fullPage:true});
+  await page.getByLabel("Website domain").fill("second.example.com");
+  await page.getByLabel("Search market").selectOption("DE");
+  await page.getByRole("button", {name:"Analyze domain",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"second.example.com",exact:true})).toBeVisible();
+  expect(lookups.at(-1)).toEqual({target:"second.example.com",market:"DE",websiteId:fixture.mvp.websiteId});
+  expect(new URL(page.url()).searchParams.get("site")).toBe(fixture.mvp.websiteId);
+  await page.getByLabel("Website domain").fill("failed.example.com");
+  await page.getByRole("button", {name:"Analyze domain",exact:true}).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText("previous report for second.example.com remains");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(errors).toEqual([]);
+});

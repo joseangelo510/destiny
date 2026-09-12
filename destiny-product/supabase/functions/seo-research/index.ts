@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { runDomainOverview } from "./domain-overview.ts";
 import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
@@ -10,6 +11,7 @@ type ResearchRequest = {
   topics?: unknown;
   excludeDomains?: unknown;
   keyword?: unknown;
+  market?: unknown;
 };
 
 function json(data: unknown, status = 200) {
@@ -46,6 +48,10 @@ export default {
     if (!login || !password) return json({ error: "Live SEO research is not configured yet." }, 503);
 
     try {
+      if (body.kind === "domain_overview") {
+        if (typeof body.target !== "string" || typeof body.market !== "string") return json({ error: "Enter a public domain and choose a country." }, 400);
+        return json(await runDomainOverview(body.target, body.market, (path, items) => providerPost(path, items, login, password)));
+      }
       if (body.kind === "keywords") {
         if (typeof body.query !== "string" || (body.mode !== "keyword" && body.mode !== "domain")) {
           return json({ error: "Enter a keyword or domain and select a research mode." }, 400);

@@ -46,6 +46,7 @@ describe("Rebound SEO SEO coach experience", () => {
       "Editorial calendar",
       "Keyword strategy",
       "Keyword research",
+      "Domain Overview",
       "Rank tracker",
       "Backlink analytics",
       "Distribution",

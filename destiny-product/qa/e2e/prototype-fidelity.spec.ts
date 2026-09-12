@@ -12,7 +12,7 @@ test("@gate the approved prototype shell follows every tool and preserves site-s
   await page.setViewportSize({ width, height: mobile ? 844 : 1000 });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  const routes = ["/app/home", "/app/home?view=dashboard", "/app/content", "/app/calendar", "/app/distribution", "/app/progress", "/distribution", "/this-week", "/roadmap", "/results", "/analytics", "/audits", "/internal-links", "/content", "/interviews", "/content/repurpose", "/content/infographics", "/keywords", "/keyword-research", "/rank-tracker", "/backlinks", "/reviews", "/integrations", "/llm-visibility", "/account"];
+  const routes = ["/app/home", "/app/home?view=dashboard", "/app/content", "/app/calendar", "/app/distribution", "/app/progress", "/distribution", "/this-week", "/roadmap", "/results", "/analytics", "/audits", "/internal-links", "/content", "/interviews", "/content/repurpose", "/content/infographics", "/keywords", "/keyword-research", "/domain-overview", "/rank-tracker", "/backlinks", "/reviews", "/integrations", "/llm-visibility", "/account"];
   for (const route of routes) {
     const response = await page.goto(`${route}${route.includes("?") ? "&" : "?"}site=${fixture.mvp.websiteId}`);
     expect(response?.status(), route).toBe(200);
@@ -28,7 +28,7 @@ test("@gate the approved prototype shell follows every tool and preserves site-s
     const main = sidebar.getByRole("navigation", { name: "Main navigation" });
     expect(await main.getByRole("link").allTextContents()).toEqual(["Home dashboard", "Coach", "Content", "Calendar", "Distribution", "Progress"]);
     const tools = sidebar.getByRole("navigation", { name: "All tools" });
-    expect(await tools.getByRole("link").count()).toBe(20);
+    expect(await tools.getByRole("link").count()).toBe(21);
     for (const link of await sidebar.getByRole("navigation").getByRole("link").all()) {
       expect(await link.getAttribute("href")).toContain(`site=${fixture.mvp.websiteId}`);
     }
