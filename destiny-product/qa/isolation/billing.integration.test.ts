@@ -131,4 +131,18 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await expect(sql(`begin; set local role authenticated; select public.reserve_rank_check('${target}'); rollback;`)).rejects.toThrow("permission denied");
   });
 
+  it("caps pooled targets and the trial's total refresh budget", async () => {
+    await sql(`update public.billing_accounts set plan='starter' where owner_id='${owner}';
+      insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,created_at)
+      select '${website}','${owner}','capacity '||n,'capacity '||n,now()-interval '1 hour'+n*interval '1 second' from generate_series(1,26) n;`);
+    const last = await sql(`select id from public.tracked_keywords where website_id='${website}' and normalized_keyword='capacity 26';`);
+    expect(JSON.parse(await sql(`select public.reserve_rank_check('${last}');`))).toMatchObject({ allowed: false, reason: "target_limit" });
+    await sql(`update public.billing_accounts set status='trialing',trial_started_at=now()-interval '1 day',trial_end=now()+interval '6 days' where owner_id='${owner}';
+      insert into public.billing_usage(owner_id,website_id,request_key,meter,period_key,units,state)
+      select '${owner}','${website}','trial-history-'||n,'rankChecks','trial:'||extract(epoch from trial_started_at)::text,1,'failed'
+      from public.billing_accounts cross join generate_series(1,20) n where owner_id='${owner}';`);
+    const first = await sql(`select id from public.tracked_keywords where website_id='${website}' and normalized_keyword='capacity 1';`);
+    expect(JSON.parse(await sql(`select public.reserve_rank_check('${first}');`))).toMatchObject({ allowed: false, reason: "check_limit" });
+  });
+
 });
