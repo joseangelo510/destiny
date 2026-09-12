@@ -1,3 +1,4 @@
+import { websiteEntitlementResponse } from "../_shared/billing/website-entitlement.ts";
 import { withSupabase } from "@supabase/server";
 import Stripe from "stripe";
 import { billingConfig } from "../_shared/billing/config.ts";
@@ -9,8 +10,9 @@ export default {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
     const ownerId = context.userClaims?.id;
     if (!ownerId) return json({ error: "Sign in again to continue." }, 401);
-    let body: { action?: unknown; plan?: unknown };
+    let body: { action?: unknown; plan?: unknown; websiteId?: unknown };
     try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
+    if (body.action === "website_access") return websiteEntitlementResponse(ownerId, body.websiteId, context.supabase, context.supabaseAdmin);
     if (!["status", "checkout", "portal"].includes(String(body.action))) return json({ error: "Invalid billing action." }, 400);
     const config = billingConfig(name => Deno.env.get(name));
     if (!config) return body.action === "status" ? json({ ready: false }) : json({ error: "Billing setup is not complete." }, 503);

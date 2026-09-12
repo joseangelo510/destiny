@@ -729,94 +729,94 @@
     "context": "const { data: transferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:53:a:1",
+    "control_id": "src/app/distribution/page.tsx:54:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 53,
+    "line": 54,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 0,
     "context": "const network = String(opportunity.platform); return <article className=\"opportunity-item\" key={`${String(opportunity.url)}-${index}`}><span className=\"status-chip amber\">Not answered</span><div className=\"eyebrow\">Verified {network} thread</div><h3>{String(opportunity.title)}</h3><p>{String(opportunity.snippet || `A live ${network} conversation related to ${String(opportunity.topic)}.`)}</p><a className=\"secondary-button workspace-action\" href={String(opportunity.url)} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:61:a:1",
+    "control_id": "src/app/distribution/page.tsx:62:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 61,
+    "line": 62,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:61:a:2",
+    "control_id": "src/app/distribution/page.tsx:62:a:2",
     "file": "src/app/distribution/page.tsx",
-    "line": 61,
+    "line": 62,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:61:a:3",
+    "control_id": "src/app/distribution/page.tsx:62:a:3",
     "file": "src/app/distribution/page.tsx",
-    "line": 61,
+    "line": 62,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:61:Link:4",
+    "control_id": "src/app/distribution/page.tsx:62:Link:4",
     "file": "src/app/distribution/page.tsx",
-    "line": 61,
+    "line": 62,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:74:a:1",
+    "control_id": "src/app/distribution/page.tsx:75:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 74,
+    "line": 75,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 1,
     "context": "<div className=\"distribution-section-heading\"><div><span className=\"eyebrow\">4 · Directories & reviews</span><h2>Build trust where customers compare options</h2><p>Create missing profiles. If a profile already exists, save its URL in Reviews so Rebound SEO can track public activity separately from direct connections.</p></div><strong>Goal: 1 profile or 3 reviews</strong></div> <div className=\"directory-grid\">{baseDirectories.map((directory) => <article key={directory.key}><strong>{directory.name"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:76:a:1",
+    "control_id": "src/app/distribution/page.tsx:77:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 76,
+    "line": 77,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 0,
-    "context": "<RecommendationPanel paid={paid} title=\"Get more directory recommendations\"> {directorySuggestions.length ? directorySuggestions.map((directory) => <article key={directory.key}><strong>{directory.name}</strong><p>{directory.reason}</p><a className=\"text-button\" href={directory.href} rel=\"noreferrer\" target=\"_blank\">Review directory ↗</a></article>) : <p>No additional directory passed the industry-fit rule yet.</p>} </RecommendationPanel>"
+    "context": "<RecommendationPanel canManageBilling={entitlement.canManageBilling} paid={paid} title=\"Get more directory recommendations\"> {directorySuggestions.length ? directorySuggestions.map((directory) => <article key={directory.key}><strong>{directory.name}</strong><p>{directory.reason}</p><a className=\"text-button\" href={directory.href} rel=\"noreferrer\" target=\"_blank\">Review directory ↗</a></article>) : <p>No additional directory passed the industry-fit rule yet.</p>} </RecommendationPanel>"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:78:Link:1",
+    "control_id": "src/app/distribution/page.tsx:79:Link:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 78,
+    "line": 79,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 1,
     "context": "</RecommendationPanel> <Link className=\"text-button\" href=\"/reviews\">Save profile URLs and monitor reviews</Link> </section>"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:88:summary:1",
+    "control_id": "src/app/distribution/page.tsx:89:summary:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 88,
+    "line": 89,
     "type": "summary",
     "route": "/distribution",
     "side_effect_class": 0,
-    "context": "if (!paid) return <UpgradePreview title={title} detail=\"Upgrade to unlock recommendations selected for your industry and customer journey.\" />; return <details className=\"recommendation-panel\"><summary>{title}</summary><div className=\"recommendation-grid\">{children}</div></details>; }"
+    "context": "if (!paid) return <UpgradePreview canManageBilling={canManageBilling} title={title} detail=\"Upgrade to unlock recommendations selected for your industry and customer journey.\" />; return <details className=\"recommendation-panel\"><summary>{title}</summary><div className=\"recommendation-grid\">{children}</div></details>; }"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:92:Link:1",
+    "control_id": "src/app/distribution/page.tsx:93:Link:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 92,
+    "line": 93,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 0,
-    "context": "function UpgradePreview({ detail, title }: { detail: string; title: string }) { return <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>{title}</strong><p>{detail}</p></div><Link className=\"primary-button\" href=\"/#pricing\">View upgrade options</Link></aside>; }"
+    "context": "function UpgradePreview({ detail, title, canManageBilling }: { detail: string; title: string; canManageBilling: boolean }) { return <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>{title}</strong><p>{detail}</p></div>{canManageBilling ? <Link className=\"primary-button\" href=\"/account/billing\">View upgrade options</Link> : <p>Ask the website owner to review the subscription.</p>}</aside>; }"
   },
   {
     "control_id": "src/app/keyword-research/page.tsx:23:Link:1",
@@ -2322,40 +2322,40 @@
     "context": "}; return <button className=\"secondary-button\" onClick={() => void copy()} type=\"button\">{copied ? \"Copied\" : label}</button>; }"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:48:button:1",
+    "control_id": "src/components/creator-discovery.tsx:49:button:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 48,
+    "line": 49,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</button><small>{updatedAt ? `Pu"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:48:onClick:2",
+    "control_id": "src/components/creator-discovery.tsx:49:onClick:2",
     "file": "src/components/creator-discovery.tsx",
-    "line": 48,
+    "line": 49,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</button><small>{updatedAt ? `Pu"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:51:a:1",
+    "control_id": "src/components/creator-discovery.tsx:52:a:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 51,
+    "line": 52,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const brief = `Creator: ${creator.name}\\nPlatform: ${creator.platform}\\nMatched topic: ${creator.matchedTopic}\\nRelevant public source: ${creator.url}\\n\\nFind a public contact path and cite its source URL. If no verified public email exists, use the platform contact path. Then write a concise, personal subject line and outreach email. Never invent contact information.`; return <article key={`${creator.url}-${index}`}><div><span>{index + 1}</span><div><strong>{creator.name}</strong><p>{creator.ti"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:54:Link:1",
+    "control_id": "src/components/creator-discovery.tsx:55:Link:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 54,
+    "line": 55,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{!visible.length ? <p className=\"empty-state\">No niche creator source passed the current public-result check. Rebound SEO will not substitute major media or fabricate a contact.</p> : null} {!paid ? <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div><Link className=\"pri"
+    "context": "{!visible.length ? <p className=\"empty-state\">No niche creator source passed the current public-result check. Rebound SEO will not substitute major media or fabricate a contact.</p> : null} {!paid ? <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div>{canManageBilling ? "
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:248:Link:1",

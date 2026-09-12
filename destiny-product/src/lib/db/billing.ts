@@ -28,7 +28,7 @@ export async function billingSessionClient() {
       const { data } = await client.auth.getClaims();
       return typeof data?.claims?.sub === "string" ? data.claims.sub : null;
     },
-    invoke: (body: { action: "checkout" | "portal" | "status"; plan?: string }) => client.functions.invoke("billing", { body }),
+    invoke: (body: { action: "checkout" | "portal" | "status" | "website_access"; plan?: string; websiteId?: string }) => client.functions.invoke("billing", { body }),
   };
 }
 

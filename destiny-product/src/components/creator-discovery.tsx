@@ -21,9 +21,10 @@ function initialToLive(item: CreatorProspect): LiveCreator {
   return { name: item.name, domain: item.domain, platform: item.platform, title: item.title, url: item.url, matchedTopic: item.keyword, audienceEstimate: null, audienceVerification: "required" };
 }
 
-export function CreatorDiscovery({ initialCreators, paid, topics, websiteId }: {
+export function CreatorDiscovery({ initialCreators, paid, topics, websiteId, canManageBilling = true }: {
   initialCreators: CreatorProspect[];
   paid: boolean;
+  canManageBilling?: boolean;
   topics: string[];
   websiteId: string;
 }) {
@@ -51,7 +52,7 @@ export function CreatorDiscovery({ initialCreators, paid, topics, websiteId }: {
       return <article key={`${creator.url}-${index}`}><div><span>{index + 1}</span><div><strong>{creator.name}</strong><p>{creator.title}</p><small>{creator.platform} · Matches “{creator.matchedTopic}” · Audience size needs verification</small></div></div><div><a className="text-button" href={creator.url} rel="noreferrer" target="_blank">Review source ↗</a>{paid ? <CopyButton text={brief} /> : null}</div></article>;
     })}</div>
     {!visible.length ? <p className="empty-state">No niche creator source passed the current public-result check. Rebound SEO will not substitute major media or fabricate a contact.</p> : null}
-    {!paid ? <aside className="upgrade-preview"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div><Link className="primary-button" href="/account/billing">View upgrade options</Link></aside> : null}
+    {!paid ? <aside className="upgrade-preview"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div>{canManageBilling ? <Link className="primary-button" href="/account/billing">View upgrade options</Link> : <p>Ask the website owner to review the subscription.</p>}</aside> : null}
     {error ? <div className="error-banner" role="alert">{error}</div> : null}
   </>;
 }
