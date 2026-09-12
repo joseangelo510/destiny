@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { prepareWebflowDraft, type WebflowDraftRequest } from "@/lib/cms/webflow-draft";
 import { scopedClient } from "@/lib/db";
@@ -29,6 +30,8 @@ export async function POST(request: Request) {
   }>("webflow-draft", draft);
 
   if (error || !data?.delivered || !data.remoteEditUrl) {
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     return NextResponse.json({ error: data?.error || "Rebound SEO could not create the Webflow draft item." }, { status: 502 });
   }
   return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });

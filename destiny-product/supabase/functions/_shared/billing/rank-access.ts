@@ -1,12 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { billingAccess } from "./plans.ts";
+import { websitePaidAccess } from "./website-access.ts";
 export async function rankTrackingAccess(admin: SupabaseClient, websiteId: string, now = Date.now()) {
-  const { data: website, error: websiteError } = await admin.from("websites").select("organizations!inner(owner_id)").eq("id", websiteId).maybeSingle();
-  const organization = Array.isArray(website?.organizations) ? website.organizations[0] : website?.organizations;
-  const ownerId = organization?.owner_id;
-  if (websiteError || typeof ownerId !== "string") return null;
-  const { data: account, error } = await admin.from("billing_accounts").select("plan,status,period_start,period_end,paid_through,trial_end,cancel_at_period_end").eq("owner_id", ownerId).maybeSingle();
-  if (error || !account) return null;
-  const access = billingAccess({ plan: account.plan ?? "", status: account.status, periodStart: account.period_start, periodEnd: account.period_end, paidThrough: account.paid_through, trialEnd: account.trial_end, cancelAtPeriodEnd: account.cancel_at_period_end }, now);
-  return access.canRunPaidWork && access.limits ? { ownerId, limit: access.limits.trackedTargets, trial: account.status === "trialing" } : null;
+  const access = await websitePaidAccess(admin, websiteId, now);
+  return access ? { ownerId: access.ownerId, limit: access.limits.trackedTargets, trial: access.trial } : null;
 }

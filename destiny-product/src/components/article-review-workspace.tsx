@@ -498,6 +498,7 @@ export function ArticleReviewWorkspace({
     if (!draft?.approved || delivering || !provider.connected) return;
     setDelivering(provider.id);
     setError("");
+    setBillingRequired(false);
     try {
       const scheduledFor = provider.id === "wordpress" ? wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] : undefined;
       const response = await fetch(provider.draftEndpoint, {
@@ -519,6 +520,7 @@ export function ArticleReviewWorkspace({
         }),
       });
       const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[]; publicationStatus?: CmsPublicationState; remotePermalink?: string | null; verifiedLiveAt?: string | null };
+      if (response.status === 402) setBillingRequired(true);
       if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Rebound SEO could not create the ${provider.label} draft.`);
       setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport, publicationStatus: payload.publicationStatus, remotePermalink: payload.remotePermalink, verifiedLiveAt: payload.verifiedLiveAt } }));
     } catch (cause) {

@@ -1,3 +1,4 @@
+import { websitePaidAccess } from "../_shared/billing/website-access.ts";
 import { withSupabase } from "@supabase/server";
 import {
   canReclaimPendingTransfer,
@@ -58,6 +59,10 @@ export default {
 
     const { data: website } = await context.supabase.from("websites").select("id").eq("id", draft.websiteId).maybeSingle();
     if (!website) return json({ error: "You do not have access to that website." }, 403);
+    if (!await websitePaidAccess(context.supabaseAdmin, draft.websiteId)) return json({
+      error: "Choose a plan or update your payment before sending content to your CMS. Your saved draft remains available.",
+      code: "BILLING_PAYMENT_REQUIRED", billingUrl: "/account/billing",
+    }, 402);
 
     const { data: stored, error: credentialError } = await context.supabaseAdmin.rpc("read_webflow_connection_credentials", {
       p_user_id: userId,
