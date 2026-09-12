@@ -26,6 +26,7 @@ describe("RankTrackerWorkspace", () => {
     expect(html).toContain("First check pending");
     expect(html).toContain("usually arrives within minutes");
     expect(html).toContain("Add keywords");
+    expect(html).toContain("Pause college admissions consultant");
     expect(html).toContain("Evidence checked Aug 27, 2026, 2:30 AM UTC");
     expect(html).toContain("Aug 27, 2026");
   });

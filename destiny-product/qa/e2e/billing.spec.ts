@@ -34,3 +34,20 @@ test("@gate unpaid account sees pricing without losing its saved workspace", asy
   await page.goto("/audits");
   await expect(page.locator("[data-workspace-website]")).toBeVisible();
 });
+
+
+test("@gate unpaid rank keyword remains saved and paused after add and resume", async ({ page }) => {
+  if (!process.env.QA_AUTH_STATE) throw new Error("Disposable authenticated browser fixture required.");
+  const keyword = `billing paused ${Date.now()} ${test.info().project.name}`;
+  await page.goto("/rank-tracker");
+  await page.getByRole("textbox", { name: "Keyword to track", exact: true }).fill(keyword);
+  await page.getByRole("button", { name: "Track keyword", exact: true }).click();
+  const row = page.getByRole("row").filter({ hasText: keyword });
+  await expect(row).toContainText("Paused");
+  await expect(page.getByRole("status").filter({ hasText: "Your keywords are saved" })).toBeVisible();
+  await row.getByRole("button", { name: `Resume ${keyword}`, exact: true }).click();
+  await expect(row.getByRole("button", { name: `Resume ${keyword}`, exact: true })).toBeEnabled();
+  await expect(row).toContainText("Paused");
+  await page.reload();
+  await expect(page.getByRole("row").filter({ hasText: keyword })).toContainText("Paused");
+});
