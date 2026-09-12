@@ -2664,6 +2664,249 @@
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
   },
   {
+    "control_id": "src/components/domain-overview-panels.tsx:37:button:1",
+    "file": "src/components/domain-overview-panels.tsx",
+    "line": 37,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const labels = { organicTraffic: \"Organic traffic\", paidTraffic: \"Paid traffic\", organicKeywords: \"Organic keywords\", paidKeywords: \"Paid keywords\" }; return <section className={styles.card}><div className={styles.sectionHead}><h3>{growth ? \"Growth report\" : \"Traffic & keyword trends\"}</h3><div className={styles.periods} role=\"group\" aria-label=\"History range\">{[[1,\"1M\"],[6,\"6M\"],[12,\"1Y\"],[24,\"2Y\"],[0,\"All\"]].map(([value,label]) => <button key={value} aria-pressed={period === value} onClick={()"
+  },
+  {
+    "control_id": "src/components/domain-overview-panels.tsx:37:onClick:2",
+    "file": "src/components/domain-overview-panels.tsx",
+    "line": 37,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "const labels = { organicTraffic: \"Organic traffic\", paidTraffic: \"Paid traffic\", organicKeywords: \"Organic keywords\", paidKeywords: \"Paid keywords\" }; return <section className={styles.card}><div className={styles.sectionHead}><h3>{growth ? \"Growth report\" : \"Traffic & keyword trends\"}</h3><div className={styles.periods} role=\"group\" aria-label=\"History range\">{[[1,\"1M\"],[6,\"6M\"],[12,\"1Y\"],[24,\"2Y\"],[0,\"All\"]].map(([value,label]) => <button key={value} aria-pressed={period === value} onClick={()"
+  },
+  {
+    "control_id": "src/components/domain-overview-panels.tsx:38:select:1",
+    "file": "src/components/domain-overview-panels.tsx",
+    "line": 38,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <section className={styles.card}><div className={styles.sectionHead}><h3>{growth ? \"Growth report\" : \"Traffic & keyword trends\"}</h3><div className={styles.periods} role=\"group\" aria-label=\"History range\">{[[1,\"1M\"],[6,\"6M\"],[12,\"1Y\"],[24,\"2Y\"],[0,\"All\"]].map(([value,label]) => <button key={value} aria-pressed={period === value} onClick={() => setPeriod(Number(value))}>{label}</button>)}</div></div> <label className={styles.metricSelect}>Show<select value={metric} onChange={event => setMe"
+  },
+  {
+    "control_id": "src/components/domain-overview-panels.tsx:38:onChange:2",
+    "file": "src/components/domain-overview-panels.tsx",
+    "line": 38,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <section className={styles.card}><div className={styles.sectionHead}><h3>{growth ? \"Growth report\" : \"Traffic & keyword trends\"}</h3><div className={styles.periods} role=\"group\" aria-label=\"History range\">{[[1,\"1M\"],[6,\"6M\"],[12,\"1Y\"],[24,\"2Y\"],[0,\"All\"]].map(([value,label]) => <button key={value} aria-pressed={period === value} onClick={() => setPeriod(Number(value))}>{label}</button>)}</div></div> <label className={styles.metricSelect}>Show<select value={metric} onChange={event => setMe"
+  },
+  {
+    "control_id": "src/components/domain-overview-panels.tsx:40:summary:1",
+    "file": "src/components/domain-overview-panels.tsx",
+    "line": 40,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<div className={styles.trendValue}><strong>{formatMetric(last ?? null)}</strong><span>{change !== null ? `${Number(change) >= 0 ? \"+\" : \"\"}${change}% across displayed months` : \"Monthly provider estimates\"}</span></div> {points.length ? <><div className={styles.chart} role=\"img\" aria-label={`${labels[metric]} trend for ${report.target}. Exact monthly values in the table below.`}><svg viewBox=\"0 0 700 210\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><line x1=\"15\" x2=\"685\" y1=\"190\" y2=\"190\" stro"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:18:a:1",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 18,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (value === null || value === undefined || value === \"\") return <span className={styles.muted}>Unavailable</span>; if (link && typeof value === \"string\" && /^https?:\\/\\//.test(value)) return <a href={value} target=\"_blank\" rel=\"noopener noreferrer\">{value.replace(/^https?:\\/\\//,\"\")}</a>; if (typeof value === \"number\") return value.toLocaleString(\"en-US\",{maximumFractionDigits:2});"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:input:1",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:onChange:2",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:button:3",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:onClick:4",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:button:5",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-table.tsx:24:onClick:6",
+    "file": "src/components/domain-overview-table.tsx",
+    "line": 24,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "if (!rows.length) return <p className={styles.noRows}>{empty}</p>; return <div className={styles.dataTable}><div className={styles.tableTools}><label><span className={styles.srOnly}>Filter {title}</span><input placeholder=\"Filter results…\" value={query} onChange={event => {setQuery(event.target.value);setLimit(10);}} /></label><span>{filtered.length} of {rows.length} retrieved</span></div><div className={styles.tableScroll}><table aria-label={title}><thead><tr>{columns.map(column => <th key={col"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:44:form:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 44,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <div className={styles.workspace}> <form className={styles.search} onSubmit={analyze} aria-label=\"Domain lookup\"> <label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label>"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:44:onSubmit:2",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 44,
+    "type": "onSubmit",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "return <div className={styles.workspace}> <form className={styles.search} onSubmit={analyze} aria-label=\"Domain lookup\"> <label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label>"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:45:input:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 45,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<form className={styles.search} onSubmit={analyze} aria-label=\"Domain lookup\"> <label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label> <label>Search market<select value={market} onChange={event => setMarket(event.target.value as Market)} disabled={busy}>{Object.entries(DOMAIN_MARKETS).map(([key,value]) => <opt"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:45:onChange:2",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 45,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<form className={styles.search} onSubmit={analyze} aria-label=\"Domain lookup\"> <label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label> <label>Search market<select value={market} onChange={event => setMarket(event.target.value as Market)} disabled={busy}>{Object.entries(DOMAIN_MARKETS).map(([key,value]) => <opt"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:46:select:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 46,
+    "type": "select",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label> <label>Search market<select value={market} onChange={event => setMarket(event.target.value as Market)} disabled={busy}>{Object.entries(DOMAIN_MARKETS).map(([key,value]) => <option key={key} value={key}>{value.label}</option>)}</select></label> <button cla"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:46:onChange:2",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 46,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<label>Website domain<input type=\"text\" value={target} onChange={event => setTarget(event.target.value)} placeholder=\"Enter a domain, e.g. example.com\" maxLength={300} required disabled={busy} autoCapitalize=\"none\" spellCheck={false} /></label> <label>Search market<select value={market} onChange={event => setMarket(event.target.value as Market)} disabled={busy}>{Object.entries(DOMAIN_MARKETS).map(([key,value]) => <option key={key} value={key}>{value.label}</option>)}</select></label> <button cla"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:47:button:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 47,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<label>Search market<select value={market} onChange={event => setMarket(event.target.value as Market)} disabled={busy}>{Object.entries(DOMAIN_MARKETS).map(([key,value]) => <option key={key} value={key}>{value.label}</option>)}</select></label> <button className={styles.primary} disabled={busy} type=\"submit\">{busy ? \"Analyzing…\" : \"Analyze domain\"}</button> </form>"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:53:button:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 53,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{report && <div aria-busy={busy}> <header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} ro"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:53:onClick:2",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 53,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{report && <div aria-busy={busy}> <header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} ro"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:53:button:3",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 53,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{report && <div aria-busy={busy}> <header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} ro"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:53:onClick:4",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 53,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{report && <div aria-busy={busy}> <header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} ro"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:54:button:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 54,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} role=\"tablist\" aria-label=\"Domain re"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:54:role:2",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 54,
+    "type": "role",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} role=\"tablist\" aria-label=\"Domain re"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:54:onClick:3",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 54,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<header className={styles.reportHeader}><div><span className={styles.kicker}>DOMAIN OVERVIEW</span><h2>{report.target}</h2><p>Google · {report.marketLabel} · {report.language.toUpperCase()} · Retrieved {new Date(report.retrievedAt).toLocaleString()}</p></div><div className={styles.exports}><button onClick={() => exportReport(report)}>Export CSV</button><button onClick={() => window.print()}>Print view / PDF</button></div></header> <div className={styles.tabs} role=\"tablist\" aria-label=\"Domain re"
+  },
+  {
+    "control_id": "src/components/domain-overview-workspace.tsx:59:summary:1",
+    "file": "src/components/domain-overview-workspace.tsx",
+    "line": 59,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "</div> <details className={styles.method}><summary>Sources, coverage and metric definitions</summary>{report.notices.map(notice => <p key={notice}>{notice}</p>)}<p>Only platforms returned by DataForSEO appear in AI coverage. An absent platform is not a zero. SEMrush figures will differ because the providers use different indexes and methods.</p><ul>{Object.entries(report.sections).map(([key,value]) => <li key={key}>{key}: {value.state}{value.total !== null ? ` · ${value.total.toLocaleString()} t"
+  },
+  {
     "control_id": "src/components/feature-journey-callout.tsx:14:Link:1",
     "file": "src/components/feature-journey-callout.tsx",
     "line": 14,

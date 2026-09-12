@@ -32,6 +32,7 @@ export const FEATURE_NAVIGATION = [
   { label: "Editorial calendar", href: "/content#publishing-plan" },
   { label: "Keyword strategy", href: "/keywords" },
   { label: "Keyword research", href: "/keyword-research" },
+  { label: "Domain Overview", href: "/domain-overview" },
   { label: "Rank tracker", href: "/rank-tracker" },
   { label: "Backlink analytics", href: "/backlinks" },
   { label: "Distribution", href: "/distribution" },
