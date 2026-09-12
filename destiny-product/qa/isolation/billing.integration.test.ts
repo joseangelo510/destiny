@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 if (process.env.QA_ISOLATION !== "1") throw new Error("Billing isolation requires disposable local infrastructure.");
 const container = process.env.QA_SUPABASE_DB_CONTAINER ?? "supabase_db_destiny-isolation";
 if (container !== "supabase_db_destiny-isolation") throw new Error("Unexpected billing test database.");
-const owner = randomUUID(), other = randomUUID();
+const owner = randomUUID(), other = randomUUID(), organization = randomUUID(), website = randomUUID();
 function sql(statement: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", container, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-Atq"]);
@@ -23,10 +23,12 @@ function reserve(key: string, meter = "articles") {
 beforeAll(async () => {
   await sql(`insert into auth.users(id,email) values ('${owner}','${owner}@billing.invalid'),('${other}','${other}@billing.invalid');
     insert into public.billing_accounts(owner_id,plan,status,period_start,period_end,paid_through)
-    values('${owner}','starter','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');`);
+    values('${owner}','starter','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');
+    insert into public.organizations(id,name,owner_id) values('${organization}','Billing QA','${owner}');
+    insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${website}','${organization}','https://billing.invalid','billing.invalid','Billing QA');`);
 });
 afterAll(async () => {
-  await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${other}');`);
+  await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from public.organizations where id='${organization}'; delete from auth.users where id in ('${owner}','${other}');`);
 });
 describe.sequential("atomic billing reservations and isolation", () => {
   it("serializes checkout and webhook reconciliation and rejects stale lease releases", async () => {
@@ -115,6 +117,18 @@ describe.sequential("atomic billing reservations and isolation", () => {
     const results = await Promise.all(Array.from({ length: 5 }, () => sql(`select public.claim_billing_stage('${owner}','${reservation.id}','infographic_render','${digest}');`)));
     expect(results.filter(value => value === "t")).toHaveLength(1);
     await expect(sql(`begin; set local role authenticated; select public.claim_billing_stage('${owner}','${reservation.id}','infographic_render','${digest}'); rollback;`)).rejects.toThrow("permission denied");
+  });
+
+  it("reserves only one scheduled check under concurrency and retains its receipt", async () => {
+    const target = randomUUID();
+    await sql(`insert into public.tracked_keywords(id,website_id,created_by,keyword,normalized_keyword) values('${target}','${website}','${owner}','tracking qa','tracking qa');`);
+    const results = await Promise.all(Array.from({ length: 5 }, () => sql(`select public.reserve_rank_check('${target}');`).then(JSON.parse)));
+    expect(results.filter(value => value.allowed)).toHaveLength(1);
+    const winner = results.find(value => value.allowed);
+    expect(await sql(`select meter from public.billing_usage where id='${winner.id}';`)).toBe("rankChecks");
+    await sql(`delete from public.tracked_keywords where id='${target}';`);
+    expect(await sql(`select count(*) from public.billing_usage where id='${winner.id}';`)).toBe("1");
+    await expect(sql(`begin; set local role authenticated; select public.reserve_rank_check('${target}'); rollback;`)).rejects.toThrow("permission denied");
   });
 
 });
