@@ -83,5 +83,10 @@ describe.sequential("atomic billing reservations and isolation", () => {
     expect(await sql(`select count(*) from public.billing_stripe_events where event_id='evt_${owner}' and processed_at is not null;`)).toBe("1");
     await sql(`select public.release_billing_operation('${owner}','${lease.token}');`);
   });
+  it("rejects a missing operation lease instead of accepting SQL null comparisons", async () => {
+    const snapshot = { id: `sub_${owner}`, customer: `cus_${owner}`, plan: "premium", status: "active" };
+    await expect(sql(`select public.apply_billing_snapshot('${owner}',null,'evt_null_${owner}','invoice.paid',false,'${JSON.stringify(snapshot)}'::jsonb);`)).rejects.toThrow("Billing operation expired");
+    expect(await sql(`select plan from public.billing_accounts where owner_id='${owner}';`)).toBe("starter");
+  });
 
 });
