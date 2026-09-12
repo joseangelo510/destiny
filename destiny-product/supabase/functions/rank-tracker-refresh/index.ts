@@ -57,12 +57,7 @@ export default {
     if (!login || !password) return json({ error: "DataForSEO is not configured." }, 503);
 
     const now = new Date();
-    const { data, error } = await context.supabaseAdmin.from("tracked_keywords")
-      .select("id,website_id,keyword,location_code,language_code,device,search_depth,websites!inner(normalized_domain)")
-      .in("status", ["pending", "active", "error"])
-      .lte("next_check_at", now.toISOString())
-      .order("next_check_at")
-      .limit(100);
+    const { data, error } = await context.supabaseAdmin.rpc("billing_rank_candidates");
     if (error) return json({ error: error.message }, 500);
     const due = (data ?? []) as unknown as DueKeyword[];
     const groups = due.reduce<Record<string, DueKeyword[]>>((acc, row) => ({ ...acc, [row.website_id]: [...(acc[row.website_id] ?? []), row] }), {});
@@ -81,7 +76,14 @@ export default {
         if (reservation?.allowed && typeof reservation.id === "string" && typeof reservation.nextCheckAt === "string") eligible.push({ row, id: reservation.id, nextCheckAt: reservation.nextCheckAt });
       }
       if (!eligible.length) { completedRuns.push({ websiteId, status: "billing_limited", completed: 0, failed: 0, totalCost: 0 }); continue; }
-      const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: eligible.length, started_at: now.toISOString() }).select("id").single();
+      const { data: run, error: runError } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: eligible.length, started_at: now.toISOString() }).select("id").single();
+      if (runError || !run?.id) {
+        // No provider work started. Preserve receipts and settle known zero expense.
+        for (const { id } of eligible) {
+          await context.supabaseAdmin.rpc("finish_billing_usage", { p_id: id, p_succeeded: false, p_provider_cost_usd: 0 });
+        }
+        return json({ error: "Tracking run could not be saved." }, 503);
+      }
       let completed = 0;
       let failed = 0;
       let totalCost = 0;
