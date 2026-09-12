@@ -89,7 +89,8 @@ describe("Rebound redesign Slice 1", () => {
     const html = renderToStaticMarkup(<HomeWorkspace view={view} />);
     const labels = ["How your SEO is doing", "Keywords", "Competitors", "The month"];
     labels.reduce((previous, label) => {
-      const index = html.indexOf(label);
+      const content = html.slice(html.indexOf("</aside>"));
+      const index = content.indexOf(label);
       expect(index).toBeGreaterThan(previous);
       return index;
     }, -1);
