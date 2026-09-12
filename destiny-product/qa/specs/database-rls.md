@@ -19,9 +19,11 @@ its tenant scope and access mode fails the unit gate.
 
 ## Reviewed exception
 
-`cms_transfers` is the only `service_role_only` table. Users read its safe,
+`cms_transfers` is a `service_role_only` table. Users read its safe,
 website-scoped projection through authenticated RPCs; direct table access stays
 deny-all. Any additional exception requires a manifest and SQL audit update.
+
+`billing_stripe_events` is also service-role-only under D10.40. It stores event processing receipts, never browser-readable payment payloads. `billing_accounts` and `billing_usage` permit authenticated owner reads only; mutation and reservation RPCs are service-role-only. `qa/isolation/billing.integration.test.ts` verifies owner isolation, denied browser mutations, concurrent reservation and expiry behavior.
 
 This census proves structural coverage. It does not replace negative runtime
 authorization tests for individual policies or privileged functions.
