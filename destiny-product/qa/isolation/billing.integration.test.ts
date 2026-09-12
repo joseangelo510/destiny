@@ -89,4 +89,19 @@ describe.sequential("atomic billing reservations and isolation", () => {
     expect(await sql(`select plan from public.billing_accounts where owner_id='${owner}';`)).toBe("starter");
   });
 
+  it("requires trial timestamps and never extends the original seven-day allowance", async () => {
+    await sql(`update public.billing_accounts set trial_started_at=null,trial_end=null where owner_id='${owner}';`);
+    const lease = JSON.parse(await sql(`select public.claim_billing_operation('${owner}',false);`));
+    const start = new Date(Date.now()-86400000).toISOString();
+    const end = new Date(Date.now()+30*86400000).toISOString();
+    const snapshot = { id: `sub_${owner}`, customer: `cus_${owner}`, plan: "starter", status: "trialing", periodStart: start, periodEnd: end, trialEnd: end };
+    const apply = (event: string, state: object) => sql(`select public.apply_billing_snapshot('${owner}','${lease.token}','${event}','customer.subscription.updated',false,'${JSON.stringify(state)}'::jsonb);`);
+    await expect(apply(`evt_missing_trial_${owner}`, snapshot)).rejects.toThrow("Trial timestamps required");
+    await apply(`evt_first_trial_${owner}`, { ...snapshot, trialStart: start });
+    expect(await sql(`select trial_end=trial_started_at+interval '7 days' from public.billing_accounts where owner_id='${owner}';`)).toBe("t");
+    await apply(`evt_repeat_trial_${owner}`, { ...snapshot, trialStart: new Date().toISOString() });
+    expect(await sql(`select trial_started_at='${start}'::timestamptz and trial_end=trial_started_at+interval '7 days' from public.billing_accounts where owner_id='${owner}';`)).toBe("t");
+    await sql(`select public.release_billing_operation('${owner}','${lease.token}');`);
+  });
+
 });
