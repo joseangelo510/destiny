@@ -4,10 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Hoisted mocks
 // ---------------------------------------------------------------------------
 
-const { getClaims, from } = vi.hoisted(() => ({
+const { getClaims, from, reserveContentWork, finishContentWork } = vi.hoisted(() => ({
+  reserveContentWork: vi.fn(), finishContentWork: vi.fn(),
   getClaims: vi.fn(),
   from: vi.fn(),
 }));
+
+vi.mock("@/lib/billing/worker", () => ({ reserveContentWork, finishContentWork }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getClaims }, from }),
@@ -156,6 +159,8 @@ function buildRequest(body: Record<string, unknown>): Request {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  reserveContentWork.mockResolvedValue({ id: "usage-a" });
+  finishContentWork.mockResolvedValue(true);
 
   process.env.ANTHROPIC_API_KEY = "test-anthropic-key";
   process.env.ANTHROPIC_COPY_MODEL = "claude-opus-4-8";
@@ -633,4 +638,15 @@ describe("POST /api/content/repurpose/generate – provider", () => {
     expect((await response.json()).code).toBe("SOURCE_ENCRYPTION_NOT_CONFIGURED");
     expect(mockFetch).not.toHaveBeenCalled();
   });
+});
+
+it("blocks repurposing at the quota wall before the provider is called", async () => {
+  reserveContentWork.mockResolvedValue({ response: Response.json({ code: "BILLING_LIMIT_REACHED" }, { status: 402 }) });
+  const response = await POST(buildRequest({ websiteId, sourceId, output: "email" }));
+  expect(response.status).toBe(402); expect(mockFetch).not.toHaveBeenCalled();
+});
+it("uses short-output allowance for email and settles its successful result", async () => {
+  await POST(buildRequest({ websiteId, sourceId, output: "email" }));
+  expect(reserveContentWork).toHaveBeenCalledWith(expect.anything(), websiteId, "shortOutputs", expect.any(String));
+  expect(finishContentWork).toHaveBeenCalledWith(expect.anything(), "usage-a", true);
 });
