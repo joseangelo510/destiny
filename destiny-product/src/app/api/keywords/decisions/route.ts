@@ -1,3 +1,4 @@
+import { TRACKING_PAUSED_NOTICE } from "@/lib/billing/tracking";
 import { NextResponse } from "next/server";
 import { INITIAL_KEYWORD_APPROVAL_TARGET } from "@/lib/product/plan-horizon";
 import { selectQuickKeywordApprovals } from "@/lib/seo/quick-keyword-approval";
@@ -153,5 +154,10 @@ export async function POST(request: Request) {
       .in("normalized_keyword", declined.map((item) => normalizeTrackedKeyword(item.keyword)));
     if (pauseError) return NextResponse.json({ error: `Keyword decisions were saved, but strategy-only tracking could not pause: ${pauseError.message}` }, { status: 500 });
   }
-  return NextResponse.json({ decisions: data, trackingStarted: approved.map((item) => item.keyword) });
+  const requested = approved.map((item) => item.keyword);
+  const { data: targets, error: targetError } = requested.length ? await supabase.from("tracked_keywords").select("normalized_keyword,status")
+    .eq("website_id", audit.website_id).in("normalized_keyword", requested.map(normalizeTrackedKeyword)) : { data: [], error: null };
+  const trackingStarted = targetError ? [] : requested.filter(keyword => targets?.some(target => target.normalized_keyword === normalizeTrackedKeyword(keyword) && target.status !== "paused"));
+  const trackingPaused = requested.filter(keyword => !trackingStarted.includes(keyword));
+  return NextResponse.json({ decisions: data, trackingStarted, trackingPaused, trackingNotice: targetError ? "Your decisions are saved, but tracking status could not be confirmed. Review Rank Tracker before retrying." : trackingPaused.length ? TRACKING_PAUSED_NOTICE : undefined });
 }

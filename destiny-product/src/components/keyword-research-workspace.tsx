@@ -1,4 +1,5 @@
 "use client";
+import { TrackingNotice } from "@/components/tracking-notice";
 
 import { WorkspaceLink } from "./workspace-link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -123,6 +124,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   const [result, setResult] = useState<KeywordResearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [trackingNotice, setTrackingNotice] = useState("");
   const [billingRequired, setBillingRequired] = useState(false);
   const [search, setSearch] = useState("");
   const [intent, setIntent] = useState<SearchIntent | "all">("all");
@@ -191,7 +193,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   async function requestResearch(nextQuery: string, nextMode: "keyword" | "domain") {
     setLoading(true);
     setBillingRequired(false);
-    setError("");
+    setError(""); setTrackingNotice("");
     try {
       const response = await fetch("/api/research/keywords", {
         method: "POST",
@@ -243,7 +245,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
 
   async function createList(name: string) {
     if (!websiteId || !name.trim()) return null;
-    setError("");
+    setError(""); setTrackingNotice("");
     const response = await fetch("/api/rank-tracker/lists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, name }) });
     const payload = await response.json() as { list?: KeywordListOption; error?: string };
     if (!response.ok || !payload.list) { setError(payload.error || "Rebound SEO could not create this list."); return null; }
@@ -254,11 +256,11 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   async function saveKeywords(listId: string | null, track: boolean) {
     if (!websiteId || !saveSelection.length) return;
     setSavingKeywords(true);
-    setError("");
+    setError(""); setTrackingNotice("");
     try {
       await Promise.all(saveSelection.map(async (keyword) => {
         const response = await fetch("/api/rank-tracker/keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword, listId, source: "research", track }) });
-        const payload = await response.json() as { error?: string };
+        const payload = await response.json() as { error?: string; keyword?: { status?: string }; trackingStarted?: string[]; trackingNotice?: string };
         if (!response.ok) throw new Error(payload.error || `Rebound SEO could not save ${keyword}.`);
       }));
       setSaved((current) => {
@@ -278,16 +280,17 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   async function trackKeyword(value: string) {
     if (!websiteId || tracked.has(value)) return;
     setTracking(value);
-    setError("");
+    setError(""); setTrackingNotice("");
     try {
       const response = await fetch("/api/rank-tracker/keywords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ websiteId, keyword: value, source: "research" }),
       });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; keyword?: { status?: string }; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not start tracking this keyword.");
-      setTracked((current) => new Set([...current, value]));
+      if (payload.keyword?.status && payload.keyword.status !== "paused") setTracked((current) => new Set([...current, value]));
+      setTrackingNotice(payload.trackingNotice || "");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not start tracking this keyword.");
     } finally {
@@ -298,7 +301,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
   async function addToStrategy(row: KeywordResearchRow) {
     if (!auditId || strategized.has(row.keyword)) return;
     setSavingStrategy(row.keyword);
-    setError("");
+    setError(""); setTrackingNotice("");
     try {
       const response = await fetch("/api/keywords/decisions", {
         method: "POST",
@@ -310,10 +313,11 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
           evidence: { intent: row.intent, volume: row.volume, difficulty: row.difficulty },
         }),
       });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; keyword?: { status?: string }; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not add this keyword to the strategy.");
       setStrategized((current) => new Set([...current, row.keyword]));
-      setTracked((current) => new Set([...current, row.keyword]));
+      if (payload.trackingStarted?.includes(row.keyword)) setTracked((current) => new Set([...current, row.keyword]));
+      setTrackingNotice(payload.trackingNotice || "");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not add this keyword to the strategy.");
     } finally {
@@ -337,6 +341,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         <span className="research-location">Google · United States · English</span>
         <button className="primary-button" disabled={loading} type="submit">{loading ? "Researching…" : "Search"}</button>
       </form>
+    <TrackingNotice message={trackingNotice} />
       {error ? <p className="research-error" role="alert">{error}{billingRequired && <> <WorkspaceLink href="/account/billing">View plans and billing</WorkspaceLink></>}</p> : null}
     </section>
 

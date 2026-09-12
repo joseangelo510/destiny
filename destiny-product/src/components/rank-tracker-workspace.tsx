@@ -1,4 +1,5 @@
 "use client";
+import { TrackingNotice } from "@/components/tracking-notice";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { formatUtcDate, formatUtcDateTime } from "../lib/format-date";
@@ -34,7 +35,9 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
   const [keyword, setKeyword] = useState("");
   const [listName, setListName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [changingTracking, setChangingTracking] = useState("");
   const [error, setError] = useState("");
+  const [trackingNotice, setTrackingNotice] = useState("");
   useEffect(() => {
     let cancelled = false;
     const missing = keywords.filter((row) => !row.policyView);
@@ -78,13 +81,14 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
     event.preventDefault();
     if (!keyword.trim()) return;
     setAdding(true);
-    setError("");
+    setError(""); setTrackingNotice("");
     const response = await fetch("/api/rank-tracker/keywords", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword, listId: activeList !== "all" && activeList !== "general" ? activeList : null, source: "manual" }) });
-    const payload = await response.json() as { keyword?: RankTrackerKeyword; error?: string };
+    const payload = await response.json() as { keyword?: RankTrackerKeyword; error?: string; trackingNotice?: string };
     if (!response.ok || !payload.keyword) setError(payload.error || "Rebound SEO could not add this keyword.");
     else {
       setKeywords((current) => [...current.filter((item) => item.id !== payload.keyword?.id), payload.keyword as RankTrackerKeyword]);
       setKeyword("");
+      setTrackingNotice(payload.trackingNotice || "");
     }
     setAdding(false);
   }
@@ -92,15 +96,28 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
   async function createList(event: FormEvent) {
     event.preventDefault();
     if (!listName.trim()) return;
-    setError("");
+    setError(""); setTrackingNotice("");
     const response = await fetch("/api/rank-tracker/lists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, name: listName }) });
     const payload = await response.json() as { list?: RankTrackerList; error?: string };
     if (!response.ok || !payload.list) setError(payload.error || "Rebound SEO could not create this list.");
     else { setLists((current) => [...current, payload.list as RankTrackerList]); setActiveList(payload.list.id); setListName(""); }
   }
 
+  async function toggleTracking(row: RankTrackerKeyword) {
+    setChangingTracking(row.id);
+    setError(""); setTrackingNotice("");
+    try {
+      const response = await fetch("/api/rank-tracker/keywords", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: row.id, listId: row.listId, status: row.status === "paused" ? "pending" : "paused" }) });
+      const payload = await response.json() as { status?: string; error?: string; trackingNotice?: string };
+      if (!response.ok || !payload.status) throw new Error(payload.error || "Tracking status could not be updated.");
+      setKeywords(current => current.map(item => item.id === row.id ? { ...item, status: payload.status!, policyView: undefined } : item));
+      setTrackingNotice(payload.trackingNotice || "");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Tracking status could not be updated."); }
+    finally { setChangingTracking(""); }
+  }
+
   async function moveKeyword(id: string, listId: string | null) {
-    setError("");
+    setError(""); setTrackingNotice("");
     const response = await fetch("/api/rank-tracker/keywords", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, listId }) });
     const payload = await response.json() as { error?: string };
     if (!response.ok) setError(payload.error || "Rebound SEO could not move this keyword.");
@@ -153,16 +170,17 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
 
       <div className="rank-table-panel">
         <form className="rank-add-form" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label="Keyword to track" onChange={(event) => setKeyword(event.target.value)} placeholder="Enter a keyword" value={keyword} /></label><button className="primary-button" disabled={adding} type="submit">{adding ? "Adding…" : "Track keyword"}</button></form>
-        <div className="rank-table-scroll"><table className="rank-table"><thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Trend</th><th>Ranking page</th><th>Last checked</th><th>List</th></tr></thead><tbody>{visible.map((row) => {
+        <div className="rank-table-scroll"><table className="rank-table"><thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Trend</th><th>Ranking page</th><th>Last checked</th><th>List</th><th>Tracking</th></tr></thead><tbody>{visible.map((row) => {
           const reading = row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
           const movement = row.policyView?.movement ?? { label: "—", tone: "flat" };
           const freshness = row.policyView?.freshness ?? { message: "Calculating freshness…" };
-          return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? formatUtcDate(row.checkedAt) : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td></tr>;
+          return <tr key={row.id}><td><strong>{row.keyword}</strong><small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? formatUtcDate(row.checkedAt) : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td><td><button aria-label={`${row.status === "paused" ? "Resume" : "Pause"} ${row.keyword}`} className="text-button" disabled={changingTracking === row.id} onClick={() => void toggleTracking(row)} type="button">{row.status === "paused" ? "Resume" : "Pause"}</button></td></tr>;
         })}</tbody></table></div>
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}
       </div>
     </section>
     <aside className="rank-evidence-note"><strong>What “Not yet visible” means</strong><p>Google did not show this website in the first 100 results—about 10 pages—for that search during the latest check. It is a starting point, not a penalty, and it never means position zero.</p></aside>
+    <TrackingNotice message={trackingNotice} />
     {error ? <div className="error-banner" role="alert">{error}</div> : null}
   </div>;
 }

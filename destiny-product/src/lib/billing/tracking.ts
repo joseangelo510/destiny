@@ -1,0 +1,1 @@
+export const TRACKING_PAUSED_NOTICE = "Your keywords are saved. Rank tracking is paused for keywords outside the active subscription allowance. Pause another tracked keyword or ask the account owner to review the plan.";
