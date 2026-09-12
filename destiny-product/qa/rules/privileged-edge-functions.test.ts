@@ -227,3 +227,10 @@ it("requires billing claims and signed Stripe events before privileged work", as
     }
   }
 });
+it("requires a server signature before browser-forbidden usage settlement", async () => {
+  const source = handlerSource(await readFile(path.join(productRoot, "supabase/functions/billing-usage/index.ts"), "utf8"));
+  const verify = source.indexOf('await verifyWorkerRequest(raw, "billing-usage"');
+  expect(verify).toBeGreaterThanOrEqual(0);
+  expect(source.indexOf('json({ error: "Worker authorization required." }, 403)')).toBeGreaterThan(verify);
+  expect(source.indexOf("context.supabaseAdmin")).toBeGreaterThan(verify);
+});
