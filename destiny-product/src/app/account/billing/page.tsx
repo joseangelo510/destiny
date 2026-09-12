@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { BillingNotice, PricingPlans } from "@/components/billing/pricing-plans";
 import { getWorkspaceContext } from "@/lib/workspace-context";
@@ -10,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Plans and billing — Rebound SEO", description: "Your subscription, usage and payment settings." };
 export default async function BillingPage() {
   const context = await getWorkspaceContext();
-  const billing = await loadBillingAccount(context.supabase as unknown as SupabaseClient, context.userId);
+  const billing = await loadBillingAccount(context.userId);
   const { account, access } = billing;
   const plan = planById(account?.plan);
   // Checkout is deliberately gated until end-to-end provider configuration is verified.
