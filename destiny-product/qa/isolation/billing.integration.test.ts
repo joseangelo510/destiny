@@ -26,7 +26,7 @@ beforeAll(async () => {
     values('${owner}','starter','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');`);
 });
 afterAll(async () => {
-  await sql(`delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${other}');`);
+  await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${other}');`);
 });
 describe.sequential("atomic billing reservations and isolation", () => {
   it("serializes checkout and webhook reconciliation and rejects stale lease releases", async () => {
@@ -71,4 +71,17 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await sql(`update public.billing_accounts set status='trialing', trial_started_at=now()-interval '8 days',trial_end=now()-interval '1 day' where owner_id='${owner}';`);
     expect(await reserve("expired-trial", "keywordSearches")).toMatchObject({ allowed: false });
   });
+  it("applies subscription snapshots atomically, ignores duplicate events and rejects stale workers", async () => {
+    await sql(`update public.billing_accounts set stripe_customer_id='cus_${owner}' where owner_id='${owner}';`);
+    const lease = JSON.parse(await sql(`select public.claim_billing_operation('${owner}',false);`));
+    const snapshot = { id: `sub_${owner}`, customer: `cus_${owner}`, plan: "starter", status: "active", periodStart: new Date(Date.now()-1000).toISOString(), periodEnd: new Date(Date.now()+86400000).toISOString(), paidThrough: new Date(Date.now()+86400000).toISOString(), trialStart: null, trialEnd: null, cancelAtPeriodEnd: false };
+    const apply = (token: string, event: string, state = snapshot) => sql(`select public.apply_billing_snapshot('${owner}','${token}','${event}','invoice.paid',false,'${JSON.stringify(state)}'::jsonb);`);
+    await expect(apply(randomUUID(), `evt_stale_${owner}`)).rejects.toThrow("Billing operation expired");
+    expect(await apply(lease.token, `evt_${owner}`)).toBe("t");
+    expect(await apply(lease.token, `evt_${owner}`, { ...snapshot, status: "past_due" })).toBe("f");
+    expect(await sql(`select status from public.billing_accounts where owner_id='${owner}';`)).toBe("active");
+    expect(await sql(`select count(*) from public.billing_stripe_events where event_id='evt_${owner}' and processed_at is not null;`)).toBe("1");
+    await sql(`select public.release_billing_operation('${owner}','${lease.token}');`);
+  });
+
 });
