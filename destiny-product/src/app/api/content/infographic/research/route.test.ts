@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const { reserveContentWork, finishContentWork, infographicStage } = vi.hoisted(() => ({ reserveContentWork: vi.fn(), finishContentWork: vi.fn(), infographicStage: vi.fn() }));
+vi.mock("@/lib/billing/worker", () => ({ reserveContentWork, finishContentWork, infographicStage }));
 const { getClaims, from } = vi.hoisted(() => ({ getClaims: vi.fn(), from: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getClaims }, from }) }));
 
@@ -27,6 +29,9 @@ function validResponse() {
 describe("POST /api/content/infographic/research", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    reserveContentWork.mockResolvedValue({ id: "usage-a" });
+    finishContentWork.mockResolvedValue(true);
+    infographicStage.mockResolvedValue(true);
     process.env.OPENAI_API_KEY = "test-openai-key";
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
     from.mockReturnValue({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: websiteId, business_name: "ClearCheck", products_services: "Screening software", problem_solved: "Clear hiring decisions", ideal_customer: "HR leaders", differentiation: "Plain-language guidance" }, error: null }) }) }) });
@@ -60,4 +65,12 @@ describe("POST /api/content/infographic/research", () => {
     const inaccessible = await POST(new Request("http://localhost/api/content/infographic/research", { method: "POST", body: JSON.stringify({ websiteId, keyword: "test topic", style: "editorial" }) }));
     expect(inaccessible.status).toBe(404);
   });
+  it("blocks provider work without its infographic allowance", async () => {
+    reserveContentWork.mockResolvedValue({ response: Response.json({ code: "BILLING_LIMIT_REACHED" }, { status: 402 }) });
+    const provider = vi.fn(); vi.stubGlobal("fetch", provider);
+    const { POST } = await import("./route");
+    const response = await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ websiteId, keyword: "employee background check trends" }) }));
+    expect(response.status).toBe(402); expect(provider).not.toHaveBeenCalled();
+  });
+
 });
