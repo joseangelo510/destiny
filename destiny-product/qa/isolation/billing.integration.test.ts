@@ -29,6 +29,15 @@ afterAll(async () => {
   await sql(`delete from public.billing_usage where owner_id='${owner}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${other}');`);
 });
 describe.sequential("atomic billing reservations and isolation", () => {
+  it("serializes checkout and webhook reconciliation and rejects stale lease releases", async () => {
+    const claims = await Promise.all(Array.from({ length: 6 }, () => sql(`select public.claim_billing_operation('${owner}',false);`).then(JSON.parse)));
+    const winner = claims.find(value => value.acquired);
+    expect(claims.filter(value => value.acquired)).toHaveLength(1);
+    expect(await sql(`select public.release_billing_operation('${owner}','${randomUUID()}');`)).toBe("f");
+    expect(await sql(`select public.release_billing_operation('${owner}','${winner.token}');`)).toBe("t");
+    await expect(sql(`select public.claim_billing_operation('${owner}',true);`)).rejects.toThrow("Billing mode mismatch");
+    await expect(sql(`begin; set local role authenticated; select public.claim_billing_operation('${owner}',false); rollback;`)).rejects.toThrow("permission denied");
+  });
   it("does not allow concurrent requests to overspend the account", async () => {
     const results = await Promise.all(Array.from({ length: 10 }, (_, index) => reserve(`concurrent-${index}`)));
     expect(results.filter(result => result.allowed)).toHaveLength(4);
