@@ -11,7 +11,8 @@ test("@gate short screens keep sidebar tools and bottom controls reachable", asy
   if (mobile) await page.getByRole("button", { name: "Open navigation", exact: true }).click();
   const sidebar = page.getByRole("complementary", { name: "Workspace navigation" });
   const signout = sidebar.getByRole("button", { name: "Sign out", exact: true });
-  await signout.scrollIntoViewIfNeeded();
+  await sidebar.getByRole("link", { name: "Home dashboard", exact: true }).hover();
+  await page.mouse.wheel(0, 1000);
   await expect(signout).toBeInViewport();
   await expect(signout).toBeVisible();
   expect(await signout.evaluate(node => {
