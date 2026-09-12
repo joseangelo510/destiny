@@ -9,6 +9,7 @@
 .search label { display:grid; gap:7px; font-size:12px; font-weight:600; }
 .search label:first-child { flex:1; }
 .search .primary { background:#512c58; color:white; padding:13px 22px; border-color:#512c58; }
+.search .primary:hover { background:#633b6b; color:#fff; }
 .status { padding:12px 2px; color:#69586c; font-size:12px; min-height:42px; }
 .notice { background:#fff0d8; border:1px solid #cfab6c; padding:14px; border-radius:8px; }
 .empty { padding:65px 30px; text-align:center; border:1px solid #e2d9df; border-radius:12px; background:#fffaf7; }
@@ -79,4 +80,4 @@
 .srOnly { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 @media(max-width:1100px) { .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .metrics > div:nth-child(2n) { border:0; } .chartGrid { grid-template-columns:1fr; } }
 @media(max-width:700px) { .search { display:grid; padding:16px; } .summaryGrid,.researchGrid { grid-template-columns:1fr; } .reportHeader { align-items:start; flex-direction:column; } .tabs { gap:18px; } .tabs button { font-size:11px; } .card { padding:16px; } .empty { padding:35px 16px; } .empty h2 { font-size:27px; } .emptyMetrics { flex-direction:column; gap:10px; } .metrics { row-gap:20px; } .metrics strong { font-size:24px; } .trendValue { flex-wrap:wrap; gap:5px 15px; } }
-@media print { .search,.exports,.tabs,.tableTools,.more { display:none; } .card { break-inside:avoid; } .workspace { width:100%; } .summaryGrid,.chartGrid { grid-template-columns:1fr; } .tableScroll { overflow:visible; } .workspace table { font-size:8px; } }
+@media print { :global(main.app-shell):has(.workspace) { display:block; } :global(main.app-shell):has(.workspace) :global(aside), :global(main.app-shell):has(.workspace) :global(header) button { display:none; } .search,.exports,.tabs,.tableTools,.more { display:none; } .card { break-inside:avoid; } .workspace { width:100%; } .summaryGrid,.chartGrid { grid-template-columns:1fr; } .tableScroll { overflow:visible; } .workspace table { font-size:8px; } }
