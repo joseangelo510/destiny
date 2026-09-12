@@ -50,6 +50,11 @@
     "boundary": "cron_secret"
   },
   {
+    "path": "supabase/functions/seo-research/index.ts",
+    "auth": "user",
+    "boundary": "billing_claim"
+  },
+  {
     "path": "supabase/functions/webflow-connect/index.ts",
     "auth": "user",
     "boundary": "website_rls"

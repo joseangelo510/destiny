@@ -1,3 +1,4 @@
+import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
 import { runDomainOverview } from "./domain-overview.ts";
 import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
@@ -37,8 +38,10 @@ async function providerPost(path: string, body: Record<string, unknown>[], login
 }
 
 export default {
-  fetch: withSupabase({ auth: "user" }, async (request) => {
+  fetch: withSupabase({ auth: "user" }, async (request, context) => {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
+    const ownerId = context.userClaims?.id;
+    if (!ownerId) return json({ error: "Sign in again to continue." }, 401);
     let body: ResearchRequest;
     try { body = await request.json() as ResearchRequest; }
     catch { return json({ error: "Request body must be valid JSON." }, 400); }
@@ -47,6 +50,7 @@ export default {
     const password = Deno.env.get("DATAFORSEO_PASSWORD")?.trim();
     if (!login || !password) return json({ error: "Live SEO research is not configured yet." }, 503);
 
+    const runResearch = async () => {
     try {
       if (body.kind === "domain_overview") {
         if (typeof body.target !== "string" || typeof body.market !== "string") return json({ error: "Enter a public domain and choose a country." }, 400);
@@ -154,5 +158,12 @@ export default {
     } catch (cause) {
       return json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete live SEO research." }, 502);
     }
+    };
+    const meter = body.kind === "keywords" || body.kind === "keyword_serp" ? "keywordSearches"
+      : body.kind === "domain_overview" || body.kind === "backlinks" ? "domainReports" : null;
+    if (!meter) return runResearch();
+    const suppliedKey = request.headers.get("idempotency-key");
+    if (suppliedKey && !/^[a-zA-Z0-9_-]{8,160}$/.test(suppliedKey)) return json({ error: "Invalid request identifier." }, 400);
+    return meteredResponse(context.supabaseAdmin, { ownerId, meter, requestKey: `research-${String(body.kind)}-${suppliedKey ?? crypto.randomUUID()}` }, runResearch);
   }),
 };
