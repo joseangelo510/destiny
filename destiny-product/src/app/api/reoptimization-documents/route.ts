@@ -122,6 +122,6 @@ export async function POST(request: Request) {
     const result = await generate();
     succeeded = result.ok;
     return result;
-  } finally { await finishContentWork(supabase, reservation.id, succeeded); }
+  } finally { await finishContentWork(supabase, reservation.id, succeeded, website.id); }
 
 }

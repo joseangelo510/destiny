@@ -88,6 +88,6 @@ export async function POST(request: Request) {
     console.error("infographic_image_failed", { error: cause instanceof Error ? cause.message : "unknown" });
     return Response.json({ error: "Rebound SEO could not finish the visual. Try again in a moment." }, { status: 502 });
   } finally {
-    await finishContentWork(supabase, payload.billingUsageId, succeeded);
+    await finishContentWork(supabase, payload.billingUsageId, succeeded, payload.websiteId);
   }
 }

@@ -168,7 +168,7 @@ export async function POST(request: Request) {
     let evidenceTimeout: ReturnType<typeof setTimeout> | null = null;
     try {
       const result = await Promise.race([
-        invokeBillingWorker(billingClient, "seo-research", { kind: "article_evidence", keyword: input.keyword, locationName: "United States", billingUsageId: reservation.id }),
+        invokeBillingWorker(billingClient, "seo-research", { kind: "article_evidence", keyword: input.keyword, locationName: "United States", billingUsageId: reservation.id, websiteId }),
         new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
       ]);
       if (result.error || !result.data) throw new Error(result.error?.message || "Rebound SEO could not retrieve article evidence.");
@@ -359,10 +359,10 @@ export async function POST(request: Request) {
       send(encodeArticleGenerationEvent({ type: "phase", phase: "researching" }));
       keepalive = setInterval(() => send(encodeArticleGenerationEvent({ type: "keepalive" })), ARTICLE_GENERATION_KEEPALIVE_MS);
       void generatePayload((phase) => send(encodeArticleGenerationEvent({ type: "phase", phase }))).then(async (payload) => {
-        await finishContentWork(billingClient, reservation.id, !("error" in payload) && payload.draft?.generationStatus !== "needs_generation");
+        await finishContentWork(billingClient, reservation.id, !("error" in payload) && payload.draft?.generationStatus !== "needs_generation", websiteId);
         send(encodeArticleGenerationEvent({ type: "result", payload }));
       }).catch(async (cause) => {
-        await finishContentWork(billingClient, reservation.id, false);
+        await finishContentWork(billingClient, reservation.id, false, websiteId);
         send(encodeArticleGenerationEvent({ type: "result", payload: { error: cause instanceof Error ? cause.message : "Rebound SEO could not generate this article." } }));
       }).finally(() => {
         if (keepalive) clearInterval(keepalive);

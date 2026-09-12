@@ -1,3 +1,4 @@
+import { callerWebsiteOwner, matchingWebsiteUsage } from "../_shared/billing/caller-website.ts";
 import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
@@ -7,6 +8,7 @@ import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWind
 type ResearchRequest = {
   kind?: unknown;
   billingUsageId?: unknown;
+  websiteId?: unknown;
   query?: unknown;
   mode?: unknown;
   locationName?: unknown;
@@ -42,16 +44,24 @@ async function providerPost(path: string, body: Record<string, unknown>[], login
 export default {
   fetch: withSupabase({ auth: "user" }, async (request, context) => {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
-    const ownerId = context.userClaims?.id;
-    if (!ownerId) return json({ error: "Sign in again to continue." }, 401);
+    const viewerId = context.userClaims?.id;
+    if (!viewerId) return json({ error: "Sign in again to continue." }, 401);
     const raw = await request.text();
     let body: ResearchRequest;
     try { body = JSON.parse(raw) as ResearchRequest; }
     catch { return json({ error: "Request body must be valid JSON." }, 400); }
 
+    if (!body || typeof body !== "object") return json({ error: "Invalid research request." }, 400);
+    let ownerId = viewerId;
+    if (body.websiteId !== undefined) {
+      if (typeof body.websiteId !== "string" || !body.websiteId) return json({ error: "Invalid website scope." }, 400);
+      const scopedOwner = await callerWebsiteOwner(context.supabase, body.websiteId);
+      if (!scopedOwner) return json({ error: "Website access is unavailable." }, 403);
+      ownerId = scopedOwner;
+    }
     if (body.kind === "article_evidence") {
       if (!await verifyWorkerRequest(raw, "seo-research", request.headers, Deno.env.get("BILLING_WORKER_SECRET") ?? "")) return json({ error: "Article reservation required." }, 403);
-      if (typeof body.billingUsageId !== "string") return json({ error: "Article reservation required." }, 403);
+      if (typeof body.billingUsageId !== "string" || typeof body.websiteId !== "string" || !await matchingWebsiteUsage(context.supabaseAdmin, ownerId, body.websiteId, body.billingUsageId, "articles")) return json({ error: "Article reservation required." }, 403);
       const { data: allowed, error } = await context.supabaseAdmin.rpc("claim_billing_stage", { p_owner_id: ownerId, p_id: body.billingUsageId, p_stage: "article_evidence", p_artifact_hash: null });
       if (error || allowed !== true) return json({ error: "Article reservation is unavailable or already used." }, 403);
     }
@@ -153,7 +163,15 @@ export default {
         });
       }
 
-      if (body.kind === "article_evidence") {
+      if (!body || typeof body !== "object") return json({ error: "Invalid research request." }, 400);
+    let ownerId = viewerId;
+    if (body.websiteId !== undefined) {
+      if (typeof body.websiteId !== "string" || !body.websiteId) return json({ error: "Invalid website scope." }, 400);
+      const scopedOwner = await callerWebsiteOwner(context.supabase, body.websiteId);
+      if (!scopedOwner) return json({ error: "Website access is unavailable." }, 403);
+      ownerId = scopedOwner;
+    }
+    if (body.kind === "article_evidence") {
         const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 200) : "";
         if (keyword.length < 2) return json({ error: "Choose a focus keyword before researching article evidence." }, 400);
         const location = typeof body.locationName === "string" && body.locationName.trim() ? body.locationName.trim() : "United States";
@@ -175,6 +193,6 @@ export default {
     if (units < 1) return json({ error: "Choose at least one priority keyword first." }, 400);
     const suppliedKey = request.headers.get("idempotency-key");
     if (suppliedKey && !/^[a-zA-Z0-9_-]{8,160}$/.test(suppliedKey)) return json({ error: "Invalid request identifier." }, 400);
-    return meteredResponse(context.supabaseAdmin, { ownerId, meter, units, requestKey: `research-${String(body.kind)}-${suppliedKey ?? crypto.randomUUID()}` }, runResearch);
+    return meteredResponse(context.supabaseAdmin, { ownerId, websiteId: typeof body.websiteId === "string" ? body.websiteId : undefined, meter, units, requestKey: `research-${String(body.kind)}-${suppliedKey ?? crypto.randomUUID()}` }, runResearch);
   }),
 };

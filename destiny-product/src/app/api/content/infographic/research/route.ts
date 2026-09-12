@@ -80,6 +80,6 @@ export async function POST(request: Request) {
     console.error("infographic_research_failed", { error: cause instanceof Error ? cause.message : "unknown" });
     return NextResponse.json({ error: cause instanceof Error ? cause.message : "Rebound SEO could not complete the infographic research." }, { status: 502 });
   } finally {
-    if (!prepared) await finishContentWork(supabase, reservation.id, false);
+    if (!prepared) await finishContentWork(supabase, reservation.id, false, websiteId);
   }
 }

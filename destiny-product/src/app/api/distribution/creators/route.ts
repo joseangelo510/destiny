@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   });
   const { data, error } = await supabase.functions.invoke("seo-research", { body: {
     kind: "creators",
+    websiteId,
     topics,
     locationName: "United States",
     excludeDomains: [website.normalized_domain, ...competitorDomains],

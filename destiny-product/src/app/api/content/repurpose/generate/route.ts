@@ -439,7 +439,7 @@ export async function POST(request: Request) {
     succeeded = result.ok;
     return result;
   } finally {
-    await finishContentWork(database, reservation.id, succeeded);
+    await finishContentWork(database, reservation.id, succeeded, websiteId);
   }
 
 }

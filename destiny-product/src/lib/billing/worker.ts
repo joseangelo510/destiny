@@ -17,9 +17,9 @@ export async function reserveContentWork(client: BillingWorkerClient, websiteId:
     return denied("Choose a plan or update your payment to continue. Your saved work is still available.", "BILLING_PAYMENT_REQUIRED", 402);
   } catch { return denied("Usage could not be checked. Please try again shortly.", "BILLING_UNAVAILABLE", 503); }
 }
-export async function finishContentWork(client: BillingWorkerClient, id: string, succeeded: boolean): Promise<boolean> {
+export async function finishContentWork(client: BillingWorkerClient, id: string, succeeded: boolean, websiteId: string): Promise<boolean> {
   try {
-    const { data, error } = await invokeBillingWorker(client, "billing-usage", { action: "finish", id, succeeded });
+    const { data, error } = await invokeBillingWorker(client, "billing-usage", { action: "finish", id, succeeded, websiteId });
     return !error && data?.saved === true;
   } catch { return false; }
 }
