@@ -10,6 +10,8 @@ export const ISOLATION_TABLES = [
   "article_drafts",
   "audit_metrics",
   "audits",
+  "billing_accounts",
+  "billing_usage",
   "competitors",
   "directory_profiles",
   "integrations",
