@@ -39,6 +39,15 @@ test("@gate Domain Overview researches arbitrary domains without changing the wo
   await page.getByRole("tab", {name:"Compare by countries",exact:true}).click();
   await expect(page.getByRole("cell",{name:"Germany",exact:true})).toBeVisible();
   await page.getByRole("tab", {name:"Overview",exact:true}).click();
+  const keywordTable = page.getByRole("table",{name:"Organic keywords",exact:true});
+  await expect(keywordTable.getByRole("row")).toHaveCount(11);
+  await page.getByLabel("Filter Organic keywords",{exact:true}).fill("seo topic 14");
+  await expect(keywordTable.getByRole("row")).toHaveCount(2);
+  await page.getByLabel("Filter Organic keywords",{exact:true}).fill("");
+  await keywordTable.getByRole("button",{name:"Volume",exact:true}).click();
+  await expect(keywordTable.getByRole("row").nth(1)).toContainText("seo topic 14");
+  await keywordTable.locator("..").locator("..").getByRole("button",{name:"Show 10 more",exact:true}).click();
+  await expect(keywordTable.getByRole("row")).toHaveCount(16);
   const download = page.waitForEvent("download"); await page.getByRole("button",{name:"Export CSV"}).click();
   expect((await download).suggestedFilename()).toBe("rebound-example.com-US.csv");
   await page.screenshot({path:testInfo.outputPath("domain-overview.png"),fullPage:true});
