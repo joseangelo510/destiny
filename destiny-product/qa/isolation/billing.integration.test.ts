@@ -44,8 +44,14 @@ describe.sequential("atomic billing reservations and isolation", () => {
   });
   it("protects subscription state and ledger mutation from both browser roles", async () => {
     const identity = `select set_config('request.jwt.claims','{"sub":"${other}","role":"authenticated"}',true);`;
-    const rows = await sql(`begin; set local role authenticated; ${identity} select count(*) from public.billing_accounts; rollback;`);
-    expect(rows.split("\n").at(-1)).toBe("0");
+    for (const table of ["billing_accounts", "billing_usage"]) {
+      const rows = await sql(`begin; set local role authenticated; ${identity} select count(*) from public.${table}; rollback;`);
+      expect(rows.split("\n").at(-1)).toBe("0");
+      const ownIdentity = `select set_config('request.jwt.claims','{"sub":"${owner}","role":"authenticated"}',true);`;
+      const ownRows = await sql(`begin; set local role authenticated; ${ownIdentity} select count(*) from public.${table}; rollback;`);
+      expect(Number(ownRows.split("\n").at(-1))).toBeGreaterThan(0);
+    }
+    await expect(sql(`begin; set local role authenticated; select * from public.billing_stripe_events; rollback;`)).rejects.toThrow("permission denied");
     await expect(sql(`begin; set local role authenticated; update public.billing_accounts set plan='premium'; rollback;`)).rejects.toThrow("permission denied");
     await expect(sql(`begin; set local role authenticated; select public.reserve_billing_usage('${owner}',null,'browser-key','articles',1); rollback;`)).rejects.toThrow("permission denied");
     await expect(sql(`begin; set local role anon; select * from public.billing_usage; rollback;`)).rejects.toThrow("permission denied");

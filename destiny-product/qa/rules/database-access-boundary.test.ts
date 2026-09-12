@@ -28,7 +28,7 @@ describe("typed database access boundary", () => {
 
     expect(classified.size).toBe(inventory.length);
     expect([...classified].sort()).toEqual(inventory.map((row) => row.table).sort());
-    expect(SERVICE_ROLE_ONLY_TABLES).toEqual(["cms_transfers"]);
+    expect(SERVICE_ROLE_ONLY_TABLES).toEqual(["cms_transfers", "billing_stripe_events"]);
     expect(RELATION_SCOPED_TABLES).toEqual(["audit_metrics"]);
   });
 
