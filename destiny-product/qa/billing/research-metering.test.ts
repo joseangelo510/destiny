@@ -14,3 +14,11 @@ it("blocks direct keyword and domain research before spending provider credits",
     expect(rpc).toHaveBeenCalledTimes(4);
   } finally { vi.unstubAllGlobals(); }
 });
+it("rejects direct article-evidence requests without the server signature", async () => {
+  vi.stubGlobal("Deno", { env: { get: () => "fixture_not_a_real_credential" } });
+  const provider = vi.fn(); vi.stubGlobal("fetch", provider);
+  try {
+    const response = await research.fetch(new Request("https://example.invalid/research", { method: "POST", body: JSON.stringify({ kind: "article_evidence", keyword: "seo", billingUsageId: "forged" }) }), { userClaims: { id: "owner-a" }, supabaseAdmin: { rpc } } as never);
+    expect(response.status).toBe(403); expect(provider).not.toHaveBeenCalled();
+  } finally { vi.unstubAllGlobals(); }
+});
