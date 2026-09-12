@@ -1,0 +1,5 @@
+# Approved grouped sidebar
+
+Preserve the existing warm-black sidebar, logo, website selector and six core links in order: Home dashboard, Coach, Content, Calendar, Distribution, Progress. Below a divider, organize all tools into seven native keyboard-operable expandable groups: Competitor research, Keywords, Content creation, Website optimization, Publishing & distribution, Analytics & reporting, Planning. Only the active tool's group starts open; groups can be toggled independently. Retain every existing tool destination exactly once across tools and the separated Account/Connections footer. Preserve site query parameters, anchor navigation, selected-link state and signout. At small heights the tools area scrolls without hiding footer controls. Mobile drawer retains focus trapping, Escape, backdrop dismissal and close-on-navigation. No API or customer-data changes.
+
+Verify static complete mapping and active expansion; actual desktop/mobile expand/collapse, navigation between groups, selected site continuity, footer reachability and keyboard operation. Compare to approved mockup exec-0c0a45ec-a7e3-473d-b905-f99a7223c1b5.png.
