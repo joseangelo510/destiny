@@ -60,6 +60,21 @@ describe("POST /api/integrations/cms/wordpress/draft", () => {
     expect(JSON.stringify(invoke.mock.calls[0])).not.toContain("applicationPassword");
   });
 
+  it("preserves an unpaid-account response for the article billing recovery link", async () => {
+    invoke.mockResolvedValue({ data: null, error: { context: Response.json({
+      code: "BILLING_PAYMENT_REQUIRED", error: "Private upstream details",
+    }, { status: 402 }) } });
+    const response = await POST(new Request("http://localhost/api/integrations/cms/wordpress/draft", {
+      method: "POST", body: JSON.stringify(requestBody),
+    }));
+    expect(response.status).toBe(402);
+    expect(await response.json()).toEqual({
+      code: "BILLING_PAYMENT_REQUIRED",
+      error: "Choose a plan or update your payment to continue. Your saved work is still available.",
+      billingUrl: "/account/billing",
+    });
+  });
+
   it("does not call WordPress for an unapproved article", async () => {
     const response = await POST(new Request("http://localhost/api/integrations/cms/wordpress/draft", {
       method: "POST",
