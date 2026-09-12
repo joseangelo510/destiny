@@ -5076,148 +5076,157 @@
     "context": "<button className=\"secondary-button\" onClick={() => dialogRef.current?.close()} type=\"button\">Not now</button> <Link className=\"primary-button\" href=\"/onboarding?new=1\">Confirm business details</Link> </div>"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:49:a:1",
+    "control_id": "src/components/product-navigation.tsx:55:a:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 49,
+    "line": 55,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "const props = { className: item.href === active ? styles.active : undefined, \"aria-current\": item.href === active ? \"page\" as const : undefined, onClick: () => setOpen(false) }; return item.href.includes(\"#\") ? <a {...props} data-document-navigation=\"true\" href={href(item.href)} key={item.href}>{contents}</a> : <Link {...props} href={href(item.href)} key={item.href}>{contents}</Link>; }"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:49:Link:2",
+    "control_id": "src/components/product-navigation.tsx:55:Link:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 49,
+    "line": 55,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "const props = { className: item.href === active ? styles.active : undefined, \"aria-current\": item.href === active ? \"page\" as const : undefined, onClick: () => setOpen(false) }; return item.href.includes(\"#\") ? <a {...props} data-document-navigation=\"true\" href={href(item.href)} key={item.href}>{contents}</a> : <Link {...props} href={href(item.href)} key={item.href}>{contents}</Link>; }"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:52:button:1",
+    "control_id": "src/components/product-navigation.tsx:58:button:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 52,
+    "line": 58,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "return <div className={styles.frame} data-approved-navigation=\"preservation\"> <div className={styles.mobilebar}><button ref={trigger} aria-expanded={open} aria-label=\"Open navigation\" onClick={() => setOpen(true)}><span className={`${styles.icon} ${styles.menu}`} /></button><Link className={styles.wordmark} href={href(\"/app/home\")}>Rebound <em>SEO.</em></Link></div> {open && <button className={styles.scrim} aria-label=\"Close navigation backdrop\" onClick={() => { setOpen(false); trigger.current?."
   },
   {
-    "control_id": "src/components/product-navigation.tsx:52:onClick:2",
+    "control_id": "src/components/product-navigation.tsx:58:onClick:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 52,
+    "line": 58,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "return <div className={styles.frame} data-approved-navigation=\"preservation\"> <div className={styles.mobilebar}><button ref={trigger} aria-expanded={open} aria-label=\"Open navigation\" onClick={() => setOpen(true)}><span className={`${styles.icon} ${styles.menu}`} /></button><Link className={styles.wordmark} href={href(\"/app/home\")}>Rebound <em>SEO.</em></Link></div> {open && <button className={styles.scrim} aria-label=\"Close navigation backdrop\" onClick={() => { setOpen(false); trigger.current?."
   },
   {
-    "control_id": "src/components/product-navigation.tsx:52:Link:3",
+    "control_id": "src/components/product-navigation.tsx:58:Link:3",
     "file": "src/components/product-navigation.tsx",
-    "line": 52,
+    "line": 58,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
     "context": "return <div className={styles.frame} data-approved-navigation=\"preservation\"> <div className={styles.mobilebar}><button ref={trigger} aria-expanded={open} aria-label=\"Open navigation\" onClick={() => setOpen(true)}><span className={`${styles.icon} ${styles.menu}`} /></button><Link className={styles.wordmark} href={href(\"/app/home\")}>Rebound <em>SEO.</em></Link></div> {open && <button className={styles.scrim} aria-label=\"Close navigation backdrop\" onClick={() => { setOpen(false); trigger.current?."
   },
   {
-    "control_id": "src/components/product-navigation.tsx:53:button:1",
+    "control_id": "src/components/product-navigation.tsx:59:button:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 53,
+    "line": 59,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className={styles.mobilebar}><button ref={trigger} aria-expanded={open} aria-label=\"Open navigation\" onClick={() => setOpen(true)}><span className={`${styles.icon} ${styles.menu}`} /></button><Link className={styles.wordmark} href={href(\"/app/home\")}>Rebound <em>SEO.</em></Link></div> {open && <button className={styles.scrim} aria-label=\"Close navigation backdrop\" onClick={() => { setOpen(false); trigger.current?.focus(); }} />} <aside className={`${styles.sidebar} ${open ? styles.open : \"\""
   },
   {
-    "control_id": "src/components/product-navigation.tsx:53:onClick:2",
+    "control_id": "src/components/product-navigation.tsx:59:onClick:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 53,
+    "line": 59,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className={styles.mobilebar}><button ref={trigger} aria-expanded={open} aria-label=\"Open navigation\" onClick={() => setOpen(true)}><span className={`${styles.icon} ${styles.menu}`} /></button><Link className={styles.wordmark} href={href(\"/app/home\")}>Rebound <em>SEO.</em></Link></div> {open && <button className={styles.scrim} aria-label=\"Close navigation backdrop\" onClick={() => { setOpen(false); trigger.current?.focus(); }} />} <aside className={`${styles.sidebar} ${open ? styles.open : \"\""
   },
   {
-    "control_id": "src/components/product-navigation.tsx:55:button:1",
+    "control_id": "src/components/product-navigation.tsx:61:button:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 55,
+    "line": 61,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<aside className={`${styles.sidebar} ${open ? styles.open : \"\"}`} ref={panel} aria-label=\"Workspace navigation\"> <button className={styles.close} aria-label=\"Close navigation\" onClick={() => { setOpen(false); trigger.current?.focus(); }}>Close</button> <Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link>"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:55:onClick:2",
+    "control_id": "src/components/product-navigation.tsx:61:onClick:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 55,
+    "line": 61,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<aside className={`${styles.sidebar} ${open ? styles.open : \"\"}`} ref={panel} aria-label=\"Workspace navigation\"> <button className={styles.close} aria-label=\"Close navigation\" onClick={() => { setOpen(false); trigger.current?.focus(); }}>Close</button> <Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link>"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:56:Link:1",
+    "control_id": "src/components/product-navigation.tsx:62:Link:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 56,
+    "line": 62,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className={styles.close} aria-label=\"Close navigation\" onClick={() => { setOpen(false); trigger.current?.focus(); }}>Close</button> <Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link> {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : \"Choose a website\"}>{current ? name(current) : \"Choose a website\"}<span className="
   },
   {
-    "control_id": "src/components/product-navigation.tsx:57:summary:1",
+    "control_id": "src/components/product-navigation.tsx:63:summary:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 57,
+    "line": 63,
     "type": "summary",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link> {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : \"Choose a website\"}>{current ? name(current) : \"Choose a website\"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden=\"true\" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} da"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:57:a:2",
+    "control_id": "src/components/product-navigation.tsx:63:a:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 57,
+    "line": 63,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link> {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : \"Choose a website\"}>{current ? name(current) : \"Choose a website\"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden=\"true\" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} da"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:57:Link:3",
+    "control_id": "src/components/product-navigation.tsx:63:Link:3",
     "file": "src/components/product-navigation.tsx",
-    "line": 57,
+    "line": 63,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link> {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : \"Choose a website\"}>{current ? name(current) : \"Choose a website\"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden=\"true\" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} da"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:57:Link:4",
+    "control_id": "src/components/product-navigation.tsx:63:Link:4",
     "file": "src/components/product-navigation.tsx",
-    "line": 57,
+    "line": 63,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<Link className={styles.wordmark} href={href(\"/app/home\")} aria-label=\"Rebound SEO workspace home\">Rebound <em>SEO.</em></Link> {websites.length > 0 ? <details className={styles.site}><summary aria-label={current ? `Current website: ${name(current)}. Choose another website.` : \"Choose a website\"}>{current ? name(current) : \"Choose a website\"}<span className={`${styles.icon} ${styles.caret}`} aria-hidden=\"true\" /></summary><div className={styles.siteMenu}>{websites.map(site => <a key={site.id} da"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:61:form:1",
+    "control_id": "src/components/product-navigation.tsx:67:summary:1",
     "file": "src/components/product-navigation.tsx",
-    "line": 61,
+    "line": 67,
+    "type": "summary",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<nav aria-label=\"All tools\" className={styles.tools}>{groups.map(group => <details key={`${active}:${group.label}`} data-tool-group={group.label} className={styles.group} open={group.paths.includes(active)}> <summary>{group.label}<span className={`${styles.icon} ${styles.caret}`} aria-hidden=\"true\" /></summary> <div className={styles.groupLinks}>{group.paths.map(path => itemLink(tool(path)))}</div>"
+  },
+  {
+    "control_id": "src/components/product-navigation.tsx:71:form:1",
+    "file": "src/components/product-navigation.tsx",
+    "line": 71,
     "type": "form",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<nav aria-label=\"All tools\" className={styles.tools}>{tools.map(itemLink)}</nav> <form className={styles.signout} action=\"/auth/signout\" method=\"post\"><button type=\"submit\">Sign out</button></form> </aside>"
+    "side_effect_class": 1,
+    "context": "<nav aria-label=\"Account and connections\" className={styles.utilities}>{utilities.map(itemLink)}</nav> <form className={styles.signout} action=\"/auth/signout\" method=\"post\"><button type=\"submit\">Sign out</button></form> </aside>"
   },
   {
-    "control_id": "src/components/product-navigation.tsx:61:button:2",
+    "control_id": "src/components/product-navigation.tsx:71:button:2",
     "file": "src/components/product-navigation.tsx",
-    "line": 61,
+    "line": 71,
     "type": "button",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<nav aria-label=\"All tools\" className={styles.tools}>{tools.map(itemLink)}</nav> <form className={styles.signout} action=\"/auth/signout\" method=\"post\"><button type=\"submit\">Sign out</button></form> </aside>"
+    "side_effect_class": 1,
+    "context": "<nav aria-label=\"Account and connections\" className={styles.utilities}>{utilities.map(itemLink)}</nav> <form className={styles.signout} action=\"/auth/signout\" method=\"post\"><button type=\"submit\">Sign out</button></form> </aside>"
   },
   {
     "control_id": "src/components/public-onboarding.tsx:265:Link:1",
