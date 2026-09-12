@@ -96,28 +96,48 @@ export default {
     const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY")?.trim();
     const keywordModel = Deno.env.get("ANTHROPIC_KEYWORD_MODEL")?.trim() || "claude-opus-4-8";
     const provider = login && password ? "dataforseo" : "demo";
+    const billingMode = Deno.env.get("BILLING_MODE");
+    if (billingMode !== "test" && billingMode !== "live") return json({ error: "Audit billing setup is not complete." }, 503);
     let auditId: string;
+    let usageId: string;
     try {
       const { data: startedAudit, error: beginError } = await context.supabaseAdmin.rpc(
-        "begin_destiny_audit_v2",
-        { p_website_id: website.id, p_user_id: userId, p_provider: provider },
+        "begin_billed_audit",
+        { p_website_id: website.id, p_user_id: userId, p_provider: provider, p_livemode: billingMode === "live" },
       );
       const started = startedAudit && typeof startedAudit === "object" && !Array.isArray(startedAudit)
-        ? startedAudit as { auditId?: unknown; created?: unknown }
+        ? startedAudit as { auditId?: unknown; created?: unknown; allowed?: unknown; reason?: unknown; usageId?: unknown }
         : {};
+      if (!beginError && started.allowed === false) {
+        const verification = started.reason === "verification_required";
+        const unavailable = started.reason === "website_unavailable";
+        const limited = started.reason === "limit_reached";
+        return json({
+          error: verification ? "Verify your sign-in email before starting an audit."
+            : unavailable ? "You do not have access to that website."
+            : limited ? "You've used this plan's audit allowance. Upgrade or wait for your next billing period."
+            : "Your initial audit is already used. Choose a plan to run more research.",
+          code: verification ? "BILLING_VERIFICATION_REQUIRED" : limited ? "BILLING_LIMIT_REACHED" : "BILLING_PAYMENT_REQUIRED",
+          billingUrl: "/account/billing",
+        }, verification || unavailable ? 403 : 402);
+      }
       if (beginError || typeof started.auditId !== "string") {
         throw new Error(beginError?.message || "Rebound SEO could not create the audit record.");
       }
+      if (started.allowed !== true) throw new Error("Audit access could not be verified.");
       auditId = started.auditId;
       if (started.created !== true) {
         return json({ auditId, status: "running", progress: 10, resultsPath: `/audits/${auditId}`, resumed: true }, 202);
       }
+      if (typeof started.usageId !== "string") throw new Error("Audit usage could not be reserved.");
+      usageId = started.usageId;
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Rebound SEO could not complete the audit.";
       return json({ error: message }, 502);
     }
 
     const backgroundAudit = async () => {
+      let succeeded = false;
       try {
         const result = await runSeoAudit({
           website: website.url,
@@ -133,7 +153,7 @@ export default {
             differentiation: website.differentiation,
             market: website.market,
           },
-          knownCompetitors: knownCompetitors ?? [],
+          knownCompetitors: (knownCompetitors ?? []).slice(0, 5),
           strategyModel: {
             apiKey: anthropicApiKey,
             model: keywordModel,
@@ -196,6 +216,7 @@ export default {
           },
         );
         if (finalizeError) throw new Error(finalizeError.message);
+        succeeded = true;
 
         const readyNotification = auditReadyNotificationCopy(result.domain);
         await context.supabaseAdmin
@@ -240,6 +261,11 @@ export default {
           p_failure_message: message,
         });
         console.error("Background Rebound SEO audit failed", message);
+      } finally {
+        const { error: settlementError } = await context.supabaseAdmin.rpc("finish_billing_usage", {
+          p_id: usageId, p_succeeded: succeeded, p_provider_cost_usd: null,
+        });
+        if (settlementError) console.error("Audit usage confirmation pending", { auditId });
       }
     };
 
