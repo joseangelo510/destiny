@@ -213,10 +213,13 @@ it("requires billing claims and signed Stripe events before privileged work", as
     const source = handlerSource(await readFile(path.join(productRoot, entry!.path), "utf8"));
     const privileged = source.indexOf("context.supabaseAdmin");
     if (boundary === "billing_claim") {
-      const claim = source.indexOf("const ownerId = context.userClaims?.id");
+      const identity = source.match(/const (ownerId|viewerId) = context\.userClaims\?\.id/);
+      expect(identity).not.toBeNull();
+      const claim = identity?.index ?? -1;
+      const denial = source.indexOf(`if (!${identity?.[1]})`);
       expect(claim).toBeGreaterThanOrEqual(0);
-      expect(source.indexOf("if (!ownerId)")).toBeGreaterThan(claim);
-      expect(privileged).toBeGreaterThan(source.indexOf("if (!ownerId)"));
+      expect(denial).toBeGreaterThan(claim);
+      expect(privileged).toBeGreaterThan(denial);
       expect(source).not.toMatch(/body\.(?:ownerId|owner_id|customerId|priceId)/);
     } else {
       const verification = source.indexOf("await verifyStripeEventAsync(await request.text()");

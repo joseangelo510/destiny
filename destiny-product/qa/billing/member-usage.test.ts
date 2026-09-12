@@ -68,3 +68,14 @@ it("claims a member article evidence stage against the site owner, without an ex
   expect(response.status).toBe(503); // No provider credentials in this fixture.
   expect(ctx.supabaseAdmin.rpc).toHaveBeenCalledExactlyOnceWith("claim_billing_stage", { p_owner_id: "owner-a", p_id: "receipt", p_stage: "article_evidence", p_artifact_hash: null });
 });
+
+it("pools website-scoped creator research against the owner allowance", async () => {
+  const ctx = context();
+  ctx.supabaseAdmin.rpc.mockImplementation(async () => ({ data: { allowed: false, id: "", reason: "limit_reached" }, error: null }));
+  const request = await signed({ kind: "creators", websiteId, topics: ["seo"], ownerId: "forged" }, "seo-research");
+  vi.stubGlobal("Deno", { env: { get: () => "fixture_not_a_real_credential" } });
+  const provider = vi.fn(); vi.stubGlobal("fetch", provider);
+  expect((await research.fetch(request, ctx as never)).status).toBe(402);
+  expect(ctx.supabaseAdmin.rpc).toHaveBeenCalledWith("reserve_billing_usage", expect.objectContaining({ p_owner_id: "owner-a", p_website_id: websiteId, p_meter: "keywordSearches", p_units: 5 }));
+  expect(provider).not.toHaveBeenCalled();
+});

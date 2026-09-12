@@ -1,3 +1,4 @@
+import { callerWebsiteOwner, matchingWebsiteUsage } from "../../supabase/functions/_shared/billing/caller-website";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, test } from "vitest";
@@ -46,6 +47,7 @@ beforeAll(async () => {
   checked(await admin.from("billing_accounts").insert({ owner_id: people[0].id, plan: "starter", status: "active", period_start: new Date(Date.now() - 86400000).toISOString(), period_end: new Date(Date.now() + 86400000).toISOString(), paid_through: new Date(Date.now() + 86400000).toISOString() }));
 });
 afterAll(async () => {
+  for (const person of people) checked(await admin.from("billing_usage").delete().eq("owner_id", person.id));
   for (const person of people) checked(await admin.from("billing_accounts").delete().eq("owner_id", person.id));
   if (organizationId) checked(await admin.from("organizations").delete().eq("id", organizationId));
   for (const person of people) checked(await admin.auth.admin.deleteUser(person.id));
@@ -60,9 +62,17 @@ test("actual Edge access follows site membership, owner payment and immediate re
   expect(await member.json()).toEqual({ canRunPaidWork: true, canManageBilling: false });
   const memberClient = createClient(url, anonKey, { ...options, global: { headers: { Authorization: `Bearer ${people[1].token}` } } });
   expect(checked(await memberClient.from("billing_accounts").select("*"))).toEqual([]);
+  expect(await callerWebsiteOwner(memberClient, websiteId)).toBe(people[0].id);
+  const reservation = checked(await admin.rpc("reserve_billing_usage", { p_owner_id: people[0].id, p_website_id: websiteId, p_request_key: `member-${randomUUID()}`, p_meter: "articles", p_units: 1 }));
+  expect(reservation.allowed).toBe(true);
+  expect(await matchingWebsiteUsage(admin, people[0].id, websiteId, reservation.id, "articles")).toBe(true);
+  expect(await matchingWebsiteUsage(admin, people[1].id, websiteId, reservation.id, "articles")).toBe(false);
+  expect(await matchingWebsiteUsage(admin, people[0].id, randomUUID(), reservation.id, "articles")).toBe(false);
+  expect(await matchingWebsiteUsage(admin, people[0].id, websiteId, reservation.id, "infographics")).toBe(false);
   expect((await request(people[2].token)).status).toBe(403);
   checked(await admin.from("billing_accounts").update({ status: "past_due" }).eq("owner_id", people[0].id));
   expect(await (await request(people[1].token)).json()).toEqual({ canRunPaidWork: false, canManageBilling: false });
   checked(await admin.from("organization_members").delete().eq("organization_id", organizationId).eq("user_id", people[1].id));
   expect((await request(people[1].token)).status).toBe(403);
+  expect(await callerWebsiteOwner(memberClient, websiteId)).toBeNull();
 });

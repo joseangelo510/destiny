@@ -648,5 +648,5 @@ it("blocks repurposing at the quota wall before the provider is called", async (
 it("uses short-output allowance for email and settles its successful result", async () => {
   await POST(buildRequest({ websiteId, sourceId, output: "email" }));
   expect(reserveContentWork).toHaveBeenCalledWith(expect.anything(), websiteId, "shortOutputs", expect.any(String));
-  expect(finishContentWork).toHaveBeenCalledWith(expect.anything(), "usage-a", true);
+  expect(finishContentWork).toHaveBeenCalledWith(expect.anything(), "usage-a", true, websiteId);
 });
