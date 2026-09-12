@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { runIsolationSql } from "./sql-runner";
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect, test } from "vitest";
@@ -731,16 +731,7 @@ async function verifyPrivilegedEdgeFunctionDenials(owner: Tenant, outsider: Tena
   expect(refresh.status, "Rank refresh accepted a caller without its cron secret.").toBe(401);
 }
 
-function runPsql(sql: string) {
-  return spawnSync("docker", [
-    "exec", "-i", databaseContainer,
-    "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-qAt",
-  ], {
-    encoding: "utf8",
-    input: sql,
-    maxBuffer: 4 * 1024 * 1024,
-  });
-}
+const runPsql = (sql: string) => runIsolationSql(databaseContainer, sql);
 
 function runDatabaseSql(sql: string) {
   const result = runPsql(sql);
