@@ -31,3 +31,5 @@ export async function billingSessionClient() {
     invoke: (body: { action: "checkout" | "portal" | "status"; plan?: string }) => client.functions.invoke("billing", { body }),
   };
 }
+
+export type BillingWorkerClient = Pick<SupabaseClient, "functions">;
