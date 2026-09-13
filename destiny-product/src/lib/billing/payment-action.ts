@@ -3,9 +3,14 @@ import { planById } from "./plans";
 import { billingSessionClient } from "@/lib/db/billing";
 export function billingOrigin(request: Request) {
   const requestUrl = new URL(request.url);
-  const origin = process.env.NODE_ENV !== "production" && ["127.0.0.1", "localhost"].includes(requestUrl.hostname)
-    ? requestUrl.origin : "https://app.reboundseo.com";
-  return request.headers.get("origin") === origin ? origin : null;
+  const origin = request.headers.get("origin");
+  if (process.env.NODE_ENV === "production") return origin === "https://app.reboundseo.com" ? origin : null;
+  if (!["127.0.0.1", "localhost"].includes(requestUrl.hostname)) return origin === "https://app.reboundseo.com" ? origin : null;
+  try {
+    const caller = new URL(origin ?? "");
+    return caller.origin === origin && ["127.0.0.1", "localhost"].includes(caller.hostname)
+      && caller.protocol === requestUrl.protocol && caller.port === requestUrl.port ? origin : null;
+  } catch { return null; }
 }
 export function hostedPaymentUrl(value: unknown, action: "checkout" | "portal") {
   if (typeof value !== "string") return null;
@@ -13,7 +18,7 @@ export function hostedPaymentUrl(value: unknown, action: "checkout" | "portal") 
     const url = new URL(value);
     const host = action === "checkout" ? "checkout.stripe.com" : "billing.stripe.com";
     const path = action === "checkout" ? "/c/pay/" : "/p/session/";
-    return url.protocol === "https:" && url.host === host && !url.username && !url.password && url.pathname.startsWith(path) ? url.href : null;
+    return url.protocol === "https:" && url.host === host && !url.username && !url.password && (url.pathname.startsWith(path) || (action === "portal" && url.pathname === "/p/session")) ? url.href : null;
   } catch { return null; }
 }
 export async function runPaymentAction(request: Request, action: "checkout" | "portal", session: Awaited<ReturnType<typeof billingSessionClient>>, origin: string) {
