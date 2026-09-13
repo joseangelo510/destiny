@@ -82,7 +82,7 @@ test("@gate new account can save and select its first website before starting a 
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page).toHaveURL(/account\/billing/);
-  await page.getByRole("link", { name: "Add your first website", exact: true }).click();
+  await page.getByRole("region", { name: "Managed websites", exact: true }).getByRole("link", { name: "Add your first website", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tell us about your business", exact: true })).toBeVisible();
   // Save via the actual authenticated onboarding API. External audit/provider work is tested separately.
   const response = await page.request.post("/api/onboarding", { data: {
