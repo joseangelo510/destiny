@@ -22,10 +22,18 @@ describe("payment action trust boundaries", () => {
     expect(result.headers.get("Location")).toBe("https://checkout.stripe.com/c/pay/cs_test_a");
     expect(result.headers.get("Cache-Control")).toBe("private, no-store");
   });
+  it("redirects to the current hosted checkout URL returned by live Stripe", async () => {
+    const url = "https://checkout.stripe.com/g/pay/cs_live_example#checkout-state";
+    invoke.mockResolvedValue({ data: { url }, error: null });
+    const result = await checkout(request());
+    expect(result.status).toBe(303);
+    expect(result.headers.get("Location")).toBe(url);
+    expect(result.headers.get("Cache-Control")).toBe("private, no-store");
+  });
   it("rejects unknown plans and untrusted redirect targets", async () => {
     expect((await checkout(request("checkout", undefined, { plan: "enterprise" }))).status).toBe(400);
     expect(invoke).not.toHaveBeenCalled();
-    for (const url of ["https://checkout.stripe.com.evil.invalid/c/pay/a", "http://checkout.stripe.com/c/pay/a", "javascript:alert(1)", "https://billing.stripe.com/p/session/a"]) {
+    for (const url of ["https://checkout.stripe.com.evil.invalid/c/pay/a", "http://checkout.stripe.com/c/pay/a", "javascript:alert(1)", "https://billing.stripe.com/p/session/a", "https://checkout.stripe.com.evil.invalid/g/pay/a", "http://checkout.stripe.com/g/pay/a", "https://user@checkout.stripe.com/g/pay/a", "https://checkout.stripe.com/g/pay-other/a", "https://checkout.stripe.com/p/session/a"]) {
       invoke.mockResolvedValue({ data: { url }, error: null });
       const result = await checkout(request());
       expect(result.headers.get("Location")).toBe("https://app.reboundseo.com/account/billing?billing_error=unavailable");
