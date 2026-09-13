@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { parseWebsiteSelection, type WebsiteSelection } from "@/lib/billing/website-selection";
@@ -28,7 +29,7 @@ export function ManagedWebsites({ initial }: { initial: WebsiteSelection | null 
         {selection.websites.map(site => <label key={site.id}><input type="checkbox" checked={selected.includes(site.id)} disabled={!selected.includes(site.id) && selected.length >= selection.capacity} onChange={event => { setSelected(current => event.target.checked ? [...current, site.id] : current.filter(id => id !== site.id)); setMessage(""); }} /><span><strong>{site.name}</strong><small>{site.domain}</small></span></label>)}
       </fieldset>
       {selected.length > selection.capacity && <p role="alert">Your saved selection exceeds this plan. Choose which websites should remain managed before starting more paid work.</p>}
-      {!selection.websites.length && <p>You do not own a saved website yet. Team websites are managed by their account owner.</p>}
+      {!selection.websites.length && <p>You do not own a saved website yet. Team websites are managed by their account owner. <Link href="/onboarding?new=1">Add your first website</Link></p>}
       <button className={styles.button} disabled={saving || selected.length > selection.capacity || !selection.websites.length} onClick={() => void save()} type="button">{saving ? "Saving…" : "Save managed websites"}</button>
     </>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}

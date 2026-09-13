@@ -359,6 +359,12 @@ const betaMembership = await ownerB.client.from("organization_members").insert({
 });
 if (betaMembership.error) throw new Error(`Grant Beta browser membership: ${betaMembership.error.message}`);
 
+const billingFirstUsers = {};
+for (const device of ["desktop", "mobile"]) {
+  const user = await createUser(`Billing-first-${device}`);
+  billingFirstUsers[device] = { email: user.email, password: user.password, userId: user.userId };
+}
+
 const passwordUsers = {};
 for (const device of ["desktop", "mobile"]) {
   const user = await createUser(`Password-${device}`);
@@ -375,7 +381,7 @@ await writeFile(manifestPath, JSON.stringify({
   beta,
   member: memberSite,
   mvp,
-  keywordWorkspaces, keywordDepthWorkspaces, passwordUsers,
+  keywordWorkspaces, keywordDepthWorkspaces, passwordUsers, billingFirstUsers,
   outsiderAuditId: outsiderSite.auditIds[0],
   outsiderSiteId: outsiderSite.websiteId,
 }, null, 2));
