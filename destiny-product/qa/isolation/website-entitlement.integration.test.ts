@@ -19,11 +19,11 @@ function checked<T>(result: { data: T; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
   return result.data;
 }
-async function request(token: string) {
+async function request(token: string, body: unknown = { action: "website_access", websiteId, ownerId: people[1].id }) {
   return fetch(`${url}/functions/v1/billing`, {
     method: "POST",
     headers: { apikey: anonKey, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "website_access", websiteId, ownerId: people[1].id }),
+    body: JSON.stringify(body),
   });
 }
 beforeAll(async () => {
@@ -53,6 +53,13 @@ afterAll(async () => {
   for (const person of people) checked(await admin.auth.admin.deleteUser(person.id));
 });
 test("actual Edge access follows site membership, owner payment and immediate revocation without billing disclosure", async () => {
+  const selected = await request(people[0].token, { action: "select_sites", websiteIds: [websiteId], ownerId: people[1].id });
+  expect(selected.status).toBe(200);
+  expect((await selected.json()).selected).toEqual([websiteId]);
+  const forbiddenSelection = await request(people[1].token, { action: "select_sites", websiteIds: [websiteId], ownerId: people[0].id });
+  expect(forbiddenSelection.status).toBe(409);
+  const memberSites = await request(people[1].token, { action: "sites", ownerId: people[0].id });
+  expect(await memberSites.json()).toEqual({ capacity: 1, selected: [], websites: [] });
   const owner = await request(people[0].token);
   expect(owner.status).toBe(200);
   expect(await owner.json()).toEqual({ canRunPaidWork: true, canManageBilling: true });

@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 if (process.env.QA_ISOLATION !== "1") throw new Error("Use disposable isolation infrastructure.");
+const managedTable = "billing_managed_websites";
 const owner = randomUUID(), member = randomUUID(), organization = randomUUID();
 const sites = Array.from({ length: 12 }, () => randomUUID());
 function sql(input: string): Promise<string> {
@@ -48,7 +49,7 @@ describe.sequential("managed website selection", () => {
     for (const who of [owner, member]) {
       const identity = `select set_config('request.jwt.claims','{"sub":"${who}","role":"authenticated"}',true);`;
       await choose([sites[0]]);
-      const rows = await sql(`begin; set local role authenticated; ${identity} select count(*) from public.billing_managed_websites; rollback;`);
+      const rows = await sql(`begin; set local role authenticated; ${identity} select count(*) from public.${managedTable}; rollback;`);
       expect(rows.split("\n").at(-1)).toBe(who === owner ? "1" : "0");
       await expect(sql(`begin; set local role authenticated; ${identity} select public.set_billing_websites('${owner}',${array([])}); rollback;`)).rejects.toThrow("permission denied");
     }

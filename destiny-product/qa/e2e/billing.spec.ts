@@ -51,3 +51,21 @@ test("@gate unpaid rank keyword remains saved and paused after add and resume", 
   await page.reload();
   await expect(page.getByRole("row").filter({ hasText: keyword })).toContainText("Paused");
 });
+
+
+test("@gate managed website selection persists without deleting saved sites", async ({ page }) => {
+  if (!process.env.QA_AUTH_STATE) throw new Error("Disposable authenticated browser fixture required.");
+  await page.goto("/account/billing");
+  const section = page.getByRole("region", { name: "Managed websites", exact: true });
+  const choices = section.getByRole("checkbox");
+  const count = await choices.count();
+  expect(count).toBeGreaterThan(1);
+  // Both viewport fixtures select the same first website for the shared owner.
+  await choices.first().check();
+  await section.getByRole("button", { name: "Save managed websites", exact: true }).click();
+  await expect(section.getByRole("status")).toContainText("Managed websites saved.");
+  await page.reload();
+  await expect(section.getByRole("checkbox").first()).toBeChecked();
+  await expect(section.getByRole("checkbox")).toHaveCount(count);
+  await expect(section).toContainText("does not start a subscription or a new free trial");
+});
