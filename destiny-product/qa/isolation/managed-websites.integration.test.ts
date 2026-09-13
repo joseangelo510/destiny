@@ -77,6 +77,25 @@ describe.sequential("managed website selection", () => {
     expect(JSON.parse(await sql(`select public.reserve_rank_check('${target}');`))).toMatchObject({ allowed: true });
     expect(await sql(`select count(*) from public.tracked_keywords where website_id='${sites[0]}';`)).toBe("151");
   });
+  it("filters unpaid and unselected digests before the batch limit without altering preferences", async () => {
+    await sql(`update public.billing_accounts set status='active',plan='starter' where owner_id='${owner}';`);
+    await choose([sites[0]]);
+    const results = await sql(`begin;
+      insert into public.websites(organization_id,url,normalized_domain,business_name)
+        select '${organization}','https://digest'||n||'.example','digest'||n||'.example','Digest '||n from generate_series(1,60) n;
+      insert into public.notification_preferences(website_id,organization_id,next_digest_at)
+        select id,organization_id,now()-interval '3 days' from public.websites where organization_id='${organization}'
+        on conflict(website_id) do update set next_digest_at=excluded.next_digest_at;
+      update public.notification_preferences set next_digest_at=now()-interval '1 day' where website_id='${sites[0]}';
+      select count(*) from public.billing_digest_candidates(null) r where r->>'website_id'='${sites[0]}';
+      select count(*) from public.billing_digest_candidates('${sites[1]}');
+      update public.billing_accounts set status='past_due' where owner_id='${owner}';
+      select count(*) from public.billing_digest_candidates('${sites[0]}');
+      select count(*) from public.notification_preferences where organization_id='${organization}';
+      rollback;`);
+    expect(results.split("\n")).toEqual(["1", "0", "0", "72"]);
+    await expect(sql(`begin; set local role authenticated; select public.billing_digest_candidates(null); rollback;`)).rejects.toThrow("permission denied");
+  });
   it("keeps owner selections private and prevents browser mutation or RPC execution", async () => {
     for (const who of [owner, member]) {
       const identity = `select set_config('request.jwt.claims','{"sub":"${who}","role":"authenticated"}',true);`;
