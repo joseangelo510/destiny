@@ -59,6 +59,24 @@ describe.sequential("managed website selection", () => {
     expect(await reserve(null, randomUUID())).toMatchObject({ allowed: true });
     await sql(`delete from public.billing_usage where owner_id='${owner}';`);
   });
+  it("filters unmanaged tracking before queue limits and keeps new unmanaged targets paused", async () => {
+    await sql(`update public.billing_accounts set plan='premium',status='active' where owner_id='${owner}';`);
+    await choose([sites[0]]);
+    await sql(`insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,created_at,next_check_at)
+      select '${sites[0]}','${owner}','old '||n,'old '||n,now()-interval '2 days',now()-interval '2 days' from generate_series(1,150) n;`);
+    await choose([sites[1]]);
+    await sql(`update public.billing_accounts set plan='starter' where owner_id='${owner}';
+      insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword) values('${sites[1]}','${owner}','selected','selected'),('${sites[0]}','${owner}','unselected','unselected');`);
+    expect(await sql(`select status from public.tracked_keywords where website_id='${sites[0]}' and keyword='unselected';`)).toBe("paused");
+    const target = await sql(`select id from public.tracked_keywords where website_id='${sites[1]}' and keyword='selected';`);
+    expect(await sql(`select status from public.tracked_keywords where id='${target}';`)).toBe("pending");
+    expect(await sql(`select count(*) from public.billing_rank_candidates() row where row->>'website_id'='${sites[0]}';`)).toBe("0");
+    expect(await sql(`select count(*) from public.billing_rank_candidates() row where row->>'id'='${target}';`)).toBe("1");
+    const old = await sql(`select id from public.tracked_keywords where website_id='${sites[0]}' and keyword='old 1';`);
+    expect(JSON.parse(await sql(`select public.reserve_rank_check('${old}');`))).toMatchObject({ allowed: false, reason: "managed_website_required" });
+    expect(JSON.parse(await sql(`select public.reserve_rank_check('${target}');`))).toMatchObject({ allowed: true });
+    expect(await sql(`select count(*) from public.tracked_keywords where website_id='${sites[0]}';`)).toBe("151");
+  });
   it("keeps owner selections private and prevents browser mutation or RPC execution", async () => {
     for (const who of [owner, member]) {
       const identity = `select set_config('request.jwt.claims','{"sub":"${who}","role":"authenticated"}',true);`;
