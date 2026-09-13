@@ -1,3 +1,4 @@
+import { websitePaidAccess } from "../_shared/billing/website-access.ts";
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { reboundSeoSender } from "../_shared/email-sender.ts";
@@ -185,17 +186,15 @@ export default {
     const now = new Date();
     await reconcileProviderReceipts(context, apiKey);
 
-    let query = context.supabaseAdmin.from("notification_preferences")
-      .select("website_id,organization_id,ranking_digest_frequency,last_digest_sent_at,first_digest_notice_pending,websites!inner(business_name,normalized_domain,notification_email)")
-      .neq("ranking_digest_frequency", "off")
-      .order("next_digest_at")
-      .limit(50);
-    query = websiteId ? query.eq("website_id", websiteId) : query.lte("next_digest_at", now.toISOString());
-    const { data, error } = await query;
-    if (error) return json({ error: error.message }, 500);
+    const { data, error } = await context.supabaseAdmin.rpc("billing_digest_candidates", { p_website_id: websiteId });
+    if (error) return json({ error: "Ranking email eligibility is temporarily unavailable." }, 503);
     const results: unknown[] = [];
 
     for (const preference of (data ?? []) as unknown as PreferenceRow[]) {
+      if (!await websitePaidAccess(context.supabaseAdmin, preference.website_id)) {
+        results.push({ websiteId: preference.website_id, status: "billing_paused" });
+        continue;
+      }
       const website = websiteFrom(preference);
       if (!website) continue;
       const [{ data: trackedData }, { data: preferencesData }, { data: latestAudit }] = await Promise.all([
@@ -261,6 +260,10 @@ export default {
       if (!recipient) {
         await context.supabaseAdmin.from("notification_preferences").update({ last_digest_status: "failed", last_digest_error: "No valid recipient email.", next_digest_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("website_id", preference.website_id);
         results.push({ websiteId: preference.website_id, status: "failed", reason: "No valid recipient email." });
+        continue;
+      }
+      if (!await websitePaidAccess(context.supabaseAdmin, preference.website_id)) {
+        results.push({ websiteId: preference.website_id, status: "billing_paused" });
         continue;
       }
       const periodKey = isTest ? `test-${now.toISOString()}` : `evidence-${latestEvidenceAt ?? now.toISOString()}`;
