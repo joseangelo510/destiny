@@ -40,6 +40,8 @@ test("@gate unpaid rank keyword remains saved and paused after add and resume", 
   if (!process.env.QA_AUTH_STATE) throw new Error("Disposable authenticated browser fixture required.");
   const keyword = `billing paused ${Date.now()} ${test.info().project.name}`;
   await page.goto("/rank-tracker");
+  await expect(page.getByRole("status").filter({ hasText: "New rank checks are unavailable" })).toBeVisible();
+  await expect(page.locator(".rank-summary-grid")).toContainText("New checks stopped");
   await page.getByRole("textbox", { name: "Keyword to track", exact: true }).fill(keyword);
   await page.getByRole("button", { name: "Track keyword", exact: true }).click();
   const row = page.getByRole("row").filter({ hasText: keyword });
