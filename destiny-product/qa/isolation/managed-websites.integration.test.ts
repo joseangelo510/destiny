@@ -23,7 +23,7 @@ beforeAll(async () => {
     insert into public.billing_accounts(owner_id,plan,status,period_start,period_end,paid_through) values('${owner}','growth','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');`);
 });
 afterAll(async () => {
-  await sql(`delete from public.organizations where id='${organization}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${member}');`);
+  await sql(`delete from public.billing_usage where owner_id='${owner}'; delete from public.organizations where id='${organization}'; delete from public.billing_accounts where owner_id='${owner}'; delete from auth.users where id in ('${owner}','${member}');`);
 });
 describe.sequential("managed website selection", () => {
   it("preserves twelve saved sites while selecting only the paid allowance", async () => {
@@ -44,6 +44,20 @@ describe.sequential("managed website selection", () => {
     expect((await choose([sites[2]])).selected).toEqual([sites[2]]);
     expect(await sql(`select public.is_billing_website_managed('${owner}','${sites[2]}');`)).toBe("t");
     expect((await choose([])).websites).toHaveLength(12);
+  });
+  it("blocks new credits on unselected sites while preserving settlement and unscoped research", async () => {
+    await sql(`update public.billing_accounts set plan='growth',status='active' where owner_id='${owner}';`);
+    await choose([sites[0]]);
+    const reserve = (site: string | null, key: string) => sql(`select public.reserve_billing_usage('${owner}',${site ? `'${site}'` : "null"},'${key}','articles',1);`).then(JSON.parse);
+    expect(await reserve(sites[1], randomUUID())).toMatchObject({ allowed: false, reason: "managed_website_required" });
+    const started = await reserve(sites[0], randomUUID());
+    expect(started.allowed).toBe(true);
+    await choose([]);
+    expect(await reserve(sites[0], randomUUID())).toMatchObject({ allowed: false, reason: "managed_website_required" });
+    await sql(`select public.finish_billing_usage('${started.id}',true,null);`);
+    expect(await sql(`select state from public.billing_usage where id='${started.id}';`)).toBe("completed");
+    expect(await reserve(null, randomUUID())).toMatchObject({ allowed: true });
+    await sql(`delete from public.billing_usage where owner_id='${owner}';`);
   });
   it("keeps owner selections private and prevents browser mutation or RPC execution", async () => {
     for (const who of [owner, member]) {

@@ -36,3 +36,11 @@ it("returns failed units on exceptions and blocks provider work if reservation i
   expect((await meteredResponse(admin, input, operation)).status).toBe(503);
   expect(operation).not.toHaveBeenCalled();
 });
+
+it("returns website selection recovery without starting a provider", async () => {
+  rpc.mockResolvedValue({ data: { allowed: false, reason: "managed_website_required" }, error: null });
+  const response = await meteredResponse(admin, { ...input, websiteId: "site-a" }, operation);
+  expect(response.status).toBe(402);
+  expect(await response.json()).toMatchObject({ code: "BILLING_MANAGED_WEBSITE_REQUIRED", billingUrl: "/account/billing" });
+  expect(operation).not.toHaveBeenCalled();
+});
