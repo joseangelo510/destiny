@@ -201,6 +201,7 @@ describe.sequential("atomic billing reservations and isolation", () => {
       update auth.users set email_confirmed_at=now() where id='${owner}';
       update public.billing_accounts set status='active',plan='starter',free_audit_claimed_at=now() where owner_id='${owner}';
       insert into public.organization_members(organization_id,user_id,role) values('${organization}','${owner}','owner') on conflict do nothing;
+      do $$ begin perform public.set_billing_websites('${owner}',array['${website}']::uuid[]); end $$;
       select public.begin_billed_audit('${website}','${other}','demo',false);
       select public.begin_billed_audit('${website}','${owner}','demo',false);
       update public.audits set status='complete',completed_at=now() where website_id='${website}';
