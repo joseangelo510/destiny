@@ -1,3 +1,4 @@
+import { TRACKING_PAUSED_NOTICE } from "@/lib/billing/tracking";
 import { NextResponse } from "next/server";
 import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { createClient } from "@/lib/supabase/server";
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
       .eq("id", existing.id)
       .select("id,keyword,list_id,status,source,created_at,last_checked_at").single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ keyword: responseKeyword(data), alreadyTracked: true });
+    return NextResponse.json({ keyword: responseKeyword(data), alreadyTracked: true, trackingNotice: track && data.status === "paused" ? TRACKING_PAUSED_NOTICE : undefined });
   }
 
   const { data, error } = await supabase.from("tracked_keywords").insert({
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     status: track ? "pending" : "paused",
   }).select("id,keyword,list_id,status,source,created_at,last_checked_at").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ keyword: responseKeyword(data), alreadyTracked: false });
+  return NextResponse.json({ keyword: responseKeyword(data), alreadyTracked: false, trackingNotice: track && data.status === "paused" ? TRACKING_PAUSED_NOTICE : undefined });
 }
 
 export async function PATCH(request: Request) {
@@ -89,7 +90,7 @@ export async function PATCH(request: Request) {
   const updates: { list_id: string | null; status?: string; next_check_at?: string } = { list_id: listId };
   if (status) updates.status = status;
   if (status === "pending") updates.next_check_at = new Date().toISOString();
-  const { error } = await supabase.from("tracked_keywords").update(updates).eq("id", id);
+  const { data, error } = await supabase.from("tracked_keywords").update(updates).eq("id", id).select("status").single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, status: data.status, trackingNotice: status && status !== "paused" && data.status === "paused" ? TRACKING_PAUSED_NOTICE : undefined });
 }

@@ -48,4 +48,13 @@ describe("AuditMomentumProcessing", () => {
     expect(html).toContain("Needs attention");
     expect(html).toContain("Review and try again");
   });
+  it("offers billing recovery instead of a blind retry when no audit allowance remains", async () => {
+    const initialPolicy = await runDestinyServerLogic({ ...base, momentumAuditProgress: 0, momentumAuditStatusCode: 2 });
+    const html = renderToStaticMarkup(<AuditMomentumProcessing initialPolicy={initialPolicy} initialProgress={0} initialStatus="failed" website="example.com" billingRequired failureMessage="Choose a plan to continue." />);
+    expect(html).toContain('href="/account/billing"');
+    expect(html).toContain("View plans and billing");
+    expect(html).not.toContain("Review and try again");
+    expect(html).not.toContain("Let’s get it moving again");
+  });
+
 });

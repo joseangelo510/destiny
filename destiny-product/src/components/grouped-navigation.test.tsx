@@ -11,8 +11,8 @@ it("organizes all existing tools once with utilities outside the tool groups", (
   const utilities = html.match(/<nav aria-label="Account and connections"[^>]*>(.*?)<\/nav>/)?.[1] ?? "";
   expect(utilities).toContain("Account"); expect(utilities).toContain("Connections");
   const links = [...(groups.map(g=>g[2]).join("") + utilities).matchAll(/href="([^"]+)"/g)].map(m=>m[1]);
-  expect(links).toHaveLength(21);
-  for (const item of [...FEATURE_NAVIGATION, {href:"/account"}]) {
+  expect(links).toHaveLength(22);
+  for (const item of [...FEATURE_NAVIGATION, {href:"/account"}, {href:"/account/billing"}]) {
     const [path, hash] = item.href.split("#");
     expect(links.filter(link=>link === `${path}?site=${site.id}${hash ? `#${hash}` : ""}`)).toHaveLength(1);
   }

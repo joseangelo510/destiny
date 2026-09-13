@@ -29,7 +29,7 @@ test("@gate the approved prototype shell follows every tool and preserves site-s
     expect(await main.getByRole("link").allTextContents()).toEqual(["Home dashboard", "Coach", "Content", "Calendar", "Distribution", "Progress"]);
     const tools = sidebar.getByRole("navigation", { name: "All tools" });
     expect(await tools.locator("a").count()).toBe(19);
-    expect(await sidebar.getByRole("navigation", { name: "Account and connections" }).getByRole("link").count()).toBe(2);
+    expect(await sidebar.getByRole("navigation", { name: "Account and connections" }).getByRole("link").allTextContents()).toEqual(["Plans and billing", "Account", "Connections"]);
     for (const link of await sidebar.getByRole("navigation").locator("a").all()) {
       expect(await link.getAttribute("href")).toContain(`site=${fixture.mvp.websiteId}`);
     }

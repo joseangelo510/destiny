@@ -18,6 +18,7 @@ type AuditStatus = "running" | "complete" | "failed";
 
 export function AuditMomentumProcessing({
   auditId,
+  billingRequired = false,
   failureMessage = "Rebound SEO could not complete this audit.",
   initialProgress,
   initialPolicy,
@@ -27,6 +28,7 @@ export function AuditMomentumProcessing({
   website,
 }: {
   auditId?: string | null;
+  billingRequired?: boolean;
   failureMessage?: string | null;
   initialProgress: number;
   initialPolicy: MomentumPolicy;
@@ -47,7 +49,9 @@ export function AuditMomentumProcessing({
   const failed = status === "failed";
   const complete = status === "complete";
   const displayWebsite = website.trim() || "your business";
-  const coachMessage = failed
+  const coachMessage = failed && billingRequired
+    ? "Your business details are saved. Choose a plan when you’re ready to continue."
+    : failed
     ? "Now we know where it stopped. Let’s get it moving again."
     : complete
     ? "Your route is ready. Let’s build on it."
@@ -132,7 +136,7 @@ export function AuditMomentumProcessing({
       <div className="momentum-processing-grid">
         <section className="momentum-processing-hero">
           <div className="eyebrow">{failed ? "Research paused" : complete ? "Route ready" : "Live research in progress"}</div>
-          <h1>{failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
+          <h1>{failed && billingRequired ? "Choose a plan to continue your research." : failed ? "We couldn’t finish this audit." : complete ? "Your first SEO route is ready." : `Your momentum is building for ${displayWebsite}.`}</h1>
           <p>{failed ? error : complete ? "Rebound SEO saved the evidence and built your first coaching plan. Taking you to your weekly plan now." : "You finished the onboarding. Rebound SEO is now doing the research, prioritization, and planning that would normally take hours of agency work."}</p>
           <div aria-live="polite" className={`audit-coach-reaction ${failed ? "failed" : complete ? "complete" : "running"}`}><span aria-hidden="true">⌁</span><p><small>Rebound SEO, your SEO coach</small><strong>{coachMessage}</strong></p></div>
           <CompassCompanion
@@ -163,8 +167,8 @@ export function AuditMomentumProcessing({
               <div><strong>{stage.title}</strong><p>{stage.state === "active" ? stage.activeMessage : stage.description}</p><small>{stage.state === "complete" ? "Research saved" : stage.state === "active" ? "Working now" : stage.state === "failed" ? "Needs attention" : "Up next"}</small></div>
             </li>)}
           </ol>
-          <div className="configuration-note"><strong>{complete ? "Opening your weekly plan" : "It is safe to step away"}</strong><p>{complete ? "Your evidence and weekly plan are saved." : "Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
-          {failed && <div className="processing-actions">{onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding?new=1">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
+          <div className="configuration-note"><strong>{failed && billingRequired ? "Your business details are saved" : complete ? "Opening your weekly plan" : "It is safe to step away"}</strong><p>{failed && billingRequired ? "Choose a plan to start more research. Your existing results remain available." : complete ? "Your evidence and weekly plan are saved." : "Rebound SEO saves each checkpoint. The notification center will link back to your completed strategy, and the same link is requested by email when delivery is available."}</p></div>
+          {failed && <div className="processing-actions">{billingRequired ? <Link className="primary-button" href="/account/billing">View plans and billing</Link> : onRetry ? <button className="primary-button" onClick={onRetry} type="button">Review and try again</button> : <Link className="primary-button" href="/onboarding?new=1">Review and try again</Link>}<Link className="secondary-button" href="/">Back to home</Link></div>}
         </section>
       </div>
     </section>

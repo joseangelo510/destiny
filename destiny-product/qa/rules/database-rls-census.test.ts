@@ -95,10 +95,10 @@ describe("database RLS census", () => {
   it("registers every authenticated table in the runtime tenant matrix", async () => {
     const entries = JSON.parse(await readFile(manifestPath, "utf8")) as ManifestEntry[];
     const runner = await readFile(path.join(productRoot, "scripts", "qa-isolation.mjs"), "utf8");
-    const isolation = await readFile(
-      path.join(productRoot, "qa", "isolation", "two-tenant.integration.test.ts"),
-      "utf8",
-    );
+    const isolationDirectory = path.join(productRoot, "qa", "isolation");
+    const isolation = (await Promise.all((await readdir(isolationDirectory))
+      .filter(file => file.endsWith(".integration.test.ts"))
+      .map(file => readFile(path.join(isolationDirectory, file), "utf8")))).join("\n");
     const block = runner.match(/export const ISOLATION_TABLES = \[([\s\S]*?)\];/)?.[1] ?? "";
     const registered = [...block.matchAll(/"([a-z0-9_]+)"/g)].map((match) => match[1]).sort();
     const expected = entries

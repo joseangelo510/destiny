@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { InfographicPlan } from "@/lib/content/infographic-generation";
 
+const { finishContentWork, infographicStage } = vi.hoisted(() => ({ finishContentWork: vi.fn(), infographicStage: vi.fn() }));
+vi.mock("@/lib/billing/worker", () => ({ finishContentWork, infographicStage }));
 const { getClaims, from, sharpFactory } = vi.hoisted(() => ({
   getClaims: vi.fn(),
   from: vi.fn(),
@@ -26,6 +28,8 @@ const plan: InfographicPlan = {
 describe("POST /api/content/infographic/render", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    finishContentWork.mockResolvedValue(true);
+    infographicStage.mockResolvedValue(true);
     process.env.OPENAI_API_KEY = "test-openai-key";
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
     from.mockReturnValue({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: websiteId }, error: null }) }) }) });
@@ -36,7 +40,7 @@ describe("POST /api/content/infographic/render", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [{ b64_json: Buffer.from("foundation").toString("base64") }] }), { status: 200, headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetchMock);
     const { POST } = await import("./route");
-    const response = await POST(new Request("http://localhost/api/content/infographic/render", { method: "POST", body: JSON.stringify({ websiteId, plan, style: "editorial" }) }));
+    const response = await POST(new Request("http://localhost/api/content/infographic/render", { method: "POST", body: JSON.stringify({ websiteId, billingUsageId: "usage-a", plan, style: "editorial" }) }));
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("image/png");
     const request = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body));
@@ -49,8 +53,16 @@ describe("POST /api/content/infographic/render", () => {
   it("explains an exhausted image balance instead of pretending generation worked", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { code: "credit_balance_exhausted" } }), { status: 429 })));
     const { POST } = await import("./route");
-    const response = await POST(new Request("http://localhost/api/content/infographic/render", { method: "POST", body: JSON.stringify({ websiteId, plan, style: "editorial" }) }));
+    const response = await POST(new Request("http://localhost/api/content/infographic/render", { method: "POST", body: JSON.stringify({ websiteId, billingUsageId: "usage-a", plan, style: "editorial" }) }));
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "OpenAI credits need to be added before Rebound SEO can create infographics." });
   });
+  it("blocks image creation when the reservation has already been used", async () => {
+    infographicStage.mockResolvedValue(false);
+    const provider = vi.fn(); vi.stubGlobal("fetch", provider);
+    const { POST } = await import("./route");
+    const response = await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ websiteId, billingUsageId: "usage-a", plan, style: "editorial" }) }));
+    expect(response.status).toBe(409); expect(provider).not.toHaveBeenCalled();
+  });
+
 });

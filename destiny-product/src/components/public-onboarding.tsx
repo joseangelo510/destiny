@@ -56,6 +56,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
   const [listening, setListening] = useState<VoiceField | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [auditStatus, setAuditStatus] = useState<"idle" | "running" | "failed">("idle");
   const [auditProgress, setAuditProgress] = useState(0);
   const [celebration, setCelebration] = useState("");
@@ -184,7 +185,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
       const payload = await response.json() as { suggestions?: CompetitorSuggestion[]; warning?: string };
       setCompetitorSuggestions(payload.suggestions ?? []);
       if (!payload.suggestions?.length) {
-        setCompetitorSuggestionNotice("No reliable search neighbors were found yet. Add two competitors you know by name or URL.");
+        setCompetitorSuggestionNotice(response.status === 402 || response.status === 403 ? "Automatic discovery is unavailable on your current allowance. Add two competitors you know by name or URL to continue." : "No reliable search neighbors were found yet. Add two competitors you know by name or URL.");
       }
     } catch {
       setCompetitorSuggestionNotice("Live competitor suggestions are unavailable right now. You can still add names or URLs yourself.");
@@ -212,6 +213,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
     event.preventDefault();
     if (step !== 3 || !stepReady) return;
     setLoading(true);
+    setBillingRequired(false);
     setError("");
     try {
       const onboardingResponse = await fetch("/api/onboarding", {
@@ -236,6 +238,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
         }),
       });
       const auditPayload = await auditResponse.json() as { auditId?: string; error?: string; progress?: number };
+      if (auditResponse.status === 402) setBillingRequired(true);
       if (!auditResponse.ok || !auditPayload.auditId) {
         throw new Error(auditPayload.error || "Rebound SEO could not run your audit.");
       }
@@ -256,7 +259,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
   };
 
   if (auditStatus !== "idle") {
-    return <AuditMomentumProcessing failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
+    return <AuditMomentumProcessing billingRequired={billingRequired} failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
   }
 
   return (

@@ -18,5 +18,5 @@ select format(
 )
 from public_tables
 where not rls_enabled
-   or (policy_count = 0 and table_name <> 'cms_transfers')
+   or (policy_count = 0 and table_name not in ('cms_transfers', 'billing_stripe_events'))
 order by table_name;

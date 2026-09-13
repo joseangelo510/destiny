@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { scopedClient } from "@/lib/db";
 
@@ -21,6 +22,8 @@ export async function POST(request: Request) {
       "seo-research",
       { kind: "keyword_serp", keyword, locationName },
     );
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     if (error || !data) {
       const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
         ? data.error

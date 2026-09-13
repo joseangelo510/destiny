@@ -94,12 +94,10 @@ describe("D10.14 Rebound SEO production wrapper", () => {
     expect((await registryPreflight("absent-reference-digits")).status).toBe(0);
   });
 
-  it("fails closed on existing tags, denied prior access, permission errors, and ambiguous errors", async () => {
-    for (const [mode, expectedCalls] of [["existing-release", 2], ["existing-sha", 3], ["prior-denied", 1], ["denied", 2], ["ambiguous", 2], ["misleading", 2]] as const) {
-      const result = await registryPreflight(mode);
-      expect(result.status, mode).not.toBe(0);
-      expect(result.calls, mode).toHaveLength(expectedCalls);
-    }
+  it.each([["existing-release", 2], ["existing-sha", 3], ["prior-denied", 1], ["denied", 2], ["ambiguous", 2], ["misleading", 2]] as const)("fails closed on registry condition %s", async (mode, expectedCalls) => {
+    const result = await registryPreflight(mode);
+    expect(result.status, mode).not.toBe(0);
+    expect(result.calls, mode).toHaveLength(expectedCalls);
   });
 
   it("is manual-only, immutable, production-scoped, and rollback-capable", async () => {

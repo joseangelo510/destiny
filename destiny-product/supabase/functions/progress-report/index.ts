@@ -1,3 +1,4 @@
+import { reserveTransactionalEmail } from "../_shared/billing/email-budget.ts";
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { sendProgressReport } from "./email.ts";
@@ -48,6 +49,11 @@ export default {
     const recipient = notificationRecipient(website.notification_email, profile?.contact_email);
     if (!recipient) return json({ error: "Add a valid report email in Account before sending." }, 409);
     const summary = buildProgressReportSummary({ quests: quests ?? [], scheduleItems: scheduleItems ?? [], receipts: Array.isArray(receipts) ? receipts : [] });
+    const budget = await reserveTransactionalEmail(context.supabaseAdmin, userId, website.id, "progress", requestId, recipient, name => Deno.env.get(name));
+    if (!budget.allowed) {
+      const limited = budget.reason === "limit_reached", duplicate = budget.reason === "duplicate";
+      return json({ error: limited ? "This account has requested five report emails in the past 24 hours. Your saved report remains available; try emailing again later." : duplicate ? "This report email was already requested. Check its previous result before requesting another." : "Report email is temporarily unavailable. Your saved report remains available.", code: limited ? "EMAIL_LIMIT_REACHED" : duplicate ? "EMAIL_ALREADY_REQUESTED" : "EMAIL_UNAVAILABLE" }, limited ? 429 : duplicate ? 409 : 503);
+    }
     const delivery = await sendProgressReport({
       siteName: website.business_name?.trim() || website.normalized_domain,
       domain: website.normalized_domain,

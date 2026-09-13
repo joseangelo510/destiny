@@ -1,3 +1,4 @@
+import { reserveContentWork, finishContentWork } from "@/lib/billing/worker";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -66,6 +67,9 @@ export async function POST(request: Request) {
   };
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) return NextResponse.json({ error: "Evidence-backed re-optimization is not configured yet. Add ANTHROPIC_API_KEY to the server environment." }, { status: 503 });
+  const reservation = await reserveContentWork(supabase, website.id, "audits", `reoptimization-${randomUUID()}`);
+  if (reservation.response) return reservation.response;
+  const generate = async () => {
   let snapshot;
   let research;
   try {
@@ -112,4 +116,12 @@ export async function POST(request: Request) {
   const { error } = await db.from("reoptimization_documents").upsert(row, { onConflict: "audit_id,normalized_keyword" });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ document: { id, url: `/reoptimization/${id}`, downloadUrl: `/api/reoptimization-documents/${id}/download` }, reused: false });
+  };
+  let succeeded = false;
+  try {
+    const result = await generate();
+    succeeded = result.ok;
+    return result;
+  } finally { await finishContentWork(supabase, reservation.id, succeeded, website.id); }
+
 }

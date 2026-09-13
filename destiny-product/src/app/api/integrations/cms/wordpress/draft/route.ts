@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { prepareWordPressDraft, type WordPressDraftRequest } from "@/lib/cms/wordpress-draft";
 import { scopedClient } from "@/lib/db";
@@ -42,6 +43,8 @@ export async function POST(request: Request) {
   }>("wordpress-draft", { ...draft, featuredGraphic: undefined, graphics: undefined, media });
 
   if (error || !data?.delivered || !data.remoteEditUrl) {
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     return NextResponse.json({ error: data?.error || "Rebound SEO could not create the WordPress draft." }, { status: 502 });
   }
   if (draft.scheduledFor) {

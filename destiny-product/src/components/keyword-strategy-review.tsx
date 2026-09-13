@@ -1,4 +1,5 @@
 "use client";
+import { TrackingNotice } from "@/components/tracking-notice";
 
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,8 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const [pendingDecline, setPendingDecline] = useState("");
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
+  const [trackingNotice, setTrackingNotice] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [status, setStatus] = useState("");
   const [statusLink, setStatusLink] = useState<{ href: string; label: string } | null>(null);
   const [documentLinks, setDocumentLinks] = useState(initialDocumentLinks);
@@ -84,19 +87,20 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
 
   const saveDecision = async (keyword: string, decision: KeywordDecision, reason: KeywordReason | null = null): Promise<boolean> => {
     setSaving(keyword);
-    setError("");
+    setError(""); setTrackingNotice("");
     setStatus("");
     setStatusLink(null);
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword, decision, reason, evidence: keywords.find((item) => item.keyword === keyword) }) });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not save the keyword decision.");
+      setTrackingNotice(payload.trackingNotice || "");
       setDecisions((current) => ({ ...current, [keyword]: decision }));
       setReasons((current) => ({ ...current, [keyword]: reason }));
       setPendingDecline("");
       if (decision === "declined") plan.forget(keyword);
       setStatus(decision === "approved"
-        ? `Approved “${keyword}.” It now supports your three-month plan and weekly rank tracking.`
+        ? `Approved “${keyword}.” It now supports your three-month plan.${payload.trackingStarted?.includes(keyword) ? " Rank tracking is enabled." : ""}`
         : `Moved “${keyword}” to Declined. Rebound SEO will use this feedback when shaping future recommendations.`);
       return true;
     } catch (cause) {
@@ -109,11 +113,13 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
 
   const createChangeDocument = async (keyword: KeywordRecommendation, regenerate = false) => {
     setSaving(keyword.keyword);
-    setError("");
+    setError(""); setTrackingNotice("");
     setStatusLink(null);
+    setBillingRequired(false);
     try {
       const response = await fetch("/api/reoptimization-documents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword: keyword.keyword, regenerate }) });
       const payload = await response.json() as { error?: string; document?: { url?: string } };
+      setBillingRequired(response.status === 402);
       if (!response.ok || !payload.document?.url) throw new Error(payload.error || "Rebound SEO could not create the change document.");
       const href = payload.document.url;
       setDocumentLinks((current) => ({ ...current, [keyword.keyword]: href }));
@@ -139,13 +145,14 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
 
   const restoreToReview = async (keyword: string) => {
     setSaving(keyword);
-    setError("");
+    setError(""); setTrackingNotice("");
     setStatus("");
     setStatusLink(null);
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, keyword, action: "restore" }) });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not restore this keyword.");
+      setTrackingNotice(payload.trackingNotice || "");
       setDecisions((current) => {
         const next = { ...current };
         delete next[keyword];
@@ -167,7 +174,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   };
 
   const finish = async () => {
-    setError("");
+    setError(""); setTrackingNotice("");
     if (strategyComplete) {
       router.push(nextAction.href);
       return;
@@ -186,7 +193,7 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
     setSaving("quest");
     try {
       const response = await fetch(`/api/quests/${encodeURIComponent(questId)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "complete" }) });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not finish the keyword review.");
       router.push(nextHref);
     } catch (cause) {
@@ -199,12 +206,13 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
   const approveMany = async (candidates: KeywordRecommendation[]) => {
     if (!candidates.length) return;
     setSaving("batch");
-    setError("");
+    setError(""); setTrackingNotice("");
     setStatus("");
     try {
       const response = await fetch("/api/keywords/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ auditId, decisions: candidates.map((candidate) => ({ keyword: candidate.keyword, decision: "approved", evidence: candidate })) }) });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; trackingStarted?: string[]; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not save the keyword decisions.");
+      setTrackingNotice(payload.trackingNotice || "");
       setDecisions((current) => ({ ...current, ...Object.fromEntries(candidates.map((candidate) => [candidate.keyword, "approved"])) }));
       setStatus(`${candidates.length} recommended keyword${candidates.length === 1 ? "" : "s"} approved. You can review or change every choice from Approved.`);
     } catch (cause) {
@@ -271,11 +279,12 @@ export function KeywordStrategyReview({ auditHref, auditId, initialDecisions, in
       {(Object.keys(VERDICT_LABELS) as KeywordRecommendation["verdict"][]).map((verdict) => <button className={`${verdictFilter === verdict ? "active" : ""} ${verdict}`} key={verdict} onClick={() => { setVerdictFilter(verdict); setShowAll(false); }} type="button">{verdict === "improve" ? "Improve · quick wins" : VERDICT_LABELS[verdict]} <b>{verdictCounts[verdict]}</b></button>)}
     </div> : null}
 
+    <TrackingNotice message={trackingNotice} />
     {status && <div aria-live="polite" className="integration-banner success keyword-decision-status" role="status"><strong>Decision saved</strong><p>{status}{statusLink ? <> <Link href={statusLink.href}>{statusLink.label} →</Link></> : null}</p></div>}
 
     {!visibleKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{activeTab === "review" ? "You’re all caught up" : activeTab === "approved" ? "No approved keywords yet" : "No declined keywords"}</h3><p>{activeTab === "review" ? "Every recommendation from your last audit has been reviewed. New keyword ideas arrive with your next audit." : activeTab === "approved" ? "Approve relevant searches from To Review to build the working plan." : "Keywords you decline remain here with their reason, ready to restore anytime."}</p><div>{activeTab !== "review" && <button onClick={() => selectTab("review")} type="button">Open To Review</button>}{activeTab === "review" && auditHref ? <Link href={auditHref}>Run a new audit</Link> : null}{!auditHref && activeTab === "review" ? <Link href={moreKeywordsHref}>Find more keywords</Link> : null}</div></div></section> : !filteredKeywords.length ? <section className="claude-ks-panel" role="tabpanel"><div className="claude-ks-empty"><span aria-hidden="true">✓</span><h3>{verdictFilter === "all" && activeTab === "review" ? "No existing-page opportunities in this list" : `No ${verdictFilter} keywords in this list`}</h3><p>Choose another verdict to see the recommendations Rebound SEO checked against your site.</p><div><button onClick={() => setVerdictFilter("all")} type="button">Show all keywords</button></div></div></section> : renderTable(displayedKeywords, filteredKeywords.length)}
 
     {!strategyComplete ? <div className="claude-ks-finish"><div><strong>{canComplete ? "Ready to build your three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? "Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker." : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disabled={!canComplete || !questId} disabled={saving === "quest"} onClick={() => void finish()} type="button">{saving === "quest" ? "Building your plan…" : canComplete ? "Build my three-month content plan" : `Approve ${approvalsRemaining} more to continue`}</button></div> : null}
-    {error && <div aria-live="polite" className="error-banner">{error}</div>}
+    {error && <div aria-live="polite" className="error-banner">{error}{billingRequired && <p><Link href="/account/billing">View plans and billing</Link></p>}</div>}
   </section>;
 }

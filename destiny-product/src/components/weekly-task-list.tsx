@@ -1,4 +1,5 @@
 "use client";
+import { TrackingNotice } from "@/components/tracking-notice";
 
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
   const router = useRouter();
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [trackingNotice, setTrackingNotice] = useState("");
   const [celebration, setCelebration] = useState<{ kind: CelebrationKind; title: string; detail: string } | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
   useEffect(() => {
@@ -40,7 +42,7 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
   }, [celebration]);
   const update = async (task: WeeklyTask, status: "complete" | "skipped" | "todo") => {
     setSaving(task.id);
-    setError("");
+    setError(""); setTrackingNotice("");
     const response = await fetch(`/api/quests/${encodeURIComponent(task.id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
     const payload = await response.json() as { error?: string; celebration?: CelebrationKind | "none"; quest?: { verification_status?: string } };
     if (!response.ok) setError(payload.error || "Rebound SEO could not update the task.");
@@ -57,16 +59,17 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
   };
   const approveRecommendedKeywords = async (task: WeeklyTask) => {
     setSaving(task.id);
-    setError("");
+    setError(""); setTrackingNotice("");
     try {
       const response = await fetch("/api/keywords/decisions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ auditId, approveRecommended: true }),
       });
-      const payload = await response.json() as { error?: string };
+      const payload = await response.json() as { error?: string; trackingNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not approve the recommended keywords.");
       await update(task, "complete");
+      setTrackingNotice(payload.trackingNotice || "");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not approve the recommended keywords.");
       setSaving(null);
@@ -111,6 +114,7 @@ export function WeeklyTaskList({ auditId, openTaskId, tasks }: { auditId: string
     </details>;
     })}
     {celebration && <div aria-live="polite" className={`destiny-celebration ${celebration.kind}`}><span>⌁</span><p><strong>{celebration.title}</strong><small>{celebration.detail}</small></p><Link href="/roadmap">View roadmap →</Link></div>}
+    <TrackingNotice message={trackingNotice} />
     {error && <div className="error-banner">{error}</div>}
   </section>;
 }

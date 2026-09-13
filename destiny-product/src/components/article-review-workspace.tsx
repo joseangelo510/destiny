@@ -1,5 +1,7 @@
 "use client";
 
+import { cmsDeliveryProviders, type CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
+import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -110,12 +112,7 @@ function issueCategory(code: string) {
   return "Editorial quality";
 }
 
-export type CmsDeliveryProvider = {
-  id: string;
-  label: string;
-  connected: boolean;
-  draftEndpoint: string;
-};
+export type { CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
 
 export type CmsFieldReportEntry = {
   field: string;
@@ -212,15 +209,13 @@ export function ArticleReviewWorkspace({
   const [generationPhase, setGenerationPhase] = useState<ArticleGenerationPhase>("researching");
   const [generationSeconds, setGenerationSeconds] = useState(0);
   const [error, setError] = useState("");
+  const [billingRequired, setBillingRequired] = useState(false);
   const [delivering, setDelivering] = useState("");
   const [checkingCms, setCheckingCms] = useState("");
   const [exporting, setExporting] = useState(false);
   const [cmsDrafts, setCmsDrafts] = useState<Record<string, CmsDraftResult>>(() => hydrateCmsDrafts(initialCmsTransfers, auditId));
 
-  const cmsProviders: CmsDeliveryProvider[] = [
-    { id: "wordpress", label: "WordPress", connected: wordpressConnected, draftEndpoint: "/api/integrations/cms/wordpress/draft" },
-    { id: "webflow", label: "Webflow", connected: webflowConnected, draftEndpoint: "/api/integrations/cms/webflow/draft" },
-  ];
+  const cmsProviders = cmsDeliveryProviders(wordpressConnected, webflowConnected);
   const connectedProviders = cmsProviders.filter((provider) => provider.connected);
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
@@ -317,12 +312,14 @@ export function ArticleReviewWorkspace({
   }, [auditId, checkingCms, cmsDrafts, websiteId]);
 
   useEffect(() => {
-    if (!draft || !cmsDrafts[`wordpress:${draft.keyword}`] || reconciledArticlesRef.current.has(draft.keyword)) return;
-    reconciledArticlesRef.current.add(draft.keyword);
-    const timer = window.setTimeout(() => void reconcileWordPress(draft.keyword, true), 0);
+    if (!draft || checkingCms || !cmsDrafts[`wordpress:${draft.keyword}`] || reconciledArticlesRef.current.has(draft.keyword)) return;
+    const timer = window.setTimeout(() => {
+      reconciledArticlesRef.current.add(draft.keyword);
+      void reconcileWordPress(draft.keyword, true);
+    }, 0);
     // One readback per selected article is enough; users can refresh manually afterward.
     return () => window.clearTimeout(timer);
-  }, [cmsDrafts, draft, reconcileWordPress]);
+  }, [checkingCms, cmsDrafts, draft, reconcileWordPress]);
 
   useEffect(() => {
     let cancelled = false;
@@ -400,6 +397,7 @@ export function ArticleReviewWorkspace({
       generationAbortReasonRef.current = "timeout";
       controller.abort();
     }, ARTICLE_GENERATION_CLIENT_TIMEOUT_MS);
+    setBillingRequired(false);
     setGenerationSeconds(0);
     setGenerationPhase("researching");
     setGenerating(true);
@@ -418,6 +416,7 @@ export function ArticleReviewWorkspace({
         signal: controller.signal,
       });
       if (!response.ok || !response.body) {
+        setBillingRequired(response.status === 402);
         const failure = await response.json().catch(() => ({})) as { error?: string };
         throw new Error(failure.error || "Rebound SEO could not generate this article.");
       }
@@ -466,12 +465,7 @@ export function ArticleReviewWorkspace({
         throw new Error(payload.error || "Rebound SEO could not create the Word document.");
       }
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `${draft.keyword.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLocaleLowerCase() || "destiny-article"}.docx`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not create the Word document.");
     } finally {
@@ -483,18 +477,14 @@ export function ArticleReviewWorkspace({
     const graphic = draft?.infographics[index];
     if (!graphic) return;
     const blob = new Blob([renderInfographicSvg(graphic)], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${graphic.id || `destiny-infographic-${index + 1}`}.svg`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, `${graphic.id || `destiny-infographic-${index + 1}`}.svg`);
   };
 
   const sendToCms = async (provider: CmsDeliveryProvider) => {
     if (!draft?.approved || delivering || !provider.connected) return;
     setDelivering(provider.id);
     setError("");
+    setBillingRequired(false);
     try {
       const scheduledFor = provider.id === "wordpress" ? wordpressScheduleByKeyword[normalizeTrackedKeyword(draft.keyword)] : undefined;
       const response = await fetch(provider.draftEndpoint, {
@@ -516,6 +506,7 @@ export function ArticleReviewWorkspace({
         }),
       });
       const payload = await response.json() as { error?: string; remoteEditUrl?: string; updated?: boolean; fieldReport?: CmsFieldReportEntry[]; publicationStatus?: CmsPublicationState; remotePermalink?: string | null; verifiedLiveAt?: string | null };
+      if (response.status === 402) setBillingRequired(true);
       if (!response.ok || !payload.remoteEditUrl) throw new Error(payload.error || `Rebound SEO could not create the ${provider.label} draft.`);
       setCmsDrafts((current) => ({ ...current, [`${provider.id}:${draft.keyword}`]: { url: payload.remoteEditUrl!, updated: payload.updated === true, fieldReport: payload.fieldReport, publicationStatus: payload.publicationStatus, remotePermalink: payload.remotePermalink, verifiedLiveAt: payload.verifiedLiveAt } }));
     } catch (cause) {
@@ -562,7 +553,7 @@ export function ArticleReviewWorkspace({
         {generating && <div className="configuration-note" role="status"><strong>{generationPhase === "researching" ? "Finding and verifying search sources" : generationPhase === "finishing" ? "Completing the remaining sections" : "Writing from the evidence pack"}</strong><p>Rebound SEO verifies DataForSEO search evidence first, then Claude writes the 2,000–3,000-word article. If the first response ends early, Rebound SEO performs one bounded completion pass. {generationSeconds}s elapsed. Cancel anytime—your brief is saved.</p></div>}
         {!generating && draft.generationStatus !== "generated" && <div className="configuration-note" role="status"><strong>{draft.failureReason ? "Generation did not complete" : "Brief saved"}</strong><p>{draft.failureReason || "Set the direction above, then generate the complete article. There is no outline to review first."}</p></div>}
         {!generationAvailable && <div className="configuration-note" role="status"><strong>Article generation is not configured</strong><p>Your brief is still saved and ready to run once the writing model is connected.</p></div>}
-        {error && <div className="error-banner" role="alert">{error}</div>}
+        {error && <div className="error-banner" role="alert">{error}{billingRequired && <p><Link className="button" href="/account/billing">View plans and billing</Link></p>}</div>}
       </section>
 
       {reviewReady && <>

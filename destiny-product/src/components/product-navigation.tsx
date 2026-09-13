@@ -25,7 +25,7 @@ const groups = [
   { label: "Planning", paths: ["/results", "/roadmap", "/this-week"] },
 ];
 const tool = (path: string) => ({ ...FEATURE_NAVIGATION.find(item => item.href === path)!, ...(path === "/distribution" ? { label: "Distribution tools" } : {}) });
-const utilities = [{ label: "Account", href: "/account" }, { label: "Connections", href: "/integrations" }];
+const utilities = [{ label: "Plans and billing", href: "/account/billing" }, { label: "Account", href: "/account" }, { label: "Connections", href: "/integrations" }];
 const name = (site: Website) => site.business_name?.trim() || site.normalized_domain;
 
 export function ProductNavigation({ active, websiteId, websites }: { active: string; websiteId: string | null; websites: Website[] }) {

@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,6 +33,8 @@ export async function POST(request: Request) {
       },
     });
     if (error || !data) {
+      const billingFailure = await billingFailureResponse(error);
+      if (billingFailure) return billingFailure;
       const message = data && "error" in data && typeof data.error === "string"
         ? data.error
         : error?.message || "Rebound SEO could not run the audit.";

@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,6 +14,8 @@ export async function POST(request: Request) {
     const body = await request.json() as { target?: unknown };
     if (typeof body.target !== "string") return NextResponse.json({ error: "Enter a public domain." }, { status: 400 });
     const { data, error } = await supabase.functions.invoke("seo-research", { body: { kind: "backlinks", target: body.target } });
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     if (error || !data) {
       const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
         ? data.error

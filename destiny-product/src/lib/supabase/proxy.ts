@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const isPublicVersionReceipt = request.method === "GET" && request.nextUrl.pathname === "/api/version";
   const isPublicPath = request.nextUrl.pathname === "/" ||
+    request.nextUrl.pathname === "/pricing" ||
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname.startsWith("/login/") ||
     request.nextUrl.pathname === "/auth" ||

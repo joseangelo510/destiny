@@ -32,8 +32,8 @@ export const SITE_SCOPED_TABLES = [
 
 export const RELATION_SCOPED_TABLES = ["audit_metrics"] as const;
 export const ORGANIZATION_SCOPED_TABLES = ["organization_members", "organizations", "websites"] as const;
-export const USER_SCOPED_TABLES = ["profiles"] as const;
-export const SERVICE_ROLE_ONLY_TABLES = ["cms_transfers"] as const;
+export const USER_SCOPED_TABLES = ["profiles", "billing_accounts", "billing_managed_websites", "billing_usage"] as const;
+export const SERVICE_ROLE_ONLY_TABLES = ["billing_email_attempts", "cms_transfers", "billing_stripe_events"] as const;
 
 export type SiteScopedTable = typeof SITE_SCOPED_TABLES[number];
 export type OrganizationScopedTable = typeof ORGANIZATION_SCOPED_TABLES[number];

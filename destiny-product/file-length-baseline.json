@@ -3,10 +3,9 @@
   "productionMax": 500,
   "testMax": 800,
   "files": {
-    "qa/isolation/two-tenant.integration.test.ts": 812,
-    "src/components/article-review-workspace.tsx": 641,
-    "src/components/destiny-prototype.tsx": 540,
-    "src/components/repurpose-workspace.tsx": 709,
+    "qa/isolation/two-tenant.integration.test.ts": 806,
+    "src/components/article-review-workspace.tsx": 632,
+    "src/components/repurpose-workspace.tsx": 703,
     "src/lib/content/article-generation.ts": 660,
     "src/lib/content/repurpose-source.test.ts": 822,
     "src/lib/content/repurpose-url.test.ts": 1036,

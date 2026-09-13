@@ -135,7 +135,7 @@ export async function userClient(userId: string) {
   const scopedId = assertScope(userId, "userId");
   return {
     select<Table extends UserScopedTable>(table: Table, columns: string) {
-      return queryFor(client, table).select(columns).eq("id", scopedId);
+      return queryFor(client, table).select(columns).eq(table === "profiles" ? "id" : "owner_id", scopedId);
     },
   };
 }

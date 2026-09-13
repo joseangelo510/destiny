@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@supabase/server": "npm:@supabase/server@1.4.1",
+    "stripe": "npm:stripe@22.6.2",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.111.0",
+    "../_shared/billing/plans": "../_shared/billing/plans.ts"
+  }
+}

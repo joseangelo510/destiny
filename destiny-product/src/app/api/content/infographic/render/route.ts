@@ -1,3 +1,4 @@
+import { finishContentWork, infographicStage } from "@/lib/billing/worker";
 import sharp from "sharp";
 import {
   DEFAULT_INFOGRAPHIC_IMAGE_MODEL,
@@ -27,7 +28,7 @@ function plan(value: unknown): InfographicPlan | null {
 }
 
 export async function POST(request: Request) {
-  const payload = await request.json().catch(() => ({})) as { websiteId?: unknown; plan?: unknown; style?: unknown };
+  const payload = await request.json().catch(() => ({})) as { websiteId?: unknown; plan?: unknown; style?: unknown; billingUsageId?: unknown };
   if (!isWebsiteId(payload.websiteId)) return Response.json({ error: "Choose the website for this infographic." }, { status: 400 });
   const infographicPlan = plan(payload.plan);
   if (!infographicPlan) return Response.json({ error: "Review the infographic research before creating the visual." }, { status: 400 });
@@ -42,6 +43,8 @@ export async function POST(request: Request) {
   const { data: website } = await supabase.from("websites").select("id").eq("id", payload.websiteId).maybeSingle();
   if (!website) return Response.json({ error: "That website is not available in this account." }, { status: 404 });
 
+  if (typeof payload.billingUsageId !== "string" || !await infographicStage(supabase, "stage", payload.billingUsageId, payload.websiteId, infographicPlan)) return Response.json({ error: "This visual reservation is unavailable, already used, or expired. Research the infographic again to create a visual." }, { status: 409 });
+  let succeeded = false;
   try {
     const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
@@ -73,6 +76,7 @@ export async function POST(request: Request) {
       .composite([{ input: Buffer.from(renderInfographicOverlaySvg(infographicPlan)) }])
       .png({ compressionLevel: 9 })
       .toBuffer();
+    succeeded = true;
     return new Response(new Uint8Array(completed), {
       headers: {
         "Cache-Control": "private, no-store",
@@ -83,5 +87,7 @@ export async function POST(request: Request) {
   } catch (cause) {
     console.error("infographic_image_failed", { error: cause instanceof Error ? cause.message : "unknown" });
     return Response.json({ error: "Rebound SEO could not finish the visual. Try again in a moment." }, { status: 502 });
+  } finally {
+    await finishContentWork(supabase, payload.billingUsageId, succeeded, payload.websiteId);
   }
 }

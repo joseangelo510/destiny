@@ -1,3 +1,4 @@
+import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { scopedClient } from "@/lib/db";
 import { domainOverviewRequests } from "../../../../../supabase/functions/seo-research/domain-overview";
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
   } catch { return NextResponse.json({ error: "Enter a valid public domain and choose a supported country." }, { status: 400 }); }
   try {
     const { data, error } = await db.invokeFunction<Record<string, unknown>>("seo-research", { kind: "domain_overview", target, market });
+    const billingFailure = await billingFailureResponse(error);
+    if (billingFailure) return billingFailure;
     if (error || !data || data.error) return NextResponse.json({ error: "Domain research is temporarily unavailable. Please try again." }, { status: 502 });
     return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
   } catch { return NextResponse.json({ error: "Domain research is temporarily unavailable. Please try again." }, { status: 502 }); }

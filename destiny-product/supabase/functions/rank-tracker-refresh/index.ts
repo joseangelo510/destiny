@@ -1,3 +1,4 @@
+import { rankTrackingAccess } from "../_shared/billing/rank-access.ts";
 import { withSupabase } from "@supabase/server";
 import { parseRankObservation } from "./logic.ts";
 
@@ -56,31 +57,43 @@ export default {
     if (!login || !password) return json({ error: "DataForSEO is not configured." }, 503);
 
     const now = new Date();
-    const { data, error } = await context.supabaseAdmin.from("tracked_keywords")
-      .select("id,website_id,keyword,location_code,language_code,device,search_depth,websites!inner(normalized_domain)")
-      .in("status", ["pending", "active", "error"])
-      .lte("next_check_at", now.toISOString())
-      .order("next_check_at")
-      .limit(100);
+    const { data, error } = await context.supabaseAdmin.rpc("billing_rank_candidates");
     if (error) return json({ error: error.message }, 500);
     const due = (data ?? []) as unknown as DueKeyword[];
     const groups = due.reduce<Record<string, DueKeyword[]>>((acc, row) => ({ ...acc, [row.website_id]: [...(acc[row.website_id] ?? []), row] }), {});
-    const websiteIds = Object.keys(groups);
-    const { data: preferences } = websiteIds.length
-      ? await context.supabaseAdmin.from("notification_preferences").select("website_id,ranking_digest_frequency").in("website_id", websiteIds)
-      : { data: [] };
-    const cadenceByWebsite = new Map((preferences ?? []).map((preference) => [preference.website_id, preference.ranking_digest_frequency]));
-    const completedRuns: unknown[] = [];
+    const completedRuns: Array<{ websiteId: string; status: string; completed: number; failed: number; totalCost: number }> = [];
 
     for (const [websiteId, rows] of Object.entries(groups)) {
-      const refreshDays = cadenceByWebsite.get(websiteId) === "three_day" ? 3 : 7;
-      const { data: run } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: rows.length, started_at: now.toISOString() }).select("id").single();
+      const access = await rankTrackingAccess(context.supabaseAdmin, websiteId);
+      if (!access) {
+        completedRuns.push({ websiteId, status: "billing_paused", completed: 0, failed: 0, totalCost: 0 });
+        continue;
+      }
+      const eligible: Array<{ row: DueKeyword; id: string; nextCheckAt: string }> = [];
+      for (const row of rows) {
+        const { data: reservation, error: reserveError } = await context.supabaseAdmin.rpc("reserve_rank_check", { p_target_id: row.id });
+        if (reserveError) return json({ error: "Tracking usage could not be reserved." }, 503);
+        if (reservation?.allowed && typeof reservation.id === "string" && typeof reservation.nextCheckAt === "string") eligible.push({ row, id: reservation.id, nextCheckAt: reservation.nextCheckAt });
+      }
+      if (!eligible.length) { completedRuns.push({ websiteId, status: "billing_limited", completed: 0, failed: 0, totalCost: 0 }); continue; }
+      const { data: run, error: runError } = await context.supabaseAdmin.from("rank_tracker_runs").insert({ website_id: websiteId, status: "running", requested_count: eligible.length, started_at: now.toISOString() }).select("id").single();
+      if (runError || !run?.id) {
+        // No provider work started. Preserve receipts and settle known zero expense.
+        for (const { id } of eligible) {
+          await context.supabaseAdmin.rpc("finish_billing_usage", { p_id: id, p_succeeded: false, p_provider_cost_usd: 0 });
+        }
+        return json({ error: "Tracking run could not be saved." }, 503);
+      }
       let completed = 0;
       let failed = 0;
       let totalCost = 0;
-      for (const row of rows) {
+      for (const { row, id: usageId, nextCheckAt } of eligible) {
+        let providerCost: number | null = null;
+        let succeeded = false;
         try {
-          const observation = await fetchRank(row, login, password);
+          const observation = await fetchRank({ ...row, search_depth: 100 }, login, password);
+          providerCost = observation.providerCost;
+          totalCost += observation.providerCost;
           const { error: insertError } = await context.supabaseAdmin.from("rank_observations").insert({
             tracked_keyword_id: row.id,
             website_id: row.website_id,
@@ -89,26 +102,29 @@ export default {
             position: observation.position,
             result_url: observation.resultUrl,
             result_title: observation.resultTitle,
-            search_depth: row.search_depth,
+            search_depth: 100,
             provider_task_id: observation.providerTaskId,
             provider_cost: observation.providerCost,
             check_url: observation.checkUrl,
             evidence: observation.evidence,
           });
           if (insertError) throw insertError;
-          totalCost += observation.providerCost;
+          succeeded = true;
           completed += 1;
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: new Date(now.getTime() + refreshDays * 86_400_000).toISOString(), last_error: null }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "active", last_checked_at: observation.observedAt, next_check_at: nextCheckAt, last_error: null }).eq("id", row.id);
         } catch (cause) {
           failed += 1;
           const message = cause instanceof Error ? cause.message : "Rank check failed.";
-          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: new Date(now.getTime() + 86_400_000).toISOString() }).eq("id", row.id);
+          await context.supabaseAdmin.from("tracked_keywords").update({ status: "error", last_error: message.slice(0, 1000), next_check_at: nextCheckAt }).eq("id", row.id);
+        } finally {
+          const { error: settleError } = await context.supabaseAdmin.rpc("finish_billing_usage", { p_id: usageId, p_succeeded: succeeded, p_provider_cost_usd: providerCost });
+          if (settleError) return json({ error: "Tracking usage confirmation is pending." }, 503);
         }
       }
       const status = failed === 0 ? "complete" : completed === 0 ? "failed" : "partial";
       if (run?.id) await context.supabaseAdmin.from("rank_tracker_runs").update({ status, completed_count: completed, failed_count: failed, provider_cost: totalCost, completed_at: new Date().toISOString() }).eq("id", run.id);
       completedRuns.push({ websiteId, status, completed, failed, totalCost });
     }
-    return json({ processed: due.length, runs: completedRuns });
+    return json({ considered: due.length, processed: completedRuns.reduce((count, run) => count + run.completed + run.failed, 0), runs: completedRuns });
   }),
 };
