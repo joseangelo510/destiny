@@ -60,7 +60,7 @@ export default {
     const { data: website } = await context.supabase.from("websites").select("id").eq("id", draft.websiteId).maybeSingle();
     if (!website) return json({ error: "You do not have access to that website." }, 403);
     if (!await websitePaidAccess(context.supabaseAdmin, draft.websiteId)) return json({
-      error: "Choose a plan or update your payment before sending content to your CMS. Your saved draft remains available.",
+      error: "The website owner needs an active plan or trial and must select this website under Managed websites in billing before sending content to your CMS. Your saved draft remains available.",
       code: "BILLING_PAYMENT_REQUIRED", billingUrl: "/account/billing",
     }, 402);
 
