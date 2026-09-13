@@ -20,7 +20,8 @@ it("welcome copy confirms saved setup without claiming that an audit has started
   const fetcher = vi.fn(async () => Response.json({ id: "fixture-email" }));
   vi.stubGlobal("fetch", fetcher);
   try {
-    await sendWelcomeEmail({ userId: "owner", websiteId: "site", firstName: "A", recipient: "a@example.com", domain: "example.com" });
+    const delivered = await sendWelcomeEmail({ userId: "owner", websiteId: "site", firstName: "A", recipient: "a@example.com", domain: "example.com" });
+    expect(delivered).toEqual({ status: "accepted", messageId: "fixture-email" });
     const body = JSON.parse((fetcher.mock.calls[0] as unknown as [string, { body: string }])[1].body);
     expect(body.text).toContain("start any available audit");
     expect(body.text).not.toContain("We are preparing");
