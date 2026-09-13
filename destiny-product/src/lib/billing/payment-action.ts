@@ -17,8 +17,8 @@ export function hostedPaymentUrl(value: unknown, action: "checkout" | "portal") 
   try {
     const url = new URL(value);
     const host = action === "checkout" ? "checkout.stripe.com" : "billing.stripe.com";
-    const path = action === "checkout" ? "/c/pay/" : "/p/session/";
-    return url.protocol === "https:" && url.host === host && !url.username && !url.password && (url.pathname.startsWith(path) || (action === "portal" && url.pathname === "/p/session")) ? url.href : null;
+    const allowedPath = action === "checkout" ? ["/c/pay/", "/g/pay/"].some(path => url.pathname.startsWith(path)) : url.pathname.startsWith("/p/session/") || url.pathname === "/p/session";
+    return url.protocol === "https:" && url.host === host && !url.username && !url.password && allowedPath ? url.href : null;
   } catch { return null; }
 }
 export async function runPaymentAction(request: Request, action: "checkout" | "portal", session: Awaited<ReturnType<typeof billingSessionClient>>, origin: string) {
