@@ -112,12 +112,14 @@ export default {
         const verification = started.reason === "verification_required";
         const unavailable = started.reason === "website_unavailable";
         const limited = started.reason === "limit_reached";
+        const unmanaged = started.reason === "managed_website_required";
         return json({
           error: verification ? "Verify your sign-in email before starting an audit."
             : unavailable ? "You do not have access to that website."
+            : unmanaged ? "The website owner must select this site under Managed websites in billing before starting another audit."
             : limited ? "You've used this plan's audit allowance. Upgrade or wait for your next billing period."
             : "Your initial audit is already used. Choose a plan to run more research.",
-          code: verification ? "BILLING_VERIFICATION_REQUIRED" : limited ? "BILLING_LIMIT_REACHED" : "BILLING_PAYMENT_REQUIRED",
+          code: unmanaged ? "BILLING_MANAGED_WEBSITE_REQUIRED" : verification ? "BILLING_VERIFICATION_REQUIRED" : limited ? "BILLING_LIMIT_REACHED" : "BILLING_PAYMENT_REQUIRED",
           billingUrl: "/account/billing",
         }, verification || unavailable ? 403 : 402);
       }

@@ -13,6 +13,7 @@ export async function reserveContentWork(client: BillingWorkerClient, websiteId:
     if (error || !data) return denied("Usage could not be checked. Please try again shortly.", "BILLING_UNAVAILABLE", 503);
     if (data.allowed && typeof data.id === "string") return { id: data.id };
     if (data.reason === "duplicate") return denied("This request has already started. Check your saved work before trying again.", "BILLING_DUPLICATE", 409);
+    if (data.reason === "managed_website_required") return denied("The website owner must select this site under Managed websites in billing to start new paid work. Your saved work remains available.", "BILLING_MANAGED_WEBSITE_REQUIRED", 402);
     if (data.reason === "limit_reached") return denied("You've used this plan's allowance. Upgrade your plan or wait for the next billing period.", "BILLING_LIMIT_REACHED", 402);
     return denied("Choose a plan or update your payment to continue. Your saved work is still available.", "BILLING_PAYMENT_REQUIRED", 402);
   } catch { return denied("Usage could not be checked. Please try again shortly.", "BILLING_UNAVAILABLE", 503); }

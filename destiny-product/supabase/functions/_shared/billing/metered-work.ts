@@ -11,6 +11,7 @@ export async function meteredResponse(admin: SupabaseClient, input: MeteredInput
   if (error || !data) return json("Your usage could not be checked. Please try again shortly.", "BILLING_UNAVAILABLE", 503);
   if (!data.allowed) {
     if (data.reason === "duplicate") return json("This request has already started. Check your saved results before trying again.", "BILLING_DUPLICATE", 409);
+    if (data.reason === "managed_website_required") return json("The website owner must select this site under Managed websites in billing to start new paid work. Your saved work remains available.", "BILLING_MANAGED_WEBSITE_REQUIRED", 402);
     if (data.reason === "limit_reached") return json("You've used this plan's allowance. Upgrade your plan or wait for your next billing period.", "BILLING_LIMIT_REACHED", 402);
     return json("Choose a plan or update your payment to continue. Your saved work is still available.", "BILLING_PAYMENT_REQUIRED", 402);
   }
