@@ -29,3 +29,5 @@ This census proves structural coverage. It does not replace negative runtime
 authorization tests for individual policies or privileged functions.
 
 `billing_managed_websites` has authenticated owner-only reads and service-only mutations. Four service-only SECURITY INVOKER functions read capacity, snapshot selection, replace owned selections under owner/account locks, and test valid managed membership. Browser roles cannot call these functions directly. `managed-websites.integration.test.ts` verifies owner/member isolation, selection concurrency, foreign-site denial, downgrade preservation and the unchanged count of saved websites.
+
+Transactional email attempt budgets are service-role-only, with verified actor membership and an owner profile lock. Real concurrent owner/member tests enforce five progress attempts per rolling day and two lifetime welcome attempts, duplicate and browser-RPC denial. Site deletion retains attempt counts.

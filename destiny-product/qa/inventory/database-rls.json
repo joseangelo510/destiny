@@ -5,6 +5,7 @@
   { "table": "article_drafts", "scope": "website", "access": "authenticated" },
   { "table": "audit_metrics", "scope": "website", "access": "authenticated" },
   { "table": "audits", "scope": "website", "access": "authenticated" },
+  { "table": "billing_email_attempts", "scope": "user", "access": "service_role_only" },
   { "table": "billing_accounts", "scope": "user", "access": "authenticated" },
   { "table": "billing_managed_websites", "scope": "user", "access": "authenticated" },
   { "table": "billing_usage", "scope": "user", "access": "authenticated" },

@@ -1,7 +1,7 @@
 import { reboundSeoSender } from "../_shared/email-sender.ts";
 
 export type EmailDelivery = {
-  status: "sent" | "skipped" | "failed";
+  status: "accepted" | "skipped" | "failed";
   messageId?: string;
   reason?: string;
 };
@@ -47,8 +47,8 @@ export async function sendWelcomeEmail(input: {
       from,
       to: [input.recipient],
       subject: "Welcome to Rebound SEO",
-      html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Welcome to Rebound SEO.</h1><p>Your profile for <strong>${domain}</strong> is complete. We are preparing your website audit, competitor research, keyword strategy, and first weekly quest.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><strong>What happens next</strong><p style="margin-bottom:0">Rebound SEO will notify you as soon as your audit and personalized action plan are ready.</p></div><p style="color:#71807a;margin-top:32px">One clear SEO action at a time. That is how momentum compounds.</p></div>`,
-      text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nWelcome to Rebound SEO.\n\nYour profile for ${input.domain} is complete. We are preparing your website audit, competitor research, keyword strategy, and first weekly quest.\n\nRebound SEO will notify you as soon as your audit and action plan are ready.`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#20302c"><p>${greeting}</p><h1 style="font-family:Georgia,serif;font-weight:500">Welcome to Rebound SEO.</h1><p>Your profile for <strong>${domain}</strong> is complete. Open Rebound SEO to view your saved website, start any available audit, and review your next steps.</p><div style="background:#edf6f1;border-radius:14px;padding:20px;margin:24px 0"><strong>What happens next</strong><p style="margin-bottom:0">Your workspace shows whether an audit is available, running, or complete. Paid features require an active plan or trial and a managed website selection.</p></div><p style="color:#71807a;margin-top:32px">One clear SEO action at a time. That is how momentum compounds.</p></div>`,
+      text: `${input.firstName.trim() ? `Hi ${input.firstName.trim()},` : "Hi,"}\n\nWelcome to Rebound SEO.\n\nYour profile for ${input.domain} is complete. Open Rebound SEO to view your saved website, start any available audit, and review your next steps.\n\nYour workspace shows whether an audit is available, running, or complete. Paid features require an active plan or trial and a managed website selection.`,
       tags: [{ name: "product", value: "destiny" }, { name: "message", value: "welcome" }],
     }),
     signal: AbortSignal.timeout(15_000),
@@ -61,5 +61,6 @@ export async function sendWelcomeEmail(input: {
       reason: typeof payload.message === "string" ? payload.message.slice(0, 300) : `Email provider returned HTTP ${response.status}.`,
     };
   }
-  return { status: "sent", messageId: typeof payload.id === "string" ? payload.id : undefined };
+  if (typeof payload.id !== "string" || !payload.id.trim()) return { status: "failed", reason: "Email provider did not return an acceptance id." };
+  return { status: "accepted", messageId: payload.id };
 }

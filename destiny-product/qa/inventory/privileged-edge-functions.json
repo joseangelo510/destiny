@@ -45,6 +45,11 @@
     "boundary": "website_rls"
   },
   {
+    "path": "supabase/functions/progress-report/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
     "path": "supabase/functions/rank-digest/index.ts",
     "auth": "none",
     "boundary": "signed_token_or_cron"
@@ -55,7 +60,17 @@
     "boundary": "cron_secret"
   },
   {
+    "path": "supabase/functions/send-welcome/index.ts",
+    "auth": "user",
+    "boundary": "website_rls"
+  },
+  {
     "path": "supabase/functions/seo-research/index.ts",
+    "auth": "user",
+    "boundary": "billing_claim"
+  },
+  {
+    "path": "supabase/functions/suggest-competitors/index.ts",
     "auth": "user",
     "boundary": "billing_claim"
   },
@@ -83,10 +98,5 @@
     "path": "supabase/functions/wordpress-reconcile/index.ts",
     "auth": "user",
     "boundary": "website_rls"
-  },
-  {
-    "path": "supabase/functions/suggest-competitors/index.ts",
-    "auth": "user",
-    "boundary": "billing_claim"
   }
 ]

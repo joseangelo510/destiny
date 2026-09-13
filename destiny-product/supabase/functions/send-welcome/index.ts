@@ -1,3 +1,4 @@
+import { reserveTransactionalEmail } from "../_shared/billing/email-budget.ts";
 import { withSupabase } from "@supabase/server";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { sendWelcomeEmail } from "./email.ts";
@@ -29,23 +30,26 @@ export default {
         .eq("id", body.websiteId)
         .maybeSingle(),
     ]);
-    if (!profile || !website) return json({ error: "The Rebound SEO profile could not be found." }, 403);
+    if (!profile || !website) return json({ error: "You do not have access to that website." }, 403);
 
+    const recipient = notificationRecipient(website.notification_email, profile.contact_email);
+    const budget = await reserveTransactionalEmail(context.supabaseAdmin, userId, website.id, "welcome", website.id, recipient, name => Deno.env.get(name));
+    if (!budget.allowed) return json({ delivery: { status: "skipped", reason: budget.reason === "duplicate" || budget.reason === "limit_reached" ? "Welcome email was already requested. Your saved website remains available." : "Welcome email is unavailable. Your saved website remains available." } });
     const delivery = await sendWelcomeEmail({
       userId,
       websiteId: website.id,
       firstName: profile.first_name,
-      recipient: notificationRecipient(website.notification_email, profile.contact_email),
+      recipient,
       domain: website.normalized_domain,
     }).catch((cause) => ({
       status: "failed" as const,
       reason: cause instanceof Error ? cause.message.slice(0, 300) : "Email delivery failed.",
     }));
 
-    if (delivery.status === "sent") {
-      console.log("Welcome email sent", { websiteId: website.id, messageId: delivery.messageId ?? null });
+    if (delivery.status === "accepted") {
+      console.log("Welcome email accepted", { websiteId: website.id, messageId: delivery.messageId ?? null });
     } else {
-      console.error("Welcome email not delivered", { websiteId: website.id, status: delivery.status, reason: delivery.reason ?? "Unknown reason" });
+      console.error("Welcome email not accepted", { websiteId: website.id, status: delivery.status, reason: delivery.reason ?? "Unknown reason" });
     }
 
     return json({ delivery });
