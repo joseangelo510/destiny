@@ -1,3 +1,4 @@
+import { managedSitesResponse } from "../_shared/billing/managed-sites.ts";
 import { websiteEntitlementResponse } from "../_shared/billing/website-entitlement.ts";
 import { withSupabase } from "@supabase/server";
 import Stripe from "stripe";
@@ -10,8 +11,10 @@ export default {
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405);
     const ownerId = context.userClaims?.id;
     if (!ownerId) return json({ error: "Sign in again to continue." }, 401);
-    let body: { action?: unknown; plan?: unknown; websiteId?: unknown };
+    let body: { action?: unknown; plan?: unknown; websiteId?: unknown; websiteIds?: unknown };
     try { body = await request.json(); } catch { return json({ error: "Invalid request." }, 400); }
+    if (!body || typeof body !== "object") return json({ error: "Invalid request." }, 400);
+    if (body.action === "sites" || body.action === "select_sites") return managedSitesResponse(context.supabaseAdmin, ownerId, body.action, body.websiteIds);
     if (body.action === "website_access") return websiteEntitlementResponse(ownerId, body.websiteId, context.supabase, context.supabaseAdmin);
     if (!["status", "checkout", "portal"].includes(String(body.action))) return json({ error: "Invalid billing action." }, 400);
     const config = billingConfig(name => Deno.env.get(name));

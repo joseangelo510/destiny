@@ -2178,6 +2178,42 @@
     "context": "<div className=\"research-toolbar\"><div><strong>Backlinks</strong><span>{rows.length} shown · {result.totalRows.toLocaleString()} in provider index</span></div><input aria-label=\"Filter backlinks\" onChange={(event) => setSearch(event.target.value)} placeholder=\"Filter domain or anchor\" value={search} /><select aria-label=\"Filter link attribute\" onChange={(event) => setAttribute(event.target.value as typeof attribute)} value={attribute}><option value=\"all\">All attributes</option><option value=\"fol"
   },
   {
+    "control_id": "src/components/billing/managed-websites.tsx:28:input:1",
+    "file": "src/components/billing/managed-websites.tsx",
+    "line": 28,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<fieldset className={styles.siteChoices} disabled={saving}><legend>{selected.length} of {selection.capacity} selected</legend> {selection.websites.map(site => <label key={site.id}><input type=\"checkbox\" checked={selected.includes(site.id)} disabled={!selected.includes(site.id) && selected.length >= selection.capacity} onChange={event => { setSelected(current => event.target.checked ? [...current, site.id] : current.filter(id => id !== site.id)); setMessage(\"\"); }} /><span><strong>{site.name}</st"
+  },
+  {
+    "control_id": "src/components/billing/managed-websites.tsx:28:onChange:2",
+    "file": "src/components/billing/managed-websites.tsx",
+    "line": 28,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<fieldset className={styles.siteChoices} disabled={saving}><legend>{selected.length} of {selection.capacity} selected</legend> {selection.websites.map(site => <label key={site.id}><input type=\"checkbox\" checked={selected.includes(site.id)} disabled={!selected.includes(site.id) && selected.length >= selection.capacity} onChange={event => { setSelected(current => event.target.checked ? [...current, site.id] : current.filter(id => id !== site.id)); setMessage(\"\"); }} /><span><strong>{site.name}</st"
+  },
+  {
+    "control_id": "src/components/billing/managed-websites.tsx:32:button:1",
+    "file": "src/components/billing/managed-websites.tsx",
+    "line": 32,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!selection.websites.length && <p>You do not own a saved website yet. Team websites are managed by their account owner.</p>} <button className={styles.button} disabled={saving || selected.length > selection.capacity || !selection.websites.length} onClick={() => void save()} type=\"button\">{saving ? \"Saving…\" : \"Save managed websites\"}</button> </>}"
+  },
+  {
+    "control_id": "src/components/billing/managed-websites.tsx:32:onClick:2",
+    "file": "src/components/billing/managed-websites.tsx",
+    "line": 32,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "{!selection.websites.length && <p>You do not own a saved website yet. Team websites are managed by their account owner.</p>} <button className={styles.button} disabled={saving || selected.length > selection.capacity || !selection.websites.length} onClick={() => void save()} type=\"button\">{saving ? \"Saving…\" : \"Save managed websites\"}</button> </>}"
+  },
+  {
     "control_id": "src/components/billing/pricing-plans.tsx:22:Link:1",
     "file": "src/components/billing/pricing-plans.tsx",
     "line": 22,

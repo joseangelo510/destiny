@@ -1,3 +1,5 @@
+import { ManagedWebsites } from "@/components/billing/managed-websites";
+import { loadManagedWebsites } from "@/lib/billing/managed-websites";
 import type { Metadata } from "next";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { BillingNotice, PricingPlans } from "@/components/billing/pricing-plans";
@@ -10,7 +12,7 @@ export const metadata: Metadata = { title: "Plans and billing — Rebound SEO", 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;
   const context = await getWorkspaceContext();
-  const billing = await loadBillingAccount(context.userId);
+  const [billing, websites] = await Promise.all([loadBillingAccount(context.userId), loadManagedWebsites()]);
   const { account, access } = billing;
   const plan = planById(account?.plan);
   const checkoutReady = billing.available && billing.checkoutReady;
@@ -28,6 +30,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           {access.limits && <><p>Used this period. All sites share these allowances.</p><dl className={styles.usage}>{(Object.keys(meterLabels) as (keyof typeof meterLabels)[]).filter(key => key !== "websites" && key !== "trackedTargets").map(key => <div key={key}><dt>{meterLabels[key]}</dt><dd>{billing.used[key as Meter] ?? 0} / {access.limits![key]}</dd></div>)}</dl></>}
         </>}
     </section>
+    <ManagedWebsites initial={websites} />
     <PricingPlans checkoutReady={checkoutReady} trialEligible={!account?.trial_started_at} currentPlan={plan?.id} hasSubscription={Boolean(account?.stripe_subscription_id && !["canceled", "incomplete_expired"].includes(account.status))} />
   </WorkspaceShell>;
 }
