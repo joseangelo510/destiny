@@ -96,6 +96,25 @@ describe.sequential("managed website selection", () => {
     expect(results.split("\n")).toEqual(["1", "0", "0", "72"]);
     await expect(sql(`begin; set local role authenticated; select public.billing_digest_candidates(null); rollback;`)).rejects.toThrow("permission denied");
   });
+  it("bounds transactional email attempts across team members without exposing the ledger", async () => {
+    const emailTable = "billing_email_attempts";
+    await sql(`update auth.users set email_confirmed_at=now() where id in ('${owner}','${member}');`);
+    const reserve = (kind: string, key: string, actor = owner) => sql(`select public.reserve_transactional_email('${actor}','${sites[0]}','${kind}','${key}');`).then(JSON.parse);
+    const sharedKey = randomUUID();
+    expect(await reserve("progress", sharedKey)).toMatchObject({ allowed: true });
+    expect(await reserve("progress", sharedKey, member)).toMatchObject({ allowed: false, reason: "duplicate" });
+    const reports = await Promise.all(Array.from({ length: 8 }, (_, i) => reserve("progress", randomUUID(), i % 2 ? owner : member)));
+    expect(reports.filter(r => r.allowed)).toHaveLength(4);
+    const welcomes = await Promise.all(Array.from({ length: 4 }, () => reserve("welcome", randomUUID())));
+    expect(welcomes.filter(r => r.allowed)).toHaveLength(2);
+    expect(await reserve("welcome", randomUUID(), randomUUID())).toMatchObject({ allowed: false });
+    expect(await sql(`select count(*) from public.${emailTable} where owner_id='${owner}';`)).toBe("7");
+    await expect(sql(`begin; set local role authenticated; select * from public.${emailTable}; rollback;`)).rejects.toThrow("permission denied");
+    await expect(sql(`begin; set local role authenticated; select public.reserve_transactional_email('${owner}','${sites[0]}','welcome','${randomUUID()}'); rollback;`)).rejects.toThrow("permission denied");
+    await sql(`update public.${emailTable} set created_at=now()-interval '25 hours' where owner_id='${owner}';`);
+    expect(await reserve("progress", randomUUID())).toMatchObject({ allowed: true });
+    expect(await reserve("welcome", randomUUID())).toMatchObject({ allowed: false, reason: "limit_reached" });
+  });
   it("keeps owner selections private and prevents browser mutation or RPC execution", async () => {
     for (const who of [owner, member]) {
       const identity = `select set_config('request.jwt.claims','{"sub":"${who}","role":"authenticated"}',true);`;
