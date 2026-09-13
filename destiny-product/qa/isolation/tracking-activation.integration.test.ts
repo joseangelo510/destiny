@@ -27,11 +27,14 @@ afterAll(async () => {
   await sql(`delete from public.billing_accounts where owner_id='${owner}'; delete from public.organizations where id='${organization}'; delete from auth.users where id in ('${owner}','${member}');`);
 });
 describe.sequential("tracked activation billing capacity", () => {
-  it("serializes direct authenticated inserts across owner sites and saves excess paused", async () => {
-    const rows = await Promise.all(Array.from({ length: 30 }, (_, index) => sql(`begin; ${identity(member)} ${insert(`keyword ${index}`, index % 2 ? siteA : siteB)} commit;`).then(result => result.split("\n").at(-1))));
-    expect(rows.filter(status => status === "pending")).toHaveLength(25);
+  it.each([["starter", 25], ["growth", 75]] as const)("serializes %s authenticated activation and saves excess paused", async (plan, capacity) => {
+    await sql(`delete from public.tracked_keywords where website_id in ('${siteA}','${siteB}');
+      update public.billing_accounts set plan='${plan}' where owner_id='${owner}';
+      select public.set_billing_websites('${owner}',${plan === "starter" ? `array['${siteA}']` : `array['${siteA}','${siteB}']`}::uuid[]);`);
+    const rows = await Promise.all(Array.from({ length: capacity + 5 }, (_, index) => sql(`begin; ${identity(member)} ${insert(`keyword ${index}`, plan === "starter" || index % 2 ? siteA : siteB)} commit;`).then(result => result.split("\n").at(-1))));
+    expect(rows.filter(status => status === "pending")).toHaveLength(capacity);
     expect(rows.filter(status => status === "paused")).toHaveLength(5);
-    expect(await sql(`select count(*) from public.tracked_keywords where website_id in ('${siteA}','${siteB}');`)).toBe("30");
+    expect(await sql(`select count(*) from public.tracked_keywords where website_id in ('${siteA}','${siteB}');`)).toBe(String(capacity + 5));
   });
   it("keeps unpaid activation paused, permits free saved changes and allows later explicit resume", async () => {
     await sql(`update public.billing_accounts set status='past_due' where owner_id='${owner}';`);
@@ -42,7 +45,7 @@ describe.sequential("tracked activation billing capacity", () => {
     expect((await sql(`begin; ${identity(member)} update public.tracked_keywords set status='pending' where normalized_keyword='unpaid' and website_id='${siteA}' returning status; commit;`)).split("\n").at(-1)).toBe("pending");
   });
   it("caps a trial at ten and prevents outsider activation or direct private execution", async () => {
-    await sql(`update public.tracked_keywords set status='paused' where website_id in ('${siteA}','${siteB}'); update public.billing_accounts set status='trialing',trial_started_at=now()-interval '1 day',trial_end=now()+interval '6 days' where owner_id='${owner}';`);
+    await sql(`select public.set_billing_websites('${owner}',array['${siteA}']::uuid[]); update public.tracked_keywords set status='paused' where website_id in ('${siteA}','${siteB}'); update public.billing_accounts set status='trialing',trial_started_at=now()-interval '1 day',trial_end=now()+interval '6 days' where owner_id='${owner}';`);
     await sql(`begin; ${identity(member)} update public.tracked_keywords set status='pending' where website_id in ('${siteA}','${siteB}'); commit;`);
     expect(await sql(`select count(*) from public.tracked_keywords where website_id in ('${siteA}','${siteB}') and status<>'paused';`)).toBe("10");
     await expect(sql(`begin; ${identity(randomUUID())} ${insert("outsider")} rollback;`)).rejects.toThrow();

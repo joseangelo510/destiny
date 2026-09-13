@@ -25,7 +25,7 @@ beforeAll(async () => {
     insert into public.billing_accounts(owner_id,plan,status,period_start,period_end,paid_through)
     values('${owner}','starter','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');
     insert into public.organizations(id,name,owner_id) values('${organization}','Billing QA','${owner}');
-    insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${website}','${organization}','https://billing.invalid','billing.invalid','Billing QA');`);
+    insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${website}','${organization}','https://billing.invalid','billing.invalid','Billing QA'); select public.set_billing_websites('${owner}',array['${website}']::uuid[]);`);
 });
 afterAll(async () => {
   await sql(`delete from public.billing_stripe_events where stripe_customer_id='cus_${owner}'; delete from public.billing_usage where owner_id in ('${owner}','${other}'); delete from public.billing_accounts where owner_id in ('${owner}','${other}'); delete from public.organizations where id='${organization}'; delete from auth.users where id in ('${owner}','${other}');`);
@@ -164,6 +164,7 @@ describe.sequential("atomic billing reservations and isolation", () => {
       insert into public.organizations(id,name,owner_id) values('${otherOrg}','Unpaid QA','${other}');
       insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${otherSite}','${otherOrg}','https://unpaid.invalid','unpaid.invalid','Unpaid QA');
       insert into public.billing_accounts(owner_id,plan,status,period_start,period_end,paid_through) values('${other}','premium','active',now()-interval '1 day',now()+interval '20 days',now()+interval '20 days');
+      do $$ begin perform public.set_billing_websites('${other}',array['${otherSite}']::uuid[]); end $$;
       insert into public.tracked_keywords(website_id,created_by,keyword,normalized_keyword,next_check_at)
         select '${otherSite}','${other}','unpaid '||n,'unpaid '||n,now()-interval '10 days' from generate_series(1,150) n;
       update public.billing_accounts set status='past_due' where owner_id='${other}';
