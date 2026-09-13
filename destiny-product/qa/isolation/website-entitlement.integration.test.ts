@@ -60,6 +60,10 @@ test("actual Edge access follows site membership, owner payment and immediate re
   expect(forbiddenSelection.status).toBe(409);
   const memberSites = await request(people[1].token, { action: "sites", ownerId: people[0].id });
   expect(await memberSites.json()).toEqual({ capacity: 1, selected: [], websites: [] });
+  const deselected = await request(people[0].token, { action: "select_sites", websiteIds: [] });
+  expect(deselected.status).toBe(200);
+  expect(await (await request(people[1].token)).json()).toEqual({ canRunPaidWork: false, canManageBilling: false });
+  expect((await request(people[0].token, { action: "select_sites", websiteIds: [websiteId] })).status).toBe(200);
   const owner = await request(people[0].token);
   expect(owner.status).toBe(200);
   expect(await owner.json()).toEqual({ canRunPaidWork: true, canManageBilling: true });

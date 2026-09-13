@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { expect, it } from "vitest";
 import { rankTrackingAccess } from "../../supabase/functions/_shared/billing/rank-access";
 function db(account: unknown) {
-  return { from: (table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: table === "websites" ? { organizations: { owner_id: "owner-a" } } : account, error: null }) }) }) }) } as unknown as SupabaseClient;
+  return { rpc: async () => ({ data: true, error: null }), from: (table: string) => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: table === "websites" ? { organizations: { owner_id: "owner-a" } } : account, error: null }) }) }) }) } as unknown as SupabaseClient;
 }
 const state = { plan: "starter", status: "active", period_start: "2026-09-01T00:00:00Z", period_end: "2026-10-01T00:00:00Z", paid_through: "2026-10-01T00:00:00Z", trial_end: null };
 it("blocks scheduled checks for unpaid and expired accounts", async () => {
