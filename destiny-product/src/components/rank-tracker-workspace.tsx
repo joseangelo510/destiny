@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { TrackingNotice } from "@/components/tracking-notice";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -26,9 +27,9 @@ export type RankTrackerKeyword = {
   policyView?: { reading: { label: string; tone: string }; movement: { label: string; tone: string }; freshness: { message: string }; bucket: number };
 };
 
-type Props = { websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; rankingDigestFrequency?: "three_day" | "weekly" | "off"; reportGeneratedAt?: string };
+type Props = { trackingAvailable?: boolean; canManageBilling?: boolean; websiteId: string; initialLists: RankTrackerList[]; initialKeywords: RankTrackerKeyword[]; rankingDigestFrequency?: "three_day" | "weekly" | "off"; reportGeneratedAt?: string };
 
-export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, rankingDigestFrequency = "weekly", reportGeneratedAt }: Props) {
+export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords, rankingDigestFrequency = "weekly", reportGeneratedAt, trackingAvailable = false, canManageBilling = false }: Props) {
   const [lists, setLists] = useState(initialLists);
   const [keywords, setKeywords] = useState(initialKeywords);
   const [activeList, setActiveList] = useState<string>("all");
@@ -125,20 +126,21 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
   }
 
   return <div className="rank-tracker-workspace" id="rank-tracker-workspace">
+    {!trackingAvailable && <aside className="configuration-note" role="status"><strong>New rank checks are unavailable for this website.</strong><p>An active plan or trial and a managed website selection are required. Saved keywords, rankings, and reports remain available.</p>{canManageBilling ? <Link href="/account/billing">Review plan and managed websites</Link> : <p>Ask the website owner to review the plan and managed website selection.</p>}</aside>}
     <section className="rank-tracker-intro">
-      <div><span className="research-kicker">{rankingDigestFrequency === "three_day" ? "Google rank tracking every 3 days" : "Weekly Google rank tracking"}</span><h2>See whether your approved strategy is gaining ground.</h2><p>Rebound SEO checks the same search context on your chosen schedule so movement is comparable—not guessed.</p></div>
-      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>For enabled tracking, a new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours.</small></div>
+      <div><span className="research-kicker">Google rank tracking</span><h2>See whether your approved strategy is gaining ground.</h2><p>Paid plans check eligible targets weekly. Trial targets can receive up to two checks, at least three days apart.</p></div>
+      <div className="rank-context"><strong>Measurement context</strong><span>Google Search</span><span>United States · English · Desktop</span><small>{trackingAvailable ? "For eligible tracking, a new keyword’s first reading usually arrives within minutes. Please allow up to 24 hours." : "New checks are stopped. The positions below are saved observations."}</small><small>{rankingDigestFrequency === "off" ? "Ranking emails off" : rankingDigestFrequency === "three_day" ? "Ranking emails every 3 days when eligible" : "Weekly ranking emails when eligible"}</small></div>
     </section>
 
     <section className="rank-summary-grid">
-      <article><span>Saved keywords</span><strong>{summary.tracked}</strong><small>{keywords.filter(row => row.status !== "paused").length} enabled · {summary.measured} measured</small></article>
+      <article><span>Saved keywords</span><strong>{summary.tracked}</strong><small>{trackingAvailable ? `${keywords.filter(row => row.status !== "paused").length} requested for tracking · subject to plan limits` : "New checks stopped"} · {summary.measured} measured</small></article>
       <article><span>Top 3</span><strong>{summary.top3}</strong><small>Confirmed positions</small></article>
       <article><span>Top 10</span><strong>{summary.top10}</strong><small>Confirmed positions</small></article>
       <article><span>Average position</span><strong>{summary.averagePosition ?? "—"}</strong><small>Ranked keywords only</small></article>
     </section>
 
     <section className="rank-weekly-report" aria-labelledby="rank-weekly-report-title">
-      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : "Your tracked keywords are saved. Rebound SEO will build this report after a new provider reading arrives."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {formatUtcDateTime(weeklyReport.evidenceAt)}</small> : <small>No fresh observation yet</small>}</header>
+      <header><div><span className="research-kicker">In-app weekly report</span><h2 id="rank-weekly-report-title">{weeklyReport.state === "ready" ? "What changed in your search visibility" : "Waiting for this week’s fresh readings"}</h2><p>{weeklyReport.state === "ready" ? `Built only from ${weeklyReport.summary.keywordsCompared + weeklyReport.summary.baselines.length} saved Google observations. First readings are labeled as baselines, never movement.` : trackingAvailable ? "Your tracked keywords are saved. Rebound SEO will build this report after a new provider reading arrives." : "Your keywords are saved. New checks require an active plan or trial and a managed website selection."}</p></div>{weeklyReport.evidenceAt ? <small>Evidence checked {formatUtcDateTime(weeklyReport.evidenceAt)}</small> : <small>No fresh observation yet</small>}</header>
       {weeklyReport.state === "ready" ? <>
         <div className="rank-weekly-report-metrics">
           <article><strong>{weeklyReport.summary.movedUp}</strong><span>Moved up</span></article>
@@ -171,10 +173,10 @@ export function RankTrackerWorkspace({ websiteId, initialLists, initialKeywords,
       <div className="rank-table-panel">
         <form className="rank-add-form" onSubmit={addKeyword}><label><span>Add keywords</span><input aria-label="Keyword to track" onChange={(event) => setKeyword(event.target.value)} placeholder="Enter a keyword" value={keyword} /></label><button className="primary-button" disabled={adding} type="submit">{adding ? "Adding…" : "Track keyword"}</button></form>
         <div className="rank-table-scroll"><table className="rank-table"><thead><tr><th>Keyword</th><th>Position</th><th>Change</th><th>Trend</th><th>Ranking page</th><th>Last checked</th><th>List</th><th>Tracking</th></tr></thead><tbody>{visible.map((row) => {
-          const reading = row.status === "paused" && row.lastCheckedAt === null ? { label: "No saved reading", tone: "pending" } : row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
+          const reading = (row.status === "paused" || !trackingAvailable) && row.lastCheckedAt === null ? { label: "No saved reading", tone: "pending" } : row.policyView?.reading ?? { label: "Checking…", tone: "pending" };
           const movement = row.policyView?.movement ?? { label: "—", tone: "flat" };
           const freshness = row.policyView?.freshness ?? { message: "Calculating freshness…" };
-          return <tr key={row.id}><td><strong>{row.keyword}</strong>{row.status === "paused" ? <small>Paused</small> : null}<small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? formatUtcDate(row.checkedAt) : row.status === "paused" ? "No reading" : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td><td><button aria-label={`${row.status === "paused" ? "Resume" : "Pause"} ${row.keyword}`} className="text-button" disabled={changingTracking === row.id} onClick={() => void toggleTracking(row)} type="button">{row.status === "paused" ? "Resume" : "Pause"}</button></td></tr>;
+          return <tr key={row.id}><td><strong>{row.keyword}</strong>{!trackingAvailable && <small>New checks stopped</small>}{row.status === "paused" ? <small>Paused</small> : null}<small>{row.source === "strategy" ? "From Keyword strategy" : row.source === "research" ? "From Keyword research" : "Manually added"}</small></td><td><span className={`rank-state ${reading.tone}`}>{reading.label}</span></td><td><span className={`rank-movement ${movement.tone}`}>{movement.label}</span></td><td><RankTrend history={row.history ?? []} /></td><td>{row.resultUrl ? <a href={row.resultUrl} rel="noreferrer" target="_blank">View page ↗</a> : "—"}</td><td><span>{row.checkedAt ? formatUtcDate(row.checkedAt) : row.status === "paused" || !trackingAvailable ? "No reading" : "Pending"}</span><small>{freshness.message}</small></td><td><select aria-label={`List for ${row.keyword}`} onChange={(event) => void moveKeyword(row.id, event.target.value || null)} value={row.listId ?? ""}><option value="">General</option>{lists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select></td><td><button aria-label={`${row.status === "paused" ? "Resume" : "Pause"} ${row.keyword}`} className="text-button" disabled={changingTracking === row.id} onClick={() => void toggleTracking(row)} type="button">{row.status === "paused" ? "Resume" : "Pause"}</button></td></tr>;
         })}</tbody></table></div>
         {!visible.length ? <div className="rank-empty"><strong>No keywords in this list yet.</strong><p>Add one here, approve one in Keyword strategy, or track one from Keyword research.</p></div> : null}
       </div>

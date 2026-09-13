@@ -1,3 +1,4 @@
+import { loadWebsiteEntitlement } from "@/lib/billing/website-entitlement";
 import { RankTrackerWorkspace, type RankTrackerKeyword } from "@/components/rank-tracker-workspace";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
@@ -13,13 +14,14 @@ export default async function RankTrackerPage() {
   const context = await getWorkspaceContext();
   if (!context.website) return <WorkspaceShell active="/rank-tracker" eyebrow="Rebound SEO workspace" title="Rank tracker" description="Track the Google positions connected to your approved strategy."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Rebound SEO knows which domain to measure." /></WorkspaceShell>;
 
-  const [{ data: lists }, { data: tracked }, { data: observations }, { data: approvedKeywords, count: approvedCount }, { count: draftCount }, { data: preference }] = await Promise.all([
+  const [{ data: lists }, { data: tracked }, { data: observations }, { data: approvedKeywords, count: approvedCount }, { count: draftCount }, { data: preference }, entitlement] = await Promise.all([
     context.supabase.from("rank_tracker_lists").select("id,name").eq("website_id", context.website.id).order("name"),
     context.supabase.from("tracked_keywords").select("id,keyword,list_id,status,source,created_at,last_checked_at").eq("website_id", context.website.id).order("created_at"),
     context.supabase.from("rank_observations").select("tracked_keyword_id,observed_at,found,position,result_url").eq("website_id", context.website.id).order("observed_at", { ascending: false }).limit(2000),
     context.supabase.from("keyword_preferences").select("normalized_keyword", { count: "exact" }).eq("website_id", context.website.id).eq("decision", "approved"),
     (context.supabase as unknown as SupabaseClient).from("article_drafts").select("id", { count: "exact", head: true }).eq("website_id", context.website.id),
     (context.supabase as unknown as SupabaseClient).from("notification_preferences").select("ranking_digest_frequency").eq("website_id", context.website.id).maybeSingle(),
+    loadWebsiteEntitlement(context.website.id),
   ]);
 
   const byKeyword = (observations ?? []).reduce<Record<string, typeof observations>>((grouped, observation) => {
@@ -56,7 +58,7 @@ export default async function RankTrackerPage() {
 
   return <WorkspaceShell active="/rank-tracker" eyebrow={context.website.normalized_domain} title="Rank tracker" description="Follow the keywords you approved, organize them into lists, and compare evidence-backed Google positions on a consistent schedule.">
     <StrategyPipelineStrip active="rankings" approvedKeywords={approvedCount ?? 0} contentDrafts={draftCount ?? 0} watchedKeywords={rows.filter((row) => row.source !== "strategy").length} />
-    <FeatureJourneyCallout actionHref="#rank-tracker-workspace" actionLabel="Track one approved keyword" milestone="Signs it’s working" description="Measure the customer searches your strategy says matter." doneLooksLike="A saved keyword has a fresh observation, or clearly says it is still pending." evidence="Timestamped provider reading, location, device, and result URL." />
-    <RankTrackerWorkspace initialKeywords={rows} initialLists={lists ?? []} rankingDigestFrequency={preference?.ranking_digest_frequency === "three_day" || preference?.ranking_digest_frequency === "off" ? preference.ranking_digest_frequency : "weekly"} reportGeneratedAt={new Date().toISOString()} websiteId={context.website.id} />
+    <FeatureJourneyCallout actionHref="#rank-tracker-workspace" actionLabel="Track one approved keyword" milestone="Signs it’s working" description="Measure the customer searches your strategy says matter." doneLooksLike="A saved keyword shows its latest observation and whether new checks can run." evidence="Timestamped provider reading, location, device, and result URL." />
+    <RankTrackerWorkspace trackingAvailable={entitlement.canRunPaidWork} canManageBilling={entitlement.canManageBilling} initialKeywords={rows} initialLists={lists ?? []} rankingDigestFrequency={preference?.ranking_digest_frequency === "three_day" || preference?.ranking_digest_frequency === "off" ? preference.ranking_digest_frequency : "weekly"} reportGeneratedAt={new Date().toISOString()} websiteId={context.website.id} />
   </WorkspaceShell>;
 }
