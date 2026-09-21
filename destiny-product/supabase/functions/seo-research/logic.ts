@@ -61,8 +61,20 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .slice(-12).map((item) => number(item.search_volume));
 }
 
+function keywordItems(result: JsonRecord): unknown[] {
+  const items = array(result.items);
+  const seed = record(result.seed_keyword_data);
+  const seedKey = string(seed.keyword).trim().toLowerCase();
+  if (!seedKey) return items;
+  return [seed, ...items.filter((item) => {
+    const row = record(item);
+    const data = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
+    return string(data.keyword).trim().toLowerCase() !== seedKey;
+  })];
+}
+
 export function parseKeywordRows(payload: unknown) {
-  return array(firstResult(payload).items).map((item) => {
+  return keywordItems(firstResult(payload)).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
     const keywordInfo = record(keywordData.keyword_info);

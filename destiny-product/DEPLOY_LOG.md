@@ -3811,3 +3811,9 @@ Scope: parse documented strings within related-search items while retaining obje
 Source trace found the same documented-string loss in server-side parseReoptimizationResearch; include the matching parser repair and separate failing-first regression. No research transport, credentials or quota changes.
 
 Validation before review: new Edge regression3fail/1pass, new server regression1fail, then28/28focused and1509/1509full unit tests pass. App parser lint passes; repository lint intentionally excludes Edge files, so no Edge ESLint coverage is claimed. Existing website/auth/billing boundaries unchanged. Full hosted harness and staging remain pending.
+
+## Exact keyword seed recovery — September21,2026
+
+MEDIUM ordinary research behavior correction under Jose's comprehensive Rebound acceptance/fix goal. Sole implementation owner task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd. Stacked base68ac7ebdc6103622fc48300fff336de8739468ac (PR144), preserving missing-vs-zero contract; canonicalmainc3a51270ca85cebd711a5c5d4539063131abb0df. No production deployment authorized by this implementation.
+
+Official DataForSEO keyword_suggestions/live docs specify include_seed_keyword defaultsfalse and seed_keyword_data object has item fields. Both current requests omit the flag; both parsers drop the separate object. Explicitly request it and retain a valid seed first, removing only case/whitespace-equivalent duplicates from suggestions. Do not equate pronounvariants or transfer their metrics. Keep unknown versus measuredzero fromPR144. No additionalproviderrequest, credentials,billing,auth,RLS,schemaorCIchange. Regressionfixtures are synthetic;40/20are not fresh measuredvolumes. Original livequerymismatch remains unproven until actualprovider/releaseacceptance. Rollback protectedrevert; validation RED/GREEN,browser,fullgate,staging/exactheadrequired.
