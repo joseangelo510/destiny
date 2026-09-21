@@ -12,6 +12,7 @@ describe("keyword research progressive disclosure", () => {
       caption: "Showing 50 of 100 keywords",
     });
     expect(keywordDisclosureState({ filteredCount: 100, loadedCount: 100, revealed: true })).toEqual({
+      emptyMessage: null,
       visibleCount: 100,
       hiddenCount: 0,
       buttonLabel: null,
