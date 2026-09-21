@@ -22,6 +22,11 @@ export function keywordDisclosureState({
       : `Show all ${safeFilteredCount} keywords`;
 
   return {
+    emptyMessage: safeFilteredCount > 0
+      ? null
+      : safeLoadedCount === 0
+        ? "No keyword rows were returned for this query. This does not establish zero search demand. Try a related phrase or a broader topic."
+        : "No keywords match these filters. Clear or adjust the filters to see the loaded results.",
     visibleCount,
     hiddenCount,
     buttonLabel,

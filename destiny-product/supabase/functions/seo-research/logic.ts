@@ -14,6 +14,12 @@ function number(value: unknown) {
   return 0;
 }
 
+function measuredNumber(value: unknown): number | null {
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
+  const result = Number(value);
+  return Number.isFinite(result) && result >= 0 ? result : null;
+}
+
 function string(value: unknown) {
   return typeof value === "string" ? value : "";
 }
@@ -55,8 +61,32 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .slice(-12).map((item) => number(item.search_volume));
 }
 
+export function keywordProviderResult(payload: unknown): JsonRecord {
+  const first = firstResult(payload); // Retain provider status validation.
+  const results = array(record(array(record(payload).tasks)[0]).result).map(record);
+  const seed = results.map(result => record(result.seed_keyword_data)).find(value => string(value.keyword).trim());
+  return {
+    ...first,
+    seed_keyword_data: seed ?? null,
+    items: results.flatMap(result => array(result.items)),
+    total_count: Math.max(0, ...results.map(result => number(result.total_count))),
+  };
+}
+
+function keywordItems(result: JsonRecord): unknown[] {
+  const items = array(result.items);
+  const seed = record(result.seed_keyword_data);
+  const seedKey = string(seed.keyword).trim().toLowerCase();
+  if (!seedKey) return items;
+  return [seed, ...items.filter((item) => {
+    const row = record(item);
+    const data = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
+    return string(data.keyword).trim().toLowerCase() !== seedKey;
+  })];
+}
+
 export function parseKeywordRows(payload: unknown) {
-  return array(firstResult(payload).items).map((item) => {
+  return keywordItems(keywordProviderResult(payload)).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
     const keywordInfo = record(keywordData.keyword_info);
@@ -66,25 +96,40 @@ export function parseKeywordRows(payload: unknown) {
     return {
       keyword: string(keywordData.keyword),
       intent: normalizeIntent(searchIntent.main_intent ?? keywordProperties.main_intent),
-      volume: number(keywordInfo.search_volume),
-      difficulty: number(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
-      cpc: number(keywordInfo.cpc),
-      competition: number(keywordInfo.competition),
+      volume: measuredNumber(keywordInfo.search_volume),
+      difficulty: measuredNumber(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
+      cpc: measuredNumber(keywordInfo.cpc),
+      competition: measuredNumber(keywordInfo.competition),
       trend: monthlyTrend(keywordInfo),
       position: number(serpItem.rank_group) || number(serpItem.rank_absolute),
-      traffic: number(serpItem.etv),
+      traffic: measuredNumber(serpItem.etv),
       url: string(serpItem.url),
     };
   }).filter((row) => row.keyword);
 }
 
 export function summarizeKeywordRows(rows: ReturnType<typeof parseKeywordRows>, providerTotal = 0) {
+  const known = (key: "volume" | "difficulty" | "traffic") => rows.flatMap(row => typeof row[key] === "number" && Number.isFinite(row[key]) ? [row[key] as number] : []);
+  const sum = (values: number[]) => values.length ? values.reduce((total, value) => total + value, 0) : null;
+  const volume = known("volume");
+  const difficulty = known("difficulty");
+  const traffic = known("traffic");
   return {
     totalKeywords: providerTotal || rows.length,
-    totalVolume: rows.reduce((total, row) => total + row.volume, 0),
-    averageDifficulty: rows.length ? Math.round(rows.reduce((total, row) => total + row.difficulty, 0) / rows.length) : 0,
-    estimatedTraffic: Math.round(rows.reduce((total, row) => total + row.traffic, 0)),
+    totalVolume: sum(volume),
+    averageDifficulty: difficulty.length ? Math.round(sum(difficulty)! / difficulty.length) : null,
+    estimatedTraffic: traffic.length ? Math.round(sum(traffic)!) : null,
   };
+}
+
+// Preserve numeric wire fields for already-open clients; only v2 opts into nulls.
+export function keywordReportMetrics(rows: ReturnType<typeof parseKeywordRows>, providerTotal = 0, version?: unknown) {
+  if (version === 2) return { metricContractVersion: 2 as const, rows, metrics: summarizeKeywordRows(rows, providerTotal) };
+  const legacyRows = rows.map(row => ({ ...row, volume: row.volume ?? 0, difficulty: row.difficulty ?? 0,
+    cpc: row.cpc ?? 0, competition: row.competition ?? 0, traffic: row.traffic ?? 0 }));
+  const metrics = summarizeKeywordRows(legacyRows, providerTotal);
+  return { rows: legacyRows, metrics: { ...metrics, totalVolume: metrics.totalVolume ?? 0,
+    averageDifficulty: metrics.averageDifficulty ?? 0, estimatedTraffic: metrics.estimatedTraffic ?? 0 } };
 }
 
 export function parseOrganicPerformance(payload: unknown) {
@@ -147,7 +192,9 @@ export function parseKeywordSerp(payload: unknown, keyword: string, location: st
   }).slice(0, 10);
   const unique = (values: string[], limit = 12) => [...new Set(values.map(tidy).filter(Boolean))].slice(0, limit);
   const questions = unique(items.filter((item) => string(item.type) === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"]))));
-  const related = unique(items.filter((item) => string(item.type) === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"]))));
+  const related = unique(items.filter((item) => string(item.type) === "related_searches")
+    .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
+      ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))));
   return { keyword, location, checkedAt: checkedAt.toISOString(), organic, questions, related };
 }
 

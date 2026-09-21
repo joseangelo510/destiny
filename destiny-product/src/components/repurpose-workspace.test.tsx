@@ -363,3 +363,9 @@ describe("RepurposeWorkspace", () => {
     expect(source).toContain("repurpose");
   });
 });
+
+it("shows the saved target keyword even when it is no longer in the approved list", () => {
+  const html = renderRepurpose({ initialDraft: { ...INITIAL_DRAFT, targetKeyword: "older saved keyword" } });
+  expect(html).toContain('value="older saved keyword" selected=""');
+  expect(html).toContain("older saved keyword (saved with draft)");
+});

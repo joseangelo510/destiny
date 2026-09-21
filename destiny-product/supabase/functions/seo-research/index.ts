@@ -3,7 +3,7 @@ import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
 import { runDomainOverview } from "./domain-overview.ts";
-import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { creatorSearchRequests, keywordProviderResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, keywordReportMetrics } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -12,6 +12,7 @@ type ResearchRequest = {
   query?: unknown;
   mode?: unknown;
   locationName?: unknown;
+  metricContractVersion?: unknown;
   target?: unknown;
   topics?: unknown;
   excludeDomains?: unknown;
@@ -85,7 +86,7 @@ export default {
         const path = body.mode === "domain" ? "/v3/dataforseo_labs/google/ranked_keywords/live" : "/v3/dataforseo_labs/google/keyword_suggestions/live";
         const providerBody = body.mode === "domain"
           ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
-          : { keyword: query, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
+          : { keyword: query, include_seed_keyword: true, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
         const [payload, historyPayload, seedSerpPayload] = await Promise.all([
           providerPost(path, [providerBody], login, password),
           body.mode === "domain"
@@ -102,7 +103,7 @@ export default {
             : Promise.resolve(null),
         ]);
         const rows = parseKeywordRows(payload);
-        const providerResult = firstResult(payload);
+        const providerResult = keywordProviderResult(payload);
         const providerTotal = typeof providerResult.total_count === "number" ? providerResult.total_count : 0;
         let seedSerp: ReturnType<typeof parseKeywordSerp> | null = null;
         if (seedSerpPayload) {
@@ -110,7 +111,7 @@ export default {
         }
         return json({
           sourceLabel: "Live DataForSEO keyword index", query, mode: body.mode, location, updatedAt: new Date().toISOString(),
-          metrics: summarizeKeywordRows(rows, providerTotal), rows,
+          ...keywordReportMetrics(rows, providerTotal, body.metricContractVersion),
           performance: historyPayload ? parseOrganicPerformance(historyPayload) : [],
           ...(body.mode === "keyword" ? {
             questions: seedSerp?.questions ?? [],

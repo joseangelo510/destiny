@@ -29,6 +29,9 @@ export function sortKeywordRows(rows: KeywordResearchRow[], sort: KeywordSort) {
 
     const leftValue = left[sort.key];
     const rightValue = right[sort.key];
+    const leftUnknown = leftValue == null;
+    const rightUnknown = rightValue == null;
+    if (leftUnknown !== rightUnknown) return leftUnknown ? 1 : -1;
     const comparison = typeof leftValue === "string" && typeof rightValue === "string"
       ? leftValue.localeCompare(rightValue, undefined, { sensitivity: "base" })
       : Number(leftValue) - Number(rightValue);

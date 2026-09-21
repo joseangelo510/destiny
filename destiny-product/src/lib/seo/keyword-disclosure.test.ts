@@ -4,6 +4,7 @@ import { keywordDisclosureState } from "./keyword-disclosure";
 describe("keyword research progressive disclosure", () => {
   it("shows 50 rows first and offers one client-side reveal", () => {
     expect(keywordDisclosureState({ filteredCount: 100, loadedCount: 100, revealed: false })).toEqual({
+      emptyMessage: null,
       visibleCount: 50,
       hiddenCount: 50,
       buttonLabel: "Show 50 more keywords",
@@ -11,6 +12,7 @@ describe("keyword research progressive disclosure", () => {
       caption: "Showing 50 of 100 keywords",
     });
     expect(keywordDisclosureState({ filteredCount: 100, loadedCount: 100, revealed: true })).toEqual({
+      emptyMessage: null,
       visibleCount: 100,
       hiddenCount: 0,
       buttonLabel: null,
