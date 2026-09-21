@@ -86,7 +86,7 @@ export default {
         const path = body.mode === "domain" ? "/v3/dataforseo_labs/google/ranked_keywords/live" : "/v3/dataforseo_labs/google/keyword_suggestions/live";
         const providerBody = body.mode === "domain"
           ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
-          : { keyword: query, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
+          : { keyword: query, include_seed_keyword: true, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
         const [payload, historyPayload, seedSerpPayload] = await Promise.all([
           providerPost(path, [providerBody], login, password),
           body.mode === "domain"

@@ -3800,3 +3800,10 @@ D10.41 live payment-button readability at7527180: visual inspection of the authe
 - RED synthetic provider rows distinguish unknown, measured0 and measuredpositive; both parser paths and all-missing summaries covered. Require browser rendering/sorting/export evidence and full exact-head checks. No billing, auth/RLS, schema, credentials, config, dependencies or provider request changes. Edge deployment remains a separate approved step. Rollback protected revert.
 
 D10.51 compatibility detail: internal metricContractVersion2 explicitly opts new UI requests into nullable Edge keyword metrics. Legacy/unsupported clients retain numeric wire fields; provider requests, billing/auth checks and deployment controls stay unchanged. Both web and Edge must be released before claiming live correction. Unknown recommendation score heuristics and downstream saved metrics remain separate.
+
+
+## Exact keyword seed recovery — September21,2026
+
+MEDIUM ordinary research behavior correction under Jose's comprehensive Rebound acceptance/fix goal. Sole implementation owner task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd. Stacked base68ac7ebdc6103622fc48300fff336de8739468ac (PR144), preserving missing-vs-zero contract; canonicalmainc3a51270ca85cebd711a5c5d4539063131abb0df. No production deployment authorized by this implementation.
+
+Official DataForSEO keyword_suggestions/live docs specify include_seed_keyword defaultsfalse and seed_keyword_data object has item fields. Both current requests omit the flag; both parsers drop the separate object. Explicitly request it and retain a valid seed first, removing only case/whitespace-equivalent duplicates from suggestions. Do not equate pronounvariants or transfer their metrics. Keep unknown versus measuredzero fromPR144. No additionalproviderrequest, credentials,billing,auth,RLS,schemaorCIchange. Regressionfixtures are synthetic;40/20are not fresh measuredvolumes. Original livequerymismatch remains unproven until actualprovider/releaseacceptance. Rollback protectedrevert; validation RED/GREEN,browser,fullgate,staging/exactheadrequired.

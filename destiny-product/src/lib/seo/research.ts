@@ -285,9 +285,21 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .map((item) => number(item.search_volume));
 }
 
+function keywordItems(result: JsonRecord): unknown[] {
+  const items = array(result.items);
+  const seed = record(result.seed_keyword_data);
+  const seedKey = string(seed.keyword).trim().toLowerCase();
+  if (!seedKey) return items;
+  return [seed, ...items.filter((item) => {
+    const row = record(item);
+    const data = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
+    return string(data.keyword).trim().toLowerCase() !== seedKey;
+  })];
+}
+
 export function parseKeywordResearch(payload: unknown): KeywordResearchRow[] {
   const result = firstResult(payload);
-  return array(result.items).map((item) => {
+  return keywordItems(result).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
     const keywordInfo = record(keywordData.keyword_info);
@@ -422,7 +434,7 @@ export class DataForSeoResearchClient {
     const request = input.mode === "domain"
       ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
       : input.related ? { keyword: query, location_name: location, language_name: "English", depth: 2, include_seed_keyword: true, offset: input.offset ?? 0, limit: 100, filters: ["keyword_data.keyword_info.search_volume", ">", 0], order_by: ["keyword_data.keyword_info.search_volume,desc"] }
-      : { keyword: query, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
+      : { keyword: query, include_seed_keyword: true, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
     const payload = await this.post(path, [request]);
     const result = firstResult(payload);
     const rows = parseKeywordResearch(payload);
