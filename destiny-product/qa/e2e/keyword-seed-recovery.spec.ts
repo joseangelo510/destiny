@@ -11,9 +11,9 @@ test("@gate an exact seed-only result and separately measured variant remain vis
     const {query,mode} = route.request().postDataJSON();
     const rows = parseKeywordRows({status_code:20000,tasks:[{status_code:20000,result:[{
       seed_keyword_data:{keyword:query,keyword_info:{search_volume:40},keyword_properties:{keyword_difficulty:0}},
-      items: searches++ === 0 ? [] : [{keyword:"is chatgpt spying on you",keyword_info:{search_volume:20}}],
+    },{total_count:250,items: searches++ === 0 ? [] : [{keyword:"is chatgpt spying on you",keyword_info:{search_volume:20}}],
     }]}]});
-    await route.fulfill({json:{query,mode,sourceLabel:"Synthetic exact-seed fixture",location:"United States",updatedAt:"2026-09-21T21:00:00Z",metricContractVersion:2,metrics:summarizeKeywordRows(rows),rows,notices:["Synthetic data; not measured provider volume."]}});
+    await route.fulfill({json:{query,mode,sourceLabel:"Synthetic exact-seed fixture",location:"United States",updatedAt:"2026-09-21T21:00:00Z",metricContractVersion:2,metrics:summarizeKeywordRows(rows,250),rows,notices:["Synthetic data; not measured provider volume."]}});
   });
   await page.goto(`/keyword-research?site=${fixture.mvp.websiteId}`);
   const panel=page.locator(".research-search-panel");
@@ -22,6 +22,7 @@ test("@gate an exact seed-only result and separately measured variant remain vis
   await panel.getByRole("button",{name:"Search",exact:true}).click();
   const rows=page.locator(".research-table tbody tr");
   await expect(rows).toHaveCount(1);
+  await expect(page.locator(".research-metric-grid article").filter({hasText:"Total keywords"})).toContainText("250");
   await expect(rows.first()).toContainText("is chatgpt spying on me");
   await expect(rows.first().getByRole("cell").nth(2)).toHaveText("40");
   await panel.getByRole("button",{name:"Search",exact:true}).click();
