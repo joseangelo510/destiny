@@ -1,10 +1,9 @@
-import { keywordProviderResult } from "./logic.ts";
 import { callerWebsiteOwner, matchingWebsiteUsage } from "../_shared/billing/caller-website.ts";
 import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
 import { runDomainOverview } from "./domain-overview.ts";
-import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, keywordReportMetrics } from "./logic.ts";
+import { creatorSearchRequests, keywordProviderResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, keywordReportMetrics } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
