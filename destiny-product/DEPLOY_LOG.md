@@ -3801,3 +3801,8 @@ Reuse siteScopedHref for internal task actions with the dashboard websiteId; ret
 
 
 Same MEDIUM navigation repair extended September21 to the This Week audit-details link. Actual desktop/mobile read-only click-through (192) shows audit content for Browser Member under Browser Alpha navigation after a second tab changes selection. The initial test was blocked by the expected plan-reveal dialog; dismissing it normally confirms the defect. Reuse WorkspaceLink and the existing website provider; no new cookie/auth/RLS behavior. New RED component test before repair. Direct audit URLs with omitted or conflicting site context remain a separate page-context issue; this fixes the identified weekly-plan handoff.
+
+
+## Shared label readability — September21,2026
+
+MEDIUM accessibility correction in the local UI acceptance candidate, basee10f5516ec9855542dd42060c2b9ddb6978b44ce. Browser sweep188found insufficient contrast in amber statuschips, pipeline smallcounts andweekly stepcounts. Four desktop/mobileREDcases retained198. Darken only these three existing foreground colors; preservelayout,typography,backgrounds andstate semantics. Reusecurrent design. Newbrowserregression scopesaxe color-contrast totheseelements andrequiresvisiblecontent; WordPressreceiptPOSTblocked inthisread-onlytest. Noauth,settings,billing,CI,productionorCMSchange. Rollback protectedCSSrevert; fullgates/releasecontrolsremainrequired. Otheraccessibilityfindingsremainopen.
