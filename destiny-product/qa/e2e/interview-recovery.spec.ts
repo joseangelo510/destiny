@@ -56,7 +56,12 @@ test("@gate completed review reopens without resetting rejected insights", async
   await expect(page.getByRole("heading", { name: "Here is what Rebound SEO captured.", exact: true })).toBeVisible();
   await expect(page.getByRole("blockquote").filter({ hasText: words }).first()).toHaveText(words);
   await expect(page.getByRole("button", { name: "✕ Not quite", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "2 The interview", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Here is what Rebound SEO captured.", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Finish saved interview", exact: true })).toHaveCount(0);
+  const decision = page.waitForResponse(response => response.request().method() === "PATCH" && response.url().includes(`/${interview.id}/insights`));
   await page.getByRole("button", { name: "✓ That’s right", exact: true }).click();
+  expect((await decision).status()).toBe(200);
   await expect(page.getByRole("button", { name: "✓ That’s right", exact: true })).toHaveAttribute("aria-pressed", "true");
   await library(page);
   await reopen();
