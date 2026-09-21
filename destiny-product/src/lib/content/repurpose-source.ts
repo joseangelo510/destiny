@@ -8,7 +8,7 @@
  */
 
 import { pathToFileURL } from "node:url";
-import { createRequire } from "node:module";
+import { join } from "node:path";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -323,13 +323,15 @@ async function extractPdf(bytes: Uint8Array): Promise<string> {
     "pdfjs-dist/legacy/build/pdf.mjs" as string
   );
 
-  // In Node/Vitest we must point workerSrc at the real worker file via a
-  // file:// URL so pdfjs-dist can spawn it without browser APIs.
-  if (!GlobalWorkerOptions.workerSrc) {
-    const req = createRequire(import.meta.url);
-    const workerPath = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
-    GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
-  }
+  // PDF.js supplies a relative default even in Node. After Next bundles it,
+  // that default points into .next/server/chunks, where no worker is shipped.
+  // Always resolve the installed server worker instead of keeping that default.
+  // Keep this Node import native so webpack cannot replace resolve() with a
+  // numeric module ID or discard a dynamic createRequire anchor.
+  const { createRequire } = await import(/* webpackIgnore: true */ "node:module");
+  const req = createRequire(join(process.cwd(), "package.json"));
+  const workerPath = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
   let pdf: Awaited<ReturnType<typeof getDocument>["promise"]>;
   try {
