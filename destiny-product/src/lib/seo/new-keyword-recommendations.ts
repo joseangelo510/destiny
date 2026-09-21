@@ -64,10 +64,10 @@ export async function discoverNewKeywordRecommendations(input: NewKeywordInput, 
     measured += rows.length;
     const candidates = rows.flatMap(row => {
       const normalized = normalizeTrackedKeyword(row.keyword);
-      if (!normalized || seen.has(normalized) || !Number.isFinite(row.volume) || row.volume <= 0 || row.position > 0 || row.url || row.intent === "navigational") return [];
+      if (!normalized || seen.has(normalized) || typeof row.volume !== "number" || !Number.isFinite(row.volume) || row.volume <= 0 || row.position > 0 || row.url || row.intent === "navigational") return [];
       seen.add(normalized);
       if (input.existingKeywords.some(known => topicMatches(row.keyword, known.keyword) || sameContentTopic(row.keyword, known.keyword, input.brief)) || input.pages.some(page => topicMatches(row.keyword, `${page.title} ${new URL(page.url).pathname}`))) return [];
-      return [{ keyword: row.keyword, searchVolume: row.volume, difficulty: row.difficulty, cpc: row.cpc, rank: 0, url: "", intent: row.intent, opportunity: "site_idea", competitorRankers: 0 }];
+      return [{ keyword: row.keyword, searchVolume: row.volume, difficulty: row.difficulty ?? undefined, cpc: row.cpc ?? undefined, rank: 0, url: "", intent: row.intent, opportunity: "site_idea", competitorRankers: 0 }];
     });
     const ranked = rankKeywordOpportunities(candidates, business, candidates.length, input.brief);
     const diverse = orderNewContentTopics(ranked, input.brief).filter(keyword => hasContentAngle(keyword.keyword, input.brief));

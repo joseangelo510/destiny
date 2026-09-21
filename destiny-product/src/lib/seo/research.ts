@@ -18,17 +18,18 @@ export type KeywordSerpSnapshot = {
 export type KeywordResearchRow = {
   keyword: string;
   intent: SearchIntent;
-  volume: number;
-  difficulty: number;
-  cpc: number;
-  competition: number;
+  volume: number | null;
+  difficulty: number | null;
+  cpc: number | null;
+  competition: number | null;
   trend: number[];
   position: number;
-  traffic: number;
+  traffic: number | null;
   url: string;
 };
 
 export type KeywordResearchResult = {
+  metricContractVersion?: 2;
   sourceLabel: string;
   query: string;
   mode: "keyword" | "domain";
@@ -103,8 +104,8 @@ export type ReoptimizationResearchResult = {
   currentPage: { title: string; description: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; links: Array<{ url: string; anchor: string }> };
   competitorPages: Array<{ rank: number; title: string; url: string; domain: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; backlinkRank: number; referringDomains: number }>;
   queries: {
-    currentRankings: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number; position: number; url: string }>;
-    related: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number }>;
+    currentRankings: Array<{ keyword: string; intent: SearchIntent; volume: number | null; difficulty: number | null; position: number; url: string }>;
+    related: Array<{ keyword: string; intent: SearchIntent; volume: number | null; difficulty: number | null }>;
   };
   onPage: { score: number; checks: string[]; loadTimeMs: number; sizeBytes: number };
   backlinks: { rank: number; backlinks: number; referringDomains: number; brokenBacklinks: number };
@@ -123,6 +124,12 @@ function number(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) return Number(value);
   return 0;
+}
+
+function measuredNumber(value: unknown): number | null {
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
+  const result = Number(value);
+  return Number.isFinite(result) && result >= 0 ? result : null;
 }
 
 function string(value: unknown) {
@@ -291,24 +298,29 @@ export function parseKeywordResearch(payload: unknown): KeywordResearchRow[] {
     return {
       keyword: string(keywordData.keyword),
       intent: intent(searchIntent.main_intent ?? keywordProperties.main_intent),
-      volume: number(keywordInfo.search_volume),
-      difficulty: number(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
-      cpc: number(keywordInfo.cpc),
-      competition: number(keywordInfo.competition),
+      volume: measuredNumber(keywordInfo.search_volume),
+      difficulty: measuredNumber(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
+      cpc: measuredNumber(keywordInfo.cpc),
+      competition: measuredNumber(keywordInfo.competition),
       trend: monthlyTrend(keywordInfo),
       position: number(serpItem.rank_group) || number(serpItem.rank_absolute),
-      traffic: number(serpItem.etv),
+      traffic: measuredNumber(serpItem.etv),
       url: string(serpItem.url),
     };
   }).filter((row) => row.keyword);
 }
 
 export function summarizeKeywordResearch(rows: KeywordResearchRow[], providerTotal?: number) {
+  const known = (key: "volume" | "difficulty" | "traffic") => rows.flatMap(row => typeof row[key] === "number" && Number.isFinite(row[key]) ? [row[key] as number] : []);
+  const sum = (values: number[]) => values.length ? values.reduce((total, value) => total + value, 0) : null;
+  const volume = known("volume");
+  const difficulty = known("difficulty");
+  const traffic = known("traffic");
   return {
     totalKeywords: providerTotal || rows.length,
-    totalVolume: rows.reduce((total, row) => total + row.volume, 0),
-    averageDifficulty: rows.length ? Math.round(rows.reduce((total, row) => total + row.difficulty, 0) / rows.length) : 0,
-    estimatedTraffic: Math.round(rows.reduce((total, row) => total + row.traffic, 0)),
+    totalVolume: sum(volume),
+    averageDifficulty: difficulty.length ? Math.round(sum(difficulty)! / difficulty.length) : null,
+    estimatedTraffic: traffic.length ? Math.round(sum(traffic)!) : null,
   };
 }
 
@@ -420,6 +432,7 @@ export class DataForSeoResearchClient {
       mode: input.mode,
       location,
       updatedAt: new Date().toISOString(),
+      metricContractVersion: 2,
       metrics: summarizeKeywordResearch(rows, number(result.total_count)),
       rows,
       notices: [

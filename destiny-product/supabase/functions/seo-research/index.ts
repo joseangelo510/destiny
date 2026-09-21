@@ -3,7 +3,7 @@ import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
 import { runDomainOverview } from "./domain-overview.ts";
-import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
+import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, keywordReportMetrics } from "./logic.ts";
 
 type ResearchRequest = {
   kind?: unknown;
@@ -12,6 +12,7 @@ type ResearchRequest = {
   query?: unknown;
   mode?: unknown;
   locationName?: unknown;
+  metricContractVersion?: unknown;
   target?: unknown;
   topics?: unknown;
   excludeDomains?: unknown;
@@ -110,7 +111,7 @@ export default {
         }
         return json({
           sourceLabel: "Live DataForSEO keyword index", query, mode: body.mode, location, updatedAt: new Date().toISOString(),
-          metrics: summarizeKeywordRows(rows, providerTotal), rows,
+          ...keywordReportMetrics(rows, providerTotal, body.metricContractVersion),
           performance: historyPayload ? parseOrganicPerformance(historyPayload) : [],
           ...(body.mode === "keyword" ? {
             questions: seedSerp?.questions ?? [],
