@@ -3893,3 +3893,7 @@ September21 acceptance integration (MEDIUM): sole owner Codex task01a0c2b9-ffe5-
 
 
 September21 integration maintainability correction (MEDIUM): hosted PR145 harness35667179680 fails the unchanged repository500line limit because research.ts grew to516lines atf43a17a. Before refactor: extract existing keyword type declarations into a type-only module and re-export the same public names, preserving runtime behavior/import compatibility. No policy/baseline/CI edits or limit exceptions. Existing parser/type/browser validation and unchanged repository checker must pass. Owner task/scope unchanged.
+
+## 2026-09-21 — EVIDENCE-01 snapshot-supported roadmap copy
+
+Classification: MEDIUM. Base:26a18a8f95817703ba1543250734b6017fb78921. Owner: current Test Rebound SEO features task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd; user requested actual feature testing, listing issues and ordinary fixes. Independent branchcodex/roadmap-snapshot-evidence preserves reviewed PR146 unchanged. Scope: label and explain roadmap snapshot milestones without asserting improvement or consistent growth absent comparable dated evidence. Existing threshold semantics, node IDs, tasks, website isolation and data flows retained. No auth/RLS/schema/config/CI/provider/production change. Evidence: acceptance receipt234 reproduces both unsupported claims from one snapshot. RED/GREEN tests cover single snapshots and missing rankings. Rollback: protected revert of this scoped change. Not merged or deployed.
