@@ -55,6 +55,7 @@ export default async function InterviewsPage() {
 
   return <WorkspaceShell active="/interviews" eyebrow={context.website.normalized_domain} title="Interviews" description="Share your expertise once. Rebound SEO remembers your exact words and uses them to make future content sound more like you.">
     <InterviewsWorkspace
+      key={context.website.id}
       websiteId={context.website.id}
       auditId={context.audit?.id ?? null}
       businessName={context.website.business_name ?? context.website.normalized_domain}
