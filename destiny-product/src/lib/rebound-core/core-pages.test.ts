@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   approvedCalendarDrafts,
   buildCalendarView,
@@ -11,6 +11,12 @@ import {
 } from "./core-pages";
 
 describe("Rebound redesign Slice 2", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-02T00:00:00Z"));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("places every content item in its highest honest state", () => {
     const pipeline = buildContentPipeline({
       approvedKeywords: [{ keyword: "kiln repair" }, { keyword: "glaze guide" }],
