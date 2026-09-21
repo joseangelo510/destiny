@@ -205,6 +205,8 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       if (!response.ok) throw new Error(payload.error || "Keyword research failed.");
       shouldFocusFirstRevealedRef.current = false;
       setRevealed(false);
+      setSearch("");
+      setIntent("all");
       setResult(payload);
       setQuery(nextQuery);
       setMode(nextMode);
