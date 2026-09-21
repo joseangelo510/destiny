@@ -11,6 +11,10 @@ import { nextKeywordSort, sortKeywordRows, type KeywordSort, type KeywordSortKey
 const numberFormat = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 const moneyFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
+function displayMetric(value: number | null | undefined, format: (value: number) => string = value => numberFormat.format(value)) {
+  return typeof value === "number" && Number.isFinite(value) ? format(value) : "Not available";
+}
+
 function csvCell(value: unknown) {
   return `"${String(value ?? "").replaceAll('"', '""')}"`;
 }
@@ -26,7 +30,7 @@ function rankingPageLabel(value: string) {
 function exportKeywords(rows: KeywordResearchRow[]) {
   const lines = [
     ["Keyword", "Intent", "Monthly volume", "Difficulty", "CPC", "Competition", "Position", "Estimated traffic", "Ranking URL"],
-    ...rows.map((row) => [row.keyword, row.intent, row.volume, row.difficulty, row.cpc, row.competition, row.position || "", row.traffic || "", row.url]),
+    ...rows.map((row) => [row.keyword, row.intent, row.volume, row.difficulty, row.cpc, row.competition, row.position || "", row.traffic ?? "", row.url]),
   ].map((row) => row.map(csvCell).join(","));
   const link = document.createElement("a");
   link.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" }));
@@ -198,7 +202,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       const response = await fetch("/api/research/keywords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: nextQuery, mode: nextMode, locationName: "United States" }),
+        body: JSON.stringify({ query: nextQuery, mode: nextMode, locationName: "United States", metricContractVersion: 2 }),
       });
       const payload = await response.json() as KeywordResearchResult & { error?: string };
       setBillingRequired(response.status === 402);
@@ -352,9 +356,9 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       </section>
       <section className="research-metric-grid">
         <article><span>Total keywords</span><strong>{numberFormat.format(result.metrics.totalKeywords)}</strong><small>Provider index</small></article>
-        <article><span>Search demand</span><strong>{numberFormat.format(result.metrics.totalVolume)}</strong><small>Monthly volume in this report</small></article>
-        <article><span>Average difficulty</span><strong>{result.metrics.averageDifficulty}</strong><small>Estimated ranking competition</small></article>
-        <article><span>Estimated traffic</span><strong>{numberFormat.format(result.metrics.estimatedTraffic)}</strong><small>{result.mode === "domain" ? "From current rankings" : "Available for domain reports"}</small></article>
+        <article><span>Search demand</span><strong>{displayMetric(result.metrics.totalVolume)}</strong><small>{result.metricContractVersion === 2 ? `${result.rows.filter(row => row.volume != null).length} of ${result.rows.length} rows report volume` : "Metric coverage unavailable"}</small></article>
+        <article><span>Average difficulty</span><strong>{displayMetric(result.metrics.averageDifficulty)}</strong><small>{result.metricContractVersion === 2 ? `${result.rows.filter(row => row.difficulty != null).length} of ${result.rows.length} rows report difficulty` : "Metric coverage unavailable"}</small></article>
+        <article><span>Estimated traffic</span><strong>{result.mode === "domain" ? displayMetric(result.metrics.estimatedTraffic) : "Not available"}</strong><small>{result.mode === "domain" ? "From current rankings" : "Available for domain reports"}</small></article>
       </section>
       {result.mode === "domain" ? <PerformanceChart metric={performanceMetric} onMetricChange={setPerformanceMetric} points={result.performance ?? []} /> : null}
       {result.mode === "keyword" ? <KeywordSerpInsights
@@ -381,7 +385,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         <div className="research-table-scroll"><table className="research-table"><thead><tr>
           <SortHeader label="Keyword" onSort={updateSort} sort={sort} sortKey="keyword" /><SortHeader label="Intent" onSort={updateSort} sort={sort} sortKey="intent" /><SortHeader label="Volume" onSort={updateSort} sort={sort} sortKey="volume" /><th>Trend</th><SortHeader label="KD" onSort={updateSort} sort={sort} sortKey="difficulty" /><SortHeader label="CPC" onSort={updateSort} sort={sort} sortKey="cpc" /><SortHeader label="Competition" onSort={updateSort} sort={sort} sortKey="competition" />{result.mode === "domain" ? <><SortHeader label="Position" onSort={updateSort} sort={sort} sortKey="position" /><th>Ranking page</th></> : null}<th>First page</th><th>Save</th>{auditId ? <th>Strategy</th> : null}<th>Rank tracker</th>
         </tr></thead><tbody>{visibleRows.map((row, index) => <tr key={`${row.keyword}-${row.url}-${index}`}>
-          <td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{row.volume.toLocaleString()}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{row.difficulty || "—"}</span></td><td>{row.cpc ? moneyFormat.format(row.cpc) : "—"}</td><td>{row.competition ? `${Math.round(row.competition * 100)}%` : "—"}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}
+          <td ref={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? firstRevealedKeywordRef : undefined} tabIndex={index === INITIAL_KEYWORD_VISIBLE_LIMIT ? -1 : undefined}><strong>{row.keyword}</strong></td><td><span className={`intent-chip ${row.intent}`}>{row.intent}</span></td><td>{displayMetric(row.volume, value => value.toLocaleString())}</td><td><Trend values={row.trend} /></td><td><span className={`difficulty-chip ${row.difficulty == null ? "unknown" : row.difficulty >= 70 ? "hard" : row.difficulty >= 40 ? "medium" : "easy"}`}>{displayMetric(row.difficulty)}</span></td><td>{displayMetric(row.cpc, value => moneyFormat.format(value))}</td><td>{displayMetric(row.competition, value => `${Math.round(value * 100)}%`)}</td>{result.mode === "domain" ? <><td>{row.position || "—"}</td><td>{row.url ? <a href={row.url} rel="noreferrer" target="_blank">{rankingPageLabel(row.url)} ↗</a> : "—"}</td></> : null}
           <td>{result.serpEvidenceStatus === "live"
             ? <button className="research-row-action" onClick={() => void openSerp(row.keyword)} type="button">View first page</button>
             : <button className="research-row-action" disabled type="button">First-page preview (sample)</button>}</td>
