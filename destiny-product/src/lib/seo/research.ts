@@ -229,7 +229,9 @@ export function parseReoptimizationResearch(input: {
     rank: number(item.rank_group) || number(item.rank_absolute), title: string(item.title), url: string(item.url), domain: domain(string(item.url)), description: string(item.description),
   }] : []).slice(0, 10);
   const peopleAlsoAsk = [...new Set(serpItems.filter((item) => item.type === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"])) ))].slice(0, 12);
-  const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"])) ))].slice(0, 12);
+  const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches")
+    .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
+      ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))).map(tidyResearchText).filter(Boolean))].slice(0, 12);
   const features = [...new Set(serpItems.map((item) => string(item.type)).filter((type) => type && type !== "organic"))];
   const currentPage = parsedContent(input.currentPayload);
   const competitorRows = organic.filter((item) => item.domain && item.domain !== targetDomain).slice(0, input.competitorPayloads.length);

@@ -168,7 +168,9 @@ export function parseKeywordSerp(payload: unknown, keyword: string, location: st
   }).slice(0, 10);
   const unique = (values: string[], limit = 12) => [...new Set(values.map(tidy).filter(Boolean))].slice(0, limit);
   const questions = unique(items.filter((item) => string(item.type) === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"]))));
-  const related = unique(items.filter((item) => string(item.type) === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"]))));
+  const related = unique(items.filter((item) => string(item.type) === "related_searches")
+    .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
+      ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))));
   return { keyword, location, checkedAt: checkedAt.toISOString(), organic, questions, related };
 }
 

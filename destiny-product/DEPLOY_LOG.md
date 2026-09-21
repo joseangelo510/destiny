@@ -3792,7 +3792,6 @@ D10.41 live payment-button readability at7527180: visual inspection of the authe
 - Fresh Fly readback: healthy started machine860714be531938/sjc, prior source58cd358c5e46122f97b03f314dedc7be56bab1d9/tagrebound-seo-v1.1.15/image registry.fly.io/destiny-production@sha256:d611324dded252e1ad790e071c101107aacfeacc2326dc7f72359120bcb81512. Pin this immutable prior version for rollback. Preserve additive billing data and unpaid Checkout session.
 - Required: failing-first wrapper pins, full local/remote gate, exact-head staging and Codex GO, owner execution record before label/normal protected merge; annotated immutable source tag and guarded deploy; live identity, full route sweep, readable paywall and actual Stripe checkout navigation with correct price/trial, cancel without submitting payment.
 
-
 ### D10.51 Keyword metric presence — September 21, 2026
 
 - MEDIUM, recorded before implementation at base c3a51270ca85cebd711a5c5d4539063131abb0df. Sole implementation owner: Codex acceptance task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd, isolated branch codex/keyword-metric-presence. Ordinary data/UI correction under Jose's testing-and-repair request; no merge or production approval.
@@ -3800,3 +3799,15 @@ D10.41 live payment-button readability at7527180: visual inspection of the authe
 - RED synthetic provider rows distinguish unknown, measured0 and measuredpositive; both parser paths and all-missing summaries covered. Require browser rendering/sorting/export evidence and full exact-head checks. No billing, auth/RLS, schema, credentials, config, dependencies or provider request changes. Edge deployment remains a separate approved step. Rollback protected revert.
 
 D10.51 compatibility detail: internal metricContractVersion2 explicitly opts new UI requests into nullable Edge keyword metrics. Legacy/unsupported clients retain numeric wire fields; provider requests, billing/auth checks and deployment controls stay unchanged. Both web and Edge must be released before claiming live correction. Unknown recommendation score heuristics and downstream saved metrics remain separate.
+
+## D10.48 — Preserve documented related-search response items (2026-09-21)
+
+Classification: MEDIUM. Base c3a51270ca85cebd711a5c5d4539063131abb0df. Sole implementation owner: Codex acceptance task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd. User requested functional keyword suggestions and autonomous ordinary repairs.
+
+Live background-check question, punctuation and plural benchmarks return measured rows and Google questions, but no related searches. This alone does not prove Google returned related items. Independent source/doc reproduction confirms parseKeywordSerp drops the provider's documented related_searches.items string array. Existing test only supplies object items. Official source: https://docs.dataforseo.com/v3/serp-se-type-live-advanced/ . Synthetic reproduction166 returns related[] despite two input strings.
+
+Scope: parse documented strings within related-search items while retaining object-form compatibility, cleanup, deduplication and12item bound; preserve questions, organic evidence, market/time and measured keyword values. No provider calls, auth, billing, schema, dependencies or deployment changes. This is parser implementation only; deployment of the Edge Function requires separate scoped production approval. Rollback through protected revert, no data migration. RED/GREEN, full harness and exact-head review required before readiness; live provider payload cause remains unconfirmed.
+
+Source trace found the same documented-string loss in server-side parseReoptimizationResearch; include the matching parser repair and separate failing-first regression. No research transport, credentials or quota changes.
+
+Validation before review: new Edge regression3fail/1pass, new server regression1fail, then28/28focused and1509/1509full unit tests pass. App parser lint passes; repository lint intentionally excludes Edge files, so no Edge ESLint coverage is claimed. Existing website/auth/billing boundaries unchanged. Full hosted harness and staging remain pending.
