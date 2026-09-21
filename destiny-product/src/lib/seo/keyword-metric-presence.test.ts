@@ -39,7 +39,7 @@ describe("keyword metric response compatibility", () => {
   });
   it("returns nullable measurements only for the explicit v2 contract", () => {
     const rows = parseKeywordRows(input);
-    expect(keywordReportMetrics(rows, 399, 2)).toEqual({ rows, metrics: summarizeKeywordRows(rows, 399) });
+    expect(keywordReportMetrics(rows, 399, 2)).toEqual({ metricContractVersion: 2, rows, metrics: summarizeKeywordRows(rows, 399) });
     expect(keywordReportMetrics(rows, 399, "2").rows[2].volume).toBe(0);
   });
 });

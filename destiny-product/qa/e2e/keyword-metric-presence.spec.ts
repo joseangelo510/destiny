@@ -15,7 +15,7 @@ test("@gate missing metrics remain distinct from zero in summaries, sorting and 
   await page.route("**/api/research/keywords", async route => {
     const { query, mode, metricContractVersion } = route.request().postDataJSON();
     expect(metricContractVersion).toBe(2);
-    await route.fulfill({ json: { query, mode, sourceLabel: "Synthetic provider contract fixture", location: "United States", updatedAt: "2026-09-21T20:00:00Z", metrics: summarizeKeywordRows(rows, 399), rows, notices: ["Synthetic metrics fixture."] } });
+    await route.fulfill({ json: { query, mode, sourceLabel: "Synthetic provider contract fixture", location: "United States", updatedAt: "2026-09-21T20:00:00Z", metricContractVersion: 2, metrics: summarizeKeywordRows(rows, 399), rows, notices: ["Synthetic metrics fixture."] } });
   });
   await page.goto(`/keyword-research?site=${fixture.mvp.websiteId}`);
   const panel = page.locator(".research-search-panel");
