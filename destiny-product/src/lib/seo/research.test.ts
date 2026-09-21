@@ -40,7 +40,7 @@ describe("advanced SEO research parsers", () => {
       totalKeywords: 2,
       totalVolume: 1900,
       averageDifficulty: 61,
-      estimatedTraffic: 0,
+      estimatedTraffic: null,
     });
   });
 
