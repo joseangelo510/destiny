@@ -12,13 +12,14 @@ export async function POST(request: Request) {
     const { data: claimsData } = await supabase.auth.getClaims();
     if (!claimsData?.claims?.sub) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
 
-    const body = await request.json() as { query?: unknown; mode?: unknown; locationName?: unknown };
+    const body = await request.json() as { query?: unknown; mode?: unknown; locationName?: unknown; metricContractVersion?: unknown };
     if (typeof body.query !== "string" || (body.mode !== "keyword" && body.mode !== "domain")) {
       return NextResponse.json({ error: "Enter a keyword or domain and select a research mode." }, { status: 400 });
     }
     const { data, error } = await supabase.functions.invoke("seo-research", {
       body: {
         kind: "keywords",
+        ...(body.metricContractVersion === 2 ? { metricContractVersion: 2 } : {}),
         query: body.query,
         mode: body.mode,
         locationName: typeof body.locationName === "string" ? body.locationName : undefined,
