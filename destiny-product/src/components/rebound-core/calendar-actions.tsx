@@ -13,12 +13,16 @@ function dateLabel(value: string) {
 
 export function CalendarActions({
   approvedDrafts,
+  localDate,
+  onDateChange,
   openDates,
   studioHref,
   timeZone,
   websiteId,
 }: {
   approvedDrafts: PanelResult<ApprovedCalendarDraft[]>;
+  localDate: string;
+  onDateChange: (date: string) => void;
   openDates: string[];
   studioHref: string;
   timeZone: string;
@@ -27,14 +31,13 @@ export function CalendarActions({
   const router = useRouter();
   const drafts = approvedDrafts.state === "ready" ? approvedDrafts.data ?? [] : [];
   const [draftId, setDraftId] = useState(drafts[0]?.id ?? "");
-  const [localDate, setLocalDate] = useState(openDates[0] ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const selectedDraft = drafts.find((draft) => draft.id === draftId) ?? null;
 
   const schedule = async () => {
-    if (!selectedDraft || !localDate || saving) return;
+    if (!selectedDraft || !openDates.includes(localDate) || saving) return;
     setSaving(true);
     setError("");
     setNotice("");
@@ -53,7 +56,7 @@ export function CalendarActions({
     <div><span>YOUR MOVE</span><h3>Schedule approved draft</h3><p>Choose an open day and an approved saved draft. Calendar stores its exact saved title and keyword with the date; it does not claim a permanent draft link.</p></div>
     {drafts.length && openDates.length ? <div className={styles.calendarActionForm}>
       <label>Approved draft<select aria-label="Approved draft" onChange={(event) => setDraftId(event.target.value)} value={draftId}>{drafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select></label>
-      <label>Open day<select aria-label="Open calendar day" onChange={(event) => setLocalDate(event.target.value)} value={localDate}>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label>
+      <label>Open day<select aria-label="Open calendar day" onChange={(event) => onDateChange(event.target.value)} value={localDate}><option disabled value="">Choose an open day</option>{openDates.map((date) => <option key={date} value={date}>{dateLabel(date)}</option>)}</select></label>
       <button className={styles.calendarActionPrimary} disabled={!selectedDraft || !localDate || saving} onClick={() => void schedule()} type="button">{saving ? "Scheduling…" : "Schedule approved draft"}</button>
     </div> : <div className={styles.calendarActionEmpty}><strong>{openDates.length ? "No approved draft is ready" : "No open day remains in this month"}</strong><p>{approvedDrafts.message ?? "Use Content Studio to review the next draft or publishing date."}</p></div>}
     <Link className={styles.calendarActionSecondary} href={studioHref}>Open Content Studio</Link>
