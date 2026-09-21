@@ -720,6 +720,42 @@
     "context": "<span>Search intent</span> <button type=\"button\" aria-label=\"What do the search intent stages mean?\" aria-describedby=\"search-intent-help\">i</button> <span className=\"intent-tooltip\" id=\"search-intent-help\" role=\"tooltip\">"
   },
   {
+    "control_id": "src/app/content/repurpose/page.tsx:55:a:1",
+    "file": "src/app/content/repurpose/page.tsx",
+    "line": 55,
+    "type": "a",
+    "route": "/content/repurpose",
+    "side_effect_class": 1,
+    "context": "{/* A full navigation also clears an unsaved new-source editor on this URL. */} <a href={href()}>Start a new source</a> {drafts.error ? <p role=\"alert\">Saved drafts could not be loaded. Reload to try again. Your saved work has not been removed.</p>"
+  },
+  {
+    "control_id": "src/app/content/repurpose/page.tsx:58:Link:1",
+    "file": "src/app/content/repurpose/page.tsx",
+    "line": 58,
+    "type": "Link",
+    "route": "/content/repurpose",
+    "side_effect_class": 0,
+    "context": ": rows.length ? <ul>{rows.slice(0, PAGE_SIZE).map(row => <li key={row.id}> <Link aria-current={row.id === sourceId ? \"page\" : undefined} href={href({ source: row.id, draftsPage: String(page) })}>{row.draft_title || \"Untitled draft\"}</Link> {\" — \"}{REPURPOSE_OUTPUT_OPTIONS.find(option => option.value === row.output_type)?.label ?? \"Draft\"}"
+  },
+  {
+    "control_id": "src/app/content/repurpose/page.tsx:62:Link:1",
+    "file": "src/app/content/repurpose/page.tsx",
+    "line": 62,
+    "type": "Link",
+    "route": "/content/repurpose",
+    "side_effect_class": 1,
+    "context": "<nav aria-label=\"Saved draft pages\"> {page > 1 && <Link href={href({ draftsPage: String(page - 1) })}>Newer drafts</Link>} {rows.length > PAGE_SIZE && <Link href={href({ draftsPage: String(page + 1) })}>Older drafts</Link>}"
+  },
+  {
+    "control_id": "src/app/content/repurpose/page.tsx:63:Link:1",
+    "file": "src/app/content/repurpose/page.tsx",
+    "line": 63,
+    "type": "Link",
+    "route": "/content/repurpose",
+    "side_effect_class": 0,
+    "context": "{page > 1 && <Link href={href({ draftsPage: String(page - 1) })}>Newer drafts</Link>} {rows.length > PAGE_SIZE && <Link href={href({ draftsPage: String(page + 1) })}>Older drafts</Link>} </nav>"
+  },
+  {
     "control_id": "src/app/distribution/page.tsx:23:data-mutation:1",
     "file": "src/app/distribution/page.tsx",
     "line": 23,
@@ -7101,171 +7137,171 @@
     "context": "<div className={styles.queueHeading}><span>What needs you, in order</span><small>Ranked from current workspace tasks</small></div> {queue.items.map((item, index) => <div className={`${styles.queueRow} ${index < session.length ? styles.sessionRow : \"\"} ${index === current && !finished ? styles.currentRow : \"\"}`} data-queue-item={item.id} key={item.id}><span className={styles.priority}>{index + 1}</span><div><strong>{item.title}</strong><p><span>{item.why}</span><em>{item.state}</em></p></div><Lin"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:134:input:1",
+    "control_id": "src/components/repurpose-workspace.tsx:133:input:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 134,
+    "line": 133,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "> <input type=\"radio\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:139:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:138:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 139,
+    "line": 138,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "checked={value === option.value} onChange={(event) => { if (isRepurposeOutput(event.currentTarget.value)) {"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:407:button:1",
+    "control_id": "src/components/repurpose-workspace.tsx:406:button:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 407,
+    "line": 406,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{REPURPOSE_SOURCE_MODES.map((mode) => ( <button key={mode}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:409:role:1",
+    "control_id": "src/components/repurpose-workspace.tsx:408:role:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 409,
+    "line": 408,
     "type": "role",
     "route": "component",
     "side_effect_class": 0,
     "context": "key={mode} role=\"tab\" aria-selected={sourceMode === mode}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:412:onClick:1",
+    "control_id": "src/components/repurpose-workspace.tsx:411:onClick:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 412,
+    "line": 411,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "className={`repurpose-mode-tab${sourceMode === mode ? \" active\" : \"\"}`} onClick={() => { setSourceMode(mode); setSourceError(null); }} type=\"button\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:428:input:1",
+    "control_id": "src/components/repurpose-workspace.tsx:427:input:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 428,
+    "line": 427,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "</label> <input id=\"repurpose-file-input\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:433:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:432:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 433,
+    "line": 432,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "accept=\".pdf,.docx,.txt,.md\" onChange={handleFileChange} disabled={Boolean(source)}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:447:input:1",
+    "control_id": "src/components/repurpose-workspace.tsx:446:input:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 447,
+    "line": 446,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": "</label> <input id=\"repurpose-url-input\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:452:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:451:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 452,
+    "line": 451,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "value={urlValue} onChange={(e) => { setUrlValue(e.target.value); setSourceError(null); }} disabled={Boolean(source)}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:465:textarea:1",
+    "control_id": "src/components/repurpose-workspace.tsx:464:textarea:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 465,
+    "line": 464,
     "type": "textarea",
     "route": "component",
     "side_effect_class": 0,
     "context": "</label> <textarea id=\"repurpose-text-input\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:469:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:468:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 469,
+    "line": 468,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "value={textValue} onChange={(e) => { setTextValue(e.target.value); setSourceError(null); }} rows={8}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:479:button:1",
+    "control_id": "src/components/repurpose-workspace.tsx:478:button:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 479,
+    "line": 478,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<div className=\"repurpose-coming-soon-controls\"> <button type=\"button\" disabled className=\"repurpose-coming-soon-btn\" aria-disabled=\"true\"> <span>🎙</span> Audio recording"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:483:button:1",
+    "control_id": "src/components/repurpose-workspace.tsx:482:button:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 483,
+    "line": 482,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "</button> <button type=\"button\" disabled className=\"repurpose-coming-soon-btn\" aria-disabled=\"true\"> <span>🎬</span> Video file"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:501:a:1",
+    "control_id": "src/components/repurpose-workspace.tsx:500:a:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 501,
+    "line": 500,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "<strong>Source ready:</strong> {source.attribution} {source.url && <> — <a href={source.url} rel=\"noopener noreferrer\" target=\"_blank\">{source.url}</a></>} </div>"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:506:button:1",
+    "control_id": "src/components/repurpose-workspace.tsx:505:button:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 506,
+    "line": 505,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{!source && ( <button type=\"button\""
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:509:onClick:1",
+    "control_id": "src/components/repurpose-workspace.tsx:508:onClick:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 509,
+    "line": 508,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "className=\"primary-button repurpose-source-submit\" onClick={handleAddSource} disabled={sourceLoading}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:529:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:528:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 529,
+    "line": 528,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
     "context": "<OutputCards value={output} onChange={setOutput} disabled={Boolean(draft)} />"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:536:select:1",
+    "control_id": "src/components/repurpose-workspace.tsx:535:select:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 536,
+    "line": 535,
     "type": "select",
     "route": "component",
     "side_effect_class": 0,
     "context": "</label> <select id={keywordSelectId}"
   },
   {
-    "control_id": "src/components/repurpose-workspace.tsx:539:onChange:1",
+    "control_id": "src/components/repurpose-workspace.tsx:538:onChange:1",
     "file": "src/components/repurpose-workspace.tsx",
-    "line": 539,
+    "line": 538,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 0,
