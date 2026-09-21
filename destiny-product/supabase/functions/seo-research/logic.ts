@@ -61,6 +61,18 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .slice(-12).map((item) => number(item.search_volume));
 }
 
+export function keywordProviderResult(payload: unknown): JsonRecord {
+  const first = firstResult(payload); // Retain provider status validation.
+  const results = array(record(array(record(payload).tasks)[0]).result).map(record);
+  const seed = results.map(result => record(result.seed_keyword_data)).find(value => string(value.keyword).trim());
+  return {
+    ...first,
+    seed_keyword_data: seed ?? null,
+    items: results.flatMap(result => array(result.items)),
+    total_count: Math.max(0, ...results.map(result => number(result.total_count))),
+  };
+}
+
 function keywordItems(result: JsonRecord): unknown[] {
   const items = array(result.items);
   const seed = record(result.seed_keyword_data);
@@ -74,7 +86,7 @@ function keywordItems(result: JsonRecord): unknown[] {
 }
 
 export function parseKeywordRows(payload: unknown) {
-  return keywordItems(firstResult(payload)).map((item) => {
+  return keywordItems(keywordProviderResult(payload)).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
     const keywordInfo = record(keywordData.keyword_info);

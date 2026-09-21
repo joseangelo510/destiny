@@ -1,3 +1,4 @@
+import { keywordProviderResult } from "./logic.ts";
 import { callerWebsiteOwner, matchingWebsiteUsage } from "../_shared/billing/caller-website.ts";
 import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
@@ -103,7 +104,7 @@ export default {
             : Promise.resolve(null),
         ]);
         const rows = parseKeywordRows(payload);
-        const providerResult = firstResult(payload);
+        const providerResult = keywordProviderResult(payload);
         const providerTotal = typeof providerResult.total_count === "number" ? providerResult.total_count : 0;
         let seedSerp: ReturnType<typeof parseKeywordSerp> | null = null;
         if (seedSerpPayload) {

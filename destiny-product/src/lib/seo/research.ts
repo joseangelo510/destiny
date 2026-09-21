@@ -285,6 +285,18 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .map((item) => number(item.search_volume));
 }
 
+export function keywordProviderResult(payload: unknown): JsonRecord {
+  const first = firstResult(payload); // Retain provider status validation.
+  const results = array(record(array(record(payload).tasks)[0]).result).map(record);
+  const seed = results.map(result => record(result.seed_keyword_data)).find(value => string(value.keyword).trim());
+  return {
+    ...first,
+    seed_keyword_data: seed ?? null,
+    items: results.flatMap(result => array(result.items)),
+    total_count: Math.max(0, ...results.map(result => number(result.total_count))),
+  };
+}
+
 function keywordItems(result: JsonRecord): unknown[] {
   const items = array(result.items);
   const seed = record(result.seed_keyword_data);
@@ -298,7 +310,7 @@ function keywordItems(result: JsonRecord): unknown[] {
 }
 
 export function parseKeywordResearch(payload: unknown): KeywordResearchRow[] {
-  const result = firstResult(payload);
+  const result = keywordProviderResult(payload);
   return keywordItems(result).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
@@ -436,7 +448,7 @@ export class DataForSeoResearchClient {
       : input.related ? { keyword: query, location_name: location, language_name: "English", depth: 2, include_seed_keyword: true, offset: input.offset ?? 0, limit: 100, filters: ["keyword_data.keyword_info.search_volume", ">", 0], order_by: ["keyword_data.keyword_info.search_volume,desc"] }
       : { keyword: query, include_seed_keyword: true, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
     const payload = await this.post(path, [request]);
-    const result = firstResult(payload);
+    const result = keywordProviderResult(payload);
     const rows = parseKeywordResearch(payload);
     return {
       sourceLabel: "Live DataForSEO keyword index",
