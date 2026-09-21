@@ -4,6 +4,10 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ context: vi.fn(), editor: vi.fn(), calls: [] as Array<{ table: string; fields?: string; filters: Record<string, unknown>; range?: number[] }>, rows: [] as Array<Record<string, unknown>>, error: false }));
 vi.mock("@/lib/workspace-context", () => ({ getWorkspaceContext: mocks.context }));
+vi.mock("@/lib/db", () => ({ scopedClient: async (websiteId: string) => {
+  const { supabase } = await mocks.context();
+  return { select: (table: string, fields: string) => supabase.from(table).select(fields).eq("website_id", websiteId) };
+} }));
 vi.mock("@/components/workspace-shell", () => ({ WorkspaceShell: ({ children }: { children: ReactNode }) => <main>{children}</main> }));
 vi.mock("@/components/repurpose-workspace", () => ({ RepurposeWorkspace: (props: unknown) => { mocks.editor(props); return <div>Editor</div>; } }));
 vi.mock("@/lib/content/article-generation", () => ({ articleGenerationCapability: () => ({ available: false }) }));
