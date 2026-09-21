@@ -195,12 +195,12 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "page-two",
-      label: "Rankings improving",
+      label: "Top-20 search visibility",
       kind: "outcome",
       complete: Boolean(pageTwoPosition),
-      description: "A tracked query reaches positions 11–20—or advances beyond them.",
+      description: "A query appears among the top 20 average positions in the connected Search Console snapshot.",
       typicalRange: "Often several months, depending on competition",
-      evidence: pageTwoPosition ? `Search Console verified a query at position ${pageTwoPosition.toFixed(1)}.` : "No connected query has reached the top 20 yet.",
+      evidence: pageTwoPosition ? `Search Console reports a query at average position ${pageTwoPosition.toFixed(1)}. This snapshot does not establish improvement over time.` : "No query in the connected snapshot has an average position in the top 20.",
       actionHref: "/analytics",
       actionLabel: "Review rankings",
     },
@@ -228,16 +228,16 @@ export async function buildSeoRoadmap(input: SeoRoadmapInput) {
     },
     {
       id: "compounding-authority",
-      label: "Visibility growing consistently",
+      label: "Search and customer activity",
       kind: "outcome",
       complete: hasCompoundingEvidence,
-      description: "Rankings, qualified clicks, and conversions repeat strongly enough to support the next growth loop.",
-      typicalRange: "Ongoing · earned through repeated useful work",
+      description: "Connected reports include top-10 visibility, search clicks, and an organic customer action.",
+      typicalRange: "When all three connected signals are available",
       evidence: hasCompoundingEvidence
-        ? `Verified with a page-one query, ${clicks.toLocaleString()} search clicks, and ${keyEvents.toLocaleString()} organic key event${keyEvents === 1 ? "" : "s"}.`
+        ? `Verified with a page-one query, ${clicks.toLocaleString()} search clicks, and ${keyEvents.toLocaleString()} organic key event${keyEvents === 1 ? "" : "s"}. This snapshot does not establish sustained growth.`
         : "Requires multiple verified signals: page-one visibility, at least 25 search clicks, and an organic key event.",
       actionHref: "/this-week",
-      actionLabel: "Keep compounding",
+      actionLabel: "Review next steps",
     },
   ];
 
