@@ -186,6 +186,11 @@
   },
   {
     "kind": "api",
+    "route": "/api/interviews/[id]",
+    "file": "src/app/api/interviews/[id]/route.ts"
+  },
+  {
+    "kind": "api",
     "route": "/api/interviews/[id]/answers",
     "file": "src/app/api/interviews/[id]/answers/route.ts"
   },
