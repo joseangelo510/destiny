@@ -4182,7 +4182,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {!rows.length ? <p className=\"research-no-rows\">No keywords match these filters.</p> : null}"
+    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {disclosure.emptyMessage ? <p className=\"research-no-rows\">{disclosure.emptyMessage}</p> : null}"
   },
   {
     "control_id": "src/components/keyword-research-workspace.tsx:395:onClick:2",
@@ -4191,7 +4191,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
-    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {!rows.length ? <p className=\"research-no-rows\">No keywords match these filters.</p> : null}"
+    "context": "</tr>)}</tbody></table></div> {disclosure.buttonLabel ? <div className=\"research-more-keywords\"><button onClick={revealKeywords} type=\"button\">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null} {disclosure.emptyMessage ? <p className=\"research-no-rows\">{disclosure.emptyMessage}</p> : null}"
   },
   {
     "control_id": "src/components/keyword-serp-insights.tsx:34:button:1",
