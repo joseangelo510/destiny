@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { siteScopedHref } from "../lib/workspace-selection";
 import {
   AI_ENGINE_CITATION_SNAPSHOTS,
   buildLlmSourceProgress,
@@ -254,7 +255,7 @@ export function LlmSourceDashboard({
             return <article className={complete ? "complete" : "todo"} key={task.key}>
               <span>{complete ? "✓" : index + 1}</span>
               <div><strong>{task.title}</strong><p>{task.description}</p>{task.completedAt && <small>Marked done {new Date(task.completedAt).toLocaleDateString()}</small>}{task.requiresProof && <div className="llm-task-proof"><label htmlFor={`proof-${activeSource.key}-${task.key}`}><span>Public proof URL · {task.proofLabel ?? "Published work"}</span><input id={`proof-${activeSource.key}-${task.key}`} inputMode="url" onChange={(event) => setProofDrafts((current) => ({ ...current, [identity]: event.target.value }))} placeholder={task.proofPlaceholder} type="url" value={proofDraft} /></label><small>Proof is user-attached and not provider verification.</small>{task.proofUrl && <a href={task.proofUrl} rel="noreferrer" target="_blank">Open attached proof ↗</a>}</div>}</div>
-              <div className="llm-task-actions"><a href={task.actionHref} rel={external ? "noreferrer" : undefined} target={external ? "_blank" : undefined}>{task.actionLabel}{external ? " ↗" : " →"}</a>{complete && task.requiresProof && proofChanged && <button disabled={savingTask === identity || !proofDraft.trim()} onClick={() => void updateTask(activeSource.key, task.key, "complete", proofDraft.trim())} type="button">{savingTask === identity ? "Saving…" : "Save proof"}</button>}<button disabled={savingTask === identity || (!complete && Boolean(task.requiresProof) && !proofDraft.trim())} onClick={() => void updateTask(activeSource.key, task.key, complete ? "todo" : "complete", complete ? null : proofDraft.trim() || null)} type="button">{savingTask === identity ? "Saving…" : complete ? "Reopen" : task.requiresProof ? "Attach proof & complete" : "Mark done"}</button></div>
+              <div className="llm-task-actions"><a href={external ? task.actionHref : siteScopedHref(task.actionHref, websiteId)} rel={external ? "noreferrer" : undefined} target={external ? "_blank" : undefined}>{task.actionLabel}{external ? " ↗" : " →"}</a>{complete && task.requiresProof && proofChanged && <button disabled={savingTask === identity || !proofDraft.trim()} onClick={() => void updateTask(activeSource.key, task.key, "complete", proofDraft.trim())} type="button">{savingTask === identity ? "Saving…" : "Save proof"}</button>}<button disabled={savingTask === identity || (!complete && Boolean(task.requiresProof) && !proofDraft.trim())} onClick={() => void updateTask(activeSource.key, task.key, complete ? "todo" : "complete", complete ? null : proofDraft.trim() || null)} type="button">{savingTask === identity ? "Saving…" : complete ? "Reopen" : task.requiresProof ? "Attach proof & complete" : "Mark done"}</button></div>
             </article>;
           })}
         </div>
