@@ -34,11 +34,15 @@ test("@gate chosen calendar day reaches the form and persists after reload", asy
   expect(response.status()).toBe(201);
   expect(response.request().postDataJSON()).toMatchObject({ websiteId: fixture.mvp.websiteId, scheduledFor: expectedTimestamp });
   const { item } = await response.json();
+  await expect(day).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Schedule approved draft", exact: true })).toBeDisabled();
   await page.reload();
   const persisted = await page.request.get(`/api/content/publishing-plan?websiteId=${fixture.mvp.websiteId}`);
   expect(persisted.status()).toBe(200);
   const saved = (await persisted.json()).items.find((row: { id: string }) => row.id === item.id);
   expect(saved).toBeTruthy();
+  expect(saved.title).toBe(response.request().postDataJSON().title);
+  expect(saved.keyword).toBe(response.request().postDataJSON().focusKeyword);
   expect(new Date(saved.scheduled_for).toISOString()).toBe(expectedTimestamp);
   await expect(page).toHaveURL(new RegExp(`site=${fixture.mvp.websiteId}`));
   await expect(page.getByRole("link", { name: `Add content on ${selected}`, exact: true })).toHaveCount(0);
