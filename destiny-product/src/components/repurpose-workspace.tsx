@@ -13,9 +13,7 @@ import {
   repurposeStageLabel,
 } from "@/lib/content/repurpose";
 
-// ---------------------------------------------------------------------------
 // Types
-// ---------------------------------------------------------------------------
 
 export type SourceRecord = {
   sourceId: string;
