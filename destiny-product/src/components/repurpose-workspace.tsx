@@ -13,9 +13,7 @@ import {
   repurposeStageLabel,
 } from "@/lib/content/repurpose";
 
-// ---------------------------------------------------------------------------
 // Types
-// ---------------------------------------------------------------------------
 
 export type SourceRecord = {
   sourceId: string;
@@ -30,6 +28,7 @@ export type DraftRecord = {
   sourceId: string;
   sourceAttribution: string;
   sourceUrl?: string;
+  targetKeyword?: string;
 };
 
 export function parseRepurposeSourceResponse(value: unknown): SourceRecord | null {
@@ -188,7 +187,7 @@ export function RepurposeWorkspace({
   const [output, setOutput] = useState<RepurposeOutput | null>(
     initialDraft?.output ?? null,
   );
-  const [targetKeyword, setTargetKeyword] = useState<string>("");
+  const [targetKeyword, setTargetKeyword] = useState<string>(initialDraft?.targetKeyword ?? "");
 
   // --- Generation state ---
   const [draft, setDraft] = useState<DraftRecord | null>(initialDraft ?? null);
@@ -541,6 +540,7 @@ export function RepurposeWorkspace({
             className="repurpose-keyword-select"
           >
             <option value="">None</option>
+            {targetKeyword && !approvedKeywords.includes(targetKeyword) && <option value={targetKeyword}>{targetKeyword} (saved with draft)</option>}
             {approvedKeywords.map((kw) => (
               <option key={kw} value={kw}>{kw}</option>
             ))}
