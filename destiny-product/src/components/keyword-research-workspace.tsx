@@ -362,6 +362,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
       </section>
       {result.mode === "domain" ? <PerformanceChart metric={performanceMetric} onMetricChange={setPerformanceMetric} points={result.performance ?? []} /> : null}
       {result.mode === "keyword" ? <KeywordSerpInsights
+        canSave={Boolean(websiteId)}
         available={result.serpEvidenceStatus === "live"}
         checkedAt={result.serpCheckedAt}
         onResearch={(keyword) => void requestResearch(keyword, "keyword")}
@@ -395,7 +396,7 @@ export function KeywordResearchWorkspace({ initialQuery = "", websiteId = "", au
         {disclosure.buttonLabel ? <div className="research-more-keywords"><button onClick={revealKeywords} type="button">{disclosure.buttonLabel}</button><small>{disclosure.caption}</small></div> : null}
         {disclosure.emptyMessage ? <p className="research-no-rows">{disclosure.emptyMessage}</p> : null}
       </section>
-      {activeSerpKeyword ? <KeywordSerpDrawer error={serpError} keyword={activeSerpKeyword} loading={serpLoading} onClose={() => { setActiveSerpKeyword(""); setSerpError(""); }} onRetry={() => void openSerp(activeSerpKeyword, true)} onSave={(keyword) => setSaveSelection([keyword])} savedLabels={savedLabels} snapshot={serpSnapshots[activeSerpKeyword.trim().toLocaleLowerCase("en-US")]} /> : null}
+      {activeSerpKeyword ? <KeywordSerpDrawer canSave={Boolean(websiteId)} error={serpError} keyword={activeSerpKeyword} loading={serpLoading} onClose={() => { setActiveSerpKeyword(""); setSerpError(""); }} onRetry={() => void openSerp(activeSerpKeyword, true)} onSave={(keyword) => setSaveSelection([keyword])} savedLabels={savedLabels} snapshot={serpSnapshots[activeSerpKeyword.trim().toLocaleLowerCase("en-US")]} /> : null}
       <aside className="research-notices">{result.notices.map((notice) => <p key={notice}>ⓘ {notice}</p>)}</aside>
     </>}
   </div>;
