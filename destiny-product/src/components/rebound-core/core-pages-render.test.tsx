@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 import { buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "@/lib/rebound-core/core-pages";
@@ -17,6 +17,12 @@ const base = {
 };
 
 describe("Rebound read-only core pages", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-02T00:00:00Z"));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("renders the six-state Content pipeline without a new write control", () => {
     const pipeline = buildContentPipeline({
       approvedKeywords: [{ keyword: "content idea" }],
