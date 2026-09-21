@@ -10,7 +10,7 @@ test("@gate chosen calendar day reaches the form and persists after reload", asy
   await page.setViewportSize(testInfo.project.name === "mobile" ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
   await page.goto(`/app/calendar?site=${fixture.mvp.websiteId}`);
   const day = page.getByLabel("Open calendar day", { exact: true });
-  const dates = await day.locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
+  const dates = await day.locator('option:not([value=""])').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
   expect(dates.length).toBeGreaterThan(0);
   const draft = page.getByLabel("Approved draft", { exact: true });
   const draftId = await draft.locator("option").last().getAttribute("value");
@@ -46,7 +46,7 @@ test("@gate chosen calendar day reaches the form and persists after reload", asy
 
 test("@gate calendar day actions only offer available dates", async ({ page }) => {
   await page.goto(`/app/calendar?site=${fixture.mvp.websiteId}`);
-  const dates = await page.getByLabel("Open calendar day", { exact: true }).locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
+  const dates = await page.getByLabel("Open calendar day", { exact: true }).locator('option:not([value=""])').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
   const links = await page.getByRole("link", { name: /Add content on/ }).all();
   for (const link of links) {
     const label = await link.getAttribute("aria-label");
