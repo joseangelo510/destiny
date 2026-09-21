@@ -4,6 +4,11 @@ import type { OrganizationScopedTable, SiteScopedTable, UserScopedTable } from "
 type ScopedTable = SiteScopedTable | OrganizationScopedTable | UserScopedTable;
 type BaseRow = Record<string, unknown>;
 type ScopedRows = {
+  repurpose_sources: BaseRow & {
+    id: string; draft_title: string | null; draft_body: string | null;
+    output_type: string | null; source_name: string; source_url: string | null;
+    target_keyword: string | null; updated_at: string;
+  };
   article_drafts: BaseRow & { keyword: string; draft: unknown };
   audits: BaseRow & { id: string; website_id: string };
   integrations: BaseRow & { provider: string; status: string };
@@ -29,6 +34,8 @@ type OneResult<Row> = { data: Row | null; error: DatabaseError };
 type Values = Record<string, unknown>;
 
 type ScopedQuery<Row> = PromiseLike<ManyResult<Row>> & {
+  not(column: string, operator: string, value: unknown): ScopedQuery<Row>;
+  range(from: number, to: number): ScopedQuery<Row>;
   eq(column: string, value: unknown): ScopedQuery<Row>;
   in(column: string, values: readonly unknown[]): ScopedQuery<Row>;
   order(column: string, options?: { ascending?: boolean }): ScopedQuery<Row>;

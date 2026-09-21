@@ -2,33 +2,11 @@ import { normalizeWebsite } from "./url";
 
 type JsonRecord = Record<string, unknown>;
 
-export type SearchIntent = "informational" | "commercial" | "transactional" | "navigational" | "unknown";
-
-export type KeywordPageType = "homepage" | "blog_post" | "service_page" | "product_page" | "category_page" | "video" | "tool_or_app" | "other";
-
-export type KeywordSerpSnapshot = {
-  keyword: string;
-  location: string;
-  checkedAt: string;
-  organic: Array<{ position: number; domain: string; title: string; url: string; pageType: KeywordPageType }>;
-  questions: string[];
-  related: string[];
-};
-
-export type KeywordResearchRow = {
-  keyword: string;
-  intent: SearchIntent;
-  volume: number;
-  difficulty: number;
-  cpc: number;
-  competition: number;
-  trend: number[];
-  position: number;
-  traffic: number;
-  url: string;
-};
+import type { SearchIntent, KeywordResearchRow } from "./keyword-research-types";
+export type { SearchIntent, KeywordPageType, KeywordSerpSnapshot, KeywordResearchRow } from "./keyword-research-types";
 
 export type KeywordResearchResult = {
+  metricContractVersion?: 2;
   sourceLabel: string;
   query: string;
   mode: "keyword" | "domain";
@@ -103,8 +81,8 @@ export type ReoptimizationResearchResult = {
   currentPage: { title: string; description: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; links: Array<{ url: string; anchor: string }> };
   competitorPages: Array<{ rank: number; title: string; url: string; domain: string; headings: string[]; headingStructure: Array<{ level: 1 | 2 | 3 | 4 | 5 | 6; text: string }>; text: string; wordCount: number; backlinkRank: number; referringDomains: number }>;
   queries: {
-    currentRankings: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number; position: number; url: string }>;
-    related: Array<{ keyword: string; intent: SearchIntent; volume: number; difficulty: number }>;
+    currentRankings: Array<{ keyword: string; intent: SearchIntent; volume: number | null; difficulty: number | null; position: number; url: string }>;
+    related: Array<{ keyword: string; intent: SearchIntent; volume: number | null; difficulty: number | null }>;
   };
   onPage: { score: number; checks: string[]; loadTimeMs: number; sizeBytes: number };
   backlinks: { rank: number; backlinks: number; referringDomains: number; brokenBacklinks: number };
@@ -123,6 +101,12 @@ function number(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) return Number(value);
   return 0;
+}
+
+function measuredNumber(value: unknown): number | null {
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
+  const result = Number(value);
+  return Number.isFinite(result) && result >= 0 ? result : null;
 }
 
 function string(value: unknown) {
@@ -222,7 +206,9 @@ export function parseReoptimizationResearch(input: {
     rank: number(item.rank_group) || number(item.rank_absolute), title: string(item.title), url: string(item.url), domain: domain(string(item.url)), description: string(item.description),
   }] : []).slice(0, 10);
   const peopleAlsoAsk = [...new Set(serpItems.filter((item) => item.type === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"])) ))].slice(0, 12);
-  const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches").flatMap((item) => stringsByKey(item, new Set(["title", "keyword"])) ))].slice(0, 12);
+  const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches")
+    .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
+      ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))).map(tidyResearchText).filter(Boolean))].slice(0, 12);
   const features = [...new Set(serpItems.map((item) => string(item.type)).filter((type) => type && type !== "organic"))];
   const currentPage = parsedContent(input.currentPayload);
   const competitorRows = organic.filter((item) => item.domain && item.domain !== targetDomain).slice(0, input.competitorPayloads.length);
@@ -278,9 +264,33 @@ function monthlyTrend(keywordInfo: JsonRecord) {
     .map((item) => number(item.search_volume));
 }
 
+export function keywordProviderResult(payload: unknown): JsonRecord {
+  const first = firstResult(payload); // Retain provider status validation.
+  const results = array(record(array(record(payload).tasks)[0]).result).map(record);
+  const seed = results.map(result => record(result.seed_keyword_data)).find(value => string(value.keyword).trim());
+  return {
+    ...first,
+    seed_keyword_data: seed ?? null,
+    items: results.flatMap(result => array(result.items)),
+    total_count: Math.max(0, ...results.map(result => number(result.total_count))),
+  };
+}
+
+function keywordItems(result: JsonRecord): unknown[] {
+  const items = array(result.items);
+  const seed = record(result.seed_keyword_data);
+  const seedKey = string(seed.keyword).trim().toLowerCase();
+  if (!seedKey) return items;
+  return [seed, ...items.filter((item) => {
+    const row = record(item);
+    const data = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
+    return string(data.keyword).trim().toLowerCase() !== seedKey;
+  })];
+}
+
 export function parseKeywordResearch(payload: unknown): KeywordResearchRow[] {
-  const result = firstResult(payload);
-  return array(result.items).map((item) => {
+  const result = keywordProviderResult(payload);
+  return keywordItems(result).map((item) => {
     const row = record(item);
     const keywordData = Object.keys(record(row.keyword_data)).length ? record(row.keyword_data) : row;
     const keywordInfo = record(keywordData.keyword_info);
@@ -291,24 +301,29 @@ export function parseKeywordResearch(payload: unknown): KeywordResearchRow[] {
     return {
       keyword: string(keywordData.keyword),
       intent: intent(searchIntent.main_intent ?? keywordProperties.main_intent),
-      volume: number(keywordInfo.search_volume),
-      difficulty: number(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
-      cpc: number(keywordInfo.cpc),
-      competition: number(keywordInfo.competition),
+      volume: measuredNumber(keywordInfo.search_volume),
+      difficulty: measuredNumber(keywordProperties.keyword_difficulty ?? keywordData.keyword_difficulty),
+      cpc: measuredNumber(keywordInfo.cpc),
+      competition: measuredNumber(keywordInfo.competition),
       trend: monthlyTrend(keywordInfo),
       position: number(serpItem.rank_group) || number(serpItem.rank_absolute),
-      traffic: number(serpItem.etv),
+      traffic: measuredNumber(serpItem.etv),
       url: string(serpItem.url),
     };
   }).filter((row) => row.keyword);
 }
 
 export function summarizeKeywordResearch(rows: KeywordResearchRow[], providerTotal?: number) {
+  const known = (key: "volume" | "difficulty" | "traffic") => rows.flatMap(row => typeof row[key] === "number" && Number.isFinite(row[key]) ? [row[key] as number] : []);
+  const sum = (values: number[]) => values.length ? values.reduce((total, value) => total + value, 0) : null;
+  const volume = known("volume");
+  const difficulty = known("difficulty");
+  const traffic = known("traffic");
   return {
     totalKeywords: providerTotal || rows.length,
-    totalVolume: rows.reduce((total, row) => total + row.volume, 0),
-    averageDifficulty: rows.length ? Math.round(rows.reduce((total, row) => total + row.difficulty, 0) / rows.length) : 0,
-    estimatedTraffic: Math.round(rows.reduce((total, row) => total + row.traffic, 0)),
+    totalVolume: sum(volume),
+    averageDifficulty: difficulty.length ? Math.round(sum(difficulty)! / difficulty.length) : null,
+    estimatedTraffic: traffic.length ? Math.round(sum(traffic)!) : null,
   };
 }
 
@@ -410,9 +425,9 @@ export class DataForSeoResearchClient {
     const request = input.mode === "domain"
       ? { target: query, location_name: location, language_name: "English", item_types: ["organic"], order_by: ["keyword_data.keyword_info.search_volume,desc"], limit: 100 }
       : input.related ? { keyword: query, location_name: location, language_name: "English", depth: 2, include_seed_keyword: true, offset: input.offset ?? 0, limit: 100, filters: ["keyword_data.keyword_info.search_volume", ">", 0], order_by: ["keyword_data.keyword_info.search_volume,desc"] }
-      : { keyword: query, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
+      : { keyword: query, include_seed_keyword: true, offset: input.offset ?? 0, location_name: location, language_name: "English", filters: ["keyword_info.search_volume", ">", 0], order_by: ["keyword_info.search_volume,desc"], limit: 100 };
     const payload = await this.post(path, [request]);
-    const result = firstResult(payload);
+    const result = keywordProviderResult(payload);
     const rows = parseKeywordResearch(payload);
     return {
       sourceLabel: "Live DataForSEO keyword index",
@@ -420,6 +435,7 @@ export class DataForSeoResearchClient {
       mode: input.mode,
       location,
       updatedAt: new Date().toISOString(),
+      metricContractVersion: 2,
       metrics: summarizeKeywordResearch(rows, number(result.total_count)),
       rows,
       notices: [

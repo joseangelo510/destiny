@@ -259,7 +259,7 @@ export function PublicOnboarding({ initialMomentumPolicy, initialEmail = "" }: {
   };
 
   if (auditStatus !== "idle") {
-    return <AuditMomentumProcessing billingRequired={billingRequired} failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
+    return <AuditMomentumProcessing key={auditStatus} billingRequired={billingRequired} failureMessage={error} initialPolicy={momentumPolicy} initialProgress={auditProgress} initialStatus={auditStatus} onRetry={() => { setAuditStatus("idle"); setAuditProgress(0); setStep(3); }} website={form.website} />;
   }
 
   return (

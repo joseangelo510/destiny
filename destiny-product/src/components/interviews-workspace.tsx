@@ -29,7 +29,7 @@ type ActiveInterview = {
   id: string;
   topicTitle: string;
   focusKeyword: string;
-  questions: Array<InterviewQuestion & { id: string }>;
+  questions: Array<InterviewQuestion & { id: string; answered?: boolean; skipped?: boolean }>;
 };
 
 type CompletedInterview = {
@@ -86,6 +86,7 @@ export function InterviewsWorkspace({
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [completed, setCompleted] = useState<CompletedInterview | null>(null);
+  const [history, setHistory] = useState(previousInterviews);
   const [items, setItems] = useState(libraryItems);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -95,8 +96,42 @@ export function InterviewsWorkspace({
 
   const currentQuestion = activeInterview?.questions[questionIndex] ?? null;
   const progress = activeInterview ? Math.round(((questionIndex + 1) / activeInterview.questions.length) * 100) : 0;
-  const hasLibrary = items.length > 0 || previousInterviews.length > 0;
+  const hasLibrary = items.length > 0 || history.length > 0;
   const confirmedCount = useMemo(() => items.filter((item) => item.status === "confirmed_by_owner").length, [items]);
+
+  async function reopenInterview(id: string) {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/interviews/${id}?websiteId=${encodeURIComponent(websiteId)}`);
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.interview) throw new Error(parseError(payload, "Rebound SEO could not reopen this interview."));
+      const saved = payload.interview as ActiveInterview & CompletedInterview & { status: string; nextQuestionIndex: number };
+      setActiveInterview(saved);
+      setQuestionIndex(saved.nextQuestionIndex < 0 ? saved.questions.length : saved.nextQuestionIndex);
+      setAnswer(""); setNudge(""); setSourceOpen({});
+      setCompleted(saved.status === "complete" ? saved : null);
+      setItems(current => [...saved.libraryItems, ...current.filter(item => item.interviewId !== id)]);
+      setStage(saved.status === "complete" ? "review" : "interview");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not reopen this interview."); }
+    finally { setBusy(false); }
+  }
+
+  async function finishInterview(id: string) {
+    if (completed) { setStage("review"); return; }
+    setBusy(true); setError("");
+    try {
+      const response = await fetch(`/api/interviews/${id}/complete`, { method: "POST" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.interview) throw new Error(parseError(payload, "Your answers are saved, but Rebound SEO could not finish the interview."));
+      const result = payload.interview as CompletedInterview;
+      setCompleted(result);
+      setItems(current => [...result.libraryItems, ...current.filter(item => item.interviewId !== id)]);
+      setHistory(current => current.map(item => item.id === id ? { ...item, status: "complete", answerCount: result.answers.length } : item));
+      setStage("review");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not finish the interview."); }
+    finally { setBusy(false); }
+  }
 
   async function startInterview(topic: InterviewTopic) {
     setBusy(true);
@@ -109,7 +144,10 @@ export function InterviewsWorkspace({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.interview) throw new Error(parseError(payload, "Rebound SEO could not start this interview."));
-      setActiveInterview(payload.interview as ActiveInterview);
+      const started = payload.interview as ActiveInterview;
+      setActiveInterview(started);
+      setCompleted(null); setSourceOpen({});
+      setHistory(current => [{ id: started.id, topicTitle: started.topicTitle, focusKeyword: started.focusKeyword, status: "in_progress", completedAt: null, answerCount: 0 }, ...current]);
       setQuestionIndex(0);
       setAnswer("");
       setNudge("");
@@ -159,18 +197,13 @@ export function InterviewsWorkspace({
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(parseError(payload, "Rebound SEO could not save that answer."));
-      if (questionIndex < activeInterview.questions.length - 1) {
-        setQuestionIndex((index) => index + 1);
-        setAnswer("");
-        setNudge("");
-        return;
-      }
-      const completionResponse = await fetch(`/api/interviews/${activeInterview.id}/complete`, { method: "POST" });
-      const completionPayload = await completionResponse.json().catch(() => ({}));
-      if (!completionResponse.ok || !completionPayload.interview) throw new Error(parseError(completionPayload, "Rebound SEO saved your answers but could not finish the interview."));
-      setCompleted(completionPayload.interview as CompletedInterview);
-      setItems((current) => [...(completionPayload.interview.libraryItems as VoiceLibraryItemView[]), ...current]);
-      setStage("review");
+      const questions = activeInterview.questions.map(question => question.id === currentQuestion.id ? { ...question, answered: !skip, skipped: skip } : question);
+      setActiveInterview({ ...activeInterview, questions });
+      setHistory(current => current.map(item => item.id === activeInterview.id ? { ...item, answerCount: item.answerCount + (skip ? 0 : 1) } : item));
+      const next = questions.findIndex(question => !question.answered && !question.skipped);
+      setQuestionIndex(next < 0 ? questions.length : next);
+      setAnswer(""); setNudge("");
+      if (next < 0) await finishInterview(activeInterview.id);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not save that answer.");
     } finally {
@@ -179,7 +212,9 @@ export function InterviewsWorkspace({
   }
 
   async function decideInsight(item: VoiceLibraryItemView, decision: "confirmed_by_owner" | "rejected_by_owner") {
-    if (!activeInterview) return;
+    if (!activeInterview || busy) return;
+    setBusy(true);
+    setError("");
     const previous = items;
     setItems((current) => current.map((candidate) => candidate.id === item.id ? { ...candidate, status: decision } : candidate));
     try {
@@ -193,7 +228,7 @@ export function InterviewsWorkspace({
     } catch (cause) {
       setItems(previous);
       setError(cause instanceof Error ? cause.message : "Rebound SEO could not save that decision.");
-    }
+    } finally { setBusy(false); }
   }
 
   async function createArticle() {
@@ -212,8 +247,9 @@ export function InterviewsWorkspace({
   }
 
   function navigate(next: (typeof stages)[number][0]) {
+    if (next === "interview" && completed) return setStage("review");
     if (next === "interview" && !activeInterview) return setStage("topics");
-    if ((next === "review" || next === "article") && !completed) return setStage("topics");
+    if ((next === "review" || next === "article") && !completed) return setStage(hasLibrary ? "library" : "topics");
     setStage(next);
   }
 
@@ -224,7 +260,7 @@ export function InterviewsWorkspace({
     </section>
 
     <nav aria-label="Interview progress" className={styles.stageNav}>
-      {stages.map(([id, number, label]) => <button aria-current={stage === id ? "step" : undefined} className={stage === id ? styles.activeStage : ""} key={id} onClick={() => navigate(id)} type="button"><span>{number}</span>{label}</button>)}
+      {stages.map(([id, number, label]) => <button aria-current={stage === id ? "step" : undefined} className={stage === id ? styles.activeStage : ""} disabled={busy} key={id} onClick={() => navigate(id)} type="button"><span>{number}</span>{label}</button>)}
     </nav>
 
     {error && <div aria-live="polite" className={styles.error} role="alert">{error}</div>}
@@ -243,7 +279,7 @@ export function InterviewsWorkspace({
     </section>}
 
     {stage === "interview" && activeInterview && currentQuestion && <section className={styles.view}>
-      <div className={styles.interviewHeader}><div><span>{activeInterview.topicTitle}</span><strong>Question {questionIndex + 1} of {activeInterview.questions.length}</strong></div><div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div></div>
+      <div className={styles.interviewHeader}><div><span>{activeInterview.topicTitle}</span><strong>Question {currentQuestion.position} of {activeInterview.questions.length}</strong></div><div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div></div>
       <div className={styles.interviewGrid}><article className={styles.questionCard}><small>{currentQuestion.kind.replaceAll("_", " ")}</small><h2>{currentQuestion.text}</h2><p>Answer the way you would talk to a customer. Stories, real numbers, and strong opinions are especially useful.</p><textarea aria-label="Your interview answer" autoFocus onChange={(event) => { setAnswer(event.target.value); setNudge(""); }} placeholder="Talk it out in writing—Rebound SEO will handle the polish later." rows={9} value={answer} />
         {nudge && <div className={styles.nudge}><strong>You have the idea.</strong> {nudge}<button onClick={() => { setNudge("ready"); void saveCurrentAnswer(false); }} type="button">Continue with this answer</button></div>}
         <div className={styles.questionActions}><button className={styles.primaryButton} disabled={busy} onClick={() => saveCurrentAnswer(false)} type="button">{busy ? "Saving…" : questionIndex === activeInterview.questions.length - 1 ? "Save answer & finish" : "Save answer & continue →"}</button><button disabled={busy} onClick={() => saveCurrentAnswer(true)} type="button">Skip this question</button></div>
@@ -251,9 +287,11 @@ export function InterviewsWorkspace({
       </article><aside className={styles.coachPanel}><span>DESTINY IS LISTENING FOR</span><h3>Your judgment, not perfect writing</h3><ul><li>A strong opinion</li><li>A real customer story</li><li>A number from your experience</li><li>What competitors get wrong</li><li>Why your approach is different</li></ul><p>Answers save after every question. If you leave, this interview remains available for 30 days.</p></aside></div>
     </section>}
 
+    {stage === "interview" && activeInterview && !completed && !currentQuestion && <section className={styles.view}><h2>Your answers are saved.</h2><p>Finish this interview to review your exact words and captured insights.</p><button className={styles.primaryButton} disabled={busy} onClick={() => finishInterview(activeInterview.id)} type="button">Finish saved interview</button></section>}
+
     {stage === "review" && completed && <section className={styles.view}>
       <div className={styles.viewHeading}><span>Interview complete</span><h2>Here is what Rebound SEO captured.</h2><p>Your exact words stay separate from Rebound SEO’s interpretation. Confirming an insight teaches your Voice Library; rejecting it prevents reuse.</p></div>
-      <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{completed.libraryItems.length ? completed.libraryItems.map((item) => <article className={`${styles.insightCard} ${item.status === "rejected_by_owner" ? styles.rejected : ""}`} key={item.id}><small>{insightLabels[item.type] ?? item.type}</small><h4>{item.title}</h4><p>{item.body}</p><button onClick={() => setSourceOpen((current) => ({ ...current, [item.id]: !current[item.id] }))} type="button">{sourceOpen[item.id] ? "Hide my exact words" : "See exactly what I said"}</button>{sourceOpen[item.id] && <blockquote>{item.sourceText}</blockquote>}<div><button className={item.status === "confirmed_by_owner" ? styles.confirmed : ""} onClick={() => decideInsight(item, "confirmed_by_owner")} type="button">✓ That’s right</button><button className={item.status === "rejected_by_owner" ? styles.rejectedButton : ""} onClick={() => decideInsight(item, "rejected_by_owner")} type="button">✕ Not quite</button></div></article>) : <div className={styles.emptyPanel}>Your exact answers are safely stored. Rebound SEO did not create interpretations from this interview.</div>}</section></div>
+      <div className={styles.captureGrid}><section><div className={styles.sectionHeading}><h3>Your words</h3><span>Verbatim · never edited</span></div>{completed.answers.map((entry, index) => <article className={styles.answerCard} key={entry.id}><small>Question {index + 1}</small><strong>{entry.question}</strong><blockquote>{entry.verbatimText}</blockquote></article>)}</section><section><div className={styles.sectionHeading}><h3>Rebound SEO’s read</h3><span>AI interpretation · check it</span></div>{completed.libraryItems.length ? completed.libraryItems.map((savedItem) => { const item = items.find(candidate => candidate.id === savedItem.id) ?? savedItem; return <article className={`${styles.insightCard} ${item.status === "rejected_by_owner" ? styles.rejected : ""}`} key={item.id}><small>{insightLabels[item.type] ?? item.type}</small><h4>{item.title}</h4><p>{item.body}</p><button onClick={() => setSourceOpen((current) => ({ ...current, [item.id]: !current[item.id] }))} type="button">{sourceOpen[item.id] ? "Hide my exact words" : "See exactly what I said"}</button>{sourceOpen[item.id] && <blockquote>{item.sourceText}</blockquote>}<div><button className={item.status === "confirmed_by_owner" ? styles.confirmed : ""} disabled={busy} aria-pressed={item.status === "confirmed_by_owner"} onClick={() => decideInsight(item, "confirmed_by_owner")} type="button">✓ That’s right</button><button className={item.status === "rejected_by_owner" ? styles.rejectedButton : ""} disabled={busy} aria-pressed={item.status === "rejected_by_owner"} onClick={() => decideInsight(item, "rejected_by_owner")} type="button">✕ Not quite</button></div></article>; }) : <div className={styles.emptyPanel}>Your exact answers are safely stored. Rebound SEO did not create interpretations from this interview.</div>}</section></div>
       <div className={styles.reviewFooter}><div><strong>{completed.answers.length} exact answers added to your Voice Library.</strong><p>Nothing is published. The article goes to Content Studio for your review.</p></div><button className={styles.secondaryButton} onClick={() => setStage("library")} type="button">See my Voice Library</button><button className={styles.primaryButton} disabled={busy || !generationAvailable || !auditId} onClick={createArticle} type="button">{busy ? "Preparing…" : "Write my article from this →"}</button></div>
       {!generationAvailable && <p className={styles.configurationNote}>Article generation is unavailable until Rebound SEO’s server-side writing connection is configured. Your interview and transcript are already saved.</p>}
       {!auditId && <p className={styles.configurationNote}>Complete the website audit before creating the SEO article. Your interview and transcript are already saved.</p>}
@@ -261,7 +299,7 @@ export function InterviewsWorkspace({
 
     {stage === "library" && <section className={styles.view}>
       <div className={styles.libraryHero}><div><span>VOICE LIBRARY</span><h2>Everything Rebound SEO has learned from your words.</h2><p>One website. One expert voice. Every confirmed interview makes future Content Studio drafts sound more like you.</p></div><div><strong>{items.length}</strong><span>captured insights</span><strong>{confirmedCount}</strong><span>confirmed by you</span></div></div>
-      {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voice Library.</h3><p>There is no invented sample data here. Choose one topic and share what you know.</p><button className={styles.primaryButton} onClick={() => setStage("topics")} type="button">Choose my first topic</button></div> : <div className={styles.libraryGrid}>{items.filter((item) => item.status !== "rejected_by_owner").map((item) => <article key={item.id}><small>{insightLabels[item.type] ?? item.type}</small><h3>{item.title}</h3><p>{item.body}</p><span>{item.status === "confirmed_by_owner" ? "Confirmed by you" : "Ready for your review"}</span></article>)}{previousInterviews.map((interview) => <article key={interview.id}><small>Interview</small><h3>{interview.topicTitle}</h3><p>{interview.answerCount} exact answers saved for this website.</p><span>{interview.status === "complete" ? "Complete" : "Continue later"}</span></article>)}</div>}
+      {!hasLibrary ? <div className={styles.emptyLibrary}><span>✦</span><h3>Your first interview will start your Voice Library.</h3><p>There is no invented sample data here. Choose one topic and share what you know.</p><button className={styles.primaryButton} onClick={() => setStage("topics")} type="button">Choose my first topic</button></div> : <div className={styles.libraryGrid}>{items.filter((item) => item.status !== "rejected_by_owner").map((item) => <article key={item.id}><small>{insightLabels[item.type] ?? item.type}</small><h3>{item.title}</h3><p>{item.body}</p><span>{item.status === "confirmed_by_owner" ? "Confirmed by you" : "Ready for your review"}</span><button className={styles.secondaryButton} disabled={busy} onClick={() => reopenInterview(item.interviewId)} type="button">Review insight</button></article>)}{history.map((interview) => <article key={interview.id}><small>Interview</small><h3>{interview.topicTitle}</h3><p>{interview.answerCount} exact answers saved for this website.</p><span>{interview.status === "complete" ? "Complete" : "In progress"}</span>{["complete", "in_progress"].includes(interview.status) && <button className={styles.secondaryButton} disabled={busy} onClick={() => reopenInterview(interview.id)} type="button">{interview.status === "complete" ? "Review interview" : "Resume interview"}</button>}</article>)}</div>}
       <button className={styles.secondaryButton} onClick={() => setStage("topics")} type="button">Do another interview</button>
     </section>}
 
