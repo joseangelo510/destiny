@@ -3893,3 +3893,6 @@ September21 acceptance integration (MEDIUM): sole owner Codex task01a0c2b9-ffe5-
 
 
 September21 integration maintainability correction (MEDIUM): hosted PR145 harness35667179680 fails the unchanged repository500line limit because research.ts grew to516lines atf43a17a. Before refactor: extract existing keyword type declarations into a type-only module and re-export the same public names, preserving runtime behavior/import compatibility. No policy/baseline/CI edits or limit exceptions. Existing parser/type/browser validation and unchanged repository checker must pass. Owner task/scope unchanged.
+
+## 2026-09-21 — Reviews registry request recovery
+MEDIUM. Active owner task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd; other Destiny tasks not active at fresh check. Base26a18a8f95817703ba1543250734b6017fb78921. User goal authorizes ordinary feature tests/fixes. Receipt261 confirms Save stays busy on rejected fetch/non-JSON response; source shows equivalent missing cleanup in Check/Remove. Scope: component request handling only, actionable errors and finally cleanup, preserving existing values/profile after failure. No endpoint/auth/schema/provider or billing changes. Browser-intercepted local save/check/remove failures and retries must pass; full gates before merge. Rollback protected revert; no production profile deletion or release authorized.
