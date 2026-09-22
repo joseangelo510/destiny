@@ -1,6 +1,7 @@
 "use client";
 
 import { cmsDeliveryProviders, type CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
+import { preserveEditedDrafts } from "@/lib/content/draft-hydration";
 import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -220,6 +221,7 @@ export function ArticleReviewWorkspace({
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
   const reconciledArticlesRef = useRef(new Set<string>());
+  const editedKeywordsRef = useRef(new Set<string>());
   const draftRevisionRef = useRef(0);
   const persistedDraftRevisionRef = useRef(0);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
@@ -242,7 +244,7 @@ export function ArticleReviewWorkspace({
       } catch { /* Offline editing can continue from the local copy. */ }
 
       if (!cancelled) {
-        setDrafts(hydrated);
+        setDrafts(current => preserveEditedDrafts(hydrated, current, editedKeywordsRef.current));
         setStorageReady(true);
       }
     };
@@ -346,7 +348,11 @@ export function ArticleReviewWorkspace({
 
   const updateDraft = (change: (current: EditableDraft) => EditableDraft) => {
     draftRevisionRef.current += 1;
-    setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));
+    setDrafts((current) => current.map((item, index) => {
+      if (index !== selected) return item;
+      editedKeywordsRef.current.add(item.keyword);
+      return change(item);
+    }));
   };
 
   const updateText = (field: "title" | "metaTitle" | "body", value: string) => {

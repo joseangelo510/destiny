@@ -136,7 +136,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
-  }, 3, params.keyword);
+  }, 3, interviewArticleDraft?.keyword ?? params.keyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows } = context.website
@@ -200,6 +200,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           initialItems={publishingItems}
         />}
         <ArticleReviewWorkspace
+          key={`${context.website?.id}:${context.audit?.id}`}
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
