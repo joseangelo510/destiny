@@ -30,42 +30,57 @@ export function DirectoryProfileRegistry({ directories, googleConnected, initial
     event.preventDefault();
     setSaving(directoryKey);
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
-    const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, profileUrl: values[directoryKey] ?? "" }) });
-    const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not save this URL." }));
-    else {
-      setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
-      setValues((current) => ({ ...current, [directoryKey]: payload.profile?.profile_url ?? "" }));
-      setMessage((current) => ({ ...current, [directoryKey]: payload.profile?.profile_url ? "Saved for public-profile monitoring." : "Profile URL removed." }));
+    try {
+      const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, profileUrl: values[directoryKey] ?? "" }) });
+      const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
+      if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not save this URL." }));
+      else {
+        setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
+        setValues((current) => ({ ...current, [directoryKey]: payload.profile?.profile_url ?? "" }));
+        setMessage((current) => ({ ...current, [directoryKey]: payload.profile?.profile_url ? "Saved for public-profile monitoring." : "Profile URL removed." }));
+      }
+    } catch {
+      setMessage((current) => ({ ...current, [directoryKey]: "Rebound SEO could not confirm the save. Try again after checking the current profile status." }));
+    } finally {
+      setSaving(null);
     }
-    setSaving(null);
   }
 
   async function remove(directoryKey: string) {
     setSaving(directoryKey);
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
-    const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, remove: true }) });
-    const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not remove this URL." }));
-    else {
-      setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
-      setValues((current) => ({ ...current, [directoryKey]: "" }));
-      setMessage((current) => ({ ...current, [directoryKey]: "Profile URL removed." }));
+    try {
+      const response = await fetch("/api/directory-profiles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey, remove: true }) });
+      const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
+      if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not remove this URL." }));
+      else {
+        setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
+        setValues((current) => ({ ...current, [directoryKey]: "" }));
+        setMessage((current) => ({ ...current, [directoryKey]: "Profile URL removed." }));
+      }
+    } catch {
+      setMessage((current) => ({ ...current, [directoryKey]: "Rebound SEO could not confirm removal. Try again after checking the current profile status." }));
+    } finally {
+      setSaving(null);
     }
-    setSaving(null);
   }
 
   async function check(directoryKey: string) {
     setChecking(directoryKey);
     setMessage((current) => ({ ...current, [directoryKey]: "" }));
-    const response = await fetch("/api/directory-profiles/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey }) });
-    const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
-    if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not verify this profile." }));
-    else {
-      setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
-      setMessage((current) => ({ ...current, [directoryKey]: payload.profile?.status === "verified" ? "Public profile is reachable." : `The directory returned HTTP ${payload.profile?.http_status ?? "unknown"}.` }));
+    try {
+      const response = await fetch("/api/directory-profiles/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, directoryKey }) });
+      const payload = await response.json() as { profile?: DirectoryProfile; error?: string };
+      if (!response.ok || !payload.profile) setMessage((current) => ({ ...current, [directoryKey]: payload.error || "Rebound SEO could not verify this profile." }));
+      else {
+        setProfiles((current) => new Map(current).set(directoryKey, payload.profile as DirectoryProfile));
+        setMessage((current) => ({ ...current, [directoryKey]: payload.profile?.status === "verified" ? "Public profile is reachable." : `The directory returned HTTP ${payload.profile?.http_status ?? "unknown"}.` }));
+      }
+    } catch {
+      setMessage((current) => ({ ...current, [directoryKey]: "Rebound SEO could not verify this profile. Try again." }));
+    } finally {
+      setChecking(null);
     }
-    setChecking(null);
   }
 
   return <div className="directory-registry">
