@@ -1,6 +1,9 @@
 "use client";
 
 import { cmsDeliveryProviders, type CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
+import { hydrateCmsDrafts } from "@/lib/content/cms-draft-hydration";
+export { hydrateCmsDrafts } from "@/lib/content/cms-draft-hydration";
+import { preserveEditedDrafts } from "@/lib/content/draft-hydration";
 import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -147,31 +150,6 @@ export type CmsTransferState = {
   fieldReport: CmsFieldReportEntry[] | null;
 };
 
-/** Rebuild the per-article delivery state (Update vs Send, readiness checklist) from persisted transfers after a reload. */
-export function hydrateCmsDrafts(transfers: CmsTransferState[], auditId: string) {
-  const drafts: Record<string, CmsDraftResult> = {};
-  for (const transfer of transfers) {
-    if (transfer.status !== "succeeded" || !transfer.remoteEditUrl) continue;
-    const prefix = `${auditId}:`;
-    if (!transfer.articleKey.startsWith(prefix)) continue;
-    const keyword = transfer.articleKey.slice(prefix.length);
-    const key = `${transfer.provider}:${keyword}`;
-    if (drafts[key]) continue;
-    drafts[key] = {
-      url: transfer.remoteEditUrl,
-      updated: true,
-      fieldReport: transfer.fieldReport ?? undefined,
-      publicationStatus: transfer.publicationStatus ?? "delivered_draft",
-      remotePermalink: transfer.remotePermalink,
-      lastReconciledAt: transfer.lastReconciledAt,
-      verifiedLiveAt: transfer.verifiedLiveAt,
-      verificationEvidence: transfer.verificationEvidence,
-      seoTitleRendered: transfer.seoTitleRendered,
-    };
-  }
-  return drafts;
-}
-
 export function ArticleReviewWorkspace({
   auditId,
   websiteId,
@@ -220,6 +198,7 @@ export function ArticleReviewWorkspace({
   const generationControllerRef = useRef<AbortController | null>(null);
   const generationAbortReasonRef = useRef<"cancelled" | "timeout" | null>(null);
   const reconciledArticlesRef = useRef(new Set<string>());
+  const editedKeywordsRef = useRef(new Set<string>());
   const draftRevisionRef = useRef(0);
   const persistedDraftRevisionRef = useRef(0);
   const [qualityCheck, setQualityCheck] = useState<{ signature: string; issues: ArticleDraft["qualityIssues"] }>({ signature: "", issues: [] });
@@ -242,7 +221,7 @@ export function ArticleReviewWorkspace({
       } catch { /* Offline editing can continue from the local copy. */ }
 
       if (!cancelled) {
-        setDrafts(hydrated);
+        setDrafts(current => preserveEditedDrafts(hydrated, current, editedKeywordsRef.current));
         setStorageReady(true);
       }
     };
@@ -346,7 +325,11 @@ export function ArticleReviewWorkspace({
 
   const updateDraft = (change: (current: EditableDraft) => EditableDraft) => {
     draftRevisionRef.current += 1;
-    setDrafts((current) => current.map((item, index) => index === selected ? change(item) : item));
+    setDrafts((current) => current.map((item, index) => {
+      if (index !== selected) return item;
+      editedKeywordsRef.current.add(item.keyword);
+      return change(item);
+    }));
   };
 
   const updateText = (field: "title" | "metaTitle" | "body", value: string) => {
