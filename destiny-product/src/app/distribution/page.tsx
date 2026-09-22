@@ -37,7 +37,7 @@ export default async function DistributionPage() {
   const entitlement = await loadWebsiteEntitlement(context.website?.id);
   const paid = entitlement.canRunPaidWork;
   const social = recommendedSocialChannels(businessContext);
-  const directorySuggestions = recommendedDirectories(businessContext).filter((suggestion) => !baseDirectories.some((base) => base.key === suggestion.key));
+  const directorySuggestions = recommendedDirectories(context.website?.products_services ?? "").filter((suggestion) => !baseDirectories.some((base) => base.key === suggestion.key));
   const visibleCreators = publishers;
   const creatorTopics = list(providerResult.keywords).map(record)
     .filter((item) => item.essential === true || Number(item.priorityTier ?? 9) <= 2)

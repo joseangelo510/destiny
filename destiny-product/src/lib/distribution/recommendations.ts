@@ -43,7 +43,7 @@ export function directoryProfileMatches(directoryKey: string, value: string): bo
 }
 
 const contextualDirectories: Array<{ terms: RegExp; items: DirectoryRecommendation[] }> = [
-  { terms: /agency|marketing|design|creative|consult/i, items: [
+  { terms: /\b(marketing|advertising|branding|creative agency|(?:web|website|graphic|product|ux|ui) design|(?:business|management|technology) consulting)\b/i, items: [
     { key: "clutch", name: "Clutch", href: "https://clutch.co/get-listed", detail: "Build a verified services profile.", reason: "Agency buyers use Clutch to compare specialist partners." },
     { key: "designrush", name: "DesignRush", href: "https://www.designrush.com/agency/submit", detail: "Submit your agency profile.", reason: "DesignRush is relevant to buyers researching marketing and design firms." },
   ] },
