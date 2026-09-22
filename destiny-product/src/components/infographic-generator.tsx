@@ -39,12 +39,13 @@ export function InfographicGenerator({ websiteId, websiteName, approvedKeywords,
 
   async function research() {
     if (!topic) return setError("Choose a keyword or enter your own topic.");
-    setBusy("research"); setError(""); setPlan(null); setBillingUsageId("");
-    if (imageUrl) { URL.revokeObjectURL(imageUrl); setImageUrl(""); }
+    setBusy("research"); setError("");
     try {
       const response = await fetch("/api/content/infographic/research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ websiteId, keyword: topic, style, specialInstructions }) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(errorMessage(result, "Rebound SEO could not research this topic."));
+      // Keep the current evidence and visual until replacement research succeeds.
+      setImageUrl("");
       setPlan(result.plan as InfographicPlan);
       setBillingUsageId(typeof result.billingUsageId === "string" ? result.billingUsageId : "");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Rebound SEO could not research this topic."); }
