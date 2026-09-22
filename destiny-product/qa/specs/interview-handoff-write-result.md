@@ -1,0 +1,2 @@
+# Interview handoff write result
+The handoff to an existing generated article must return an error when the interview linkage write fails. It must preserve generated text and succeed on retry. New draft success and failure retain existing behavior. No endpoint authentication, RLS, schema, provider or billing changes. A successful HTTP response is not proof of a correct browser destination; site/audit context acceptance remains outstanding.
