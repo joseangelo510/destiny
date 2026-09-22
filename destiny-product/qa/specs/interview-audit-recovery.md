@@ -5,3 +5,5 @@
 Recovery acceptance282 found selection drift after reload and possible early-edit overwrite. Scope extension283, MEDIUM: prefer the explicit interview keyword when constructing draft seeds; merge asynchronous saved-data hydration without overwriting locally edited drafts, preserving untouched server drafts. Browser regression must hold the draft-read response until after a real edit to establish the race deterministically. No persistence API or authorization changes.
 
 Validation284: retain existing632-line component ratchet by moving unchanged hydrateCmsDrafts function to a dedicated module and re-exporting the original public name. Behavior and baseline unchanged.
+
+Selection scope287, MEDIUM at57066a5: use the keyword from the authorized interview-linked article row as preferred selection independently of the introductory interview parser. Generated articles retain model provenance and existing saved-draft hydration. Acceptance286 proves approval/CMS selection drift after generated draft reopen/reload; preserve original audit and website filtering. No parser or authorization broadening.
