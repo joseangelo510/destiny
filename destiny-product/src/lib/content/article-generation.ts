@@ -562,16 +562,7 @@ function escapeXml(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 }
 
-export function renderInfographicSvg(spec: InfographicSpec) {
-  const width = 1200;
-  const rowHeight = 105;
-  const height = 330 + Math.max(1, spec.items.length) * rowHeight;
-  const rows = spec.items.slice(0, 8).map((item, index) => {
-    const y = 235 + index * rowHeight;
-    return `<g><circle cx="105" cy="${y}" r="30" fill="#9e1b40"/><text x="105" y="${y + 9}" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">${index + 1}</text><text x="165" y="${y + 8}" fill="#241119" font-size="30" font-weight="650">${escapeXml(item.slice(0, 62))}</text></g>`;
-  }).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(spec.altText)}" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="36" fill="#fbf6f4"/><rect width="18" height="${height}" fill="#f3bfd0"/><text x="70" y="92" fill="#241119" font-family="Arial, sans-serif" font-size="50" font-weight="750">${escapeXml(spec.title.slice(0, 48))}</text><text x="70" y="148" fill="#715d68" font-family="Arial, sans-serif" font-size="26">${escapeXml(spec.insight.slice(0, 80))}</text><g font-family="Arial, sans-serif">${rows}</g><text x="70" y="${height - 42}" fill="#76636d" font-family="Arial, sans-serif" font-size="20">${escapeXml(spec.sourceLabel.slice(0, 120))}</text></svg>`;
-}
+export { renderInfographicSvg } from "./inline-graphic-svg";
 
 function featuredTitleLines(value: string) {
   const words = value.trim().split(/\s+/).filter(Boolean);
