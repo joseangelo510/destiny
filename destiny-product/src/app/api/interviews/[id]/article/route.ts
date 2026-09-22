@@ -32,7 +32,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const { data: existing } = await db.from("article_drafts").select("id,draft").eq("website_id", interview.website_id).eq("audit_id", interview.audit_id).eq("keyword", draft.keyword).maybeSingle();
   const existingDraft = existing?.draft && typeof existing.draft === "object" && !Array.isArray(existing.draft) ? existing.draft as Record<string, unknown> : null;
   if (existing && existingDraft?.generationStatus === "generated") {
-    await db.from("article_drafts").update({ interview_id: id }).eq("id", existing.id);
+    const { error } = await db.from("article_drafts").update({ interview_id: id }).eq("id", existing.id);
+    if (error) return NextResponse.json({ error: "Rebound SEO could not prepare the Content Studio draft." }, { status: 500 });
   } else {
     const { error } = await db.from("article_drafts").upsert({
       organization_id: interview.organization_id,

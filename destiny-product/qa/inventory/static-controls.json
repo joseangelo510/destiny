@@ -330,7 +330,7 @@
     "type": "data-mutation",
     "route": "/api/interviews/[id]/article",
     "side_effect_class": 2,
-    "context": "if (existing && existingDraft?.generationStatus === \"generated\") { await db.from(\"article_drafts\").update({ interview_id: id }).eq(\"id\", existing.id); } else {"
+    "context": "if (existing && existingDraft?.generationStatus === \"generated\") { const { error } = await db.from(\"article_drafts\").update({ interview_id: id }).eq(\"id\", existing.id); if (error) return NextResponse.json({ error: \"Rebound SEO could not prepare the Content Studio draft.\" }, { status: 500 });"
   },
   {
     "control_id": "src/app/api/interviews/[id]/complete/route.ts:31:data-mutation:1",
