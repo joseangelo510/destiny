@@ -1,5 +1,8 @@
 "use client";
 
+import { CmsPublicationTimeline } from "./cms-publication-timeline";
+import { reviewPresentation } from "@/lib/content/review-presentation";
+
 import { cmsDeliveryProviders, type CmsDeliveryProvider } from "@/lib/cms/delivery-providers";
 import { downloadBlob } from "@/lib/content/download-blob";
 import { WorkspaceLink as Link } from "./workspace-link";
@@ -279,7 +282,8 @@ export function ArticleReviewWorkspace({
   const qualityVerified = qualityCheck.signature === qualitySignature;
   const approvedCount = drafts.filter((item) => item.approved).length;
   const wordCount = useMemo(() => draft ? markdownWordCount(draft.body) : 0, [draft]);
-  const canApprove = Boolean(draft?.generationStatus === "generated" && qualityVerified && qualityIssues.length === 0);
+  const canApprove = Boolean(storageReady && draft?.generationStatus === "generated" && qualityVerified && qualityIssues.length === 0);
+  const reviewState = reviewPresentation(storageReady, qualityVerified, draft?.generationStatus ?? "starter", canApprove);
   const issueCategories = [...new Set(qualityIssues.map((issue) => issueCategory(issue.code)))];
 
   const reconcileWordPress = useCallback(async (keyword: string, quiet = false) => {
@@ -534,7 +538,7 @@ export function ArticleReviewWorkspace({
   if (!drafts.length || !draft) return null;
   return <section className="article-review-workspace" id="article-review-workspace">
     <div className="article-topic-rail">
-      <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{approvedCount} of {drafts.length} approved</strong></div>
+      <div><span className="eyebrow">This week</span><h2>Create and review three articles</h2><p>Choose the writing direction, generate each full article, then review the evidence and approve.</p><strong>{storageReady ? `${approvedCount} of ${drafts.length} approved` : "Loading saved approvals…"}</strong></div>
       {drafts.map((item, index) => <button className={index === selected ? "active" : ""} disabled={generating} key={item.keyword} onClick={() => { setSelected(index); setError(""); }} type="button"><span>{item.approved ? "✓" : index + 1}</span><div><strong>{item.generationStatus === "starter" ? item.keyword : item.title}</strong><small>{item.generationStatus === "generated" ? "Full draft" : item.generationStatus === "needs_generation" ? "Regenerate with new settings" : "Not generated yet"} · {item.keyword}</small></div></button>)}
     </div>
 
@@ -597,11 +601,7 @@ export function ArticleReviewWorkspace({
             <div><span className={`cms-status-chip ${publication?.recordedStatus ?? result.publicationStatus ?? "delivered_draft"}`}>{publication?.label ?? (result.updated ? "Draft updated" : "Draft created")}</span><strong>{publication ? publication.detail : `Review the formatting in ${provider.label}, then publish when ready.`}</strong></div>
             {provider.id === "wordpress" && <button className="secondary-button" disabled={checkingCms === `wordpress:${draft.keyword}`} onClick={() => void reconcileWordPress(draft.keyword)} type="button">{checkingCms === `wordpress:${draft.keyword}` ? "Checking WordPress…" : "Check WordPress status"}</button>}
           </div>
-          {provider.id === "wordpress" && <ol className="cms-publication-timeline" aria-label="WordPress publication progress">
-            <li className="complete"><span>1</span><div><strong>Draft delivered</strong><small>Article and planned graphics sent to WordPress</small></div></li>
-            <li className={publication?.stage === "scheduled" || publication?.stage === "published_unverified" || publication?.stage === "live_verified" || publication?.stage === "attention" ? "complete" : "current"}><span>2</span><div><strong>Review and publish</strong><small>Formatting and SEO plugin fields remain under your control</small></div></li>
-            <li className={publication?.stage === "live_verified" ? "complete" : publication?.stage === "published_unverified" || publication?.stage === "attention" ? "current" : ""}><span>3</span><div><strong>Verify the live page</strong><small>HTTP, canonical, content match, and indexability</small></div></li>
-          </ol>}
+          {provider.id === "wordpress" && <CmsPublicationTimeline stage={publication?.stage} />}
           <div className="cms-publication-actions">
             <a className="secondary-button" href={result.url} rel="noreferrer" target="_blank">Open WordPress editor</a>
             {publication?.canShare && publication.canonicalUrl && <a className="primary-button" href={publication.canonicalUrl} rel="noreferrer" target="_blank">View verified live article</a>}
@@ -609,7 +609,7 @@ export function ArticleReviewWorkspace({
           {result.lastReconciledAt && <small className="cms-checked-at">Last checked {new Date(result.lastReconciledAt).toLocaleString()}</small>}
           {result.seoTitleRendered && <p><strong>Live search title:</strong> {result.seoTitleRendered} · about {estimateMetaTitleWidth(result.seoTitleRendered)}px</p>}
           {result.fieldReport?.length ? <div className="cms-field-report">
-            {transferred.length > 0 && <><strong>Transferred by Rebound SEO</strong><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
+            {transferred.length > 0 && <><strong>Recorded at last transfer</strong><p>Delivery history may differ from the current WordPress page. Check the latest verification result above.</p><ul>{transferred.map((entry) => <li key={`t-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
             {needsReview.length > 0 && <><strong>Still needs your review in {provider.label}</strong><ul>{needsReview.map((entry) => <li key={`r-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
             {unavailable.length > 0 && <><strong>No matching field in your collection</strong><ul>{unavailable.map((entry) => <li key={`u-${entry.field || entry.label}`}>{entry.label} — {entry.note}</li>)}</ul></>}
           </div> : null}
@@ -620,12 +620,12 @@ export function ArticleReviewWorkspace({
 
     {reviewReady && <aside className="article-optimization workspace-card">
       <span className="eyebrow">Editorial status</span>
-      <div className={`article-quality-state ${canApprove ? "ready" : "needs-work"}`}><strong>{canApprove ? "Ready for human review" : draft.generationStatus === "generated" ? "Needs another pass" : "Full article not generated"}</strong><span>{wordCount.toLocaleString()} words</span></div>
+      <div className={`article-quality-state ${reviewState.pending ? "pending" : canApprove ? "ready" : "needs-work"}`}><strong>{reviewState.label}</strong><span>{wordCount.toLocaleString()} words</span></div>
       <p>Rebound SEO checks the draft privately for depth, structure, research, and writing quality. This is not a promise of rankings.</p>
-      {canApprove ? <div className="article-quality-summary"><strong>Internal checks passed</strong><p>Confirm the business claims, links, sources, graphics, and offer before approval.</p></div> : <div className="article-quality-summary"><strong>Areas Rebound SEO will improve</strong><ul>{issueCategories.map((category) => <li key={category}>{category}</li>)}</ul></div>}
+      {reviewState.pending ? <p role="status">{reviewState.summary}</p> : canApprove ? <div className="article-quality-summary"><strong>Internal checks passed</strong><p>Confirm the business claims, links, sources, graphics, and offer before approval.</p></div> : <div className="article-quality-summary"><strong>Areas Rebound SEO will improve</strong><ul>{issueCategories.map((category) => <li key={category}>{category}</li>)}</ul></div>}
       {draft.generatedBy && <small className="article-generated-by">Generated by {displayGeneratedBy(draft.generatedBy)}</small>}
-      <Link className="secondary-button" href="/integrations">Connect CMS</Link>
-      <button className="primary-button" disabled={!questId || approvedCount !== drafts.length || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
+      <Link className="secondary-button" href="/integrations">{connectedProviders.length ? "Manage CMS connection" : "Connect CMS"}</Link>
+      <button className="primary-button" disabled={!storageReady || !questId || approvedCount !== drafts.length || saving || questStatus === "complete"} onClick={() => void finish()} type="button">{questStatus === "complete" ? "Weekly content approved" : saving ? "Saving…" : "Finish weekly content review"}</button>
     </aside>}
   </section>;
 }

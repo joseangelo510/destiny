@@ -103,6 +103,9 @@ export function buildPublicationReceipt(input: PublicationReceiptInput): Publica
     ? "published_unverified"
     : recordedStatus;
   const copy = publicationCopy(effectiveState);
+  const evidence = input.verificationEvidence && typeof input.verificationEvidence === "object" && !Array.isArray(input.verificationEvidence)
+    ? input.verificationEvidence as Record<string, unknown> : {};
+  const reason = effectiveState === "verification_failed" && typeof evidence.reason === "string" ? evidence.reason.trim().slice(0, 1000) : "";
 
   return {
     provider: typeof input.provider === "string" ? input.provider : "",
@@ -110,7 +113,7 @@ export function buildPublicationReceipt(input: PublicationReceiptInput): Publica
     recordedStatus,
     stage,
     label: copy.label,
-    detail: copy.detail,
+    detail: reason ? `${copy.detail} ${reason}` : copy.detail,
     canonicalUrl: evidenceComplete ? publicUrl : null,
     editUrl: httpsUrl(input.remoteEditUrl),
     canShare: evidenceComplete,
