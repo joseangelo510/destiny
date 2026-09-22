@@ -9,7 +9,7 @@ vi.mock("@/lib/interviews/server", () => ({ websiteScopedClient: () => ({ from(t
     update: (value: Record<string, unknown>) => { mutation = true; state.writes.push(value); return query; },
     upsert: (value: Record<string, unknown>) => { mutation = true; state.writes.push(value); return query; },
     then(resolve: (result: { data: unknown; error: unknown }) => unknown) {
-      const data = mutation ? null : table === "interviews" ? { id: "i1", created_by: "owner", website_id: "s1", audit_id: "a1", topic_title: "Topic", focus_keyword: "topic" }
+      const data = mutation ? null : table === "interviews" ? { id: "i1", created_by: "owner", website_id: "11111111-1111-4111-8111-111111111111", audit_id: "a1", topic_title: "Topic", focus_keyword: "topic" }
         : table === "websites" ? { business_name: "Test" }
         : table === "interview_questions" ? [{ id: "q1", text: "Question" }]
         : table === "interview_answers" ? [{ question_id: "q1", verbatim_text: "Exact answer" }]
@@ -42,5 +42,16 @@ it("keeps new-draft write failure visible", async () => {
 it("prepares a new draft when its write succeeds", async () => {
   state.generated = false;
   expect((await call()).status).toBe(200);
-  expect(state.writes[0]).toMatchObject({ website_id: "s1", audit_id: "a1", interview_id: "i1", draft: { keyword: "topic" } });
+  expect(state.writes[0]).toMatchObject({ website_id: "11111111-1111-4111-8111-111111111111", audit_id: "a1", interview_id: "i1", draft: { keyword: "topic" } });
+});
+
+it.each([true, false])("returns the interview website for generated=%s despite another selected site", async (generated) => {
+  state.generated = generated;
+  const response = await POST(new Request("http://localhost/api/interviews/i1/article?site=other-site", { headers: { cookie: "destiny_active_website=other-site" } }), { params: Promise.resolve({ id: "i1" }) });
+  expect(response.status).toBe(200);
+  const { contentUrl } = await response.json();
+  const destination = new URL(contentUrl, "http://localhost");
+  expect(destination.searchParams.get("site")).toBe("11111111-1111-4111-8111-111111111111");
+  expect(destination.searchParams.get("interview")).toBe("i1");
+  expect(destination.hash).toBe("#article-review-workspace");
 });
