@@ -45,7 +45,8 @@ describe("Webflow draft preparation", () => {
     expect(prepared.graphics).toHaveLength(1);
     expect(prepared.graphics[0].alt).toBe(validDraft.infographics[0].altText);
     expect(prepared.graphics[0].svg.startsWith("<svg")).toBe(true);
-    expect(prepared.graphics[0].svg).toContain("How to vet a junk removal service");
+    const graphicText = [...prepared.graphics[0].svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map((match) => match[1]).join(" ");
+    expect(graphicText).toContain(validDraft.infographics[0].title);
   });
 
   it("tolerates missing optional metadata instead of failing the transfer", () => {
