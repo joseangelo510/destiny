@@ -1,4 +1,6 @@
 import { expect, it, vi } from "vitest";
+import { scopedClient } from "@/lib/db";
+vi.mock("@/lib/db", () => ({ scopedClient: vi.fn() }));
 import { resolveInterviewAuditContext } from "./interview-audit-context";
 import type { getWorkspaceContext } from "@/lib/workspace-context";
 const site = "11111111-1111-4111-8111-111111111111";
@@ -18,6 +20,7 @@ function fixture({ missing = false, fail = false, same = false } = {}) {
     return q;
   }) };
   const context = { supabase, userId: "owner", website: { id: site }, audit: { id: "latest" }, metrics: { current: true }, quests: [], integrations: [], competitors: [], websites: [], profile: null } as unknown as Awaited<ReturnType<typeof getWorkspaceContext>>;
+  vi.mocked(scopedClient).mockResolvedValue({ select: (table: string) => supabase.from(table).select().eq("website_id", site) } as unknown as Awaited<ReturnType<typeof scopedClient>>);
   return { context, queries };
 }
 it("recovers original audit, metrics and quests while retaining website and user", async () => {
