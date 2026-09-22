@@ -102,7 +102,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const { data: interviewArticleRow } = context.website && context.audit && params.interview && UUID_PATTERN.test(params.interview)
     ? await (context.supabase as unknown as SupabaseClient)
       .from("article_drafts")
-      .select("draft")
+      .select("keyword,draft")
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
       .eq("interview_id", params.interview)
@@ -136,7 +136,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
-  }, 3, interviewArticleDraft?.keyword ?? params.keyword);
+  }, 3, interviewArticleRow?.keyword ?? params.keyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows } = context.website
