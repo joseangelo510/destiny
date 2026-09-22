@@ -300,7 +300,8 @@ describe("Rebound SEO article generation policy", () => {
       altText: "Four-step content workflow from search intent through review",
     });
     expect(svg).toContain("<svg");
-    expect(svg).toContain("A Better Content Workflow");
+    const graphicText = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map((match) => match[1]).join(" ");
+    expect(graphicText).toContain("A Better Content Workflow");
     expect(svg).toContain("Source: Rebound SEO article research");
     expect(svg).not.toContain("<image");
   });
