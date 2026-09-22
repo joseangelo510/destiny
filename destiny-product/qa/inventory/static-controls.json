@@ -324,9 +324,9 @@
     "context": "const nextPosition = Math.min(Number(interview.question_count), Number(question.position) + 1); await db.from(\"interviews\").update({ current_position: nextPosition }).eq(\"id\", id); return NextResponse.json({ saved: true, nextPosition });"
   },
   {
-    "control_id": "src/app/api/interviews/[id]/article/route.ts:35:data-mutation:1",
+    "control_id": "src/app/api/interviews/[id]/article/route.ts:36:data-mutation:1",
     "file": "src/app/api/interviews/[id]/article/route.ts",
-    "line": 35,
+    "line": 36,
     "type": "data-mutation",
     "route": "/api/interviews/[id]/article",
     "side_effect_class": 2,
