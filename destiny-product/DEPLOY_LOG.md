@@ -3893,3 +3893,7 @@ September21 acceptance integration (MEDIUM): sole owner Codex task01a0c2b9-ffe5-
 
 
 September21 integration maintainability correction (MEDIUM): hosted PR145 harness35667179680 fails the unchanged repository500line limit because research.ts grew to516lines atf43a17a. Before refactor: extract existing keyword type declarations into a type-only module and re-export the same public names, preserving runtime behavior/import compatibility. No policy/baseline/CI edits or limit exceptions. Existing parser/type/browser validation and unchanged repository checker must pass. Owner task/scope unchanged.
+
+
+## 2026-09-21 — Preserve inline graphic text (MEDIUM, prepared)
+Owner task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd authorizes ordinary repairs from real-user testing. Base26a18a8f95817703ba1543250734b6017fb78921; rootpolicy read at this base. Scope: deterministic inlineSVG wrapping and layout preserve complete title/insight/items/source with XML escaping. Live receipt251proves62character clipping. No generator/provider/auth/config/schema/CMS change. Isolated branch, sole owner this task. Separate RED/GREEN, layout validation and fullgate required. Rollback protected revert.
