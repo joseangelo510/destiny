@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { scopedClient } from "@/lib/db";
 import type { getWorkspaceContext } from "@/lib/workspace-context";
 import { isWebsiteId } from "@/lib/workspace-selection";
 
@@ -6,9 +6,10 @@ type WorkspaceContext = Awaited<ReturnType<typeof getWorkspaceContext>>;
 
 export async function resolveInterviewAuditContext(context: WorkspaceContext, interviewId: unknown): Promise<WorkspaceContext> {
   if (!context.website || !isWebsiteId(interviewId)) return context;
-  const db = context.supabase as unknown as SupabaseClient;
-  const { data: draft, error: draftError } = await db.from("article_drafts").select("audit_id")
-    .eq("website_id", context.website.id).eq("interview_id", interviewId).maybeSingle();
+  const drafts = await scopedClient(context.website.id);
+  const db = context.supabase;
+  const { data: draft, error: draftError } = await drafts.select("article_drafts", "audit_id")
+    .eq("interview_id", interviewId).maybeSingle();
   if (draftError || !isWebsiteId(draft?.audit_id) || draft.audit_id === context.audit?.id) return context;
   const { data: audit, error: auditError } = await db.from("audits").select("*")
     .eq("website_id", context.website.id).eq("id", draft.audit_id).eq("status", "complete").maybeSingle();
