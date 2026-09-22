@@ -1,2 +1,5 @@
 # Interview handoff write result
 The handoff to an existing generated article must return an error when the interview linkage write fails. It must preserve generated text and succeed on retry. New draft success and failure retain existing behavior. No endpoint authentication, RLS, schema, provider or billing changes. A successful HTTP response is not proof of a correct browser destination; site/audit context acceptance remains outstanding.
+
+## Website continuity — 2026-09-22
+MEDIUM ordinary navigation correction, base 946b9b2ceb58e9f504f51238a62e40628fcbf865. Sole implementation owner: task 01a0c2b9-ffe5-70a1-b974-2daef7dba3fd, reverified before edits. Local desktop/mobile cross-tab reproduction shows site B replaces site A in the destination; adding site A recovers the exact persisted answer. Return the authorized interview website in contentUrl using the existing website URL helper. Preserve all ownership queries and draft mutations. Rollback: protected revert of this navigation-only change. Newer-audit loading and zero-row update behavior remain separate concerns.
