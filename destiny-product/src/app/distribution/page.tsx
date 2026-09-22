@@ -1,3 +1,4 @@
+import { DistributionCommunity } from "@/components/distribution-community";
 import { loadWebsiteEntitlement } from "@/lib/billing/website-entitlement";
 import { WorkspaceLink as Link } from "@/components/workspace-link";
 import { CreatorDiscovery } from "@/components/creator-discovery";
@@ -44,17 +45,10 @@ export default async function DistributionPage() {
 
   return (
     <WorkspaceShell active="/distribution" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Distribute this week’s work" description="Use four practical channels: helpful community replies, social sharing, creator outreach, and trusted directory or review profiles.">
-      <FeatureJourneyCallout actionHref="#community" actionLabel="Open one verified conversation" milestone="Build visibility" description="Contribute one helpful answer where a real customer is already looking." doneLooksLike="A useful response, share, outreach draft, or saved public profile is recorded." evidence="An attached URL or saved draft; Search Console separately confirms impressions and clicks." />
+      <FeatureJourneyCallout actionHref="#community" actionLabel="Review saved conversations" milestone="Build visibility" description="Contribute one helpful answer where a real customer is already looking." doneLooksLike="A useful response, share, outreach draft, or saved public profile is recorded." evidence="An attached URL or saved draft; Search Console separately confirms impressions and clicks." />
       {!context.audit ? <WorkspaceEmpty title="Run an audit first" description="Rebound SEO needs your search context before it can recommend relevant distribution opportunities." /> : (
         <div className="distribution-sections">
-          <section className="workspace-card distribution-section" id="community">
-            <div className="distribution-section-heading"><div><span className="eyebrow">1 · Community forums</span><h2>Reply to three useful Reddit or Quora threads</h2><p>Help first. Add a link only when it genuinely answers the question.</p></div><strong>Goal: 3 replies</strong></div>
-            <div className="opportunity-grid compact">{opportunities.slice(0, 6).map((opportunity, index) => {
-              const network = String(opportunity.platform);
-              return <article className="opportunity-item" key={`${String(opportunity.url)}-${index}`}><span className="status-chip amber">Not answered</span><div className="eyebrow">Verified {network} thread</div><h3>{String(opportunity.title)}</h3><p>{String(opportunity.snippet || `A live ${network} conversation related to ${String(opportunity.topic)}.`)}</p><a className="secondary-button workspace-action" href={String(opportunity.url)} rel="noreferrer" target="_blank">Open live thread ↗</a></article>;
-            })}</div>
-            {!opportunities.length && <p className="empty-state">No individual live threads passed the check. Run a fresh audit later; Rebound SEO will not send you to a generic search page.</p>}
-          </section>
+          <DistributionCommunity opportunities={opportunities} websiteId={context.website!.id} />
 
           <section className="workspace-card distribution-section" id="social">
             <div className="distribution-section-heading"><div><span className="eyebrow">2 · Social sharing</span><h2>Share the approved article with your network</h2><p>Connect the article to a firsthand observation instead of posting a generic link.</p></div><strong>Goal: LinkedIn + X + Facebook</strong></div>

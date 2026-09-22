@@ -765,99 +765,90 @@
     "context": "{page > 1 && <Link href={href({ draftsPage: String(page - 1) })}>Newer drafts</Link>} {rows.length > PAGE_SIZE && <Link href={href({ draftsPage: String(page + 1) })}>Older drafts</Link>} </nav>"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:23:data-mutation:1",
+    "control_id": "src/app/distribution/page.tsx:24:data-mutation:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 23,
+    "line": 24,
     "type": "data-mutation",
     "route": "/distribution",
     "side_effect_class": 0,
     "context": "const { data: transferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:54:a:1",
+    "control_id": "src/app/distribution/page.tsx:56:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 54,
-    "type": "a",
-    "route": "/distribution",
-    "side_effect_class": 0,
-    "context": "const network = String(opportunity.platform); return <article className=\"opportunity-item\" key={`${String(opportunity.url)}-${index}`}><span className=\"status-chip amber\">Not answered</span><div className=\"eyebrow\">Verified {network} thread</div><h3>{String(opportunity.title)}</h3><p>{String(opportunity.snippet || `A live ${network} conversation related to ${String(opportunity.topic)}.`)}</p><a className=\"secondary-button workspace-action\" href={String(opportunity.url)} rel=\"noreferrer\" target=\""
-  },
-  {
-    "control_id": "src/app/distribution/page.tsx:62:a:1",
-    "file": "src/app/distribution/page.tsx",
-    "line": 62,
+    "line": 56,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:62:a:2",
+    "control_id": "src/app/distribution/page.tsx:56:a:2",
     "file": "src/app/distribution/page.tsx",
-    "line": 62,
+    "line": 56,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:62:a:3",
+    "control_id": "src/app/distribution/page.tsx:56:a:3",
     "file": "src/app/distribution/page.tsx",
-    "line": 62,
+    "line": 56,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:62:Link:4",
+    "control_id": "src/app/distribution/page.tsx:56:Link:4",
     "file": "src/app/distribution/page.tsx",
-    "line": 62,
+    "line": 56,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 3,
     "context": "<div className={`configuration-note ${shareTarget.verifiedArticle ? \"success\" : \"\"}`}><strong>{shareTarget.verifiedArticle ? \"Verified live article selected\" : \"No verified live article yet\"}</strong><p>{shareTarget.verifiedArticle ? articleUrl : \"Rebound SEO will use the website homepage until a CMS transfer is verified as published. It will never label a draft as live.\"}</p></div> <div className=\"social-share-actions\"><a className=\"primary-button\" href={linkedInShare} rel=\"noreferrer\" target=\""
   },
   {
-    "control_id": "src/app/distribution/page.tsx:75:a:1",
+    "control_id": "src/app/distribution/page.tsx:69:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 75,
+    "line": 69,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 1,
     "context": "<div className=\"distribution-section-heading\"><div><span className=\"eyebrow\">4 · Directories & reviews</span><h2>Build trust where customers compare options</h2><p>Create missing profiles. If a profile already exists, save its URL in Reviews so Rebound SEO can track public activity separately from direct connections.</p></div><strong>Goal: 1 profile or 3 reviews</strong></div> <div className=\"directory-grid\">{baseDirectories.map((directory) => <article key={directory.key}><strong>{directory.name"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:77:a:1",
+    "control_id": "src/app/distribution/page.tsx:71:a:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 77,
+    "line": 71,
     "type": "a",
     "route": "/distribution",
     "side_effect_class": 0,
     "context": "<RecommendationPanel canManageBilling={entitlement.canManageBilling} paid={paid} title=\"Get more directory recommendations\"> {directorySuggestions.length ? directorySuggestions.map((directory) => <article key={directory.key}><strong>{directory.name}</strong><p>{directory.reason}</p><a className=\"text-button\" href={directory.href} rel=\"noreferrer\" target=\"_blank\">Review directory ↗</a></article>) : <p>No additional directory passed the industry-fit rule yet.</p>} </RecommendationPanel>"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:79:Link:1",
+    "control_id": "src/app/distribution/page.tsx:73:Link:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 79,
+    "line": 73,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 1,
     "context": "</RecommendationPanel> <Link className=\"text-button\" href=\"/reviews\">Save profile URLs and monitor reviews</Link> </section>"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:89:summary:1",
+    "control_id": "src/app/distribution/page.tsx:83:summary:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 89,
+    "line": 83,
     "type": "summary",
     "route": "/distribution",
     "side_effect_class": 0,
     "context": "if (!paid) return <UpgradePreview canManageBilling={canManageBilling} title={title} detail=\"Upgrade to unlock recommendations selected for your industry and customer journey.\" />; return <details className=\"recommendation-panel\"><summary>{title}</summary><div className=\"recommendation-grid\">{children}</div></details>; }"
   },
   {
-    "control_id": "src/app/distribution/page.tsx:93:Link:1",
+    "control_id": "src/app/distribution/page.tsx:87:Link:1",
     "file": "src/app/distribution/page.tsx",
-    "line": 93,
+    "line": 87,
     "type": "Link",
     "route": "/distribution",
     "side_effect_class": 0,
@@ -2869,6 +2860,15 @@
     "route": "component",
     "side_effect_class": 1,
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
+  },
+  {
+    "control_id": "src/components/distribution-community.tsx:13:a:1",
+    "file": "src/components/distribution-community.tsx",
+    "line": 13,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<h3>{row.title}</h3><p>{row.detail}</p> {row.action ? <a className=\"secondary-button workspace-action\" href={row.action.url} rel=\"noreferrer\" target=\"_blank\">Review saved thread ↗</a> : <p>Destination unavailable. Run a fresh audit to find current conversations.</p>} </article>)}</div>"
   },
   {
     "control_id": "src/components/domain-overview-panels.tsx:37:button:1",
