@@ -48,7 +48,7 @@ export default async function DistributionPage() {
       <FeatureJourneyCallout actionHref="#community" actionLabel="Review saved conversations" milestone="Build visibility" description="Contribute one helpful answer where a real customer is already looking." doneLooksLike="A useful response, share, outreach draft, or saved public profile is recorded." evidence="An attached URL or saved draft; Search Console separately confirms impressions and clicks." />
       {!context.audit ? <WorkspaceEmpty title="Run an audit first" description="Rebound SEO needs your search context before it can recommend relevant distribution opportunities." /> : (
         <div className="distribution-sections">
-          <DistributionCommunity opportunities={opportunities} websiteId={context.website!.id} />
+          <section id="community"><DistributionCommunity opportunities={opportunities} websiteId={context.website!.id} /></section>
 
           <section className="workspace-card distribution-section" id="social">
             <div className="distribution-section-heading"><div><span className="eyebrow">2 · Social sharing</span><h2>Share the approved article with your network</h2><p>Connect the article to a firsthand observation instead of posting a generic link.</p></div><strong>Goal: LinkedIn + X + Facebook</strong></div>
