@@ -3893,3 +3893,6 @@ September21 acceptance integration (MEDIUM): sole owner Codex task01a0c2b9-ffe5-
 
 
 September21 integration maintainability correction (MEDIUM): hosted PR145 harness35667179680 fails the unchanged repository500line limit because research.ts grew to516lines atf43a17a. Before refactor: extract existing keyword type declarations into a type-only module and re-export the same public names, preserving runtime behavior/import compatibility. No policy/baseline/CI edits or limit exceptions. Existing parser/type/browser validation and unchanged repository checker must pass. Owner task/scope unchanged.
+
+## 2026-09-21 — Interview handoff write-result recovery
+MEDIUM; owner task01a0c2b9-ffe5-70a1-b974-2daef7dba3fd continues authorized ordinary repair. Base26a18a8f95817703ba1543250734b6017fb78921. Scope: inspect existing article-draft linkage update result and return actionable failure rather than false successful handoff. Preserve existing authentication, ownership, RLS, schema, billing and draft text. Evidence267 reproduces swallowed update error. RED/GREEN route tests and full gates required; rollback protected revert. Site/audit destination recovery remains separate pending runtime evidence; no production authorization.
