@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { siteScopedHref } from "@/lib/workspace-selection";
 import { createClient } from "@/lib/supabase/server";
 import { buildInterviewArticleDraft } from "@/lib/interviews/interviews";
 import { websiteScopedClient } from "@/lib/interviews/server";
@@ -46,5 +47,5 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }, { onConflict: "website_id,audit_id,keyword" });
     if (error) return NextResponse.json({ error: "Rebound SEO could not prepare the Content Studio draft." }, { status: 500 });
   }
-  return NextResponse.json({ contentUrl: `/content?interview=${encodeURIComponent(id)}#article-review-workspace` });
+  return NextResponse.json({ contentUrl: siteScopedHref(`/content?interview=${encodeURIComponent(id)}#article-review-workspace`, interview.website_id) });
 }
