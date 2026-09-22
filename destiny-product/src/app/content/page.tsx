@@ -1,3 +1,4 @@
+import { resolveInterviewAuditContext } from "@/lib/content/interview-audit-context";
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
 import { PublishingPlanManager } from "@/components/publishing-plan-manager";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -25,7 +26,9 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string; keyword?: string }> }) {
   const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
-  const context = await getWorkspaceContext();
+  const currentContext = await getWorkspaceContext();
+  const context = await resolveInterviewAuditContext(currentContext, params.interview);
+  const recoveredEarlierAudit = context.audit?.id !== currentContext.audit?.id;
   const providerResult = providerResultFromMetrics(context.metrics);
   const keywordRecords = list(providerResult.keywords).map(record);
   const pages = list(providerResult.pages).map(record).filter((item) => typeof item.url === "string");
@@ -178,6 +181,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
+      {recoveredEarlierAudit && <div className="integration-banner" role="status"><strong>Reviewing an earlier interview draft</strong><p>This draft, its saved edits, and delivery record remain linked to the audit used for the interview. Newer website research is available in your current content workspace.</p><Link href={`/content?site=${context.website?.id}`}>Open current content workspace</Link></div>}
       <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
