@@ -15,6 +15,7 @@ export type CreatorProspect = {
   url: string;
   keyword: string;
   audience: string;
+  sourceKind: "candidate" | "unverified" | "commercial";
 };
 
 export const baseDirectories: DirectoryRecommendation[] = [
@@ -110,23 +111,46 @@ function publisherPlatform(domain: string): string {
   if (domain.includes("youtube.com")) return "YouTube";
   if (domain.includes("linkedin.com")) return "LinkedIn";
   if (domain.includes("instagram.com")) return "Instagram";
-  return "Independent blog";
+  return "Unverified publisher";
+}
+
+const commercialCreatorHosts = ["argyle.com", "disa.com", "paychex.com", "vendordirectory.shrm.org"];
+
+function creatorSourceKind(domain: string, url: string, title: string, platform: string): CreatorProspect["sourceKind"] {
+  const path = new URL(url).pathname.toLowerCase();
+  if (commercialCreatorHosts.some((host) => domain === host || domain.endsWith(`.${host}`))
+    || /\bvendor\s+directory\b|\bcompare\s+\d*\s*vendors\b/i.test(title)
+    || /\/(?:vendor-directory|vendors?|solutions?|services?|products?)\//i.test(path)
+    || /\b(?:our|a reliable)\b.{0,50}\b(?:screening|verification|background check)\s+services?\b/i.test(title)) return "commercial";
+  return ["Medium", "YouTube", "LinkedIn", "Instagram"].includes(platform) ? "candidate" : "unverified";
+}
+
+function creatorName(domain: string, url: string, kind: CreatorProspect["sourceKind"]): string {
+  if (kind === "candidate" && domain === "medium.com") {
+    const handle = new URL(url).pathname.match(/^\/@[^/]+/); if (handle) return handle[0].slice(1);
+  }
+  return domain;
 }
 
 export function creatorProspects(rows: Array<Record<string, unknown>>): CreatorProspect[] {
   return rows.flatMap((row) => {
-    const domain = String(row.domain ?? "").replace(/^www\./, "").toLowerCase();
     const url = String(row.url ?? "");
-    if (!domain || !url || isIneligibleCreatorDomain(domain)) return [];
-    const platform = publisherPlatform(domain);
+    let domain = "";
+    try { domain = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
+    if (!domain || isIneligibleCreatorDomain(domain)) return [];
+    const title = String(row.title ?? "Relevant published work");
+    const sourcePlatform = publisherPlatform(domain);
+    const sourceKind = creatorSourceKind(domain, url, title, sourcePlatform);
+    const platform = sourceKind === "commercial" ? "Vendor or directory" : sourcePlatform;
     return [{
-      name: String(row.name ?? domain),
+      name: creatorName(domain, url, sourceKind),
       domain,
       platform,
-      title: String(row.title ?? "Relevant published work"),
+      title,
       url,
-      keyword: String(row.keyword ?? "your priority topic"),
+      keyword: String(row.keyword ?? row.matchedTopic ?? "your priority topic"),
       audience: "Audience size needs verification",
+      sourceKind,
     }];
   });
 }

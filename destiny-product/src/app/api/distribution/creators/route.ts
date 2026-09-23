@@ -2,6 +2,7 @@ import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { normalizeWebsite } from "@/lib/seo/url";
 import { createClient } from "@/lib/supabase/server";
+import { creatorProspects } from "@/lib/distribution/recommendations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,5 +33,9 @@ export async function POST(request: Request) {
   const billingFailure = await billingFailureResponse(error);
   if (billingFailure) return billingFailure;
   if (error || !data) return NextResponse.json({ error: error?.message || "Rebound SEO could not complete creator discovery." }, { status: 502 });
-  return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
+  const result = data && typeof data === "object" ? data as Record<string, unknown> : {};
+  const rows = Array.isArray(result.rows) ? creatorProspects(result.rows.filter((row): row is Record<string, unknown> => !!row && typeof row === "object" && !Array.isArray(row))) : [];
+  return NextResponse.json({ ...result, rows: rows.map((row) => ({
+    ...row, matchedTopic: row.keyword, audienceEstimate: null, audienceVerification: "required",
+  })) }, { headers: { "Cache-Control": "private, no-store" } });
 }

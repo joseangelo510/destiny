@@ -288,24 +288,31 @@ export function parseCreatorSearchResults(payload: unknown, excludedDomains: str
   if (number(root.status_code) !== 20000) throw new Error(string(root.status_message) || "DataForSEO rejected creator research.");
   const excluded = new Set(excludedDomains.map((domain) => domain.toLowerCase().replace(/^www\./, "")));
   const seen = new Set<string>();
-  return array(root.tasks).flatMap((taskValue) => {
+  const perSource = array(root.tasks).map((taskValue) => {
     const task = record(taskValue);
     if (number(task.status_code) !== 20000) return [];
     const query = string(record(task.data).keyword);
     const topic = query.replace(/\s+site:[^\s]+$/i, "").replace(/\s+independent blog$/i, "").trim();
+    const requestedHost = query.match(/\bsite:([^\s]+)/i)?.[1]?.toLowerCase() ?? "";
+    const topicTerms = topic.toLowerCase().match(/[a-z0-9]{3,}/g)?.filter((term) => !["and", "the", "for", "with", "service", "services"].includes(term)) ?? [];
     return array(record(array(task.result)[0]).items).flatMap((itemValue) => {
       const item = record(itemValue);
       if (string(item.type) !== "organic") return [];
       const url = string(item.url);
       let domain = "";
-      try { domain = new URL(url).hostname.toLowerCase().replace(/^www\./, ""); } catch { return []; }
-      if (!domain || excluded.has(domain) || [...excluded].some((value) => domain.endsWith(`.${value}`)) || isIneligibleCreatorDomain(domain) || seen.has(url)) return [];
-      seen.add(url);
+      let path = "";
+      try { const parsed = new URL(url); domain = parsed.hostname.toLowerCase().replace(/^www\./, ""); path = parsed.pathname; } catch { return []; }
+      if (!/^https:\/\//i.test(url) || !domain || excluded.has(domain) || [...excluded].some((value) => domain.endsWith(`.${value}`)) || isIneligibleCreatorDomain(domain)) return [];
+      if (requestedHost && domain !== requestedHost && !domain.endsWith(`.${requestedHost}`)) return [];
+      if (!path || path === "/") return [];
+      if (requestedHost === "medium.com" && !(/^\/@[^/]+\/.+/.test(path) || (domain !== "medium.com" && path.split("/").filter(Boolean).length >= 1))) return [];
+      const evidence = `${string(item.title)} ${string(item.description)} ${path}`.toLowerCase();
+      if (topicTerms.length && !topicTerms.some((term) => evidence.includes(term))) return [];
       const platform = domain.includes("medium.com") ? "Medium"
         : domain.includes("youtube.com") ? "YouTube"
           : domain.includes("linkedin.com") ? "LinkedIn"
             : domain.includes("instagram.com") ? "Instagram"
-              : "Independent blog";
+              : "Unverified publisher";
       return [{
         name: string(item.title).split(/[—|]/)[0].trim() || domain,
         domain,
@@ -317,8 +324,14 @@ export function parseCreatorSearchResults(payload: unknown, excludedDomains: str
         audienceEstimate: null,
         audienceVerification: "required" as const,
       }];
-    });
-  }).slice(0, 25);
+    }).slice(0, 5);
+  });
+  const balanced = [];
+  for (let index = 0; index < 5; index++) for (const group of perSource) {
+    const row = group[index];
+    if (row && !seen.has(row.url)) { seen.add(row.url); balanced.push(row); }
+  }
+  return balanced.slice(0, 25);
 }
 
 export function parseArticleEvidence(payload: unknown, limit = 5) {
