@@ -98,7 +98,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       title,
       focusKeyword: "small business seo consultant",
     });
-    expect(writes[0]).not.toHaveProperty("draftId");
+    expect(writes[0]).toHaveProperty("draftId", activeFixture.mvp.draftId);
   });
 
   test("Distribution copies only saved context and opens only the exact saved live thread", async ({ page }, testInfo) => {
