@@ -2492,6 +2492,7 @@ body { background: #f6f3f4; font-family: var(--font-body); }
 .research-mode-switch button { background: transparent; border: 0; border-radius: 8px; color: #736269; cursor: pointer; font-size: 12px; font-weight: 850; padding: 9px; }
 .research-mode-switch button.active { background: white; box-shadow: 0 2px 8px rgba(20, 61, 48, .08); color: var(--forest); }
 .research-location { color: #827279; font-size: 10px; font-weight: 750; }
+.research-meter-note { color: #503842; font-size: 12px; font-weight: 700; line-height: 1.4; margin: 0; }
 .research-search-panel .primary-button { border: 0; justify-content: center; width: 100%; }
 .research-error { background: #fff0ea; border: 1px solid #e6ad98; border-radius: 12px; color: #8b3420; font-size: 13px; grid-column: 1 / -1; margin: 0; padding: 13px 15px; }
 .research-empty-state { background: white; border: 1px dashed #cbb9c0; border-radius: 22px; padding: 58px 24px; text-align: center; }
