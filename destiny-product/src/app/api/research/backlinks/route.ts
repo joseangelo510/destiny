@@ -1,6 +1,7 @@
 import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeDomain } from "../../../../../supabase/functions/seo-research/logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,8 +13,12 @@ export async function POST(request: Request) {
     if (!claimsData?.claims?.sub) return NextResponse.json({ error: "Sign in again to continue." }, { status: 401 });
 
     const body = await request.json() as { target?: unknown };
-    if (typeof body.target !== "string") return NextResponse.json({ error: "Enter a public domain." }, { status: 400 });
-    const { data, error } = await supabase.functions.invoke("seo-research", { body: { kind: "backlinks", target: body.target } });
+    let target: string;
+    try {
+      if (typeof body.target !== "string") throw new Error("Invalid target");
+      target = normalizeDomain(body.target);
+    } catch { return NextResponse.json({ error: "Enter a valid public domain." }, { status: 400 }); }
+    const { data, error } = await supabase.functions.invoke("seo-research", { body: { kind: "backlinks", target } });
     const billingFailure = await billingFailureResponse(error);
     if (billingFailure) return billingFailure;
     if (error || !data) {
