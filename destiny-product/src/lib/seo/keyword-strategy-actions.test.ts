@@ -13,6 +13,16 @@ describe("keywordStrategyAction", () => {
     expect(keywordStrategyAction({ rank: 14, rankBucket: 3, rankingUrls: ["https://example.com/service"] }).verdict).toBe("improve");
   });
 
+  it("describes first- and second-page opportunities using the displayed rank", () => {
+    const actionAt = (rank: number) => keywordStrategyAction({ rank, rankBucket: 3, rankingUrls: ["https://example.com/service"] });
+    expect(actionAt(4)).toEqual({ verdict: "improve", description: "Page one · room to grow" });
+    expect(actionAt(8)).toEqual({ verdict: "improve", description: "Page one · room to grow" });
+    expect(actionAt(10)).toEqual({ verdict: "improve", description: "Page one · room to grow" });
+    expect(actionAt(11)).toEqual({ verdict: "improve", description: "Page two · a practical quick win" });
+    expect(actionAt(20)).toEqual({ verdict: "improve", description: "Page two · a practical quick win" });
+    expect(actionAt(21)).toEqual({ verdict: "improve", description: "An existing page can be improved" });
+  });
+
   it("creates a page only when no current page is verified", () => {
     expect(keywordStrategyAction({ rank: 0, rankBucket: 0, rankingUrls: [] })).toEqual({
       verdict: "create",

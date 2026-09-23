@@ -5,9 +5,14 @@ export function keywordStrategyAction(input: { rank: number; rankBucket: number;
   if (urls.length > 1) return { verdict: "overlap", description: `${urls.length} pages may be splitting relevance` };
   if (input.rankBucket === 1 || (input.rank > 0 && input.rank <= 3)) return { verdict: "defend", description: "Already winning · protect this page" };
   if (urls.length || input.rank > 0) {
+    const description = input.rank > 3 && input.rank <= 10
+      ? "Page one · room to grow"
+      : input.rank > 10 && input.rank <= 20
+        ? "Page two · a practical quick win"
+        : "An existing page can be improved";
     return {
       verdict: "improve",
-      description: input.rank > 3 && input.rank <= 20 ? "Page two · a practical quick win" : "An existing page can be improved",
+      description,
     };
   }
   return { verdict: "create", description: "No page is verified for this search" };
