@@ -144,6 +144,12 @@ function stringsByKey(value: unknown, accepted: Set<string>, output: string[] = 
   return output;
 }
 
+function peopleAlsoAskQuestions(items: Record<string, unknown>[]): string[] {
+  return items.filter((item) => item.type === "people_also_ask").flatMap((item) => array(item.items).map(record))
+    .filter((item) => !item.type || item.type === "people_also_ask_element")
+    .map((item) => string(item.question) || string(item.title)).filter(Boolean);
+}
+
 function tidyResearchText(value: string) {
   return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -205,7 +211,7 @@ export function parseReoptimizationResearch(input: {
   const organic = serpItems.flatMap((item) => item.type === "organic" && /^https?:\/\//i.test(string(item.url)) ? [{
     rank: number(item.rank_group) || number(item.rank_absolute), title: string(item.title), url: string(item.url), domain: domain(string(item.url)), description: string(item.description),
   }] : []).slice(0, 10);
-  const peopleAlsoAsk = [...new Set(serpItems.filter((item) => item.type === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"])) ))].slice(0, 12);
+  const peopleAlsoAsk = [...new Set(peopleAlsoAskQuestions(serpItems).map(tidyResearchText).filter(Boolean))].slice(0, 12);
   const relatedSearches = [...new Set(serpItems.filter((item) => item.type === "related_searches")
     .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
       ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))).map(tidyResearchText).filter(Boolean))].slice(0, 12);

@@ -103,6 +103,23 @@ describe("article evidence", () => {
 });
 
 describe("keyword SERP evidence", () => {
+  it("keeps People also ask questions separate from expanded answer source titles", () => {
+    const snapshot = parseKeywordSerp(successfulPayload([{
+      type: "people_also_ask",
+      items: [
+        { type: "people_also_ask_element", title: "Can a landlord run a tenant background check?", expanded_element: [
+          { type: "people_also_ask_expanded_element", title: "18 Legal Reasons to Reject a Tenant Application", url: "https://example.com/tenant-guide" },
+        ] },
+        { type: "people_also_ask_element", title: "How much does a tenant check cost?" },
+      ],
+    }]), "tenant background checks for landlords", "United States");
+
+    expect(snapshot.questions).toEqual([
+      "Can a landlord run a tenant background check?",
+      "How much does a tenant check cost?",
+    ]);
+  });
+
   it("returns bounded first-page competitors, questions, and related searches", () => {
     const snapshot = parseKeywordSerp(successfulPayload([
       { type: "organic", rank_group: 1, title: "YouTube Ads Agency", url: "https://agency.example/youtube-ads-agency" },
