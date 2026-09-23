@@ -9,11 +9,11 @@ import styles from "./core-pages.module.css";
 
 type GateState = { checking: boolean; canApprove: boolean; message: string | null };
 
-function EditInContentStudioLink({ websiteId }: { websiteId: string }) {
-  return <Link className={styles.approvalSecondary} href={siteScopedHref("/content#article-review-workspace", websiteId)}>Edit in Content Studio</Link>;
+function EditInContentStudioLink({ draftId, websiteId }: { draftId: string; websiteId: string }) {
+  return <Link className={styles.approvalSecondary} href={siteScopedHref(`/content?draft=${encodeURIComponent(draftId)}#article-review-workspace`, websiteId)}>Edit in Content Studio</Link>;
 }
 
-export function DraftApprovalActions({ auditId, draft, publicationUnavailable = false, publishedInWordPress = false, websiteId }: { auditId: string; draft: StoredArticleDraft; publicationUnavailable?: boolean; publishedInWordPress?: boolean; websiteId: string }) {
+export function DraftApprovalActions({ auditId, draft, draftId, publicationUnavailable = false, publishedInWordPress = false, websiteId }: { auditId: string; draft: StoredArticleDraft; draftId: string; publicationUnavailable?: boolean; publishedInWordPress?: boolean; websiteId: string }) {
   const approved = draft.approved === true;
   const router = useRouter();
   const [gate, setGate] = useState<GateState>({ checking: !approved, canApprove: approved, message: null });
@@ -62,7 +62,7 @@ export function DraftApprovalActions({ auditId, draft, publicationUnavailable = 
     {approved && !publishedInWordPress && !publicationUnavailable ? <Link className={styles.approvalPrimary} href={siteScopedHref("/app/calendar", websiteId)}>Schedule in Calendar</Link> : null}
     {approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null}
     <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type="button">{label}</button>
-    <EditInContentStudioLink websiteId={websiteId} />
+    <EditInContentStudioLink draftId={draftId} websiteId={websiteId} />
     {!approved && !gate.checking && gate.message ? <small className={styles.approvalStatus}>{gate.message}</small> : null}
     {error ? <small className={styles.approvalError} role="alert">{error}</small> : null}
   </div>;

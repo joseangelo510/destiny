@@ -238,7 +238,8 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   }))).select("id,keyword");
   const draftRows = requireValue(drafts.data, drafts.error, "Create MVP browser article drafts");
   const draftId = draftRows.find((row) => row.keyword === keywords[0].keyword)?.id;
-  if (!draftId) throw new Error("Create MVP browser article drafts: first draft id unavailable");
+  const handoffDraftId = draftRows.find((row) => row.keyword === keywords[1].keyword)?.id;
+  if (!draftId || !handoffDraftId) throw new Error("Create MVP browser article drafts: draft ids unavailable");
 
   const transfers = await service.from("cms_transfers").insert(keywords.map((item, index) => ({
     website_id: websiteId,
@@ -308,7 +309,7 @@ async function seedMvpCertification({ auditId, organizationId, ownerId, websiteI
   ]);
   if (observations.error) throw new Error(`Create MVP browser rank observations: ${observations.error.message}`);
 
-  return { auditId, distributionOpportunity, draftId, keyword: keywords[0].keyword, trackedKeywordId: tracked.id, websiteId };
+  return { auditId, distributionOpportunity, draftId, handoffDraftId, keyword: keywords[0].keyword, trackedKeywordId: tracked.id, websiteId };
 }
 
 const ownerA = await createUser("Owner-A");

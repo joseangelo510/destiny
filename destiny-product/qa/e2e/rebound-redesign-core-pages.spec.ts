@@ -6,6 +6,7 @@ import { expect, test, type Page } from "@playwright/test";
 type BrowserFixture = {
   mvp: {
     draftId: string;
+    handoffDraftId: string;
     distributionOpportunity: { checkedAt: string; platform: "Quora" | "Reddit"; snippet: string; title: string; url: string };
     websiteId: string;
   };
@@ -183,7 +184,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
     await expect(page.getByText("Preview — draft approval enabled.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Fix issues before approval" })).toBeDisabled();
     const editLink = page.getByRole("link", { name: "Edit in Content Studio" });
-    await expect(editLink).toHaveAttribute("href", `/content?site=${activeFixture.mvp.websiteId}#article-review-workspace`);
+    await expect(editLink).toHaveAttribute("href", `/content?draft=${activeFixture.mvp.draftId}&site=${activeFixture.mvp.websiteId}#article-review-workspace`);
     await expect(page.locator("body")).not.toContainText("Request edits");
     expect(draftWrites).toEqual([]);
     expect(await page.evaluate(() => document.body.scrollWidth)).toBeLessThanOrEqual(mobile ? 390 : 1360);
@@ -196,5 +197,15 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       const viewport = mobile ? "mobile-390x844" : "desktop-1360x1000";
       await page.screenshot({ path: resolve(process.cwd(), "../docs/design/redesign-v1/screenshots", `content-draft-actions-${viewport}.png`), fullPage: false });
     }
+  });
+
+  test("editing a nondefault saved draft opens that exact article after reload", async ({ page }) => {
+    const activeFixture = requireFixture();
+    await page.goto(`/app/content/${activeFixture.mvp.handoffDraftId}?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
+    await page.getByRole("link", { name: "Edit in Content Studio" }).click();
+    await expect(page).toHaveURL(new RegExp(`draft=${activeFixture.mvp.handoffDraftId}`));
+    await expect(page.getByRole("textbox", { name: /Blog headline/ })).toHaveValue("small business seo consultant: a practical guide");
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page.getByRole("textbox", { name: /Blog headline/ })).toHaveValue("small business seo consultant: a practical guide");
   });
 });

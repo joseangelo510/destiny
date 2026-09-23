@@ -1,4 +1,5 @@
-import { resolveInterviewAuditContext } from "@/lib/content/interview-audit-context";
+import { resolveInterviewAuditContext, resolveSavedDraftAuditContext } from "@/lib/content/interview-audit-context";
+import { notFound } from "next/navigation";
 import { ArticleReviewWorkspace } from "@/components/article-review-workspace";
 import { PublishingPlanManager } from "@/components/publishing-plan-manager";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -24,11 +25,13 @@ import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string; keyword?: string }> }) {
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ strategy?: string; repurpose?: string; interview?: string; keyword?: string; draft?: string }> }) {
   const params = await searchParams;
   const generationCapability = articleGenerationCapability(process.env.ANTHROPIC_API_KEY, process.env.ANTHROPIC_COPY_MODEL);
   const currentContext = await getWorkspaceContext();
-  const context = await resolveInterviewAuditContext(currentContext, params.interview);
+  const selectedDraft = params.draft ? await resolveSavedDraftAuditContext(currentContext, params.draft) : null;
+  if (params.draft && !selectedDraft) notFound();
+  const context = selectedDraft?.context ?? await resolveInterviewAuditContext(currentContext, params.interview);
   const recoveredEarlierAudit = context.audit?.id !== currentContext.audit?.id;
   const providerResult = providerResultFromMetrics(context.metrics);
   const keywordRecords = list(providerResult.keywords).map(record);
@@ -131,13 +134,14 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
     : { data: [] };
-  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => restoreKeywordDraftBrief(row.draft)).sort((left, right) => Number(normalizeTrackedKeyword(String(record(right).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")) - Number(normalizeTrackedKeyword(String(record(left).keyword ?? "")) === normalizeTrackedKeyword(params.keyword ?? "")));
+  const preferredKeyword = selectedDraft?.keyword ?? interviewArticleRow?.keyword ?? params.keyword;
+  const savedArticleDrafts = (savedArticleDraftRows ?? []).map((row) => restoreKeywordDraftBrief(row.draft)).sort((left, right) => Number(normalizeTrackedKeyword(String(record(right).keyword ?? "")) === normalizeTrackedKeyword(preferredKeyword ?? "")) - Number(normalizeTrackedKeyword(String(record(left).keyword ?? "")) === normalizeTrackedKeyword(preferredKeyword ?? "")));
   const articleDraftSeeds = buildPersistedArticleDraftSeeds(articleDrafts, savedArticleDrafts, {
     businessName: context.website?.business_name ?? "Your business",
     problemSolved: context.website?.problem_solved ?? "",
     idealCustomer: context.website?.ideal_customer ?? "",
     differentiation: context.website?.differentiation ?? "",
-  }, 3, interviewArticleRow?.keyword ?? params.keyword);
+  }, 3, preferredKeyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
   const { data: cmsTransferRows, error: cmsTransferError } = context.website
@@ -208,7 +212,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           approvedDrafts={schedulableApprovedDrafts}
         />}
         <ArticleReviewWorkspace
-          key={`${context.website?.id}:${context.audit?.id}`}
+          key={`${context.website?.id}:${context.audit?.id}:${params.draft ?? ""}`}
           auditId={context.audit?.id ?? "latest"}
           websiteId={context.website?.id ?? ""}
           wordpressConnected={wordpress?.status === "connected"}
