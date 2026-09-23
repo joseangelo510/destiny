@@ -693,36 +693,36 @@
     "context": "<p>For your security, Rebound SEO’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
-    "control_id": "src/app/content/page.tsx:144:data-mutation:1",
+    "control_id": "src/app/content/page.tsx:148:data-mutation:1",
     "file": "src/app/content/page.tsx",
-    "line": 144,
+    "line": 148,
     "type": "data-mutation",
     "route": "/content",
     "side_effect_class": 0,
     "context": "const { data: cmsTransferRows, error: cmsTransferError } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/content/page.tsx:191:Link:1",
+    "control_id": "src/app/content/page.tsx:195:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 191,
+    "line": 195,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 2,
     "context": "<WorkspaceShell active=\"/content\" eyebrow={context.website?.normalized_domain ?? \"Rebound SEO workspace\"} title=\"Content creation\" description=\"Review three editable articles this week, then approve CMS delivery or download Word documents for your team.\"> {recoveredEarlierAudit && <div className=\"integration-banner\" role=\"status\"><strong>Reviewing an earlier interview draft</strong><p>This draft, its saved edits, and delivery record remain linked to the audit used for the interview. Newer websit"
   },
   {
-    "control_id": "src/app/content/page.tsx:197:Link:1",
+    "control_id": "src/app/content/page.tsx:201:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 197,
+    "line": 201,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 3,
     "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{interviewArticleDraft ? \"Interview draft ready\" : repurposeArticleDraft ? \"Repurposed draft ready\" : \"Three outlines ready\"}</strong><small>{interviewArticleDraft ? \"Built from your exact interview answers\" : repurposeArticleDraft ? \"Loaded from your saved source\" : \"Built from your keyword strategy\"}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Gene"
   },
   {
-    "control_id": "src/app/content/page.tsx:242:button:1",
+    "control_id": "src/app/content/page.tsx:246:button:1",
     "file": "src/app/content/page.tsx",
-    "line": 242,
+    "line": 246,
     "type": "button",
     "route": "/content",
     "side_effect_class": 0,
@@ -6990,7 +6990,7 @@
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
-    "context": "function EditInContentStudioLink({ websiteId }: { websiteId: string }) { return <Link className={styles.approvalSecondary} href={siteScopedHref(\"/content#article-review-workspace\", websiteId)}>Edit in Content Studio</Link>; }"
+    "context": "function EditInContentStudioLink({ draftId, websiteId }: { draftId: string; websiteId: string }) { return <Link className={styles.approvalSecondary} href={siteScopedHref(`/content?draft=${encodeURIComponent(draftId)}#article-review-workspace`, websiteId)}>Edit in Content Studio</Link>; }"
   },
   {
     "control_id": "src/components/rebound-core/draft-approval-actions.tsx:62:Link:1",
@@ -7008,7 +7008,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
+    "context": "{approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink draftId={draftId} websiteId={websiteId} />"
   },
   {
     "control_id": "src/components/rebound-core/draft-approval-actions.tsx:64:onClick:2",
@@ -7017,7 +7017,7 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
-    "context": "{approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink websiteId={websiteId} />"
+    "context": "{approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null} <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type=\"button\">{label}</button> <EditInContentStudioLink draftId={draftId} websiteId={websiteId} />"
   },
   {
     "control_id": "src/components/rebound-core/home-calendar.tsx:8:Link:1",
