@@ -41,6 +41,17 @@ function stringsByKey(value: unknown, accepted: Set<string>, output: string[] = 
   return output;
 }
 
+function peopleAlsoAskQuestions(items: JsonRecord[]): string[] {
+  return items.filter((item) => string(item.type) === "people_also_ask")
+    .flatMap((item) => array(item.items).map(record))
+    .flatMap((item) => {
+      const type = string(item.type);
+      if (type && type !== "people_also_ask_element") return [];
+      const question = string(item.question) || string(item.title);
+      return question ? [question] : [];
+    });
+}
+
 export function firstResult(payload: unknown) {
   const root = record(payload);
   const task = record(array(root.tasks)[0]);
@@ -191,7 +202,7 @@ export function parseKeywordSerp(payload: unknown, keyword: string, location: st
     }];
   }).slice(0, 10);
   const unique = (values: string[], limit = 12) => [...new Set(values.map(tidy).filter(Boolean))].slice(0, limit);
-  const questions = unique(items.filter((item) => string(item.type) === "people_also_ask").flatMap((item) => stringsByKey(item, new Set(["title", "question"]))));
+  const questions = unique(peopleAlsoAskQuestions(items));
   const related = unique(items.filter((item) => string(item.type) === "related_searches")
     .flatMap((item) => array(item.items).flatMap((entry) => typeof entry === "string"
       ? [entry] : stringsByKey(entry, new Set(["title", "keyword"])))));
