@@ -7,6 +7,22 @@ const payload = (result: Record<string, unknown>, cost = 0.01) => ({
 });
 
 describe("DataForSEO re-optimization research", () => {
+  it("uses question titles without answer-source titles in SERP research", () => {
+    const result = parseReoptimizationResearch({
+      keyword: "tenant background checks for landlords",
+      pageUrl: "https://clearcheck.app/tenant-screening/",
+      location: "United States",
+      serpPayload: payload({ items: [{ type: "people_also_ask", items: [{
+        type: "people_also_ask_element", title: "Can a landlord run a tenant background check?",
+        expanded_element: [{ type: "people_also_ask_expanded_element", title: "18 Legal Reasons to Reject a Tenant Application", url: "https://example.com/tenant-guide" }],
+      }] }] }),
+      currentPayload: payload({ items: [] }), instantPayload: payload({ items: [] }),
+      backlinksPayload: payload({}), competitorPayloads: [],
+    });
+
+    expect(result.serp.peopleAlsoAsk).toEqual(["Can a landlord run a tenant background check?"]);
+  });
+
   it("combines current-page, SERP, competitor, technical, and backlink evidence", () => {
     const result = parseReoptimizationResearch({
       keyword: "youtube ad agency",
