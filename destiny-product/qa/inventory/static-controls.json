@@ -90,27 +90,18 @@
     "context": "}; const { error: updateError } = await db.update(\"publishing_schedule_items\", update, { id: itemId }); if (updateError) return NextResponse.json({ error: \"WordPress verified the post, but Rebound SEO could not refresh the calendar.\" }, { status: 502 });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/route.ts:160:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/route.ts:169:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/route.ts",
-    "line": 160,
-    "type": "data-mutation",
-    "route": "/api/content/publishing-plan",
-    "side_effect_class": 0,
-    "context": "const client = await createClient(); const { data: transfers, error: transferError } = await (client as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> }).rpc(\"read_cms_transfer_states\", { p_website_id: websiteId }); if (transferError || !Array.isArray(transfers)) return NextResponse.json({ error: \"Rebound SEO could not check this article's WordPress status. Try again before scheduling.\" }, { status: 503 });"
-  },
-  {
-    "control_id": "src/app/api/content/publishing-plan/route.ts:171:data-mutation:1",
-    "file": "src/app/api/content/publishing-plan/route.ts",
-    "line": 171,
+    "line": 169,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan",
     "side_effect_class": 3,
     "context": "const keyword = focusKeyword || relatedArticleTitle; const { data: item, error } = await db.insert(\"publishing_schedule_items\", { plan_id: plan.id,"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/route.ts:198:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/route.ts:196:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/route.ts",
-    "line": 198,
+    "line": 196,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan",
     "side_effect_class": 3,

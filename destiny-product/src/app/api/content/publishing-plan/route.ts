@@ -3,7 +3,6 @@ import { buildWeeklySchedule, publishingDeliveryMode, unapprovedCalendarKeywords
 import { scopedClient } from "@/lib/db";
 import { parseBuilderProfile } from "@/lib/integrations/website-profile";
 import { articleKey, publishedWordPressTransfer } from "@/lib/rebound-core/wordpress-article-state";
-import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -156,8 +155,7 @@ export async function POST(request: Request) {
     if (draftError || !saved || saved.audit_id !== plan.audit_id || saved.keyword !== focusKeyword || draft.title !== title || draft.approved !== true) {
       return NextResponse.json({ error: "The approved draft no longer matches this calendar request. Reopen it before scheduling." }, { status: 409 });
     }
-    const client = await createClient();
-    const { data: transfers, error: transferError } = await (client as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> }).rpc("read_cms_transfer_states", { p_website_id: websiteId });
+    const { data: transfers, error: transferError } = await db.readCmsTransferStates();
     if (transferError || !Array.isArray(transfers)) return NextResponse.json({ error: "Rebound SEO could not check this article's WordPress status. Try again before scheduling." }, { status: 503 });
     if (publishedWordPressTransfer(transfers, articleKey(String(saved.audit_id), focusKeyword))) {
       return NextResponse.json({ error: "This exact article is already published in WordPress. Review its publication status instead of scheduling it again." }, { status: 409 });
