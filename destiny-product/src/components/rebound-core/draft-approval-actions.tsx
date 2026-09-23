@@ -13,7 +13,7 @@ function EditInContentStudioLink({ websiteId }: { websiteId: string }) {
   return <Link className={styles.approvalSecondary} href={siteScopedHref("/content#article-review-workspace", websiteId)}>Edit in Content Studio</Link>;
 }
 
-export function DraftApprovalActions({ auditId, draft, websiteId }: { auditId: string; draft: StoredArticleDraft; websiteId: string }) {
+export function DraftApprovalActions({ auditId, draft, publicationUnavailable = false, publishedInWordPress = false, websiteId }: { auditId: string; draft: StoredArticleDraft; publicationUnavailable?: boolean; publishedInWordPress?: boolean; websiteId: string }) {
   const approved = draft.approved === true;
   const router = useRouter();
   const [gate, setGate] = useState<GateState>({ checking: !approved, canApprove: approved, message: null });
@@ -59,7 +59,8 @@ export function DraftApprovalActions({ auditId, draft, websiteId }: { auditId: s
           : "Fix issues before approval";
 
   return <div className={styles.approvalActions} id="draft-actions">
-    {approved ? <Link className={styles.approvalPrimary} href={siteScopedHref("/app/calendar", websiteId)}>Schedule in Calendar</Link> : null}
+    {approved && !publishedInWordPress && !publicationUnavailable ? <Link className={styles.approvalPrimary} href={siteScopedHref("/app/calendar", websiteId)}>Schedule in Calendar</Link> : null}
+    {approved && publicationUnavailable ? <small className={styles.approvalStatus}>WordPress status is unavailable. Scheduling is paused until Rebound SEO can check this article.</small> : null}
     <button className={approved ? styles.approvalSecondary : styles.approvalPrimary} disabled={saving || (!approved && (gate.checking || !gate.canApprove))} onClick={() => void save()} type="button">{label}</button>
     <EditInContentStudioLink websiteId={websiteId} />
     {!approved && !gate.checking && gate.message ? <small className={styles.approvalStatus}>{gate.message}</small> : null}

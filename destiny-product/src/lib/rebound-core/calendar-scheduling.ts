@@ -27,6 +27,7 @@ export async function scheduleApprovedCalendarDraft({
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       websiteId,
+      draftId: draft.id,
       contentType: "approved_draft",
       title: draft.title,
       focusKeyword: draft.keyword,

@@ -8,6 +8,8 @@ import type { ApprovedCalendarDraft } from "./calendar-scheduling";
 import { approvedCalendarDrafts, buildCalendarView, buildContentPipeline, buildDistributionView, buildProgressView } from "./core-pages";
 import { empty, failed, ready } from "./panel-result";
 import { buildCoreQueue } from "./queue";
+import { articleKey, publishedArticleState, publishedWordPressTransfer } from "./wordpress-article-state";
+import type { PublicationReceiptInput } from "@/lib/cms/publication-receipt";
 
 type WorkspaceContext = Awaited<ReturnType<typeof getWorkspaceContext>>;
 type ContentPipeline = ReturnType<typeof buildContentPipeline>;
@@ -25,6 +27,8 @@ export type ReboundDistributionView = ReboundCoreWorkspace & { distribution: Pan
 export type ReboundProgressView = ReboundCoreWorkspace & { progress: PanelResult<ProgressView>; reportRecipient: string | null };
 export type ReboundDraftView = ReboundCoreWorkspace & {
   auditId: string;
+  publication?: ReturnType<typeof publishedArticleState> | null;
+  publicationCheckFailed?: boolean;
   draft: {
     id: string;
     title: string;
@@ -66,11 +70,16 @@ async function coreWorkspace(context: WorkspaceContext): Promise<ReboundCoreWork
   };
 }
 
-async function publicationReceipts(context: WorkspaceContext) {
+async function checkedPublicationReceipts(context: WorkspaceContext): Promise<PublicationReceiptInput[]> {
   if (!context.website) return [];
-  const client = context.supabase as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown }> };
-  const { data } = await client.rpc("read_cms_transfer_states", { p_website_id: context.website.id });
-  return Array.isArray(data) ? data : [];
+  const client = context.supabase as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
+  const { data, error } = await client.rpc("read_cms_transfer_states", { p_website_id: context.website.id });
+  if (error || !Array.isArray(data)) throw new Error("WordPress transfer states are unavailable.");
+  return data as PublicationReceiptInput[];
+}
+
+async function publicationReceipts(context: WorkspaceContext) {
+  return checkedPublicationReceipts(context).catch(() => []);
 }
 
 async function latestPlanAndItems(context: WorkspaceContext) {
@@ -123,9 +132,13 @@ export async function loadReboundDraft(draftId: string): Promise<ReboundDraftVie
   const auditId = typeof row.audit_id === "string" ? row.audit_id : "";
   if (!auditId) return null;
   const keyword = typeof row.keyword === "string" ? row.keyword : String(saved.keyword ?? "");
+  const transferResult = await checkedPublicationReceipts(context).then((receipts) => ({ receipts, failed: false })).catch(() => ({ receipts: [] as unknown[], failed: true }));
+  const transfer = publishedWordPressTransfer(transferResult.receipts, articleKey(auditId, keyword));
   return {
     ...base,
     auditId,
+    publication: transfer ? publishedArticleState(transfer) : null,
+    publicationCheckFailed: transferResult.failed,
     draft: {
       id: String(row.id),
       title: typeof saved.title === "string" && saved.title.trim() ? saved.title : keyword || "Saved draft",
@@ -145,14 +158,15 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
   if (!base || !context.website) return null;
   try {
     const scoped = await scopedClient(context.website.id);
-    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }] = await Promise.all([
+    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }, transferResult] = await Promise.all([
       latestPlanAndItems(context),
-      scoped.select("article_drafts", "id,website_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+      scoped.select("article_drafts", "id,website_id,audit_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
       scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
       scoped.select("notification_preferences", "timezone").limit(1),
+      checkedPublicationReceipts(context).then((receipts) => ({ receipts, failed: false })).catch(() => ({ receipts: [] as unknown[], failed: true })),
     ]);
-    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id);
-    const approvedDrafts = draftError
+    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id, transferResult.receipts);
+    const approvedDrafts = draftError || transferResult.failed
       ? failed<ApprovedCalendarDraft[]>("Approved drafts could not be loaded for Calendar.")
       : draftOptions.length
         ? ready(draftOptions)
