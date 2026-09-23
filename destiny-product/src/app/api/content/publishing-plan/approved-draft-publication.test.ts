@@ -62,4 +62,13 @@ describe("approved-draft Calendar publication guard", () => {
     expect(response.status).toBe(503);
     expect(insert).not.toHaveBeenCalled();
   });
+
+  it("allows an approved draft when only a different article is published", async () => {
+    rpc.mockResolvedValue({ data: [{ provider: "wordpress", articleKey: `44444444-4444-4444-8444-444444444444:tenant screening`, publicationStatus: "verified_live", remoteStatus: "publish" }], error: null });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(201);
+    expect(insert).toHaveBeenCalledOnce();
+  });
 });

@@ -9,7 +9,7 @@ const input = {
 };
 
 describe("Rebound Calendar scheduling", () => {
-  it("uses the existing POST with the exact approved-draft title and keyword but no draft id", async () => {
+  it("uses the existing POST with the exact approved-draft identity, title and keyword", async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ item: { id: "slot-2" } }), { status: 201 }));
 
     await expect(scheduleApprovedCalendarDraft({ ...input, fetcher })).resolves.toMatchObject({ id: "slot-2" });
@@ -19,12 +19,12 @@ describe("Rebound Calendar scheduling", () => {
     expect(init.method).toBe("POST");
     expect(JSON.parse(String(init.body))).toEqual({
       websiteId: input.websiteId,
+      draftId: "draft-1",
       contentType: "approved_draft",
       title: "Kiln repair guide",
       focusKeyword: "kiln repair",
       scheduledFor: "2026-11-10T17:00:00.000Z",
     });
-    expect(String(init.body)).not.toContain("draft-1");
   });
 
   it("keeps a negative UTC offset timezone-aware outside DST", async () => {
