@@ -118,4 +118,18 @@ describe("Rebound read-only core pages", () => {
     expect(html).toContain(`/app/calendar?site=${websiteId}`);
     expect(html).toContain("Schedule in Calendar");
   });
+
+  it("shows exact WordPress publication and omits scheduling for an already-published draft", () => {
+    const html = renderToStaticMarkup(<DraftDashboard view={{
+      ...base,
+      auditId: "22222222-2222-4222-8222-222222222222",
+      draft: { id: "draft-1", title: "Tenant guide", keyword: "tenant screening", body: "Saved article body", generationStatus: "generated", approved: true, updatedAt: null, data: { approved: true } },
+      publication: { state: "published_needs_review", reason: "The published page is missing its required featured image metadata.", url: "https://example.com/tenant-guide/" },
+    }} />);
+
+    expect(html).toContain("Published in WordPress — needs review");
+    expect(html).toContain("featured image metadata");
+    expect(html).not.toContain("Schedule in Calendar");
+    expect(html).not.toContain("Verified live");
+  });
 });

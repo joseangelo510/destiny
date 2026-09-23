@@ -54,6 +54,19 @@ describe("Rebound redesign Slice 2", () => {
     expect(pipeline.columns.find((column) => column.state === "published")?.items[0]).toMatchObject({ keyword: "thin proof", evidenceKind: "reported" });
   });
 
+  it("keeps a WordPress-published article in Published when public verification needs review", () => {
+    const pipeline = buildContentPipeline({
+      approvedKeywords: [],
+      drafts: [{ id: "draft-1", audit_id: "audit-1", keyword: "tenant screening", draft: { title: "Tenant screening guide", approved: true, generationStatus: "generated" } }],
+      scheduleItems: [],
+      receipts: [{ provider: "wordpress", articleKey: "audit-1:tenant screening", publicationStatus: "verification_failed", remoteStatus: "publish", remotePermalink: "https://example.com/tenant-screening/", verificationEvidence: { reason: "The published page is missing its required featured image metadata." } }],
+    });
+
+    expect(pipeline.columns.find((column) => column.state === "approved")?.items).toHaveLength(0);
+    expect(pipeline.columns.find((column) => column.state === "published")?.items[0]).toMatchObject({ keyword: "tenant screening", state: "published", needsUser: true, evidenceKind: "reported" });
+    expect(pipeline.columns.find((column) => column.state === "published")?.items[0].detail).toContain("featured image metadata");
+  });
+
   it("routes a publishing-plan review item to the existing Content Studio review surface", () => {
     const pipeline = buildContentPipeline({
       approvedKeywords: [],
@@ -139,6 +152,17 @@ describe("Rebound redesign Slice 2", () => {
     ], websiteId);
 
     expect(drafts).toEqual([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]);
+  });
+
+  it("excludes only the exact already-published approved draft from Calendar", () => {
+    const websiteId = "11111111-1111-4111-8111-111111111111";
+    const rows = [
+      { id: "published", website_id: websiteId, audit_id: "audit-1", keyword: "tenant screening", draft: { title: "Published tenant guide", approved: true } },
+      { id: "different-article", website_id: websiteId, audit_id: "audit-2", keyword: "tenant screening", draft: { title: "Different tenant guide", approved: true } },
+    ];
+    const receipts = [{ provider: "wordpress", articleKey: "audit-1:tenant screening", publicationStatus: "verification_failed", remoteStatus: "publish" }];
+
+    expect(approvedCalendarDrafts(rows, websiteId, receipts)).toEqual([{ id: "different-article", keyword: "tenant screening", title: "Different tenant guide" }]);
   });
 
   it("derives a read-only weekly cadence and stays honest when dates are insufficient", () => {
