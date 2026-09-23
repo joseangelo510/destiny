@@ -10,7 +10,7 @@ describe("Domain Overview API boundary", () => {
     expect((await POST(request({ target: "example.com", market: "US" }))).status).toBe(401);
     expect(invoke).not.toHaveBeenCalled();
   });
-  it.each([{ target: "localhost", market: "US" }, { target: "example.com", market: "toString" }, { target: "example.com" }, null])("rejects invalid input before provider access: %j", async body => {
+  it.each([{ target: "localhost", market: "US" }, { target: "not-a-domain", market: "US" }, { target: "example.com", market: "toString" }, { target: "example.com" }, null])("rejects invalid input before provider access: %j", async body => {
     expect((await POST(request(body))).status).toBe(400); expect(invoke).not.toHaveBeenCalled();
   });
   it("normalizes the requested domain and preserves a partial snapshot privately", async () => {
