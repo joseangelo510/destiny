@@ -7,6 +7,7 @@ import { DraftApprovalActions } from "./draft-approval-actions";
 
 const props = {
   auditId: "11111111-1111-4111-8111-111111111111",
+  draftId: "22222222-2222-4222-8222-222222222222",
   draft: {
     keyword: "kiln repair",
     title: "Kiln repair guide",
@@ -22,7 +23,7 @@ describe("DraftApprovalActions", () => {
     const html = renderToStaticMarkup(<DraftApprovalActions {...props} />);
 
     expect(html).toContain("Edit in Content Studio");
-    expect(html).toContain("/content?site=831740e7-b8f7-4612-8fe4-794219031191#article-review-workspace");
+    expect(html).toContain("/content?draft=22222222-2222-4222-8222-222222222222&amp;site=831740e7-b8f7-4612-8fe4-794219031191#article-review-workspace");
     expect(html).not.toContain("Request edits");
   });
 
