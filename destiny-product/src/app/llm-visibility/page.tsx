@@ -34,7 +34,7 @@ export default async function LlmVisibilityPage() {
 
   return <WorkspaceShell active="/llm-visibility" eyebrow={context.website.normalized_domain} title="LLM visibility" description="Build source readiness through small actions, then verify company mentions and citations with separate provider evidence.">
     <FeatureJourneyCallout actionHref="#llm-source-playbook" actionLabel="Open the next source playbook" milestone="Build visibility" description="Complete one source-readiness action and attach public proof where the task requires it." doneLooksLike="The readiness action is saved with its proof, without claiming a detected citation." evidence="User-attached proof and provider-detected visibility are always shown separately." />
-    <LlmEvidenceSnapshot auditId={context.audit?.id ?? null} completedAt={context.audit?.completed_at ?? null} now={new Date()} status={llm.status} />
+    <LlmEvidenceSnapshot auditId={context.audit?.id ?? null} completedAt={context.audit?.completed_at ?? null} now={new Date()} status={llm.status} websiteId={context.website.id} />
     <LlmSourceDashboard
       initialRecords={initialRecords}
       initialProgress={initialProgress}
