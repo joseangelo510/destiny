@@ -19,6 +19,7 @@ import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
 import { parseInterviewArticleDraft } from "@/lib/interviews/interviews";
 import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 import { contentWorkspaceEmptyState } from "@/lib/content/content-workspace";
+import { articleKey, publishedWordPressTransfer } from "@/lib/rebound-core/wordpress-article-state";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -126,7 +127,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const { data: savedArticleDraftRows } = context.audit && context.website
     ? await (context.supabase as unknown as SupabaseClient)
       .from("article_drafts")
-      .select("draft")
+      .select("id,audit_id,keyword,draft")
       .eq("website_id", context.website.id)
       .eq("audit_id", context.audit.id)
     : { data: [] };
@@ -139,10 +140,16 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   }, 3, interviewArticleRow?.keyword ?? params.keyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
-  const { data: cmsTransferRows } = context.website
+  const { data: cmsTransferRows, error: cmsTransferError } = context.website
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
   const initialCmsTransfers = Array.isArray(cmsTransferRows) ? cmsTransferRows : [];
+  const schedulableApprovedDrafts = cmsTransferError || !Array.isArray(cmsTransferRows) ? [] : (savedArticleDraftRows ?? []).flatMap((row) => {
+    const saved = record(row.draft);
+    const title = typeof saved.title === "string" ? saved.title.trim() : "";
+    if (saved.approved !== true || !title || !row.keyword || publishedWordPressTransfer(initialCmsTransfers, articleKey(row.audit_id, row.keyword))) return [];
+    return [{ id: row.id, title, keyword: row.keyword }];
+  });
   const { data: publishingPlanRow } = context.website && context.audit
     ? await (context.supabase as unknown as SupabaseClient)
       .from("publishing_plans")
@@ -198,6 +205,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
           websitePlatform={builderProfile.platform}
           initialPlan={publishingPlan}
           initialItems={publishingItems}
+          approvedDrafts={schedulableApprovedDrafts}
         />}
         <ArticleReviewWorkspace
           key={`${context.website?.id}:${context.audit?.id}`}

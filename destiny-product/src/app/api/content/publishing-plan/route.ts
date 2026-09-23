@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { buildWeeklySchedule, publishingDeliveryMode, unapprovedCalendarKeywords, validatePublishingPlan, type PublishingMode } from "@/lib/content/publishing-plan";
 import { scopedClient } from "@/lib/db";
 import { parseBuilderProfile } from "@/lib/integrations/website-profile";
+import { articleKey, publishedWordPressTransfer } from "@/lib/rebound-core/wordpress-article-state";
+import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -132,6 +134,7 @@ export async function POST(request: Request) {
   const title = typeof body.title === "string" ? body.title.trim().slice(0, 500) : "";
   const contentType = typeof body.contentType === "string" ? MANUAL_CONTENT_TYPES.get(body.contentType) : null;
   const focusKeyword = typeof body.focusKeyword === "string" ? body.focusKeyword.trim().slice(0, 300) : "";
+  const draftId = validId(body.draftId);
   const relatedArticleTitle = typeof body.relatedArticleTitle === "string" ? body.relatedArticleTitle.trim().slice(0, 500) : "";
   const scheduledFor = typeof body.scheduledFor === "string" && Number.isFinite(Date.parse(body.scheduledFor)) ? new Date(body.scheduledFor).toISOString() : null;
   if (!websiteId || !title || !contentType || !scheduledFor) return NextResponse.json({ error: "Choose a content type, title, and date." }, { status: 400 });
@@ -139,6 +142,7 @@ export async function POST(request: Request) {
   const userId = await db.getClaims();
   if (!userId) return NextResponse.json({ error: "Sign in again to add content." }, { status: 401 });
   if ((contentType === "Article" || contentType === "Approved draft") && !focusKeyword) return NextResponse.json({ error: "Add the focus keyword for this article." }, { status: 400 });
+  if (contentType === "Approved draft" && !draftId) return NextResponse.json({ error: "Choose an exact approved draft before scheduling." }, { status: 400 });
   if ((contentType === "LinkedIn post" || contentType === "X post") && !relatedArticleTitle) return NextResponse.json({ error: "Choose the article this social post will promote." }, { status: 400 });
 
   const { data: plan, error: planError } = await db.select("publishing_plans", "id,organization_id,website_id,audit_id")
@@ -146,6 +150,19 @@ export async function POST(request: Request) {
     .limit(1)
     .maybeSingle();
   if (planError || !plan) return NextResponse.json({ error: "Create a publishing plan before adding calendar content." }, { status: 409 });
+  if (contentType === "Approved draft" && draftId) {
+    const { data: saved, error: draftError } = await db.select("article_drafts", "id,audit_id,keyword,draft").eq("id", draftId).maybeSingle();
+    const draft = saved?.draft && typeof saved.draft === "object" && !Array.isArray(saved.draft) ? saved.draft as Record<string, unknown> : {};
+    if (draftError || !saved || saved.audit_id !== plan.audit_id || saved.keyword !== focusKeyword || draft.title !== title || draft.approved !== true) {
+      return NextResponse.json({ error: "The approved draft no longer matches this calendar request. Reopen it before scheduling." }, { status: 409 });
+    }
+    const client = await createClient();
+    const { data: transfers, error: transferError } = await (client as unknown as { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> }).rpc("read_cms_transfer_states", { p_website_id: websiteId });
+    if (transferError || !Array.isArray(transfers)) return NextResponse.json({ error: "Rebound SEO could not check this article's WordPress status. Try again before scheduling." }, { status: 503 });
+    if (publishedWordPressTransfer(transfers, articleKey(String(saved.audit_id), focusKeyword))) {
+      return NextResponse.json({ error: "This exact article is already published in WordPress. Review its publication status instead of scheduling it again." }, { status: 409 });
+    }
+  }
   const { data: existing, error: existingError } = await db.select("publishing_schedule_items", "position").eq("plan_id", plan.id).order("position", { ascending: false }).limit(1);
   if (existingError) return NextResponse.json({ error: "Rebound SEO could not check the calendar." }, { status: 500 });
   const position = Number(existing?.[0]?.position ?? 0) + 1;

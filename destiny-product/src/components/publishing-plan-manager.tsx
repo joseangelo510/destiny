@@ -6,6 +6,7 @@ import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, editorialContentChanne
 import { useWordPressCalendarReconciliation } from "./use-wordpress-calendar-reconciliation";
 
 type CalendarItem = { focusKeyword: string; title: string; contentType: string };
+type ApprovedDraftOption = { id: string; title: string; keyword: string };
 
 const MODES: Array<{ id: PublishingMode; title: string; description: string; note: string }> = [
   { id: "review_each", title: "Review each article", description: "Rebound SEO creates WordPress drafts. You approve each article before choosing its date.", note: "Most control" },
@@ -93,7 +94,7 @@ function futureStartDate() {
   return date.toISOString().slice(0, 10);
 }
 
-export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressConnected, webflowConnected = false, approvedKeywordCount, websitePlatform, initialPlan, initialItems, now }: {
+export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressConnected, webflowConnected = false, approvedKeywordCount, websitePlatform, initialPlan, initialItems, approvedDrafts = [], now }: {
   websiteId: string;
   auditId: string;
   calendar: CalendarItem[];
@@ -103,6 +104,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   websitePlatform: string | null;
   initialPlan: PublishingPlanRecord | null;
   initialItems: PublishingScheduleItemRecord[];
+  approvedDrafts?: ApprovedDraftOption[];
   now?: string;
 }) {
   const router = useRouter();
@@ -124,9 +126,11 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   const [addType, setAddType] = useState<EditorialContentChannel>("article");
   const [addTitle, setAddTitle] = useState("");
   const [addKeyword, setAddKeyword] = useState("");
+  const [addDraftId, setAddDraftId] = useState("");
   const [addRelatedArticle, setAddRelatedArticle] = useState("");
   const [addDate, setAddDate] = useState(`${futureStartDate()}T09:00`);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
+  const selectedApprovedDraft = approvedDrafts.find((draft) => draft.id === addDraftId);
   const dates = useMemo(() => buildWeeklySchedule(startDate, calendar.length, timezone), [startDate, calendar.length, timezone]);
   const planTimezone = plan?.timezone || timezone;
   const displayState = (item: PublishingScheduleItemRecord) => publishingCalendarState(item, websitePlatform);
@@ -274,8 +278,9 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
         body: JSON.stringify({
           websiteId,
           contentType: addType,
-          title: addTitle,
-          focusKeyword: addKeyword,
+          draftId: addType === "approved_draft" ? selectedApprovedDraft?.id : undefined,
+          title: addType === "approved_draft" ? selectedApprovedDraft?.title : addTitle,
+          focusKeyword: addType === "approved_draft" ? selectedApprovedDraft?.keyword : addKeyword,
           relatedArticleTitle: addRelatedArticle,
           scheduledFor: calendarLocalDateTimeAsUtc(addDate, planTimezone),
         }),
@@ -286,6 +291,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       setAddOpen(false);
       setAddTitle("");
       setAddKeyword("");
+      setAddDraftId("");
       setAddRelatedArticle("");
       setNotice(`${CONTENT_META[addType].label} added to the calendar as planned.`);
       router.refresh();
@@ -400,7 +406,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
         })()}
       </div>
 
-      {addOpen && <div className="publishing-add-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby="publishing-add-title" aria-modal="true" className="publishing-add-dialog" role="dialog"><div className="publishing-add-heading"><div><h3 id="publishing-add-title">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label="Close add content" onClick={() => setAddOpen(false)} type="button">×</button></div><div aria-label="Content type" className="publishing-add-types" role="group">{(["article", "linkedin", "x", "approved_draft"] as EditorialContentChannel[]).map((type) => <button aria-pressed={addType === type} key={type} onClick={() => setAddType(type)} type="button">{CONTENT_META[type].label}</button>)}</div><div className="publishing-add-form"><label className="wide">Content title<input onChange={(event) => setAddTitle(event.target.value)} placeholder={addType === "linkedin" ? "What should this LinkedIn post say?" : addType === "x" ? "What should this X post say?" : "Enter the article title"} value={addTitle} /></label>{addType === "article" || addType === "approved_draft" ? <label>Focus keyword<input onChange={(event) => setAddKeyword(event.target.value)} placeholder="e.g. YouTube SEO services" value={addKeyword} /></label> : <label>Article this post promotes<select onChange={(event) => setAddRelatedArticle(event.target.value)} value={addRelatedArticle}><option value="">Choose an article</option>{articleTitles.map((title) => <option key={title} value={title}>{title}</option>)}</select></label>}<label>Publish or schedule date<input min={calendarDateTime(new Date().toISOString(), timezone)} onChange={(event) => setAddDate(event.target.value)} type="datetime-local" value={addDate} /></label></div>{error && <div className="error-banner" role="alert">{error}</div>}<div className="publishing-add-actions"><button className="secondary-button" onClick={() => setAddOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={saving || !addTitle.trim() || !addDate || ((addType === "article" || addType === "approved_draft") ? !addKeyword.trim() : !addRelatedArticle)} onClick={() => void addContent()} type="button">{saving ? "Adding…" : "Add as planned"}</button></div></div></div>}
+      {addOpen && <div className="publishing-add-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby="publishing-add-title" aria-modal="true" className="publishing-add-dialog" role="dialog"><div className="publishing-add-heading"><div><h3 id="publishing-add-title">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label="Close add content" onClick={() => setAddOpen(false)} type="button">×</button></div><div aria-label="Content type" className="publishing-add-types" role="group">{(["article", "linkedin", "x", "approved_draft"] as EditorialContentChannel[]).map((type) => <button aria-pressed={addType === type} key={type} onClick={() => setAddType(type)} type="button">{CONTENT_META[type].label}</button>)}</div><div className="publishing-add-form">{addType === "approved_draft" ? <label className="wide">Approved draft<select onChange={(event) => setAddDraftId(event.target.value)} value={addDraftId}><option value="">Choose an approved draft</option>{approvedDrafts.map((draft) => <option key={draft.id} value={draft.id}>{draft.title} · {draft.keyword}</option>)}</select>{!approvedDrafts.length && <small>No unpublished approved drafts are available for this plan.</small>}</label> : <><label className="wide">Content title<input onChange={(event) => setAddTitle(event.target.value)} placeholder={addType === "linkedin" ? "What should this LinkedIn post say?" : addType === "x" ? "What should this X post say?" : "Enter the article title"} value={addTitle} /></label>{addType === "article" ? <label>Focus keyword<input onChange={(event) => setAddKeyword(event.target.value)} placeholder="e.g. YouTube SEO services" value={addKeyword} /></label> : <label>Article this post promotes<select onChange={(event) => setAddRelatedArticle(event.target.value)} value={addRelatedArticle}><option value="">Choose an article</option>{articleTitles.map((title) => <option key={title} value={title}>{title}</option>)}</select></label>}</>}<label>Publish or schedule date<input min={calendarDateTime(new Date().toISOString(), timezone)} onChange={(event) => setAddDate(event.target.value)} type="datetime-local" value={addDate} /></label></div>{error && <div className="error-banner" role="alert">{error}</div>}<div className="publishing-add-actions"><button className="secondary-button" onClick={() => setAddOpen(false)} type="button">Cancel</button><button className="primary-button" disabled={saving || !addDate || (addType === "approved_draft" ? !selectedApprovedDraft : !addTitle.trim() || (addType === "article" ? !addKeyword.trim() : !addRelatedArticle))} onClick={() => void addContent()} type="button">{saving ? "Adding…" : "Add as planned"}</button></div></div></div>}
 
       <div className="publishing-plan-actions"><button className="secondary-button" onClick={() => setEditing(true)} type="button">Change mode or dates</button>{wordpressConnected && plan.status === "active" && plan.mode !== "review_each" && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Run scheduling checks now"}</button>}<button className={plan.status === "paused" ? "primary-button" : "secondary-button"} disabled={saving} onClick={() => void setStatus(plan.status === "paused" ? "active" : "paused")} type="button">{saving ? "Saving…" : plan.status === "paused" ? "Resume scheduling" : "Pause new scheduling"}</button></div>
       <p className="publishing-plan-footnote">Rebound SEO never publishes a missed date late. A missed or failed slot returns to review with a suggested new date.</p>

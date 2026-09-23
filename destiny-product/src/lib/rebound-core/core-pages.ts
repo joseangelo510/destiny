@@ -1,5 +1,6 @@
 import { startKeywordDraftHref } from "@/lib/content/plan-links";
 import { buildPublicationReceipt, type PublicationReceiptInput } from "@/lib/cms/publication-receipt";
+import { articleKey, publishedArticleState, publishedWordPressTransfer } from "./wordpress-article-state";
 import type { CalendarEvent, CalendarSummary, EvidenceKind } from "./contracts";
 import type { ApprovedCalendarDraft } from "./calendar-scheduling";
 import { reboundCustomerText } from "./brand";
@@ -119,7 +120,9 @@ export function buildContentPipeline(input: {
   input.receipts.forEach((raw, index) => {
     const receipt = buildPublicationReceipt(raw);
     const keyword = keywordFromArticleKey(receipt.articleKey);
-    if (!keyword || (receipt.stage !== "live_verified" && receipt.stage !== "published_unverified")) return;
+    const published = publishedWordPressTransfer([raw], receipt.articleKey);
+    if (!keyword || (receipt.stage !== "live_verified" && receipt.stage !== "published_unverified" && !published)) return;
+    const publication = published ? publishedArticleState(published) : null;
     const state: ContentState = receipt.stage === "live_verified" ? "verified_live" : "published";
     const id = `receipt-${index}-${normalized(keyword).replaceAll(" ", "-")}`;
     keepHighest(items, {
@@ -127,8 +130,8 @@ export function buildContentPipeline(input: {
       title: sentence(keyword),
       keyword,
       state,
-      detail: receipt.stage === "live_verified" ? "Crawler and CMS evidence complete" : "Published · verification pending",
-      needsUser: false,
+      detail: receipt.stage === "live_verified" ? "Crawler and CMS evidence complete" : publication?.state === "published_needs_review" ? `Published in WordPress · ${publication.reason ?? "Public verification needs review."}` : "Published · verification pending",
+      needsUser: publication?.state === "published_needs_review",
       evidenceKind: receipt.stage === "live_verified" ? "verified" : "reported",
       ...contentMove(state, id),
     });
@@ -158,7 +161,7 @@ export type CalendarRow = {
   overdue: boolean;
 };
 
-export function approvedCalendarDrafts(rows: unknown[], websiteId: string): ApprovedCalendarDraft[] {
+export function approvedCalendarDrafts(rows: unknown[], websiteId: string, receipts: unknown[] = []): ApprovedCalendarDraft[] {
   return rows.flatMap((raw): ApprovedCalendarDraft[] => {
     const row = record(raw);
     if (text(row.website_id) !== websiteId) return [];
@@ -166,7 +169,7 @@ export function approvedCalendarDrafts(rows: unknown[], websiteId: string): Appr
     const id = text(row.id);
     const keyword = text(row.keyword) || text(draft.keyword);
     const title = text(draft.title);
-    if (!id || !keyword || !title || draft.approved !== true) return [];
+    if (!id || !keyword || !title || draft.approved !== true || publishedWordPressTransfer(receipts, articleKey(text(row.audit_id), keyword))) return [];
     return [{ id, keyword, title }];
   });
 }
