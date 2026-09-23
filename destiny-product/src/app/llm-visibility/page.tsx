@@ -1,6 +1,7 @@
 import { LlmSourceDashboard } from "@/components/llm-source-dashboard";
 import { FeatureJourneyCallout } from "@/components/feature-journey-callout";
 import { LlmSignalPlayboard } from "@/components/llm-signal-playboard";
+import { LlmEvidenceSnapshot } from "@/components/llm-evidence-snapshot";
 import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
@@ -33,6 +34,7 @@ export default async function LlmVisibilityPage() {
 
   return <WorkspaceShell active="/llm-visibility" eyebrow={context.website.normalized_domain} title="LLM visibility" description="Build source readiness through small actions, then verify company mentions and citations with separate provider evidence.">
     <FeatureJourneyCallout actionHref="#llm-source-playbook" actionLabel="Open the next source playbook" milestone="Build visibility" description="Complete one source-readiness action and attach public proof where the task requires it." doneLooksLike="The readiness action is saved with its proof, without claiming a detected citation." evidence="User-attached proof and provider-detected visibility are always shown separately." />
+    <LlmEvidenceSnapshot auditId={context.audit?.id ?? null} completedAt={context.audit?.completed_at ?? null} now={new Date()} status={llm.status} websiteId={context.website.id} />
     <LlmSourceDashboard
       initialRecords={initialRecords}
       initialProgress={initialProgress}
@@ -48,10 +50,10 @@ export default async function LlmVisibilityPage() {
     />
 
     <section id="verified-evidence">
-      <div className="workspace-card-heading"><div><strong>Your verified provider evidence</strong><small>Observed mention and citation data stays separate from readiness</small></div>{llm.status === "available" ? <span>DataForSEO evidence</span> : null}</div>
+      <div className="workspace-card-heading"><div><strong>Provider-reported AI visibility</strong><small>Aggregate mention and citation counts from the dated audit above, separate from readiness</small></div>{llm.status === "available" ? <span>DataForSEO snapshot</span> : null}</div>
       {llm.status !== "available" ? <WorkspaceEmpty title="LLM visibility evidence is not available yet" description={String(llm.reason || "Run a live DataForSEO audit to check available ChatGPT and Google AI mention data.")} /> : <>
         <div className="analytics-grid"><article className="result-stat analytics-stat"><strong>{Number(llm.totalMentions ?? 0).toLocaleString()}</strong><span>Company mentions</span><small>Across available tracked AI platforms</small></article><article className="result-stat analytics-stat"><strong>{Number(llm.aiSearchVolume ?? 0).toLocaleString()}</strong><span>AI search volume</span><small>DataForSEO estimate</small></article>{platforms.map((platform) => <article className="result-stat analytics-stat" key={String(platform.platform)}><strong>{Number(platform.mentions ?? 0).toLocaleString()}</strong><span>{String(platform.platform)} mentions</span><small>{Number(platform.aiSearchVolume ?? 0).toLocaleString()} estimated AI search volume</small></article>)}</div>
-        <section className="workspace-card"><div className="workspace-card-heading"><div><strong>Domains cited in related AI answers</strong><small>Observed sources in the available provider dataset</small></div><span>{domains.length} domains</span></div><div className="cited-domain-list">{domains.map((domain, index) => <a href={String(domain.website)} key={`${String(domain.domain)}-${index}`} rel="noreferrer" target="_blank"><span>{index + 1}</span><div><strong>{String(domain.company)}</strong><small>{String(domain.domain)}</small></div><b>{Number(domain.mentions ?? 0).toLocaleString()} observed citations</b></a>)}</div></section>
+        <section className="workspace-card"><div className="workspace-card-heading"><div><strong>Domains cited in related AI answers</strong><small>Provider-reported top domains; homepage links are not citation examples</small></div><span>{domains.length} domains</span></div><div className="cited-domain-list">{domains.map((domain, index) => <a href={String(domain.website)} aria-label={`Visit ${String(domain.domain)} homepage`} key={`${String(domain.domain)}-${index}`} rel="noreferrer" target="_blank"><span>{index + 1}</span><div><strong>{String(domain.company)}</strong><small>{String(domain.domain)} · Visit homepage ↗</small></div><b>{Number(domain.mentions ?? 0).toLocaleString()} reported citations</b></a>)}</div></section>
       </>}
     </section>
   </WorkspaceShell>;
