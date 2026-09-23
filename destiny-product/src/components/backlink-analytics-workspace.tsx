@@ -47,18 +47,7 @@ export function BacklinkAnalyticsWorkspace({ initialTarget = "", domainReportAll
   }
 
   return <div className="research-workspace" id="backlink-analytics-workspace">
-    <section className="research-search-panel backlink-search-panel">
-      <div><span className="research-kicker">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div>
-      <form onSubmit={run}>
-        <label><span>Domain</span><input aria-label="Domain" onChange={(event) => setTarget(event.target.value)} placeholder="example.com" required value={target} /></label>
-        <span className="research-location">Root domain · Include subdomains</span>
-        <p className="research-meter-note">Uses 1 Domain report · {domainReportAllowance
-          ? `${domainReportAllowance.used} of ${domainReportAllowance.limit} used · ${Math.max(0, domainReportAllowance.limit - domainReportAllowance.used)} remaining at page load`
-          : "Check billing for your remaining allowance"}</p>
-        <button className="primary-button" disabled={loading} type="submit">{loading ? "Analyzing…" : "Analyze backlinks"}</button>
-      </form>
-      {error ? <p className="research-error" role="alert">{error}</p> : null}
-    </section>
+    <section className="research-search-panel backlink-search-panel"><div><span className="research-kicker">Rebound SEO Link Intelligence</span><h2>See who is strengthening—or weakening—your authority.</h2><p>Inspect a domain’s backlink profile, referring websites, link attributes, anchors, and broken opportunities.</p></div><form onSubmit={run}><label><span>Domain</span><input aria-label="Domain" onChange={(event) => setTarget(event.target.value)} placeholder="example.com" required value={target} /></label><span className="research-location">Root domain · Include subdomains</span><p className="research-meter-note">Uses 1 Domain report · {domainReportAllowance ? `${domainReportAllowance.used} of ${domainReportAllowance.limit} used · ${Math.max(0, domainReportAllowance.limit - domainReportAllowance.used)} remaining at page load` : "Check billing for your remaining allowance"}</p><button className="primary-button" disabled={loading} type="submit">{loading ? "Analyzing…" : "Analyze backlinks"}</button></form>{error ? <p className="research-error" role="alert">{error}</p> : null}</section>
     {!result ? <section className="research-empty-state"><span>↗</span><h3>Run a backlink report</h3><p>Rebound SEO will separate individual links from unique referring domains and show the strongest sources first.</p></section> : <>
       <section className="research-report-heading"><div><span className="research-kicker">Backlink overview</span><h2>{result.target}</h2><p>{result.sourceLabel} · Updated {new Date(result.updatedAt).toLocaleString()}</p></div><button className="secondary-button" onClick={() => exportBacklinks(rows)} type="button">Export CSV</button></section>
       <section className="research-metric-grid backlink-metric-grid">
