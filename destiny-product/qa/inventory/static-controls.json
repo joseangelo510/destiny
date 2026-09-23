@@ -882,9 +882,9 @@
     "context": "<section className=\"workspace-card\"><div className=\"workspace-card-heading\"><div><strong>Verified pages inspected</strong><small>Only real strategic pages from the live site; blog posts and guessed URLs are excluded</small></div><span>{pages.length} page{pages.length === 1 ? \"\" : \"s\"}</span></div><div className=\"evidence-page-list\">{pages.map((page, index) => <a href={String(page.url)} key={`${String(page.url)}-${index}`} rel=\"noreferrer\" target=\"_blank\"><span>{String(page.role).replaceAll(\"_\", "
   },
   {
-    "control_id": "src/app/llm-visibility/page.tsx:54:a:1",
+    "control_id": "src/app/llm-visibility/page.tsx:56:a:1",
     "file": "src/app/llm-visibility/page.tsx",
-    "line": 54,
+    "line": 56,
     "type": "a",
     "route": "/llm-visibility",
     "side_effect_class": 1,
@@ -5101,6 +5101,15 @@
     "route": "component",
     "side_effect_class": 1,
     "context": "{!strategyComplete ? <div className=\"claude-ks-finish\"><div><strong>{canComplete ? \"Ready to build your three-month content plan\" : `Approve ${approvalsRemaining} more to continue`}</strong><p>{canComplete ? \"Your approved keywords will feed the three-month editorial calendar, this week’s article drafts, and Rank Tracker.\" : `Approve ${INITIAL_KEYWORD_APPROVAL_TARGET} total. You do not need to decide all ${keywords.length}; decline only the searches that do not fit.`}</p></div><button aria-disab"
+  },
+  {
+    "control_id": "src/components/llm-evidence-snapshot.tsx:32:a:1",
+    "file": "src/components/llm-evidence-snapshot.tsx",
+    "line": 32,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 1,
+    "context": "<p>These are provider-reported aggregates across available AI platforms. Individual prompts and answers are not saved with this summary.</p> {auditId ? <a href={`/audits/${auditId}`}>View the source audit</a> : null} </section>;"
   },
   {
     "control_id": "src/components/llm-signal-playboard.tsx:121:button:1",
