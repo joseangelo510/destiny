@@ -2403,40 +2403,49 @@
     "context": "}; return <button className=\"secondary-button\" onClick={() => void copy()} type=\"button\">{copied ? \"Copied\" : label}</button>; }"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:49:button:1",
+    "control_id": "src/components/creator-discovery.tsx:51:button:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 49,
+    "line": 51,
     "type": "button",
     "route": "component",
-    "side_effect_class": 3,
-    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</button><small>{updatedAt ? `Pu"
+    "side_effect_class": 1,
+    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Public search finds topic-related sources; confirm creator identity, audience size, and contact path before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</butto"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:49:onClick:2",
+    "control_id": "src/components/creator-discovery.tsx:51:onClick:2",
     "file": "src/components/creator-discovery.tsx",
-    "line": 49,
+    "line": 51,
     "type": "onClick",
     "route": "component",
-    "side_effect_class": 3,
-    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Rebound SEO verifies topic relevance first; audience size must be confirmed before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</button><small>{updatedAt ? `Pu"
+    "side_effect_class": 1,
+    "context": "<div className=\"creator-discovery-note\"><strong>Audience filter</strong><span>Target 3,000–100,000 followers. Public search finds topic-related sources; confirm creator identity, audience size, and contact path before outreach.</span></div> {paid ? <div className=\"creator-discovery-actions\"><button className=\"secondary-button\" disabled={loading || !topics.length} onClick={() => void discover()} type=\"button\">{loading ? \"Finding creators…\" : \"Get more creator recommendations (5 searches)\"}</butto"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:52:a:1",
+    "control_id": "src/components/creator-discovery.tsx:55:a:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 52,
+    "line": 55,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
-    "context": "const brief = `Creator: ${creator.name}\\nPlatform: ${creator.platform}\\nMatched topic: ${creator.matchedTopic}\\nRelevant public source: ${creator.url}\\n\\nFind a public contact path and cite its source URL. If no verified public email exists, use the platform contact path. Then write a concise, personal subject line and outreach email. Never invent contact information.`; return <article key={`${creator.url}-${index}`}><div><span>{index + 1}</span><div><strong>{creator.name}</strong><p>{creator.ti"
+    "context": "const brief = `Potential creator source: ${creator.name}\\nPlatform: ${creator.platform}\\nMatched topic: ${creator.matchedTopic}\\nRelevant public source: ${creator.url}\\n\\nFirst verify the author, audience size and public contact path; do not assume the search result is an independent creator. If no verified public email exists, use the platform contact path. Then write a concise, personal subject line and outreach email. Never invent contact information.`; return <article key={`${creator.url}-${"
   },
   {
-    "control_id": "src/components/creator-discovery.tsx:55:Link:1",
+    "control_id": "src/components/creator-discovery.tsx:58:a:1",
     "file": "src/components/creator-discovery.tsx",
-    "line": 55,
+    "line": 58,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "{!candidates.length ? <p className=\"empty-state\">No potential creator source passed this public-result check. Review other sources below or try a more specific keyword; Rebound SEO will not invent a contact.</p> : null} {otherSources.length ? <><h3>Other sources to review</h3><p>These results are publishers or businesses, not verified outreach contacts.</p><div className=\"publisher-list\">{otherSources.map((source, index) => <article key={`${source.url}-${index}`}><div><span>{index + 1}</span><di"
+  },
+  {
+    "control_id": "src/components/creator-discovery.tsx:59:Link:1",
+    "file": "src/components/creator-discovery.tsx",
+    "line": 59,
     "type": "Link",
     "route": "component",
-    "side_effect_class": 1,
-    "context": "{!visible.length ? <p className=\"empty-state\">No niche creator source passed the current public-result check. Rebound SEO will not substitute major media or fabricate a contact.</p> : null} {!paid ? <aside className=\"upgrade-preview\"><div><span>Personalized recommendations</span><strong>Unlock the complete creator list and outreach workflow</strong><p>Search across creator platforms using your approved keywords and prepare sourced outreach without fabricated emails.</p></div>{canManageBilling ? "
+    "side_effect_class": 3,
+    "context": "{otherSources.length ? <><h3>Other sources to review</h3><p>These results are publishers or businesses, not verified outreach contacts.</p><div className=\"publisher-list\">{otherSources.map((source, index) => <article key={`${source.url}-${index}`}><div><span>{index + 1}</span><div><strong>{source.name}</strong><p>{source.title}</p><small>{source.platform} · Creator identity and audience unverified</small></div></div><a className=\"text-button\" href={source.url} rel=\"noreferrer\" target=\"_blank\">Re"
   },
   {
     "control_id": "src/components/destiny-prototype.tsx:248:Link:1",

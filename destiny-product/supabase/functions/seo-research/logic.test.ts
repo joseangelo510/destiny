@@ -47,7 +47,7 @@ describe("creator discovery", () => {
       status_code: 20000,
       tasks: [
         { status_code: 20000, data: { keyword: "junk removal site:youtube.com" }, result: [{ items: [
-          { type: "organic", title: "Local cleanup tips — Small Hauler", url: "https://youtube.com/watch?v=abc", description: "Practical cleanup advice" },
+          { type: "organic", title: "Junk removal tips — Small Hauler", url: "https://youtube.com/watch?v=abc", description: "Practical junk removal advice" },
           { type: "organic", title: "Competitor", url: "https://competitor.example/blog", description: "Competing company" },
         ] }] },
         { status_code: 20000, data: { keyword: "junk removal independent blog" }, result: [{ items: [
@@ -62,8 +62,29 @@ describe("creator discovery", () => {
     };
     expect(parseCreatorSearchResults(payload, ["competitor.example"])).toEqual([
       expect.objectContaining({ platform: "YouTube", audienceEstimate: null, audienceVerification: "required" }),
-      expect.objectContaining({ platform: "Independent blog", domain: "localmovingwriter.example", audienceEstimate: null }),
+      expect.objectContaining({ platform: "Unverified publisher", domain: "localmovingwriter.example", audienceEstimate: null }),
     ]);
+  });
+
+  it("balances valid topic-specific results across platform tasks instead of filling from Medium", () => {
+    const mediumItems = Array.from({ length: 8 }, (_, index) => ({ type: "organic", title: `Employment verification guide ${index}`, url: `https://medium.com/@writer${index}/employment-verification-guide-${index}`, description: "An employment verification guide" }));
+    const payload = { status_code: 20000, tasks: [
+      { status_code: 20000, data: { keyword: "employment verification site:medium.com" }, result: [{ items: [
+        { type: "organic", title: "NYT Open", url: "https://medium.com/timesopen", description: "Technology publisher profile" },
+        { type: "organic", title: "Employment verification services", url: "https://paychex.com/background-checks", description: "Wrong host for the Medium query" },
+        ...mediumItems,
+      ] }] },
+      { status_code: 20000, data: { keyword: "employment verification site:youtube.com" }, result: [{ items: [
+        { type: "organic", title: "Employment verification explained", url: "https://youtube.com/watch?v=creator1", description: "Employment verification walkthrough" },
+      ] }] },
+      { status_code: 20000, data: { keyword: "employment verification independent blog" }, result: [{ items: [
+        { type: "organic", title: "Employment verification checklist", url: "https://localhrwriter.example/employment-verification-checklist", description: "Practical hiring article" },
+      ] }] },
+    ] };
+    const rows = parseCreatorSearchResults(payload);
+    expect(rows.map((row) => row.platform).slice(0, 3)).toEqual(["Medium", "YouTube", "Unverified publisher"]);
+    expect(rows.filter((row) => row.platform === "Medium")).toHaveLength(5);
+    expect(rows.some((row) => row.title === "NYT Open" || row.domain === "paychex.com")).toBe(false);
   });
 });
 

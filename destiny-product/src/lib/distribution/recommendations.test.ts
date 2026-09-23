@@ -65,8 +65,24 @@ describe("distribution recommendations", () => {
     ]);
 
     expect(rows).toEqual([
-      expect.objectContaining({ domain: "bayareamovingguide.com", platform: "Independent blog" }),
+      expect.objectContaining({ domain: "bayareamovingguide.com", platform: "Unverified publisher", sourceKind: "unverified" }),
     ]);
+  });
+
+  it("separates commercial sources from creator leads using both host and page evidence", () => {
+    const rows = creatorProspects([
+      { domain: "vendordirectory.shrm.org", title: "Top Background Check Companies | Compare 302 Vendors", url: "https://vendordirectory.shrm.org/category/pre-employment-testing-screening/background-investigations" },
+      { domain: "argyle.com", title: "3 Popular Verification Services", url: "https://argyle.com/blog/3-popular-background-check-employment-verification-services" },
+      { domain: "disa.com", title: "Employee Background Checks for Safer Hiring", url: "https://disa.com/background-checks/" },
+      { domain: "paychex.com", title: "Employee Background Checks and Screening Services", url: "https://paychex.com/hiring/employment-screening-background-checks" },
+      { domain: "unknown.example", title: "Compare background-check vendors", url: "https://unknown.example/vendor-directory/background-checks" },
+      { domain: "medium.com", title: "Hiring checks explained by an HR author", url: "https://medium.com/@hrwriter/hiring-checks-explained-123", keyword: "background checks" },
+    ]);
+    expect(rows.slice(0, 5)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceKind: "commercial", platform: "Vendor or directory" }),
+    ]));
+    expect(rows.slice(0, 5).every((item) => item.sourceKind === "commercial")).toBe(true);
+    expect(rows[5]).toMatchObject({ sourceKind: "candidate", platform: "Medium", name: "@hrwriter" });
   });
 
   it("labels government and EU institution results as official sources", () => {

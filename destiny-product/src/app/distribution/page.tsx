@@ -60,7 +60,7 @@ export default async function DistributionPage() {
           </section>
 
           <section className="workspace-card distribution-section" id="outreach">
-            <div className="distribution-section-heading"><div><span className="eyebrow">3 · Creator outreach <b className="beta-badge">Beta</b></span><h2>Find niche creators already covering your priority topics</h2><p>Review public sources before outreach. Rebound SEO filters out major media and vendor websites, but audience size and contact details still require confirmation.</p></div><strong>Goal: 3 verified contacts</strong></div>
+            <div className="distribution-section-heading"><div><span className="eyebrow">3 · Creator outreach <b className="beta-badge">Beta</b></span><h2>Find public sources covering your priority topics</h2><p>Review possible creator work separately from vendor and publisher pages. Confirm the person, audience, and contact path before outreach.</p></div><strong>Goal: 3 verified contacts</strong></div>
             <CreatorDiscovery initialCreators={visibleCreators} canManageBilling={entitlement.canManageBilling} paid={paid} topics={creatorTopics} websiteId={context.website!.id} />
           </section>
 
