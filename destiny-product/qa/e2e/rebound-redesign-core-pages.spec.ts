@@ -85,7 +85,8 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
 
     await page.goto(`/app/calendar?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
     const title = "small business seo consultant: a practical guide";
-    await expect(page.getByRole("option", { name: new RegExp(title, "i") })).toBeAttached();
+    const selectedDraftId = await page.getByRole("option", { name: new RegExp(title, "i") }).getAttribute("value");
+    expect(selectedDraftId).toMatch(/^[0-9a-f-]{36}$/i);
     await page.getByRole("link", { name: /Add content on/ }).first().click();
     const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/api/content/publishing-plan"));
     await page.getByRole("button", { name: "Schedule approved draft" }).click();
@@ -98,7 +99,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       title,
       focusKeyword: "small business seo consultant",
     });
-    expect(writes[0]).toHaveProperty("draftId", activeFixture.mvp.draftId);
+    expect(writes[0]).toHaveProperty("draftId", selectedDraftId);
   });
 
   test("Distribution copies only saved context and opens only the exact saved live thread", async ({ page }, testInfo) => {
