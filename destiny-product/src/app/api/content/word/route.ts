@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { buildWordDocument, type ArticleDraft } from "@/lib/content/article-draft";
+import type { ArticleDraft } from "@/lib/content/article-draft";
 import { articleTitleQualityIssues } from "@/lib/content/article-generation";
+import { createArticleWordDocument, InvalidArticleWordGraphicError } from "@/lib/content/article-word-export";
 import { createClient } from "@/lib/supabase/server";
 import { isWebsiteId } from "@/lib/workspace-selection";
-import { createDocxFromHtml, safeDocumentName } from "@/lib/word-document";
+import { safeDocumentName } from "@/lib/word-document";
 
 function articleDraft(value: unknown): ArticleDraft | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -43,7 +44,13 @@ export async function POST(request: Request) {
   const { data: website } = await supabase.from("websites").select("id").eq("id", payload.websiteId).maybeSingle();
   if (!website) return NextResponse.json({ error: "That website is not available in this account." }, { status: 404 });
 
-  const document = await createDocxFromHtml(buildWordDocument(draft), draft.title);
+  let document: Buffer;
+  try {
+    document = await createArticleWordDocument(draft);
+  } catch (error) {
+    if (error instanceof InvalidArticleWordGraphicError) return NextResponse.json({ error: error.message }, { status: 400 });
+    throw error;
+  }
   return new Response(new Uint8Array(document), {
     headers: {
       "Cache-Control": "private, no-store",
