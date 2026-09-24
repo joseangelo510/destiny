@@ -196,4 +196,25 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       await page.screenshot({ path: resolve(process.cwd(), "../docs/design/redesign-v1/screenshots", `content-draft-actions-${viewport}.png`), fullPage: false });
     }
   });
+
+  test("Content Studio starts the generated Word download in the browser", async ({ page }, testInfo) => {
+    const activeFixture = requireFixture();
+    const mobile = testInfo.project.name === "mobile";
+    await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1360, height: 1000 });
+    await page.route("**/api/content/word", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        body: "synthetic Word document",
+      });
+    });
+
+    await page.goto(`/content?site=${activeFixture.mvp.websiteId}#article-review-workspace`, { waitUntil: "networkidle" });
+    const button = page.getByRole("button", { name: "Download editable Word document" });
+    await expect(button).toBeVisible();
+    const downloadPromise = page.waitForEvent("download");
+    await button.click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/\.docx$/);
+  });
 });
