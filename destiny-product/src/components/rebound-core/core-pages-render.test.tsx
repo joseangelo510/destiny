@@ -38,7 +38,7 @@ describe("Rebound read-only core pages", () => {
       calendarView: ready(buildCalendarView({ now: new Date("2026-09-01T19:00:00Z"), items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
       planTimezone: "America/Los_Angeles",
     }} />);
-    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
+    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ now: new Date("2026-09-10T00:00:00Z"), opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
     const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })), reportRecipient: "reports@example.com" }} />);
 
     expect(calendar).toContain("The month");
@@ -61,6 +61,7 @@ describe("Rebound read-only core pages", () => {
 
   it("describes the mixed Distribution blocker count without calling every blocker an interlink", () => {
     const distribution = buildDistributionView({
+      now: new Date("2026-09-20T00:00:00Z"),
       opportunities: [{ platform: "Quora", title: "Stale question", url: "https://www.quora.com/example", checkedAt: "2026-01-01T00:00:00Z" }],
       interlinks: [{ id: "link-1", source_title: "Source", target_title: "Target", status: "reported", verified_at: null }],
     });
