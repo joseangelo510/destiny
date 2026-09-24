@@ -115,7 +115,7 @@ export default {
     try {
       const { data: startedAudit, error: beginError } = await context.supabaseAdmin.rpc(
         "begin_billed_audit_v2",
-        { p_website_id: website.id, p_user_id: userId, p_provider: provider, p_livemode: billingMode === "live", p_actor_verified: true, p_owner_verified: true },
+        { p_website_id: website.id, p_user_id: userId, p_provider: provider, p_livemode: billingMode === "live", p_actor_verified: true, p_owner_verified: true, p_verified_owner_id: ownerId },
       );
       const started = startedAudit && typeof startedAudit === "object" && !Array.isArray(startedAudit)
         ? startedAudit as { auditId?: unknown; created?: unknown; allowed?: unknown; reason?: unknown; usageId?: unknown }

@@ -7,7 +7,8 @@ create function public.begin_billed_audit_v2(
   p_provider text,
   p_livemode boolean,
   p_actor_verified boolean,
-  p_owner_verified boolean
+  p_owner_verified boolean,
+  p_verified_owner_id uuid
 )
 returns jsonb language plpgsql security invoker set search_path = '' as $$
 declare
@@ -25,6 +26,7 @@ begin
     where w.id=p_website_id;
   if owner is null then return jsonb_build_object('allowed',false,'reason','website_unavailable'); end if;
   if p_actor_verified is distinct from true or p_owner_verified is distinct from true
+    or p_verified_owner_id is distinct from owner
     then return jsonb_build_object('allowed',false,'reason','verification_required'); end if;
   insert into public.billing_accounts(owner_id,livemode) values(owner,p_livemode) on conflict(owner_id) do nothing;
   select * into account from public.billing_accounts where owner_id=owner for update;
@@ -62,8 +64,8 @@ begin
   return started||jsonb_build_object('allowed',true,'usageId',receipt,'free',free_grant);
 end;
 $$;
-revoke all on function public.begin_billed_audit_v2(uuid,uuid,text,boolean,boolean,boolean) from public,anon,authenticated;
-grant execute on function public.begin_billed_audit_v2(uuid,uuid,text,boolean,boolean,boolean) to service_role;
+revoke all on function public.begin_billed_audit_v2(uuid,uuid,text,boolean,boolean,boolean,uuid) from public,anon,authenticated;
+grant execute on function public.begin_billed_audit_v2(uuid,uuid,text,boolean,boolean,boolean,uuid) to service_role;
 
 create function public.reserve_competitor_suggestions_v2(p_owner_id uuid,p_livemode boolean,p_owner_verified boolean)
 returns jsonb language plpgsql security invoker set search_path = '' as $$
