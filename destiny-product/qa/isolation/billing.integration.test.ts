@@ -253,4 +253,27 @@ describe.sequential("atomic billing reservations and isolation", () => {
     await expect(sql(`begin; set local role authenticated; select public.reserve_competitor_suggestions('${owner}',false); rollback;`)).rejects.toThrow("permission denied");
   });
 
+  it("runs versioned audit and onboarding reservations as service_role without auth.users access", async () => {
+    const identity = randomUUID(), org = randomUUID(), site = randomUUID();
+    const rows = (await sql(`begin;
+      insert into auth.users(id,email) values('${identity}','${identity}@billing.invalid');
+      insert into public.organizations(id,name,owner_id) values('${org}','Verified contract QA','${identity}');
+      insert into public.organization_members(organization_id,user_id,role) values('${org}','${identity}','owner');
+      insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${site}','${org}','https://verified.invalid','verified.invalid','Verified contract QA');
+      select has_table_privilege('service_role','auth.users','select');
+      set local role service_role;
+      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,false,false);
+      select public.reserve_competitor_suggestions_v2('${identity}',false,false);
+      select public.reserve_competitor_suggestions_v2('${identity}',false,true);
+      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,true,true);
+      rollback;`)).split("\n");
+    expect(rows[0]).toBe("f");
+    expect(JSON.parse(rows[1])).toMatchObject({ allowed: false, reason: "verification_required" });
+    expect(JSON.parse(rows[2])).toMatchObject({ allowed: false, reason: "verification_required" });
+    expect(JSON.parse(rows[3])).toMatchObject({ allowed: true });
+    expect(JSON.parse(rows[4])).toMatchObject({ allowed: true, created: true, free: true });
+    await expect(sql(`begin; set local role authenticated; select public.begin_billed_audit_v2('${website}','${owner}','demo',false,true,true); rollback;`)).rejects.toThrow("permission denied");
+    await expect(sql(`begin; set local role anon; select public.reserve_competitor_suggestions_v2('${owner}',false,true); rollback;`)).rejects.toThrow("permission denied");
+  });
+
 });

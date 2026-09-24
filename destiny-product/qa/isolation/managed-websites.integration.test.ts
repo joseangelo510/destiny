@@ -115,6 +115,19 @@ describe.sequential("managed website selection", () => {
     expect(await reserve("progress", randomUUID())).toMatchObject({ allowed: true });
     expect(await reserve("welcome", randomUUID())).toMatchObject({ allowed: false, reason: "limit_reached" });
   });
+  it("reserves versioned email budgets as service_role without auth.users access", async () => {
+    const rows = (await sql(`begin;
+      select has_table_privilege('service_role','auth.users','select');
+      set local role service_role;
+      select public.reserve_transactional_email_v2('${member}','${sites[0]}','progress','${randomUUID()}',false);
+      select public.reserve_transactional_email_v2('${member}','${sites[0]}','progress','${randomUUID()}',true);
+      rollback;`)).split("\n");
+    expect(rows[0]).toBe("f");
+    expect(JSON.parse(rows[1])).toMatchObject({ allowed: false, reason: "verification_required" });
+    expect(JSON.parse(rows[2])).toMatchObject({ allowed: true });
+    await expect(sql(`begin; set local role authenticated; select public.reserve_transactional_email_v2('${owner}','${sites[0]}','progress','${randomUUID()}',true); rollback;`)).rejects.toThrow("permission denied");
+    await expect(sql(`begin; set local role anon; select public.reserve_transactional_email_v2('${owner}','${sites[0]}','progress','${randomUUID()}',true); rollback;`)).rejects.toThrow("permission denied");
+  });
   it("keeps owner selections private and prevents browser mutation or RPC execution", async () => {
     for (const who of [owner, member]) {
       const identity = `select set_config('request.jwt.claims','{"sub":"${who}","role":"authenticated"}',true);`;
