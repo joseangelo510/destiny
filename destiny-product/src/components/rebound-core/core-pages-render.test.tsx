@@ -32,31 +32,37 @@ describe("Rebound read-only core pages", () => {
   });
 
   it("renders Calendar, Distribution, and Progress from saved evidence", () => {
-    const calendar = renderToStaticMarkup(<CalendarDashboard view={{
-      ...base,
-      approvedDrafts: ready([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]),
-      calendarView: ready(buildCalendarView({ now: new Date("2026-09-01T19:00:00Z"), items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
-      planTimezone: "America/Los_Angeles",
-    }} />);
-    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
-    const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })), reportRecipient: "reports@example.com" }} />);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-02T00:00:00Z"));
+    try {
+      const calendar = renderToStaticMarkup(<CalendarDashboard view={{
+        ...base,
+        approvedDrafts: ready([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]),
+        calendarView: ready(buildCalendarView({ now: new Date("2026-09-01T19:00:00Z"), items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
+        planTimezone: "America/Los_Angeles",
+      }} />);
+      const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
+      const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })), reportRecipient: "reports@example.com" }} />);
 
-    expect(calendar).toContain("The month");
-    expect(calendar).toContain("+ add content");
-    expect(calendar).toContain("Schedule approved draft");
-    expect(calendar).toContain("Cadence");
-    expect(calendar).toContain("Milestone not configured");
-    expect(distribution).toContain("Saved question");
-    expect(distribution).toContain("Copy context &amp; open Quora");
-    expect(distribution).toContain("opens www.quora.com");
-    expect(distribution).toContain("Preview — distribution actions enabled.");
-    expect(distribution).not.toContain("Approve all we post");
-    expect(distribution).not.toContain("answer drafted");
-    expect(progress).toContain("What’s been done");
-    expect(progress).toContain("split by who owns it");
-    expect(progress).toContain("Send progress report");
-    expect(progress).toContain("reports@example.com");
-    expect(progress).not.toContain("Delivered");
+      expect(calendar).toContain("The month");
+      expect(calendar).toContain("+ add content");
+      expect(calendar).toContain("Schedule approved draft");
+      expect(calendar).toContain("Cadence");
+      expect(calendar).toContain("Milestone not configured");
+      expect(distribution).toContain("Saved question");
+      expect(distribution).toContain("Copy context &amp; open Quora");
+      expect(distribution).toContain("opens www.quora.com");
+      expect(distribution).toContain("Preview — distribution actions enabled.");
+      expect(distribution).not.toContain("Approve all we post");
+      expect(distribution).not.toContain("answer drafted");
+      expect(progress).toContain("What’s been done");
+      expect(progress).toContain("split by who owns it");
+      expect(progress).toContain("Send progress report");
+      expect(progress).toContain("reports@example.com");
+      expect(progress).not.toContain("Delivered");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("describes the mixed Distribution blocker count without calling every blocker an interlink", () => {
