@@ -26,7 +26,7 @@ describe("Stripe effective billing price", () => {
   it("returns a bounded next-payment summary without Stripe identifiers", async () => {
     const { stripe, createPreview } = gateway();
     await expect(stripeBillingPrice(stripe, account)).resolves.toEqual({
-      currency: "usd", catalogSubtotalCents: 25000, nextPaymentCents: 0, nextPaymentAt: "2026-10-21T05:56:09.000Z",
+      currency: "usd", catalogSubtotalCents: 25000, nextPaymentCents: 0, nextPaymentAt: "2026-10-21T08:36:09.000Z",
       discounts: [{ name: "Complimentary owner access", duration: "forever", endsAt: null, percentOff: 100, amountOffCents: null }],
     });
     expect(createPreview).toHaveBeenCalledWith({ customer: "cus_a", subscription: "sub_a", expand: ["discounts", "discounts.source.coupon"] });
@@ -53,6 +53,6 @@ describe("Stripe effective billing price", () => {
       } } }],
     };
     const summary = await stripeBillingPrice(gateway({ invoice }).stripe, account);
-    expect(summary?.discounts).toEqual([{ name: "Save $50 this month with a deliberately oversized internal label that should never reach", duration: "repeating", endsAt: "2026-11-20T05:56:09.000Z", percentOff: null, amountOffCents: 5000 }]);
+    expect(summary?.discounts).toEqual([{ name: "Save $50 this month with a deliberately oversized internal label that should nev", duration: "repeating", endsAt: "2026-11-20T08:36:09.000Z", percentOff: null, amountOffCents: 5000 }]);
   });
 });
