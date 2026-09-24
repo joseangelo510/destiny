@@ -81,9 +81,18 @@
     "context": "const sources = infographicPlan.sources.map((source) => `<li><a href=\"${escapeHtml(source.url)}\">${escapeHtml(source.title)}</a> — ${escapeHtml(source.publisher)} (${escapeHtml(source.publishedAt)})</li>`).join(\"\"); const reusablePosts = infographicPlan.repurposeCards.map((card) => `<h3>${escapeHtml(card.title)}</h3><p><strong>Recommended channel:</strong> ${escapeHtml(card.recommendedChannel)}</p><p>${escapeHtml(card.copy)}</p>`).join(\"\");"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:52:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:71:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/reconcile/route.ts",
-    "line": 52,
+    "line": 71,
+    "type": "data-mutation",
+    "route": "/api/content/publishing-plan/reconcile",
+    "side_effect_class": 3,
+    "context": "const reviewDetail = `${PUBLISHED_WORDPRESS_REVIEW_PREFIX}${reason.charAt(0).toLocaleLowerCase()}${reason.slice(1)}`; const { error: updateError } = await db.update(\"publishing_schedule_items\", { remote_permalink: publicUrl, last_error: reviewDetail }, { id: itemId }); if (updateError) return NextResponse.json({ error: \"WordPress confirmed publication, but Rebound SEO could not update the calendar review state.\" }, { status: 502 });"
+  },
+  {
+    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:83:data-mutation:1",
+    "file": "src/app/api/content/publishing-plan/reconcile/route.ts",
+    "line": 83,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/reconcile",
     "side_effect_class": 3,
@@ -5841,58 +5850,40 @@
     "context": "<details className=\"ai-publishing-path workspace-card\"> <summary>How will an AI-built website connect?</summary> <div><strong>Where do you make changes to this website?</strong><ul><li>WordPress, Wix, Webflow, Shopify, or another CMS</li><li>Lovable, Replit, v0, Bolt, or Base44</li><li>GitHub, Vercel, Netlify, or a developer-managed repository</li><li>I’m not sure—let Rebound SEO inspect the website</li></ul><p>Rebound SEO will use that answer to choose the real publishing connection. It will ne"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:318:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:319:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 318,
+    "line": 319,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div><span className=\"eyebrow\">{plan && !editing ? \"Editorial calendar\" : \"Publishing plan\"}</span><h2>{plan && !editing ? \"Plan and publish your content.\" : \"How involved do you want to be?\"}</h2><p>{plan && !editing ? \"See every blog article, LinkedIn post, and X post that is planned, waiting for review, scheduled, or published.\" : \"Choose once for this plan. You can change it later without losing the calendar.\"}</p></div> {plan && !editing && <div className=\"publishing-heading-actions\"><span "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:318:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:319:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 318,
+    "line": 319,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div><span className=\"eyebrow\">{plan && !editing ? \"Editorial calendar\" : \"Publishing plan\"}</span><h2>{plan && !editing ? \"Plan and publish your content.\" : \"How involved do you want to be?\"}</h2><p>{plan && !editing ? \"See every blog article, LinkedIn post, and X post that is planned, waiting for review, scheduled, or published.\" : \"Choose once for this plan. You can change it later without losing the calendar.\"}</p></div> {plan && !editing && <div className=\"publishing-heading-actions\"><span "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:325:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:326:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 325,
+    "line": 326,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-mode-grid\" role=\"radiogroup\" aria-label=\"Publishing mode\"> {availableModes.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? \"active\" : \"\"} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role=\"radio\" type=\"button\"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)} </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:325:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:326:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 325,
+    "line": 326,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-mode-grid\" role=\"radiogroup\" aria-label=\"Publishing mode\"> {availableModes.map((option) => <button aria-checked={mode === option.id} className={mode === option.id ? \"active\" : \"\"} key={option.id} onClick={() => { setMode(option.id); setAutomaticConfirmed(false); }} role=\"radio\" type=\"button\"><small>{option.note}</small><strong>{option.title}</strong><span>{option.description}</span></button>)} </div>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:327:input:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 327,
-    "type": "input",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:327:onChange:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 327,
-    "type": "onChange",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:328:input:1",
@@ -5901,7 +5892,7 @@
     "type": "input",
     "route": "component",
     "side_effect_class": 3,
-    "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && !"
+    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:328:onChange:2",
@@ -5910,79 +5901,79 @@
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
+    "context": "</div> <div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automati"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:329:input:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 329,
+    "type": "input",
+    "route": "component",
+    "side_effect_class": 3,
     "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && !"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:330:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:329:onChange:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 330,
+    "line": 329,
+    "type": "onChange",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "<div className=\"publishing-date-row\"><label>First publication date<input min={futureStartDate()} type=\"date\" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><div><small>Three-month range</small><strong>{dates.length ? `${new Date(dates[0]).toLocaleDateString()} – ${new Date(dates.at(-1)!).toLocaleDateString()}` : \"Choose a start date\"}</strong><span>{calendar.length} weekly posts · at least 72 hours before each date</span></div></div> {mode === \"automatic\" && !"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:331:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 331,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(pla"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:330:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:331:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 330,
+    "line": 331,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(pla"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:330:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:331:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 330,
+    "line": 331,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(pla"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:330:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:331:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 330,
+    "line": 331,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{error && <div className=\"error-banner\" role=\"alert\">{error}</div>} <div className=\"publishing-plan-actions\"><button className=\"primary-button\" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === \"automatic\" && !automaticConfirmed)} onClick={() => void save()} type=\"button\">{saving ? \"Saving plan…\" : plan ? \"Save changes\" : \"Start this publishing plan\"}</button>{plan && <button className=\"secondary-button\" disabled={saving} onClick={() => { setEditing(false); setMode(pla"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:332:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:333:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 332,
+    "line": 333,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)"
+    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.some((item) => displayState(item) === \"published_needs_review\") ? \"Published WordPress post needs review\" : overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>{overdueWordPressItems.some((item) => displayState(item) === \"published_needs_review\") ? \"WordPress con"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:332:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:333:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 332,
+    "line": 333,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className=\"publishing-plan-actions\">{overdueWordPressItems.map((item) => <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:336:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 336,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "<div aria-label=\"Editorial calendar view\" className=\"publishing-view-toggle\" role=\"group\"> <button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:336:onClick:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 336,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "<div aria-label=\"Editorial calendar view\" className=\"publishing-view-toggle\" role=\"group\"> <button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button>"
+    "context": "</> : plan ? <> {overdueWordPressItems.length > 0 && <div className=\"configuration-note amber\"><strong>{overdueWordPressItems.some((item) => displayState(item) === \"published_needs_review\") ? \"Published WordPress post needs review\" : overdueWordPressItems.length === 1 ? \"One WordPress post needs a status check\" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>{overdueWordPressItems.some((item) => displayState(item) === \"published_needs_review\") ? \"WordPress con"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:337:button:1",
@@ -5990,8 +5981,8 @@
     "line": 337,
     "type": "button",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button>"
+    "side_effect_class": 3,
+    "context": "<div aria-label=\"Editorial calendar view\" className=\"publishing-view-toggle\" role=\"group\"> <button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button>"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:337:onClick:2",
@@ -5999,8 +5990,8 @@
     "line": 337,
     "type": "onClick",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button>"
+    "side_effect_class": 3,
+    "context": "<div aria-label=\"Editorial calendar view\" className=\"publishing-view-toggle\" role=\"group\"> <button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button>"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:338:button:1",
@@ -6009,7 +6000,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button> </div>"
+    "context": "<button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button>"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:338:onClick:2",
@@ -6018,43 +6009,43 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<button aria-pressed={viewMode === \"month\"} onClick={() => chooseView(\"month\")} type=\"button\">Month</button> <button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button>"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:339:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 339,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:341:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:339:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 341,
+    "line": 339,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<button aria-pressed={viewMode === \"week\"} onClick={() => chooseView(\"week\")} type=\"button\">Week</button> <button aria-pressed={viewMode === \"list\"} onClick={() => chooseView(\"list\")} type=\"button\">List</button> </div>"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:342:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 342,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{viewMode !== \"list\" && <div className=\"publishing-month-controls\"> <button aria-label={`Previous ${viewMode}`} onClick={() => movePeriod(-1)} type=\"button\">←</button> <strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:341:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:342:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 341,
+    "line": 342,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{viewMode !== \"list\" && <div className=\"publishing-month-controls\"> <button aria-label={`Previous ${viewMode}`} onClick={() => movePeriod(-1)} type=\"button\">←</button> <strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:343:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 343,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong> <button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:343:onClick:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 343,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "<strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong> <button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button>"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:344:button:1",
@@ -6063,7 +6054,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button> </div>}"
+    "context": "<strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong> <button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button>"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:344:onClick:2",
@@ -6072,79 +6063,79 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
+    "context": "<strong>{viewMode === \"month\" ? monthTitle(currentMonth) : weekTitle(currentWeek)}</strong> <button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button>"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:345:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 345,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
     "context": "<button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button> </div>}"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:345:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 345,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "<button onClick={() => { setCurrentMonth(`${today.slice(0, 7)}-01`); setCurrentWeek(weekStart(today)); }} type=\"button\">Today</button> <button aria-label={`Next ${viewMode}`} onClick={() => movePeriod(1)} type=\"button\">→</button> </div>}"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:348:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 348,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:348:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 348,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:348:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 348,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:348:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 348,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:button:5",
+    "control_id": "src/components/publishing-plan-manager.tsx:348:button:5",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 348,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:347:onClick:6",
+    "control_id": "src/components/publishing-plan-manager.tsx:348:onClick:6",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 347,
+    "line": 348,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> <div aria-label=\"Content channel\" className=\"publishing-channel-toggle\" role=\"group\"><button aria-pressed={channel === \"all\"} onClick={() => setChannel(\"all\")} type=\"button\">All</button><button aria-pressed={channel === \"articles\"} onClick={() => setChannel(\"articles\")} type=\"button\">Articles</button><button aria-pressed={channel === \"social\"} onClick={() => setChannel(\"social\")} type=\"button\">Social</button></div> </div>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:361:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 361,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWe"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:361:onClick:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 361,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWe"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:362:button:1",
@@ -6153,7 +6144,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWeek(weekStart(day.key)); chooseView(\"week\"); }} type=\"button\">+{day.items.l"
+    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWe"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:362:onClick:2",
@@ -6162,43 +6153,43 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
+    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWe"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:363:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 363,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
     "context": "return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWeek(weekStart(day.key)); chooseView(\"week\"); }} type=\"button\">+{day.items.l"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:365:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:363:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 365,
+    "line": 363,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "return <button aria-label={`${item.title}: ${meta.label}`} className={`publishing-calendar-card ${state}`} key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-card-type\"><b>{content.mark}</b>{content.label}<i aria-hidden=\"true\" /></span><strong>{item.title}</strong></button>; })}{day.items.length > 2 && <button className=\"publishing-calendar-more\" onClick={() => { setCurrentWeek(weekStart(day.key)); chooseView(\"week\"); }} type=\"button\">+{day.items.l"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:366:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 366,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> {!calendarDays.some((day) => day.current && day.items.length) && <div className=\"publishing-calendar-empty\"><strong>No content planned for {monthTitle(currentMonth)}</strong><button onClick={() => openAddContent(currentMonth)} type=\"button\">Add content</button></div>} </div>}"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:365:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:366:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 365,
+    "line": 366,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "</div> {!calendarDays.some((day) => day.current && day.items.length) && <div className=\"publishing-calendar-empty\"><strong>No content planned for {monthTitle(currentMonth)}</strong><button onClick={() => openAddContent(currentMonth)} type=\"button\">Add content</button></div>} </div>}"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:372:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 372,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><stron"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:372:onClick:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 372,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><stron"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:373:button:1",
@@ -6207,7 +6198,7 @@
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><strong>{item.title}</strong><small>{item.related_article_title ? `Promotes arti"
+    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><stron"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:373:onClick:2",
@@ -6216,52 +6207,61 @@
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
+    "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><stron"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:374:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 374,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
     "context": "return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><strong>{item.title}</strong><small>{item.related_article_title ? `Promotes arti"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:379:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:374:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 379,
+    "line": 374,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "return <button className=\"publishing-week-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><span className=\"publishing-week-type\"><b>{content.mark}</b><span><strong>{content.label}</strong><small>{new Intl.DateTimeFormat(\"en-US\", { timeZone: planTimezone, hour: \"numeric\", minute: \"2-digit\" }).format(new Date(item.scheduled_for))}</small></span></span><span className=\"publishing-week-title\"><strong>{item.title}</strong><small>{item.related_article_title ? `Promotes arti"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:380:button:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 380,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-list-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className=\"publishing-list-type\"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? \"Review recommended\" : item.keyword}</small></span><span>{item.related_article_title || "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:379:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:380:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 379,
+    "line": 380,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "const content = CONTENT_META[editorialContentChannel(item.content_type)]; return <button className=\"publishing-list-row\" key={item.id} onClick={() => setSelectedItemId(item.id)} type=\"button\"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className=\"publishing-list-type\"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? \"Review recommended\" : item.keyword}</small></span><span>{item.related_article_title || "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:391:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:392:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 391,
+    "line": 392,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "return <aside aria-label=\"Content details\" aria-modal=\"false\" className=\"publishing-post-detail\" role=\"dialog\"> <div className=\"publishing-post-detail-heading\"><div><span className=\"eyebrow\">Content details</span><h3>{selectedItem.title}</h3></div><button aria-label=\"Close content details\" onClick={() => setSelectedItemId(null)} type=\"button\">×</button></div> <span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span>"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:391:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:392:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 391,
+    "line": 392,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "return <aside aria-label=\"Content details\" aria-modal=\"false\" className=\"publishing-post-detail\" role=\"dialog\"> <div className=\"publishing-post-detail-heading\"><div><span className=\"eyebrow\">Content details</span><h3>{selectedItem.title}</h3></div><button aria-label=\"Close content details\" onClick={() => setSelectedItemId(null)} type=\"button\">×</button></div> <span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span>"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:397:a:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 397,
-    "type": "a",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "<div className=\"publishing-post-detail-actions\"> {state === \"planned\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>{social ? \"Prepare social post\" : \"Generate article\"}</a>} {state === \"needs_review\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>Review content</a>}"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:398:a:1",
@@ -6269,8 +6269,8 @@
     "line": 398,
     "type": "a",
     "route": "component",
-    "side_effect_class": 2,
-    "context": "{state === \"planned\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>{social ? \"Prepare social post\" : \"Generate article\"}</a>} {state === \"needs_review\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>Review content</a>} {state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>}"
+    "side_effect_class": 3,
+    "context": "<div className=\"publishing-post-detail-actions\"> {state === \"planned\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>{social ? \"Prepare social post\" : \"Generate article\"}</a>} {state === \"needs_review\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>Review content</a>}"
   },
   {
     "control_id": "src/components/publishing-plan-manager.tsx:399:a:1",
@@ -6278,283 +6278,292 @@
     "line": 399,
     "type": "a",
     "route": "component",
+    "side_effect_class": 2,
+    "context": "{state === \"planned\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>{social ? \"Prepare social post\" : \"Generate article\"}</a>} {state === \"needs_review\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>Review content</a>} {state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>}"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:400:a:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 400,
+    "type": "a",
+    "route": "component",
     "side_effect_class": 0,
     "context": "{state === \"needs_review\" && <a className=\"primary-button\" href={social ? \"/distribution\" : \"#article-review-workspace\"}>Review content</a>} {state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>} {needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} t"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:400:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 400,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "{state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>} {needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {state === \"published\" && selectedIte"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:400:onClick:2",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 400,
-    "type": "onClick",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "{state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>} {needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {state === \"published\" && selectedIte"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:401:a:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:401:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
     "line": 401,
-    "type": "a",
-    "route": "component",
-    "side_effect_class": 3,
-    "context": "{needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {state === \"published\" && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>} {(state === \"failed\" || state === \"mis"
-  },
-  {
-    "control_id": "src/components/publishing-plan-manager.tsx:402:button:1",
-    "file": "src/components/publishing-plan-manager.tsx",
-    "line": 402,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
-    "context": "{state === \"published\" && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>} {(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-review-workspace\">Prepare article</a><a cla"
+    "context": "{state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>} {needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {(state === \"published\" || state === "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:402:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:401:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 402,
+    "line": 401,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
-    "context": "{state === \"published\" && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>} {(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-review-workspace\">Prepare article</a><a cla"
+    "context": "{state === \"scheduled\" && selectedItem.remote_edit_url && <a className=\"primary-button\" href={selectedItem.remote_edit_url} rel=\"noreferrer\" target=\"_blank\">View in WordPress ↗</a>} {needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {(state === \"published\" || state === "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:403:a:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:402:a:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 402,
+    "type": "a",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "{needsWordPressVerification(selectedItem) && <button className=\"secondary-button\" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type=\"button\">{verifyingItemId === selectedItem.id ? \"Checking…\" : \"Refresh WordPress status\"}</button>} {(state === \"published\" || state === \"published_needs_review\") && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:403:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
     "line": 403,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "{(state === \"published\" || state === \"published_needs_review\") && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>} {(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-rev"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:403:onClick:2",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 403,
+    "type": "onClick",
+    "route": "component",
+    "side_effect_class": 3,
+    "context": "{(state === \"published\" || state === \"published_needs_review\") && selectedItem.remote_permalink && <a className=\"primary-button\" href={selectedItem.remote_permalink} rel=\"noreferrer\" target=\"_blank\">View live post ↗</a>} {(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-rev"
+  },
+  {
+    "control_id": "src/components/publishing-plan-manager.tsx:404:a:1",
+    "file": "src/components/publishing-plan-manager.tsx",
+    "line": 404,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "{(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-review-workspace\">Prepare article</a><a className=\"secondary-button\" href={websitePlatform === \"wix\" ? \"https://manage.wix.com/dashboard/\" : \"https://webflow.com/dashboard\"} rel=\"noreferrer\" target=\"_blank\">Open {websitePlat"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:403:a:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:404:a:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 403,
+    "line": 404,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
     "context": "{(state === \"failed\" || state === \"missed\") && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Retry scheduling check\"}</button>} {state === \"manual\" && <><a className=\"primary-button\" href=\"#article-review-workspace\">Prepare article</a><a className=\"secondary-button\" href={websitePlatform === \"wix\" ? \"https://manage.wix.com/dashboard/\" : \"https://webflow.com/dashboard\"} rel=\"noreferrer\" target=\"_blank\">Open {websitePlat"
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:select:5",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:select:5",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "select",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onChange:6",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onChange:6",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:input:7",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:input:7",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "input",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onChange:8",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onChange:8",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:input:9",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:input:9",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "input",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onChange:10",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onChange:10",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:select:11",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:select:11",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "select",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onChange:12",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onChange:12",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:input:13",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:input:13",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "input",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onChange:14",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onChange:14",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:button:15",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:button:15",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onClick:16",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onClick:16",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:button:17",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:button:17",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:409:onClick:18",
+    "control_id": "src/components/publishing-plan-manager.tsx:410:onClick:18",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 409,
+    "line": 410,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "{addOpen && <div className=\"publishing-add-layer\" onMouseDown={(event) => { if (event.target === event.currentTarget) setAddOpen(false); }}><div aria-labelledby=\"publishing-add-title\" aria-modal=\"true\" className=\"publishing-add-dialog\" role=\"dialog\"><div className=\"publishing-add-heading\"><div><h3 id=\"publishing-add-title\">Add content to your calendar</h3><p>Choose what to add. Create something new or schedule a draft you already approved.</p></div><button aria-label=\"Close add content\" onClick="
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:button:1",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:button:1",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-actions\"><button className=\"secondary-button\" onClick={() => setEditing(true)} type=\"button\">Change mode or dates</button>{wordpressConnected && plan.status === \"active\" && plan.mode !== \"review_each\" && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Run scheduling checks now\"}</button>}<button className={plan.status === \"paused\" ? \"primary-button\" : \"secondary-button\"} disabled={saving} "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:onClick:2",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:onClick:2",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-actions\"><button className=\"secondary-button\" onClick={() => setEditing(true)} type=\"button\">Change mode or dates</button>{wordpressConnected && plan.status === \"active\" && plan.mode !== \"review_each\" && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Run scheduling checks now\"}</button>}<button className={plan.status === \"paused\" ? \"primary-button\" : \"secondary-button\"} disabled={saving} "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:button:3",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:button:3",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-actions\"><button className=\"secondary-button\" onClick={() => setEditing(true)} type=\"button\">Change mode or dates</button>{wordpressConnected && plan.status === \"active\" && plan.mode !== \"review_each\" && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Run scheduling checks now\"}</button>}<button className={plan.status === \"paused\" ? \"primary-button\" : \"secondary-button\"} disabled={saving} "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:onClick:4",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:onClick:4",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-actions\"><button className=\"secondary-button\" onClick={() => setEditing(true)} type=\"button\">Change mode or dates</button>{wordpressConnected && plan.status === \"active\" && plan.mode !== \"review_each\" && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Run scheduling checks now\"}</button>}<button className={plan.status === \"paused\" ? \"primary-button\" : \"secondary-button\"} disabled={saving} "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:button:5",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:button:5",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "button",
     "route": "component",
     "side_effect_class": 3,
     "context": "<div className=\"publishing-plan-actions\"><button className=\"secondary-button\" onClick={() => setEditing(true)} type=\"button\">Change mode or dates</button>{wordpressConnected && plan.status === \"active\" && plan.mode !== \"review_each\" && <button className=\"primary-button\" disabled={saving} onClick={() => void checkNow()} type=\"button\">{saving ? \"Checking…\" : \"Run scheduling checks now\"}</button>}<button className={plan.status === \"paused\" ? \"primary-button\" : \"secondary-button\"} disabled={saving} "
   },
   {
-    "control_id": "src/components/publishing-plan-manager.tsx:411:onClick:6",
+    "control_id": "src/components/publishing-plan-manager.tsx:412:onClick:6",
     "file": "src/components/publishing-plan-manager.tsx",
-    "line": 411,
+    "line": 412,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 3,

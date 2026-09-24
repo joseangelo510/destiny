@@ -48,7 +48,8 @@ export function isArticleCalendarItem(item: Pick<PublishingScheduleItemRecord, "
   return item.position <= confirmedPostCount && editorialContentChannel(item.content_type) === "article";
 }
 
-export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
+export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published_needs_review" | "published" | "failed" | "missed" | "manual";
+export const PUBLISHED_WORDPRESS_REVIEW_PREFIX = "Published in WordPress — ";
 export type PublishingDeliveryMode = "direct_wordpress" | "manual_webflow" | "manual_wix" | "unavailable";
 
 export function publishingDeliveryMode(websitePlatform: string | null, connectedProviders: Iterable<string>): PublishingDeliveryMode {
@@ -63,6 +64,7 @@ export function publishingCalendarState(item: PublishingScheduleItemRecord, webs
   if (websitePlatform === "wix" && ["article", "approved_draft"].includes(editorialContentChannel(item.content_type))) return "manual";
   if (item.state === "managed_externally") return "manual";
   if (item.state === "published") return item.remote_permalink ? "published" : "planned";
+  if (item.state === "scheduled" && item.remote_id && item.remote_permalink && item.last_error?.startsWith(PUBLISHED_WORDPRESS_REVIEW_PREFIX)) return "published_needs_review";
   if (item.state === "scheduled") return item.remote_id ? "scheduled" : "planned";
   if (item.state === "failed") return "failed";
   if (item.state === "needs_review") return /missed|date passed|past due/i.test(item.last_error ?? "") ? "missed" : "needs_review";

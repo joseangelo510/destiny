@@ -42,13 +42,18 @@ export function useWordPressCalendarReconciliation({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ websiteId, itemId: item.id }),
       });
-      const payload = await response.json() as { error?: string; verified?: boolean; state?: PublishingScheduleItemRecord["state"]; remotePermalink?: string | null };
+      const payload = await response.json() as { error?: string; verified?: boolean; state?: PublishingScheduleItemRecord["state"]; remotePermalink?: string | null; publishedNeedsReview?: boolean; lastError?: string };
       if (!response.ok) throw new Error(payload.error || "Rebound SEO could not verify this WordPress post.");
       if (payload.verified && payload.state === "published" && payload.remotePermalink) {
         setItems((current) => current.map((entry) => entry.id === item.id
           ? { ...entry, state: "published", remote_permalink: payload.remotePermalink ?? null, last_error: null }
           : entry));
         onNotice("WordPress confirmed that this post is live.");
+      } else if (payload.publishedNeedsReview && payload.remotePermalink && payload.lastError) {
+        setItems((current) => current.map((entry) => entry.id === item.id
+          ? { ...entry, remote_permalink: payload.remotePermalink ?? null, last_error: payload.lastError ?? null }
+          : entry));
+        onNotice("WordPress confirms this post is published. Public verification needs review; open the item for the specific reason.");
       } else {
         onNotice("WordPress has not verified this post as live yet. Its scheduled status remains unchanged.");
       }

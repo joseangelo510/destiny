@@ -18,6 +18,7 @@ const STATE_META: Record<PublishingCalendarState, { label: string; short: string
   planned: { label: "Planned", short: "Plan", icon: "", description: "This topic has a place in the plan, but it is not scheduled in a CMS yet." },
   needs_review: { label: "Needs review", short: "Review", icon: "!", description: "Your review is required before this article can move forward." },
   scheduled: { label: "CMS-confirmed scheduled", short: "Sched", icon: "◷", description: "The CMS confirmed this post and its future publication time." },
+  published_needs_review: { label: "Published — needs review", short: "Review", icon: "!", description: "WordPress confirms publication, but public verification needs review." },
   published: { label: "Live and verified", short: "Live", icon: "✓", description: "Rebound SEO verified that this post is live." },
   failed: { label: "Failed", short: "Failed", icon: "×", description: "The CMS did not complete this publishing attempt." },
   missed: { label: "Missed", short: "Missed", icon: "◷", description: "The planned time passed without a verified publication." },
@@ -181,7 +182,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
   });
   const displayMeta = (item: PublishingScheduleItemRecord) => {
     const state = displayState(item);
-    return needsWordPressVerification(item)
+    return state === "published_needs_review" ? STATE_META[state] : needsWordPressVerification(item)
       ? { ...STATE_META[state], label: "Scheduled — past due, not yet verified", short: "Verify", description: "The scheduled time passed. Ask WordPress whether this post is live." }
       : STATE_META[state];
   };
@@ -329,7 +330,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
       {error && <div className="error-banner" role="alert">{error}</div>}
       <div className="publishing-plan-actions"><button className="primary-button" disabled={!mode || saving || missingApprovals || cmsUnavailable || (mode === "automatic" && !automaticConfirmed)} onClick={() => void save()} type="button">{saving ? "Saving plan…" : plan ? "Save changes" : "Start this publishing plan"}</button>{plan && <button className="secondary-button" disabled={saving} onClick={() => { setEditing(false); setMode(plan.mode); }} type="button">Cancel</button>}</div>
     </> : plan ? <>
-      {overdueWordPressItems.length > 0 && <div className="configuration-note amber"><strong>{overdueWordPressItems.length === 1 ? "One WordPress post needs a status check" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>The scheduled time passed, but Rebound SEO has not verified the public page yet.</p><div className="publishing-plan-actions">{overdueWordPressItems.map((item) => <button className="secondary-button" disabled={Boolean(verifyingItemId)} key={item.id} onClick={() => void refreshWordPressStatus(item)} type="button">{verifyingItemId === item.id ? "Checking…" : "Refresh WordPress status"}</button>)}</div></div>}
+      {overdueWordPressItems.length > 0 && <div className="configuration-note amber"><strong>{overdueWordPressItems.some((item) => displayState(item) === "published_needs_review") ? "Published WordPress post needs review" : overdueWordPressItems.length === 1 ? "One WordPress post needs a status check" : `${overdueWordPressItems.length} WordPress posts need a status check`}</strong><p>{overdueWordPressItems.some((item) => displayState(item) === "published_needs_review") ? "WordPress confirms publication, but a public verification check still needs attention." : "The scheduled time passed, but Rebound SEO has not verified the public page yet."}</p><div className="publishing-plan-actions">{overdueWordPressItems.map((item) => <button className="secondary-button" disabled={Boolean(verifyingItemId)} key={item.id} onClick={() => void refreshWordPressStatus(item)} type="button">{verifyingItemId === item.id ? "Checking…" : "Refresh WordPress status"}</button>)}</div></div>}
       <div className="publishing-calendar-toolbar">
         <div className="publishing-toolbar-left">
           <div aria-label="Editorial calendar view" className="publishing-view-toggle" role="group">
@@ -376,10 +377,10 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
             const state = displayState(item);
             const meta = displayMeta(item);
             const content = CONTENT_META[editorialContentChannel(item.content_type)];
-            return <button className="publishing-list-row" key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className="publishing-list-type"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? "Review recommended" : item.keyword}</small></span><span>{item.related_article_title || "Not applicable"}</span><span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span><span className="publishing-list-action">{state === "needs_review" ? "Review" : state === "published" ? "View live" : state === "scheduled" ? "Open" : "View"}</span></button>;
+            return <button className="publishing-list-row" key={item.id} onClick={() => setSelectedItemId(item.id)} type="button"><time>{formattedPublishTime(item.scheduled_for, planTimezone)}</time><span className="publishing-list-type"><b>{content.mark}</b>{content.label}</span><span><strong>{item.title}</strong><small>{item.review_recommended ? "Review recommended" : item.keyword}</small></span><span>{item.related_article_title || "Not applicable"}</span><span className={`publishing-detail-status ${state}`}>{meta.icon} {meta.label}</span><span className="publishing-list-action">{state === "needs_review" || state === "published_needs_review" ? "Review" : state === "published" ? "View live" : state === "scheduled" ? "Open" : "View"}</span></button>;
           })}</div>}
 
-          <div aria-label="Publishing state legend" className="publishing-calendar-legend">{(["planned", "needs_review", "scheduled", "published", "failed", ...(manualCmsPlan ? ["manual"] : [])] as PublishingCalendarState[]).map((state) => <span className={state} key={state}><i aria-hidden="true" />{state === "failed" ? "Failed / missed" : STATE_META[state].label}</span>)}</div>
+          <div aria-label="Publishing state legend" className="publishing-calendar-legend">{(["planned", "needs_review", "scheduled", "published_needs_review", "published", "failed", ...(manualCmsPlan ? ["manual"] : [])] as PublishingCalendarState[]).map((state) => <span className={state} key={state}><i aria-hidden="true" />{state === "failed" ? "Failed / missed" : STATE_META[state].label}</span>)}</div>
         </div>
 
         {selectedItem && (() => {
@@ -398,7 +399,7 @@ export function PublishingPlanManager({ websiteId, auditId, calendar, wordpressC
               {state === "needs_review" && <a className="primary-button" href={social ? "/distribution" : "#article-review-workspace"}>Review content</a>}
               {state === "scheduled" && selectedItem.remote_edit_url && <a className="primary-button" href={selectedItem.remote_edit_url} rel="noreferrer" target="_blank">View in WordPress ↗</a>}
               {needsWordPressVerification(selectedItem) && <button className="secondary-button" disabled={Boolean(verifyingItemId)} onClick={() => void refreshWordPressStatus(selectedItem)} type="button">{verifyingItemId === selectedItem.id ? "Checking…" : "Refresh WordPress status"}</button>}
-              {state === "published" && selectedItem.remote_permalink && <a className="primary-button" href={selectedItem.remote_permalink} rel="noreferrer" target="_blank">View live post ↗</a>}
+              {(state === "published" || state === "published_needs_review") && selectedItem.remote_permalink && <a className="primary-button" href={selectedItem.remote_permalink} rel="noreferrer" target="_blank">View live post ↗</a>}
               {(state === "failed" || state === "missed") && <button className="primary-button" disabled={saving} onClick={() => void checkNow()} type="button">{saving ? "Checking…" : "Retry scheduling check"}</button>}
               {state === "manual" && <><a className="primary-button" href="#article-review-workspace">Prepare article</a><a className="secondary-button" href={websitePlatform === "wix" ? "https://manage.wix.com/dashboard/" : "https://webflow.com/dashboard"} rel="noreferrer" target="_blank">Open {websitePlatform === "wix" ? "Wix" : "Webflow"} ↗</a></>}
             </div>
