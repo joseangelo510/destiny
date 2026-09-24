@@ -613,6 +613,8 @@ button { cursor: pointer; }
 .integration-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .integration-actions small { color: var(--muted); flex-basis: 100%; text-align: right; }
 .google-resource-picker { align-items: end; background: #f7f3f5; border: 1px solid #e5d9de; border-radius: 12px; display: grid; flex-basis: 100%; gap: 8px; grid-template-columns: minmax(190px, 1fr) auto; padding: 10px; }
+.integration-row:has(.google-resource-picker) { grid-template-columns: 46px minmax(0,1fr) 110px; }
+.integration-row:has(.google-resource-picker) .integration-actions { grid-column: 2 / -1; width: 100%; }
 .google-resource-picker label { display: grid; gap: 4px; }
 .google-resource-picker label span { color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
 .google-resource-picker select { background: white; border: 1px solid var(--line); border-radius: 8px; min-height: 38px; padding: 7px 9px; }
@@ -697,6 +699,8 @@ button { cursor: pointer; }
 @media (max-width: 720px) {
   .website-platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .website-profile-footer .primary-button { width: 100%; }
+  .google-resource-picker { align-items: stretch; grid-template-columns: 1fr; }
+  .google-resource-picker .primary-button { width: 100%; }
 }
 
 @media (max-width: 420px) {

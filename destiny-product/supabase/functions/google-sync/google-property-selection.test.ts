@@ -74,4 +74,55 @@ describe("site-bound Google property selection", () => {
 
     await expect(syncGoogleAnalytics("token", "example.com", "properties/111")).rejects.toThrow("does not match example.com");
   });
+
+  it("recovers a stale saved GA4 property through the only verified website match", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("accountSummaries")) return response({ accountSummaries: [{ displayName: "Agency", propertySummaries: [
+        { property: "properties/111", displayName: "Wrong site" },
+        { property: "properties/222", displayName: "Example site" },
+      ] }] });
+      if (url.includes("properties/111/dataStreams")) return response({ dataStreams: [{ type: "WEB_DATA_STREAM", webStreamData: { defaultUri: "https://wrong.example" } }] });
+      if (url.includes("properties/222/dataStreams")) return response({ dataStreams: [{ type: "WEB_DATA_STREAM", webStreamData: { defaultUri: "https://example.com" } }] });
+      if (url.includes("batchRunReports")) return response({ reports: [{}, {}, {}, {}, {}] });
+      if (url.includes("runReport")) return response({ rows: [] });
+      return response({}, 404);
+    });
+
+    const result = await syncGoogleAnalytics("token", "example.com", "properties/111", true);
+
+    expect(result.externalAccountId).toBe("properties/222");
+    expect(result.metadata).toMatchObject({ selectedProperty: { property: "properties/222", matchedDomain: "example.com" } });
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes("properties/111:batchRunReports"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes("properties/222:batchRunReports"))).toBe(true);
+  });
+
+  it("offers only verified matches when a stale saved GA4 property has multiple replacements", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("accountSummaries")) return response({ accountSummaries: [{ displayName: "Agency", propertySummaries: [
+        { property: "properties/111", displayName: "Wrong site" },
+        { property: "properties/222", displayName: "Example primary" },
+        { property: "properties/333", displayName: "Example secondary" },
+      ] }] });
+      if (url.includes("properties/111/dataStreams")) return response({ dataStreams: [{ webStreamData: { defaultUri: "https://wrong.example" } }] });
+      if (url.includes("properties/222/dataStreams")) return response({ dataStreams: [{ webStreamData: { defaultUri: "https://example.com" } }] });
+      if (url.includes("properties/333/dataStreams")) return response({ dataStreams: [{ webStreamData: { defaultUri: "https://www.example.com" } }] });
+      return response({}, 404);
+    });
+
+    const result = await syncGoogleAnalytics("token", "example.com", "properties/111", true);
+
+    expect(result.externalAccountId).toBeNull();
+    expect(result.metadata).toMatchObject({
+      selectionRequired: true,
+      requestedDomain: "example.com",
+      availableProperties: [
+        { property: "properties/222", matchesWebsite: true },
+        { property: "properties/333", matchesWebsite: true },
+      ],
+    });
+    expect((result.metadata.availableProperties as Array<{ property: string }>).map((property) => property.property)).not.toContain("properties/111");
+    expect(fetchMock.mock.calls.some(([input]) => String(input).includes(":batchRunReports"))).toBe(false);
+  });
 });

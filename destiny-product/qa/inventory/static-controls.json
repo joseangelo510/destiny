@@ -1197,9 +1197,9 @@
     "context": "<section className=\"review-grid\"> <article className=\"workspace-card review-score\"><span className={`status-chip ${synced ? \"\" : \"amber\"}`}>{synced ? \"Synced\" : googleBusiness?.status ?? \"Not connected\"}</span><strong aria-label={reviewCount.label}>{reviewCount.text}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!)."
   },
   {
-    "control_id": "src/app/this-week/page.tsx:53:summary:1",
+    "control_id": "src/app/this-week/page.tsx:54:summary:1",
     "file": "src/app/this-week/page.tsx",
-    "line": 53,
+    "line": 54,
     "type": "summary",
     "route": "/this-week",
     "side_effect_class": 1,

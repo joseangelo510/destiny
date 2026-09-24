@@ -5,6 +5,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildSeasonSnapshot } from "@/lib/product/founder-journey";
 import { buildSeoRoadmap, type RoadmapAnalytics, type RoadmapSearchConsole } from "@/lib/product/roadmap";
 import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
+import { googleAnalyticsSelectionState } from "@/lib/integrations/google-analytics-selection";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 function connectedMetadata(context: Awaited<ReturnType<typeof getWorkspaceContext>>, provider: string) {
@@ -16,7 +17,7 @@ export default async function RoadmapPage() {
   const context = await getWorkspaceContext();
   if (!context.website) redirect("/onboarding");
   const searchConsole = connectedMetadata(context, "google_search_console") as RoadmapSearchConsole | null;
-  const analytics = connectedMetadata(context, "google_analytics") as RoadmapAnalytics | null;
+  const analytics = googleAnalyticsSelectionState(connectedMetadata(context, "google_analytics"), context.website.normalized_domain).metadata as RoadmapAnalytics | null;
   const roadmap = await buildSeoRoadmap({
     auditComplete: context.audit?.status === "complete",
     quests: context.audit ? context.quests.filter((quest) => quest.audit_id === context.audit?.id) : [],

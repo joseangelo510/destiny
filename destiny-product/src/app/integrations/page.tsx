@@ -5,6 +5,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 import { connectionHealth } from "@/lib/integrations/connection-health";
+import { googleAnalyticsSelectionState } from "@/lib/integrations/google-analytics-selection";
 
 const providers = [
   { id: "google_search_console", name: "Google Search Console", description: "Queries, clicks, impressions, positions, and indexed pages" },
@@ -19,11 +20,15 @@ type IntegrationsPageProps = {
   searchParams: Promise<{ google?: string; provider?: string; reason?: string }>;
 };
 
-function syncSummary(provider: string, value: unknown) {
+function syncSummary(provider: string, value: unknown, websiteDomain: string) {
   const metadata = record(value);
   if (metadata.selectionRequired === true) return "Choose the matching website property to finish syncing.";
   if (provider === "google_search_console" && metadata.syncedAt) return `${Number(metadata.clicks ?? 0).toLocaleString()} clicks · ${Number(metadata.impressions ?? 0).toLocaleString()} impressions`;
-  if (provider === "google_analytics" && metadata.syncedAt) return `${Number(metadata.organicSessions ?? 0).toLocaleString()} organic sessions · ${Number(metadata.organicKeyEvents ?? 0).toLocaleString()} key events`;
+  if (provider === "google_analytics") {
+    const selection = googleAnalyticsSelectionState(metadata, websiteDomain);
+    if (selection.status !== "verified") return selection.message;
+    if (metadata.syncedAt) return `${Number(metadata.organicSessions ?? 0).toLocaleString()} organic sessions · ${Number(metadata.organicKeyEvents ?? 0).toLocaleString()} key events`;
+  }
   if (provider === "google_business_profile" && metadata.syncedAt) return `${Number(metadata.reviewCount ?? 0).toLocaleString()} reviews · ${Number(metadata.averageRating ?? 0).toFixed(1)} average rating`;
   if (provider === "youtube" && metadata.syncedAt) return `${Number(metadata.periodViews ?? 0).toLocaleString()} recent views · ${Number(metadata.subscribers ?? 0).toLocaleString()} subscribers`;
   return "Connect and sync to import first-party data.";
@@ -48,8 +53,12 @@ export default async function IntegrationsPage({ searchParams }: IntegrationsPag
             const saved = context.integrations.find((item) => item.provider === provider.id);
             const health = connectionHealth(saved?.status, saved?.last_synced_at);
             const connected = health.connected;
+            const analyticsSelection = provider.id === "google_analytics"
+              ? googleAnalyticsSelectionState(saved?.metadata, context.website.normalized_domain)
+              : null;
+            const needsSelectionReview = Boolean(connected && analyticsSelection && analyticsSelection.status !== "verified");
             const href = `/api/integrations/google/start?provider=${provider.id}&websiteId=${context.website.id}`;
-            return <article className={`integration-row ${health.needsAttention ? "needs-attention" : ""}`} key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata)}</p><small>{health.detail}</small>{saved?.last_synced_at && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${health.needsAttention || !connected ? "amber" : ""}`}>{health.label}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
+            return <article className={`integration-row ${health.needsAttention || needsSelectionReview ? "needs-attention" : ""}`} key={provider.id}><span className="integration-logo">G</span><div><strong>{provider.name}</strong><p>{provider.description}</p><p className="integration-summary">{syncSummary(provider.id, saved?.metadata, context.website.normalized_domain)}</p>{analyticsSelection?.status === "verified" && analyticsSelection.selectedResource && <small>Using {analyticsSelection.selectedResource}</small>}<small>{health.detail}</small>{saved?.last_synced_at && !needsSelectionReview && <small>Last synced {new Date(saved.last_synced_at).toLocaleString()}</small>}</div><span className={`status-chip ${health.needsAttention || !connected || needsSelectionReview ? "amber" : ""}`}>{needsSelectionReview ? "Needs review" : health.label}</span><GoogleIntegrationAction connected={connected} connectHref={href} provider={provider.id} websiteId={context.website.id} /></article>;
           })}
           <div className="configuration-note"><strong>Secure Google authorization</strong><p>Each button requests only the read access needed for that product. Google credentials stay encrypted on the server, and Rebound SEO never reports a connection as live until Google completes authorization.</p></div>
         </section>

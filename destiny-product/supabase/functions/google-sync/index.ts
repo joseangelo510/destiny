@@ -1,5 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { syncBusinessProfile, syncGoogleAnalytics, syncSearchConsole, syncYouTube } from "./google.ts";
+import { googleResourceRequest, googleSyncPersistence } from "./resource-selection.ts";
 
 const providers = new Set(["google_search_console", "google_analytics", "google_business_profile", "youtube"]);
 
@@ -72,15 +73,11 @@ export default {
       });
       if (tokenError || !tokenData || typeof tokenData !== "object" || Array.isArray(tokenData)) throw new Error("Google credentials were not found. Reconnect this account.");
       const { accessToken, refreshedToken } = await freshAccessToken(tokenData as Record<string, unknown>);
-      const requestedResourceId = typeof body.selectedResourceId === "string" && body.selectedResourceId.trim()
-        ? body.selectedResourceId.trim()
-        : typeof integration.external_account_id === "string" && integration.external_account_id.trim()
-        ? integration.external_account_id.trim()
-        : null;
+      const resourceRequest = googleResourceRequest(body.selectedResourceId, integration.external_account_id);
       const result = integration.provider === "google_search_console"
-        ? await syncSearchConsole(accessToken, website.normalized_domain, requestedResourceId)
+        ? await syncSearchConsole(accessToken, website.normalized_domain, resourceRequest.resourceId)
         : integration.provider === "google_analytics"
-        ? await syncGoogleAnalytics(accessToken, website.normalized_domain, requestedResourceId)
+        ? await syncGoogleAnalytics(accessToken, website.normalized_domain, resourceRequest.resourceId, resourceRequest.recoverSavedMismatch)
         : integration.provider === "google_business_profile"
         ? await syncBusinessProfile(accessToken, website.normalized_domain)
         : await syncYouTube(accessToken);
@@ -95,14 +92,11 @@ export default {
         if (refreshStoreError) throw new Error("Rebound SEO could not rotate the Google credential.");
       }
       const syncedAt = new Date().toISOString();
-      const { error: updateError } = await context.supabaseAdmin.from("integrations").update({
-        external_account_id: result.externalAccountId,
-        metadata: { ...result.metadata, provider: integration.provider, syncedAt },
-        last_synced_at: syncedAt,
-        status: "connected",
-      }).eq("id", integration.id);
+      const update = googleSyncPersistence(result, integration.provider, syncedAt);
+      const { error: updateError } = await context.supabaseAdmin.from("integrations").update(update).eq("id", integration.id);
       if (updateError) throw new Error("Rebound SEO could not save the Google data snapshot.");
-      return json({ provider: integration.provider, syncedAt, selectionRequired: result.metadata.selectionRequired === true, summary: result.metadata });
+      const selectionRequired = result.metadata.selectionRequired === true;
+      return json({ provider: integration.provider, ...(selectionRequired ? {} : { syncedAt }), selectionRequired, summary: result.metadata });
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Rebound SEO could not sync this Google connection.";
       console.error("Google sync failed", integration.provider, message);
