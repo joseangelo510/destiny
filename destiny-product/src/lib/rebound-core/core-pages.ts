@@ -322,7 +322,7 @@ export type DistributionRow = {
   freshness: { stale: boolean; label: string } | null;
 };
 
-export function buildDistributionView(input: { opportunities: unknown[]; interlinks: unknown[] }) {
+export function buildDistributionView(input: { opportunities: unknown[]; interlinks: unknown[]; now?: Date }) {
   const opportunityRows = input.opportunities.flatMap((raw, index): DistributionRow[] => {
     const row = record(raw);
     const title = text(row.title);
@@ -330,7 +330,7 @@ export function buildDistributionView(input: { opportunities: unknown[]; interli
     if (!title) return [];
     const detail = text(row.snippet) || text(row.topic) || "Matched distribution opportunity";
     const action = buildDistributionOpportunityAction({ platform: row.platform, title: row.title, context: typeof row.snippet === "string" && row.snippet.trim() ? row.snippet : row.topic, url: row.url, checkedAt: row.checkedAt });
-    const freshness = distributionOpportunityFreshness(typeof row.checkedAt === "string" ? row.checkedAt : null);
+    const freshness = distributionOpportunityFreshness(typeof row.checkedAt === "string" ? row.checkedAt : null, input.now);
     const moveLabel = !action ? "Unavailable" : freshness.stale ? "Reverify in Distribution" : `Copy context & open ${action.platform}`;
     return [{ id: `opportunity-${index}`, title, detail, kind: "opportunity", owner: "you", href: action?.url ?? url, moveLabel, evidenceKind: "reported", action, freshness }];
   });
