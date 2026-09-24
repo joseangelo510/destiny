@@ -77,6 +77,7 @@ describe("publishing plans", () => {
     expect(publishingCalendarState({ ...item, remote_id: "20208955" }, "wordpress")).toBe("scheduled");
     expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955" }, "wordpress")).toBe("planned");
     expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955", remote_permalink: "https://example.com/post" }, "wordpress")).toBe("published");
+    expect(publishingCalendarState({ ...item, remote_id: "20208955", remote_permalink: "https://example.com/post", last_error: "Published in WordPress — image metadata needs review." }, "wordpress")).toBe("published_needs_review");
   });
 
   it("keeps Wix publishing visibly manual and extracts WordPress proof IDs", () => {

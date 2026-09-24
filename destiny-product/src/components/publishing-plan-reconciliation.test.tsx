@@ -58,4 +58,26 @@ describe("past-due WordPress schedule reconciliation", () => {
     expect(html).toContain("Scheduled — past due, not yet verified");
     expect(html).toContain("Refresh WordPress status");
   });
+
+  it("shows a linked published post as needing media review after an incomplete public check", () => {
+    const plan: PublishingPlanRecord = {
+      id: "plan-1", mode: "automatic", status: "active", timezone: "America/Los_Angeles", holdback_hours: 72,
+      start_date: "2026-08-21", end_date: "2026-09-18", confirmed_post_count: 1, automatic_confirmed_at: "2026-08-17T12:00:00.000Z",
+    };
+    const html = renderToStaticMarkup(<PublishingPlanManager
+      approvedKeywordCount={1}
+      auditId="33333333-3333-4333-8333-333333333333"
+      calendar={[{ focusKeyword: scheduled.keyword, title: scheduled.title, contentType: scheduled.content_type }]}
+      initialItems={[{ ...scheduled, remote_permalink: "https://clearcheck.app/ban-the-box-laws/", last_error: "Published in WordPress — image metadata needs review." }]}
+      initialPlan={plan}
+      now="2026-08-27T16:00:00.000Z"
+      websiteId="11111111-1111-4111-8111-111111111111"
+      websitePlatform="wordpress"
+      wordpressConnected
+    />);
+
+    expect(html).toContain("Published — needs review");
+    expect(html).toContain("public verification check still needs attention");
+    expect(html).toContain("Published WordPress post needs review");
+  });
 });
