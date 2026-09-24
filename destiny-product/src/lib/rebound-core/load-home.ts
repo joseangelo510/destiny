@@ -17,6 +17,7 @@ import { buildCoreQueue } from "./queue";
 import { buildHomeCalendarSummary } from "./home-calendar-summary";
 import { approvedKeywordCalendarSuggestions } from "./core-pages";
 import { buildHomeCompetitorSummary } from "./home-competitor-summary";
+import { googleAnalyticsSelectionState } from "@/lib/integrations/google-analytics-selection";
 
 function finiteNumber(value: unknown) {
   if (value === null || value === undefined || value === "") return null;
@@ -75,9 +76,10 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
 
   const searchConnection = integrationMetadata(context, "google_search_console");
   const analyticsConnection = integrationMetadata(context, "google_analytics");
+  const analyticsSelection = googleAnalyticsSelectionState(analyticsConnection.metadata, context.website.normalized_domain);
   const periods = buildAnalyticsPeriods({
     searchConsole: searchConnection.metadata,
-    analytics: analyticsConnection.metadata,
+    analytics: analyticsSelection.metadata,
     movers,
   });
   const period = periods[30];
@@ -106,6 +108,8 @@ export async function loadReboundHome(): Promise<ReboundHomeView | null> {
   };
   const analytics = !analyticsConnection.integration
     ? notConnected<AnalyticsSummary>("Analytics shows what visitors did after finding you. Connect Google Analytics from the existing Connections tool.")
+    : analyticsSelection.status !== "verified"
+      ? empty<AnalyticsSummary>(analyticsSelection.message)
     : analyticsData.engagedVisits === null
       ? empty<AnalyticsSummary>("Google Analytics is connected and waiting for its first organic-visit summary.")
       : ready(analyticsData, [{ kind: "verified", source: "ga4", observedAt: analyticsData.syncedAt, detail: "Google Analytics" }]);

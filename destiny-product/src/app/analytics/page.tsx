@@ -4,6 +4,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildAnalyticsPeriods, buildRankMovers, rankingEstimateFallback } from "@/lib/analytics/dashboard";
 import type { HistoricalSeoPoint } from "@/lib/analytics/history";
 import { coachingTaskCopy, guidedTaskPath } from "@/lib/product/coach-experience";
+import { googleAnalyticsSelectionState } from "@/lib/integrations/google-analytics-selection";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 function syncedMetadata(integrations: Awaited<ReturnType<typeof getWorkspaceContext>>["integrations"], provider: string) {
@@ -37,7 +38,9 @@ export default async function AnalyticsPage() {
   const metrics = context.metrics;
   if (!context.website) return <WorkspaceShell active="/analytics" design="claude-analytics" eyebrow="Rebound SEO workspace" title="How your site is doing" description="See how people find you and what to improve next."><WorkspaceEmpty title="Complete onboarding first" description="Add your website so Rebound SEO knows which search and Analytics data belongs here." /></WorkspaceShell>;
   const searchConsole = syncedMetadata(context.integrations, "google_search_console");
-  const analytics = syncedMetadata(context.integrations, "google_analytics");
+  const rawAnalytics = syncedMetadata(context.integrations, "google_analytics");
+  const analyticsSelection = googleAnalyticsSelectionState(rawAnalytics, context.website.normalized_domain);
+  const analytics = analyticsSelection.metadata;
   const [{ data: tracked }, { data: observations }] = await Promise.all([
     context.supabase.from("tracked_keywords").select("id,keyword").eq("website_id", context.website.id).neq("status", "paused").order("created_at"),
     context.supabase.from("rank_observations").select("tracked_keyword_id,observed_at,found,position").eq("website_id", context.website.id).order("observed_at", { ascending: false }).limit(2000),
@@ -77,9 +80,9 @@ export default async function AnalyticsPage() {
           rankMovers={rankMovers}
           sources={[
             { label: "Google Search Console", connected: Boolean(searchConsole), detail: searchIntegration?.last_synced_at ? syncedAgo(searchIntegration.last_synced_at) : "not connected" },
-            { label: "Google Analytics", connected: Boolean(analytics), detail: analyticsIntegration?.last_synced_at ? syncedAgo(analyticsIntegration.last_synced_at) : "not connected" },
+            { label: "Google Analytics", connected: Boolean(analytics), detail: analytics ? (analyticsIntegration?.last_synced_at ? syncedAgo(analyticsIntegration.last_synced_at) : "verified") : analyticsIntegration ? analyticsSelection.message : "not connected" },
             { label: "Rank tracking", connected: (tracked?.length ?? 0) > 0, detail: (tracked?.length ?? 0) > 0 ? `${tracked?.length ?? 0} tracked` : "not started" },
-            { label: "Conversions", connected: conversionCount > 0, detail: analytics ? `${conversionCount.toLocaleString("en-US")} organic key event${conversionCount === 1 ? "" : "s"}` : "Analytics not connected" },
+            { label: "Conversions", connected: conversionCount > 0, detail: analytics ? `${conversionCount.toLocaleString("en-US")} organic key event${conversionCount === 1 ? "" : "s"}` : analyticsIntegration ? "Analytics property needs verification" : "Analytics not connected" },
           ]}
           trackedKeywordCount={tracked?.length ?? 0}
         />

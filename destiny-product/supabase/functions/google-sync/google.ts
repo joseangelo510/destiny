@@ -164,7 +164,7 @@ function analyticsTrafficSources(payload: unknown) {
   });
 }
 
-export async function syncGoogleAnalytics(accessToken: string, domain?: string, requestedProperty?: string | null): Promise<GoogleSyncResult> {
+export async function syncGoogleAnalytics(accessToken: string, domain?: string, requestedProperty?: string | null, recoverSavedMismatch = false): Promise<GoogleSyncResult> {
   const requestedDomain = normalizedDomain(domain ?? "");
   if (!requestedDomain) throw new Error("Rebound SEO could not verify the website domain for Google Analytics.");
   const accountsPayload = record(await googleJson("https://analyticsadmin.googleapis.com/v1beta/accountSummaries?pageSize=200", accessToken));
@@ -198,20 +198,22 @@ export async function syncGoogleAnalytics(accessToken: string, domain?: string, 
   }));
   const matches = propertiesWithStreams.filter((property) => property.matchesWebsite);
   if (!matches.length) throw new Error(`No GA4 web data stream matches ${requestedDomain}. Connect or configure the Analytics property for this website.`);
-  if (!requestedProperty && matches.length > 1) {
+  const requested = requestedProperty
+    ? propertiesWithStreams.find((property) => property.property === requestedProperty)
+    : null;
+  const savedMismatch = Boolean(requestedProperty && !requested?.matchesWebsite && recoverSavedMismatch);
+  if ((!requestedProperty || savedMismatch) && matches.length > 1) {
     return {
       externalAccountId: null,
       metadata: {
         selectionRequired: true,
         requestedDomain,
         propertyCount: propertiesWithStreams.length,
-        availableProperties: propertiesWithStreams,
+        availableProperties: matches,
       },
     };
   }
-  const selected = requestedProperty
-    ? propertiesWithStreams.find((property) => property.property === requestedProperty)
-    : matches[0];
+  const selected = savedMismatch ? matches[0] : requestedProperty ? requested : matches[0];
   if (!selected?.matchesWebsite) throw new Error(`The selected GA4 property does not match ${requestedDomain}.`);
 
   const current30 = reportingDates(30);

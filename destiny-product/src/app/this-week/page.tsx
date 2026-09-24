@@ -8,6 +8,7 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildCoachTaskSet, certifiedMvpWeeklyTasks } from "@/lib/product/coach-experience";
 import { buildWitnessLog, selectDiscoveryMoment } from "@/lib/product/founder-journey";
 import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
+import { googleAnalyticsSelectionState } from "@/lib/integrations/google-analytics-selection";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 function connectedMetadata(context: Awaited<ReturnType<typeof getWorkspaceContext>>, provider: string) {
@@ -31,7 +32,7 @@ export default async function ThisWeekPage() {
   const currentTask = coach.currentTask;
   const weekly = await buildWeeklyProgressSummary(context.quests);
   const searchConsole = connectedMetadata(context, "google_search_console");
-  const analytics = connectedMetadata(context, "google_analytics");
+  const analytics = googleAnalyticsSelectionState(connectedMetadata(context, "google_analytics"), context.website.normalized_domain).metadata;
   const discoveryMoment = selectDiscoveryMoment({
     organicKeyEvents: analytics?.organicKeyEvents,
     searchClicks: searchConsole?.clicks,
