@@ -81,18 +81,18 @@
     "context": "const sources = infographicPlan.sources.map((source) => `<li><a href=\"${escapeHtml(source.url)}\">${escapeHtml(source.title)}</a> — ${escapeHtml(source.publisher)} (${escapeHtml(source.publishedAt)})</li>`).join(\"\"); const reusablePosts = infographicPlan.repurposeCards.map((card) => `<h3>${escapeHtml(card.title)}</h3><p><strong>Recommended channel:</strong> ${escapeHtml(card.recommendedChannel)}</p><p>${escapeHtml(card.copy)}</p>`).join(\"\");"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:71:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:74:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/reconcile/route.ts",
-    "line": 71,
+    "line": 74,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/reconcile",
     "side_effect_class": 3,
     "context": "const reviewDetail = `${PUBLISHED_WORDPRESS_REVIEW_PREFIX}${reason.charAt(0).toLocaleLowerCase()}${reason.slice(1)}`; const { error: updateError } = await db.update(\"publishing_schedule_items\", { remote_permalink: publicUrl, last_error: reviewDetail }, { id: itemId }); if (updateError) return NextResponse.json({ error: \"WordPress confirmed publication, but Rebound SEO could not update the calendar review state.\" }, { status: 502 });"
   },
   {
-    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:83:data-mutation:1",
+    "control_id": "src/app/api/content/publishing-plan/reconcile/route.ts:86:data-mutation:1",
     "file": "src/app/api/content/publishing-plan/reconcile/route.ts",
-    "line": 83,
+    "line": 86,
     "type": "data-mutation",
     "route": "/api/content/publishing-plan/reconcile",
     "side_effect_class": 3,

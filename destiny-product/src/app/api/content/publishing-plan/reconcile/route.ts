@@ -51,6 +51,9 @@ export async function POST(request: Request) {
 
   const { data, error } = await db.invokeFunction<ReconcileResult>("wordpress-reconcile", { websiteId, articleKey: item.article_key });
   if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Rebound SEO could not verify this WordPress post." }, { status: 502 });
+  if (data.publicationStatus !== "verified_live" && data.publicationStatus !== "verification_failed") {
+    return NextResponse.json({ verified: false, state: "scheduled", publicationStatus: data.publicationStatus ?? "unknown" }, { headers: { "Cache-Control": "no-store" } });
+  }
 
   const { data: transfers, error: transferError } = await db.readCmsTransferStates();
   if (transferError || !Array.isArray(transfers)) return NextResponse.json({ error: "WordPress was checked, but Rebound SEO could not read the saved publishing result." }, { status: 503 });
