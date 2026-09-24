@@ -15,3 +15,14 @@ it("preserves the verified-email requirement without exposing provider text", as
   expect(response?.status).toBe(403);
   expect(await response?.json()).toMatchObject({ code: "BILLING_VERIFICATION_REQUIRED", error: "Verify your sign-in email before starting this work." });
 });
+it("preserves managed-website recovery without exposing worker text or URLs", async () => {
+  const context = Response.json({ code: "BILLING_MANAGED_WEBSITE_REQUIRED", error: "private selection detail", billingUrl: "https://untrusted.invalid" }, { status: 402 });
+  const response = await billingFailureResponse({ context });
+  expect(response?.status).toBe(402);
+  expect(await response?.json()).toEqual({
+    code: "BILLING_MANAGED_WEBSITE_REQUIRED",
+    error: "The website owner must select this site under Managed websites in billing before starting new paid work.",
+    billingUrl: "/account/billing",
+  });
+  expect(context.bodyUsed).toBe(false);
+});
