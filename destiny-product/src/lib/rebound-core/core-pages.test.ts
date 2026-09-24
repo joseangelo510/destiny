@@ -149,8 +149,9 @@ describe("Rebound redesign Slice 2", () => {
   });
 
   it("uses existing opportunities and interlink evidence without inventing a touchpoint ledger", () => {
+    const checkedAt = new Date(Date.now() - 86_400_000).toISOString();
     const view = buildDistributionView({
-      opportunities: [{ platform: "Quora", topic: "kiln repair", title: "How do I fix a kiln?", url: "https://www.quora.com/example", snippet: "A matched question", checkedAt: "2026-09-01T00:00:00Z" }],
+      opportunities: [{ platform: "Quora", topic: "kiln repair", title: "How do I fix a kiln?", url: "https://www.quora.com/example", snippet: "A matched question", checkedAt }],
       interlinks: [
         { id: "link-1", source_title: "Glaze basics", target_title: "Kiln repair", status: "verified", verified_at: "2026-09-01T00:00:00Z" },
         { id: "link-2", source_title: "Clay bodies", target_title: "Kiln repair", status: "reported", verified_at: null },
@@ -165,7 +166,7 @@ describe("Rebound redesign Slice 2", () => {
         platform: "Quora",
         url: "https://www.quora.com/example",
         hostname: "www.quora.com",
-        copyText: "How do I fix a kiln?\nA matched question\nhttps://www.quora.com/example\nChecked 2026-09-01T00:00:00Z",
+        copyText: `How do I fix a kiln?\nA matched question\nhttps://www.quora.com/example\nChecked ${checkedAt}`,
       },
     });
     expect(view.rows.find((row) => row.id === "link-1")).toMatchObject({ evidenceKind: "verified", moveLabel: "View evidence" });

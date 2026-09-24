@@ -32,13 +32,14 @@ describe("Rebound read-only core pages", () => {
   });
 
   it("renders Calendar, Distribution, and Progress from saved evidence", () => {
+    const checkedAt = new Date(Date.now() - 86_400_000).toISOString();
     const calendar = renderToStaticMarkup(<CalendarDashboard view={{
       ...base,
       approvedDrafts: ready([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]),
       calendarView: ready(buildCalendarView({ now: new Date("2026-09-01T19:00:00Z"), items: [{ id: "slot", title: "Saved slot", keyword: "slot", scheduled_for: "2026-09-03T16:00:00Z", state: "scheduled" }] })),
       planTimezone: "America/Los_Angeles",
     }} />);
-    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt: "2026-09-01T00:00:00Z" }], interlinks: [] })) }} />);
+    const distribution = renderToStaticMarkup(<DistributionDashboard view={{ ...base, distribution: ready(buildDistributionView({ opportunities: [{ platform: "Quora", title: "Saved question", url: "https://www.quora.com/example", snippet: "Matched", topic: "topic", checkedAt }], interlinks: [] })) }} />);
     const progress = renderToStaticMarkup(<ProgressDashboard view={{ ...base, progress: ready(buildProgressView({ quests: [{ id: "done", title: "Verified move", description: "Done", action_path: "/content", status: "complete", verification_status: "verified", completed_at: "2026-08-31T12:00:00Z" }], scheduleItems: [], receipts: [] })), reportRecipient: "reports@example.com" }} />);
 
     expect(calendar).toContain("The month");
