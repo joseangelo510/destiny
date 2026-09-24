@@ -106,3 +106,14 @@ export async function runDomainOverview(input: string, selected: string, post: (
   };
 }
 export type DomainOverview = Awaited<ReturnType<typeof runDomainOverview>>;
+
+export function domainOverviewResponse(report: DomainOverview): Response {
+  const options = { headers: { "Cache-Control": "private, no-store" } };
+  if (report.status === "unavailable") {
+    return Response.json(
+      { error: "Domain research sources are temporarily unavailable. Try again later.", code: "DOMAIN_SOURCES_UNAVAILABLE" },
+      { ...options, status: 502 },
+    );
+  }
+  return Response.json(report, options);
+}
