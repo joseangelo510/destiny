@@ -1,6 +1,7 @@
 import { billingFailureResponse } from "@/lib/billing/failure-response";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { classifyResearchWorkerFailure } from "@/lib/seo/research-worker-failure";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,10 +27,9 @@ export async function POST(request: Request) {
     const billingFailure = await billingFailureResponse(error);
     if (billingFailure) return billingFailure;
     if (error || !data) {
-      const message = data && typeof data === "object" && "error" in data && typeof data.error === "string"
-        ? data.error
-        : error?.message || "Rebound SEO could not complete keyword research.";
-      return NextResponse.json({ error: message }, { status: 502 });
+      const failure = await classifyResearchWorkerFailure(error);
+      console.error("seo_research_worker_failure", failure.diagnostic);
+      return NextResponse.json({ error: failure.message, code: failure.code }, { status: 502, headers: { "Cache-Control": "private, no-store" } });
     }
     return NextResponse.json(data, { headers: { "Cache-Control": "private, no-store" } });
   } catch (cause) {
