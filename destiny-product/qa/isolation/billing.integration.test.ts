@@ -262,17 +262,19 @@ describe.sequential("atomic billing reservations and isolation", () => {
       insert into public.websites(id,organization_id,url,normalized_domain,business_name) values('${site}','${org}','https://verified.invalid','verified.invalid','Verified contract QA');
       select has_table_privilege('service_role','auth.users','select');
       set local role service_role;
-      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,false,false);
+      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,false,false,'${identity}');
+      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,true,true,'${owner}');
       select public.reserve_competitor_suggestions_v2('${identity}',false,false);
       select public.reserve_competitor_suggestions_v2('${identity}',false,true);
-      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,true,true);
+      select public.begin_billed_audit_v2('${site}','${identity}','demo',false,true,true,'${identity}');
       rollback;`)).split("\n");
     expect(rows[0]).toBe("f");
     expect(JSON.parse(rows[1])).toMatchObject({ allowed: false, reason: "verification_required" });
     expect(JSON.parse(rows[2])).toMatchObject({ allowed: false, reason: "verification_required" });
-    expect(JSON.parse(rows[3])).toMatchObject({ allowed: true });
-    expect(JSON.parse(rows[4])).toMatchObject({ allowed: true, created: true, free: true });
-    await expect(sql(`begin; set local role authenticated; select public.begin_billed_audit_v2('${website}','${owner}','demo',false,true,true); rollback;`)).rejects.toThrow("permission denied");
+    expect(JSON.parse(rows[3])).toMatchObject({ allowed: false, reason: "verification_required" });
+    expect(JSON.parse(rows[4])).toMatchObject({ allowed: true });
+    expect(JSON.parse(rows[5])).toMatchObject({ allowed: true, created: true, free: true });
+    await expect(sql(`begin; set local role authenticated; select public.begin_billed_audit_v2('${website}','${owner}','demo',false,true,true,'${owner}'); rollback;`)).rejects.toThrow("permission denied");
     await expect(sql(`begin; set local role anon; select public.reserve_competitor_suggestions_v2('${owner}',false,true); rollback;`)).rejects.toThrow("permission denied");
   });
 

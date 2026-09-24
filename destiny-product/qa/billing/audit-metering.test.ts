@@ -19,7 +19,7 @@ it.each(["limit_reached", "payment_required", "verification_required", "managed_
     expect(response.status).toBe(reason === "verification_required" ? 403 : 402);
     expect(await response.json()).toMatchObject({ billingUrl: "/account/billing", ...(reason === "managed_website_required" ? { code: "BILLING_MANAGED_WEBSITE_REQUIRED" } : {}) });
     expect(getUserById).toHaveBeenCalledTimes(1);
-    expect(rpc).toHaveBeenCalledWith("begin_billed_audit_v2", { p_website_id: "site-a", p_user_id: "owner-a", p_provider: "dataforseo", p_livemode: false, p_actor_verified: true, p_owner_verified: true });
+    expect(rpc).toHaveBeenCalledWith("begin_billed_audit_v2", { p_website_id: "site-a", p_user_id: "owner-a", p_provider: "dataforseo", p_livemode: false, p_actor_verified: true, p_owner_verified: true, p_verified_owner_id: "owner-a" });
     expect(research).not.toHaveBeenCalled(); expect(waitUntil).not.toHaveBeenCalled();
   } finally { vi.unstubAllGlobals(); }
 });
