@@ -7,6 +7,7 @@ export async function billingFailureResponse(error: unknown): Promise<Response |
     BILLING_VERIFICATION_REQUIRED: "Verify your sign-in email before starting this work.",
     BILLING_LIMIT_REACHED: "You've used this plan's allowance. Upgrade your plan or wait for your next billing period.",
     BILLING_PAYMENT_REQUIRED: "Choose a plan or update your payment to continue. Your saved work is still available.",
+    BILLING_MANAGED_WEBSITE_REQUIRED: "The website owner must select this site under Managed websites in billing before starting new paid work.",
     BILLING_DUPLICATE: "This request has already started. Check your saved results before trying again.",
   };
   const code = payload?.code;
