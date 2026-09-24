@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { billingConfig } from "../_shared/billing/config.ts";
 import { paymentAction, verifyBillingConfiguration } from "../_shared/billing/payment-service.ts";
 import { BillingOperationError } from "../_shared/billing/store.ts";
+import { stripeBillingPriceForOwner } from "../_shared/billing/effective-price.ts";
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
 export default {
   fetch: withSupabase({ auth: "user" }, async (request, context) => {
@@ -24,7 +25,10 @@ export default {
       if (error || !data.user?.email_confirmed_at) return json({ error: "Verify your sign-in email before starting a subscription." }, 403);
       const stripe = new Stripe(config.key, { maxNetworkRetries: 1, timeout: 15_000 });
       await verifyBillingConfiguration(stripe, config);
-      if (body.action === "status") return json({ ready: true, mode: config.livemode ? "live" : "test" });
+      if (body.action === "status") {
+        const pricing = await stripeBillingPriceForOwner(context.supabaseAdmin, stripe, ownerId, config.livemode);
+        return json({ ready: true, mode: config.livemode ? "live" : "test", pricing });
+      }
       return json(await paymentAction(context.supabaseAdmin, stripe, config, ownerId, body.action as "checkout" | "portal", body.plan));
     } catch (cause) {
       const code = cause instanceof BillingOperationError ? cause.code : "billing_unavailable";

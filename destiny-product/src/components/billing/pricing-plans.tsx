@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { meterLabels, plans, type AccessReason, type PlanId, type UsageLimits } from "@/lib/billing/plans";
 import styles from "./pricing.module.css";
+import type { EffectiveBillingPrice, EffectiveDiscount } from "@/lib/billing/effective-price";
 
 type PricingProps = { checkoutReady: boolean; trialEligible: boolean; currentPlan?: PlanId; publicPage?: boolean; hasSubscription?: boolean };
 export function PricingPlans({ checkoutReady, trialEligible, currentPlan, publicPage = false, hasSubscription = false }: PricingProps) {
@@ -31,6 +32,23 @@ export function PricingPlans({ checkoutReady, trialEligible, currentPlan, public
       <div><h3>Try the work before committing</h3><p>Start with one free website analysis after verified signup. The optional 7-day trial includes 2 articles, 10 keyword searches, 1 domain report, 2 short outputs and 10 tracked targets with up to two refreshes. Your initial analysis is reused. Infographics are not included in the trial.</p></div>
       <div><h3>Clear limits. No surprise overages.</h3><p>A keyword search returns up to 100 rows. Tracking checks the top 100 results weekly. An article includes a full draft or long-form rewrite; manual edits do not use another article. New variations count as new outputs. Research and audits have bounded coverage. Usage resets with your billing period and does not roll over.</p></div>
     </div>
+  </section>;
+}
+const dollars = (cents: number, currency: string) => new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+const date = (value: string) => new Date(value).toLocaleDateString("en-US", { dateStyle: "long", timeZone: "UTC" });
+function discountText(discount: EffectiveDiscount, currency: string) {
+  const amount = discount.percentOff != null ? `${discount.percentOff}% off` : discount.amountOffCents != null ? `${dollars(discount.amountOffCents, currency)} off` : "Discount applied";
+  const duration = discount.duration === "forever" ? "Ongoing" : discount.duration === "once" ? "Applies once" : discount.endsAt ? `Ends ${date(discount.endsAt)}` : "Limited duration";
+  return `${discount.name} · ${amount} · ${duration}`;
+}
+export function EffectivePriceSummary({ catalogCents, pricing }: { catalogCents: number; pricing: EffectiveBillingPrice | null }) {
+  const current = pricing?.catalogSubtotalCents === catalogCents ? pricing : null;
+  return <section className={styles.effectivePrice} aria-label="Effective subscription price">
+    <h3>Price for this subscription</h3>
+    <p>Catalog price <strong>{dollars(catalogCents, "usd")} / month</strong></p>
+    {current ? <><p>Estimated next payment <strong>{dollars(current.nextPaymentCents, current.currency)}</strong> on {date(current.nextPaymentAt)}. Stripe calculates this estimate from the current subscription and discounts.</p>
+      {current.discounts.length > 0 && <ul>{current.discounts.map((discount, index) => <li key={`${discount.name}-${index}`}>{discountText(discount, current.currency)}</li>)}</ul>}</>
+      : <p><strong>Effective payment estimate unavailable.</strong> Open Manage subscription to see Stripe’s current amount and discounts.</p>}
   </section>;
 }
 const messages = {
