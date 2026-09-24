@@ -173,6 +173,24 @@ describe("POST /api/content/publishing-plan/reconcile", () => {
     expect(database.updates).toEqual([]);
   });
 
+  it("leaves a post scheduled when WordPress moves it to a future date", async () => {
+    const database = scheduleBuilder({
+      id: itemId,
+      article_key: "audit-1:ban-the-box-laws",
+      content_type: "Blog guide",
+      state: "scheduled",
+      scheduled_for: "2026-08-21T16:00:00.000Z",
+      remote_id: "20208955",
+    });
+    invoke.mockResolvedValue({ data: { reconciled: true, publicationStatus: "scheduled", remotePermalink: "https://clearcheck.app/?p=20208955" }, error: null });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ verified: false, state: "scheduled", publicationStatus: "scheduled" });
+    expect(database.updates).toEqual([]);
+  });
+
   it("keeps a past-due slot scheduled when WordPress cannot verify a live page", async () => {
     const database = scheduleBuilder({
       id: itemId,
