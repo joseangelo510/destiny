@@ -1,0 +1,7 @@
+# Article Word export includes reviewed graphics
+
+2026-09-23. Classification: MEDIUM, based on the user-visible EXPORT-01 finding at base `17c03fe2ab42c3b691e827a2cfbc746a9608c944` (PR165). The existing Word export strips every image and appends only infographic text, while Content Studio separately shows original SVG graphics. Earlier seven-page export inspection found zero drawing elements and no media files in the DOCX (acceptance receipt 88); live receipt 334 could not verify the new download.
+
+Expected: Exporting an article with reviewed infographic specifications produces a DOCX containing the same number of rendered graphics as Content Studio, with titles and captions retained. The generated images must come only from Rebound's trusted SVG renderer, converted to a Word-compatible PNG; arbitrary HTML image URLs or user-supplied data images remain stripped. An article without graphics retains the current text export. Invalid graphic data must not cause a partial or misleading export. No billing, CMS, authentication, database, or customer content state changes.
+
+Acceptance: a real DOCX roundtrip through Mammoth exposes two embedded images from a two-graphic article and preserves the article text; an untrusted `<img>` in input HTML does not appear. Verify the actual ZIP media entries and render pages visually. The production route must use this generator for the authenticated selected website. Protected merge and live ClearCheck file verification remain separate.

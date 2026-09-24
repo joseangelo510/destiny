@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDocxFromHtml, safeDocumentName } from "./word-document";
+import mammoth from "mammoth";
 
 describe("real Word document generation", () => {
   it("creates an Open XML package rather than HTML renamed as .doc", async () => {
@@ -11,5 +12,18 @@ describe("real Word document generation", () => {
 
   it("creates safe Word filenames", () => {
     expect(safeDocumentName("YouTube SEO: A Better Plan")).toBe("youtube-seo-a-better-plan");
+  });
+
+  it("strips untrusted remote images before inserting a server-generated graphic", async () => {
+    const document = await createDocxFromHtml('<html><body><p>Article</p><img src="https://example.com/tracker.png"></body></html>', "Safe export", [{
+      png: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+p0V8AAAAASUVORK5CYII=", "base64"),
+      title: "Reviewed",
+      altText: "Reviewed graphic",
+      caption: "Source: article research",
+      displayHeight: 1,
+    }]);
+    const converted = await mammoth.convertToHtml({ buffer: document });
+    expect(converted.value.match(/<img\b/g)).toHaveLength(1);
+    expect(converted.value).not.toContain("example.com/tracker.png");
   });
 });
