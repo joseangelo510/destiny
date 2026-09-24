@@ -40,4 +40,11 @@ describe("pricing and work walls", () => {
     expect(html).toContain("Effective payment estimate unavailable");
     expect(html).not.toContain("Estimated next payment");
   });
+  it("does not pair a stale mirrored plan with a different Stripe subtotal", () => {
+    const html = renderToStaticMarkup(<EffectivePriceSummary catalogCents={25000} pricing={{
+      currency: "usd", catalogSubtotalCents: 9900, nextPaymentCents: 0, nextPaymentAt: "2026-10-21T16:36:09.000Z", discounts: [],
+    }} />);
+    expect(html).toContain("Effective payment estimate unavailable");
+    expect(html).not.toContain("Estimated next payment");
+  });
 });
