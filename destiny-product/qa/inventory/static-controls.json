@@ -1188,13 +1188,13 @@
     "context": "{manifest.warning ? <div className={styles.warning}><strong>Verify before editing</strong><p>{manifest.warning}</p></div> : null} <section className={styles.hero}><div><span>Target page</span><a href={manifest.pageUrl} rel=\"noreferrer\" target=\"_blank\">{manifest.pageUrl}</a></div><p>{manifest.strategy.summary}</p></section> <section className={styles.simpleSection}><h2>1. Page title</h2><p>Review the title before working on the rest of the page.</p><div className={styles.simpleComparison}><articl"
   },
   {
-    "control_id": "src/app/reviews/page.tsx:26:Link:1",
+    "control_id": "src/app/reviews/page.tsx:27:Link:1",
     "file": "src/app/reviews/page.tsx",
-    "line": 26,
+    "line": 27,
     "type": "Link",
     "route": "/reviews",
     "side_effect_class": 1,
-    "context": "<section className=\"review-grid\"> <article className=\"workspace-card review-score\"><span className={`status-chip ${synced ? \"\" : \"amber\"}`}>{synced ? \"Synced\" : googleBusiness?.status ?? \"Not connected\"}</span><strong>{reviewCount.toLocaleString()}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!).toLocaleString()}.`"
+    "context": "<section className=\"review-grid\"> <article className=\"workspace-card review-score\"><span className={`status-chip ${synced ? \"\" : \"amber\"}`}>{synced ? \"Synced\" : googleBusiness?.status ?? \"Not connected\"}</span><strong aria-label={reviewCount.label}>{reviewCount.text}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!)."
   },
   {
     "control_id": "src/app/this-week/page.tsx:53:summary:1",

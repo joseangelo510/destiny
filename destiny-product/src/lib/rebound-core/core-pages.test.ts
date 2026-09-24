@@ -150,6 +150,7 @@ describe("Rebound redesign Slice 2", () => {
 
   it("uses existing opportunities and interlink evidence without inventing a touchpoint ledger", () => {
     const view = buildDistributionView({
+      now: new Date("2026-09-10T00:00:00Z"),
       opportunities: [{ platform: "Quora", topic: "kiln repair", title: "How do I fix a kiln?", url: "https://www.quora.com/example", snippet: "A matched question", checkedAt: "2026-09-01T00:00:00Z" }],
       interlinks: [
         { id: "link-1", source_title: "Glaze basics", target_title: "Kiln repair", status: "verified", verified_at: "2026-09-01T00:00:00Z" },
@@ -174,6 +175,7 @@ describe("Rebound redesign Slice 2", () => {
 
   it("keeps an unsafe saved opportunity visible but non-actionable", () => {
     const view = buildDistributionView({
+      now: new Date("2026-09-10T00:00:00Z"),
       opportunities: [{ platform: "Quora", topic: "kiln repair", title: "Unsafe saved question", url: "https://quora.com.evil.com/example", snippet: "A matched question", checkedAt: "2026-09-01T00:00:00Z" }],
       interlinks: [],
     });
