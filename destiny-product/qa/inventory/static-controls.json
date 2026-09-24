@@ -2223,31 +2223,13 @@
     "context": "{!selection.websites.length && <p>You do not own a saved website yet. Team websites are managed by their account owner. <Link href=\"/onboarding?new=1\">Add your first website</Link></p>} <button className={styles.button} disabled={saving || selected.length > selection.capacity || !selection.websites.length} onClick={() => void save()} type=\"button\">{saving ? \"Saving…\" : \"Save managed websites\"}</button> </>}"
   },
   {
-    "control_id": "src/components/billing/pricing-plans.tsx:22:Link:1",
+    "control_id": "src/components/billing/pricing-plans.tsx:23:Link:1",
     "file": "src/components/billing/pricing-plans.tsx",
-    "line": 22,
+    "line": 23,
     "type": "Link",
     "route": "component",
     "side_effect_class": 0,
     "context": "<p className={styles.description}>{plan.description}</p> {publicPage ? <Link className={styles.button} href={`/login?next=${encodeURIComponent(`/account/billing?plan=${plan.id}`)}`}>Choose {plan.name}</Link> : hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form>"
-  },
-  {
-    "control_id": "src/components/billing/pricing-plans.tsx:23:form:1",
-    "file": "src/components/billing/pricing-plans.tsx",
-    "line": 23,
-    "type": "form",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "{publicPage ? <Link className={styles.button} href={`/login?next=${encodeURIComponent(`/account/billing?plan=${plan.id}`)}`}>Choose {plan.name}</Link> : hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} "
-  },
-  {
-    "control_id": "src/components/billing/pricing-plans.tsx:23:button:2",
-    "file": "src/components/billing/pricing-plans.tsx",
-    "line": 23,
-    "type": "button",
-    "route": "component",
-    "side_effect_class": 0,
-    "context": "{publicPage ? <Link className={styles.button} href={`/login?next=${encodeURIComponent(`/account/billing?plan=${plan.id}`)}`}>Choose {plan.name}</Link> : hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} "
   },
   {
     "control_id": "src/components/billing/pricing-plans.tsx:24:form:1",
@@ -2256,30 +2238,48 @@
     "type": "form",
     "route": "component",
     "side_effect_class": 0,
+    "context": "{publicPage ? <Link className={styles.button} href={`/login?next=${encodeURIComponent(`/account/billing?plan=${plan.id}`)}`}>Choose {plan.name}</Link> : hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} "
+  },
+  {
+    "control_id": "src/components/billing/pricing-plans.tsx:24:button:2",
+    "file": "src/components/billing/pricing-plans.tsx",
+    "line": 24,
+    "type": "button",
+    "route": "component",
+    "side_effect_class": 0,
+    "context": "{publicPage ? <Link className={styles.button} href={`/login?next=${encodeURIComponent(`/account/billing?plan=${plan.id}`)}`}>Choose {plan.name}</Link> : hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} "
+  },
+  {
+    "control_id": "src/components/billing/pricing-plans.tsx:25:form:1",
+    "file": "src/components/billing/pricing-plans.tsx",
+    "line": 25,
+    "type": "form",
+    "route": "component",
+    "side_effect_class": 0,
     "context": ": hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} disabled={!checkoutReady}>{trialEligible ? `Start 7-day trial — ${plan.name}` : `Subscribe to ${plan.name}`}</button></form>} {trialEligible && !hasSub"
   },
   {
-    "control_id": "src/components/billing/pricing-plans.tsx:24:input:2",
+    "control_id": "src/components/billing/pricing-plans.tsx:25:input:2",
     "file": "src/components/billing/pricing-plans.tsx",
-    "line": 24,
+    "line": 25,
     "type": "input",
     "route": "component",
     "side_effect_class": 0,
     "context": ": hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} disabled={!checkoutReady}>{trialEligible ? `Start 7-day trial — ${plan.name}` : `Subscribe to ${plan.name}`}</button></form>} {trialEligible && !hasSub"
   },
   {
-    "control_id": "src/components/billing/pricing-plans.tsx:24:button:3",
+    "control_id": "src/components/billing/pricing-plans.tsx:25:button:3",
     "file": "src/components/billing/pricing-plans.tsx",
-    "line": 24,
+    "line": 25,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": ": hasSubscription ? <form action=\"/api/billing/portal\" method=\"post\"><button className={styles.button} disabled={!checkoutReady}>Manage {currentPlan === plan.id ? \"subscription\" : \"plan change\"}</button></form> : <form action=\"/api/billing/checkout\" method=\"post\"><input name=\"plan\" type=\"hidden\" value={plan.id} /><button className={styles.button} disabled={!checkoutReady}>{trialEligible ? `Start 7-day trial — ${plan.name}` : `Subscribe to ${plan.name}`}</button></form>} {trialEligible && !hasSub"
   },
   {
-    "control_id": "src/components/billing/pricing-plans.tsx:44:Link:1",
+    "control_id": "src/components/billing/pricing-plans.tsx:62:Link:1",
     "file": "src/components/billing/pricing-plans.tsx",
-    "line": 44,
+    "line": 62,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
