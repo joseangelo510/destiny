@@ -31,6 +31,7 @@ import {
   parseArticleContinuation,
 } from "@/lib/content/article-recovery";
 import { normalizeInternalUrl } from "@/lib/seo/interlinking";
+import { classifyResearchWorkerFailure } from "@/lib/seo/research-worker-failure";
 import { loadWebsiteVoiceContext } from "@/lib/interviews/server";
 
 export const maxDuration = 300;
@@ -171,7 +172,13 @@ export async function POST(request: Request) {
         invokeBillingWorker(billingClient, "seo-research", { kind: "article_evidence", keyword: input.keyword, locationName: "United States", billingUsageId: reservation.id, websiteId }),
         new Promise<never>((_, reject) => { evidenceTimeout = setTimeout(() => reject(new DOMException("Evidence timeout", "TimeoutError")), ARTICLE_EVIDENCE_TIMEOUT_MS); }),
       ]);
-      if (result.error || !result.data) throw new Error(result.error?.message || "Rebound SEO could not retrieve article evidence.");
+      if (result.error || !result.data) {
+        const failure = await classifyResearchWorkerFailure(result.error);
+        console.error("article_evidence_worker_failure", failure.diagnostic);
+        return failure.code === "RESEARCH_SOURCES_INSUFFICIENT"
+          ? { error: "We couldn't verify enough reliable sources for this article yet. Your brief and settings are saved—try a broader keyword or try again later.", code: "ARTICLE_EVIDENCE_INCOMPLETE" }
+          : { error: "Live search data is temporarily unavailable. Your brief and settings are saved—try again later.", code: "ARTICLE_EVIDENCE_UNAVAILABLE" };
+      }
       researchData = result.data;
     } catch (cause) {
       const timedOut = cause instanceof Error && (cause.name === "TimeoutError" || cause.name === "AbortError");
