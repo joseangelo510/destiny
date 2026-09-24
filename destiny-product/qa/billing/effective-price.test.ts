@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
-import { stripeBillingPrice } from "../../supabase/functions/_shared/billing/effective-price";
+import { stripeBillingPrice, stripeBillingPriceForOwner } from "../../supabase/functions/_shared/billing/effective-price";
 
 const account = { ownerId: "owner-a", customerId: "cus_a", subscriptionId: "sub_a", livemode: true };
 
@@ -23,6 +23,18 @@ function gateway(overrides: { customer?: unknown; subscription?: unknown; invoic
 }
 
 describe("Stripe effective billing price", () => {
+  it("loads only the authenticated owner's mirrored Stripe identity", async () => {
+    const maybeSingle = vi.fn(async () => ({ data: { stripe_customer_id: "cus_a", stripe_subscription_id: "sub_a", livemode: true }, error: null }));
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    const admin = { from: vi.fn(() => ({ select })) };
+    const { stripe } = gateway();
+    await expect(stripeBillingPriceForOwner(admin as never, stripe, "owner-a", true)).resolves.toMatchObject({ nextPaymentCents: 0 });
+    expect(admin.from).toHaveBeenCalledWith("billing_accounts");
+    expect(select).toHaveBeenCalledWith("stripe_customer_id,stripe_subscription_id,livemode");
+    expect(eq).toHaveBeenCalledWith("owner_id", "owner-a");
+    await expect(stripeBillingPriceForOwner(admin as never, stripe, "owner-a", false)).resolves.toBeNull();
+  });
   it("returns a bounded next-payment summary without Stripe identifiers", async () => {
     const { stripe, createPreview } = gateway();
     await expect(stripeBillingPrice(stripe, account)).resolves.toEqual({
