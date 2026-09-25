@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   SEARCH_INTENT_DEFINITIONS,
   buildEditorialCalendar,
+  editorialTitleIssues,
   inferBusinessModel,
   mergeApprovedSavedKeywords,
   prioritizeEditorialKeywords,
@@ -34,7 +35,37 @@ describe("three-month editorial calendar", () => {
       "Pricing guide",
       "Landing page",
     ]);
+    expect(calendar[0].title).toBe("Hire a college admissions counselor: options, pricing, and next steps");
     expect(calendar[0]).toMatchObject({ searchIntent: "conversion" });
+  });
+
+  it("repairs question-shaped keywords before they become calendar titles", async () => {
+    const calendar = await buildEditorialCalendar([
+      { keyword: "how long do background checks take", intent: "informational", searchVolume: 40 },
+    ]);
+
+    expect(calendar[11].title).toBe("How long do background checks take? Timing, delays, and what happens next");
+    expect(editorialTitleIssues(calendar[11].title)).toEqual([]);
+  });
+
+  it("uses an examples article instead of a hiring page for example keywords", async () => {
+    const calendar = await buildEditorialCalendar([
+      { keyword: "employment verification letter example", intent: "informational", searchVolume: 90 },
+    ]);
+
+    expect(calendar[0]).toMatchObject({
+      contentType: "Examples article",
+      title: "Employment verification letter example: a practical template and what to include",
+    });
+    expect(editorialTitleIssues(calendar[0].title)).toEqual([]);
+  });
+
+  it("flags repeated and grammatically duplicated generated titles", () => {
+    expect(editorialTitleIssues("How long how long do background checks take takes and what happens next")).toEqual(expect.arrayContaining([
+      "repeated opening phrase",
+      "duplicated timing verb",
+    ]));
+    expect(editorialTitleIssues("Where to hire help for employment verification letter example")).toContain("example keyword framed as a hiring page");
   });
 
   it("uses product conversion pages for a product business", async () => {
