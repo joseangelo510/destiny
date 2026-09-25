@@ -40,6 +40,7 @@ export function WeeklyLoop({
   initialFocusMode = false,
   initialRevealOpen = false,
   remainingTasks,
+  siteId,
 }: {
   auditId: string;
   currentStreak: number;
@@ -48,6 +49,7 @@ export function WeeklyLoop({
   initialFocusMode?: boolean;
   initialRevealOpen?: boolean;
   remainingTasks: number;
+  siteId?: string;
 }) {
   const initialGroup = groups.find((group) => group.tasks.some((task) => task.id === currentTaskId))
     ?? groups.find((group) => group.tasks.some((task) => task.status === "todo" || task.status === "in_progress"))
@@ -103,6 +105,7 @@ export function WeeklyLoop({
   const activeTaskState = activeTask ? completionPresentation(activeTask) : null;
   const activeGroupIndex = Math.max(0, groups.findIndex((group) => group.id === activeGroup?.id));
   const progress = allTasks.length > 0 ? Math.round((complete / allTasks.length) * 100) : 0;
+  const auditHref = siteId ? `/audits/${auditId}?site=${encodeURIComponent(siteId)}` : `/audits/${auditId}`;
 
   return <>
     <section className="weekly-loop" aria-labelledby="weekly-loop-title">
@@ -166,7 +169,7 @@ export function WeeklyLoop({
       </>}
     </section>
 
-    <a className="weekly-plan-reveal-audit-link" href={`/audits/${auditId}`}>See full audit details</a>
+    <a className="weekly-plan-reveal-audit-link" href={auditHref}>See full audit details</a>
 
     <button className="weekly-plan-replay" onClick={() => setRevealOpen(true)} type="button"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>
 

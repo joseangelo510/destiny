@@ -4,6 +4,11 @@ import { isStreakActionableTask } from "./completion";
 
 const weekMilliseconds = 7 * 24 * 60 * 60 * 1000;
 
+export function displayWeekNumber(lifetimeActiveWeeks: number) {
+  if (!Number.isFinite(lifetimeActiveWeeks)) return 1;
+  return Math.min(13, Math.max(1, Math.floor(lifetimeActiveWeeks) + 1));
+}
+
 function mondayUtc(value: Date) {
   const date = new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
   const daysSinceMonday = (date.getUTCDay() + 6) % 7;

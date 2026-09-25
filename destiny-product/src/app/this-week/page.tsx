@@ -7,7 +7,7 @@ import { WorkspaceEmpty } from "@/components/workspace-empty";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { buildCoachTaskSet, certifiedMvpWeeklyTasks } from "@/lib/product/coach-experience";
 import { buildWitnessLog, selectDiscoveryMoment } from "@/lib/product/founder-journey";
-import { buildWeeklyProgressSummary } from "@/lib/quests/streak";
+import { buildWeeklyProgressSummary, displayWeekNumber } from "@/lib/quests/streak";
 import { getWorkspaceContext, record } from "@/lib/workspace-context";
 
 function connectedMetadata(context: Awaited<ReturnType<typeof getWorkspaceContext>>, provider: string) {
@@ -30,6 +30,7 @@ export default async function ThisWeekPage() {
   const remainingTasks = actionableTasks.filter((task) => task.status !== "complete").length;
   const currentTask = coach.currentTask;
   const weekly = await buildWeeklyProgressSummary(context.quests);
+  const weekNumber = displayWeekNumber(weekly.lifetimeActiveWeeks);
   const searchConsole = connectedMetadata(context, "google_search_console");
   const analytics = connectedMetadata(context, "google_analytics");
   const discoveryMoment = selectDiscoveryMoment({
@@ -43,9 +44,9 @@ export default async function ThisWeekPage() {
     quests: allTasks,
     searchConsole,
   });
-  return <WorkspaceShell active="/this-week" eyebrow={`${context.website.normalized_domain} · Week 1`} title="This week" description="Complete one useful task to maintain your weekly streak. Finish the full plan to earn a Perfect Week.">
+  return <WorkspaceShell active="/this-week" eyebrow={`${context.website.normalized_domain} · Week ${weekNumber}`} title="This week" description="Complete one useful task to maintain your weekly streak. Finish the full plan to earn a Perfect Week.">
     <DiscoveryMomentCard moment={discoveryMoment} />
-    <WeeklyLoop auditId={context.audit.id} currentStreak={weekly.currentStreak} currentTaskId={currentTask?.id ?? null} groups={groups} remainingTasks={remainingTasks} />
+    <WeeklyLoop auditId={context.audit.id} currentStreak={weekly.currentStreak} currentTaskId={currentTask?.id ?? null} groups={groups} remainingTasks={remainingTasks} siteId={context.website.id} />
     <PausedWorkList tasks={coach.pausedTasks} />
     <WitnessLog entries={witnessEntries} />
     <FounderWhyVault initialWhy={context.profile?.founder_why ?? ""} />

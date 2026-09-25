@@ -1197,9 +1197,9 @@
     "context": "<section className=\"review-grid\"> <article className=\"workspace-card review-score\"><span className={`status-chip ${synced ? \"\" : \"amber\"}`}>{synced ? \"Synced\" : googleBusiness?.status ?? \"Not connected\"}</span><strong>{reviewCount.toLocaleString()}</strong><h2>Google reviews</h2>{averageRating !== null && <p><b>{averageRating.toFixed(1)} average rating</b> from the connected Business Profile.</p>}<p>{synced ? `Latest Google snapshot: ${new Date(googleBusiness.last_synced_at!).toLocaleString()}.`"
   },
   {
-    "control_id": "src/app/this-week/page.tsx:53:summary:1",
+    "control_id": "src/app/this-week/page.tsx:54:summary:1",
     "file": "src/app/this-week/page.tsx",
-    "line": 53,
+    "line": 54,
     "type": "summary",
     "route": "/this-week",
     "side_effect_class": 1,
@@ -7677,117 +7677,117 @@
     "context": "<div className=\"weekly-focus-meta\"><span>{task.estimated_minutes} minutes</span><span>Moves you toward {taskRoadmapTarget(task.task_type)}</span></div> <div className=\"weekly-focus-actions\"><Link className=\"primary-button\" href={guidedTaskPath(task)}>{isReviewTask(task) ? \"Open reviews\" : \"Begin this step\"}</Link><a className=\"text-button\" href=\"#weekly-checklist\">See the full week</a></div> </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:119:button:1",
+    "control_id": "src/components/weekly-loop.tsx:122:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 119,
+    "line": 122,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"weekly-map-summary-copy\"><strong>{complete} of {allTasks.length} complete</strong><small>{currentStreak}-week streak</small></div> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:119:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:122:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 119,
+    "line": 122,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<div className=\"weekly-map-summary-copy\"><strong>{complete} of {allTasks.length} complete</strong><small>{currentStreak}-week streak</small></div> {!focusMode && focusTask && <button className=\"overwhelm-button\" onClick={() => setFocusMode(true)} type=\"button\"><span aria-hidden=\"true\">♡</span> I’m overwhelmed</button>} </div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:124:button:1",
+    "control_id": "src/components/weekly-loop.tsx:127:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 124,
+    "line": 127,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Rebound SEO already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:124:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:127:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 124,
+    "line": 127,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "{focusMode && focusTask ? <section aria-labelledby=\"focus-mode-title\" className=\"weekly-focus-mode\"> <header><span className=\"weekly-focus-orbit\" aria-hidden=\"true\">✦</span><div><span className=\"eyebrow\">One small step is enough</span><h3 id=\"focus-mode-title\">I hear you. Let’s make this smaller.</h3><p>Ignore the rest for now. This is the most useful next step Rebound SEO already selected from your plan.</p></div><button className=\"text-button\" onClick={() => setFocusMode(false)} type=\"button\">"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:138:button:1",
+    "control_id": "src/components/weekly-loop.tsx:141:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 138,
+    "line": 141,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-map-focus-panel\" aria-pressed={active} className={active ? \"active\" : \"\"} key={group.id} onClick={() => setActiveGroupId(group.id)} type=\"button\"> <span className=\"weekly-map-step-number\">{index + 1}</span>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:138:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:141:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 138,
+    "line": 141,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "const active = group.id === activeGroup?.id; return <button aria-controls=\"weekly-map-focus-panel\" aria-pressed={active} className={active ? \"active\" : \"\"} key={group.id} onClick={() => setActiveGroupId(group.id)} type=\"button\"> <span className=\"weekly-map-step-number\">{index + 1}</span>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:169:a:1",
+    "control_id": "src/components/weekly-loop.tsx:172:a:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 169,
+    "line": 172,
     "type": "a",
     "route": "component",
     "side_effect_class": 0,
-    "context": "<a className=\"weekly-plan-reveal-audit-link\" href={`/audits/${auditId}`}>See full audit details</a>"
+    "context": "<a className=\"weekly-plan-reveal-audit-link\" href={auditHref}>See full audit details</a>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:171:button:1",
+    "control_id": "src/components/weekly-loop.tsx:174:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 171,
+    "line": 174,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className=\"weekly-plan-replay\" onClick={() => setRevealOpen(true)} type=\"button\"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:171:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:174:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 171,
+    "line": 174,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<button className=\"weekly-plan-replay\" onClick={() => setRevealOpen(true)} type=\"button\"><span>✦</span><span><small>Post-audit orientation</small><strong>Replay plan reveal</strong></span></button>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:175:button:1",
+    "control_id": "src/components/weekly-loop.tsx:178:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 175,
+    "line": 178,
     "type": "button",
     "route": "component",
     "side_effect_class": 0,
     "context": "<section aria-labelledby=\"weekly-plan-reveal-title\" aria-modal=\"true\" className=\"weekly-plan-reveal\" role=\"dialog\"> <button aria-label=\"Close plan reveal\" className=\"weekly-plan-reveal-close\" onClick={closeReveal} type=\"button\">×</button> <div className=\"weekly-plan-reveal-compass\" aria-hidden=\"true\">✦</div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:175:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:178:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 175,
+    "line": 178,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 0,
     "context": "<section aria-labelledby=\"weekly-plan-reveal-title\" aria-modal=\"true\" className=\"weekly-plan-reveal\" role=\"dialog\"> <button aria-label=\"Close plan reveal\" className=\"weekly-plan-reveal-close\" onClick={closeReveal} type=\"button\">×</button> <div className=\"weekly-plan-reveal-compass\" aria-hidden=\"true\">✦</div>"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:181:button:1",
+    "control_id": "src/components/weekly-loop.tsx:184:button:1",
     "file": "src/components/weekly-loop.tsx",
-    "line": 181,
+    "line": 184,
     "type": "button",
     "route": "component",
     "side_effect_class": 2,
     "context": "<div className=\"weekly-plan-reveal-list\">{groups.map((group, index) => <div key={group.id}><span>{index + 1}</span><p><strong>{group.label}</strong><small>{group.description}</small>{focusGroup?.id === group.id && <small className=\"weekly-plan-reveal-start-here\">Start here — your next move is based on what the audit found.</small>}</p></div>)}</div> <button className=\"primary-button\" onClick={startFromReveal} type=\"button\">{focusTask ? `Start: ${coachingTaskCopy(focusTask).title}` : \"See your fi"
   },
   {
-    "control_id": "src/components/weekly-loop.tsx:181:onClick:2",
+    "control_id": "src/components/weekly-loop.tsx:184:onClick:2",
     "file": "src/components/weekly-loop.tsx",
-    "line": 181,
+    "line": 184,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 2,
