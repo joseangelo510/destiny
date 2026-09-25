@@ -5,6 +5,7 @@ import {
   buildAuditNarrative,
   buildGuidedFix,
   buildCoachTaskSet,
+  coachingTaskCopy,
   completionPresentation,
   guidedTaskPath,
   PRIMARY_NAVIGATION,
@@ -160,6 +161,17 @@ describe("Rebound SEO SEO coach experience", () => {
       label: "Verified by Rebound SEO",
       tone: "verified",
       detail: "Rebound SEO checked the available site or connected data and confirmed this change.",
+    });
+  });
+
+  it("rebrands persisted internal task copy before it reaches the customer", () => {
+    expect(coachingTaskCopy({
+      task_type: "primary_quest",
+      title: "Destiny selected this task",
+      description: "Destiny selected the highest-priority inspectable website issue.",
+    })).toEqual({
+      title: "Rebound SEO selected this task",
+      description: "Rebound SEO selected the highest-priority inspectable website issue.",
     });
   });
 
