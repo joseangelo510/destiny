@@ -158,7 +158,20 @@ export type CalendarRow = {
   overdue: boolean;
 };
 
-export function approvedCalendarDrafts(rows: unknown[], websiteId: string): ApprovedCalendarDraft[] {
+function publishedWordPressReceipt(raw: unknown) {
+  const receipt = record(raw);
+  return text(receipt.provider) === "wordpress" && text(receipt.remoteStatus) === "publish" && Boolean(text(receipt.articleKey));
+}
+
+function receiptKeyword(raw: unknown) {
+  const articleKey = text(record(raw).articleKey);
+  const separator = articleKey.indexOf(":");
+  return separator < 0 ? "" : normalized(articleKey.slice(separator + 1));
+}
+
+export function approvedCalendarDrafts(rows: unknown[], websiteId: string, scheduleItems: unknown[] = [], receipts: unknown[] = []): ApprovedCalendarDraft[] {
+  const scheduledKeywords = new Set(scheduleItems.map((raw) => normalized(text(record(raw).keyword))).filter(Boolean));
+  const publishedArticleKeys = new Set(receipts.filter(publishedWordPressReceipt).map((raw) => text(record(raw).articleKey)));
   return rows.flatMap((raw): ApprovedCalendarDraft[] => {
     const row = record(raw);
     if (text(row.website_id) !== websiteId) return [];
@@ -166,18 +179,21 @@ export function approvedCalendarDrafts(rows: unknown[], websiteId: string): Appr
     const id = text(row.id);
     const keyword = text(row.keyword) || text(draft.keyword);
     const title = text(draft.title);
-    if (!id || !keyword || !title || draft.approved !== true) return [];
+    const articleKey = `${text(row.audit_id)}:${keyword}`;
+    if (!id || !keyword || !title || draft.approved !== true || scheduledKeywords.has(normalized(keyword)) || publishedArticleKeys.has(articleKey)) return [];
     return [{ id, keyword, title }];
   });
 }
 
-export function approvedKeywordCalendarSuggestions(rows: unknown[]): NonNullable<CalendarSummary["suggestions"]> {
+export function approvedKeywordCalendarSuggestions(rows: unknown[], scheduleItems: unknown[] = [], receipts: unknown[] = []): NonNullable<CalendarSummary["suggestions"]> {
   const seen = new Set<string>();
+  const scheduledKeywords = new Set(scheduleItems.map((raw) => normalized(text(record(raw).keyword))).filter(Boolean));
+  const publishedKeywords = new Set(receipts.filter(publishedWordPressReceipt).map(receiptKeyword).filter(Boolean));
   return rows.flatMap((raw, index) => {
     const row = record(raw);
     const keyword = text(row.keyword);
     const key = normalized(keyword);
-    if (!keyword || seen.has(key)) return [];
+    if (!keyword || seen.has(key) || scheduledKeywords.has(key) || publishedKeywords.has(key)) return [];
     seen.add(key);
     return [{
       id: text(row.id) || `approved-topic-${index}-${key.replaceAll(" ", "-")}`,
@@ -258,30 +274,37 @@ export function openCalendarDates(calendar: CalendarSummary) {
 
 function scheduleItemIsOverdue(row: JsonRecord, now: Date) {
   const state = text(row.state);
+  if (state === "needs_review" && text(row.remote_permalink)) return false;
   if (!["planned", "scheduled", "needs_review"].includes(state)) return false;
   const scheduledAt = Date.parse(text(row.scheduled_for));
   return Number.isFinite(scheduledAt) && scheduledAt < now.getTime();
 }
 
-export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; timeZone?: string; now?: Date }) {
+export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; receipts?: unknown[]; timeZone?: string; now?: Date }) {
   const now = input.now ?? new Date();
   const anchorDate = calendarLocalDateKey(now, input.timeZone ?? "UTC");
+  const publishedReceipts = (input.receipts ?? []).filter(publishedWordPressReceipt).map((raw) => ({ raw: record(raw), receipt: buildPublicationReceipt(record(raw)) }));
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
     const row = record(raw);
     const scheduledFor = text(row.scheduled_for);
     if (!scheduledFor) return [];
-    const state = text(row.state) || "planned";
+    const recordedState = text(row.state) || "planned";
+    const savedPublication = publishedReceipts.find(({ receipt }) => receipt.articleKey === text(row.article_key));
+    const publishedReview = savedPublication?.receipt.stage === "published_unverified" || (recordedState === "needs_review" && Boolean(text(row.remote_permalink)));
+    const verifiedLive = savedPublication?.receipt.stage === "live_verified";
+    const state = verifiedLive ? "verified_live" : publishedReview ? "published_unverified" : recordedState;
     const title = text(row.title) || sentence(text(row.keyword));
-    const failed = state === "failed";
-    const needsReview = state === "needs_review";
-    const overdue = scheduleItemIsOverdue(row, now);
+    const failed = recordedState === "failed";
+    const needsReview = recordedState === "needs_review";
+    const overdue = !savedPublication && scheduleItemIsOverdue(row, now);
+    const savedReason = text(record(savedPublication?.raw.verificationEvidence).reason);
     return [{
       id: text(row.id) || `calendar-${index}`,
       title,
-      detail: text(row.last_error) || scheduledFor,
+      detail: savedPublication ? savedReason || savedPublication.receipt.detail : text(row.last_error) || scheduledFor,
       state,
       href: "/content#publishing-plan",
-      moveLabel: overdue ? "Resolve overdue item" : needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
+      moveLabel: verifiedLive ? "View verified post" : publishedReview ? "Review public evidence" : overdue ? "Resolve overdue item" : needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
       overdue,
     }];
   });
@@ -290,18 +313,18 @@ export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: 
     date: row.detail.match(/^\d{4}-\d{2}-\d{2}/) ? row.detail : text(record(input.items.find((item) => text(record(item).id) === row.id)).scheduled_for),
     title: row.title,
     state: row.state,
-    tone: row.state === "verified_live" ? "verified" as const : row.state === "needs_review" || row.state === "failed" ? "move" as const : "automatic" as const,
+    tone: row.state === "verified_live" ? "verified" as const : row.state === "needs_review" || row.state === "published_unverified" || row.state === "failed" ? "move" as const : "automatic" as const,
   }));
-  const suggestions = approvedKeywordCalendarSuggestions(input.approvedKeywords ?? []);
-  const needs = rows.find((row) => row.state === "needs_review") ?? rows.find((row) => row.overdue);
+  const suggestions = approvedKeywordCalendarSuggestions(input.approvedKeywords ?? [], input.items, input.receipts ?? []);
+  const needs = rows.find((row) => row.state === "published_unverified") ?? rows.find((row) => row.state === "needs_review") ?? rows.find((row) => row.overdue);
   return {
     calendar: { month: monthLabelFromDateKey(anchorDate), anchorDate, events, suggestions } satisfies CalendarSummary,
     cadence: derivedCalendarCadence(input.items, input.timeZone ?? "UTC"),
     rows,
-    needsYou: needs ? { title: needs.title, detail: needs.overdue ? "This saved publishing item is overdue and needs a resolution." : "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
+    needsYou: needs ? { title: needs.title, detail: needs.state === "published_unverified" ? "This post is published and needs media or public evidence review." : needs.overdue ? "This saved publishing item is overdue and needs a resolution." : "This saved publishing item needs your review.", href: needs.href, moveLabel: needs.moveLabel } : null,
     stats: {
-      done: rows.filter((row) => row.state === "published" || row.state === "verified_live" || row.state === "managed_externally").length,
-      needsUser: rows.filter((row) => row.state === "needs_review").length,
+      done: rows.filter((row) => row.state === "published" || row.state === "published_unverified" || row.state === "verified_live" || row.state === "managed_externally").length,
+      needsUser: rows.filter((row) => row.state === "needs_review" || row.state === "published_unverified").length,
       scheduled: rows.filter((row) => (row.state === "scheduled" || row.state === "planned") && !row.overdue).length,
       stuck: rows.filter((row) => row.state === "failed" || row.overdue).length,
       suggested: suggestions.length,

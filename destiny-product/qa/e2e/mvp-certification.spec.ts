@@ -103,6 +103,31 @@ test.describe("@gate certified MVP journey", () => {
     await expect(page.getByRole("button", { name: /Scheduled — past due, not yet verified/ })).toHaveCount(0);
   });
 
+  test("Editorial calendar records a CMS-published post that still needs public evidence review", async ({ page }) => {
+    const permalink = "https://browser-member.example/guides/seo-consulting-services/";
+    await page.route("**/api/content/publishing-plan/reconcile", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          verified: false,
+          published: true,
+          state: "needs_review",
+          remotePermalink: permalink,
+          lastError: "The published page is missing its required featured image metadata.",
+          publicationStatus: "published_unverified",
+        }),
+        status: 200,
+      });
+    });
+
+    await page.goto(`/content?site=${fixture!.mvp.websiteId}`);
+    await page.getByRole("button", { name: "Refresh WordPress status" }).first().click();
+
+    await expect(page.getByText("WordPress confirmed that this post is published, but its public evidence still needs review.")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Published — needs review/ }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Scheduled — past due, not yet verified/ })).toHaveCount(0);
+  });
+
   test("Rank tracker reports saved weekly movement without inventing position zero", async ({ page }) => {
     const consoleErrors: string[] = [];
     page.on("console", (message) => {

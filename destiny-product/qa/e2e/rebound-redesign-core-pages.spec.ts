@@ -54,7 +54,7 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
       if (expected.route === "content") await expect(page.getByRole("region", { name: expected.landmark })).toBeVisible();
       else await expect(page.getByText(expected.landmark, { exact: true }).first()).toBeVisible();
       if (expected.route === "calendar") {
-        await expect(page.getByRole("button", { name: "Schedule approved draft" })).toBeVisible();
+        await expect(page.getByRole("heading", { level: 3, name: "Schedule approved draft" })).toBeVisible();
         await expect(page.getByText("Milestone not configured", { exact: true })).toBeVisible();
       }
       await expect(page.locator("body")).not.toContainText(/Approve all|Publish now|Send as report|Request edits/i);
@@ -72,7 +72,10 @@ test.describe("@gate Rebound redesign read-only core pages", () => {
     if (testInfo.project.name === "mobile") {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(`/app/calendar?site=${activeFixture.mvp.websiteId}`, { waitUntil: "networkidle" });
-      await expect(page.getByRole("button", { name: "Schedule approved draft" })).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Schedule approved draft" })
+          .or(page.getByText("No approved draft is ready", { exact: true })),
+      ).toBeVisible();
       return;
     }
     await page.setViewportSize({ width: 1360, height: 1000 });

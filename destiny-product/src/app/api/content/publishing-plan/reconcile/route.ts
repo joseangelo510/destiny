@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { scopedClient } from "@/lib/db";
-import { needsWordPressScheduleVerification, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { matchingWordPressPublication, needsWordPressScheduleVerification, wordpressPublishingScheduleUpdate, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -9,6 +9,7 @@ type ReconcileResult = {
   publicationStatus?: string;
   remotePermalink?: string | null;
   verifiedLiveAt?: string | null;
+  verificationEvidence?: unknown;
   error?: string;
 };
 
@@ -39,18 +40,52 @@ export async function POST(request: Request) {
   const { data, error } = await db.invokeFunction<ReconcileResult>("wordpress-reconcile", { websiteId, articleKey: item.article_key });
   if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Rebound SEO could not verify this WordPress post." }, { status: 502 });
 
-  const verified = data.publicationStatus === "verified_live" && typeof data.remotePermalink === "string" && Boolean(data.remotePermalink.trim());
-  if (!verified) {
+  const preliminaryEvidence = data.verificationEvidence && typeof data.verificationEvidence === "object" && !Array.isArray(data.verificationEvidence)
+    ? data.verificationEvidence as Record<string, unknown> : {};
+  const preliminarySchedule = wordpressPublishingScheduleUpdate({
+    publicationStatus: data.publicationStatus,
+    remoteStatus: typeof preliminaryEvidence.remoteStatus === "string" ? preliminaryEvidence.remoteStatus : null,
+    remotePermalink: data.remotePermalink,
+    verificationReason: typeof preliminaryEvidence.reason === "string" ? preliminaryEvidence.reason : null,
+  });
+  if (!preliminarySchedule.published) {
     return NextResponse.json({ verified: false, state: "scheduled", publicationStatus: data.publicationStatus ?? "unknown" }, { headers: { "Cache-Control": "no-store" } });
   }
 
+  const { data: receipts, error: receiptError } = await db.readCmsTransferStates();
+  if (receiptError || !Array.isArray(receipts)) return NextResponse.json({ error: "WordPress was checked, but Rebound SEO could not read the saved publishing result." }, { status: 503 });
+  const receipt = matchingWordPressPublication(receipts, {
+    articleKey: item.article_key,
+    publicationStatus: data.publicationStatus,
+    remoteId: typeof item.remote_id === "string" ? item.remote_id : null,
+    remoteEditUrl: typeof item.remote_edit_url === "string" ? item.remote_edit_url : null,
+    remotePermalink: data.remotePermalink,
+  });
+  if (!receipt) return NextResponse.json({ error: "The WordPress result does not match this exact calendar post. No status was changed." }, { status: 409 });
+  const evidence = receipt.verificationEvidence && typeof receipt.verificationEvidence === "object" && !Array.isArray(receipt.verificationEvidence)
+    ? receipt.verificationEvidence as Record<string, unknown> : preliminaryEvidence;
+  const schedule = wordpressPublishingScheduleUpdate({
+    publicationStatus: typeof receipt.publicationStatus === "string" ? receipt.publicationStatus : data.publicationStatus,
+    remoteStatus: typeof receipt.remoteStatus === "string" ? receipt.remoteStatus : null,
+    remotePermalink: typeof receipt.remotePermalink === "string" ? receipt.remotePermalink : data.remotePermalink,
+    verificationReason: typeof evidence.reason === "string" ? evidence.reason : null,
+  });
+
   const update = {
-    state: "published",
-    remote_permalink: data.remotePermalink,
-    last_error: null,
+    state: schedule.state,
+    remote_permalink: schedule.remotePermalink,
+    last_error: schedule.lastError,
   };
   const { error: updateError } = await db.update("publishing_schedule_items", update, { id: itemId });
   if (updateError) return NextResponse.json({ error: "WordPress verified the post, but Rebound SEO could not refresh the calendar." }, { status: 502 });
 
-  return NextResponse.json({ verified: true, state: "published", remotePermalink: data.remotePermalink, verifiedLiveAt: data.verifiedLiveAt ?? null }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({
+    verified: schedule.verified,
+    published: true,
+    state: schedule.state,
+    remotePermalink: schedule.remotePermalink,
+    lastError: schedule.lastError,
+    publicationStatus: data.publicationStatus,
+    verifiedLiveAt: schedule.verified ? data.verifiedLiveAt ?? null : null,
+  }, { headers: { "Cache-Control": "no-store" } });
 }

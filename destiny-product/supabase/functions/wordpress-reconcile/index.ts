@@ -81,7 +81,7 @@ export default {
         state = publicationState(remoteStatus, contentMatches, verification.verified);
         if (verification.verified) verifiedLiveAt = verifiedLiveAt ?? new Date().toISOString();
       } catch {
-        state = "verification_failed";
+        state = "published_unverified";
         evidence = { ...evidence, verified: false, reason: "The public page did not respond." };
       }
     }

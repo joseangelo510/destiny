@@ -79,7 +79,7 @@ async function latestPlanAndItems(context: WorkspaceContext) {
   const { data: plans, error: planError } = await scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1);
   const plan = plans?.[0] ?? null;
   if (planError || !plan) return { plan, items: [], error: Boolean(planError) };
-  const { data: items, error } = await scoped.select("publishing_schedule_items", "id,plan_id,keyword,title,scheduled_for,state,last_error,review_recommended,remote_permalink").eq("plan_id", plan.id).order("scheduled_for");
+  const { data: items, error } = await scoped.select("publishing_schedule_items", "id,plan_id,article_key,keyword,title,scheduled_for,state,last_error,review_recommended,remote_permalink").eq("plan_id", plan.id).order("scheduled_for");
   return { plan, items: items ?? [], error: Boolean(error) };
 }
 
@@ -145,13 +145,14 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
   if (!base || !context.website) return null;
   try {
     const scoped = await scopedClient(context.website.id);
-    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }] = await Promise.all([
+    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }, receipts] = await Promise.all([
       latestPlanAndItems(context),
-      scoped.select("article_drafts", "id,website_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+      scoped.select("article_drafts", "id,website_id,audit_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
       scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
       scoped.select("notification_preferences", "timezone").limit(1),
+      publicationReceipts(context),
     ]);
-    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id);
+    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id, schedule.items, receipts);
     const approvedDrafts = draftError
       ? failed<ApprovedCalendarDraft[]>("Approved drafts could not be loaded for Calendar.")
       : draftOptions.length
@@ -161,7 +162,7 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
     const planTimezone = typeof schedule.plan?.timezone === "string" && schedule.plan.timezone.trim() ? schedule.plan.timezone : savedPreferenceTimeZone;
     const calendarView = schedule.error || keywordError
       ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
-      : ready(buildCalendarView({ approvedKeywords: approvedKeywords ?? [], items: schedule.items, timeZone: planTimezone }));
+      : ready(buildCalendarView({ approvedKeywords: approvedKeywords ?? [], items: schedule.items, receipts, timeZone: planTimezone }));
     return { ...base, approvedDrafts, calendarView, planTimezone };
   } catch {
     return {

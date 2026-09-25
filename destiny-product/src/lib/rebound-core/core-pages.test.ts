@@ -109,6 +109,60 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.stats.suggested).toBe(2);
   });
 
+  it("does not offer an already published keyword as an unscheduled topic", () => {
+    const view = buildCalendarView({
+      now: new Date("2026-09-04T19:00:00Z"),
+      timeZone: "America/Los_Angeles",
+      items: [{
+        id: "published",
+        keyword: "ban the box background checks",
+        title: "Ban the Box Background Checks",
+        scheduled_for: "2026-08-20T16:00:00Z",
+        state: "needs_review",
+        remote_permalink: "https://clearcheck.app/ban-the-box-background-checks/",
+        last_error: "The published page is missing its required featured image metadata.",
+      }],
+      approvedKeywords: [
+        { id: "duplicate", keyword: "Ban the Box background checks", updated_at: "2026-09-03T18:00:00Z" },
+        { id: "new", keyword: "tenant screening checklist", updated_at: "2026-09-02T18:00:00Z" },
+      ],
+    });
+
+    expect(view.calendar.suggestions).toEqual([
+      { id: "new", title: "Tenant screening checklist", approvedAt: "2026-09-02T18:00:00Z" },
+    ]);
+    expect(view.calendar.events[0]).toMatchObject({ state: "published_unverified", tone: "move" });
+    expect(view.rows[0]).toMatchObject({ state: "published_unverified", overdue: false, moveLabel: "Review public evidence" });
+    expect(view.needsYou).toMatchObject({ title: "Ban the Box Background Checks", detail: "This post is published and needs media or public evidence review." });
+    expect(view.stats).toMatchObject({ done: 1, needsUser: 1, stuck: 0, suggested: 1 });
+  });
+
+  it("does not offer a WordPress-published receipt as an unscheduled topic before calendar reconciliation", () => {
+    const view = buildCalendarView({
+      now: new Date("2026-09-04T19:00:00Z"),
+      timeZone: "America/Los_Angeles",
+      items: [{
+        id: "published",
+        article_key: "audit-1:ban the box background checks",
+        keyword: "ban the box background checks",
+        title: "Ban the Box Background Checks",
+        scheduled_for: "2026-08-20T16:00:00Z",
+        state: "scheduled",
+      }],
+      approvedKeywords: [
+        { id: "published", keyword: "Ban the Box background checks", updated_at: "2026-09-03T18:00:00Z" },
+        { id: "new", keyword: "tenant screening checklist", updated_at: "2026-09-02T18:00:00Z" },
+      ],
+      receipts: [{ provider: "wordpress", articleKey: "audit-1:ban the box background checks", remoteStatus: "publish", publicationStatus: "published_unverified" }],
+    });
+
+    expect(view.calendar.suggestions).toEqual([
+      { id: "new", title: "Tenant screening checklist", approvedAt: "2026-09-02T18:00:00Z" },
+    ]);
+    expect(view.rows[0]).toMatchObject({ state: "published_unverified", overdue: false, moveLabel: "Review public evidence" });
+    expect(view.stats).toMatchObject({ done: 1, needsUser: 1, stuck: 0, suggested: 1 });
+  });
+
   it("anchors Calendar to the current month and never offers a past day", () => {
     const view = buildCalendarView({
       now: new Date("2026-09-01T19:00:00Z"),
@@ -133,6 +187,18 @@ describe("Rebound redesign Slice 2", () => {
     ], websiteId);
 
     expect(drafts).toEqual([{ id: "approved", keyword: "kiln repair", title: "Kiln repair guide" }]);
+    expect(approvedCalendarDrafts([
+      { id: "approved", website_id: websiteId, audit_id: "audit-1", keyword: "kiln repair", draft: { title: "Kiln repair guide", approved: true } },
+      { id: "unscheduled", website_id: websiteId, audit_id: "audit-1", keyword: "glaze guide", draft: { title: "Glaze guide", approved: true } },
+    ], websiteId, [{ keyword: "Kiln   repair", state: "published" }])).toEqual([
+      { id: "unscheduled", keyword: "glaze guide", title: "Glaze guide" },
+    ]);
+    expect(approvedCalendarDrafts([
+      { id: "published", website_id: websiteId, audit_id: "audit-1", keyword: "kiln repair", draft: { title: "Kiln repair guide", approved: true } },
+      { id: "unscheduled", website_id: websiteId, audit_id: "audit-1", keyword: "glaze guide", draft: { title: "Glaze guide", approved: true } },
+    ], websiteId, [], [{ provider: "wordpress", articleKey: "audit-1:kiln repair", remoteStatus: "publish", publicationStatus: "published_unverified" }])).toEqual([
+      { id: "unscheduled", keyword: "glaze guide", title: "Glaze guide" },
+    ]);
   });
 
   it("derives a read-only weekly cadence and stays honest when dates are insufficient", () => {

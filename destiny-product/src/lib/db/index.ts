@@ -48,6 +48,7 @@ type RuntimeTable = {
 
 type RuntimeClient = {
   from(table: string): RuntimeTable;
+  rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: DatabaseError }>;
   auth: { getClaims(): Promise<{ data: { claims?: { sub?: unknown } } | null }> };
   functions: { invoke<Result>(name: string, options: { body: unknown }): Promise<{ data: Result | null; error: DatabaseError }> };
 };
@@ -115,6 +116,9 @@ export async function scopedClient(websiteId: string) {
     },
     invokeFunction<Result>(name: string, body: unknown) {
       return client.functions.invoke<Result>(name, { body });
+    },
+    readCmsTransferStates() {
+      return client.rpc("read_cms_transfer_states", { p_website_id: websiteId });
     },
   };
 }
