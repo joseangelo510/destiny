@@ -79,7 +79,7 @@ async function latestPlanAndItems(context: WorkspaceContext) {
   const { data: plans, error: planError } = await scoped.select("publishing_plans", "id,status,timezone,start_date,end_date,updated_at").order("updated_at", { ascending: false }).limit(1);
   const plan = plans?.[0] ?? null;
   if (planError || !plan) return { plan, items: [], error: Boolean(planError) };
-  const { data: items, error } = await scoped.select("publishing_schedule_items", "id,plan_id,keyword,title,scheduled_for,state,last_error,review_recommended,remote_permalink").eq("plan_id", plan.id).order("scheduled_for");
+  const { data: items, error } = await scoped.select("publishing_schedule_items", "id,plan_id,article_key,keyword,title,scheduled_for,state,last_error,review_recommended,remote_permalink").eq("plan_id", plan.id).order("scheduled_for");
   return { plan, items: items ?? [], error: Boolean(error) };
 }
 

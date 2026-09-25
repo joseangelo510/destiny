@@ -283,24 +283,28 @@ function scheduleItemIsOverdue(row: JsonRecord, now: Date) {
 export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; receipts?: unknown[]; timeZone?: string; now?: Date }) {
   const now = input.now ?? new Date();
   const anchorDate = calendarLocalDateKey(now, input.timeZone ?? "UTC");
+  const publishedReceipts = (input.receipts ?? []).filter(publishedWordPressReceipt).map((raw) => ({ raw: record(raw), receipt: buildPublicationReceipt(record(raw)) }));
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
     const row = record(raw);
     const scheduledFor = text(row.scheduled_for);
     if (!scheduledFor) return [];
     const recordedState = text(row.state) || "planned";
-    const publishedReview = recordedState === "needs_review" && Boolean(text(row.remote_permalink));
-    const state = publishedReview ? "published_unverified" : recordedState;
+    const savedPublication = publishedReceipts.find(({ receipt }) => receipt.articleKey === text(row.article_key));
+    const publishedReview = savedPublication?.receipt.stage === "published_unverified" || (recordedState === "needs_review" && Boolean(text(row.remote_permalink)));
+    const verifiedLive = savedPublication?.receipt.stage === "live_verified";
+    const state = verifiedLive ? "verified_live" : publishedReview ? "published_unverified" : recordedState;
     const title = text(row.title) || sentence(text(row.keyword));
     const failed = recordedState === "failed";
     const needsReview = recordedState === "needs_review";
-    const overdue = scheduleItemIsOverdue(row, now);
+    const overdue = !savedPublication && scheduleItemIsOverdue(row, now);
+    const savedReason = text(record(savedPublication?.raw.verificationEvidence).reason);
     return [{
       id: text(row.id) || `calendar-${index}`,
       title,
-      detail: text(row.last_error) || scheduledFor,
+      detail: savedPublication ? savedReason || savedPublication.receipt.detail : text(row.last_error) || scheduledFor,
       state,
       href: "/content#publishing-plan",
-      moveLabel: publishedReview ? "Review public evidence" : overdue ? "Resolve overdue item" : needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
+      moveLabel: verifiedLive ? "View verified post" : publishedReview ? "Review public evidence" : overdue ? "Resolve overdue item" : needsReview ? "Review" : failed ? "Fix schedule" : "View schedule",
       overdue,
     }];
   });
