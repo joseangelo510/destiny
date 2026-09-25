@@ -693,27 +693,27 @@
     "context": "<p>For your security, Rebound SEO’s email links can only be used once.</p> <a className=\"primary-button login-link\" href=\"/login\">Return to sign in</a> </section>"
   },
   {
-    "control_id": "src/app/content/page.tsx:140:data-mutation:1",
+    "control_id": "src/app/content/page.tsx:145:data-mutation:1",
     "file": "src/app/content/page.tsx",
-    "line": 140,
+    "line": 145,
     "type": "data-mutation",
     "route": "/content",
     "side_effect_class": 0,
     "context": "const { data: cmsTransferRows } = context.website ? await (context.supabase as unknown as SupabaseClient).rpc(\"read_cms_transfer_states\", { p_website_id: context.website.id }) : { data: [] };"
   },
   {
-    "control_id": "src/app/content/page.tsx:186:Link:1",
+    "control_id": "src/app/content/page.tsx:191:Link:1",
     "file": "src/app/content/page.tsx",
-    "line": 186,
+    "line": 191,
     "type": "Link",
     "route": "/content",
     "side_effect_class": 3,
-    "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{interviewArticleDraft ? \"Interview draft ready\" : repurposeArticleDraft ? \"Repurposed draft ready\" : \"Three outlines ready\"}</strong><small>{interviewArticleDraft ? \"Built from your exact interview answers\" : repurposeArticleDraft ? \"Loaded from your saved source\" : \"Built from your keyword strategy\"}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Gene"
+    "context": "<> <section className=\"workspace-card content-workflow\"><div><span>1</span><strong>{workflowProgress.label}</strong><small>{workflowProgress.detail}</small></div><div className={approvalQuest?.status === \"complete\" ? \"done\" : \"active\"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className=\"content-workflow"
   },
   {
-    "control_id": "src/app/content/page.tsx:229:button:1",
+    "control_id": "src/app/content/page.tsx:234:button:1",
     "file": "src/app/content/page.tsx",
-    "line": 229,
+    "line": 234,
     "type": "button",
     "route": "/content",
     "side_effect_class": 0,
