@@ -31,6 +31,15 @@ describe("PublishingDestinations", () => {
     expect(html).toContain("Available now");
   });
 
+  it("keeps both WordPress actions in one governed action area", () => {
+    const html = render();
+    const wordpressCard = html.split('<div class="publishing-destination-featured integration-row">')[1]
+      ?.split('<div class="publishing-destination-featured integration-row">')[0];
+
+    expect(wordpressCard).toContain('class="publishing-destination-actions"');
+    expect(wordpressCard).toMatch(/publishing-destination-actions[\s\S]*Connect WordPress[\s\S]*Download WordPress article style/);
+  });
+
   it("routes AI-created websites to their real publishing system", () => {
     const html = render();
     expect(html).toContain("The AI created the site; Rebound SEO connects to where its files or content are managed.");

@@ -37,6 +37,17 @@ test("@gate the preserved tools retain their complete pages under the new brand"
       for (const provider of ["Google Search Console", "Google Analytics", "Google Business Profile", "YouTube", "WordPress", "Webflow"]) {
         await expect(page.locator("main")).toContainText(provider);
       }
+      const wordpressCard = page.locator(".publishing-destination-featured").filter({ hasText: "WordPress" }).first();
+      const wordpressActions = wordpressCard.locator(".publishing-destination-actions");
+      await expect(wordpressActions).toHaveCount(1);
+      await expect(wordpressActions.getByRole("link", { name: "Download WordPress article style" })).toBeVisible();
+      const actionLayout = await wordpressActions.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const link = node.querySelector<HTMLAnchorElement>('a[download]')?.getBoundingClientRect();
+        return { left: box.left, width: box.width, linkWidth: link?.width ?? 0 };
+      });
+      expect(actionLayout.linkWidth).toBeGreaterThan(180);
+      if (width !== 390) expect(actionLayout.left).toBeGreaterThan((await wordpressCard.boundingBox())!.x + 300);
     }
     if (path === "/content") await expect(page.locator("#publishing-plan")).toBeVisible();
     if (process.env.QA_CAPTURE_COACH === "1") {
