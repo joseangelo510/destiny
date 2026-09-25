@@ -23,4 +23,3 @@ export type KeywordResearchRow = {
   traffic: number | null;
   url: string;
 };
-
