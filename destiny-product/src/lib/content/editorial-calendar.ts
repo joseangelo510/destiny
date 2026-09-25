@@ -144,6 +144,60 @@ export type EditorialCalendarItem = {
   status: "Review draft" | "Planned";
 };
 
+export type EditorialTitleIssue =
+  | "duplicated hiring intent"
+  | "duplicated timing verb"
+  | "example keyword framed as a hiring page"
+  | "repeated opening phrase";
+
+export function editorialTitleIssues(value: string): EditorialTitleIssue[] {
+  const title = normalizedWords(value);
+  const words = title.split(" ").filter(Boolean);
+  const issues: EditorialTitleIssue[] = [];
+  if ([1, 2, 3].some((size) => words.length >= size * 2
+    && words.slice(0, size).join(" ") === words.slice(size, size * 2).join(" "))) issues.push("repeated opening phrase");
+  if (/\b(?:take|takes)\s+takes\b/.test(title)) issues.push("duplicated timing verb");
+  if (/\bwhere to hire help for (?:hire|book|find)\b/.test(title)) issues.push("duplicated hiring intent");
+  if (/\bwhere to hire help for\b.*\b(?:example|examples|sample|samples|template|templates)\b/.test(title)) {
+    issues.push("example keyword framed as a hiring page");
+  }
+  return issues;
+}
+
+type EditorialAngle = { contentType: string; title: (keyword: string) => string };
+
+function sentenceCaseKeyword(keyword: string) {
+  const clean = keyword.trim().replace(/[?!.]+$/g, "").replace(/\s+/g, " ");
+  return clean ? `${clean[0].toUpperCase()}${clean.slice(1)}` : "Untitled topic";
+}
+
+function editorialTopic(angle: EditorialAngle, keyword: string) {
+  const normalizedKeyword = normalizedWords(keyword);
+  const keywordTitle = sentenceCaseKeyword(keyword);
+  const exampleKeyword = /\b(?:example|examples|sample|samples|template|templates)\b/.test(normalizedKeyword);
+  const actionKeyword = /^(?:book|call|find|get|hire|schedule)\b/.test(normalizedKeyword);
+  const timingQuestion = /^how long\b/.test(normalizedKeyword) && /\b(?:take|takes)\b/.test(normalizedKeyword);
+  let contentType = angle.contentType;
+  let title = angle.title(keyword);
+
+  if (contentType === "Service page" && exampleKeyword) {
+    contentType = "Examples article";
+    const descriptor = /\b(?:examples|samples|templates)\b/.test(normalizedKeyword) ? "practical examples" : "a practical template";
+    title = `${keywordTitle}: ${descriptor} and what to include`;
+  } else if (contentType === "Service page" && actionKeyword) {
+    title = `${keywordTitle}: options, pricing, and next steps`;
+  } else if (timingQuestion && contentType === "Blog article") {
+    title = `${keywordTitle}? Timing, delays, and what happens next`;
+  }
+
+  if (!editorialTitleIssues(title).length) return { contentType, fallbackUsed: false, title };
+  return {
+    contentType: "Blog guide",
+    fallbackUsed: true,
+    title: `${keywordTitle}: a practical guide and next steps`,
+  };
+}
+
 const SERVICE_ANGLES = [
   { contentType: "Service page", title: (keyword: string) => `Where to hire help for ${keyword}` },
   { contentType: "Comparison page", title: (keyword: string) => `${keyword}: options, tradeoffs, and who each is for` },
@@ -344,6 +398,7 @@ export async function buildEditorialCalendar(
   const offerAnchored = prioritized.filter((keyword) => keyword.offerFit >= 2);
   const calendarKeywords = offerAnchored.length >= 3 ? offerAnchored : prioritized;
   const angles = businessModel === "product" ? PRODUCT_ANGLES : SERVICE_ANGLES;
+  let titleFallbacks = 0;
   const calendar = await Promise.all(Array.from({ length: weeks }, async (_, index) => {
     const slotPolicy = await runDestinyServerLogic({
       auditComplete: 0, criticalIssues: 0, warnings: 0, rankingKeywords: 0, newKeywords: 0, lostKeywords: 0, contentGaps: 0, reviewCount: 0,
@@ -351,6 +406,8 @@ export async function buildEditorialCalendar(
     });
     const keyword = calendarKeywords[Math.max(0, slotPolicy.editorialKeywordIndex - 1)];
     const angle = angles[Math.max(0, slotPolicy.editorialAngleCode - 1) % angles.length];
+    const topic = editorialTopic(angle, keyword.keyword);
+    if (topic.fallbackUsed) titleFallbacks += 1;
     const opportunity = keyword.opportunity || "site_idea";
     const evidence = opportunity === "competitor_gap"
       ? "Competitor gap"
@@ -360,8 +417,8 @@ export async function buildEditorialCalendar(
     return {
       month: Math.floor(index / 4) + 1,
       week: (index % 4) + 1,
-      contentType: angle.contentType,
-      title: angle.title(keyword.keyword),
+      contentType: topic.contentType,
+      title: topic.title,
       focusKeyword: keyword.keyword,
       searchIntent: keyword.searchIntent,
       evidence,
@@ -371,6 +428,6 @@ export async function buildEditorialCalendar(
       status: (index < 4 ? "Review draft" : "Planned") as EditorialCalendarItem["status"],
     };
   }));
-  console.info(JSON.stringify({ event: "logos_editorial_plan", weeks: calendar.length, keywords: calendarKeywords.length, fallbacks: 0, wasm_errors: 0 }));
+  console.info(JSON.stringify({ event: "logos_editorial_plan", weeks: calendar.length, keywords: calendarKeywords.length, fallbacks: titleFallbacks, wasm_errors: 0 }));
   return calendar;
 }
