@@ -3822,3 +3822,10 @@ Exact-seed follow-up: official response example has separate task.result objects
 
 
 September21 integration maintainability correction (MEDIUM): hosted PR145 harness35667179680 fails the unchanged repository500line limit because research.ts grew to516lines atf43a17a. Before refactor: extract existing keyword type declarations into a type-only module and re-export the same public names, preserving runtime behavior/import compatibility. No policy/baseline/CI edits or limit exceptions. Existing parser/type/browser validation and unchanged repository checker must pass. Owner task/scope unchanged.
+
+
+### D10.57 Current-main keyword variant recovery — September 24, 2026
+
+- Classification: MEDIUM. Base `c901181610b0fbf4cdea630ca6679f20ce610c4f`; isolated branch `codex/keyword-variant-recovery`; sole implementation owner is Codex task `01a0c2b9-ffe5-70a1-b974-2daef7dba3fd`. This current-main candidate consolidates only the previously tested keyword metric, exact-seed, split-response, and documented related-search parser repairs from PR146. It excludes PR146's onboarding, PDF, calendar, interview, navigation, content, and unrelated workflow changes.
+- User-visible contract: request the exact seed row; combine provider seed and suggestion blocks without merging distinct wording; retain documented related-search strings; and show unavailable metrics separately from measured zero. Preserve provider totals, pagination, website-scoped saving, existing authentication and billing. Synthetic 40/20 fixtures prove phrase separation only and are not fresh provider measurements.
+- No schema, migration, RLS, authentication, credential, dependency, configuration, provider-account, production, CMS, release, or deployment mutation. Rollback is a protected revert. Required evidence is RED/GREEN history, full exact-head gate and isolation, hosted harness, exact-head staging, technical review, guards, and separate owner authorization for merge or release.
