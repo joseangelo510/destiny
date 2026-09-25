@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { authEmailVerification } from "../_shared/billing/verified-user.ts";
 import { parseCompetitorSuggestions } from "./logic.ts";
 
 type SuggestionRequest = {
@@ -50,7 +51,10 @@ export default {
 
     const mode = Deno.env.get("BILLING_MODE");
     if (mode !== "test" && mode !== "live") return json({ error: "Research billing setup is not complete." }, 503);
-    const { data: reservation, error } = await context.supabaseAdmin.rpc("reserve_competitor_suggestions", { p_owner_id: ownerId, p_livemode: mode === "live" });
+    const verification = await authEmailVerification(context.supabaseAdmin, ownerId);
+    if (verification === "unavailable") return json({ error: "Sign-in verification is temporarily unavailable. Try again shortly.", code: "BILLING_VERIFICATION_UNAVAILABLE" }, 503);
+    if (verification !== "verified") return json({ suggestions: [], error: "Verify your sign-in email before using automatic discovery.", code: "BILLING_VERIFICATION_REQUIRED", billingUrl: "/account/billing" }, 403);
+    const { data: reservation, error } = await context.supabaseAdmin.rpc("reserve_competitor_suggestions_v2", { p_owner_id: ownerId, p_livemode: mode === "live", p_owner_verified: true });
     if (error || !reservation) return json({ error: "Research usage could not be checked." }, 503);
     if (!reservation.allowed) {
       const verification = reservation.reason === "verification_required";

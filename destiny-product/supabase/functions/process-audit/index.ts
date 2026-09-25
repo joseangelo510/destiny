@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { authEmailVerification } from "../_shared/billing/verified-user.ts";
 import { notificationRecipient } from "../notification-recipient.ts";
 import { sendAuditReadyEmailWithRetry, withEmailDelivery } from "./email.ts";
 import { runDestinyLogic } from "./logic.ts";
@@ -69,7 +70,7 @@ export default {
     const [{ data: website, error: websiteError }, { data: profile }, { data: knownCompetitors }, { data: keywordPreferences }] = await Promise.all([
       context.supabase
         .from("websites")
-        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market,notification_email")
+        .select("id,url,normalized_domain,business_name,products_services,problem_solved,ideal_customer,audience_challenges_goals,differentiation,market,notification_email,organizations!inner(owner_id)")
         .eq("id", body.websiteId)
         .maybeSingle(),
       context.supabase
@@ -98,12 +99,23 @@ export default {
     const provider = login && password ? "dataforseo" : "demo";
     const billingMode = Deno.env.get("BILLING_MODE");
     if (billingMode !== "test" && billingMode !== "live") return json({ error: "Audit billing setup is not complete." }, 503);
+    const organization = Array.isArray(website.organizations) ? website.organizations[0] : website.organizations;
+    const ownerId = typeof organization?.owner_id === "string" ? organization.owner_id : null;
+    if (!ownerId) return json({ error: "You do not have access to that website." }, 403);
+    const actorVerification = await authEmailVerification(context.supabaseAdmin, userId);
+    const ownerVerification = ownerId === userId ? actorVerification : await authEmailVerification(context.supabaseAdmin, ownerId);
+    if (actorVerification === "unavailable" || ownerVerification === "unavailable") {
+      return json({ error: "Sign-in verification is temporarily unavailable. Try again shortly.", code: "BILLING_VERIFICATION_UNAVAILABLE" }, 503);
+    }
+    if (actorVerification !== "verified" || ownerVerification !== "verified") {
+      return json({ error: "Verify your sign-in email before starting an audit.", code: "BILLING_VERIFICATION_REQUIRED", billingUrl: "/account/billing" }, 403);
+    }
     let auditId: string;
     let usageId: string;
     try {
       const { data: startedAudit, error: beginError } = await context.supabaseAdmin.rpc(
-        "begin_billed_audit",
-        { p_website_id: website.id, p_user_id: userId, p_provider: provider, p_livemode: billingMode === "live" },
+        "begin_billed_audit_v2",
+        { p_website_id: website.id, p_user_id: userId, p_provider: provider, p_livemode: billingMode === "live", p_actor_verified: true, p_owner_verified: true, p_verified_owner_id: ownerId },
       );
       const started = startedAudit && typeof startedAudit === "object" && !Array.isArray(startedAudit)
         ? startedAudit as { auditId?: unknown; created?: unknown; allowed?: unknown; reason?: unknown; usageId?: unknown }
