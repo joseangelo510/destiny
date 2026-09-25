@@ -498,6 +498,58 @@ describe("POST /api/content/repurpose/generate – provider", () => {
     expect("extracted_text_ciphertext" in lastUpdate).toBe(false);
   });
 
+  it("keeps provider authentication details out of the customer response and saved source", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        type: "error",
+        error: { type: "authentication_error", message: "API key is invalid: private provider detail" },
+      }),
+    });
+
+    const updateCalls: unknown[] = [];
+    from.mockImplementation((table: string) => {
+      if (table === "websites") {
+        return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: MOCK_WEBSITE, error: null }) }) }) };
+      }
+      if (table === "keyword_preferences") {
+        return { select: () => ({ eq: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) }) }) };
+      }
+      if (table === "repurpose_sources") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({ maybeSingle: async () => ({ data: MOCK_SOURCE, error: null }) }),
+            }),
+          }),
+          update: (data: unknown) => {
+            updateCalls.push(data);
+            return { eq: () => ({ eq: async () => ({ error: null }) }) };
+          },
+        };
+      }
+      throw new Error(`Unexpected: ${table}`);
+    });
+
+    const response = await POST(buildRequest({ websiteId, sourceId, output: "faq" }));
+    const body = await response.json();
+    const savedFailure = updateCalls.at(-1) as Record<string, unknown>;
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      error: "The writing service is temporarily unavailable. Your source is saved—try again after service is restored.",
+      code: "WRITING_SERVICE_UNAVAILABLE",
+    });
+    expect(JSON.stringify(body)).not.toContain("API key");
+    expect(savedFailure).toMatchObject({
+      status: "failed",
+      last_error_code: "WRITING_SERVICE_UNAVAILABLE",
+      last_error_message: "The writing service is temporarily unavailable. Your source is saved—try again after service is restored.",
+    });
+    expect(JSON.stringify(savedFailure)).not.toContain("private provider detail");
+  });
+
   it("persists status=failed on parse error but source remains reusable", async () => {
     mockFetch.mockResolvedValue({
       ok: true,

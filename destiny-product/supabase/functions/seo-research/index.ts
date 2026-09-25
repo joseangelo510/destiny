@@ -2,7 +2,7 @@ import { callerWebsiteOwner, matchingWebsiteUsage } from "../_shared/billing/cal
 import { verifyWorkerRequest } from "../_shared/billing/worker-auth.ts";
 import { meteredResponse } from "../_shared/billing/metered-work.ts";
 import { withSupabase } from "@supabase/server";
-import { runDomainOverview } from "./domain-overview.ts";
+import { domainOverviewResponse, runDomainOverview } from "./domain-overview.ts";
 import { creatorSearchRequests, firstResult, normalizeDomain, organicHistoryWindowStart, parseArticleEvidence, parseBacklinks, parseCreatorSearchResults, parseKeywordRows, parseKeywordSerp, parseOrganicPerformance, summarizeKeywordRows } from "./logic.ts";
 
 type ResearchRequest = {
@@ -73,7 +73,7 @@ export default {
     try {
       if (body.kind === "domain_overview") {
         if (typeof body.target !== "string" || typeof body.market !== "string") return json({ error: "Enter a public domain and choose a country." }, 400);
-        return json(await runDomainOverview(body.target, body.market, (path, items) => providerPost(path, items, login, password)));
+        return domainOverviewResponse(await runDomainOverview(body.target, body.market, (path, items) => providerPost(path, items, login, password)));
       }
       if (body.kind === "keywords") {
         if (typeof body.query !== "string" || (body.mode !== "keyword" && body.mode !== "domain")) {

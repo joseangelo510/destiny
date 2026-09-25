@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { domainOverviewRequests, runDomainOverview } from "./domain-overview";
+import { domainOverviewRequests, domainOverviewResponse, runDomainOverview } from "./domain-overview";
 
 const payload = (result: unknown) => ({ status_code: 20000, tasks: [{ status_code: 20000, result: [result] }] });
 const metrics = { organic: { etv: 903, count: 1100, pos_1: 3, pos_2_3: 7, pos_4_10: 20 }, paid: { etv: 30, count: 2 } };
@@ -48,6 +48,20 @@ describe("Domain Overview provider contract", () => {
     expect(report.summary.organicTraffic).toBeNull();
     expect(report.sections.overview.state).toBe("unavailable");
     expect(report.status).toBe("unavailable");
+    const response = domainOverviewResponse(report);
+    expect(response.status).toBe(502);
+    expect(response.ok).toBe(false);
+    expect(await response.json()).toMatchObject({ code: "DOMAIN_SOURCES_UNAVAILABLE" });
+  });
+
+  it("returns a successful report when a primary source works despite optional source failures", async () => {
+    const report = await runDomainOverview("example.com", "US", async (path: string) => {
+      if (path.includes("domain_rank_overview")) return payload({ items: [{ location_code: 2840, metrics }] });
+      throw new Error("optional provider request failed");
+    });
+    const response = domainOverviewResponse(report);
+    expect(response.status).toBe(200);
+    expect((await response.json()).summary.organicTraffic).toBe(903);
   });
 
   it("keeps SEO and AI location filters aligned and caps request count", () => {

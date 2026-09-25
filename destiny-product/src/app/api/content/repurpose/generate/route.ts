@@ -34,7 +34,7 @@ function isUUID(value: unknown): value is string {
 type AnthropicContent = { type?: string; text?: string };
 type AnthropicPayload = {
   content?: AnthropicContent[];
-  error?: { message?: string };
+  error?: { type?: string; message?: string };
   stop_reason?: string;
 };
 
@@ -339,10 +339,18 @@ export async function POST(request: Request) {
   }
 
   if (!response.ok) {
-    const errorCode = "ANTHROPIC_ERROR";
-    const errorMessage =
-      anthropicPayload.error?.message ??
-      `Provider returned HTTP ${response.status}. The source text is saved—try again.`;
+    const providerType = typeof anthropicPayload.error?.type === "string"
+      ? anthropicPayload.error.type.slice(0, 80)
+      : null;
+    const credentialFailure = response.status === 401 || response.status === 403 || providerType === "authentication_error";
+    const errorCode = credentialFailure ? "WRITING_SERVICE_UNAVAILABLE" : "ANTHROPIC_ERROR";
+    const errorMessage = credentialFailure
+      ? "The writing service is temporarily unavailable. Your source is saved—try again after service is restored."
+      : "The writing service could not complete this draft. Your source is saved—try again later.";
+    console.error("repurpose_provider_failure", {
+      providerStatus: response.status,
+      providerType,
+    });
     await database
       .from("repurpose_sources")
       .update({
@@ -352,7 +360,10 @@ export async function POST(request: Request) {
       })
       .eq("id", sourceId)
       .eq("website_id", websiteId);
-    return NextResponse.json({ error: errorMessage, code: errorCode }, { status: 502 });
+    return NextResponse.json(
+      { error: errorMessage, code: errorCode },
+      { status: credentialFailure ? 503 : 502 },
+    );
   }
   if (anthropicPayload.stop_reason === "max_tokens" || anthropicPayload.stop_reason === "refusal") {
     const errorCode = anthropicPayload.stop_reason === "max_tokens"
