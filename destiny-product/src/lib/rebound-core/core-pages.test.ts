@@ -141,7 +141,14 @@ describe("Rebound redesign Slice 2", () => {
     const view = buildCalendarView({
       now: new Date("2026-09-04T19:00:00Z"),
       timeZone: "America/Los_Angeles",
-      items: [],
+      items: [{
+        id: "published",
+        article_key: "audit-1:ban the box background checks",
+        keyword: "ban the box background checks",
+        title: "Ban the Box Background Checks",
+        scheduled_for: "2026-08-20T16:00:00Z",
+        state: "scheduled",
+      }],
       approvedKeywords: [
         { id: "published", keyword: "Ban the Box background checks", updated_at: "2026-09-03T18:00:00Z" },
         { id: "new", keyword: "tenant screening checklist", updated_at: "2026-09-02T18:00:00Z" },
@@ -152,6 +159,8 @@ describe("Rebound redesign Slice 2", () => {
     expect(view.calendar.suggestions).toEqual([
       { id: "new", title: "Tenant screening checklist", approvedAt: "2026-09-02T18:00:00Z" },
     ]);
+    expect(view.rows[0]).toMatchObject({ state: "published_unverified", overdue: false, moveLabel: "Review public evidence" });
+    expect(view.stats).toMatchObject({ done: 1, needsUser: 1, stuck: 0, suggested: 1 });
   });
 
   it("anchors Calendar to the current month and never offers a past day", () => {
