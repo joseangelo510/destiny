@@ -2727,99 +2727,99 @@
     "context": "<div className=\"opportunity-stats\"><span><b>{Math.round(audit.metrics.estimatedOrganicTraffic).toLocaleString()}</b> estimated organic visits</span><span><b>{audit.metrics.onPageScore === null ? \"—\" : Math.round(audit.metrics.onPageScore)}</b> on-page score</span></div> <Link href=\"/content\">Open content brief →</Link> </article>"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:76:a:1",
+    "control_id": "src/components/directory-profile-registry.tsx:96:a:1",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 76,
+    "line": 96,
     "type": "a",
     "route": "component",
     "side_effect_class": 1,
     "context": "return <article className=\"directory-profile-card\" key={directory.key}> <div className=\"directory-profile-heading\"><div><strong>{directory.name}</strong><span className={`status-chip ${connected || profile?.status === \"verified\" ? \"\" : \"amber\"}`}>{connected ? \"Connected\" : profile?.status === \"verified\" ? \"Public profile verified\" : profile?.profile_url ? \"URL saved\" : \"Not monitored\"}</span></div><a href={directory.href} rel=\"noreferrer\" target=\"_blank\">Open directory ↗</a></div> <p>{directory."
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:79:form:1",
+    "control_id": "src/components/directory-profile-registry.tsx:99:form:1",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 79,
+    "line": 99,
     "type": "form",
     "route": "component",
     "side_effect_class": 1,
     "context": "{profile?.public_rating !== null && profile?.public_rating !== undefined ? <div className=\"directory-public-stats\"><b>{Number(profile.public_rating).toFixed(1)} rating</b><span>{profile.public_review_count ?? 0} public reviews</span></div> : null} <form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:79:onSubmit:2",
+    "control_id": "src/components/directory-profile-registry.tsx:99:onSubmit:2",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 79,
+    "line": 99,
     "type": "onSubmit",
     "route": "component",
     "side_effect_class": 1,
     "context": "{profile?.public_rating !== null && profile?.public_rating !== undefined ? <div className=\"directory-public-stats\"><b>{Number(profile.public_rating).toFixed(1)} rating</b><span>{profile.public_review_count ?? 0} public reviews</span></div> : null} <form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:79:input:3",
+    "control_id": "src/components/directory-profile-registry.tsx:99:input:3",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 79,
+    "line": 99,
     "type": "input",
     "route": "component",
     "side_effect_class": 1,
     "context": "{profile?.public_rating !== null && profile?.public_rating !== undefined ? <div className=\"directory-public-stats\"><b>{Number(profile.public_rating).toFixed(1)} rating</b><span>{profile.public_review_count ?? 0} public reviews</span></div> : null} <form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:79:onChange:4",
+    "control_id": "src/components/directory-profile-registry.tsx:99:onChange:4",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 79,
+    "line": 99,
     "type": "onChange",
     "route": "component",
     "side_effect_class": 1,
     "context": "{profile?.public_rating !== null && profile?.public_rating !== undefined ? <div className=\"directory-public-stats\"><b>{Number(profile.public_rating).toFixed(1)} rating</b><span>{profile.public_review_count ?? 0} public reviews</span></div> : null} <form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:79:button:5",
+    "control_id": "src/components/directory-profile-registry.tsx:99:button:5",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 79,
+    "line": 99,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "{profile?.public_rating !== null && profile?.public_rating !== undefined ? <div className=\"directory-public-stats\"><b>{Number(profile.public_rating).toFixed(1)} rating</b><span>{profile.public_review_count ?? 0} public reviews</span></div> : null} <form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria"
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:80:button:1",
+    "control_id": "src/components/directory-profile-registry.tsx:100:button:1",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 80,
+    "line": 100,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:80:onClick:2",
+    "control_id": "src/components/directory-profile-registry.tsx:100:onClick:2",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 80,
+    "line": 100,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:80:button:3",
+    "control_id": "src/components/directory-profile-registry.tsx:100:button:3",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 80,
+    "line": 100,
     "type": "button",
     "route": "component",
     "side_effect_class": 1,
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:80:onClick:4",
+    "control_id": "src/components/directory-profile-registry.tsx:100:onClick:4",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 80,
+    "line": 100,
     "type": "onClick",
     "route": "component",
     "side_effect_class": 1,
     "context": "<form onSubmit={(event) => void save(event, directory.key)}><label><span>Public profile URL</span><input aria-invalid={Boolean(message[directory.key] && !message[directory.key].startsWith(\"Saved\") && !message[directory.key].startsWith(\"Profile\"))} aria-label={`${directory.name} public profile URL`} onChange={(event) => setValues((current) => ({ ...current, [directory.key]: event.target.value }))} placeholder={`Paste your ${directory.name} profile URL`} type=\"url\" value={values[directory.key] ?? "
   },
   {
-    "control_id": "src/components/directory-profile-registry.tsx:80:Link:5",
+    "control_id": "src/components/directory-profile-registry.tsx:100:Link:5",
     "file": "src/components/directory-profile-registry.tsx",
-    "line": 80,
+    "line": 100,
     "type": "Link",
     "route": "component",
     "side_effect_class": 1,
@@ -3069,22 +3069,22 @@
     "context": "</div> <details className={styles.method}><summary>Sources, coverage and metric definitions</summary>{report.notices.map(notice => <p key={notice}>{notice}</p>)}<p>Only platforms returned by DataForSEO appear in AI coverage. An absent platform is not a zero. SEMrush figures will differ because the providers use different indexes and methods.</p><ul>{Object.entries(report.sections).map(([key,value]) => <li key={key}>{key}: {value.state}{value.total !== null ? ` · ${value.total.toLocaleString()} t"
   },
   {
-    "control_id": "src/components/feature-journey-callout.tsx:14:Link:1",
+    "control_id": "src/components/feature-journey-callout.tsx:15:Link:1",
     "file": "src/components/feature-journey-callout.tsx",
-    "line": 14,
+    "line": 15,
     "type": "Link",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<div><small>Your guided step</small><strong>{actionLabel ?? `Move toward ${milestone}`}</strong><p>{description}</p>{doneLooksLike && <p className=\"guided-step-detail\"><b>Done looks like:</b> {doneLooksLike}</p>}{evidence && <p className=\"guided-step-detail\"><b>Evidence:</b> {evidence}</p>}</div> <div className=\"feature-journey-actions\">{actionHref && <Link href={actionHref}>{actionLabel ?? \"Start this step\"}</Link>}<Link href=\"/roadmap\">View roadmap</Link></div> </section>;"
+    "side_effect_class": 1,
+    "context": "<div><small>{complete ? \"Guided step complete\" : \"Your guided step\"}</small><strong>{actionLabel ?? `Move toward ${milestone}`}</strong><p>{description}</p>{doneLooksLike && <p className=\"guided-step-detail\"><b>Done looks like:</b> {doneLooksLike}</p>}{evidence && <p className=\"guided-step-detail\"><b>Evidence:</b> {evidence}</p>}</div> <div className=\"feature-journey-actions\">{actionHref && <Link href={actionHref}>{actionLabel ?? \"Start this step\"}</Link>}<Link href=\"/roadmap\">View roadmap</Link"
   },
   {
-    "control_id": "src/components/feature-journey-callout.tsx:14:Link:2",
+    "control_id": "src/components/feature-journey-callout.tsx:15:Link:2",
     "file": "src/components/feature-journey-callout.tsx",
-    "line": 14,
+    "line": 15,
     "type": "Link",
     "route": "component",
-    "side_effect_class": 0,
-    "context": "<div><small>Your guided step</small><strong>{actionLabel ?? `Move toward ${milestone}`}</strong><p>{description}</p>{doneLooksLike && <p className=\"guided-step-detail\"><b>Done looks like:</b> {doneLooksLike}</p>}{evidence && <p className=\"guided-step-detail\"><b>Evidence:</b> {evidence}</p>}</div> <div className=\"feature-journey-actions\">{actionHref && <Link href={actionHref}>{actionLabel ?? \"Start this step\"}</Link>}<Link href=\"/roadmap\">View roadmap</Link></div> </section>;"
+    "side_effect_class": 1,
+    "context": "<div><small>{complete ? \"Guided step complete\" : \"Your guided step\"}</small><strong>{actionLabel ?? `Move toward ${milestone}`}</strong><p>{description}</p>{doneLooksLike && <p className=\"guided-step-detail\"><b>Done looks like:</b> {doneLooksLike}</p>}{evidence && <p className=\"guided-step-detail\"><b>Evidence:</b> {evidence}</p>}</div> <div className=\"feature-journey-actions\">{actionHref && <Link href={actionHref}>{actionLabel ?? \"Start this step\"}</Link>}<Link href=\"/roadmap\">View roadmap</Link"
   },
   {
     "control_id": "src/components/founder-journey.tsx:66:summary:1",
