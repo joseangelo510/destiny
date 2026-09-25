@@ -75,7 +75,7 @@ export function verifyPublicPage(input: PublicVerificationInput) {
 
 export function publicationState(remoteStatus: string, contentMatches: boolean, publicVerified?: boolean) {
   if (remoteStatus === "future") return "scheduled" as const;
-  if (remoteStatus === "publish") return publicVerified ? "verified_live" as const : "verification_failed" as const;
+  if (remoteStatus === "publish") return publicVerified ? "verified_live" as const : "published_unverified" as const;
   if (remoteStatus === "trash") return "unpublished" as const;
   if (remoteStatus === "draft" || remoteStatus === "pending" || remoteStatus === "private") {
     return contentMatches ? "delivered_draft" as const : "changed_in_cms" as const;

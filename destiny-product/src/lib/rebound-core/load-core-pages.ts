@@ -151,7 +151,7 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
       scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
       scoped.select("notification_preferences", "timezone").limit(1),
     ]);
-    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id);
+    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id, schedule.items);
     const approvedDrafts = draftError
       ? failed<ApprovedCalendarDraft[]>("Approved drafts could not be loaded for Calendar.")
       : draftOptions.length

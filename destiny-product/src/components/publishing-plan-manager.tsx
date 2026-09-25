@@ -18,6 +18,7 @@ const STATE_META: Record<PublishingCalendarState, { label: string; short: string
   needs_review: { label: "Needs review", short: "Review", icon: "!", description: "Your review is required before this article can move forward." },
   scheduled: { label: "CMS-confirmed scheduled", short: "Sched", icon: "◷", description: "The CMS confirmed this post and its future publication time." },
   published: { label: "Live and verified", short: "Live", icon: "✓", description: "Rebound SEO verified that this post is live." },
+  published_review: { label: "Published — needs review", short: "Review", icon: "!", description: "WordPress reports this post as published, but its media or public-page evidence still needs review." },
   failed: { label: "Failed", short: "Failed", icon: "×", description: "The CMS did not complete this publishing attempt." },
   missed: { label: "Missed", short: "Missed", icon: "◷", description: "The planned time passed without a verified publication." },
   manual: { label: "Manual", short: "Manual", icon: "↗", description: "This post must be scheduled directly in Wix for now." },

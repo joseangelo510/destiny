@@ -48,7 +48,7 @@ export function isArticleCalendarItem(item: Pick<PublishingScheduleItemRecord, "
   return item.position <= confirmedPostCount && editorialContentChannel(item.content_type) === "article";
 }
 
-export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "failed" | "missed" | "manual";
+export type PublishingCalendarState = "planned" | "needs_review" | "scheduled" | "published" | "published_review" | "failed" | "missed" | "manual";
 export type PublishingDeliveryMode = "direct_wordpress" | "manual_webflow" | "manual_wix" | "unavailable";
 
 export function publishingDeliveryMode(websitePlatform: string | null, connectedProviders: Iterable<string>): PublishingDeliveryMode {
@@ -63,10 +63,33 @@ export function publishingCalendarState(item: PublishingScheduleItemRecord, webs
   if (websitePlatform === "wix" && ["article", "approved_draft"].includes(editorialContentChannel(item.content_type))) return "manual";
   if (item.state === "managed_externally") return "manual";
   if (item.state === "published") return item.remote_permalink ? "published" : "planned";
+  if (item.state === "needs_review" && item.remote_permalink) return "published_review";
   if (item.state === "scheduled") return item.remote_id ? "scheduled" : "planned";
   if (item.state === "failed") return "failed";
   if (item.state === "needs_review") return /missed|date passed|past due/i.test(item.last_error ?? "") ? "missed" : "needs_review";
   return "planned";
+}
+
+export function wordpressPublishingScheduleUpdate(input: {
+  publicationStatus?: string | null;
+  remoteStatus?: string | null;
+  remotePermalink?: string | null;
+  verificationReason?: string | null;
+}) {
+  const remotePermalink = input.remotePermalink?.trim() || null;
+  if (input.publicationStatus === "verified_live" && remotePermalink) {
+    return { verified: true, published: true, state: "published" as const, remotePermalink, lastError: null };
+  }
+  if ((input.publicationStatus === "published_unverified" || input.remoteStatus === "publish") && remotePermalink) {
+    return {
+      verified: false,
+      published: true,
+      state: "needs_review" as const,
+      remotePermalink,
+      lastError: input.verificationReason?.trim() || "WordPress confirms this post is published, but its public evidence still needs review.",
+    };
+  }
+  return { verified: false, published: false, state: "scheduled" as const, remotePermalink: null, lastError: null };
 }
 
 export function needsWordPressScheduleVerification(
