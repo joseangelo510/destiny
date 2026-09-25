@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, canScheduleArticle, editorialContentChannel, isArticleCalendarItem, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
+import { buildWeeklySchedule, calendarLocalDateTimeAsUtc, canScheduleArticle, editorialContentChannel, isArticleCalendarItem, publishingCalendarState, publishingDeliveryMode, publishingItemKey, reconcilePublishingItems, stateForMissedSchedule, unapprovedCalendarKeywords, validatePublishingPlan, wordpressPublishingScheduleUpdate, wordpressRemoteIdFromEditUrl, wordpressScheduleDate, type PublishingScheduleItemRecord } from "./publishing-plan";
 
 describe("publishing plans", () => {
   it("keeps social calendar entries out of the CMS article scheduler", () => {
@@ -77,6 +77,27 @@ describe("publishing plans", () => {
     expect(publishingCalendarState({ ...item, remote_id: "20208955" }, "wordpress")).toBe("scheduled");
     expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955" }, "wordpress")).toBe("planned");
     expect(publishingCalendarState({ ...item, state: "published", remote_id: "20208955", remote_permalink: "https://example.com/post" }, "wordpress")).toBe("published");
+    expect(publishingCalendarState({ ...item, state: "needs_review", remote_id: "20208955", remote_permalink: "https://example.com/post" }, "wordpress")).toBe("published_review");
+  });
+
+  it("settles a CMS-published post separately from complete public verification", () => {
+    expect(wordpressPublishingScheduleUpdate({
+      publicationStatus: "verified_live",
+      remotePermalink: "https://example.com/post",
+    })).toMatchObject({ verified: true, published: true, state: "published", remotePermalink: "https://example.com/post", lastError: null });
+    expect(wordpressPublishingScheduleUpdate({
+      publicationStatus: "published_unverified",
+      remotePermalink: "https://example.com/post",
+      verificationReason: "The published page is missing its required featured image metadata.",
+    })).toMatchObject({
+      verified: false,
+      published: true,
+      state: "needs_review",
+      remotePermalink: "https://example.com/post",
+      lastError: "The published page is missing its required featured image metadata.",
+    });
+    expect(wordpressPublishingScheduleUpdate({ publicationStatus: "scheduled", remotePermalink: null }))
+      .toMatchObject({ verified: false, published: false, state: "scheduled" });
   });
 
   it("keeps Wix publishing visibly manual and extracts WordPress proof IDs", () => {

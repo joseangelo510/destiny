@@ -7,10 +7,22 @@ describe("WordPress reconciliation", () => {
     ["draft", false, undefined, "changed_in_cms"],
     ["future", true, undefined, "scheduled"],
     ["publish", true, true, "verified_live"],
-    ["publish", true, false, "verification_failed"],
+    ["publish", true, false, "published_unverified"],
     ["trash", true, undefined, "unpublished"],
   ])("maps %s to a truthful state", (remote, content, verified, expected) => {
     expect(publicationState(remote as string, content as boolean, verified as boolean | undefined)).toBe(expected);
+  });
+
+  it("keeps a CMS-published post published when only media verification remains", () => {
+    const verification = verifyPublicPage({
+      status: 200,
+      permalink: "https://example.com/useful-guide/",
+      fingerprint: "a useful guide practical opening paragraph",
+      featuredImageRequired: true,
+      html: '<title>A Useful Guide</title><link rel="canonical" href="https://example.com/useful-guide/"><h1>A useful guide</h1><p>Practical opening paragraph.</p>',
+    });
+    expect(verification).toMatchObject({ verified: false, canonicalMatches: true, contentMatches: true, indexable: true });
+    expect(publicationState("publish", true, verification.verified)).toBe("published_unverified");
   });
 
   it("recognizes the delivered content after WordPress formatting changes", () => {
