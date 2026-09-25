@@ -654,6 +654,9 @@ button { cursor: pointer; }
 .website-profile-saved { color: var(--forest); font-weight: 600; }
 .publishing-destinations { display: grid; gap: 20px; margin-top: 28px; }
 .publishing-destination-featured { border-color: #d4bcc6; box-shadow: 0 14px 34px rgba(31,74,61,.07); }
+.publishing-destination-actions { align-items: flex-end; display: flex; flex-direction: column; gap: 8px; justify-self: end; min-width: max-content; }
+.publishing-destination-actions .cms-connect-action { align-items: flex-end; }
+.publishing-destination-actions > .secondary-button { white-space: nowrap; }
 .publishing-destination-group { display: grid; gap: 14px; }
 .publishing-destination-group-heading { display: grid; gap: 4px; }
 .publishing-destination-group-heading > strong { color: var(--forest-dark); font-size: 18px; }
@@ -691,6 +694,8 @@ button { cursor: pointer; }
   .workspace-summary-strip { grid-template-columns: auto 1fr; }
   .integration-row { grid-template-columns: 46px 1fr 110px; }
   .integration-row .integration-actions { grid-column: 2 / -1; justify-content: flex-start; width: fit-content; }
+  .publishing-destination-actions { align-items: flex-start; grid-column: 2 / -1; justify-self: start; }
+  .publishing-destination-actions .cms-connect-action { align-items: flex-start; }
   .guided-onboarding-layout { gap: 35px; grid-template-columns: 310px minmax(0, 1fr); padding-left: 28px; padding-right: 28px; }
 }
 
@@ -734,6 +739,8 @@ button { cursor: pointer; }
   .connection-callout { align-items: flex-start; flex-direction: column; }
   .integration-row { align-items: flex-start; grid-template-columns: 42px 1fr; }
   .integration-row > .status-chip, .integration-row .integration-actions { grid-column: 2; }
+  .publishing-destination-actions { grid-column: 2; max-width: 100%; min-width: 0; width: 100%; }
+  .publishing-destination-actions > .secondary-button { white-space: normal; width: 100%; }
   .cms-connect-action { align-items: flex-start; grid-column: 2; }
   .cms-connect-form { left: 0; right: auto; }
   .guided-onboarding-header { grid-template-columns: 1fr auto; padding: 12px 17px; }

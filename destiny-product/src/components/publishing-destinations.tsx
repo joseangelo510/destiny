@@ -60,8 +60,10 @@ export function PublishingDestinations({
       <span className="integration-logo">W</span>
       <div><strong>WordPress</strong><p>Verify a revocable Application Password. Draft transfer is the first live publishing workflow Rebound SEO is completing.</p><p className="integration-summary">{wordpressConnected ? `${wordpressDisplayName || "WordPress editor"} · ${wordpressSiteUrl || "Verified site"}` : "Connect your WordPress site securely."}</p></div>
       <span className={`status-chip ${wordpressConnected ? "" : "amber"}`}>{wordpressConnected ? "Verified" : "Available now"}</span>
-      <WordPressIntegrationAction connected={wordpressConnected} savedSiteUrl={wordpressSiteUrl} websiteId={websiteId} />
-      <a className="secondary-button" href="/destiny-article-style.zip" download>Download WordPress article style</a>
+      <div className="publishing-destination-actions">
+        <WordPressIntegrationAction connected={wordpressConnected} savedSiteUrl={wordpressSiteUrl} websiteId={websiteId} />
+        <a className="secondary-button" href="/destiny-article-style.zip" download>Download WordPress article style</a>
+      </div>
     </div>
 
     <div className="publishing-destination-featured integration-row">
