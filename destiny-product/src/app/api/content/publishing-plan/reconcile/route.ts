@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { scopedClient } from "@/lib/db";
-import { needsWordPressScheduleVerification, wordpressPublishingScheduleUpdate, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
+import { matchingWordPressPublication, needsWordPressScheduleVerification, wordpressPublishingScheduleUpdate, type PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -40,18 +40,36 @@ export async function POST(request: Request) {
   const { data, error } = await db.invokeFunction<ReconcileResult>("wordpress-reconcile", { websiteId, articleKey: item.article_key });
   if (error || !data?.reconciled) return NextResponse.json({ error: data?.error || "Rebound SEO could not verify this WordPress post." }, { status: 502 });
 
-  const evidence = data.verificationEvidence && typeof data.verificationEvidence === "object" && !Array.isArray(data.verificationEvidence)
-    ? data.verificationEvidence as Record<string, unknown>
-    : {};
-  const schedule = wordpressPublishingScheduleUpdate({
+  const preliminaryEvidence = data.verificationEvidence && typeof data.verificationEvidence === "object" && !Array.isArray(data.verificationEvidence)
+    ? data.verificationEvidence as Record<string, unknown> : {};
+  const preliminarySchedule = wordpressPublishingScheduleUpdate({
     publicationStatus: data.publicationStatus,
-    remoteStatus: typeof evidence.remoteStatus === "string" ? evidence.remoteStatus : null,
+    remoteStatus: typeof preliminaryEvidence.remoteStatus === "string" ? preliminaryEvidence.remoteStatus : null,
     remotePermalink: data.remotePermalink,
-    verificationReason: typeof evidence.reason === "string" ? evidence.reason : null,
+    verificationReason: typeof preliminaryEvidence.reason === "string" ? preliminaryEvidence.reason : null,
   });
-  if (!schedule.published) {
+  if (!preliminarySchedule.published) {
     return NextResponse.json({ verified: false, state: "scheduled", publicationStatus: data.publicationStatus ?? "unknown" }, { headers: { "Cache-Control": "no-store" } });
   }
+
+  const { data: receipts, error: receiptError } = await db.readCmsTransferStates();
+  if (receiptError || !Array.isArray(receipts)) return NextResponse.json({ error: "WordPress was checked, but Rebound SEO could not read the saved publishing result." }, { status: 503 });
+  const receipt = matchingWordPressPublication(receipts, {
+    articleKey: item.article_key,
+    publicationStatus: data.publicationStatus,
+    remoteId: typeof item.remote_id === "string" ? item.remote_id : null,
+    remoteEditUrl: typeof item.remote_edit_url === "string" ? item.remote_edit_url : null,
+    remotePermalink: data.remotePermalink,
+  });
+  if (!receipt) return NextResponse.json({ error: "The WordPress result does not match this exact calendar post. No status was changed." }, { status: 409 });
+  const evidence = receipt.verificationEvidence && typeof receipt.verificationEvidence === "object" && !Array.isArray(receipt.verificationEvidence)
+    ? receipt.verificationEvidence as Record<string, unknown> : preliminaryEvidence;
+  const schedule = wordpressPublishingScheduleUpdate({
+    publicationStatus: typeof receipt.publicationStatus === "string" ? receipt.publicationStatus : data.publicationStatus,
+    remoteStatus: typeof receipt.remoteStatus === "string" ? receipt.remoteStatus : null,
+    remotePermalink: typeof receipt.remotePermalink === "string" ? receipt.remotePermalink : data.remotePermalink,
+    verificationReason: typeof evidence.reason === "string" ? evidence.reason : null,
+  });
 
   const update = {
     state: schedule.state,

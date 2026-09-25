@@ -92,6 +92,32 @@ export function wordpressPublishingScheduleUpdate(input: {
   return { verified: false, published: false, state: "scheduled" as const, remotePermalink: null, lastError: null };
 }
 
+export function matchingWordPressPublication(receipts: unknown[], input: {
+  articleKey: string;
+  publicationStatus?: string | null;
+  remoteId?: string | null;
+  remoteEditUrl?: string | null;
+  remotePermalink?: string | null;
+}) {
+  const expectedPermalink = input.remotePermalink?.trim();
+  if (!expectedPermalink || !input.remoteId || !input.remoteEditUrl) return null;
+  try {
+    const expectedPublicUrl = new URL(expectedPermalink);
+    const expectedEditor = new URL(input.remoteEditUrl);
+    if (expectedPublicUrl.protocol !== "https:" || expectedPublicUrl.origin !== expectedEditor.origin) return null;
+    return receipts.find((value) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+      const receipt = value as Record<string, unknown>;
+      if (receipt.provider !== "wordpress" || receipt.articleKey !== input.articleKey || receipt.remoteStatus !== "publish") return false;
+      if (receipt.publicationStatus !== input.publicationStatus || receipt.remotePermalink !== expectedPublicUrl.toString()) return false;
+      const editUrl = typeof receipt.remoteEditUrl === "string" ? receipt.remoteEditUrl : null;
+      return wordpressRemoteIdFromEditUrl(editUrl) === input.remoteId && new URL(editUrl!).origin === expectedEditor.origin;
+    }) as Record<string, unknown> | undefined ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function needsWordPressScheduleVerification(
   item: Pick<PublishingScheduleItemRecord, "content_type" | "state" | "scheduled_for" | "remote_id">,
   websitePlatform: string | null,

@@ -145,13 +145,14 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
   if (!base || !context.website) return null;
   try {
     const scoped = await scopedClient(context.website.id);
-    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }] = await Promise.all([
+    const [schedule, { data: drafts, error: draftError }, { data: approvedKeywords, error: keywordError }, { data: preferences }, receipts] = await Promise.all([
       latestPlanAndItems(context),
-      scoped.select("article_drafts", "id,website_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
+      scoped.select("article_drafts", "id,website_id,audit_id,keyword,draft,updated_at").order("updated_at", { ascending: false }),
       scoped.select("keyword_preferences", "id,keyword,updated_at").eq("decision", "approved").order("updated_at", { ascending: false }),
       scoped.select("notification_preferences", "timezone").limit(1),
+      publicationReceipts(context),
     ]);
-    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id, schedule.items);
+    const draftOptions = approvedCalendarDrafts(drafts ?? [], context.website.id, schedule.items, receipts);
     const approvedDrafts = draftError
       ? failed<ApprovedCalendarDraft[]>("Approved drafts could not be loaded for Calendar.")
       : draftOptions.length
@@ -161,7 +162,7 @@ export async function loadReboundCalendar(): Promise<ReboundCalendarView | null>
     const planTimezone = typeof schedule.plan?.timezone === "string" && schedule.plan.timezone.trim() ? schedule.plan.timezone : savedPreferenceTimeZone;
     const calendarView = schedule.error || keywordError
       ? failed<CalendarView>("The saved publishing calendar could not be loaded.")
-      : ready(buildCalendarView({ approvedKeywords: approvedKeywords ?? [], items: schedule.items, timeZone: planTimezone }));
+      : ready(buildCalendarView({ approvedKeywords: approvedKeywords ?? [], items: schedule.items, receipts, timeZone: planTimezone }));
     return { ...base, approvedDrafts, calendarView, planTimezone };
   } catch {
     return {

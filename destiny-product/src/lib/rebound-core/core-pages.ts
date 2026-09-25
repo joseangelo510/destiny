@@ -158,8 +158,20 @@ export type CalendarRow = {
   overdue: boolean;
 };
 
-export function approvedCalendarDrafts(rows: unknown[], websiteId: string, scheduleItems: unknown[] = []): ApprovedCalendarDraft[] {
+function publishedWordPressReceipt(raw: unknown) {
+  const receipt = record(raw);
+  return text(receipt.provider) === "wordpress" && text(receipt.remoteStatus) === "publish" && Boolean(text(receipt.articleKey));
+}
+
+function receiptKeyword(raw: unknown) {
+  const articleKey = text(record(raw).articleKey);
+  const separator = articleKey.indexOf(":");
+  return separator < 0 ? "" : normalized(articleKey.slice(separator + 1));
+}
+
+export function approvedCalendarDrafts(rows: unknown[], websiteId: string, scheduleItems: unknown[] = [], receipts: unknown[] = []): ApprovedCalendarDraft[] {
   const scheduledKeywords = new Set(scheduleItems.map((raw) => normalized(text(record(raw).keyword))).filter(Boolean));
+  const publishedArticleKeys = new Set(receipts.filter(publishedWordPressReceipt).map((raw) => text(record(raw).articleKey)));
   return rows.flatMap((raw): ApprovedCalendarDraft[] => {
     const row = record(raw);
     if (text(row.website_id) !== websiteId) return [];
@@ -167,19 +179,21 @@ export function approvedCalendarDrafts(rows: unknown[], websiteId: string, sched
     const id = text(row.id);
     const keyword = text(row.keyword) || text(draft.keyword);
     const title = text(draft.title);
-    if (!id || !keyword || !title || draft.approved !== true || scheduledKeywords.has(normalized(keyword))) return [];
+    const articleKey = `${text(row.audit_id)}:${keyword}`;
+    if (!id || !keyword || !title || draft.approved !== true || scheduledKeywords.has(normalized(keyword)) || publishedArticleKeys.has(articleKey)) return [];
     return [{ id, keyword, title }];
   });
 }
 
-export function approvedKeywordCalendarSuggestions(rows: unknown[], scheduleItems: unknown[] = []): NonNullable<CalendarSummary["suggestions"]> {
+export function approvedKeywordCalendarSuggestions(rows: unknown[], scheduleItems: unknown[] = [], receipts: unknown[] = []): NonNullable<CalendarSummary["suggestions"]> {
   const seen = new Set<string>();
   const scheduledKeywords = new Set(scheduleItems.map((raw) => normalized(text(record(raw).keyword))).filter(Boolean));
+  const publishedKeywords = new Set(receipts.filter(publishedWordPressReceipt).map(receiptKeyword).filter(Boolean));
   return rows.flatMap((raw, index) => {
     const row = record(raw);
     const keyword = text(row.keyword);
     const key = normalized(keyword);
-    if (!keyword || seen.has(key) || scheduledKeywords.has(key)) return [];
+    if (!keyword || seen.has(key) || scheduledKeywords.has(key) || publishedKeywords.has(key)) return [];
     seen.add(key);
     return [{
       id: text(row.id) || `approved-topic-${index}-${key.replaceAll(" ", "-")}`,
@@ -266,7 +280,7 @@ function scheduleItemIsOverdue(row: JsonRecord, now: Date) {
   return Number.isFinite(scheduledAt) && scheduledAt < now.getTime();
 }
 
-export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; timeZone?: string; now?: Date }) {
+export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: unknown[]; receipts?: unknown[]; timeZone?: string; now?: Date }) {
   const now = input.now ?? new Date();
   const anchorDate = calendarLocalDateKey(now, input.timeZone ?? "UTC");
   const rows = input.items.flatMap((raw, index): CalendarRow[] => {
@@ -297,7 +311,7 @@ export function buildCalendarView(input: { items: unknown[]; approvedKeywords?: 
     state: row.state,
     tone: row.state === "verified_live" ? "verified" as const : row.state === "needs_review" || row.state === "published_unverified" || row.state === "failed" ? "move" as const : "automatic" as const,
   }));
-  const suggestions = approvedKeywordCalendarSuggestions(input.approvedKeywords ?? [], input.items);
+  const suggestions = approvedKeywordCalendarSuggestions(input.approvedKeywords ?? [], input.items, input.receipts ?? []);
   const needs = rows.find((row) => row.state === "published_unverified") ?? rows.find((row) => row.state === "needs_review") ?? rows.find((row) => row.overdue);
   return {
     calendar: { month: monthLabelFromDateKey(anchorDate), anchorDate, events, suggestions } satisfies CalendarSummary,
