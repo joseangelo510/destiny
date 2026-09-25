@@ -19,7 +19,9 @@ export default async function RankTrackerPage() {
     context.supabase.from("tracked_keywords").select("id,keyword,list_id,status,source,created_at,last_checked_at").eq("website_id", context.website.id).order("created_at"),
     context.supabase.from("rank_observations").select("tracked_keyword_id,observed_at,found,position,result_url").eq("website_id", context.website.id).order("observed_at", { ascending: false }).limit(2000),
     context.supabase.from("keyword_preferences").select("normalized_keyword", { count: "exact" }).eq("website_id", context.website.id).eq("decision", "approved"),
-    (context.supabase as unknown as SupabaseClient).from("article_drafts").select("id", { count: "exact", head: true }).eq("website_id", context.website.id),
+    context.audit
+      ? (context.supabase as unknown as SupabaseClient).from("article_drafts").select("id", { count: "exact", head: true }).eq("website_id", context.website.id).eq("audit_id", context.audit.id)
+      : Promise.resolve({ count: 0 }),
     (context.supabase as unknown as SupabaseClient).from("notification_preferences").select("ranking_digest_frequency").eq("website_id", context.website.id).maybeSingle(),
     loadWebsiteEntitlement(context.website.id),
   ]);

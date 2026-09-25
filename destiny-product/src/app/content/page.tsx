@@ -17,7 +17,7 @@ import { normalizeTrackedKeyword } from "@/lib/seo/rank-tracker";
 import { buildRepurposeArticleDraft } from "@/lib/content/repurpose-handoff";
 import { parseInterviewArticleDraft } from "@/lib/interviews/interviews";
 import type { PublishingPlanRecord, PublishingScheduleItemRecord } from "@/lib/content/publishing-plan";
-import { contentWorkspaceEmptyState } from "@/lib/content/content-workspace";
+import { contentWorkflowProgress, contentWorkspaceEmptyState } from "@/lib/content/content-workspace";
 import { getWorkspaceContext, list, providerResultFromMetrics, record } from "@/lib/workspace-context";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -136,6 +136,11 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   }, 3, params.keyword);
   const hydratedArticleDrafts = mergePersistedArticleDrafts(articleDraftSeeds, savedArticleDrafts);
   const generatedArticleCount = hydratedArticleDrafts.filter((draft) => draft.generationStatus === "generated").length;
+  const workflowProgress = contentWorkflowProgress({
+    directSource: interviewArticleDraft ? "interview" : repurposeArticleDraft ? "repurpose" : null,
+    generatedDraftCount: generatedArticleCount,
+    weeklyDraftCount: hydratedArticleDrafts.length,
+  });
   const { data: cmsTransferRows } = context.website
     ? await (context.supabase as unknown as SupabaseClient).rpc("read_cms_transfer_states", { p_website_id: context.website.id })
     : { data: [] };
@@ -178,12 +183,12 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
 
   return (
     <WorkspaceShell active="/content" eyebrow={context.website?.normalized_domain ?? "Rebound SEO workspace"} title="Content creation" description="Review three editable articles this week, then approve CMS delivery or download Word documents for your team.">
-      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={generatedArticleCount} watchedKeywords={watchlistCount} />
+      <StrategyPipelineStrip active="content" approvedKeywords={approvedKeywordCount} contentDrafts={savedArticleDraftRows?.length ?? 0} watchedKeywords={watchlistCount} />
       {params.strategy === "complete" && <div aria-live="polite" className="integration-banner success" role="status"><strong>Keyword strategy saved</strong><p>Your approved searches are now powering the three-month content plan below.</p></div>}
       <FeatureJourneyCallout actionHref="#article-review-workspace" actionLabel="Review the first article" milestone="Get ready to be found" description="Turn an approved keyword into one useful, reviewable article." doneLooksLike="A draft is approved for CMS delivery or saved as an editable document." evidence="Your approval and delivery result; search performance remains separately verified." />
       {emptyState ? <WorkspaceEmpty title={emptyState.title} description={emptyState.description} /> : (
         <>
-        <section className="workspace-card content-workflow"><div><span>1</span><strong>{interviewArticleDraft ? "Interview draft ready" : repurposeArticleDraft ? "Repurposed draft ready" : "Three outlines ready"}</strong><small>{interviewArticleDraft ? "Built from your exact interview answers" : repurposeArticleDraft ? "Loaded from your saved source" : "Built from your keyword strategy"}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
+        <section className="workspace-card content-workflow"><div><span>1</span><strong>{workflowProgress.label}</strong><small>{workflowProgress.detail}</small></div><div className={approvalQuest?.status === "complete" ? "done" : "active"}><span>2</span><strong>Generate, review & approve</strong><small>Research-backed drafts with your direction</small></div><div><span>3</span><strong>Choose delivery</strong><small>CMS connection or editable Word document</small></div><div className="content-workflow-actions"><Link className="secondary-button" href="/integrations">Connect CMS</Link></div></section>
         {strategyContentReady && <PublishingPlanManager
           approvedKeywordCount={approvedKeywordCount}
           websiteId={context.website?.id ?? ""}

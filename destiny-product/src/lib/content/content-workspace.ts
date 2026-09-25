@@ -6,6 +6,35 @@ export type ContentWorkspaceEmptyStateInput = {
   selectedKeywordCount: number;
 };
 
+export type ContentWorkflowProgressInput = {
+  directSource: "interview" | "repurpose" | null;
+  generatedDraftCount: number;
+  weeklyDraftCount: number;
+};
+
+function plural(count: number, singular: string, pluralForm = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+export function contentWorkflowProgress(input: ContentWorkflowProgressInput) {
+  if (input.directSource === "interview") return {
+    detail: "Built from your exact interview answers",
+    label: "Interview draft ready",
+  };
+  if (input.directSource === "repurpose") return {
+    detail: "Loaded from your saved source",
+    label: "Repurposed draft ready",
+  };
+
+  const generated = Math.max(0, Math.min(input.generatedDraftCount, input.weeklyDraftCount));
+  const remaining = Math.max(0, input.weeklyDraftCount - generated);
+  let label = `${plural(input.weeklyDraftCount, "topic")} ready to draft`;
+  if (generated === input.weeklyDraftCount && generated > 0) label = `${plural(generated, "full draft")} ready`;
+  else if (generated > 0) label = `${plural(generated, "full draft")} · ${plural(remaining, "topic")} ready`;
+
+  return { detail: "Built from your keyword strategy", label };
+}
+
 export function contentWorkspaceEmptyState(input: ContentWorkspaceEmptyStateInput) {
   if (input.directDraft || input.savedDraftCount > 0) return null;
   if (input.rankedKeywordCount < 1) return {
