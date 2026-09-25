@@ -3,7 +3,7 @@ import { CelebrationControls } from "./celebration-controls";
 import { SeasonRecap } from "./founder-journey";
 import type { SeasonSnapshot } from "../lib/product/founder-journey";
 import type { buildSeoRoadmap } from "../lib/product/roadmap";
-import type { buildWeeklyProgressSummary } from "../lib/quests/streak";
+import { displayWeekNumber, type buildWeeklyProgressSummary } from "../lib/quests/streak";
 
 type RoadmapExperienceProps = {
   roadmap: Awaited<ReturnType<typeof buildSeoRoadmap>>;
@@ -12,7 +12,7 @@ type RoadmapExperienceProps = {
 };
 
 export function RoadmapExperience({ roadmap, season, weekly }: RoadmapExperienceProps) {
-  const weekNumber = Math.max(1, weekly.lifetimeActiveWeeks + 1);
+  const weekNumber = displayWeekNumber(weekly.lifetimeActiveWeeks);
   const markerProgress = roadmap.pathProgress;
   const markerPosition = Math.max(7, Math.min(93, 7 + markerProgress * .86));
   const markerY = 28 - 22 * Math.pow(markerProgress / 100, 1.35);

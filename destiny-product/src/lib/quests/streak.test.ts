@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWeeklyProgressSummary, weeklyProgressPolicyInput } from "./streak";
+import { buildWeeklyProgressSummary, displayWeekNumber, weeklyProgressPolicyInput } from "./streak";
 import { REAL_USER_ZERO_HISTORY } from "./fixtures/real-user-zero-history";
 
 describe("LOGOS weekly momentum", () => {
@@ -13,6 +13,13 @@ describe("LOGOS weekly momentum", () => {
     { audit_id: "audit-c", week_number: 1, task_type: "content_review", status: "todo", completed_at: null, created_at: "2026-08-03T10:00:00Z" },
     { audit_id: "audit-c", week_number: 1, task_type: "business_confirmation", status: "todo", completed_at: null, created_at: "2026-08-03T10:00:00Z" },
   ];
+
+  it("uses one shared display week across planning surfaces", () => {
+    expect(displayWeekNumber(0)).toBe(1);
+    expect(displayWeekNumber(1)).toBe(2);
+    expect(displayWeekNumber(12)).toBe(13);
+    expect(displayWeekNumber(99)).toBe(13);
+  });
 
   it("marshals Monday UTC week indexes and plan counts without calculating the streak", () => {
     expect(weeklyProgressPolicyInput(tasks, now)).toEqual({

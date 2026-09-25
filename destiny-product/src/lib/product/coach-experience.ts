@@ -148,14 +148,18 @@ export function isReviewTask(task: { task_type: string; category?: string | null
     || /^(?:get|request) reviews?\b/i.test(title);
 }
 
+function publicProductCopy(value: string | null | undefined, fallback: string) {
+  return (value?.trim() || fallback).replace(/\bDestiny\b/g, "Rebound SEO");
+}
+
 export function coachingTaskCopy(task: { title?: string | null; description?: string | null; task_type: string; category?: string | null }) {
   if (!isReviewTask(task)) return {
-    title: task.title?.trim() || "Complete the recommended task",
-    description: task.description?.trim() || "Complete this step to move your work forward.",
+    title: publicProductCopy(task.title, "Complete the recommended task"),
+    description: publicProductCopy(task.description, "Complete this step to move your work forward."),
   };
   return {
     title: "Get reviews",
-    description: (task.description?.trim() || "Build customer trust with reviews on the platforms that matter for your business.")
+    description: publicProductCopy(task.description, "Build customer trust with reviews on the platforms that matter for your business.")
       .replace(/\bGoogle reviews?\b/gi, "reviews")
       .replace(/\blocal trust\b/gi, "customer trust"),
   };

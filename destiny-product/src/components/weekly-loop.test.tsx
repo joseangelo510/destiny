@@ -73,7 +73,7 @@ describe("WeeklyLoop", () => {
         task({ id: "technical-follow-up", title: "Review the technical findings", task_type: "technical_review", action_path: "/audits/audit-1#technical-evidence" }),
       ] }
       : group);
-    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} currentTaskId="content-task" groups={mapGroups} remainingTasks={4} />);
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={2} currentTaskId="content-task" groups={mapGroups} remainingTasks={4} siteId="site-1" />);
 
     expect(html).toContain("Choose a category to see its complete checklist.");
     expect(html).not.toContain("Four kinds of work build your visibility");
@@ -91,7 +91,7 @@ describe("WeeklyLoop", () => {
     expect((html.match(/0 of 5 weekly tasks complete/g) ?? []).length).toBeGreaterThanOrEqual(1);
     expect(html).not.toContain("Data analysis");
     expect(html).toContain("See full audit details");
-    expect(html).toContain('href="/audits/audit-1"');
+    expect(html).toContain('href="/audits/audit-1?site=site-1"');
   });
 
   it("keeps empty categories visible and labels their checklist honestly", () => {
@@ -137,7 +137,7 @@ describe("WeeklyLoop", () => {
   });
 
   it("keeps the one-time post-audit plan reveal available", () => {
-    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} initialRevealOpen remainingTasks={2} />);
+    const html = renderToStaticMarkup(<WeeklyLoop auditId="audit-1" currentStreak={0} groups={groups} initialRevealOpen remainingTasks={2} siteId="site-1" />);
 
     expect(html).toContain("Your audit is complete");
     expect(html).toContain("Your audit is done. Here’s your plan.");
@@ -145,7 +145,7 @@ describe("WeeklyLoop", () => {
     expect(html).toContain("Start: Approve your priority keywords");
     expect(html).toContain("Start here — your next move is based on what the audit found.");
     expect(html).toContain("See full audit details");
-    expect(html).toContain('href="/audits/audit-1"');
+    expect(html).toContain('href="/audits/audit-1?site=site-1"');
     expect(html).toContain("Replay plan reveal");
   });
 
